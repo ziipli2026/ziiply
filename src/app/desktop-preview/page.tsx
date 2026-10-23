@@ -817,10 +817,10 @@ export default function DesktopPreviewPage() {
     // Compare the product identity, not retail-chain brand labels or grammatical endings.
     // Attribute and package compatibility are checked separately before this helper.
     const tokens=(value:string)=>String(value).toLocaleLowerCase("fi")
-      .replace(/^(?:(?:kotimaista|coop|xtra|rainbow|pirkka|k-menu|eldorado|first price)\s+)+/i,"")
+      .replace(/^(?:(?:kotimaista|coop|xtra|rainbow|pirkka|k-menu|eldorado|first price|meira|santa maria)\s+)+/i,"")
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ")
       .replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/)
-      .filter(w=>w.length>=3&&!["msc","luomu","suomi","suomalainen"].includes(w));
+      .filter(w=>w.length>=3&&!["msc","luomu","suomi","suomalainen","pussi","purkki","mauste"].includes(w));
     const stem=(word:string)=>word.replace(/(eet|eiden|iden|ien|et|en|ja|jä|t)$/u,"");
     const sourceWords=tokens(source),candidateWords=tokens(candidate);
     if(!sourceWords.length||!candidateWords.length)return false;
