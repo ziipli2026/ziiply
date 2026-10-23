@@ -41,10 +41,20 @@ const flags = (product: string, food: string): string[] => {
 const reviewPriority = (product: string, food: string, decision: string): string => {
   if (decision !== 'MANUAL_REVIEW') return decision;
   const p = product.toLowerCase(), f = food.toLowerCase();
-  const simple = /^(?:omena|banaani|porkkana|peruna|sipuli|valkosipuli|kurkku|tomaatti|paprika|appelsiini|sitruuna|lime|päärynä|siika|lohi|kirjolohi|maksa|kaurahiutale|vehnäjauho)/i;
-  const disqualify = /maustettu|kastike|ateria|valmis|täyte|seos|sekoitus|jauheliha|pihvi|makkara|pasta|pizza|pitsa|pinsa|keitto|salaatti|leipä|juusto|rasvaa|kevyt|laktoositon|gluteeniton/i;
-  if (simple.test(p) && !disqualify.test(p) && !disqualify.test(f)) return 'PRIORITY_SIMPLE_REVIEW';
-  return 'COMPOSITION_REVIEW';
+  const categories: Array<[string, RegExp]> = [
+    ['PRODUCE', /omena|banaani|porkkana|peruna|sipuli|valkosipuli|kurkku|tomaatti|paprika|appelsiini|sitruuna|lime|päärynä|marja|mansikka|mustikka|vadelma/],
+    ['FISH', /siika|lohi|kirjolohi|silakka|ahven|kuha|seiti|turska/],
+    ['MEAT', /nauta|sika|broileri|kana|kalkkuna|maksa|jauheliha/],
+    ['GRAINS', /kaura|vehnä|ruis|ohra|riisi|jauho|hiutale|suurimo/],
+    ['DAIRY', /maito|kerma|jogurtti|viili|rahka|juusto|voi/],
+  ];
+  const matched = categories.filter(([,pattern]) => pattern.test(p) && pattern.test(f)).map(([name])=>name);
+  // Category matches are routing hints, not evidence that nutrients are interchangeable.
+  if (matched.length !== 1) return 'COMPOSITION_REVIEW';
+  const category = matched[0];
+  const multiIngredient = /kastike|ateria|valmis|täyte|seos|sekoitus|pizza|pitsa|pinsa|keitto|salaatti|piirakka|pata|muhennos|leipä|makkara|maustettu|marinoitu/;
+  if (multiIngredient.test(p) || multiIngredient.test(f)) return 'COMPOSITION_REVIEW';
+  return 'CATEGORY_' + category + '_REVIEW';
 };
 const needsVerification = new Set(['mince_fat_percentage_unverified','light_vs_fat_free']);
 let flagged=0;
