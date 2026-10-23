@@ -105,7 +105,17 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
   // Use Tjek only if the verified store feed is unavailable. Never let an
   // obsolete Tjek publication replace current K-Ruoka store campaigns.
-  return (primary.length ? primary : fallback).map(normalizeTjekPackagePrice);
+  // An explicitly verified successful empty K-Ruoka scan is authoritative too.
+  // Older snapshots without a scan status remain backward-compatible: they
+  // only suppress Tjek when they contain active, store-verified offers.
+  const primarySnapshot = isHyvinkaa ? await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") : null;
+  const verifiedEmpty = isHyvinkaa && Array.isArray(primarySnapshot) && primarySnapshot.length === 1
+    && primarySnapshot[0]?.source === "K-Ruoka verified empty scan"
+    && primarySnapshot[0]?.storeId === "N183"
+    && primarySnapshot[0]?.scanStatus === "success-empty"
+    && Number.isFinite(Date.parse(String(primarySnapshot[0]?.verifiedAt ?? "")))
+    && Date.now() - Date.parse(String(primarySnapshot[0]?.verifiedAt)) < 60 * 60 * 1000;
+  return (primary.length || verifiedEmpty ? primary : fallback).map(normalizeTjekPackagePrice);
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
