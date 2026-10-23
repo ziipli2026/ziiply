@@ -99,7 +99,8 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           && normalize(row.storeName) === "k citymarket hyvinkaa"
           && isActiveOffer(row, now))
     : [];
-  const fallback = (await readPublishedSnapshot(key) ?? [])
+  const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
+  const fallback = (await readPublishedSnapshot(fallbackKey) ?? [])
     .filter(row => isActiveOffer(row, now)
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
