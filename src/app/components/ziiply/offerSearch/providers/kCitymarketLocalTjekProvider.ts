@@ -109,6 +109,8 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
 export async function refreshKCitymarketSelectedStoreSnapshot(selectedStoreName: string): Promise<Row[]> {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL missing; cannot publish campaign snapshot");
   const key = normalize(selectedStoreName);
+  // The Tjek refresher must never overwrite the verified K-Ruoka N183 feed.
+  if (key.startsWith("k ruoka ")) throw new Error("Tjek refresh cannot write a K-Ruoka snapshot key");
   const entry = { rows: [] as Row[], startedAt: Date.now(), finishedAt: 0, running: true,
     progress: { stage: "starting", storeName: selectedStoreName, storeId: null, publicationIds: [] as string[], pages: 0, offerIds: 0, accepted: 0, error: null as string | null, updatedAt: new Date().toISOString() } };
   localCache.set(key, entry);
