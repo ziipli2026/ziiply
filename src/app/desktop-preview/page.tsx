@@ -750,6 +750,12 @@ export default function DesktopPreviewPage() {
       const amount=Number(last[1]),unit=last[2];
       return {kind:unit==="kg"||unit==="g"?"mass":unit==="kpl"?"count":"volume",amount:amount*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1)};
     };
+    // A multi-pack is not the same retail unit as a single pack of its component size.
+    const multipack=(name:string)=>String(name).toLocaleLowerCase("fi")
+      .match(/\b(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(kg|g|l|dl|ml|kpl)\b/);
+    const sourceMulti=multipack(source),candidateMulti=multipack(candidate);
+    if(Boolean(sourceMulti)!==Boolean(candidateMulti))return false;
+    if(sourceMulti&&candidateMulti&&Number(sourceMulti[1])!==Number(candidateMulti[1]))return false;
     const a=measure(source),b=measure(candidate);
     return a!==null&&b!==null&&a.kind===b.kind&&a.amount===b.amount;
   }
