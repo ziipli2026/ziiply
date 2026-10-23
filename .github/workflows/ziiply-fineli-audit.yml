@@ -16,4 +16,12 @@ jobs:
       - name: Read-only audit
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: npx tsx scripts/ziiply-fineli-audit-pending.mts
+        run: |
+          mkdir -p fineli-audit
+          npx tsx scripts/ziiply-fineli-audit-pending.mts | tee fineli-audit/pending-review.jsonl
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: fineli-pending-review
+          path: fineli-audit/pending-review.jsonl
+          retention-days: 30
