@@ -22,4 +22,5 @@ for (const term of [
 const ratio = /\b\d+(?:[.,]\d+)?\s*%\s*\/\s*\d+(?:[.,]\d+)?\s*%/g;
 assert.equal('nauta-sika jauheliha (50%/50%)'.replace(ratio,'' ).match(percent), null, 'species ratio must not be read as fat');
 assert.equal('sika-nauta jauheliha 23%'.replace(ratio,'').match(percent)[1], '23', 'actual fat percentage must remain');
+assert.equal(source.includes('\\n    const '), false, 'literal newline escapes must not appear before declarations');
 console.log('Fineli candidate guard regression OK');
