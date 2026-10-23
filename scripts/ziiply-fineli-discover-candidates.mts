@@ -99,6 +99,11 @@ const broadRules: Array<{ category: string; pattern: RegExp; fineliId: number }>
   { category: "raw_potato", pattern: /^(?:pirkka |coop |xtra |kotimaista )?(?:suomalainen )?(?:jauhoinen |kiinteä )?peruna(?: 1lk)?$/i, fineliId: 205 },
   { category: "cane_sugar", pattern: /^(?:pirkka |coop |xtra |dansukker )?(?:tumma |vaalea )?(?:muscovado )?ruokosokeri$/i, fineliId: 1 },
   { category: "plain_carrot", pattern: /^(?:pirkka |coop |xtra |kotimaista )?(?:suomalainen |luomu )?porkkana(?:nippu pakattu)?$/i, fineliId: 300 },
+  { category: "plain_oat_flakes", pattern: /^(?:pirkka |coop |xtra |kotimaista |myllärin |elovena )?(?:luomu )?(?:iso |pieni |pikainen )?kaurahiutale(?:et)?(?: luomu)?$/i, fineliId: 153 },
+  { category: "plain_honey", pattern: /^(?:pirkka |coop |xtra |kotimaista )?(?:suomalainen |luomu |juokseva )?hunaja(?: luomu)?$/i, fineliId: 4 },
+  { category: "plain_onion", pattern: /^(?:pirkka |coop |xtra |kotimaista )?(?:suomalainen |luomu |keltainen )?sipuli(?: luomu)?$/i, fineliId: 335 },
+  { category: "plain_cucumber", pattern: /^(?:pirkka |coop |xtra |kotimaista )?(?:suomalainen |luomu )?kurkku(?: luomu)?$/i, fineliId: 346 },
+  { category: "plain_tomato", pattern: /^(?:pirkka |coop |xtra |kotimaista )?(?:suomalainen |luomu )?tomaatti(?: luomu)?$/i, fineliId: 352 },
   { category: "plain_sugar", pattern: /^(?:pirkka |coop |xtra |dansukker )?(?:hieno |talous )?sokeri$/i, fineliId: 1 },
 ];
 const broadFineliIds = [...new Set(broadRules.map(rule => rule.fineliId))];
@@ -121,7 +126,7 @@ for (;;) {
     const raw = String(product.name ?? "").toLowerCase().trim();
     const brand = String(product.brand ?? "").toLowerCase().trim();
     const unbranded = brand && raw.startsWith(brand + " ") ? raw.slice(brand.length + 1) : raw;
-    const cleaned = unbranded.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g)\b/gi, " ").replace(/\s+/g, " ").trim();
+    const cleaned = unbranded.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l|kpl|pkt|pss)\b/gi, " ").replace(/\b(?:suomi|kotimainen|kotimaiset|pakattu|pakkaus)\b/gi, " ").replace(/\s+/g, " ").trim();
     const matching = broadRules.filter(rule => availableIds.has(rule.fineliId) && rule.pattern.test(cleaned));
     // Ambiguous category matches must not become candidates.
     if (matching.length !== 1) return [];
