@@ -19,10 +19,36 @@ jobs:
       - name: Refresh and verify N183 store campaigns
         env:
           KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
+        shell: bash
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "::error::KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
-          echo "## N183 campaign refresh" >> "$GITHUB_STEP_SUMMARY"
-          curl --fail-with-body --show-error --max-time 270 --retry 2 --retry-delay 5 \
+          response="$RUNNER_TEMP/kcitymarket-n183.json"
+          status=$(curl --silent --show-error --max-time 270 \
+            -o "$response" -w '%{http_code}' \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
-            "https://ziiply.vercel.app/api/cron/kcitymarket-campaign-refresh"
+            "https://ziiply.vercel.app/api/cron/kcitymarket-campaign-refresh") || status="000"
+          echo "N183 endpoint HTTP: $status"
+          node - "$response" "$GITHUB_STEP_SUMMARY" "$status" <<'NODE'
+          const fs = require("node:fs");
+          const [file, summary, http] = process.argv.slice(2);
+          let data = {};
+          try { data = JSON.parse(fs.readFileSync(file, "utf8")); } catch {}
+          const probe = data.probe || {};
+          const lines = [
+            "## K-Citymarket Hyvinkää — N183",
+            "| Check | Result |",
+            "|---|---|",
+            "| Endpoint HTTP | " + http + " |",
+            "| Verified active K-Ruoka offers | " + (data.verifiedKruokaCount ?? "unknown") + " |",
+            "| K-Ruoka probe | " + (probe.status ?? "not reported") + " |",
+            "| K-Ruoka upstream HTTP | " + (probe.httpStatus ?? "unknown") + " |",
+            "| Tjek refresh | " + (data.tjek?.ok === true ? "OK" : "FAILED / UNKNOWN") + " |",
+            "| Overall | " + (data.ok === true ? "OK" : "FAILED") + " |",
+            "",
+            "Error: " + String(data.error ?? data.tjek?.error ?? "none")
+          ];
+          fs.appendFileSync(summary, lines.join("\n") + "\n");
+          console.log(lines.join("\n"));
+          if (http !== "200" || data.ok !== true || data.verifiedKruokaCount < 5) process.exitCode = 1;
+          NODE
