@@ -37,6 +37,22 @@ const flags = (product: string, food: string): string[] => {
   const foodType = dairyTypes.find(t => new RegExp('\\b' + t).test(food));
   if (productType && foodType && productType !== foodType) issues.push('dairy_subtype_mismatch');
   if (productType && foodType && /laktoositon/.test(product) !== /laktoositon/.test(food)) issues.push('dairy_lactose_variant_mismatch');
+  // Explicit dairy fat percentages require verification on both sides.
+  // Generic percentages in unrelated products are intentionally excluded.
+  if (productType && foodType) {
+    const dairyFat = (s: string) => {
+      const explicit = s.match(/rasvaa?\\s*(\\d+(?:[.,]\\d+)?)\\s*%/);
+      const plain = s.match(/(?:^|\\s)(\\d+(?:[.,]\\d+)?)\\s*%/);
+      const value = explicit?.[1] ?? plain?.[1];
+      return value === undefined ? null : Number(value.replace(',','.'));
+    };
+    const productFat = dairyFat(product);
+    const foodFat = dairyFat(food);
+    if (productFat !== null && foodFat !== null && Math.abs(productFat - foodFat) > 0.1)
+      issues.push('dairy_fat_percentage_mismatch');
+    if (productFat !== null && foodFat === null)
+      issues.push('dairy_fat_percentage_unverified');
+  }
   // A ratio such as (50%/50%) describes meat species, not fat content.
   if (/jauheliha/.test(product) && /\d+(?:[.,]\d+)?\s*%/.test(withoutBlendRatio) && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/.test(food)) issues.push('mince_fat_percentage_unverified');
   const f = food.match(/rasvaa\s*(\d+(?:[.,]\d+)?)\s*%/);
@@ -62,7 +78,7 @@ const reviewPriority = (product: string, food: string, decision: string): string
   if (multiIngredient.test(p) || multiIngredient.test(f)) return 'COMPOSITION_REVIEW';
   return 'CATEGORY_' + category + '_REVIEW';
 };
-const needsVerification = new Set(['mince_fat_percentage_unverified','light_vs_fat_free']);
+const needsVerification = new Set(['mince_fat_percentage_unverified','light_vs_fat_free','dairy_fat_percentage_unverified']);
 let flagged=0;
 let conflicts=0;
 let verifyOnly=0;
