@@ -121,7 +121,7 @@ for (;;) {
     const raw = String(product.name ?? "").toLowerCase().trim();
     const brand = String(product.brand ?? "").toLowerCase().trim();
     const unbranded = brand && raw.startsWith(brand + " ") ? raw.slice(brand.length + 1) : raw;
-    const cleaned = unbranded.replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g)\\b/gi, " ").replace(/\\s+/g, " ").trim();
+    const cleaned = unbranded.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g)\b/gi, " ").replace(/\s+/g, " ").trim();
     const matching = broadRules.filter(rule => availableIds.has(rule.fineliId) && rule.pattern.test(cleaned));
     // Ambiguous category matches must not become candidates.
     if (matching.length !== 1) return [];
