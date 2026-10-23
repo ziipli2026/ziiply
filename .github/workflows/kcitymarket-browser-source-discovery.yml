@@ -22,6 +22,38 @@ jobs:
         run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund playwright
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Probe N183 product API separately from blocked storefront
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const {spawnSync} = require('node:child_process');
+          const endpoint = 'https://www.k-ruoka.fi/kr-api/v2/product-search/kahvi?offset=0&language=fi&storeId=N183&limit=2&discountFilter=false&isTrOffer=false';
+          const result = spawnSync('curl', [
+            '--silent','--show-error','--max-time','18','--compressed',
+            '--request','POST','--header','X-K-Build-Number: 0',
+            '--header','Content-Type: application/json',
+            '--header','Accept: application/json',
+            '--data-binary','{}',
+            '--write-out','\\n__STATUS__%{http_code}\\n__TYPE__%{content_type}',
+            endpoint
+          ], {encoding:'utf8',maxBuffer:2*1024*1024,timeout:22000});
+          const output = result.stdout || '';
+          const status = output.match(/__STATUS__(\\d+)/)?.[1] || 'unknown';
+          const type = output.match(/__TYPE__([^\\n]+)/)?.[1] || 'unknown';
+          const json = output.slice(0,output.lastIndexOf('\\n__STATUS__'));
+          let shape = null;
+          try {
+            const body = JSON.parse(json);
+            shape = Array.isArray(body) ? {kind:'array',count:body.length}
+              : {kind:typeof body,keys:Object.keys(body).slice(0,12)};
+          } catch {}
+          console.log('KRUOKA_N183_PRODUCT_API_PROBE', JSON.stringify({
+            status,contentType:type,shape,transportExitCode:result.status,
+            error:result.error ? String(result.error).slice(0,180) : null,
+            note:'Two-item product search only; not proof of store campaigns.'
+          }));
+          if (status !== '200' || !shape) process.exitCode=1;
+          NODE
       - name: Discover K-Ruoka live network source
         run: node scripts/kcitymarket-browser-source-discovery.mjs
       - name: Upload K-Ruoka API discovery evidence
