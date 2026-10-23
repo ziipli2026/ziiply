@@ -9,16 +9,18 @@ const rows = await sql`
   WHERE method='category_token_overlap' AND status='pending'
   ORDER BY ean,fineli_id
 `;
-const unsafe = /(?:koiran|koiralle|koirille|kissan|kissalle|kissoille|lemmik|levite|tuorejuusto|monivilja|quinoa|seos|sekoitus|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|patukka|juustoperun|jogurtti|rahka|vanukas|pasteija|lihapiirakka)/i;
+const unsafe = /(?:koiran|koiralle|koirille|kissan|kissalle|kissoille|lemmik|levite|tuorejuusto|monivilja|quinoa|nuudeli|long drink|suklaa|patukka|juustoperun)/i;
 const preparation = ['paistettu','keitetty','kypsennetty','savustettu','kuivattu','pakaste','kuorittu','jauhettu'];
 const flags = (product, food) => {
   const issues = [];
-  if (unsafe.test(product)) issues.push('composite_or_nonhuman_product');
+  if (unsafe.test(product)) issues.push('product_category_mismatch');
+  if (/juustokastikkeella|juustoperunoilla/.test(product) && !/kastike|peruna/.test(food)) issues.push('prepared_meal_vs_ingredient');
   if (/gluteeniton/.test(product) && !/gluteeniton/.test(food)) issues.push('gluten_free_mismatch');
   if (/laktoositon/.test(product) && !/laktoositon/.test(food)) issues.push('lactose_free_mismatch');
   if (/rasvaton/.test(food) && /(\d+(?:[.,]\d+)?)\s*%/.test(product) && Number(product.match(/(\d+(?:[.,]\d+)?)\s*%/)[1].replace(',','.')) > 0.5) issues.push('fat_free_mismatch');
-  for (const term of preparation) if (food.includes(term) && !product.includes(term)) issues.push('preparation_'+term);
-  for (const term of ['gluteeniton','laktoositon','rasvaton','kevyt','makeuttamaton','sokeroimaton']) if (product.includes(term) && !food.includes(term)) issues.push('attribute_'+term);
+  for (const term of preparation) if (food.includes(term) && !product.includes(term) && !(term === 'pakaste' && /pakastekasvis/.test(food))) issues.push('preparation_'+term);
+  for (const term of ['gluteeniton','laktoositon','rasvaton','makeuttamaton','sokeroimaton']) if (product.includes(term) && !food.includes(term)) issues.push('attribute_'+term);
+  if (/kevyt/.test(product) && /rasvaton/.test(food)) issues.push('light_vs_fat_free');
   const p = product.match(/(\d+(?:[.,]\d+)?)\s*%/);
   const f = food.match(/rasvaa\s*(\d+(?:[.,]\d+)?)\s*%/);
   if (p && f && Math.abs(Number(p[1].replace(',','.'))-Number(f[1].replace(',','.'))) > 0.1) issues.push('fat_percentage_mismatch');
