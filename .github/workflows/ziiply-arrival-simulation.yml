@@ -59,3 +59,18 @@ jobs:
           assert.match(src,/ziiplyGostaMasterCacheV156\.get\(contextKey\)/,'master reads cached result');
           console.log('PASS actual offer warmup implementation shares master cache, prepares campaigns, and has 5-minute TTL');
           NODE
+  offer-selection-wiring-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check whether store selection invokes actual offer warmup
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+          const root='src/app/components/ziiply';
+          let matches=[];
+          function walk(dir){for(const ent of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,ent.name);if(ent.isDirectory())walk(p);else if(/\.(tsx?|jsx?)$/.test(p)&&!p.includes('.backup.')){const s=fs.readFileSync(p,'utf8');if(s.includes('warmZiiplyGostaOfferCacheV182'))matches.push({path:p,uses:s.split('warmZiiplyGostaOfferCacheV182').length-1});}}}
+          walk(root);
+          console.log('Actual warmup references:',JSON.stringify(matches));
+          assert.ok(matches.some(m=>m.uses>1)||matches.length>1,'Warmup is defined but no call from store-selection UI was found');
+          NODE
