@@ -201,10 +201,16 @@ for (;;) {
     }
     // Exact distinctive token overlap: suggest, never auto-approve. Skip
     // single-word overlap against multi-ingredient/recipe Fineli foods.
+    // Block unsafe ingredient-only and nutrition-incompatible suggestions.
+    // A broad token overlap is insufficient evidence for a finished food.
+    const riskyProduct = /(?:jogurtti|rahka|vanukas|välipalapatukka|patukka|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|täytteinen|maustettu)/i.test(unbranded);
+    if (riskyProduct) return [];
+    const rawOrCooked = /(?:paistettu|keitetty|kypsennetty|savustettu|kuivattu|pakaste)/i;
+    const productPreparation = unbranded.match(rawOrCooked)?.[0]?.toLowerCase();
     const ranked = [...hits.values()].map(entry => {
       const overlap = entry.tokens.filter(t => tokens.includes(t)).length;
       return { ...entry, overlap, coverage: overlap / entry.tokens.length };
-    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75)
+    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && (!rawOrCooked.test(entry.name) || (productPreparation != null && entry.name.toLowerCase().includes(productPreparation))))
       .sort((a,b) => b.overlap-a.overlap || b.coverage-a.coverage || a.id-b.id)
       .slice(0,2);
     return ranked.map(entry => ({ ean: String(product.ean), fineli_id: entry.id,
