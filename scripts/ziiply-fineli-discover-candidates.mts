@@ -156,7 +156,7 @@ for (;;) {
 // The name comparison is deliberately token-based and excludes generic food words.
 const categoryStopwords = new Set(["luomu","suomalainen","kotimainen","pirkka","coop","xtra",
   "kotimaista","tuore","pakattu","pakaste","pala","viipale","hieno","iso","pieni",
-  "rasvaton","kevyt","täys","ruoka","tuote","valmis","maustettu","suola","sokeri",
+  "ruoka","tuote","valmis","suola","sokeri",
   "ja","tai","sekä","the","original","classic","premium"]);
 const tokenizeCategory = (value: string) => String(value ?? "").toLowerCase()
   .replace(/[0-9]+(?:[.,][0-9]+)?[ ]*(?:kg|g|ml|l|kpl|pkt|pss)\b/gi, " ")
@@ -214,16 +214,19 @@ for (;;) {
       prep(foodName).some(term => !productPrep.includes(term));
     const foodIsPet = /(?:koiran|koiralle|kissan|kissalle|lemmik)/i;
     const productIsGlutenFree = /gluteeniton/i.test(unbranded);
+    const productIsLactoseFree = /laktoositon/i.test(unbranded);
     const productFat = unbranded.match(/(\\d+(?:[.,]\\d+)?)\\s*%/);
     const fatMismatch = (foodName: string) => {
       const fineliFat = foodName.match(/RASVAA\\s*(\\d+(?:[.,]\\d+)?)\\s*%/i);
+      if (/RASVATON/i.test(foodName) && productFat && Number(productFat[1].replace(",",".")) > 0.5) return true;
+      if (/RASVATON/i.test(unbranded) && fineliFat && Number(fineliFat[1].replace(",",".")) > 0.5) return true;
       if (productFat && fineliFat) return Math.abs(Number(productFat[1].replace(",","."))-Number(fineliFat[1].replace(",","."))) > 0.1;
       return false;
     };
     const ranked = [...hits.values()].map(entry => {
       const overlap = entry.tokens.filter(t => tokens.includes(t)).length;
       return { ...entry, overlap, coverage: overlap / entry.tokens.length };
-    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)))
+    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)) && (!productIsLactoseFree || /laktoositon/i.test(entry.name)))
       .sort((a,b) => b.overlap-a.overlap || b.coverage-a.coverage || a.id-b.id)
       .slice(0,2);
     return ranked.map(entry => ({ ean: String(product.ean), fineli_id: entry.id,
