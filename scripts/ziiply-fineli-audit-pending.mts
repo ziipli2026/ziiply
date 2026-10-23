@@ -86,19 +86,35 @@ const reviewPriority = (product: string, food: string, decision: string): string
   if (multiIngredient.test(p) || multiIngredient.test(f)) return 'COMPOSITION_REVIEW';
   return 'CATEGORY_' + category + '_REVIEW';
 };
-const needsVerification = new Set(['mince_fat_percentage_unverified','light_vs_fat_free','dairy_fat_percentage_unverified']);
+// Read-only nutrient sanity checks against explicit product labels.
+const nutrientSanity = (product: string, nutrients: any): string[] => {
+  const issues: string[] = [];
+  if (!nutrients || typeof nutrients !== 'object') return ['fineli_nutrients_missing'];
+  const fat = nutrients.FAT;
+  const fatValue = typeof fat?.value === 'number' ? fat.value : Number(fat?.value);
+  const label = product.match(/(?:rasvaa?\\s*)?(\\d+(?:[.,]\\d+)?)\\s*\\%/);
+  const isDairy = /maito|kerma|jogurtti|viili|rahka|juusto|voi/.test(product);
+  if (isDairy && label && Number.isFinite(fatValue)) {
+    const expected = Number(label[1].replace(',','.'));
+    if (Math.abs(expected - fatValue) > Math.max(0.5, expected * 0.15))
+      issues.push('dairy_fat_nutrient_discrepancy');
+  }
+  return issues;
+};
+const needsVerification = new Set(['mince_fat_percentage_unverified','light_vs_fat_free','dairy_fat_percentage_unverified','dairy_fat_nutrient_discrepancy','fineli_nutrients_missing']);
 let flagged=0;
 let conflicts=0;
 let verifyOnly=0;
 const review = rows.map(r=>{
   const product=String(r.product_name??'').toLowerCase();
   const food=String(r.fineli_name??'').toLowerCase();
-  const issues=flags(product,food);
+  const nutrients=nutrientByPair.get(String(r.ean)+'|'+String(r.fineli_id)) ?? null;
+  const issues=[...flags(product,food),...nutrientSanity(product,nutrients)];
   if(issues.length) flagged++;
   const conflict=issues.some(issue=>!needsVerification.has(issue));
   if(conflict) conflicts++;
   else if(issues.length) verifyOnly++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrientByPair.get(String(r.ean)+'|'+String(r.fineli_id)) ?? null};
+  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients};
 });
 console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,conflicts,verify_nutrition:verifyOnly,manual_review:review.length-flagged,modified:0}));
 for(const row of review) console.log(JSON.stringify(row));
