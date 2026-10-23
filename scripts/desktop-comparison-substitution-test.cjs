@@ -41,7 +41,10 @@ for(const [a,b,expected] of [
   ["Maito 1 l","Maito 500 ml",false],
   ["Kananmunat 10 kpl","Kananmunat 10 kpl",true],
   ["Kananmunat 10 kpl","Kananmunat 6 kpl",false],
-  ["Kananmunat 10 kpl","Maito 10 dl",false]
+  ["Kananmunat 10 kpl","Maito 10 dl",false],
+  ["Jogurtti 2x250 g","Jogurtti 250 g",false],
+  ["Jogurtti 2x250 g","Jogurtti 2x250 g",true],
+  ["Jogurtti 2x250 g","Jogurtti 3x250 g",false]
 ]){
   assert.equal(compatible(a,b),expected,a+" / "+b);
   console.log("PASS package",a,"=>",b,expected);
