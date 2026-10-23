@@ -116,6 +116,9 @@ jobs:
               storeContextConfirmed: Boolean(report.storeContextConfirmed),
               n183CandidateCount: report.n183CandidateCount ?? 0,
               error: report.error ?? null,
+              storeHttp: report.storeHttp ?? null,
+              offerHttp: report.offerHttp ?? null,
+              reason: report.storeHttp === 403 || report.offerHttp === 403 ? 'K_RUOKA_HTTP_403_BLOCKED' : 'NO_VERIFIED_N183_SOURCE',
             }));
             process.exit(1);
           }
