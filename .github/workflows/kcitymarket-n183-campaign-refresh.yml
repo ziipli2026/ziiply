@@ -22,6 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "::error::KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
+          echo "## N183 campaign refresh" >> "$GITHUB_STEP_SUMMARY"
           curl --fail-with-body --show-error --max-time 270 --retry 2 --retry-delay 5 \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
             "https://ziiply.vercel.app/api/cron/kcitymarket-campaign-refresh"
