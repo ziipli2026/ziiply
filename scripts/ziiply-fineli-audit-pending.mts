@@ -17,14 +17,15 @@ const flags = (product: string, food: string): string[] => {
   if (/juustokastikkeella|juustoperunoilla/.test(product) && !/kastike|peruna/.test(food)) issues.push('prepared_meal_vs_ingredient');
   if (/gluteeniton/.test(product) && !/gluteeniton/.test(food)) issues.push('gluten_free_mismatch');
   if (/laktoositon/.test(product) && !/laktoositon/.test(food)) issues.push('lactose_free_mismatch');
-  if (/rasvaton/.test(food) && /(\d+(?:[.,]\d+)?)\s*%/.test(product) && Number(product.match(/(\d+(?:[.,]\d+)?)\s*%/)[1].replace(',','.')) > 0.5) issues.push('fat_free_mismatch');
+  // Exclude species blend ratios before every fat-percentage comparison.
+  const withoutBlendRatio = product.replace(/\b\d+(?:[.,]\d+)?\s*%\s*\/\s*\d+(?:[.,]\d+)?\s*%/g, '');
+  const p = withoutBlendRatio.match(/(\d+(?:[.,]\d+)?)\s*%/);
+  if (/rasvaton/.test(food) && p && Number(p[1].replace(',','.')) > 0.5) issues.push('fat_free_mismatch');
   for (const term of preparation) if (food.includes(term) && !product.includes(term) && !(term === 'pakaste' && /pakastekasvis/.test(food))) issues.push('preparation_'+term);
   for (const term of ['gluteeniton','laktoositon','rasvaton','makeuttamaton','sokeroimaton']) if (product.includes(term) && !food.includes(term)) issues.push('attribute_'+term);
   if (/kevyt/.test(product) && /rasvaton/.test(food)) issues.push('light_vs_fat_free');
   // A ratio such as (50%/50%) describes meat species, not fat content.
-  const withoutBlendRatio = product.replace(/\b\d+(?:[.,]\d+)?\s*%\s*\/\s*\d+(?:[.,]\d+)?\s*%/g, '');
   if (/jauheliha/.test(product) && /\d+(?:[.,]\d+)?\s*%/.test(withoutBlendRatio) && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/.test(food)) issues.push('mince_fat_percentage_unverified');
-  const p = product.match(/(\d+(?:[.,]\d+)?)\s*%/);
   const f = food.match(/rasvaa\s*(\d+(?:[.,]\d+)?)\s*%/);
   if (p && f && Math.abs(Number(p[1].replace(',','.'))-Number(f[1].replace(',','.'))) > 0.1) issues.push('fat_percentage_mismatch');
   return issues;
