@@ -744,7 +744,7 @@ export default function DesktopPreviewPage() {
   function desktopPackageCompatible(source:string,candidate:string):boolean{
     // Grams and millilitres must never be treated as interchangeable.
     const measure=(name:string)=>{
-      const matches=[...String(name).toLocaleLowerCase("fi").replace(/,/g,".").matchAll(/(\\d+(?:\\.\\d+)?)\\s*(kg|g|l|dl|ml)\\b/g)];
+      const matches=[...String(name).toLocaleLowerCase("fi").replace(/,/g,".").matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml)\b/g)];
       const last=matches[matches.length-1];
       if(!last)return null;
       const amount=Number(last[1]),unit=last[2];
