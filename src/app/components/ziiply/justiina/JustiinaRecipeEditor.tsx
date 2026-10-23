@@ -78,6 +78,16 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items:search.items}))}catch{}
     onSearchIngredients(search.terms,search.items);
   };
+  const handleTargetServingsChange=(value:string)=>{
+    setTarget(value);
+    if(!draft)return;
+    const base=Number(original)>0?Number(original):Number(draft.servings||1);
+    const people=Number(value)>0?Number(value):base;
+    if(!Number.isFinite(people)||people<1||!Number.isFinite(base)||base<1)return;
+    const scaledItems=scaleIngredients(draft.ingredients,base,people).filter(item=>!item.atHome&&item.name.trim());
+    const prepared=prepareRecipeSearch(scaledItems,draft.instructions,draft.title);
+    try{window.dispatchEvent(new CustomEvent("ziiply-recipe-servings-changed",{detail:{title:draft.title,servings:people,items:prepared.items}}))}catch{}
+  };
   const hasRecipe=Boolean(draft?.title.trim()||draft?.ingredients.length);
   const ingredients=draft?.ingredients||[];
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;
@@ -90,7 +100,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   return <><style>{`@keyframes recipe-switch-nudge{0%,58%,100%{transform:translateX(0)}72%{transform:translateX(-12px)}86%{transform:translateX(0)}}`}</style><div className="relative mt-4 w-full min-w-0 shrink-0">{hasRecipe&&<div className="absolute bottom-full left-2 mb-0.5 flex items-center gap-1.5 whitespace-nowrap text-[10px] leading-tight"><span className="font-semibold text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span><button type="button" onClick={clearRecipe} aria-label="Tyhjennä resepti" title="Poista valittu resepti hakukortista" className="font-bold text-[#923c2f]">Tyhjennä ×</button></div>}<section aria-label="Justiinan resepti" onClickCapture={dismissSwitchHint} onChangeCapture={dismissSwitchHint} className="w-full min-w-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
     {draft&&<div className="flex w-full min-w-0 flex-col gap-2">
       {hasRecipe?<div className="flex min-w-0 items-center gap-1.5 rounded-lg border border-[#e3c98f] bg-[#fff5d9] px-1.5 py-2">
-        <label className="flex h-9 shrink-0 items-center gap-0.5 rounded-lg border-2 border-[#b89959] bg-[#fffdf5] px-1 text-[11px] font-bold text-[#174c3a]"><input aria-label="Reseptin henkilömäärä" type="number" min="1" value={target} onChange={event=>setTarget(event.target.value)} className="w-7 min-w-0 bg-transparent text-center text-[11px] font-bold outline-none"/>hlö</label>
+        <label className="flex h-9 shrink-0 items-center gap-0.5 rounded-lg border-2 border-[#b89959] bg-[#fffdf5] px-1 text-[11px] font-bold text-[#174c3a]"><input aria-label="Reseptin henkilömäärä" type="number" min="1" value={target} onChange={event=>handleTargetServingsChange(event.target.value)} className="w-7 min-w-0 bg-transparent text-center text-[11px] font-bold outline-none"/>hlö</label>
         <button type="button" onClick={()=>setDetailsOpen(true)} title="Avaa koko resepti" aria-label={`Avaa resepti ${draft.title}`} className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md px-0.5 py-2 text-[#174c3a] transition hover:bg-[#ffedbc]">
           <strong className="min-w-0 whitespace-nowrap text-center font-sans text-[clamp(11px,1vw,15px)] font-extrabold leading-tight tracking-tight">{draft.title}</strong>
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-4 w-4 shrink-0 self-start" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
