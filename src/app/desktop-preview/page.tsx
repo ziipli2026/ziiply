@@ -586,7 +586,33 @@ export default function DesktopPreviewPage() {
     const result=desktopCompareResults[storeId];
     const row=(result?.rows||[]).find((entry:any)=>String(entry.cartItemId)===rowId) as any;
     if(!row?.packageAlternative)return;
-    void desktopSelectCompareAlternative(storeId,{id:rowId},{...row.packageAlternative,comparisonSelectionMode:"manual"});
+    const original=cartItems.find(item=>String(item.id||"")===rowId);
+    const sourceName=String(original?.name||original?.title||"");
+    const proposed=row.packageAlternative;
+    const sourceSize=desktopPackageSize(sourceName);
+    const proposedSize=desktopPackageSize(String(proposed.name||""));
+    const sourceUnit=/\b(?:kg|g)\b/i.test(sourceName)?"mass":/\b(?:l|dl|ml)\b/i.test(sourceName)?"volume":"";
+    const proposedUnit=/\b(?:kg|g)\b/i.test(String(proposed.name||""))?"mass":/\b(?:l|dl|ml)\b/i.test(String(proposed.name||""))?"volume":"";
+    if(!sourceSize||!proposedSize||sourceUnit!==proposedUnit||!sourceUnit
+      ||!isComparisonAttributeCompatible(sourceName,String(proposed.name||""))
+      ||!desktopReliableComparePrice(proposed)){
+      flashCartNotice("Pakkausvaihtoehdon määrää tai hintaa ei voitu varmistaa.");
+      return;
+    }
+    const packagesPerItem=Math.ceil(sourceSize/proposedSize);
+    const packagePrice=Number(proposed.price)/100;
+    desktopComparisonEdited.current=true;
+    setDesktopCompareResults(current=>{
+      const existing=current[storeId];if(!existing)return current;
+      const rows=existing.rows.map((entry:any)=>String(entry.cartItemId)===rowId
+        ?{...entry,name:String(proposed.name),ean:String(proposed.ean||""),price:packagePrice*packagesPerItem,
+          match:"name" as const,packageCountPerItem:packagesPerItem,
+          packageAlternative:null,qualityMode:"package_adjusted"}:entry);
+      return {...current,[storeId]:{...existing,rows,
+        total:rows.reduce((sum:number,entry:any)=>sum+(entry.price??0)*Number(entry.quantity||1),0),
+        missing:rows.filter((entry:any)=>entry.price==null).length}};
+    });
+    flashCartNotice("Pakkausvaihtoehto lisätty: "+packagesPerItem+" pakkausta / ostoskorin tuote.");
   }
   function rejectDesktopWeightProposal(storeId:string,rowId:string){
     setDesktopCompareResults(current=>{const result=current[storeId];if(!result)return current;return {...current,[storeId]:{...result,rows:result.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,weightProposal:null}:row)}};});
