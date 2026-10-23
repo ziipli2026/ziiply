@@ -150,6 +150,84 @@ for (;;) {
     broadInserted += saved.length;
   }
 }
+
+// Category-first retrieval: produce a bounded set of human-review candidates
+// from product and Fineli descriptions, not only exact brand-specific patterns.
+// The name comparison is deliberately token-based and excludes generic food words.
+const categoryStopwords = new Set(["luomu","suomalainen","kotimainen","pirkka","coop","xtra",
+  "kotimaista","tuore","pakattu","pakaste","pala","viipale","hieno","iso","pieni",
+  "rasvaton","kevyt","täys","ruoka","tuote","valmis","maustettu","suola","sokeri",
+  "ja","tai","sekä","the","original","classic","premium"]);
+const tokenizeCategory = (value: string) => String(value ?? "").toLowerCase()
+  .replace(/[0-9]+(?:[.,][0-9]+)?[ ]*(?:kg|g|ml|l|kpl|pkt|pss)\b/gi, " ")
+  .replace(/[^a-zåäö]+/gi, " ").split(" ")
+  .filter(token => token.length >= 4 && !categoryStopwords.has(token));
+const fineliDescriptions = await sql`
+  SELECT fineli_id,name_fi FROM public.ziiply_fineli_foods
+  WHERE name_fi IS NOT NULL ORDER BY fineli_id
+`;
+const tokenIndex = new Map<string, Array<{ id: number; name: string; tokens: string[] }>>();
+for (const food of fineliDescriptions) {
+  const name = String(food.name_fi);
+  // Fineli has corrupted UTF-8 in some names; skip those rather than guess.
+  if (name.includes("�")) continue;
+  const tokens = [...new Set(tokenizeCategory(name))];
+  if (tokens.length === 0 || tokens.length > 5) continue;
+  const entry = { id: Number(food.fineli_id), name, tokens };
+  for (const token of tokens) tokenIndex.set(token, [...(tokenIndex.get(token) ?? []), entry]);
+}
+let categoryAfter = "", categoryScanned = 0, categoryEligible = 0, categoryInserted = 0;
+for (;;) {
+  const page = await sql`
+    SELECT e.ean,e.name,e.brand FROM public.ziiply_ean_products e
+    WHERE e.ean > ${categoryAfter}
+      AND NOT EXISTS (SELECT 1 FROM public.ziiply_ean_fineli_matches m WHERE m.ean=e.ean)
+      AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean=e.ean)
+    ORDER BY e.ean LIMIT ${batchSize}
+  `;
+  if (!page.length) break;
+  categoryAfter = String(page[page.length - 1].ean);
+  categoryScanned += page.length;
+  const proposed = page.flatMap(product => {
+    const name = String(product.name ?? "");
+    const brand = String(product.brand ?? "").trim();
+    const unbranded = brand && name.toLowerCase().startsWith(brand.toLowerCase() + " ")
+      ? name.slice(brand.length + 1) : name;
+    const tokens = [...new Set(tokenizeCategory(unbranded))];
+    if (!tokens.length) return [];
+    const hits = new Map<number,{ id: number; name: string; tokens: string[] }>();
+    for (const token of tokens) {
+      for (const entry of tokenIndex.get(token) ?? []) hits.set(entry.id,entry);
+    }
+    // Exact distinctive token overlap: suggest, never auto-approve. Skip
+    // single-word overlap against multi-ingredient/recipe Fineli foods.
+    const ranked = [...hits.values()].map(entry => {
+      const overlap = entry.tokens.filter(t => tokens.includes(t)).length;
+      return { ...entry, overlap, coverage: overlap / entry.tokens.length };
+    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75)
+      .sort((a,b) => b.overlap-a.overlap || b.coverage-a.coverage || a.id-b.id)
+      .slice(0,2);
+    return ranked.map(entry => ({ ean: String(product.ean), fineli_id: entry.id,
+      evidence: { productName: name, brand: product.brand, fineliName: entry.name,
+        method: "category_token_overlap", sharedTokens: entry.overlap,
+        coverage: entry.coverage, rule: "review ingredient, preparation and nutrient basis" } }));
+  });
+  categoryEligible += proposed.length;
+  for (let i = 0; i < proposed.length; i += batchSize) {
+    const saved = await sql`
+      INSERT INTO public.ziiply_ean_fineli_candidates(ean,fineli_id,method,confidence,status,evidence)
+      SELECT c.ean,c.fineli_id,'category_token_overlap','review_required','pending',c.evidence
+      FROM jsonb_to_recordset(${JSON.stringify(proposed.slice(i,i+batchSize))}::jsonb)
+        AS c(ean text,fineli_id integer,evidence jsonb)
+      WHERE NOT EXISTS (SELECT 1 FROM public.ziiply_ean_fineli_matches m WHERE m.ean=c.ean)
+        AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean=c.ean)
+      ON CONFLICT(ean,fineli_id) DO NOTHING RETURNING ean
+    `;
+    categoryInserted += saved.length;
+  }
+}
+console.log(JSON.stringify({ mode:"category_token_overlap", scanned:categoryScanned,
+  eligible:categoryEligible, inserted:categoryInserted, autoApproved:0 }));
 console.log(JSON.stringify({ mode: "broad_category_discovery", scanned: broadScanned,
   eligible: broadEligible, inserted: broadInserted, pages: broadPages,
   categories: broadRules.length, autoApproved: 0 }));
