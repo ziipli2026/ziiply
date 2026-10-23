@@ -23,7 +23,7 @@ const species:Array<{id:string;family:"fish"|"meat";pattern:RegExp;query:string}
 ];
 const meal=/keitto|laatikko|lasagne|pizza|salaatti|ateria|kastik|kalapuikko|nugget|pyörykk|silakkapihvi|kalapihvi|kalapulla|kalajaloste|kalakukko|lohikukko|patonki|leipä|sushi|levite|suutarinlohi|silakkarulla/;
 function identity(name:string){
- if(/mauste|liemi|liemikuutio|kananmuna|kananmunia|sikuri/.test(name))return undefined;
+ if(/mauste|liemi|liemikuutio|fond|bouillon|kananmuna|kananmunia|sikuri/.test(name))return undefined;
  return species.find(x=>x.pattern.test(name));
 }
 export function inferRecipeProtein(name:string,instructions="",sourceLine=name):RecipeProteinRequirement|null{
