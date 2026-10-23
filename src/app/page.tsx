@@ -2891,11 +2891,16 @@ function KauppiasMobileTopBar({
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.70),transparent_55%)]" />
 
                 {panel.id === "calendar" ? (
-                  <div className="relative z-10 h-full min-w-0">
-                    <span className="absolute left-[1px] top-[1px] flex h-[15px] w-[15px] items-center justify-center">{panel.graphic}</span>
-                    <span className="absolute left-[19px] right-[2px] top-[1px] text-center text-[9px] font-black leading-none text-[#173b31]">{panel.title}</span>
-                    <span className="absolute left-[18px] right-[14px] top-[15px] text-center text-[17px] font-black leading-none tracking-[-0.05em] text-[#041b19]">{panel.value}</span>
-                    <span className="absolute bottom-[1px] left-0 right-0 text-center text-[8px] font-black leading-none text-[#72572d]">Kalenteri</span>
+                  <div className="relative z-10 flex h-full min-w-0 flex-col items-center justify-between py-[1px]">
+                    <span className="text-[9px] font-black uppercase leading-none tracking-[0.02em] text-[#173b31]">{panel.title}</span>
+                    <svg viewBox="0 0 64 64" className="h-[31px] w-[31px] shrink-0 drop-shadow-sm" aria-hidden="true">
+                      <path d="M12 14h40a5 5 0 0 1 5 5v31a6 6 0 0 1-6 6H13a6 6 0 0 1-6-6V19a5 5 0 0 1 5-5Z" fill="#fff8de" stroke="#825a22" strokeWidth="4" />
+                      <path d="M8 24h48" stroke="#c83927" strokeWidth="8" />
+                      <path d="M21 9v12M43 9v12" stroke="#543b18" strokeWidth="5" strokeLinecap="round" />
+                      <path d="M49 47l5-4-1 7-5 4Z" fill="#ead09b" stroke="#9f7a35" strokeWidth="2" />
+                      <text x="32" y="47" textAnchor="middle" fontSize="23" fontWeight="900" fill="#12352d">{panel.value}</text>
+                    </svg>
+                    <span className="whitespace-nowrap text-[8px] font-black leading-none text-[#72572d]">Kalenteri</span>
                     <span aria-hidden="true" className="pointer-events-none absolute right-[1px] top-1/2 flex h-[12px] w-[12px] -translate-y-1/2 items-center justify-center rounded-full border border-[#006e32] bg-[linear-gradient(155deg,#7aff78_0%,#2bd844_42%,#079c30_78%,#00752b_100%)] text-[11px] font-black leading-none text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),0_1px_2px_rgba(0,67,28,0.35)]">›</span>
                   </div>
                 ) : (
