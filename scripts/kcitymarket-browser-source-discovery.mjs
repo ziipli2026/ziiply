@@ -65,7 +65,13 @@ try {
   const offerNavigationUrl = page.url();
   const storeNavigationStatus = second?.status() ?? null;
   await page.waitForTimeout(9000);
-  await Promise.race([Promise.allSettled([...pendingResponses]), page.waitForTimeout(15000)]);
+  // Responses can arrive while other responses are being inspected.
+  // Drain the active inspections in bounded batches instead of racing one
+  // snapshot of the set against a timeout.
+  const inspectionDeadline = Date.now() + 15000;
+  while (pendingResponses.size && Date.now() < inspectionDeadline) {
+    await Promise.race([Promise.allSettled([...pendingResponses]), page.waitForTimeout(500)]);
+  }
   const offerTitle = await page.title();
   const pageEvidence = await page.locator("body").innerText().then(s => ({
     hyvinkaa: /Hyvinkää/i.test(s),
@@ -84,7 +90,7 @@ try {
   const offerCardSelector = "main article, main [data-testid*=offer], main [class*=Offer], main [class*=offer]";
   const offerCards = await page.locator(offerCardSelector).count().catch(() => 0);
   const visibleOfferSamples = await page.locator(offerCardSelector).evaluateAll(nodes =>
-    nodes.slice(0, 8).map(node => (node.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 180))
+    nodes.slice(0, 8).map(node => (node.textContent || "").replace(/\s+/g, " ").trim().slice(0, 180))
       .filter(text => /€|tarjous|plussa/i.test(text))
   ).catch(() => []);
   const apiOfferCandidates = candidates.flatMap(item => item.samples.map(sample => ({endpoint:item.endpoint,storeId:sample.storeId || null,offerId:sample.offerId || null,hasPrice:Boolean(sample.price),hasValidity:Boolean(sample.validFrom && sample.validUntil)})));
