@@ -1359,6 +1359,11 @@ export default function DesktopPreviewPage() {
         return {...item,__recipeIngredient:{...updated},...(packageCount!==null?{quantity:Math.max(1,packageCount),__recipeQuantity:Math.max(1,packageCount)}:{})};
       }));
       if(changed){
+        recipeSearchItemsRef.current=items;
+        try{
+          const active=JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"{}");
+          sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({...active,title,servings:detail?.servings,items}));
+        }catch{}
         desktopCompareCache.current.clear();
         desktopOriginalComparison.current=null;
         desktopComparisonEdited.current=true;
