@@ -13,14 +13,18 @@ const rows = records.filter(row => row.decision);
 if (rows.length !== summary.total) throw new Error('Audit count mismatch: expected ' + summary.total + ', got ' + rows.length);
 const categories = ['CONFLICT_REVIEW', 'VERIFY_NUTRITION', 'MANUAL_REVIEW'];
 const csv = value => '"' + String(value ?? '').replace(/"/g, '""') + '"';
-const columns = ['ean','fineli_id','product','fineli','issues','decision'];
+const columns = ['ean','fineli_id','product','fineli','issues','decision','priority'];
 const serialize = values => values.map(csv).join(',');
 for (const category of categories) {
   const subset = rows.filter(row => row.decision === category);
   const output = [serialize(columns), ...subset.map(row => serialize(columns.map(column => column === 'issues' ? (row.issues || []).join('; ') : row[column])))].join('\n') + '\n';
   fs.writeFileSync(path.join(dir, category.toLowerCase() + '.csv'), '\uFEFF' + output);
 }
+const priorityCounts = {};
+for (const row of rows) priorityCounts[row.priority || 'UNCLASSIFIED'] = (priorityCounts[row.priority || 'UNCLASSIFIED'] || 0) + 1;
+const priorityCsv = [serialize(columns), ...rows.filter(row => row.decision === 'MANUAL_REVIEW').sort((a,b) => String(a.priority).localeCompare(String(b.priority))).map(row => serialize(columns.map(column => column === 'issues' ? (row.issues || []).join('; ') : row[column])))].join('\n') + '\n';
+fs.writeFileSync(path.join(dir, 'manual-review-by-category.csv'), '\uFEFF' + priorityCsv);
 const counts = Object.fromEntries(categories.map(category => [category, rows.filter(row => row.decision === category).length]));
 if (counts.CONFLICT_REVIEW !== summary.conflicts || counts.VERIFY_NUTRITION !== summary.verify_nutrition || counts.MANUAL_REVIEW !== summary.manual_review) throw new Error('Category counts differ from audit summary');
-fs.writeFileSync(path.join(dir, 'summary.json'), JSON.stringify({ ...summary, categories: counts }, null, 2) + '\n');
+fs.writeFileSync(path.join(dir, 'summary.json'), JSON.stringify({ ...summary, categories: counts, priorities: priorityCounts }, null, 2) + '\n');
 console.log('Fineli review files generated:', JSON.stringify(counts));
