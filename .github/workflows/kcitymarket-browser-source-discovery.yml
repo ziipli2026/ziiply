@@ -1,6 +1,10 @@
 name: K-Ruoka N183 browser source discovery
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/kcitymarket-browser-source-discovery.mjs'
+      - '.github/workflows/kcitymarket-browser-source-discovery.yml'
   schedule:
     - cron: '25 */3 * * *'
 permissions:
