@@ -24,9 +24,9 @@ export async function GET(request: NextRequest) {
     const active = await fetchKCitymarketSelectedStoreOffers("K-Citymarket Hyvinkää");
     await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:verified.length>=5,count:verified.length,outcome:verified.length>=5?"store-campaigns-available":"store-campaigns-missing",details:{kRuokaProbeStatus:probe.status,kRuokaHttpStatus:probe.httpStatus,tjekRows:tjek.result?.count ?? 0,tjekOk:tjek.ok,tjekError:tjek.error,verifiedKruokaRows:verified.length,displayedRows:active.length}}).catch(()=>undefined);
     if (verified.length < 5) {
-      // A missing K-Ruoka source is a degraded data source, not a failed Tjek refresh.
-      // Keep the publication-run alert above, but report an honest partial success.
-      return NextResponse.json({ok:tjek.ok && active.length > 0,degraded:true,error:"Verified K-Ruoka N183 campaigns are missing or expired; Tjek status is independent",tjek,activeCount:active.length,verifiedKruokaCount:verified.length},{status:tjek.ok && active.length > 0 ? 200 : 503});
+      // Missing verified N183 offers must remain a visible failure in monitoring.
+      // Report Tjek success separately; never turn the combined source green.
+      return NextResponse.json({ok:false,degraded:true,error:"Verified K-Ruoka N183 campaigns are missing or expired; Tjek status is independent",tjek,activeCount:active.length,verifiedKruokaCount:verified.length},{status:503});
     }
     return NextResponse.json({ok:true,degraded:false,tjek,activeCount:active.length,verifiedKruokaCount:verified.length});
   } catch (error) {
