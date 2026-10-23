@@ -52,6 +52,11 @@ try {
   const links = await page.locator("a[href]").evaluateAll(anchors => anchors.map(a => ({ text: (a.textContent || "").trim().slice(0,80), href: a.getAttribute("href") })).filter(x => /tarjou|edut|etuja/i.test(x.text + " " + x.href)).slice(0,20));
   const offerLink = links.find(x => /tarjoushaku/.test(x.href || ""));
   const destination = offerLink ? new URL(offerLink.href, store).href : "https://www.k-ruoka.fi/kauppa/tarjoushaku";
+  // A store page may link to a generic offer search that defaults to another shop.
+  // Capture the actual store identity before and after navigation.
+  const beforeOfferStore = await page.locator("body").innerText().then(t => ({
+    hyvinkaa: /Hyvinkää/i.test(t), n183: /N183/.test(t)
+  })).catch(() => ({}));
   const second = await page.goto(destination, { waitUntil: "domcontentloaded", timeout: 45000 }).catch(() => null);
   const offerNavigationUrl = page.url();
   await page.waitForTimeout(9000);
