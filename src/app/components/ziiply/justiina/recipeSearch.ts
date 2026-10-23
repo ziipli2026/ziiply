@@ -5,6 +5,7 @@ type RecipeContext={sourceLine?:string;proteinRequirement?:RecipeProteinRequirem
 export type RecipeFoodGroup = { ingredient: string; mainGroup: string; subGroup: string; searchTerm: string };
 type Kind = { term: string; pattern: RegExp; product: RegExp; group: string; exclude?: RegExp };
 const kinds: Kind[] = [
+ {term:"keittojuurekset",pattern:/keittojuure|keittojuureks|juuressekoitus|juureskuutio|juuressuikale/,product:/keittojuure|juuressekoitus|juureskuutio|juuressuikale|keittojuures/,exclude:/keittojuures.*(?:keitto|ateria|valmisruoka)|(?:keitto|ateria|valmisruoka).*keittojuures/,group:"Kasvikset ja pakastekasvikset"},
  {term:"kanaliemikuutio",pattern:/kanaliemikuutio/,product:/kanaliemikuutio/,group:"Liemet"},
  {term:"jauhoinen peruna",pattern:/jauhois.*perun/,product:/jauhoinen.*peruna|peruna.*jauhoinen|rosamunda|van gogh/,group:"Kasvikset"},
  {term:"kevytmaitojuoma",pattern:/kevytmaitojuom/,product:/kevytmaitojuoma/,group:"Maidot"},
@@ -153,7 +154,7 @@ function cleanName(input: string): string {
 export function recipeProductSearchTerm(input: string): string | null {
  const name=cleanName(cleanRecipeQuery(input));
  if(recipeCategory(name))return normalizeRecipeCategoryQuery(name);
- if(!/sipulikeittoaine|salaattisekoit/.test(name)&&/(?:laatikko|keitto|piirakka|pannukakku|korvapuusti|salaatti|kanapasta|tonnikalapasta|linssicurry)/.test(name))return name;
+ if(!/sipulikeittoaine|salaattisekoit|keittojuure|juuressekoitus|juureskuutio|juuressuikale/.test(name)&&/(?:laatikko|keitto|piirakka|pannukakku|korvapuusti|salaatti|kanapasta|tonnikalapasta|linssicurry)/.test(name))return name;
  if(!name||/^(?:vesi|vettä|veden|pastan keitinvet|keitinvet)/.test(name))return null;
  return kinds.find(x=>x.pattern.test(name))?.term||name;
 }
