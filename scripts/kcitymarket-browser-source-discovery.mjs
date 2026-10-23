@@ -52,7 +52,7 @@ async function inspectResponse(response) {
       }
       collect(body);
       const samples = rows.filter(v => v && typeof v === "object" && /price|offer|campaign|discount/i.test(Object.keys(v).join(" ")))
-        .slice(0,3).map(v => Object.fromEntries(["name","title","price","validFrom","validUntil","storeId","offerId","ean"]
+        .slice(0,3).map(v => Object.fromEntries(["name","title","price","validFrom","validUntil","storeId","offerId","ean","storeName","campaignId"]
           .filter(k => typeof v[k] === "string" || typeof v[k] === "number")
           .map(k => [k, String(v[k]).slice(0,100)])));
       if (samples.length && candidates.length < 40) candidates.push({ endpoint: parsed.origin + parsed.pathname, samples });
