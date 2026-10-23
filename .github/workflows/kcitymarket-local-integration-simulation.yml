@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'
       - 'src/app/api/offers/search/route.ts'
+      - 'scripts/ziiply-fineli-discover-candidates.mts'
       - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
       - 'tests/k-offer-tab-policy.test.cjs'
       - 'tests/kcitymarket-source-coexistence.test.cjs'
