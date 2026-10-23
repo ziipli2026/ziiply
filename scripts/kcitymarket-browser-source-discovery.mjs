@@ -53,6 +53,7 @@ try {
   const offerLink = links.find(x => /tarjoushaku/.test(x.href || ""));
   const destination = offerLink ? new URL(offerLink.href, store).href : "https://www.k-ruoka.fi/kauppa/tarjoushaku";
   const second = await page.goto(destination, { waitUntil: "domcontentloaded", timeout: 45000 }).catch(() => null);
+  const offerNavigationUrl = page.url();
   await page.waitForTimeout(9000);
   await Promise.allSettled([...pendingResponses]);
   const offerTitle = await page.title();
@@ -63,11 +64,17 @@ try {
     bodyLength: s.length,
     storeIdN183InPage: /N183/.test(s),
   })).catch(() => ({}));
+  const context = await page.evaluate(() => ({
+    storeMarkerInMarkup: /N183/i.test(document.documentElement.outerHTML),
+    storeNameInMarkup: /K-Citymarket Hyvinkää/i.test(document.documentElement.outerHTML),
+    selectedStoreKeys: Object.keys(localStorage).filter(k => /store|kauppa|shop/i.test(k)).slice(0,20),
+  })).catch(() => ({}));
   const report = {
     storeHttp: first?.status() ?? null, storeTitle,
     offerHttp: second?.status() ?? null, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
-    links, pageEvidence, requests: observations, candidates,
+    offerNavigationHost: new URL(offerNavigationUrl).hostname,
+    links, pageEvidence, context, requests: observations, candidates,
     storeContextConfirmed: Boolean(pageEvidence.storeIdN183InPage && pageEvidence.hyvinkaa && !pageEvidence.otherStore),
     verifiedStoreOffers: false,
     note: "Diagnostic only. A page marker alone does not prove N183 offer scope."
