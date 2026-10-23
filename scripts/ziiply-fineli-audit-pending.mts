@@ -31,6 +31,12 @@ const flags = (product: string, food: string): string[] => {
   for (const term of preparation) if (food.includes(term) && !product.includes(term) && !(term === 'pakaste' && /pakastekasvis/.test(food))) issues.push('preparation_'+term);
   for (const term of ['gluteeniton','laktoositon','rasvaton','makeuttamaton','sokeroimaton']) if (product.includes(term) && !food.includes(term)) issues.push('attribute_'+term);
   if (/kevyt/.test(product) && /rasvaton/.test(food)) issues.push('light_vs_fat_free');
+  // Dairy subtypes must not be treated as interchangeable.
+  const dairyTypes = ['jogurtti','viili','rahka','kerma','maito','juusto','voi'];
+  const productType = dairyTypes.find(t => new RegExp('\\b' + t).test(product));
+  const foodType = dairyTypes.find(t => new RegExp('\\b' + t).test(food));
+  if (productType && foodType && productType !== foodType) issues.push('dairy_subtype_mismatch');
+  if (productType && foodType && /laktoositon/.test(product) !== /laktoositon/.test(food)) issues.push('dairy_lactose_variant_mismatch');
   // A ratio such as (50%/50%) describes meat species, not fat content.
   if (/jauheliha/.test(product) && /\d+(?:[.,]\d+)?\s*%/.test(withoutBlendRatio) && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/.test(food)) issues.push('mince_fat_percentage_unverified');
   const f = food.match(/rasvaa\s*(\d+(?:[.,]\d+)?)\s*%/);
