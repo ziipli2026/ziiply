@@ -7,6 +7,7 @@ const page = await browser.newPage({ locale: "fi-FI", timezoneId: "Europe/Helsin
 const observations = [];
 const candidates = [];
 const seen = new Set();
+const fs = await import("node:fs/promises");
 const pendingResponses = new Set();
 page.on("response", response => {
   const task = inspectResponse(response).catch(error => { console.warn("KRUOKA_RESPONSE_INSPECTION_ERROR", String(error)); });
@@ -60,12 +61,15 @@ try {
     offerWords: (s.match(/tarjous|plussa|etu/gi) || []).length,
     bodyLength: s.length,
   })).catch(() => ({}));
-  console.log("KRUOKA_BROWSER_DISCOVERY " + JSON.stringify({
+  const report = {
     storeHttp: first?.status() ?? null, storeTitle,
     offerHttp: second?.status() ?? null, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
     links, pageEvidence, requests: observations, candidates,
     verifiedStoreOffers: false,
     note: "Diagnostic only. A page marker alone does not prove N183 offer scope."
-  }));
+  };
+  await fs.mkdir("artifacts", { recursive: true });
+  await fs.writeFile("artifacts/kruoka-n183-browser-discovery.json", JSON.stringify(report, null, 2));
+  console.log("KRUOKA_BROWSER_DISCOVERY " + JSON.stringify(report));
 } finally { await browser.close(); }
