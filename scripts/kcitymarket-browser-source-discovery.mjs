@@ -55,7 +55,7 @@ try {
   const second = await page.goto(destination, { waitUntil: "domcontentloaded", timeout: 45000 }).catch(() => null);
   const offerNavigationUrl = page.url();
   await page.waitForTimeout(9000);
-  await Promise.allSettled([...pendingResponses]);
+  await Promise.race([Promise.allSettled([...pendingResponses]), page.waitForTimeout(15000)]);
   const offerTitle = await page.title();
   const pageEvidence = await page.locator("body").innerText().then(s => ({
     hyvinkaa: /Hyvinkää/i.test(s),
