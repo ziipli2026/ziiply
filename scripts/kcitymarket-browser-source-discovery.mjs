@@ -77,6 +77,9 @@ try {
   // The page can render offers without an obvious JSON response. Record a
   // small, non-personal diagnostic sample of visible offer-card text as well.
   const offerCardSelector = "main article, main [data-testid*=offer], main [class*=Offer], main [class*=offer]";
+  // Try the store-specific offer link before accepting generic /tarjoushaku.
+  // A generic page may retain a different shop from a prior session.
+  const storeSpecificLinks = links.filter(x => /tarjou|edut/i.test(x.text + " " + x.href));
   const offerCards = await page.locator(offerCardSelector).count().catch(() => 0);
   const visibleOfferSamples = await page.locator(offerCardSelector).evaluateAll(nodes =>
     nodes.slice(0, 8).map(node => (node.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 180))
