@@ -1093,13 +1093,25 @@ export default function DesktopPreviewPage() {
               return species?.[1]||null;
             };
             const originalSpecies=fishFilletSpecies(name);
-            const weightProposal=!matched&&originalSpecies&&desktopPackageSize(name)!==null
+            const produceKind=(value:string)=>{
+              const v=String(value||"").toLocaleLowerCase("fi");
+              if(/\bperuna\b/.test(v)&&!/\b(bataatti|perunamuusi|perunajauho|perunalastu|pakaste|ranskanperuna)\b/.test(v))return "peruna";
+              if(/\b(porkkana|multaporkkana)\b/.test(v)&&!/\b(mehu|sose|raaste|pakaste|keittojuures)\b/.test(v))return "porkkana";
+              return null;
+            };
+            const originalProduce=produceKind(name);
+            const weightProposal=!matched&&(originalSpecies||originalProduce)&&desktopPackageSize(name)!==null
               ?candidates.find((p:any)=>{
                 const candidateName=String(p.name||"").toLocaleLowerCase("fi");
                 const bulkCounterPack=/\bn\s*\d+(?:[.,]\d+)?\s*kg\b/.test(candidateName);
                 const loose=desktopPackageSize(candidateName)===null;
                 const excluded=/\b(pakaste|pakastettu|säilyke|purkki|marinoitu|marinadi|maustettu|savustettu|savu|pihvi|pyörykkä|silli|etikka|kastike)\b/.test(candidateName);
-                return fishFilletSpecies(candidateName)===originalSpecies&&!excluded&&(loose||bulkCounterPack)&&desktopVerifiedKgPriceCents(p)!==null;
+                const produceCompatible=Boolean(originalProduce&&produceKind(candidateName)===originalProduce
+                  &&!(/\b(pakaste|pakastettu|sose|raaste|mehu|keittojuures|kuorittu|esikypsennetty)\b/.test(candidateName))
+                  &&(!/\b(pesty|pestyt)\b/.test(name)||/\b(pesty|pestyt)\b/.test(candidateName))
+                  &&(!/\b(multaporkkana|multa)\b/.test(name)||/\b(multaporkkana|multa)\b/.test(candidateName)));
+                const fishCompatible=Boolean(originalSpecies&&fishFilletSpecies(candidateName)===originalSpecies&&!excluded&&(loose||bulkCounterPack));
+                return (fishCompatible||produceCompatible)&&desktopVerifiedKgPriceCents(p)!==null;
               }):null;
             return {cartItemId:String(item.id||""),name:matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative,weightProposal:weightProposal?{name:String(weightProposal.name),pricePerKgCents:desktopVerifiedKgPriceCents(weightProposal),verifiedPerKgPrice:true,ean:String(weightProposal.ean||""),gramsPerItem:desktopPackageSize(name)}:null};
           }catch(error){logCompareAudit("product_search_error",{store:store.name,name,ean,error:String(error)});desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
