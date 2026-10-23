@@ -1332,13 +1332,46 @@ export default function DesktopPreviewPage() {
   function addRecipeSelectionToCart(product:any) {
     const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
     const count=selectedRecipePackageCount(product);
-    appendDesktopRecipeDebug("cart_selection",{step:recipeSearchStepRef.current,ingredient:recipeSearchItemsRef.current[recipeSearchStepRef.current]||null,product,packageCount:count,cartQuantity:count??1,usedDefaultQuantity:count===null});
+    let recipeTitle="";
+    try{recipeTitle=String(JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"{}").title||"")}catch{}
+    appendDesktopRecipeDebug("cart_selection",{step:recipeSearchStepRef.current,ingredient:recipeSearchItemsRef.current[recipeSearchStepRef.current]||null,product,packageCount:count,cartQuantity:count??1,usedDefaultQuantity:count===null,recipeTitle});
     // Unknown package sizes (e.g. salt measured in teaspoons) default to one
     // retail package. The shopper can change the quantity in the cart.
-    addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeQuantity:count??1,__recipeIngredient:ingredient?{...ingredient}:null});
+    addDesktopCartItem({...product,source:"justiina",title:product.name||product.title||product.productName,price:product.__price,priceCheckedAt:Date.now(),storeName:product.__store,__recipeTitle:recipeTitle,__recipeQuantity:count??1,__recipeIngredient:ingredient?{...ingredient}:null});
     justiinaAddedDuringSelectionRef.current=true;
     resumeDesktopVoiceList();
   }
+  useEffect(()=>{
+    const handleRecipeServingsChanged=(event:Event)=>{
+      const detail=(event as CustomEvent<{title?:string;servings?:number;items?:RecipeIngredient[]}>).detail;
+      const title=String(detail?.title||"").trim();
+      const items=Array.isArray(detail?.items)?detail.items:[];
+      if(!title||!items.length)return;
+      const byId=new Map(items.map(item=>[String(item.id),item]));
+      let changed=0;
+      setCartItems(current=>current.map(item=>{
+        if(item?.source!=="justiina"||String(item.__recipeTitle||"").trim()!==title||!item.__recipeIngredient)return item;
+        const previous=item.__recipeIngredient as RecipeIngredient;
+        const updated=byId.get(String(previous.id));
+        if(!updated)return item;
+        const packageCount=recipeRetailPackageCount(updated,{...item,name:String(item.name||item.title||item.productName||"")});
+        changed++;
+        return {...item,__recipeIngredient:{...updated},...(packageCount!==null?{quantity:Math.max(1,packageCount),__recipeQuantity:Math.max(1,packageCount)}:{})};
+      }));
+      if(changed){
+        desktopCompareCache.current.clear();
+        desktopOriginalComparison.current=null;
+        desktopComparisonEdited.current=true;
+        setDesktopCompareResults({});
+        setDesktopCompareError("");
+        try{window.localStorage.removeItem(desktopCompareStorageKey)}catch{}
+        appendDesktopRecipeDebug("servings_changed_cart_updated",{title,servings:detail?.servings,matchedCartRows:changed,items});
+        flashCartNotice("Reseptin annosmäärä päivitetty ostoskoriin");
+      }
+    };
+    window.addEventListener("ziiply-recipe-servings-changed",handleRecipeServingsChanged);
+    return()=>window.removeEventListener("ziiply-recipe-servings-changed",handleRecipeServingsChanged);
+  },[]);
   function resumeDesktopVoiceList() {
     const resolve = desktopVoiceWaitRef.current;
     desktopVoiceWaitRef.current = null;
