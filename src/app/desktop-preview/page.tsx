@@ -629,6 +629,17 @@ export default function DesktopPreviewPage() {
     setDesktopCompareResults(current=>{const result=current[storeId];if(!result)return current;return {...current,[storeId]:{...result,rows:result.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,weightProposal:null}:row)}};});
   }
   function acceptDesktopWeightProposal(storeId:string,rowId:string){
+    const selectedRow=(desktopCompareResults[storeId]?.rows||[]).find((row:any)=>String(row.cartItemId)===rowId);
+    const proposal=selectedRow?.weightProposal;
+    const grams=Number(proposal?.gramsPerItem);
+    const kgCents=Number(proposal?.pricePerKgCents);
+    // A weight estimate is only valid with an explicitly verified €/kg quote.
+    // A product's ordinary retail price must never silently become its kg price.
+    if(!proposal?.verifiedPerKgPrice||!Number.isFinite(grams)||grams<=0
+      ||!Number.isFinite(kgCents)||kgCents<=0){
+      flashCartNotice("Kilohintaa ei ole vahvistettu. Painotuotteen hintaa ei lisätty vertailuun.");
+      return;
+    }
     desktopComparisonEdited.current=true;
     setDesktopCompareResults(current=>{
       const result=current[storeId];if(!result)return current;
