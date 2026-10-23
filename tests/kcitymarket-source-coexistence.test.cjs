@@ -13,3 +13,7 @@ test("K-Ruoka and Tjek snapshots have distinct store keys",()=>{
   assert.match(file,/const fallbackKey = isHyvinkaa \? "k citymarket hyvinkaa" : key/);
   assert.match(file,/readPublishedSnapshot\(fallbackKey\)/);
 });
+
+test("Tjek updater rejects K-Ruoka snapshot key before any refresh",()=>{
+  assert.match(file,/if \(key\.startsWith\("k ruoka "\)\) throw new Error\("Tjek refresh cannot write a K-Ruoka snapshot key"\)/);
+});
