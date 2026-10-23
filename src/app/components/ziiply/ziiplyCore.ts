@@ -3533,7 +3533,14 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   const candidate = normalize(candidateName);
   const sourceSize = parseMetricSize(sourceName);
   const candidateSize = parseMetricSize(candidateName);
-  if (sourceSize && (!candidateSize || sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
+  // An alternative pack size is allowed only when both sizes are known and
+  // comparable. The caller must still adjust quantities and prices separately.
+  if (sourceSize && (!candidateSize || sourceSize.unitGroup !== candidateSize.unitGroup)) return false;
+  // Preserve preparation: fresh produce must not silently become frozen food.
+  const freshProduce=/\b(?:keittojuurekset|persilja|peruna|porkkana)\b/.test(source);
+  if(freshProduce && /\bpakast/.test(candidate) !== /\bpakast/.test(source)) return false;
+  // A smoked ring sausage is not interchangeable with an oven sausage.
+  if(/savulenk/.test(source) && !/savulenk/.test(candidate)) return false;
   const group = (name: string) => {
     if (/\bpiima\b/.test(name)) return "piima";
     if (/\bmaito\b/.test(name)) return "maito";
