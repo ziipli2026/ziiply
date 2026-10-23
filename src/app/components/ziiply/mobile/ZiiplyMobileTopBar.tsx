@@ -103,7 +103,7 @@ function levelDotClass(level: PriceLevel) {
 
 function panelClass(kind: InfoKind) {
   const base =
-    "relative h-[58px] min-w-0 overflow-hidden rounded-[0.56rem] border-[1.5px] px-[5px] py-[4px] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_1px_0_rgba(77,55,19,0.10)] active:scale-[0.985]";
+    "relative h-[58px] min-w-0 overflow-hidden rounded-[0.56rem] border-[1.5px] px-[5px] py-[4px] max-[389px]:px-[2px] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_1px_0_rgba(77,55,19,0.10)] active:scale-[0.985]";
 
   if (kind === "weather") {
     return `${base} border-[#b5cbb4] bg-[linear-gradient(180deg,#fffbe9_0%,#fff2c9_100%)] text-[#063f35]`;
@@ -133,7 +133,7 @@ function cornerBolts() {
 
 function WeatherGraphic() {
   return (
-    <svg viewBox="0 0 64 64" className="h-[24px] w-[24px] drop-shadow-sm" aria-hidden="true">
+    <svg viewBox="0 0 64 64" className="h-[24px] w-[24px] max-[389px]:h-[17px] max-[389px]:w-[17px] drop-shadow-sm" aria-hidden="true">
       <circle cx="24" cy="23" r="11" fill="#ffd84d" stroke="#e2a400" strokeWidth="3" />
       <path d="M24 4v8M24 34v8M5 23h8M35 23h8M10 9l6 6M38 9l-6 6" stroke="#f5b400" strokeWidth="4" strokeLinecap="round" />
       <path d="M25 47h25a10 10 0 0 0 0-20 14 14 0 0 0-26-3 12 12 0 0 0 1 23Z" fill="#f4fbff" stroke="#b6d5ea" strokeWidth="3" />
@@ -143,7 +143,7 @@ function WeatherGraphic() {
 
 function ElectricityGraphic() {
   return (
-    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
+    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] max-[389px]:h-[17px] max-[389px]:w-[17px] drop-shadow-sm" aria-hidden="true">
       <path d="M37 3 14 36h18L25 61l25-36H32L37 3Z" fill="#ffc226" stroke="#e58b00" strokeWidth="4" strokeLinejoin="round" />
     </svg>
   );
@@ -151,7 +151,7 @@ function ElectricityGraphic() {
 
 function FuelGraphic() {
   return (
-    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
+    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] max-[389px]:h-[17px] max-[389px]:w-[17px] drop-shadow-sm" aria-hidden="true">
       <rect x="14" y="9" width="28" height="45" rx="5" fill="#d71920" stroke="#9b1117" strokeWidth="4" />
       <rect x="19" y="15" width="18" height="12" rx="2" fill="#fff4e8" />
       <path d="M42 18h6l6 8v24a5 5 0 0 1-10 0V32" fill="none" stroke="#9b1117" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
@@ -162,7 +162,7 @@ function FuelGraphic() {
 
 function CalendarGraphic({ day }: { day: string }) {
   return (
-    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
+    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] max-[389px]:h-[17px] max-[389px]:w-[17px] drop-shadow-sm" aria-hidden="true">
       <rect x="10" y="12" width="44" height="42" rx="6" fill="#fff9e8" stroke="#8a5b1d" strokeWidth="4" />
       <path d="M10 22h44" stroke="#c83927" strokeWidth="8" />
       <path d="M22 8v10M42 8v10" stroke="#8a5b1d" strokeWidth="5" strokeLinecap="round" />
@@ -542,7 +542,7 @@ export default function ZiiplyMobileTopBar({
         TOPBAR DEBUG V6
       </div>
       <div className="mx-auto flex h-[82px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.75rem] border-[4px] border-[#073d32] bg-[linear-gradient(180deg,#fffdf3_0%,#fff5d9_62%,#ead49a_100%)] px-[7px] shadow-[0_0_0_2px_rgba(255,255,255,0.70)_inset,0_5px_0_rgba(54,39,17,0.20),0_15px_28px_rgba(8,42,35,0.16)]">
-        <div className="grid min-w-0 flex-1 grid-cols-[0.92fr_1.02fr_1.25fr_0.86fr] gap-[6px]">
+        <div className="grid min-w-0 flex-1 grid-cols-[0.92fr_1.02fr_1.25fr_0.86fr] gap-[6px] max-[389px]:grid-cols-4 max-[389px]:gap-[3px]">
           {panels.map((panel) => {
             const inner = (
               <>
@@ -564,26 +564,26 @@ export default function ZiiplyMobileTopBar({
                   </span>
                 )}
 
-                <div className="relative z-10 flex h-full flex-col items-center justify-center text-center leading-none">
-                  <div className="flex items-center justify-center gap-[3px]">
+                <div className="relative z-10 flex h-full min-w-0 flex-col items-center justify-center text-center leading-none">
+                  <div className="flex min-w-0 items-center justify-center gap-[3px] max-[389px]:flex-col max-[389px]:gap-[1px]">
                     {panel.graphic}
-                    <div className="text-[10px] font-black uppercase tracking-[0.045em]">
+                    <div className="text-[10px] font-black uppercase tracking-[0.045em] max-[389px]:text-[8px] max-[389px]:tracking-normal">
                       {panel.title}
                     </div>
                   </div>
 
-                  <div className="mt-[1px] flex items-end justify-center gap-[2px]">
-                    <span className="text-[19px] font-black leading-none tracking-[-0.05em] text-[#041b19]">
+                  <div className="mt-[1px] flex min-w-0 items-end justify-center gap-[2px] max-[389px]:gap-[1px]">
+                    <span className="text-[19px] font-black leading-none tracking-[-0.05em] text-[#041b19] max-[389px]:text-[16px]">
                       {panel.value}
                     </span>
                     {panel.unit && (
-                      <span className="pb-[1px] text-[8px] font-black leading-none opacity-80">
+                      <span className="pb-[1px] text-[8px] font-black leading-none opacity-80 max-[389px]:text-[7px]">
                         {panel.unit}
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-[2px] max-w-full truncate px-1 text-[8px] font-black leading-none opacity-75">
+                  <div className="mt-[2px] max-w-full truncate px-1 text-[8px] font-black leading-none opacity-75 max-[389px]:px-0 max-[389px]:text-[7px]">
                     {panel.detail}
                   </div>
                 </div>
