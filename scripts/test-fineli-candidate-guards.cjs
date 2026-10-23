@@ -1,7 +1,14 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const source = fs.readFileSync('scripts/ziiply-fineli-discover-candidates.mts','utf8');
-for (const term of ['const unsafeProduct =','const containsDifferentPreparation =','const fatMismatch =','const productIsGlutenFree =','const productIsLactoseFree =','autoApproved:0']) assert.ok(source.includes(term),term);
-assert.ok(source.includes('const productFat = unbranded.match('));
-assert.ok(source.includes('if (unsafeProduct) return []'));
-console.log('Fineli static guard preflight OK');
+for (const term of ['const unsafeProduct =','const containsDifferentPreparation =','const fatMismatch =','const productIsGlutenFree =','const productIsLactoseFree =','const productIsFatFree =','const productIsLight =','const productIsUnsweetened =','autoApproved:0']) assert.ok(source.includes(term),term);
+const unsafeMatch = source.match(/const unsafeProduct = (\/[^\n]+\/i)\.test\(unbranded\)/);
+assert.ok(unsafeMatch,'unsafe-product filter must exist');
+const unsafe = eval(unsafeMatch[1]);
+for (const name of ['koiran annosrasia naudan maksa','paprika kasvipohjainen levite','riisi-quinoa-moniviljaseos','pekoni nuudeli','kreikkalainen jogurtti 10%','suklaa välipalapatukka']) assert.equal(unsafe.test(name),true,name);
+for (const name of ['siika savustettu','paprika keltainen','herne kuivattu']) assert.equal(unsafe.test(name),false,name);
+const percent = /(\d+(?:[.,]\d+)?)\s*%/;
+assert.equal(percent.exec('jogurtti 10%')[1],'10');
+assert.equal(percent.exec('jauheliha 9,5%')[1],'9,5');
+assert.ok(source.includes('const productFat = unbranded.match(/(\\d+(?:[.,]\\d+)?)\\s*%/)'),'numeric percent parser must not be double-escaped');
+console.log('Fineli candidate guard regression OK');
