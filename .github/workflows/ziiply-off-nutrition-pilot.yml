@@ -15,9 +15,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        shard: [0]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     concurrency:
-      group: ziiply-off-nutrition-pilot
+      group: ziiply-off-nutrition-shard-${{ matrix.shard }}
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 15
