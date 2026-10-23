@@ -742,8 +742,16 @@ export default function DesktopPreviewPage() {
     return n*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1);
   }
   function desktopPackageCompatible(source:string,candidate:string):boolean{
-    const a=desktopPackageSize(source),b=desktopPackageSize(candidate);
-    return a!==null&&b!==null&&a===b;
+    // Grams and millilitres must never be treated as interchangeable.
+    const measure=(name:string)=>{
+      const matches=[...String(name).toLocaleLowerCase("fi").replace(/,/g,".").matchAll(/(\\d+(?:\\.\\d+)?)\\s*(kg|g|l|dl|ml)\\b/g)];
+      const last=matches[matches.length-1];
+      if(!last)return null;
+      const amount=Number(last[1]),unit=last[2];
+      return {kind:unit==="kg"||unit==="g"?"mass":"volume",amount:amount*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1)};
+    };
+    const a=measure(source),b=measure(candidate);
+    return a!==null&&b!==null&&a.kind===b.kind&&a.amount===b.amount;
   }
   function desktopFindPackageAlternative(candidates:any[],name:string,ean:string){
     const sourceSize=desktopPackageSize(name);
