@@ -1,0 +1,27 @@
+{
+  "ok": false,
+  "outcome": "source-archive-review-needed",
+  "period": "2026-10-22-W43-LV",
+  "issue": "43LV",
+  "pdfReview": "pending",
+  "runUrl": "https://github.com/ziipli2026/ziiply/actions/runs/39885196755",
+  "firstParserAt": "2026-10-21 12:10:31.765864+00",
+  "firstParserOk": false,
+  "sourceVerified": true,
+  "publisherUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/86y216l_tarjouslehti_43LV_KCM/index.html",
+  "pdfSha256": "44f0e815471a87c1e46ddcc79095bd67dac2ff0760d64a54340b28c7cfdadf8f",
+  "pages": 19,
+  "count": 42,
+  "parserRows": 46,
+  "unresolved": [
+    "2|CLASSIC WOK 300 g, REHTIVIHREÄ 250 g,",
+    "2|MIETO TOMAATTISALSA 300 g, TULINEN TOMAATTISALSA 300 g",
+    "6|Myös UUTUUS vadelmajogurtti HERKUTTELUKEKSIT 150 g (34,31–42,23/kg) (16,67/kg)",
+    "11|KATTILA 3 l"
+  ],
+  "unverified": [
+    "1|n. 1 kg TOMAATTI Palana"
+  ],
+  "duplicates": [],
+  "auditScope": "Frozen source and automatic parser checks; full printed PDF comparison pending"
+}

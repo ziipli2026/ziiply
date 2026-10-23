@@ -1,0 +1,875 @@
+{
+  "leaflet": "https://kcm-tarjouslehdet.k-ruoka.fi/86y216l_tarjouslehti_43LV_KCM/index.html",
+  "pdfUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/86y216l_tarjouslehti_43LV_KCM/files/extfile/DownloadURL.pdf",
+  "pdfSha256": "44f0e815471a87c1e46ddcc79095bd67dac2ff0760d64a54340b28c7cfdadf8f",
+  "pageCount": 19,
+  "rows": [
+    {
+      "id": "kcm:spatial:1:n. 1 kg tomaatti palana:6.9",
+      "page": 1,
+      "title": "n. 1 kg TOMAATTI Palana",
+      "anchor": {
+        "left": 0.045274,
+        "top": 0.721057,
+        "width": 0.05429699999999999,
+        "height": 0.013773
+      },
+      "nearby": [
+        "TOMAATTI",
+        "Suomi",
+        "Tomater"
+      ]
+    },
+    {
+      "id": "kcm:spatial:1:herkuttelujäätelöt 500 ml - (6,66/l):10",
+      "page": 1,
+      "title": "HERKUTTELUJÄÄTELÖT 500 ml - (6,66/l)",
+      "anchor": {
+        "left": 0.185735,
+        "top": 0.805309,
+        "width": 0.11889199999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "KG",
+        "Jymy",
+        "HERKUTTELUJÄÄTELÖT",
+        "500 ml",
+        "(6,66/l) 6 6",
+        "Gourmetglass",
+        "Ilman Plussa-korttia -",
+        "6,19/pkt (12,38/l)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:1:kanan ohuet fileeleikkeet 480–650 g (10,75–14,56/kg):6.99",
+      "page": 1,
+      "title": "KANAN OHUET FILEELEIKKEET 480–650 g (10,75–14,56/kg)",
+      "anchor": {
+        "left": 0.350229,
+        "top": 0.855202,
+        "width": 0.075984,
+        "height": 0.013773
+      },
+      "nearby": [
+        "n 1 kg",
+        "Palana n",
+        "Garanterat mör innanlår",
+        "av nöt i bit i",
+        "Atria",
+        "3",
+        "KANAN OHUET",
+        "FILEELEIKKEET 480–650 g",
+        "PKT",
+        "(10,75–14,56/kg) 6 g",
+        "Tunna filéschnitzlar av kyckling",
+        "CALLUNA 13 cm",
+        "RS",
+        "Saksa",
+        "Ilman Plussa-korttia",
+        "7,95/rs (12,23–16,56/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:pensasmustikka 300 g:4.99",
+      "page": 2,
+      "title": "PENSASMUSTIKKA 300 g",
+      "anchor": {
+        "left": 0.811885,
+        "top": 0.034521,
+        "width": 0.127282,
+        "height": 0.013773
+      },
+      "nearby": [
+        "PENSASMUSTIKKA 300 g",
+        "Peru/Sambia",
+        "(16,63/kg)",
+        "Buskblåbär",
+        "RS",
+        "Järvikylän"
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:ai naposteluhedelmät 280 g:2.68",
+      "page": 2,
+      "title": "ai NAPOSTELUHEDELMÄT 280 g",
+      "anchor": {
+        "left": 0.816607,
+        "top": 0.426141,
+        "width": 0.15804000000000007,
+        "height": 0.013773
+      },
+      "nearby": [
+        "ai NAPOSTELUHEDELMÄT 280 g",
+        "(9,63–11,56/kg) g",
+        "Grönsaker89",
+        "RS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:suolakeksit 80 g ja cheddar-juusto- vohveli 40 g (15,63–31,25/kg) salta kex:5.5",
+      "page": 3,
+      "title": "SUOLAKEKSIT 80 g ja CHEDDAR-JUUSTO- VOHVELI 40 g (15,63–31,25/kg) Salta kex",
+      "anchor": {
+        "left": 0.766522,
+        "top": 0.562031,
+        "width": 0.109047,
+        "height": 0.013773
+      },
+      "nearby": [
+        "SUOLAKEKSIT 80 g",
+        "ja CHEDDAR-JUUSTO-",
+        "VOHVELI 40 g",
+        "(15,63–31,25/kg)",
+        "Salta kex",
+        "2",
+        "PKT",
+        "Ilman Plussa-korttia",
+        "1,59–1,79/pkt (19,88–44,75/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:herkuttelu- juustoviipaleet 140–150 g (18,33–19,64/kg) delikatessostskivor:5.5",
+      "page": 3,
+      "title": "HERKUTTELU- JUUSTOVIIPALEET 140–150 g (18,33–19,64/kg) Delikatessostskivor",
+      "anchor": {
+        "left": 0.26551,
+        "top": 0.561064,
+        "width": 0.072432,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Castello",
+        "HERKUTTELU-",
+        "JUUSTOVIIPALEET 140–150 g",
+        "(18,33–19,64/kg) g",
+        "Delikatessostskivor",
+        "2",
+        "KPL",
+        "Ilman Plussa-korttia",
+        "3,55/kpl (23,67–25 3,36/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:fetajuusto 150 g:5",
+      "page": 3,
+      "title": "FETAJUUSTO 150 g",
+      "anchor": {
+        "left": 0.832789,
+        "top": 0.81069,
+        "width": 0.09516199999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "FETAJUUSTO 150 g",
+        "(16,67/kg) 7 g",
+        "Fetaost",
+        "2",
+        "KPL",
+        "Ilman Plussa-korttia -",
+        "2,99/kpl (19,93/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:halloum-iviipaleet 200 g 200 g:3.5",
+      "page": 3,
+      "title": "HALLOUM-IVIIPALEET 200 g 200 g",
+      "anchor": null,
+      "nearby": [
+        "    3,55/kpl (23,67–25,36/kg)",
+        "-21–30%",
+        "1,59–1,79/pkt (19,88–44,75/kg)",
+        "KPL",
+        "PKT",
+        "FETAJUUSTO 150 g",
+        "(16,67/kg) Fetaost",
+        "-22% Ilman Plussa-korttia Ilman Plussa-korttia",
+        "                   Eränkävijä",
+        "   SULATEJU-USTOVIIPALEET",
+        "HALLOUM-IVIIPALEET 200 g 200 g",
+        " - 5. 7. 5.",
+        "(12,50/kg) (17,50/kg) Smältostskivor Skivad halloumiost",
+        "3,15/kpl (15,75/kg)",
+        "-11%",
+        "3,95/kpl (19,75/kg)",
+        "-16%",
+        "2,99/kpl (19,93/kg)",
+        "222",
+        "   KPL",
+        "KPL",
+        "KPL",
+        "-20% Ilman Plussa-korttia Ilman Plussa-korttia Ilman Plussa-korttia",
+        "    Katso lisää tarjouksia » 3"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:viljaporsaan sisäfileet n. 550–650 g:9.95",
+      "page": 4,
+      "title": "VILJAPORSAAN SISÄFILEET n. 550–650 g",
+      "anchor": {
+        "left": 0.832319,
+        "top": 0.09094,
+        "width": 0.13826000000000005,
+        "height": 0.013773
+      },
+      "nearby": [
+        "HK",
+        "VILJAPORSAAN SISÄFILEET",
+        "n 550–650 g",
+        "Innerfiléer av korngris",
+        "KG"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:milano parmigiano 2leikkeleet 80 g:2.99",
+      "page": 4,
+      "title": "MILANO PARMIGIANO 2LEIKKELEET 80 g",
+      "anchor": {
+        "left": 0.83093,
+        "top": 0.508322,
+        "width": 0.11070000000000002,
+        "height": 0.013773
+      },
+      "nearby": [
+        "KANAN RINTAFILEE",
+        "KG",
+        "Kycklingbröstfilé",
+        "Beretta",
+        "SALAME TARTUFO tai",
+        "MILANO PARMIGIANO",
+        "80 g",
+        "(37,38/kg) g",
+        "Salami-pålägg g g",
+        "PKT",
+        "Ilman Plussa-korttia",
+        "3,99/pkt (49,88/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:naudan lehtipihvi ulkofileestä tai mureutettu ulkofileepihvi 2 kpl/240 g (45,79/kg):10.99",
+      "page": 4,
+      "title": "NAUDAN LEHTIPIHVI ULKOFILEESTÄ tai MUREUTETTU ULKOFILEEPIHVI 2 kpl/240 g (45,79/kg)",
+      "anchor": {
+        "left": 0.193288,
+        "top": 0.770082,
+        "width": 0.10581500000000002,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Katso resepti »",
+        "Snellman",
+        "NAUDAN LEHTIPIHVI",
+        "ULKOFILEESTÄ tai",
+        "MUREUTETTU",
+        "ULKOFILEEPIHVI 2 kpl/240 2 g",
+        "(45,79/kg) g",
+        "Lövbiff av nötytterfilé nöt",
+        "Ilman Plussa-korttia",
+        "11,69-12,29/rs (48,71-51,21/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:takuumureat naudan entrecotepihvit:34.95",
+      "page": 4,
+      "title": "TAKUUMUREAT NAUDAN ENTRECOTEPIHVIT",
+      "anchor": {
+        "left": 0.419053,
+        "top": 0.804876,
+        "width": 0.22247899999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "KCM-lihamestarin",
+        "TAKUUMUREAT NAUDAN ENTRECOTEPIHVIT",
+        "Suomi",
+        "Garanterat möra entrecotebiffar av nöt",
+        "RS",
+        "KG"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:wanted naudan denver steak n. 700 g:25.9",
+      "page": 4,
+      "title": "WANTED NAUDAN DENVER STEAK n. 700 g",
+      "anchor": {
+        "left": 0.732319,
+        "top": 0.815508,
+        "width": 0.216109,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Tamminen n n",
+        "WANTED NAUDAN DENVER STEAK n 700 g",
+        "Denver steak av nöt nött",
+        "KG"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:sinisimpukka 450 g:3.99",
+      "page": 5,
+      "title": "SINISIMPUKKA 450 g",
+      "anchor": {
+        "left": 0.07352,
+        "top": 0.191835,
+        "width": 0.108822,
+        "height": 0.013773
+      },
+      "nearby": [
+        "SINISIMPUKKA 450 g",
+        "pakaste",
+        "(8,87/kg)",
+        "Tillagade jätteräkstjärtar",
+        "RS",
+        "PAPU-KASVISPELTI",
+        "Katso resepti »"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:tuutit 95 g:2.49",
+      "page": 6,
+      "title": "TUUTIT 95 g",
+      "anchor": {
+        "left": 0.200413,
+        "top": 0.553901,
+        "width": 0.06269799999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "3 kaveria",
+        "TUUTIT 95 g",
+        "(26,21/kg) g",
+        "Glasstrutar",
+        "KPL",
+        "Ilman Plussa-korttia",
+        "3,15/kpl (33,16/kg)",
+        "Fazer",
+        "ALL STARS PANTTERI tai"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:jäätelöt 427–465 ml:5.99",
+      "page": 6,
+      "title": "JÄÄTELÖT 427–465 ml",
+      "anchor": {
+        "left": 0.519053,
+        "top": 0.556491,
+        "width": 0.11449399999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Katso resepti »",
+        "             3 kaveria",
+        "TUUTIT 95 g",
+        "255",
+        " (26,21/kg) Glasstrutar",
+        "-20%",
+        "Fazer",
+        "ALL STARS PANTTERI tai ÄSSÄ MAKEISPUSSIT",
+        "400 g",
+        "Ben&Jerry’s",
+        "JÄÄTELÖT 427–465 ml",
+        "MOCHI JÄÄTELÖT 6 x 35 g",
+        "(12,88–14,03/l)",
+        "Glass Mochiglass",
+        "49 99 99",
+        "KPL",
+        "(28,52/kg)",
+        "     Ilman Plussa-korttia Ilman Plussa-korttia",
+        "3,15/kpl (33,16/kg)",
+        "-12%",
+        "KPL PKT",
+        "6,85/kpl (14,73–16,04/l)",
+        "- 2 5 5.",
+        "                    (7,48/kg) 99 Fazer 49",
+        "Godispåsar MOUSSELEIVOKSET Fazer",
+        "2 kpl/130–160 g DOMINO CRUNCHY"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:mochi jäätelöt 6 x 35 g:2.99",
+      "page": 6,
+      "title": "MOCHI JÄÄTELÖT 6 x 35 g",
+      "anchor": {
+        "left": 0.839263,
+        "top": 0.557457,
+        "width": 0.12799499999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "             3 kaveria",
+        "TUUTIT 95 g",
+        "255",
+        " (26,21/kg) Glasstrutar",
+        "-20%",
+        "Fazer",
+        "ALL STARS PANTTERI tai ÄSSÄ MAKEISPUSSIT",
+        "400 g",
+        "Ben&Jerry’s",
+        "JÄÄTELÖT 427–465 ml",
+        "MOCHI JÄÄTELÖT 6 x 35 g",
+        "(12,88–14,03/l)",
+        "Glass Mochiglass",
+        "49 99 99",
+        "KPL",
+        "(28,52/kg)",
+        "     Ilman Plussa-korttia Ilman Plussa-korttia",
+        "3,15/kpl (33,16/kg)",
+        "-12%",
+        "KPL PKT",
+        "6,85/kpl (14,73–16,04/l)",
+        "- 2 5 5.",
+        "                    (7,48/kg) 99 Fazer 49",
+        "Godispåsar MOUSSELEIVOKSET Fazer",
+        "2 kpl/130–160 g DOMINO CRUNCHY",
+        "Myös UUTUUS vadelmajogurtti HERKUTTELUKEKSIT 150 g (34,31–42,23/kg) (16,67/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:2 kpl/130–160 g domino crunchy:5.49",
+      "page": 6,
+      "title": "2 kpl/130–160 g DOMINO CRUNCHY",
+      "anchor": {
+        "left": 0.686494,
+        "top": 0.823902,
+        "width": 0.094472,
+        "height": 0.013773
+      },
+      "nearby": [
+        "KPL",
+        "(28,52/kg)",
+        "     Ilman Plussa-korttia Ilman Plussa-korttia",
+        "3,15/kpl (33,16/kg)",
+        "-12%",
+        "KPL PKT",
+        "6,85/kpl (14,73–16,04/l)",
+        "- 2 5 5.",
+        "                    (7,48/kg) 99 Fazer 49",
+        "Godispåsar MOUSSELEIVOKSET Fazer",
+        "2 kpl/130–160 g DOMINO CRUNCHY",
+        "Myös UUTUUS vadelmajogurtti HERKUTTELUKEKSIT 150 g (34,31–42,23/kg) (16,67/kg)",
+        "Moussebakelser Fyllda kex",
+        "2",
+        "PKT",
+        "  PS RS",
+        "   -28% Ilman Plussa-korttia Ilman Plussa-korttia Ilman Plussa-korttia",
+        "4,19/ps (10,48/kg)",
+        "-8%",
+        "5,99/rs (37,44–46,08/kg)",
+        "-13%",
+        "2,89/pkt (19,27/kg)",
+        "   6"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:kirin ichiban alkoholiton olut 0,0 % 0,33 l/pl:5",
+      "page": 7,
+      "title": "Kirin ICHIBAN ALKOHOLITON OLUT 0,0 % 0,33 l/pl",
+      "anchor": {
+        "left": 0.312617,
+        "top": 0.514328,
+        "width": 0.043339000000000016,
+        "height": 0.013773
+      },
+      "nearby": [
+        "ja",
+        "Kirin",
+        "ICHIBAN"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:olut 0,0 % 0,33 l/pl:1.99",
+      "page": 7,
+      "title": "OLUT 0,0 % 0,33 l/pl",
+      "anchor": {
+        "left": 0.312617,
+        "top": 0.537524,
+        "width": 0.10902200000000001,
+        "height": 0.013773
+      },
+      "nearby": [
+        "OLUT 0 0 % 0 33 l/pl",
+        "(5,73/l)",
+        "Sis pantin 0 10",
+        "Alkoholfri öl",
+        "PL"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:mixerit ja virvoitusjuomat 0,5 l/pl (7,30/l):3.65",
+      "page": 7,
+      "title": "MIXERIT ja VIRVOITUSJUOMAT 0,5 l/pl (7,30/l)",
+      "anchor": {
+        "left": 0.789263,
+        "top": 0.525926,
+        "width": 0.05403699999999989,
+        "height": 0.013773
+      },
+      "nearby": [
+        "3 X PINSA",
+        "Katso resepti »",
+        "Fever Tree",
+        "MIXERIT ja"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:selvin päin 4spritzit 0 % 0,33 l/tlk:4.7",
+      "page": 7,
+      "title": "SELVIN PÄIN 4SPRITZIT 0 % 0,33 l/tlk",
+      "anchor": {
+        "left": 0.311228,
+        "top": 0.780918,
+        "width": 0.06334599999999996,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Kåska",
+        "SELVIN PÄIN",
+        "0 % 0 33 l/tlk",
+        "(7,12/l)",
+        "Sis pantit 0 30",
+        "2",
+        "TLK",
+        "Ilman Plussa-korttia",
+        "2,65/tlk (7,58/l) Sis pantin 0 15"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:virvoitus-juomat 0,33 l/tlk (7,12/l):2.3",
+      "page": 7,
+      "title": "VIRVOITUS-JUOMAT 0,33 l/tlk (7,12/l)",
+      "anchor": {
+        "left": 0.789263,
+        "top": 0.537524,
+        "width": 0.14088699999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "VIRVOITUSJUOMAT 0 5 l/pl",
+        "(7,30/l) 0",
+        "Sis pantit 0 20",
+        "Mixers och läskedrycker",
+        "2PL",
+        "Ilman Plussa-korttia",
+        "4,35–4,59/pl (8,50/l) 0 Sis pantin 0 10"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:sparkling 8 % 0,75 l/pl:11.49",
+      "page": 8,
+      "title": "SPARKLING 8 % 0,75 l/pl",
+      "anchor": {
+        "left": 0.14051,
+        "top": 0.549573,
+        "width": 0.12772800000000004,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Fresita on ihanteellinen",
+        "valinta kilistelyyn!",
+        "Olitpa juhlimassa virstanpylvästä",
+        "tai nauttimassa erityisestä",
+        "hetkestä Fresita tuo ripauksen",
+        "juhlantuntua jokaiseen lasinnostoon",
+        "virkistävällä",
+        "raikkailla kuplillaan ja",
+        "mansikan maullaan",
+        "Fresita",
+        "SPARKLING 8 % 0 75 l/pl"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:sis. pantin 0,10 riesling 8% 1 l sis. pantin 0,10:8.49",
+      "page": 8,
+      "title": "Sis. pantin 0,10 RIESLING 8% 1 l Sis. pantin 0,10",
+      "anchor": {
+        "left": 0.14051,
+        "top": 0.572328,
+        "width": 0.07464599999999999,
+        "height": 0.010369
+      },
+      "nearby": [
+        "Sis pantin 0 10",
+        "Mousserande vin",
+        "PL",
+        "Voimassa 4 5 2026 alkaen"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:tinto ja seco 8 % 0,75 l/pl (9,13/l):6.95",
+      "page": 8,
+      "title": "TINTO ja SECO 8 % 0,75 l/pl (9,13/l)",
+      "anchor": {
+        "left": 0.850374,
+        "top": 0.537975,
+        "width": 0.07057200000000008,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Puolimakea runsaan",
+        "hedelmäinen",
+        "päärynäinen hennon",
+        "aprikoosinen",
+        "El Tiempo",
+        "TINTO ja SECO",
+        "8 % 0 75 l/pl",
+        "(9 1,13/l) l",
+        "Sis pantin 0 10",
+        "Vin",
+        "PL",
+        "Voimassa 1 1 2026 alkaen"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:blanco tai tinto 8 % 1 l:7.99",
+      "page": 8,
+      "title": "BLANCO tai TINTO 8 % 1 l",
+      "anchor": {
+        "left": 0.323569,
+        "top": 0.806325,
+        "width": 0.12762999999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Gato Negro",
+        "BLANCO tai TINTO 8 % 1 l",
+        "(7,99/l) l",
+        "Vin",
+        "KPL",
+        "8,99/kpl (8,99/l)",
+        "Ilman Plussa-korttia",
+        "Voimassa 27 8 2026 alkaen"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:juustokakku 400 g:5.95",
+      "page": 9,
+      "title": "JUUSTOKAKKU 400 g",
+      "anchor": {
+        "left": 0.807037,
+        "top": 0.549133,
+        "width": 0.11141299999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "   KATSO TÄSTÄ KAUPPASI AJANKOHTAISET EDUT:",
+        "Valitse oma kauppasi »",
+        "        JUUSTOKAKKU 400 g",
+        "Pakaste",
+        "(22,38/kg) 89 Ostkaka 95",
+        "58",
+        " MACARONS 12 kpl/144 g",
+        "Pakaste (40,90/kg)",
+        "PROSCIUTTO CRUDO 449 ILMAKUIVATTU KINKKU",
+        "120 g",
+        "(37,42/kg) PKT Lufttorkad skinka",
+        "PKT KPL",
+        "                  SAINTE MAURE VUOHENMAITOJUUSTO 200 g",
+        "(24,95/kg)",
+        "Getost",
+        "499             519",
+        "PKT MANCHEGO 12 kk 150 g PKT (34,60/kg)",
+        "     9"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:macarons 12 kpl/144 g:5.89",
+      "page": 9,
+      "title": "MACARONS 12 kpl/144 g",
+      "anchor": {
+        "left": 0.120193,
+        "top": 0.630444,
+        "width": 0.126108,
+        "height": 0.013773
+      },
+      "nearby": [
+        "MACARONS 12 kpl/144 g",
+        "PKT",
+        "Pakaste",
+        "(40,90/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:sainte maure vuohenmaitojuusto 200 g:4.99",
+      "page": 9,
+      "title": "SAINTE MAURE VUOHENMAITOJUUSTO 200 g",
+      "anchor": {
+        "left": 0.367104,
+        "top": 0.840802,
+        "width": 0.07599600000000006,
+        "height": 0.013773
+      },
+      "nearby": [
+        "SAINTE MAURE",
+        "VUOHENMAITOJUUSTO",
+        "200 g",
+        "(24,95/kg)",
+        "PKT",
+        "PKT",
+        "Getost"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:pkt manchego 12 kk 150 g pkt (34,60/kg):5.19",
+      "page": 9,
+      "title": "PKT MANCHEGO 12 kk 150 g PKT (34,60/kg)",
+      "anchor": {
+        "left": 0.685807,
+        "top": 0.876403,
+        "width": 0.11753499999999995,
+        "height": 0.013773
+      },
+      "nearby": [
+        "MANCHEGO 12 kk 150 g",
+        "PKT",
+        "(34,60/kg) g"
+      ]
+    },
+    {
+      "id": "kcm:spatial:10:wc-paperi 24 rl:6.9",
+      "page": 10,
+      "title": "WC-PAPERI 24 rl",
+      "anchor": {
+        "left": 0.641002,
+        "top": 0.883995,
+        "width": 0.10008899999999998,
+        "height": 0.016527
+      },
+      "nearby": [
+        "KPL",
+        "Ooops! Sensitive",
+        "WC-PAPERI 24 rl",
+        "0,29/rl rl",
+        "PKT",
+        "Toalettpapper",
+        "9,99/pkt (0,42/rl)",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:14:akaasia tuotteet:percent:30",
+      "page": 14,
+      "title": "AKAASIA TUOTTEET",
+      "anchor": null,
+      "nearby": [
+        "AKAASIA TUOTTEET"
+      ]
+    },
+    {
+      "id": "kcm:spatial:15:kahvinkeittimen puhdistusaine 250 ml:11.99",
+      "page": 15,
+      "title": "KAHVINKEITTIMEN PUHDISTUSAINE 250 ml",
+      "anchor": {
+        "left": 0.509244,
+        "top": 0.398611,
+        "width": 0.11604800000000004,
+        "height": 0.016527
+      },
+      "nearby": [
+        "Moccamaster",
+        "KAHVINKEITTIMEN",
+        "PUHDISTUSAINE 250 ml",
+        "11 99",
+        "14 99",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:17:päivä- ja yövoide tuplapakkaus 2 x 50 ml:29.9",
+      "page": 17,
+      "title": "PÄIVÄ- ja YÖVOIDE TUPLAPAKKAUS 2 x 50 ml",
+      "anchor": {
+        "left": 0.251558,
+        "top": 0.608271,
+        "width": 0.09585699999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Lumene Lumo",
+        "PÄIVÄ- ja YÖVOIDE",
+        "TUPLAPAKKAUS 2 x 50 ml",
+        "299,00/l",
+        "Dag- och nattkräm dubbelförpackning",
+        "90",
+        "-14%",
+        "PKT",
+        "34,90/pkt (349,00/l)",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:17:ihonhoitotuotteet:percent:10",
+      "page": 17,
+      "title": "IHONHOITOTUOTTEET",
+      "anchor": {
+        "left": 0.846329,
+        "top": 0.61117,
+        "width": 0.11289399999999994,
+        "height": 0.013773
+      },
+      "nearby": [
+        "IHONHOITOTUOTTEET",
+        "Hudvårdsprodukter"
+      ]
+    },
+    {
+      "id": "kcm:spatial:17:tuotteet:percent:20",
+      "page": 17,
+      "title": "TUOTTEET",
+      "anchor": null,
+      "nearby": [
+        "TUOTTEET"
+      ]
+    },
+    {
+      "id": "kcm:spatial:18:wc-paperi 24 rl:6.9",
+      "page": 18,
+      "title": "WC-PAPERI 24 rl",
+      "anchor": {
+        "left": 0.094059,
+        "top": 0.192325,
+        "width": 0.10008899999999998,
+        "height": 0.016527
+      },
+      "nearby": [
+        "Ooops! Sensitive",
+        "WC-PAPERI 24 rl",
+        "0,29/rl rl",
+        "Toalettpapper"
+      ]
+    },
+    {
+      "id": "kcm:spatial:18:hiustenhoitotuotteet 30–300 ml hårvårdsprodukter:percent:15",
+      "page": 18,
+      "title": "HIUSTENHOITOTUOTTEET 30–300 ml Hårvårdsprodukter",
+      "anchor": {
+        "left": 0.385751,
+        "top": 0.598392,
+        "width": 0.13106199999999996,
+        "height": 0.013773
+      },
+      "nearby": [
+        "HIUSTENHOITOTUOTTEET",
+        "30–300 ml",
+        "Hårvårdsprodukter"
+      ]
+    },
+    {
+      "id": "kcm:spatial:18:nurme tuotteet:percent:20",
+      "page": 18,
+      "title": "NURME TUOTTEET",
+      "anchor": null,
+      "nearby": [
+        "NURME TUOTTEET"
+      ]
+    },
+    {
+      "id": "kcm:spatial:18:meikit:percent:20",
+      "page": 18,
+      "title": "MEIKIT",
+      "anchor": null,
+      "nearby": [
+        "MEIKIT"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "sourceUrl": "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/",
+  "publisherUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/86y216l_tarjouslehti_43LV_KCM/index.html",
+  "pdfUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/86y216l_tarjouslehti_43LV_KCM/files/extfile/DownloadURL.pdf",
+  "pdfSha256": "44f0e815471a87c1e46ddcc79095bd67dac2ff0760d64a54340b28c7cfdadf8f",
+  "pageCount": 19,
+  "offerCount": 42,
+  "archivedAt": "2026-10-23T01:39:18.725Z",
+  "files": [
+    "leaflet.pdf",
+    "leaflet.json",
+    "parser-evidence.json",
+    "publisher-responses.json"
+  ]
+}
