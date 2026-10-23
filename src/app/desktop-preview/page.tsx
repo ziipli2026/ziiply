@@ -910,6 +910,16 @@ export default function DesktopPreviewPage() {
   function desktopHasExplicitPackage(name:string):boolean{
     return /\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl)\b/i.test(String(name));
   }
+  function desktopVerifiedKgPriceCents(product:any):number|null{
+    // Only accept an explicitly labelled €/kg unit price, never the ordinary
+    // product.price field or an unlabelled numeric unit price.
+    const label=String(product?.unitPrice||product?.product?.unitPrice||"").trim();
+    const match=label.match(/(\d+(?:[.,]\d+)?)\s*(?:€|eur)\s*\/\s*kg\b/i)
+      ||label.match(/\bkg\s*[:=]\s*(\d+(?:[.,]\d+)?)\s*(?:€|eur)\b/i);
+    if(!match)return null;
+    const euros=Number(match[1].replace(",","."));
+    return Number.isFinite(euros)&&euros>0?Math.round(euros*100):null;
+  }
   function desktopReliableComparePrice(product:any):boolean{
     const cents=Number(product?.price);
     if(!Number.isFinite(cents)||cents<=0)return false;
@@ -1089,9 +1099,9 @@ export default function DesktopPreviewPage() {
                 const bulkCounterPack=/\bn\s*\d+(?:[.,]\d+)?\s*kg\b/.test(candidateName);
                 const loose=desktopPackageSize(candidateName)===null;
                 const excluded=/\b(pakaste|pakastettu|säilyke|purkki|marinoitu|marinadi|maustettu|savustettu|savu|pihvi|pyörykkä|silli|etikka|kastike)\b/.test(candidateName);
-                return fishFilletSpecies(candidateName)===originalSpecies&&!excluded&&(loose||bulkCounterPack)&&Number(p.price)>0;
+                return fishFilletSpecies(candidateName)===originalSpecies&&!excluded&&(loose||bulkCounterPack)&&desktopVerifiedKgPriceCents(p)!==null;
               }):null;
-            return {cartItemId:String(item.id||""),name:matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative,weightProposal:weightProposal?{name:String(weightProposal.name),pricePerKgCents:Number(weightProposal.price),ean:String(weightProposal.ean||""),gramsPerItem:desktopPackageSize(name)}:null};
+            return {cartItemId:String(item.id||""),name:matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative,weightProposal:weightProposal?{name:String(weightProposal.name),pricePerKgCents:desktopVerifiedKgPriceCents(weightProposal),verifiedPerKgPrice:true,ean:String(weightProposal.ean||""),gramsPerItem:desktopPackageSize(name)}:null};
           }catch(error){logCompareAudit("product_search_error",{store:store.name,name,ean,error:String(error)});desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         desktopDebug(`Kauppahaku valmis: ${store.name}, hinnat=${rows.filter(x=>x.price!=null).length}/${rows.length}`);
