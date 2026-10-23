@@ -9,11 +9,14 @@ const rows = await sql`
   WHERE method='category_token_overlap' AND status='pending'
   ORDER BY ean,fineli_id
 `;
-const unsafe = /(?:koiran|koiralle|koirille|kissan|kissalle|kissoille|lemmik|levite|tuorejuusto|monivilja|quinoa|seos|sekoitus|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|patukka|juustoperun)/i;
+const unsafe = /(?:koiran|koiralle|koirille|kissan|kissalle|kissoille|lemmik|levite|tuorejuusto|monivilja|quinoa|seos|sekoitus|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|patukka|juustoperun|jogurtti|rahka|vanukas|pasteija|lihapiirakka)/i;
 const preparation = ['paistettu','keitetty','kypsennetty','savustettu','kuivattu','pakaste','kuorittu','jauhettu'];
 const flags = (product, food) => {
   const issues = [];
   if (unsafe.test(product)) issues.push('composite_or_nonhuman_product');
+  if (/gluteeniton/.test(product) && !/gluteeniton/.test(food)) issues.push('gluten_free_mismatch');
+  if (/laktoositon/.test(product) && !/laktoositon/.test(food)) issues.push('lactose_free_mismatch');
+  if (/rasvaton/.test(food) && /(\d+(?:[.,]\d+)?)\s*%/.test(product) && Number(product.match(/(\d+(?:[.,]\d+)?)\s*%/)[1].replace(',','.')) > 0.5) issues.push('fat_free_mismatch');
   for (const term of preparation) if (food.includes(term) && !product.includes(term)) issues.push('preparation_'+term);
   for (const term of ['gluteeniton','laktoositon','rasvaton','kevyt','makeuttamaton','sokeroimaton']) if (product.includes(term) && !food.includes(term)) issues.push('attribute_'+term);
   const p = product.match(/(\d+(?:[.,]\d+)?)\s*%/);
