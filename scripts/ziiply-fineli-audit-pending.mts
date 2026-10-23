@@ -16,7 +16,9 @@ const flags = (product: string, food: string): string[] => {
   if (unsafe.test(product)) issues.push('product_category_mismatch');
   // A shared ingredient does not make a prepared Fineli dish equivalent to the product.
   const dish = /muhennos|pata|keitto|kastike|laatikko|pizza|piirakka|salaatti|puuro|kiusaus|gratiini|risotto|wokki|pihvi|pyörykkä/i;
-  if (dish.test(food) && !dish.test(product)) issues.push('prepared_dish_vs_product');
+  // Normalize Finnish pizza spelling; otherwise a matching pitsa is falsely flagged.
+  const normalizedProduct = product.replace(/pitsa/g, 'pizza').replace(/pinsa/g, 'pizza');
+  if (dish.test(food) && !dish.test(normalizedProduct)) issues.push('prepared_dish_vs_product');
   // Non-food merchandise must never be proposed for nutrition matching.
   if (/tuoksukynttil|tuoksutikku|tuoksulämpökynttil|pesuaine|shampoo|saippua|koiran|kissan|lemmik/i.test(product)) issues.push('non_food_product');
   if (/juustokastikkeella|juustoperunoilla/.test(product) && !/kastike|peruna/.test(food)) issues.push('prepared_meal_vs_ingredient');
