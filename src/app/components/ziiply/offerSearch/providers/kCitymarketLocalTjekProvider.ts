@@ -88,7 +88,7 @@ export async function fetchVerifiedKCitymarketHyvinkaaOffers(): Promise<Row[]> {
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const key = normalize(selectedStoreName);
   const now = Date.now();
-  // K-Ruoka's verified store-scoped offers take precedence over optional Tjek.
+  // Preserve K-Ruoka's verified store-scoped offers independently of Tjek.
   // The alternate key is accepted only for the explicitly verified Hyvinkaa store,
   // and every row must independently identify the same store (N183).
   const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
@@ -103,19 +103,11 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
     .filter(row => isActiveOffer(row, now)
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
-  // Use Tjek only if the verified store feed is unavailable. Never let an
-  // obsolete Tjek publication replace current K-Ruoka store campaigns.
-  // An explicitly verified successful empty K-Ruoka scan is authoritative too.
-  // Older snapshots without a scan status remain backward-compatible: they
-  // only suppress Tjek when they contain active, store-verified offers.
-  const primarySnapshot = isHyvinkaa ? await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") : null;
-  const verifiedEmpty = isHyvinkaa && Array.isArray(primarySnapshot) && primarySnapshot.length === 1
-    && primarySnapshot[0]?.source === "K-Ruoka verified empty scan"
-    && primarySnapshot[0]?.storeId === "N183"
-    && primarySnapshot[0]?.scanStatus === "success-empty"
-    && Number.isFinite(Date.parse(String(primarySnapshot[0]?.verifiedAt ?? "")))
-    && Date.now() - Date.parse(String(primarySnapshot[0]?.verifiedAt)) < 60 * 60 * 1000;
-  return (primary.length || verifiedEmpty ? primary : fallback).map(normalizeTjekPackagePrice);
+  // A local Tjek publication and the verified K-Ruoka store feed are independent.
+  // Never replace either source when the other one refreshes, including a
+  // verified-empty K-Ruoka scan. Every row was already validated by source,
+  // store identity and offer validity above.
+  return [...primary, ...fallback].map(normalizeTjekPackagePrice);
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
