@@ -6,7 +6,13 @@ const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ locale: "fi-FI", timezoneId: "Europe/Helsinki" });
 const observations = [];
 const seen = new Set();
-page.on("response", async response => {
+const pendingResponses = new Set();
+page.on("response", response => {
+  const task = inspectResponse(response);
+  pendingResponses.add(task);
+  task.finally(() => pendingResponses.delete(task));
+});
+async function inspectResponse(response) {
   const url = response.url();
   if (!/^https:\/\/(?:[^/]+\.)?(?:k-ruoka\.fi|keskofiles\.com)\//i.test(url)) return;
   const type = response.headers()["content-type"] || "";
@@ -25,7 +31,7 @@ page.on("response", async response => {
     } catch {}
   }
   observations.push({ url: parsed.origin + parsed.pathname, status: response.status(), type: type.slice(0,80), shape });
-});
+}
 try {
   const store = "https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa";
   const first = await page.goto(store, { waitUntil: "domcontentloaded", timeout: 45000 });
@@ -36,6 +42,7 @@ try {
   const destination = offerLink ? new URL(offerLink.href, store).href : "https://www.k-ruoka.fi/kauppa/tarjoushaku";
   const second = await page.goto(destination, { waitUntil: "domcontentloaded", timeout: 45000 }).catch(() => null);
   await page.waitForTimeout(9000);
+  await Promise.allSettled([...pendingResponses]);
   const offerTitle = await page.title();
   const pageEvidence = await page.locator("body").innerText().then(s => ({
     hyvinkaa: /Hyvinkää/i.test(s),
