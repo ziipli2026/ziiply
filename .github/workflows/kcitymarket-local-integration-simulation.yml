@@ -7,6 +7,7 @@ on:
       - 'src/app/api/offers/search/route.ts'
       - 'src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts'
       - 'tests/k-offer-tab-policy.test.cjs'
+      - 'tests/kcitymarket-source-coexistence.test.cjs'
       - 'src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx'
       - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
       - 'scripts/audit-gosta-cart-multibuy-20261001.cjs'
@@ -27,6 +28,8 @@ jobs:
       - run: npm install --package-lock=false --no-audit --no-fund
       - name: TypeScript compile
         run: npx tsc --noEmit
+      - name: K-Ruoka and Tjek coexistence regression
+        run: node --test tests/kcitymarket-source-coexistence.test.cjs
       - name: K offer tab policy regression
         run: node --test tests/k-offer-tab-policy.test.cjs
       - name: Citymarket semantic dedupe regression
