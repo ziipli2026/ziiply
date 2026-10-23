@@ -21,6 +21,14 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
   const dismissSwitchHint=()=>{setShowSwitchHint(false);try{sessionStorage.setItem("ziiply-recipe-switch-hint-seen-v1","1")}catch{}};
   useEffect(()=>{try{
     setShowSwitchHint(sessionStorage.getItem("ziiply-recipe-switch-hint-seen-v1")!=="1");
+    const selected=JSON.parse(sessionStorage.getItem(STORAGE)||"null");
+    if(selected?.draft&&Array.isArray(selected.draft.ingredients)&&selected.text){
+      setDraft(selected.draft);setText(String(selected.text));
+      setOriginal(String(selected.original||selected.draft.servings||4));
+      setTarget(String(selected.target||selected.draft.servings||4));
+      setSavedRecipeId(sessionStorage.getItem("ziiply-justiina-active-recipe-id-v1"));
+      setHydrated(true);return;
+    }
     const stored=JSON.parse(localStorage.getItem("ziiply-desktop-vihkonen-recipes-v1")||"[]");
     const recipes=Array.isArray(stored)?stored.filter((item:any)=>item&&typeof item.ingredients==="string"&&item.ingredients.trim()):[];
     const suggestion=recipes.length?recipes[Math.floor(Math.random()*recipes.length)]:null;
