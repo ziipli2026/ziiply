@@ -22,3 +22,20 @@ assert(pick.includes("isComparisonAttributeCompatible("),"Attributes must be che
 assert(pick.includes("desktopStrictCompareIdentity("),"Identity must be checked");
 assert(pick.includes("if(exact.length)return"),"Exact EAN must take priority");
 console.log("PASS: comparison matcher guards");
+
+const packageStart=source.indexOf("  function desktopPackageCompatible(");
+const packageEnd=source.indexOf("\n  function desktopFindPackageAlternative(",packageStart);
+assert(packageStart>=0&&packageEnd>packageStart,"Package compatibility helper missing");
+const packageFn=source.slice(packageStart,packageEnd).replace(/:string/g,"").replace(/:boolean/g,"");
+vm.runInNewContext(packageFn,context);
+const compatible=context.desktopPackageCompatible;
+for(const [a,b,expected] of [
+  ["Maito 1 l","Maito 1000 ml",true],
+  ["Kerma 2 dl","Kerma 200 ml",true],
+  ["Jogurtti 500 g","Jogurtti 500 ml",false],
+  ["Juusto 1 kg","Juusto 1000 g",true],
+  ["Maito 1 l","Maito 500 ml",false]
+]){
+  assert.equal(compatible(a,b),expected,a+" / "+b);
+  console.log("PASS package",a,"=>",b,expected);
+}
