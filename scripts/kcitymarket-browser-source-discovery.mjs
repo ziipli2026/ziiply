@@ -5,6 +5,7 @@ import { chromium } from "playwright";
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ locale: "fi-FI", timezoneId: "Europe/Helsinki" });
 const observations = [];
+const candidates = [];
 const seen = new Set();
 const pendingResponses = new Set();
 page.on("response", response => {
@@ -29,6 +30,14 @@ async function inspectResponse(response) {
       const body = await response.json();
       const describe = v => Array.isArray(v) ? { kind: "array", length: v.length, firstKeys: v[0] && typeof v[0] === "object" ? Object.keys(v[0]).slice(0,20) : [] } : v && typeof v === "object" ? { kind: "object", keys: Object.keys(v).slice(0,35) } : { kind: typeof v };
       shape = describe(body);
+      const rows = Array.isArray(body) ? body : body && typeof body === "object"
+        ? Object.entries(body).filter(([k,v]) => /offer|campaign|benefit|product|item/i.test(k) && Array.isArray(v)).flatMap(([,v]) => v)
+        : [];
+      const samples = rows.filter(v => v && typeof v === "object" && /price|offer|campaign|discount/i.test(Object.keys(v).join(" ")))
+        .slice(0,3).map(v => Object.fromEntries(["name","title","price","validFrom","validUntil","storeId","offerId","ean"]
+          .filter(k => typeof v[k] === "string" || typeof v[k] === "number")
+          .map(k => [k, String(v[k]).slice(0,100)])));
+      if (samples.length && candidates.length < 40) candidates.push({ endpoint: parsed.origin + parsed.pathname, samples });
     } catch {}
   }
   observations.push({ url: parsed.origin + parsed.pathname, status: response.status(), type: type.slice(0,80), shape });
@@ -55,7 +64,7 @@ try {
     storeHttp: first?.status() ?? null, storeTitle,
     offerHttp: second?.status() ?? null, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
-    links, pageEvidence, requests: observations,
+    links, pageEvidence, requests: observations, candidates,
     verifiedStoreOffers: false,
     note: "Diagnostic only. A page marker alone does not prove N183 offer scope."
   }));
