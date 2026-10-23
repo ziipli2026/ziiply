@@ -172,6 +172,18 @@ export function classifyRecipeIngredient(input: string): RecipeFoodGroup | null 
 }
 /** Unknown ingredients require a literal match, never an arbitrary cheapest item. */
 export function recipeProductRejectionReason(input: string, product: { name?: string; category?: string },context?:RecipeContext): string | null {
+ // Explicit recipe alternatives are OR choices, never separate requirements.
+ // Evaluate each choice with the same category/attribute checks as an ordinary ingredient.
+ const original=String(context?.sourceLine||"");
+ if(/\s+tai\s+/i.test(original)){
+   const alternatives=original.split(/\s+tai\s+/i).map(x=>x.trim()).filter(Boolean);
+   if(alternatives.length>1){
+     const stripQuantity=(x:string)=>x.replace(/^\s*\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt|pss|prk|rkl|tl)\s+/i,"").trim();
+     const verdicts=alternatives.map(x=>recipeProductRejectionReason(stripQuantity(x),product,{...context,sourceLine:stripQuantity(x)}));
+     if(verdicts.includes(null))return null;
+     return verdicts[0]||"alternative_ingredient_mismatch";
+   }
+ }
  const term=recipeProductSearchTerm(input);if(!term)return "not_purchasable_ingredient";
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
