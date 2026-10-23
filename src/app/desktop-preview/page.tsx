@@ -779,7 +779,7 @@ export default function DesktopPreviewPage() {
       const v=String(value).toLocaleLowerCase("fi").replace(/,/g,".");
       if(/\bväkiviinaetikka\b/.test(v)&&!/\b(etikkaliuos|etikkaesanssi|maustettu|omenaviini|valkoviini|punaviini)\b/.test(v))return "väkiviinaetikka";
       const spices=["maustepippuri","valkopippuri","mustapippuri","viherpippuri","paprikajauhe","kaneli","kardemumma","kurkuma","kumina","juustokumina","oregano","basilika","timjami","rosmariini","tilli"];
-      const spice=spices.find(w=>new RegExp("\b"+w+"\b").test(v));
+      const spice=spices.find(w=>new RegExp("\\b"+w+"\\b").test(v));
       if(!spice||/\b(sekoitus|mausteseos|aromi|suola|öljy|kastike)\b/.test(v))return null;
       const form=/\b(jauhettu|jauhe|rouhittu|rouhe)\b/.test(v)?"jauhe":/\b(kokonainen|kokonaiset)\b/.test(v)?"kokonainen":"määrittelemätön";
       return spice+":"+form;
@@ -795,7 +795,8 @@ export default function DesktopPreviewPage() {
       const sameProduct=sourceWords.every(w=>words.includes(w));
       const sameStaple=Boolean(sourceStaple&&stapleIdentity(String(p.name||""))===sourceStaple);
       return {p,size,sameBrand,sameProduct,sameStaple,overlap};
-    }).filter(x=>x.size!==null&&x.size!==sourceSize&&Number(x.p.price)>0
+    }).filter(x=>x.size!==null&&x.size!==sourceSize&&desktopReliableComparePrice(x.p)
+      &&isComparisonAttributeCompatible(name,String(x.p.name||""))
       &&normalizeEan(String(x.p.ean||""))!==sourceEan&&(x.sameStaple||(x.sameBrand&&x.sameProduct)))
       .sort((a,b)=>Math.abs(Number(a.size)-sourceSize)-Math.abs(Number(b.size)-sourceSize)
         ||Number(a.size)-Number(b.size)||Number(a.p.price)-Number(b.p.price))[0]?.p||null;
