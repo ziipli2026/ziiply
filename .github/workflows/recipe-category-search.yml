@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - 'src/app/components/ziiply/justiina/recipe*.ts'
+      - 'src/app/components/ziiply/justiina/mobileRecipeSearch.ts'
+      - 'scripts/test-mobile-recipe*.cjs'
+      - 'src/app/components/ziiply/justiina/mobileRecipeSearch.ts'
+      - 'scripts/test-mobile-recipe*.cjs'
       - 'scripts/test-recipe*.cjs'
       - '.github/workflows/recipe-category-search.yml'
   pull_request:
@@ -27,3 +31,7 @@ jobs:
       - run: node scripts/test-recipe-search-coverage.cjs
       - run: node scripts/test-recipe-fish-debug.cjs
       - run: node scripts/test-recipe-sugar-salt-debug.cjs
+      - run: node scripts/test-recipe-selected-store-fallback.cjs
+      - run: node scripts/test-recipe-product-state.cjs
+      - run: node scripts/test-mobile-recipe-flow.cjs
+      - run: node scripts/test-mobile-recipe-stable-list.cjs
