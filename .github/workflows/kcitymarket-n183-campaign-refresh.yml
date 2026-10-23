@@ -50,5 +50,5 @@ jobs:
           ];
           fs.appendFileSync(summary, lines.join("\n") + "\n");
           console.log(lines.join("\n"));
-          if (http !== "200" || data.ok !== true || data.verifiedKruokaCount < 5) process.exitCode = 1;
+          if (http !== "200" || data.ok !== true || !(Number.isFinite(data.verifiedKruokaCount) && data.verifiedKruokaCount >= 5)) process.exitCode = 1;
           NODE
