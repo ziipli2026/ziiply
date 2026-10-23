@@ -15,8 +15,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install dependencies
-        run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
       - name: Verify candidate guards
         run: node scripts/test-fineli-candidate-guards.cjs
       - name: Require explicit mass discovery approval
@@ -24,6 +22,8 @@ jobs:
         run: |
           echo 'Mass discovery blocked pending Fineli quality review.'
           exit 1
+      - name: Install dependencies
+        run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
       - name: Discover review-only matches
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
