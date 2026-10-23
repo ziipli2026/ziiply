@@ -218,7 +218,7 @@ for (;;) {
     const productIsFatFree = /rasvaton/i.test(unbranded);
     const productIsLight = /(?:kevyt|light)/i.test(unbranded);
     const productIsUnsweetened = /(?:makeuttamaton|sokeroimaton)/i.test(unbranded);
-    const productFat = unbranded.match(/(\d+(?:[.,]\d+)?)\s*%/);
+    // Species blend ratios (50%/50%) are not fat percentages.\n    const withoutBlendRatio = unbranded.replace(/\b\d+(?:[.,]\d+)?\s*%\s*\/\s*\d+(?:[.,]\d+)?\s*%/g, "");\n    const productFat = withoutBlendRatio.match(/(\d+(?:[.,]\d+)?)\s*%/);
     const fatMismatch = (foodName: string) => {
       const fineliFat = foodName.match(/RASVAA\s*(\d+(?:[.,]\d+)?)\s*%/i);
       if (/RASVATON/i.test(foodName) && productFat && Number(productFat[1].replace(",",".")) > 0.5) return true;
@@ -226,10 +226,10 @@ for (;;) {
       if (productFat && fineliFat) return Math.abs(Number(productFat[1].replace(",","."))-Number(fineliFat[1].replace(",","."))) > 0.1;
       return false;
     };
-    const ranked = [...hits.values()].map(entry => {
+    // Generic Fineli mince descriptions cannot verify an explicitly labelled fat percentage.\n    const unverifiedMinceFat = (foodName: string) => /jauheliha/i.test(unbranded) && productFat && !/rasvaa\s*\d+(?:[.,]\d+)?\s*%/i.test(foodName);\n    const ranked = [...hits.values()].map(entry => {
       const overlap = entry.tokens.filter(t => tokens.includes(t)).length;
       return { ...entry, overlap, coverage: overlap / entry.tokens.length };
-    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && (!productIsFatFree || /rasvaton/i.test(entry.name)) && (!productIsLight || /(?:kevyt|light)/i.test(entry.name)) && (!productIsUnsweetened || /(?:makeuttamaton|sokeroimaton)/i.test(entry.name)) && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)) && (!productIsLactoseFree || /laktoositon/i.test(entry.name)))
+    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && (!productIsFatFree || /rasvaton/i.test(entry.name)) && (!productIsLight || /(?:kevyt|light)/i.test(entry.name)) && (!productIsUnsweetened || /(?:makeuttamaton|sokeroimaton)/i.test(entry.name)) && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && !unverifiedMinceFat(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)) && (!productIsLactoseFree || /laktoositon/i.test(entry.name)))
       .sort((a,b) => b.overlap-a.overlap || b.coverage-a.coverage || a.id-b.id)
       .slice(0,2);
     return ranked.map(entry => ({ ean: String(product.ean), fineli_id: entry.id,
