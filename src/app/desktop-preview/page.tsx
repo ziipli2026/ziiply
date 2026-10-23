@@ -827,11 +827,14 @@ export default function DesktopPreviewPage() {
     return sourceWords.every(w=>candidateWords.some(c=>matches(w,c)))
       &&candidateWords.every(w=>sourceWords.some(c=>matches(w,c)));
   }
+  function desktopHasExplicitPackage(name:string):boolean{
+    return /\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl)\b/i.test(String(name));
+  }
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     const sourceEan=normalizeEan(ean);
     if(sourceEan){
       const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan
-        &&(desktopPackageCompatible(name,String(p.name||"")) || (desktopPackageSize(name)===null && desktopPackageSize(String(p.name||""))===null))&&Number(p?.price)>0);
+        &&(desktopPackageCompatible(name,String(p.name||"")) || (!desktopHasExplicitPackage(name) && !desktopHasExplicitPackage(String(p.name||""))))&&Number(p?.price)>0);
       if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
     // Unlike the original cart price lookup, the comparison may use a verified
