@@ -22,7 +22,8 @@ async function inspectResponse(response) {
   if (!/json|graphql/i.test(type) && !/tarjou|offer|campaign|benefit|categor/i.test(new URL(url).pathname)) return;
   const parsed = new URL(url);
   // Drop all query parameters, which may contain tokens or user identifiers.
-  const key = response.status() + " " + parsed.origin + parsed.pathname;
+  const queryKeys = [...new Set([...parsed.searchParams.keys()])].sort();
+  const key = response.status() + " " + parsed.origin + parsed.pathname + "?" + queryKeys.join(",");
   if (seen.has(key) || observations.length >= 100) return;
   seen.add(key);
   let shape = null;
@@ -41,7 +42,7 @@ async function inspectResponse(response) {
       if (samples.length && candidates.length < 40) candidates.push({ endpoint: parsed.origin + parsed.pathname, samples });
     } catch {}
   }
-  observations.push({ url: parsed.origin + parsed.pathname, status: response.status(), type: type.slice(0,80), shape });
+  observations.push({ url: parsed.origin + parsed.pathname, queryKeys, status: response.status(), type: type.slice(0,80), shape });
 }
 try {
   const store = "https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa";
@@ -60,12 +61,14 @@ try {
     otherStore: /K-Citymarket Vantaa Jumbo/i.test(s),
     offerWords: (s.match(/tarjous|plussa|etu/gi) || []).length,
     bodyLength: s.length,
+    storeIdN183InPage: /N183/.test(s),
   })).catch(() => ({}));
   const report = {
     storeHttp: first?.status() ?? null, storeTitle,
     offerHttp: second?.status() ?? null, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
     links, pageEvidence, requests: observations, candidates,
+    storeContextConfirmed: Boolean(pageEvidence.storeIdN183InPage && pageEvidence.hyvinkaa && !pageEvidence.otherStore),
     verifiedStoreOffers: false,
     note: "Diagnostic only. A page marker alone does not prove N183 offer scope."
   };
