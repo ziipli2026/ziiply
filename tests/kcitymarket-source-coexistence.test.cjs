@@ -10,5 +10,6 @@ test("K-Ruoka and Tjek are additive, not competing fallbacks",()=>{
 });
 test("K-Ruoka and Tjek snapshots have distinct store keys",()=>{
   assert.match(file,/readPublishedSnapshot\("k-ruoka k citymarket hyvinkaa"\)/);
-  assert.match(file,/readPublishedSnapshot\(key\)/);
+  assert.match(file,/const fallbackKey = isHyvinkaa \? "k citymarket hyvinkaa" : key/);
+  assert.match(file,/readPublishedSnapshot\(fallbackKey\)/);
 });
