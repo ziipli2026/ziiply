@@ -669,6 +669,11 @@ export default function DesktopPreviewPage() {
     const key=keyWords.find(w=>/sokeriherne/i.test(w))?.replace(/sokeriherneet$/i,"sokeriherne")
       ||(keyWords.length===1?keyWords[0]:"");
     const terms=[base,withoutBrand,withoutSize,key];
+    // Loose produce has store-specific weighing labels and EANs. Search its
+    // actual produce category as well, not just the source store's full label.
+    // Candidate identity and price/unit validation remain separate.
+    const looseProduce=/^(peruna|porkkana)\b/i.exec(withoutSize)?.[1];
+    if(looseProduce)terms.push(looseProduce.toLocaleLowerCase("fi"));
     if(/\bkevyt\s*maito\b/i.test(withoutBrand))terms.push("kevytmaito","kevyt maito");
     return [...new Set(terms.filter(Boolean))];
   }
