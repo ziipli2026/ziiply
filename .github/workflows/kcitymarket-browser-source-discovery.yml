@@ -1,0 +1,22 @@
+name: K-Ruoka N183 browser source discovery
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 3 * * *'
+permissions:
+  contents: read
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install browser runner
+        run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Discover K-Ruoka live network source
+        run: node scripts/kcitymarket-browser-source-discovery.mjs
