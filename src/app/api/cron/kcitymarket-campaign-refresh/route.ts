@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const result = await refreshKCitymarketCampaignCache("K-Citymarket Hyvinkää");
     const active = await fetchKCitymarketSelectedStoreOffers("K-Citymarket Hyvinkää");
     if (active.length < 5) {
-      return NextResponse.json({ok:false,error:"Store campaigns unavailable: refreshed Tjek but verified K-Ruoka feed is missing or expired",activeCount:active.length,...result},{status:503});
+      return NextResponse.json({ok:false,error:"Store campaigns unavailable: refreshed Tjek but verified K-Ruoka feed is missing or expired",...result,activeCount:active.length},{status:503});
     }
     return NextResponse.json({ok:true,activeCount:active.length,...result});
   } catch (error) {
