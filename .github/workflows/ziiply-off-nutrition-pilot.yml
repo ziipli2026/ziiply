@@ -28,6 +28,8 @@ jobs:
           node-version: '22'
       - name: Install PostgreSQL client
         run: npm install --no-save --ignore-scripts pg
+      - name: Validate OFF importer syntax
+        run: node --check scripts/import-off-nutrition.mjs
       - name: Import isolated OFF nutrition records
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
