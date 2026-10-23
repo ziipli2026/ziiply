@@ -243,9 +243,9 @@ for (;;) {
     const ranked = [...hits.values()].map(entry => {
       const overlap = entry.tokens.filter(t => tokens.includes(t)).length;
       return { ...entry, overlap, coverage: overlap / entry.tokens.length };
-    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.75 && (!productIsFatFree || /rasvaton/i.test(entry.name)) && (!productIsLight || /(?:kevyt|light)/i.test(entry.name)) && (!productIsUnsweetened || /(?:makeuttamaton|sokeroimaton)/i.test(entry.name)) && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && !unverifiedMinceFat(entry.name) && !incompatibleCategory(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)) && (!productIsLactoseFree || /laktoositon/i.test(entry.name)))
+    }).filter(entry => entry.overlap >= 2 && entry.coverage >= 0.5 && (!productIsFatFree || /rasvaton/i.test(entry.name)) && (!productIsLight || /(?:kevyt|light)/i.test(entry.name)) && (!productIsUnsweetened || /(?:makeuttamaton|sokeroimaton)/i.test(entry.name)) && !containsDifferentPreparation(entry.name) && !foodIsPet.test(entry.name) && !fatMismatch(entry.name) && !unverifiedMinceFat(entry.name) && !incompatibleCategory(entry.name) && (!productIsGlutenFree || /gluteeniton|luontaisesti gluteeniton/i.test(entry.name)) && (!productIsLactoseFree || /laktoositon/i.test(entry.name)))
       .sort((a,b) => b.overlap-a.overlap || b.coverage-a.coverage || a.id-b.id)
-      .slice(0,2);
+      .slice(0,3);
     return ranked.map(entry => ({ ean: String(product.ean), fineli_id: entry.id,
       evidence: { productName: name, brand: product.brand, fineliName: entry.name,
         method: "category_token_overlap", sharedTokens: entry.overlap,
