@@ -12860,7 +12860,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         } catch { failed = true; }
       } else {
         if (item.chain === "S" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.sStoreName || "")) {
-          s = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
+          s = { product: item.product, price: item.price, quantity: 1, matchType: comparisonSourceEan && normalizeEan(item.product.ean) === comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
         } else {
           try {
             const sTerms = Array.from(new Set([
@@ -12883,7 +12883,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           } catch { failed = true; }
         }
         if (item.chain === "K" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")) {
-          k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
+          k = { product: item.product, price: item.price, quantity: 1, matchType: comparisonSourceEan && normalizeEan(item.product.ean) === comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
         } else {
           try {
             // Unknown product families may use a verified exact EAN, never a name substitute.
