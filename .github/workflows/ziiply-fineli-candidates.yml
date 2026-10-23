@@ -19,12 +19,12 @@ jobs:
         run: node scripts/test-fineli-candidate-guards.cjs
       - name: Require explicit mass discovery approval
         if: ${{ inputs.confirm_mass_discovery != true }}
-        run: |
-          echo 'Mass discovery blocked pending Fineli quality review.'
-          exit 1
+        run: echo 'Preflight-only mode; mass discovery remains disabled.'
       - name: Install dependencies
+        if: ${{ inputs.confirm_mass_discovery == true }}
         run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
       - name: Discover review-only matches
+        if: ${{ inputs.confirm_mass_discovery == true }}
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
         run: npx tsx scripts/ziiply-fineli-discover-candidates.mts
