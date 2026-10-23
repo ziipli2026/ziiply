@@ -32,9 +32,25 @@ async function inspectResponse(response) {
       const body = await response.json();
       const describe = v => Array.isArray(v) ? { kind: "array", length: v.length, firstKeys: v[0] && typeof v[0] === "object" ? Object.keys(v[0]).slice(0,20) : [] } : v && typeof v === "object" ? { kind: "object", keys: Object.keys(v).slice(0,35) } : { kind: typeof v };
       shape = describe(body);
-      const rows = Array.isArray(body) ? body : body && typeof body === "object"
-        ? Object.entries(body).filter(([k,v]) => /offer|campaign|benefit|product|item/i.test(k) && Array.isArray(v)).flatMap(([,v]) => v)
-        : [];
+      // K-Ruoka/GraphQL responses can nest offer arrays under data, edges,
+      // nodes, results or store objects. Inspect structure only; never log bodies.
+      const rows = [];
+      const visited = new Set();
+      function collect(value, depth = 0) {
+        if (!value || typeof value !== "object" || depth > 7 || visited.has(value) || rows.length >= 300) return;
+        visited.add(value);
+        if (Array.isArray(value)) {
+          for (const item of value.slice(0, 300)) collect(item, depth + 1);
+          return;
+        }
+        if (/price|discount|campaign/i.test(Object.keys(value).join(" ")) &&
+            /name|title|ean|offer|product/i.test(Object.keys(value).join(" "))) rows.push(value);
+        for (const [key, child] of Object.entries(value)) {
+          if (/data|edge|node|result|offer|campaign|benefit|product|item|store|page/i.test(key))
+            collect(child, depth + 1);
+        }
+      }
+      collect(body);
       const samples = rows.filter(v => v && typeof v === "object" && /price|offer|campaign|discount/i.test(Object.keys(v).join(" ")))
         .slice(0,3).map(v => Object.fromEntries(["name","title","price","validFrom","validUntil","storeId","offerId","ean"]
           .filter(k => typeof v[k] === "string" || typeof v[k] === "number")
