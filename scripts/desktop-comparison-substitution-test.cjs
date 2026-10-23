@@ -13,7 +13,9 @@ const cases=[
  ["Kotimaista tilli 30 g","Pirkka tilli 30 g",true],
  ["Meira valkopippuri 35 g","Meira maustepippuri 35 g",false],
  ["Kotimaista Silakkafilee MSC 250 g","Pirkka Silakkafilee MSC 250 g",true],
- ["Kotimaista Silakkafilee MSC 250 g","Pirkka Seiti MSC 250 g",false]
+ ["Kotimaista Silakkafilee MSC 250 g","Pirkka Seiti MSC 250 g",false],
+ ["Pirkka tilli 30 g","Kotimaista tilli kuivattu 30 g",false],
+ ["Pirkka väkiviinaetikka 1 l","Xtra väkiviinaetikka maustettu 1 l",false]
 ];
 for(const [a,b,expected] of cases){assert.equal(check(a,b),expected,a+" / "+b);console.log("PASS",a,"=>",b,expected)}
 const pick=source.slice(end,source.indexOf("\n  async function openDesktopComparison()",end));
