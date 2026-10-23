@@ -845,6 +845,19 @@ export default function DesktopPreviewPage() {
     }
     // Unlike the original cart price lookup, the comparison may use a verified
     // equivalent from another chain. Reject unrelated products and package sizes.
+    // Fresh herbs can have different retail labels (e.g. "persilja" vs
+    // "persilja ruukussa"). Do not confuse dried spices or prepared foods.
+    const sourceHerb=/\b(persilja|tilli|basilika|korianteri)\b/i.exec(name)?.[1]?.toLowerCase();
+    if(sourceHerb && !/kuivatt|mauste|jauhe|purkki|pussi/i.test(name)){
+      const freshHerbs=candidates.filter((p:any)=>{
+        const candidate=String(p.name||"").toLocaleLowerCase("fi");
+        return Number(p.price)>0
+          &&new RegExp("\\b"+sourceHerb+"\\b","i").test(candidate)
+          &&!/kuivatt|mauste|jauhe|purkki|pussi|levite|kastike|salaatti|filee|broiler|kana|juusto|krutonki|grissini|kalafile|pasta|risotto/i.test(candidate)
+          &&isComparisonAttributeCompatible(name,candidate);
+      });
+      if(freshHerbs.length)return freshHerbs.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
+    }
     const compatible=candidates.filter((p:any)=>Number(p?.price)>0
       &&desktopPackageCompatible(name,String(p.name||""))
       &&isComparisonAttributeCompatible(name,String(p.name||""))
