@@ -151,6 +151,12 @@ function cleanName(input: string): string {
  .replace(/\s+(?:rasvaa|lohkoina|kuutioina|pieninä kuutioina)$/g,"").replace(/\s+/g," ").trim();
 }
 export function recipeProductSearchTerm(input: string): string | null {
+ // Recipe imports can retain quantities, brands and incomplete parenthetical notes.
+ // Resolve the raw basic ingredient before category/literal matching.
+ const rawIngredient=String(input||"").toLocaleLowerCase("fi");
+ if(/\bperun(?:a|an|aa|at|oita|oiden|oissa|oista|oihin)\b/.test(rawIngredient)
+   && !/peruna[- ](?:sipuli|juures|kikherne|pekoni|broileri)|peruna(?:salaat|pyöryk|pihv|muus|gnocch|gratiin|laatik|keitto)|pakaste|sekoitus/.test(rawIngredient))
+   return "peruna";
  const name=cleanName(cleanRecipeQuery(input));
  // Resolve a single potato ingredient before broad category classification.
  // Category-first normalization can turn "perunoita"/"perunaa" into a generic
