@@ -62,3 +62,16 @@ const key = row => String(row.ean)+'|'+String(row.fineli_id);
 if (new Set(rows.map(key)).size!==rows.length) throw new Error('Duplicate EAN-Fineli candidates in audit');
 fs.writeFileSync(path.join(dir,'review-batches-summary.json'),JSON.stringify({total:rows.length,modified:0,queue_counts:queueCounts,batches},null,2)+'\n');
 console.log('Fineli review batches:',JSON.stringify({total:rows.length,modified:0,queue_counts:queueCounts,batches}));
+
+const conflictGroups = {};
+for (const row of rows.filter(row => row.decision === 'CONFLICT_REVIEW')) {
+  const reason = (row.issues || []).slice().sort().join('+') || 'unknown';
+  (conflictGroups[reason] ||= []).push(row);
+}
+const conflictSummary = Object.fromEntries(Object.entries(conflictGroups).map(([reason,items])=>[reason,items.length]));
+fs.writeFileSync(path.join(dir,'conflict-reasons.json'),JSON.stringify({total:rows.filter(r=>r.decision==='CONFLICT_REVIEW').length,modified:0,reasons:conflictSummary},null,2)+'\n');
+for (const [reason,subset] of Object.entries(conflictGroups)) {
+  const filename='conflict-' + reason.toLowerCase().replace(/[^a-z0-9_-]+/g,'-')+'.csv';
+  fs.writeFileSync(path.join(dir,filename),'\uFEFF'+[serialize(queueColumns),...subset.map(row=>serialize(queueColumns.map(column=>csvCell(row,column))))].join('\n')+'\n');
+}
+console.log('Fineli conflict groups:',JSON.stringify(conflictSummary));
