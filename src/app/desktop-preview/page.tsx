@@ -965,7 +965,8 @@ export default function DesktopPreviewPage() {
     return /\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl)\b/i.test(String(name));
   }
   function desktopVerifiedKgPriceCents(product:any):number|null{
-    // ComparisonPrice from the K-products API is already in cents per unit.\n    // Only accept an explicitly labelled €/kg unit price, never the ordinary
+    // ComparisonPrice from the K-products API is already in cents per unit.
+    // Only accept an explicitly labelled €/kg unit price, never the ordinary
     // product.price field or an unlabelled numeric unit price.
     const label=String(product?.unitPrice||product?.product?.unitPrice||"").trim().replace(/\u00a0/g," ");
     const match=label.match(/(\d+(?:[.,]\d+)?)\s*(?:€|eur)\s*\/\s*kg\b/i)
