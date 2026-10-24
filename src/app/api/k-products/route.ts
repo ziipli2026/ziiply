@@ -93,6 +93,9 @@ export async function GET(request: Request) {
       cache: "no-store",
     });
 
+    if (!response.ok) {
+      return NextResponse.json({ store, storeId, source: "ruoanhinta-k", status: response.status, items: [], error: "K-store price provider returned an error" }, { status: 502 });
+    }
     const data = await response.json();
     const firstPage: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
     const sourceItems = response.ok ? await appendRuoanhintaPages(firstPage, 100, async (skip, signal) => {
