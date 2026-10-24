@@ -210,9 +210,6 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         if(!title){reject("missing-title");sampleReject("missing-title",id);continue;}
         if(price==null||price<=0){
           reject("missing-or-invalid-price");sampleReject("missing-or-invalid-price",id);
-          if((rejectedReasons["missing-or-invalid-price"]??0)<=5){
-            console.info("[K-Citymarket] Tjek missing-price offer shape",JSON.stringify({offerId:id,publicationId,keys:Object.keys(offer).slice(0,45),priceFields:{price:offer.price,membershipPrice:offer.membershipPrice,appPrice:offer.appPrice,fromPrice:offer.fromPrice},priceType:typeof offer.price}));
-          }
           continue;
         }
         if(!Number.isFinite(from)||!Number.isFinite(until)){reject("invalid-dates");sampleReject("invalid-dates",id);continue;}
