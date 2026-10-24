@@ -9538,8 +9538,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : null;
       const productMeta = match.product as Product & { comparisonPriceUnit?: string; priceUnit?: string; unitPriceUnit?: string };
       const unitText = String(productMeta.comparisonPriceUnit || productMeta.priceUnit || productMeta.unitPriceUnit || "").toLowerCase();
-      const isKgPrice = /^(?:kg|\\/kg|eur\\/kg|€\\/kg|euro\\/kg|kilogramma)$/.test(unitText.trim()) ||
-        /(?:€|eur)\\s*\\/\\s*kg/i.test(String(match.product?.name || ""));
+      const isKgPrice = /^(?:kg|\/kg|eur\/kg|€\/kg|euro\/kg|kilogramma)$/.test(unitText.trim()) ||
+        /(?:€|eur)\s*\/\s*kg/i.test(String(match.product?.name || ""));
       // Only apply gram-based pricing when the source explicitly identifies a kg unit.
       // Never multiply an ordinary packaged product's price by recipe grams.
       if (grams !== null && Number.isFinite(grams) && grams > 0 && isKgPrice) {
