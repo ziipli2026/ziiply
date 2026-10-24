@@ -650,7 +650,7 @@ export default function DesktopPreviewPage() {
         if(!Number.isFinite(perItem)||perItem<=0)return row;
         return {...row,name:String(proposal.name),price:perItem,match:"name" as const,weightEstimate:true,weightGramsPerItem:Number(proposal.gramsPerItem),weightPricePerKgCents:Number(proposal.pricePerKgCents),weightProposal:null,ean:String(proposal.ean||"")};
       });
-      return {...current,[storeId]:{...result,rows,total:Math.round(rows.reduce((n:number,row:any)=>n+(row.price??0)*Number(row.quantity||1),0)*100)/100,missing:rows.filter((row:any)=>row.price==null).length}};
+      return {...current,[storeId]:{...result,rows,total:Math.round(rows.reduce((n:number,row:any)=>n+(row.price??0)*Number(row.quantity||1),0)*100)/100,missing:rows.filter((row:any)=>row.price==null).length,complete:rows.every((row:any)=>row.price!=null),totalIsPartial:rows.some((row:any)=>row.price==null)}};
     });
   }
 
