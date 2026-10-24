@@ -171,6 +171,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const failedOfferIds=new Set<string>();
   const acceptedOfferKeys=new Set<string>();
   const rejectedReasons: Record<string,number> = {};
+  let filteredByValidity=0;
   let missingOfferDetails=0;
   const rejectedSamples: Record<string,string[]> = {};
   const sampleReject=(reason:string,id:string)=>{const samples=rejectedSamples[reason]??(rejectedSamples[reason]=[]);if(samples.length<5)samples.push(id);};
@@ -209,8 +210,8 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         if(!title){reject("missing-title");sampleReject("missing-title",id);continue;}
         if(price==null||price<=0){reject("missing-or-invalid-price");sampleReject("missing-or-invalid-price",id);continue;}
         if(!Number.isFinite(from)||!Number.isFinite(until)){reject("invalid-dates");sampleReject("invalid-dates",id);continue;}
-        if(from>horizon){reject("future-outside-horizon");sampleReject("future-outside-horizon",id);continue;}
-        if(until<now){reject("expired");sampleReject("expired",id);continue;}
+        if(from>horizon){reject("future-outside-horizon");filteredByValidity++;sampleReject("future-outside-horizon",id);continue;}
+        if(until<now){reject("expired");filteredByValidity++;sampleReject("expired",id);continue;}
         const qty=numeric(offer.pieceCountFrom);
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
@@ -247,7 +248,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   }
   if(completedPublications!==uniquePublications.length)throw new Error(`Only ${completedPublications}/${uniquePublications.length} Tjek publications read`);
   entry.progress.accepted = entry.rows.length;
-  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,missingOfferDetails,duplicateOfferRows,rejectedReasons,rejectedSamples}));
+  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,missingOfferDetails,duplicateOfferRows,filteredByValidity,rejectedReasons,rejectedSamples}));
 }
 
 
