@@ -172,6 +172,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const acceptedOfferKeys=new Set<string>();
   const rejectedReasons: Record<string,number> = {};
   let filteredByValidity=0;
+  const unpricedOfferExamples: Array<{id:string;title:string;unitPrice:unknown;description:string}> = [];
   let missingOfferDetails=0;
   const rejectedSamples: Record<string,string[]> = {};
   const sampleReject=(reason:string,id:string)=>{const samples=rejectedSamples[reason]??(rejectedSamples[reason]=[]);if(samples.length<5)samples.push(id);};
@@ -210,6 +211,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         if(!title){reject("missing-title");sampleReject("missing-title",id);continue;}
         if(price==null||price<=0){
           reject("missing-or-invalid-price");sampleReject("missing-or-invalid-price",id);
+          if(unpricedOfferExamples.length<25)unpricedOfferExamples.push({id,title,unitPrice:offer.unitPrice??null,description:String(offer.description??"").slice(0,160)});
           continue;
         }
         if(!Number.isFinite(from)||!Number.isFinite(until)){reject("invalid-dates");sampleReject("invalid-dates",id);continue;}
@@ -251,7 +253,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   }
   if(completedPublications!==uniquePublications.length)throw new Error(`Only ${completedPublications}/${uniquePublications.length} Tjek publications read`);
   entry.progress.accepted = entry.rows.length;
-  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,missingOfferDetails,duplicateOfferRows,filteredByValidity,rejectedReasons,rejectedSamples}));
+  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,missingOfferDetails,duplicateOfferRows,filteredByValidity,rejectedReasons,rejectedSamples,unpricedOfferExamples}));
 }
 
 
