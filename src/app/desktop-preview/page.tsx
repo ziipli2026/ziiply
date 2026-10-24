@@ -804,8 +804,9 @@ export default function DesktopPreviewPage() {
     };
     if(normalizedEan){
       const exactResults=await fetchCandidates(normalizedEan);
-      const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan&&desktopReliableComparePrice(p));
+      const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan&&desktopReliableComparePrice(p)&&desktopPackageCompatible(name,String(p.name||"")));
       if(exact.length)return exact;
+      if(exactResults.length)logCompareAudit("ean_candidates_rejected_continue_name_search",{store:store.name,name,ean,candidates:exactResults.length});
     }
     const queries=[...new Set([name,packageNeutral,...desktopCompareSearchTerms(name),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,4);
     const responses=await Promise.all(queries.map(fetchCandidates));
