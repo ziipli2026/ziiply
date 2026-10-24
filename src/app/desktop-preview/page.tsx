@@ -1406,13 +1406,25 @@ export default function DesktopPreviewPage() {
     return()=>window.removeEventListener("ziiply-clear-active-recipe",clear);
   },[]);
 
+  function activeRecipeSelectionIngredient():RecipeIngredient|null {
+    const step=recipeSearchStepRef.current;
+    if(step<0)return null;
+    const current=recipeSearchItemsRef.current[step];
+    if(current)return current;
+    // Restore ingredient amounts after a preview remount resets the in-memory ref.
+    try{
+      const saved=JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"{}");
+      const items=Array.isArray(saved.items)?saved.items:[];
+      return items[step]||null;
+    }catch{return null;}
+  }
   function selectedRecipePackageCount(product:any):number|null {
-    const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
+    const ingredient=activeRecipeSelectionIngredient();
     if(!ingredient)return null;
     return recipeRetailPackageCount(ingredient,{...product,name:String(product.name||product.title||product.productName||"")});
   }
   function addRecipeSelectionToCart(product:any) {
-    const ingredient=recipeSearchItemsRef.current[recipeSearchStepRef.current];
+    const ingredient=activeRecipeSelectionIngredient();
     const count=selectedRecipePackageCount(product);
     let recipeTitle="";
     try{recipeTitle=String(JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"{}").title||"")}catch{}
