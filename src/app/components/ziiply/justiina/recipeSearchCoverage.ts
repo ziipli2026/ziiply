@@ -7,6 +7,12 @@ export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredie
   const term = (ingredient.searchTerm || query).toLowerCase().trim();
   // Search every explicitly offered alternative, but keep one ingredient/cart line.
   // The parser retains the original source line when it contains "tai".
+  // Basic vegetables must be searched as produce, never split packaging text on "tai".
+  const rawProduce=new Set(["peruna","porkkana","sipuli","punasipuli","valkosipuli","tomaatti","kurkku","paprika","bataatti","purjo","pinaatti","herne","sitruuna"]);
+  if(rawProduce.has(term)) {
+    const variants: Record<string,string[]>={peruna:["peruna pesty","peruna kiinteä","perunat","irtoperuna","ruokaperuna"]};
+    return [...new Set([term,...(variants[term]||[])])];
+  }
   const source=String(ingredient.sourceLine||"");
   const alternatives=source.split(/\s+tai\s+/i);
   if(alternatives.length>1){
