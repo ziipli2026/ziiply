@@ -737,6 +737,7 @@ export default function DesktopPreviewPage() {
   }
 
   // Use the same query expansion and ranking as the mobile comparison.
+  const desktopProductSearchCache=new Map<string,{at:number;promise:Promise<any[]>}>();
   async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean){
     // The selected store is authoritative: never search S products for a K store (or vice versa).
     const kind=storeKind(store);
@@ -766,13 +767,24 @@ export default function DesktopPreviewPage() {
     // Search the exact barcode first. Broader name searches are only necessary
     // when the selected store has no valid EAN match.
     const fetchCandidates=async(search:string)=>{
+      // Reuse identical in-flight and recent searches within this browser session.
+      // Prices remain short-lived and are never substituted across stores.
+      const cacheKey=[kind,String(store.id||""),search].join("|");
+      const now=Date.now();
+      const cached=desktopProductSearchCache.get(cacheKey);
+      if(cached&&now-cached.at<60_000)return cached.promise;
+      const promise=(async()=>{
       try{
         const kStoreId=String(store.id||"");
         const selectedStoreId=isS?kStoreId:(/^\d+$/.test(kStoreId)?kStoreId:"");
         if(!selectedStoreId)return [];
         const params=new URLSearchParams({search,store:selectedStoreId});
         if(isS)params.set("storeName",String(store.name||""));
-        const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
+        const controller=new AbortController();
+        const timeout=setTimeout(()=>controller.abort(),6500);
+        let response:Response;
+        try{response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store",signal:controller.signal});}
+        finally{clearTimeout(timeout);}
         if(!response.ok)return [];
         const data=await response.json();
         const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
@@ -783,6 +795,10 @@ export default function DesktopPreviewPage() {
           price:isS&&data?.source==="s-kaupat-normal-v220"?Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100):Number(p.price??p.storeItems?.[0]?.price??0)
         })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
       }catch{return []}
+      })();
+      desktopProductSearchCache.set(cacheKey,{at:now,promise});
+      if(desktopProductSearchCache.size>250){for(const [key,value] of desktopProductSearchCache){if(now-value.at>60_000)desktopProductSearchCache.delete(key);}}
+      return promise;
     };
     if(normalizedEan){
       const exactResults=await fetchCandidates(normalizedEan);
