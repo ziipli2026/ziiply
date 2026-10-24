@@ -819,12 +819,16 @@ export default function DesktopPreviewPage() {
       logCompareAudit("comparison_fallback_search",{store:store.name,name,additionalQueries:queries.slice(4),candidates:candidates.length});
     }
     const seen=new Set<string>();
-    return candidates.filter((p:any)=>{
+    const unique=candidates.filter((p:any)=>{
       const key=[normalizeEan(p.ean),String(p.name||"").toLocaleLowerCase("fi"),String(p.price)].join("|");
       if(seen.has(key))return false;
       seen.add(key);
       return true;
     });
+    if(!desktopPickCompareCandidate(unique,name,ean,isS)){
+      logCompareAudit("comparison_product_unmatched",{store:store.name,kind,name,ean,queries,candidateCount:unique.length,reason:unique.length?"candidates_rejected_by_identity_or_price":"no_candidates_from_price_api",sample:unique.slice(0,5).map((p:any)=>({name:p.name,ean:p.ean,price:p.price}))});
+    }
+    return unique;
   }
   // Never attach a different package's price to the original cart product.
   // Unknown package sizes are not proof of equivalence.
