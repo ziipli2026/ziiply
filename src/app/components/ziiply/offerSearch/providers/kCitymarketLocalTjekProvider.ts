@@ -15,7 +15,7 @@ function stable(value: unknown): string {
   return JSON.stringify(value, (_key, v) => v && Object.prototype.toString.call(v) === "[object Object]"
     ? Object.keys(v).sort().reduce<Record<string,unknown>>((out,key) => { out[key]=v[key]; return out; }, {}) : v);
 }
-async function tjekOnce(name: string, params: Row): Promise<unknown> {
+async function tjek(name: string, params: Row): Promise<unknown> {
   const key = Buffer.from(stable([name,params]),"utf8").toString("base64");
   const response = await fetch(ORIGIN, { method:"POST", cache:"no-store",
     headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"K-Citymarket"},
@@ -26,22 +26,14 @@ async function tjekOnce(name: string, params: Row): Promise<unknown> {
   }
   throw new Error("Tjek "+name+" response missing");
 }
-// Retry transient upstream timeouts in the collector, never on the user read path.
-async function tjek(name: string, params: Row): Promise<unknown> {
-  let failure: unknown;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try { return await tjekOnce(name, params); } catch (error) { failure = error; }
-  }
-  throw failure;
-}
 type LocalProgress = { stage: string; storeName: string; storeId: string | null; publicationIds: string[]; pages: number; offerIds: number; accepted: number; error: string | null; updatedAt: string };
 const localCache = new Map<string, { rows: Row[]; startedAt: number; finishedAt: number; running: boolean; progress: LocalProgress; promise?: Promise<void> }>();
 const LOCAL_TTL = 15 * 60_000;
 const FAILED_RETRY_TTL = 60 * 60_000;
-const isActiveOffer = (row: Row, at = Date.now()) => {
-  const from = Date.parse(String(row.validFrom ?? ""));
-  const until = Date.parse(String(row.validUntil ?? ""));
-  return Number.isFinite(from) && Number.isFinite(until) && from <= at && until >= at;
+const isActiveOffer = (row: Row, at=Date.now()) => {
+  const from=Date.parse(String(row.validFrom??""));
+  const until=Date.parse(String(row.validUntil??""));
+  return Number.isFinite(from)&&Number.isFinite(until)&&from<=at&&at<=until;
 };
 export function getKCitymarketLocalTjekDebug(selectedStoreName: string): LocalProgress & { running: boolean; cachedRows: number } {
   const entry = localCache.get(normalize(selectedStoreName));
@@ -54,21 +46,15 @@ async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
   if (!process.env.DATABASE_URL) return null;
   try {
     const sql = neon(process.env.DATABASE_URL);
-    const rows = await sql`SELECT offers, publication_ids, updated_at FROM public.ziiply_kcitymarket_tjek_snapshots WHERE (store_key = ${key} OR regexp_replace(lower(store_key), '[^a-z0-9]+', '', 'g') = regexp_replace(lower(${key}), '[^a-z0-9]+', '', 'g')) ORDER BY CASE WHEN store_key = ${key} THEN 0 ELSE 1 END, updated_at DESC LIMIT 1`;
-    if (!Array.isArray(rows[0]?.offers)) return null;
-    const offers = rows[0].offers as Row[];
-    localCache.set(key, { rows: offers, startedAt: 0, finishedAt: Date.now(), running: false,
-      progress: { stage: "snapshot-ready", storeName: key, storeId: offers[0]?.storeId ? String(offers[0].storeId) : null,
-        publicationIds: Array.isArray(rows[0].publication_ids) ? rows[0].publication_ids as string[] : [],
-        pages: 0, offerIds: offers.length, accepted: offers.length, error: null, updatedAt: String(rows[0].updated_at || "") } });
-    return offers;
+    const rows = await sql`SELECT offers FROM public.ziiply_kcitymarket_tjek_snapshots WHERE (store_key = ${key} OR regexp_replace(lower(store_key), '[^a-z0-9]+', '', 'g') = regexp_replace(lower(${key}), '[^a-z0-9]+', '', 'g')) ORDER BY CASE WHEN store_key = ${key} THEN 0 ELSE 1 END, updated_at DESC LIMIT 1`;
+    return Array.isArray(rows[0]?.offers) ? rows[0].offers as Row[] : null;
   } catch (error) {
     console.warn("[K-Citymarket] snapshot read unavailable", error);
     return null;
   }
 }
 async function publishSnapshot(key: string, offers: Row[], publicationIds: string[]): Promise<void> {
-  if (!process.env.DATABASE_URL) return;
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL missing: cannot persist Tjek snapshot");
   const sql = neon(process.env.DATABASE_URL);
   await sql`INSERT INTO public.ziiply_kcitymarket_tjek_snapshots (store_key, offers, publication_ids, valid_until, updated_at)
     VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '7 days', NOW())
@@ -90,18 +76,33 @@ export function normalizeTjekPackagePrice(row: Row): Row {
   return {...row, offerQuantity: null, offerUnit: "pkt", packageCount: quantity,
     priceBasis: "package-total", priceText: price.toFixed(2).replace(".", ",") + " € / pkt (" + quantity + " kpl)"};
 }
+/** Verified K-Ruoka N183 offers only; never count Tjek fallback as K-Ruoka success. */
+export async function fetchVerifiedKCitymarketHyvinkaaOffers(): Promise<Row[]> {
+  const now = Date.now();
+  return (await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") ?? [])
+    .filter(row => String(row.storeId ?? "") === "N183"
+      && String((row.debug as Row | undefined)?.sourceScope ?? row.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
+      && normalize(row.storeName) === "k citymarket hyvinkaa"
+      && isActiveOffer(row, now));
+}
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const key = normalize(selectedStoreName);
   const now = Date.now();
-  // Every selected Citymarket reads its own K-Ruoka and Tjek snapshots.
-  // Never special-case a city, store id or publication.
-  const primary = (await readPublishedSnapshot("k ruoka " + key) ?? [])
-    .filter(row => String((row.debug as Row | undefined)?.sourceScope ?? row.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
-      && normalize(row.storeName) === key
-      && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now);
-  const fallback = (await readPublishedSnapshot(key) ?? [])
-    .filter(row => normalize(row.storeName) === key
-      && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now);
+  // Preserve the separately verified K-Ruoka feed for N183 only.
+  const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
+  const primary = isHyvinkaa
+    ? (await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") ?? [])
+        .filter(row => String(row.storeId ?? "") === "N183"
+          && String((row.debug as Row | undefined)?.sourceScope ?? row.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
+          && normalize(row.storeName) === "k citymarket hyvinkaa"
+          && isActiveOffer(row, now))
+    : [];
+  const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
+  const fallback = (await readPublishedSnapshot(fallbackKey) ?? [])
+    .filter(row => isActiveOffer(row, now)
+      && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
+        && normalize(row.storeName) === "k citymarket hyvinkaa")));
+
   // Restore the original global live-Tjek recovery path for EVERY selected
   // Citymarket. Snapshots are a fast path, not a prerequisite for search.
   // A live scan is keyed by the normalized selected store name and verifies
@@ -159,127 +160,145 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   }
   return [...primary, ...tjekRows].map(normalizeTjekPackagePrice);
 }
-
-/** Explicit background-job entry point. The interactive request never starts this. */
-export async function refreshKCitymarketSelectedStoreSnapshot(selectedStoreName: string): Promise<Row[]> {
-  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL missing; cannot publish campaign snapshot");
-  const key = normalize(selectedStoreName);
-  // The Tjek refresher must never overwrite the verified K-Ruoka N183 feed.
-  if (key.startsWith("k ruoka ")) throw new Error("Tjek refresh cannot write a K-Ruoka snapshot key");
-  const entry = { rows: [] as Row[], startedAt: Date.now(), finishedAt: 0, running: true,
-    progress: { stage: "starting", storeName: selectedStoreName, storeId: null, publicationIds: [] as string[], pages: 0, offerIds: 0, accepted: 0, error: null as string | null, updatedAt: new Date().toISOString() } };
-  localCache.set(key, entry);
-  try {
-    await readKCitymarketSelectedStoreOffers(selectedStoreName, entry);
-    if (!entry.progress.publicationIds.length || !entry.rows.length) {
-      throw new Error("Tjek refresh returned no active campaign rows; previous snapshot preserved");
-    }
-    entry.rows = entry.rows.map(normalizeTjekPackagePrice);
-    // Do not silently replace a richer, still-valid publication snapshot with a
-    // suspiciously small result from the same publication set.
-    // Read the prior snapshot without overwriting the live refresh progress in localCache.
-    const sql = neon(process.env.DATABASE_URL);
-    const previousRows = await sql`SELECT offers, publication_ids FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = ${key} AND valid_until > NOW() LIMIT 1`;
-    const previous = Array.isArray(previousRows[0]?.offers) ? previousRows[0].offers as Row[] : null;
-    const previousIds = Array.isArray(previousRows[0]?.publication_ids) ? previousRows[0].publication_ids as string[] : [];
-    if (previous && previous.length >= 5 && entry.rows.length < Math.ceil(previous.length * 0.5)
-      && previousIds.some(id => entry.progress.publicationIds.includes(id))) {
-      throw new Error(`Tjek campaign coverage regression: ${entry.rows.length}/${previous.length} offers; previous snapshot preserved`);
-    }
-    await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
-    entry.progress.stage = "complete";
-    return entry.rows;
-  } catch (error) {
-    entry.progress.stage = "failed";
-    entry.progress.error = error instanceof Error ? error.message : String(error);
-    throw error;
-  } finally {
-    entry.running = false;
-    entry.finishedAt = Date.now();
-    entry.progress.updatedAt = new Date().toISOString();
-  }
-}
-// Keep the already-deployed cron entry point compatible with the explicit collector.
 export async function refreshKCitymarketCampaignCache(storeName: string) {
-  const rows = await refreshKCitymarketSelectedStoreSnapshot(storeName);
-  return { count: rows.length, pages: getKCitymarketLocalTjekDebug(storeName).pages };
+  const key = normalize(storeName);
+  // This updater owns Tjek snapshots ONLY. Never allow an alternate K-Ruoka
+  // store label to overwrite the independently collected verified N183 feed.
+  if (key.startsWith("k ruoka ")) throw new Error("Tjek refresh cannot write a K-Ruoka snapshot key");
+  const entry = {rows: [] as Row[], unpricedRows: [] as Row[], progress: {stage: "starting", storeName,
+    storeId: null as string | null, publicationIds: [] as string[], pages: 0,
+    offerIds: 0, accepted: 0, error: null as string | null,
+    updatedAt: new Date().toISOString()}};
+  await readKCitymarketSelectedStoreOffers(storeName, entry);
+  if (entry.progress.stage !== "reading-pages" && entry.progress.stage !== "no-active-publications") {
+    throw new Error("Tjek scan incomplete: " + entry.progress.stage);
+  }
+  if (entry.progress.publicationIds.length === 0 || entry.rows.length === 0) {
+    throw new Error("Tjek refresh returned no active campaign rows; previous snapshot preserved");
+  }
+  // A successful HTTP scan is not proof of a complete campaign catalogue.
+  // Never replace a healthy snapshot with a suddenly tiny partial publication.
+  const previous = await readPublishedSnapshot(key);
+  const previousActive = (previous ?? []).filter(row => isActiveOffer(row)).length;
+  const currentActive = entry.rows.filter(row => isActiveOffer(row)).length;
+  if (previousActive >= 5 && currentActive < Math.max(3, Math.floor(previousActive * 0.5))) {
+    throw new Error(`Tjek campaign coverage regression: ${currentActive} active rows vs ${previousActive} previously; previous snapshot preserved`);
+  }
+  // Report accepted/identified offer coverage; do not silently interpret a
+  // successful source request as complete coverage of every hotspot.
+  if (entry.progress.offerIds >= 5 && entry.rows.length < Math.max(3, Math.floor(entry.progress.offerIds * 0.2))) {
+    throw new Error(`Tjek campaign detail coverage incomplete: ${entry.rows.length}/${entry.progress.offerIds}; previous snapshot preserved`);
+  }
+  entry.rows = entry.rows.map(normalizeTjekPackagePrice);
+  await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
+  // Keep display-only discounts separate from priced offers and basket calculations.
+  await publishSnapshot(key+" unpriced", entry.unpricedRows, entry.progress.publicationIds);
+  return {count: entry.rows.length, activeCount: currentActive, discoveredOfferIds: entry.progress.offerIds, pages: entry.progress.pages};
 }
-async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, entry: { rows: Row[]; progress: LocalProgress }): Promise<void> {
+export async function fetchKCitymarketUnpricedDiscounts(selectedStoreName: string): Promise<Row[]> {
+  const key=normalize(selectedStoreName);
+  return (await readPublishedSnapshot(key+" unpriced")??[]).filter(row=>isActiveOffer(row));
+}
+async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, entry: { rows: Row[]; unpricedRows?: Row[]; progress: LocalProgress }): Promise<void> {
   const wanted=normalize(selectedStoreName);
-  if (!wanted.includes("citymarket") || wanted.length < 13) { throw new Error("Invalid Citymarket store name"); }
+  if (!wanted.includes("citymarket") || wanted.length < 13) { entry.progress.stage = "invalid-store-name"; return; }
   const stores=asRows(await tjek("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
   const matching=stores.filter(s => normalize(s.name)===wanted);
   // No substring fallback: never silently import another store's publication.
-  if (matching.length!==1) { throw new Error("Tjek stores matching count: " + matching.length); }
+  if (matching.length!==1) { entry.progress.stage = "store-match-failed"; entry.progress.error = "Tjek stores matching count: " + matching.length; return; }
   const store=matching[0], storeId=String(store.id??"");
-  if (!storeId || !store.coordinates) { throw new Error("Tjek store location missing"); }
+  if (!storeId || !store.coordinates) { entry.progress.stage = "store-location-missing"; return; }
   entry.progress.storeId = storeId; entry.progress.stage = "discovering-publications";
   const fronts=await tjek("fronts",{businessIds:[BUSINESS],localBusinessIds:[storeId],coordinates:store.coordinates});
-  if (!Array.isArray(fronts)) throw new Error("Invalid Tjek publication discovery response");
   const now=Date.now();
+  // Prepare upcoming publications too; the reader still exposes only currently valid offers.
+  const horizon=now+3*24*60*60*1000;
   const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front => front && typeof front==="object" && Array.isArray((front as Row).publications) ? (front as Row).publications as Row[] : [])
-    .filter((p, index, all) => all.findIndex(other => other.id === p.id) === index)
-    .filter(p => {const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));return Number.isFinite(from)&&Number.isFinite(until)&&from<=now&&now<=until;});
-  if (!publications.length) {
-    // The upstream Tjek fronts API may return an empty list even when the store
-    // exists. Never present this as "0 campaigns" or publish an empty snapshot.
-    const frontCount=fronts.length;
-    const discovered=(fronts as Row[]).reduce((count,front)=>count+(Array.isArray(front.publications)?front.publications.length:0),0);
-    const message=`Tjek ei palauttanut voimassa olevia kauppakohtaisia julkaisuja myymälälle ${String(store.name)} (storeId=${storeId}; fronts=${frontCount}; publications=${discovered}). Kaupan tarjousten määrää ei voitu vahvistaa. Aiempi tarjousaineisto säilytetään.`;
-    entry.progress.stage = "source-unavailable";
-    entry.progress.error = message;
-    throw new Error(message);
+    .filter(p => {const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));return Number.isFinite(from)&&Number.isFinite(until)&&from<=horizon&&now<=until;});
+  // The fronts feed may repeat a publication across front sections. Process each
+  // publication once, otherwise coverage metrics and offer scans are distorted.
+  const uniquePublications = [...new Map(publications.filter(p => p.id != null).map(p => [String(p.id), p])).values()];
+  entry.progress.publicationIds = uniquePublications.map(p => String(p.id));
+  entry.progress.stage = uniquePublications.length ? "reading-pages" : "source-unavailable";
+  if (!uniquePublications.length) {
+    entry.progress.error = `Tjek ei palauttanut kauppakohtaisia julkaisuja myymälälle ${String(store.name)} (storeId=${storeId}). Tarjousten määrää ei voida vahvistaa; aiempi aineisto säilytetään.`;
+    throw new Error(entry.progress.error);
   }
-  entry.progress.publicationIds = publications.map(p => String(p.id ?? "")).filter(Boolean);
-  entry.progress.stage = publications.length ? "reading-pages" : "no-active-publications";
   const failedOfferIds=new Set<string>();
+  const acceptedOfferKeys=new Set<string>();
+  const rejectedReasons: Record<string,number> = {};
+  let filteredByValidity=0;
+  const unpricedOfferExamples: Array<{id:string;title:string;unitPrice:unknown;description:string;plussa:boolean;discountPercent:number|null}> = [];
+  const unpricedCategories={plussaPercentage:0,plussaOther:0,percentageOther:0,other:0};
+  let missingOfferDetails=0;
+  const rejectedSamples: Record<string,string[]> = {};
+  const sampleReject=(reason:string,id:string)=>{const samples=rejectedSamples[reason]??(rejectedSamples[reason]=[]);if(samples.length<5)samples.push(id);};
+  let duplicateOfferRows=0;
+  const reject=(reason:string)=>{rejectedReasons[reason]=(rejectedReasons[reason]??0)+1;};
   let completedPublications=0;
   let pageLimitReached=false;
-  for(const publication of publications){
-    const publicationId=String(publication.id??"");
-    if(!publicationId)throw new Error("Tjek publication ID missing");
+  for(const publication of uniquePublications){
+    // Offer IDs must be deduplicated within each publication, not across all publications.
     const seen=new Set<string>();
+    const publicationId=String(publication.id??"");
+    if(!publicationId)continue;
     for(let page=1;page<=100;page++){
-      let response: Response | undefined;
-      let pageError: unknown;
-      for (let attempt=0;attempt<3;attempt++) {
-        try {
-          response=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(publicationId)+"/"+page,{cache:"no-store",headers:{Accept:"application/json"},signal:AbortSignal.timeout(12000)});
-          if (response.status>=500 || response.status===429) throw new Error("Tjek page HTTP "+response.status);
-          break;
-        } catch (error) { pageError=error; response=undefined; }
-      }
-      if (!response) throw new Error(`Tjek publication ${publicationId} page ${page}: ${pageError instanceof Error ? pageError.message : String(pageError)}`, { cause: pageError });
+      const response=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(publicationId)+"/"+page,{cache:"no-store",headers:{Accept:"application/json"},signal:AbortSignal.timeout(12000)});
       if(!response.ok){if(page>1&&(response.status===400||response.status===404))break;throw new Error("Tjek publication HTTP "+response.status);}
       const payload=await response.json() as Row;
       entry.progress.pages++;
-      if (!Array.isArray(payload.hotspots)) throw new Error("Invalid Tjek page: hotspots missing");
-      const hotspots=payload.hotspots;
-      const ids=[...new Set(hotspots.map(h=>{ if(!h||typeof h!=="object")return ""; const hotspot=h as Row; const offer=hotspot.offer; return String(offer && typeof offer==="object" ? (offer as Row).id??"" : hotspot.offerId??hotspot.offerPublicId??""); }).filter(Boolean))];
-      const missingIds=hotspots.filter(h=>!h||typeof h!=="object"||!((h as Row).offer && typeof (h as Row).offer==="object" && ((h as Row).offer as Row).id) && !(h as Row)?.offerId && !(h as Row)?.offerPublicId).length;
-      console.info("[K-Citymarket] Tjek page coverage",{storeId,publicationId,page,hotspots:hotspots.length,uniqueOfferIds:ids.length,unrecognizedHotspots:missingIds});
-      if(missingIds>0)console.warn("[K-Citymarket] Tjek hotspots without recognized offer ID",{publicationId,page,hotspots:hotspots.length,uniqueOfferIds:ids.length,unrecognizedHotspots:missingIds});
+      const hotspots=Array.isArray(payload.hotspots)?payload.hotspots:[];
+      const ids=[...new Set(hotspots.map(h=>h && typeof h==="object" ? String(((h as Row).offer && typeof (h as Row).offer==="object" ? ((h as Row).offer as Row).id : null) ?? (h as Row).offerId ?? (h as Row).offerPublicId ?? "") : "").filter(Boolean))];
       const freshIds=ids.filter(id=>!seen.has(id));
       entry.progress.offerIds += freshIds.length;
       freshIds.forEach(id=>seen.add(id));
       for(let offset=0;offset<freshIds.length;offset+=24){
       const fetched=await Promise.all(freshIds.slice(offset,offset+24).map(async id=>{
-        try {const result=await tjek("offer",{publicId:id});if(!result||typeof result!=="object"||Array.isArray(result))throw new Error("Invalid Tjek offer detail");return {id,offer:result as Row};}catch{failedOfferIds.add(id);return null;}
+        try {const result=await tjek("offer",{publicId:id});return result&&typeof result==="object"&&!Array.isArray(result)?{id,offer:result as Row}:null;}catch{failedOfferIds.add(id);return null;}
       }));
       for(const fetchedEntry of fetched){
-        if(!fetchedEntry)continue;
+        if(!fetchedEntry){missingOfferDetails++;continue;}
         const {id,offer}=fetchedEntry;
-        if(String(offer.publicationPublicId??publicationId)!==publicationId)continue;
+        if(String(offer.publicationPublicId??publicationId)!==publicationId){reject("publication-mismatch");sampleReject("publication-mismatch",id);continue;}
         const title=String(offer.name??"").trim();
+        const hasPlussaLabel=/\bplussa(?:-etu|-tarjous)?\b/i.test(title+" "+String(offer.description??""));
         const regular=numeric(offer.price),member=numeric(offer.membershipPrice),app=numeric(offer.appPrice);
         const price=app??member??regular??numeric(offer.fromPrice);
         const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
         const until=Date.parse(String(offer.validUntil??publication.validUntil??""));
-        if(!title||price==null||price<=0||!Number.isFinite(from)||!Number.isFinite(until)||from>now||until<now){ console.warn("[K-Citymarket] rejected Tjek offer", {publicationId,id,missingTitle:!title,invalidPrice:price==null||price<=0,invalidDates:!Number.isFinite(from)||!Number.isFinite(until),inactive:from>now||until<now}); continue; }
+        if(!title){reject("missing-title");sampleReject("missing-title",id);continue;}
+        if(price==null||price<=0){
+          reject("missing-or-invalid-price");sampleReject("missing-or-invalid-price",id);
+          const description=String(offer.description??"");
+          const plussa=/plussa|k-plussa/i.test(title+" "+description);
+          const discountMatch=description.match(/(?:-|−)\s*(\d{1,2})\s*%/);
+          const discountPercent=discountMatch?Number(discountMatch[1]):null;
+          if(plussa&&discountPercent!==null)unpricedCategories.plussaPercentage++;
+          else if(plussa)unpricedCategories.plussaOther++;
+          else if(discountPercent!==null)unpricedCategories.percentageOther++;
+          else unpricedCategories.other++;
+          if(unpricedOfferExamples.length<25)unpricedOfferExamples.push({id,title,unitPrice:offer.unitPrice??null,description:description.slice(0,160),plussa,discountPercent});
+          if(Number.isFinite(from)&&Number.isFinite(until)&&from<=horizon&&until>=now&&entry.unpricedRows){
+            entry.unpricedRows.push({id:"citymarket-discount-"+storeId+"-"+publicationId+"-"+id,title,name:title,productName:title,
+              price:null,priceText:discountPercent!==null?(plussa?"Plussa-etu ":"")+"−"+discountPercent+" %":plussa?"Plussa-etu · hinta vaihtelee":"Tarjous · hinta ei tiedossa",
+              discountPercent,hasVerifiedPrice:false,displayOnly:true,isPlussaOffer:plussa,
+              additionalInfo:description,imageUrl:String(offer.imageLarge??offer.image??""),
+              storeId,storeName:String(store.name),chain:"K",storeType:"K-Citymarket",provider:"kcitymarket-local-discount",offerId:id,
+              validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
+              sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),campaignType:"discount-only"});
+          }
+          continue;
+        }
+        if(!Number.isFinite(from)||!Number.isFinite(until)){reject("invalid-dates");sampleReject("invalid-dates",id);continue;}
+        if(from>horizon){reject("future-outside-horizon");filteredByValidity++;sampleReject("future-outside-horizon",id);continue;}
+        if(until<now){reject("expired");filteredByValidity++;sampleReject("expired",id);continue;}
         const qty=numeric(offer.pieceCountFrom);
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
         const unitValue=numeric(offer.unitPrice);
+        const offerKey=publicationId+":"+id;
+        if(acceptedOfferKeys.has(offerKey)){duplicateOfferRows++;continue;}
+        acceptedOfferKeys.add(offerKey);
         entry.rows.push({id:"citymarket-local-"+storeId+"-"+publicationId+"-"+id,title,name:title,productName:title,price,
           priceText:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" kpl" : price.toFixed(2).replace(".",",")+" €",
           previousPrice:regular!=null&&regular!==price?regular:null,
@@ -287,15 +306,16 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
           imageUrl:String(offer.imageLarge??offer.image??""),
           storeId,storeName:String(store.name),storeLabel:String(store.name),chain:"K",storeType:"K-Citymarket",
           source:"K-Citymarket kauppakohtainen julkaisu",provider:"kcitymarket-local",offerId:id,
-          additionalInfo:offer.description??null,benefitText:app!=null?"Mobiilitarjous":member!=null?"Plussa-tarjous":undefined,
+          additionalInfo:offer.description??null,benefitText:app!=null?"Mobiilitarjous":member!=null||hasPlussaLabel?"Plussa-tarjous":undefined,
           validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
-          isPlussaOffer:member!=null,offerQuantity:quantity,
+          isPlussaOffer:member!=null||hasPlussaLabel,offerQuantity:quantity,
           sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
           category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
       }
       }
-      console.info("[K-Citymarket] Tjek page parsed",{storeId,publicationId,page,acceptedTotal:entry.rows.length,offerIdsTotal:entry.progress.offerIds,failedOfferRequests:failedOfferIds.size});
       entry.progress.accepted = entry.rows.length; entry.progress.updatedAt = new Date().toISOString();
+      // A page may contain non-offer hotspots (links, images, navigation).
+      // Do not mistake an empty offer-ID set for the end of pagination.
       if(hotspots.length===0)break;
       if(page===100)pageLimitReached=true;
     }
@@ -306,9 +326,9 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
     entry.progress.error=`${failedOfferIds.size} Tjek offer detail requests failed`;
     throw new Error(entry.progress.error);
   }
-  if(completedPublications!==publications.length)throw new Error(`Only ${completedPublications}/${publications.length} Tjek publications read`);
-  if(entry.progress.offerIds >= 5 && entry.rows.length < Math.ceil(entry.progress.offerIds / 2)) throw new Error(`Tjek campaign scan incomplete: accepted ${entry.rows.length} of ${entry.progress.offerIds} offer IDs; previous snapshot preserved`);
+  if(completedPublications!==uniquePublications.length)throw new Error(`Only ${completedPublications}/${uniquePublications.length} Tjek publications read`);
   entry.progress.accepted = entry.rows.length;
+  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,missingOfferDetails,duplicateOfferRows,filteredByValidity,rejectedReasons,rejectedSamples,unpricedCategories,unpricedOfferExamples}));
 }
 
 
