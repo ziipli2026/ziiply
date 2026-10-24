@@ -1167,8 +1167,8 @@ export default function DesktopPreviewPage() {
             const comparisonGrams=recipeGrams!==null
               ?recipeGrams/(Number.isFinite(cartQuantity)&&cartQuantity>0?cartQuantity:1)
               :desktopPackageSize(name);
-            const weightProposal=!matched&&(originalSpecies||originalProduce)&&comparisonGrams!==null
-              ?candidates.find((p:any)=>{
+            const weightProposal=(!matched||weighedEan)&&(originalSpecies||originalProduce)&&comparisonGrams!==null
+              ?[...candidates].sort((a:any,b:any)=>Number(normalizeEan(String(b.ean||""))===normalizeEan(ean))-Number(normalizeEan(String(a.ean||""))===normalizeEan(ean))).find((p:any)=>{
                 const candidateName=String(p.name||"").toLocaleLowerCase("fi");
                 const bulkCounterPack=/\bn\s*\d+(?:[.,]\d+)?\s*kg\b/.test(candidateName);
                 const loose=desktopPackageSize(candidateName)===null;
