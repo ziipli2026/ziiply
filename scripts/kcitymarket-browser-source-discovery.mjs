@@ -6,7 +6,7 @@ const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ locale: "fi-FI", timezoneId: "Europe/Helsinki" });
 const observations = [];
 const candidates = [];
-const seen = new Set();
+const seen = new Map();
 const fs = await import("node:fs/promises");
 const pendingResponses = new Set();
 page.on("response", response => {
@@ -24,8 +24,11 @@ async function inspectResponse(response) {
   // Drop all query parameters, which may contain tokens or user identifiers.
   const queryKeys = [...new Set([...parsed.searchParams.keys()])].sort();
   const key = response.status() + " " + parsed.origin + parsed.pathname + "?" + queryKeys.join(",");
-  if (seen.has(key) || observations.length >= 100) return;
-  seen.add(key);
+  // Multiple paginated responses can share a pathname and query-key set.
+  // Keep a bounded number of each shape instead of silently dropping pages.
+  const repeated = seen.get(key) ?? 0;
+  if (repeated >= 12 || observations.length >= 160) return;
+  seen.set(key, repeated + 1);
   let shape = null;
   if (/json/i.test(type)) {
     try {
@@ -52,10 +55,10 @@ async function inspectResponse(response) {
       }
       collect(body);
       const samples = rows.filter(v => v && typeof v === "object" && /price|offer|campaign|discount/i.test(Object.keys(v).join(" ")))
-        .slice(0,3).map(v => Object.fromEntries(["name","title","price","validFrom","validUntil","storeId","offerId","ean","storeName","campaignId"]
+        .slice(0,20).map(v => Object.fromEntries(["name","title","price","validFrom","validUntil","storeId","offerId","ean","storeName","campaignId"]
           .filter(k => typeof v[k] === "string" || typeof v[k] === "number")
           .map(k => [k, String(v[k]).slice(0,100)])));
-      if (samples.length && candidates.length < 40) candidates.push({ endpoint: parsed.origin + parsed.pathname, samples });
+      if (samples.length && candidates.length < 120) candidates.push({ endpoint: parsed.origin + parsed.pathname, samples });
     } catch {}
   }
   observations.push({ url: parsed.origin + parsed.pathname, queryKeys, status: response.status(), type: type.slice(0,80), shape });
@@ -136,7 +139,7 @@ try {
     finalOfferPath: new URL(page.url()).pathname,
     offerNavigationHost: new URL(offerNavigationUrl).hostname,
     links, navigationIsStoreScoped, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
-    apiOfferCandidateCount: apiOfferCandidates.length, n183CandidateCount: n183Candidates.length, rejectedIdentityCount,
+    sampledResponseShapes: observations.length, apiOfferCandidateCount: apiOfferCandidates.length, n183CandidateCount: n183Candidates.length, rejectedIdentityCount,
     storeContextConfirmed: Boolean((pageEvidence.storeIdN183InPage || context.storeMarkerInMarkup) && pageEvidence.hyvinkaa && !pageEvidence.otherStore),
     verifiedStoreOffers: false,
     note: "Diagnostic only. A page marker alone does not prove N183 offer scope."
