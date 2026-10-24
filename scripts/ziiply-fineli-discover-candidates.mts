@@ -393,6 +393,12 @@ for (;;) {
     // Whole raw cucumbers only; exclude pickles, salads, lozenges and sauces.
     if (/^(?:kurkku pakattu suomi 2 lk kg|kurkku paikallinen|h&h tuominen vanhamyllyn puutarhan kurkku|luomumaan luomu kurkku irto|hortiherttua suomalainen kurkku 1\\. luokka min\\. 300g)$/.test(original.toLocaleLowerCase("fi")))
       clean = "kurkku";
+    // Review-only whole-product recognition after origin and pack-size removal.
+    // Anchored expressions prevent matches to dishes, sauces and prepared foods.
+    const rawTokens = clean.replace(/\\b(?:pesty|pestyt|harjattu|multainen|multa|pakattu|irto|paikallinen|kiinteä|jauhoinen|yleisperuna|uuden sadon|varhais|1\\.?\\s*luokka|2\\.?\\s*luokka)\\b/g, " ").replace(/\\s+/g, " ").trim();
+    if (/^(?:porkkana|porkkananippu)$/.test(rawTokens)) clean = "porkkana";
+    if (/^kurkku$/.test(rawTokens)) clean = "kurkku";
+    if (/^peruna$/.test(rawTokens)) clean = "peruna";
     const food=rawFineli.get(clean);
     if (!food) return [];
     return [{ean:String(p.ean),fineli_id:food.id,evidence:{
