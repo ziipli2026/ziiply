@@ -36,6 +36,13 @@ async function tjek(name: string, params: Row): Promise<unknown> {
 }
 type LocalProgress = { stage: string; storeName: string; storeId: string | null; publicationIds: string[]; pages: number; offerIds: number; accepted: number; error: string | null; updatedAt: string };
 const localCache = new Map<string, { rows: Row[]; startedAt: number; finishedAt: number; running: boolean; progress: LocalProgress; promise?: Promise<void> }>();
+const LOCAL_TTL = 15 * 60_000;
+const FAILED_RETRY_TTL = 60 * 60_000;
+const isActiveOffer = (row: Row, at = Date.now()) => {
+  const from = Date.parse(String(row.validFrom ?? ""));
+  const until = Date.parse(String(row.validUntil ?? ""));
+  return Number.isFinite(from) && Number.isFinite(until) && from <= at && until >= at;
+};
 export function getKCitymarketLocalTjekDebug(selectedStoreName: string): LocalProgress & { running: boolean; cachedRows: number } {
   const entry = localCache.get(normalize(selectedStoreName));
   return entry ? { ...entry.progress, publicationIds: [...entry.progress.publicationIds], running: entry.running, cachedRows: entry.rows.length } :
@@ -95,7 +102,62 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   const fallback = (await readPublishedSnapshot(key) ?? [])
     .filter(row => normalize(row.storeName) === key
       && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now);
-  return [...primary, ...fallback].map(normalizeTjekPackagePrice);
+  // Restore the original global live-Tjek recovery path for EVERY selected
+  // Citymarket. Snapshots are a fast path, not a prerequisite for search.
+  // A live scan is keyed by the normalized selected store name and verifies
+  // the exact store against Tjek's own store list before accepting any offers.
+  let entry = localCache.get(key);
+  const shouldStart = !entry
+    || (!entry.running && now - entry.finishedAt > (entry.progress.stage === "failed" ? FAILED_RETRY_TTL : LOCAL_TTL));
+  if (shouldStart) {
+    entry = {
+      rows: [], startedAt: now, finishedAt: 0, running: true,
+      progress: { stage: "starting", storeName: selectedStoreName, storeId: null,
+        publicationIds: [], pages: 0, offerIds: 0, accepted: 0, error: null,
+        updatedAt: new Date().toISOString() },
+    };
+    localCache.set(key, entry);
+    const current = entry;
+    current.promise = readKCitymarketSelectedStoreOffers(selectedStoreName, current)
+      .then(() => { current.progress.stage = "complete"; })
+      .catch(error => {
+        current.progress.stage = "failed";
+        current.progress.error = error instanceof Error ? error.message : String(error);
+        console.warn("[K-Citymarket] live Tjek fallback failed", {
+          storeName: selectedStoreName, progress: current.progress,
+        });
+      })
+      .finally(() => {
+        current.running = false;
+        current.finishedAt = Date.now();
+        current.progress.updatedAt = new Date().toISOString();
+      });
+  }
+  if (entry && entry.running && entry.rows.length === 0) {
+    // Do not hold up the offer search indefinitely; subsequent requests reuse
+    // the progressive in-memory results while the complete scan continues.
+    await Promise.race([
+      entry.promise,
+      new Promise<void>(resolve => setTimeout(resolve, 4000)),
+    ]);
+  }
+  const live = (entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
+  // Return verified rows from the exact selected store as soon as they have
+  // been fetched. In serverless requests the process may end before a long
+  // Tjek scan completes; suppressing these rows made every non-N183 store look
+  // empty because its previous snapshot may not exist. The debug payload keeps
+  // stage/pages/offerIds/running visible so partial coverage is never hidden.
+  // A complete scan still wins; if no live rows arrived, use the last snapshot.
+  const liveScanComplete = Boolean(entry && !entry.running && entry.progress.stage === "complete");
+  const tjekRows = live.length ? live : fallback;
+  if (entry && !liveScanComplete && live.length) {
+    console.info("[K-Citymarket] serving verified progressive Tjek rows", JSON.stringify({
+      storeName: selectedStoreName, storeId: entry.progress.storeId,
+      stage: entry.progress.stage, pages: entry.progress.pages,
+      offerIds: entry.progress.offerIds, accepted: live.length,
+    }));
+  }
+  return [...primary, ...tjekRows].map(normalizeTjekPackagePrice);
 }
 
 /** Explicit background-job entry point. The interactive request never starts this. */
