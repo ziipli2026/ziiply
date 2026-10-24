@@ -787,7 +787,7 @@ export default function DesktopPreviewPage() {
         let response:Response;
         try{response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store",signal:controller.signal});}
         finally{clearTimeout(timeout);}
-        if(!response.ok)return [];
+        if(!response.ok){desktopProductSearchCache.delete(cacheKey);return [];}
         const data=await response.json();
         const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
         return products.map((p:any)=>({
@@ -796,7 +796,7 @@ export default function DesktopPreviewPage() {
           ean:String(p.ean||p.gtin||p.barcode||""),
           price:isS&&data?.source==="s-kaupat-normal-v220"?Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100):Number(p.price??p.storeItems?.[0]?.price??0)
         })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
-      }catch{return []}
+      }catch{desktopProductSearchCache.delete(cacheKey);return []}
       })();
       desktopProductSearchCache.set(cacheKey,{at:now,promise});
       if(desktopProductSearchCache.size>250){for(const [key,value] of desktopProductSearchCache){if(now-value.at>60_000)desktopProductSearchCache.delete(key);}}
