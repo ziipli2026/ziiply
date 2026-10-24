@@ -26,3 +26,17 @@ assert.equal(source.includes('\\n    const '), false, 'literal newline escapes m
 assert.ok(source.includes('entry.coverage >= 0.5'), 'expanded review coverage threshold');
 assert.ok(source.includes('.slice(0,3)'), 'expanded per-product review candidate limit');
 console.log('Fineli candidate guard regression OK');
+
+
+const strictSource = fs.readFileSync('scripts/ziiply-fineli-discover-candidates.mts','utf8');
+for (const key of ['strictBrandPrefixes','strictQuantitySuffix']) {
+  const declaration = strictSource.match(new RegExp('const '+key+' = (\\/[^\\n]+\\/[a-z]*);'));
+  assert.ok(declaration, 'missing normalization regex '+key);
+  assert.equal(declaration[1].includes(String.raw`\\s`),false,'double escaped regex '+key);
+}
+const prefix = /^(?:(?:pirkka|coop|xtra|kotimaista|rainbow|k-menu|s-market)\s+)+/i;
+const quantity = /\s+\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l)(?:\s+(?:\d+\s*(?:kpl|lk)|suomi|kotimainen))?$/i;
+assert.equal('Pirkka porkkana 500g'.replace(prefix,'').replace(quantity,''),'porkkana');
+assert.equal('Coop kurkku 300g 1lk'.replace(prefix,'').replace(quantity,''),'kurkku');
+assert.ok(strictSource.includes('raw_produce_origin_grade'),'origin/grade discovery must remain enabled');
+console.log('Fineli normalization regression OK');
