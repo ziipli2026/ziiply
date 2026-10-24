@@ -156,8 +156,12 @@ export function recipeProductSearchTerm(input: string): string | null {
  // Category-first normalization can turn "perunoita"/"perunaa" into a generic
  // vegetable category, which loses the specific ingredient during store search.
  // Keep mixed dishes and mixed-vegetable products distinct.
- const plainPotatoIngredient = /^(?:(?:kiinteä|kiinteitä|jauhoinen|jauhoisia|varhais|varhaisia|kuorittu|kuorittuja|pesty|pestyjä|suomalainen|suomalaisia|isoja|pieniä|muutama|muutamia)\\s+)*(?:peruna|perunan|perunaa|perunat|perunoita|perunoiden|perunoissa|perunoista|perunoihin)(?:\\s+(?:kuorittuna|kuorittuina|pesty|pestynä|keitettynä|raakana))?$/i.test(name);
- if(plainPotatoIngredient)return "peruna";
+ // Recipe search must resolve a basic ingredient before generic category matching.
+ // Strip optional preparation/packaging hints, never substitute a mixed dish.
+ const potatoCore = name
+   .replace(/\b(?:kiinteä|kiinteitä|jauhoinen|jauhoisia|varhais|varhaisia|kuorittu|kuorittuja|pesty|pestyjä|suomalainen|suomalaisia|isoja|pieniä|muutama|muutamia|kuorittuna|kuorittuina|pestynä|keitettynä|raakana|raaka|keltainen|vihreä|pussi)\b/g," ")
+   .replace(/\s+/g," ").trim();
+ if(/^(?:peruna|perunan|perunaa|perunat|perunoita|perunoiden|perunoissa|perunoista|perunoihin)$/.test(potatoCore))return "peruna";
  if(recipeCategory(name))return normalizeRecipeCategoryQuery(name);
  if(!/sipulikeittoaine|salaattisekoit/.test(name)&&/(?:laatikko|keitto|piirakka|pannukakku|korvapuusti|salaatti|kanapasta|tonnikalapasta|linssicurry)/.test(name))return name;
  if(!name||/^(?:vesi|vettä|veden|pastan keitinvet|keitinvet)/.test(name))return null;
