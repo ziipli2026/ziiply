@@ -1395,7 +1395,7 @@ export default function DesktopPreviewPage() {
         const updated=byId.get(String(previous.id));
         if(!updated)return item;
         const packageCount=recipeRetailPackageCount(updated,{...item,name:String(item.name||item.title||item.productName||"")});
-        return {...item,__recipeIngredient:{...updated},...(packageCount!==null?{quantity:Math.max(1,Number(item.__recipeBaseQuantity||0))+Math.max(1,packageCount)-(Number(item.__recipeBaseQuantity||0)>0?1:0),__recipeQuantity:Math.max(1,packageCount)}:{})};
+        return {...item,__recipeIngredient:{...updated},...(packageCount!==null?{quantity:Math.max(0,Number(item.__recipeBaseQuantity||0))+Math.max(1,packageCount),__recipeQuantity:Math.max(1,packageCount)}:{})};
       }));
       if(changed){
         desktopCompareCache.current.clear();
