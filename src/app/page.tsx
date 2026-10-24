@@ -6245,7 +6245,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Citymarket snapshots are collected server-side. Selection triggers the existing
     // collector without blocking the normal leaflet/master-cache warmup.
     // Rewarm after the collector has had time to publish its completed snapshot.
-    if (storeModeChosenV299 && kStore && /^K-Citymarket\\s+/i.test(kStore.name || "")) {
+    if (storeModeChosenV299 && kStore && /^K-Citymarket\s+/i.test(kStore.name || "")) {
       const citymarketContext = warmContexts.find((item) => item.kStoreName === kStore.name);
       const selectedName = kStore.name;
       void fetch("/api/offers/citymarket-warmup", {
