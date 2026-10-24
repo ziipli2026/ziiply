@@ -79,3 +79,9 @@ assert(source.includes('logCompareAudit("weighed_comparison_diagnostic"'),"Weigh
 assert(source.includes('exactEanComparisonPriceUnit:'),"Weight diagnostic must include source comparison unit");
 assert(source.includes('recipeIngredient:item.__recipeIngredient??null'),"Downloaded comparison debug must preserve recipe ingredient quantities");
 console.log("PASS: weight and recipe debug export guards");
+
+assert(source.includes("function activeRecipeSelectionIngredient()"),"Active recipe ingredient recovery helper must exist");
+assert(source.includes('sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")'),"Recipe ingredient recovery must read saved session");
+assert(source.includes("const ingredient=activeRecipeSelectionIngredient();"),"Recipe cart selection must use recovered ingredient");
+assert(source.includes("__recipeIngredient:ingredient?{...ingredient}:null"),"Recovered ingredient must be copied into cart");
+console.log("PASS: active recipe metadata restoration guards");
