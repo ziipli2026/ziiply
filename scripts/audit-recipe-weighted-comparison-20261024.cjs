@@ -42,5 +42,7 @@ console.log("PASS actual production price normalization and placeholder rejectio
 assert.match(source, /const totalGrams=Number\(previous\.amount\)/, "duplicate recipe items must add previous weight");
 assert.match(source, /Number\(incoming\.amount\)/, "duplicate recipe items must add incoming weight");
 assert.match(source, /return \{\.\.\.incoming,amount:totalGrams,unit:"g"\}/, "merged weight retained for comparison");
+assert.match(source, /previous\.amount!=null&&incoming\.amount!=null/, "missing recipe amounts cannot be merged as zero");
+assert.match(source, /Number\(previous\.amount\)>0&&Number\(incoming\.amount\)>0/, "merged recipe amounts must be positive");
 console.log("PASS recipe weight units, kg pricing, small positive prices, serving scaling arithmetic");
 console.log("NOTE static source assertions plus isolated arithmetic, not browser or provider integration");
