@@ -23,7 +23,7 @@ assert(pick.includes("desktopPackageCompatible("),"Package size must be checked"
 assert(pick.includes("isComparisonAttributeCompatible("),"Attributes must be checked");
 assert(pick.includes("desktopStrictCompareIdentity("),"Identity must be checked");
 assert(pick.includes("if(exact.length)return"),"Exact EAN must take priority");
-assert(source.includes('(!isS&&data?.source==="ruoanhinta-k")?Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100)'),"K-store Ruoanhinta prices must be normalized from euros to cents");
+assert(!source.includes('(!isS&&data?.source==="ruoanhinta-k")?Math.round('),"K-store Ruoanhinta prices are already cents and must not be multiplied by 100");
 assert(pick.includes("!desktopHasExplicitPackage(name)"),"Exact EAN must not bypass explicit package counts");
 assert(source.includes("function desktopHasExplicitPackage("),"Explicit package guard must exist");
 console.log("PASS: comparison matcher guards");
