@@ -5,6 +5,9 @@ import type { RecipeIngredient } from './recipeCore';
 export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredient | null): string[] {
   if (!ingredient) return [];
   const term = (ingredient.searchTerm || query).toLowerCase().trim();
+  // Search for fresh basic potatoes rather than falling back to recipe prose
+  // ("400 g Pirkka perunaa ... vihreä pussi") or processed potato dishes.
+  if (term === 'peruna') return ['peruna pesty', 'peruna kiinteä', 'perunat', 'irtoperuna', 'ruokaperuna'];
   const categoryQueries=recipeCategoryQueries(term);
   if(categoryQueries.length)return categoryQueries;
   if (term === 'sokeri') return [...new Set([query, 'taloussokeri', 'hienosokeri', 'ruokosokeri', 'fariinisokeri'])];
