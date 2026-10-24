@@ -1,6 +1,6 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { refreshKCitymarketSelectedStoreSnapshot } from "@/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
+import { refreshKCitymarketCampaignCache } from "@/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     const startedAt = Date.now();
     console.info("[Gösta Citymarket warmup] started", { storeName: name, key });
     try {
-      const offers = await refreshKCitymarketSelectedStoreSnapshot(name);
+      const result = await refreshKCitymarketCampaignCache(name);
       recentFailures.delete(key);
-      console.info("[Gösta Citymarket warmup] published", { storeName: name, key, count: offers.length, elapsedMs: Date.now() - startedAt });
+      console.info("[Gösta Citymarket warmup] published", { storeName: name, key, count: result.count, elapsedMs: Date.now() - startedAt });
     } catch (error) {
       recentFailures.set(key, error instanceof Error ? error.message : String(error));
       recentAttempts.set(key, Date.now());
