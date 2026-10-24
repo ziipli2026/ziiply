@@ -86,22 +86,15 @@ export function normalizeTjekPackagePrice(row: Row): Row {
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const key = normalize(selectedStoreName);
   const now = Date.now();
-  const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
-  // Keep verified K-Ruoka N183 offers independently of local Tjek.
-  const primary = isHyvinkaa
-    ? (await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") ?? [])
-        .filter(row => String(row.storeId ?? "") === "N183"
-          && String((row.debug as Row | undefined)?.sourceScope ?? row.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
-          && normalize(row.storeName) === "k citymarket hyvinkaa"
-          && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now)
-    : [];
-  // K-Ruoka N183 and local Tjek are independent sources.
-  // A new leaflet must not hide existing valid store campaigns.
-  const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
-  const fallback = (await readPublishedSnapshot(fallbackKey) ?? [])
-    .filter(row => Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now
-      && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
-        && normalize(row.storeName) === "k citymarket hyvinkaa")));
+  // Every selected Citymarket reads its own K-Ruoka and Tjek snapshots.
+  // Never special-case a city, store id or publication.
+  const primary = (await readPublishedSnapshot("k ruoka " + key) ?? [])
+    .filter(row => String((row.debug as Row | undefined)?.sourceScope ?? row.sourceScope ?? "") === "SELECTED_STORE_WEB_OFFERS"
+      && normalize(row.storeName) === key
+      && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now);
+  const fallback = (await readPublishedSnapshot(key) ?? [])
+    .filter(row => normalize(row.storeName) === key
+      && Date.parse(String(row.validFrom)) <= now && Date.parse(String(row.validUntil)) >= now);
   return [...primary, ...fallback].map(normalizeTjekPackagePrice);
 }
 
