@@ -13169,8 +13169,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 18,
-      items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source]),
+      schema: 19,
+      items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source, (item as CartItem & {recipeIngredient?:RecipeIngredient}).recipeIngredient]),
       stores:
         storeCompareScope === "within_chain"
           ? withinChain === "S"
@@ -17845,7 +17845,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ) {
       if(mobileRecipeContextRef.current){
         const quantity=recipeSelectedPackageQuantity(product);
-        const next=cartWithoutMatchingManualRows.map(item=>normalize(item.name)===normalize(product.name)?{...item,quantity:(item.quantity||1)+quantity}:item);
+        const next=cartWithoutMatchingManualRows.map(item=>normalize(item.name)===normalize(product.name)?{...item,quantity:(item.quantity||1)+quantity,recipeIngredient:{...mobileRecipeContextRef.current!.ingredient}}:item);
         cartRefV124.current=next;setCart(next);persistCartImmediately(next);
         appendRecipeDebug("recipe-cart-quantity-added",{product:product.name,quantity});
         showCartToast("✓ Lisätty ostoskoriin");return true;
