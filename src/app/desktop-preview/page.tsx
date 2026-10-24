@@ -1166,7 +1166,7 @@ export default function DesktopPreviewPage() {
             const originalProduce=produceKind(name);
             const recipeIngredient=item?.__recipeIngredient;
             const recipeAmount=Number(recipeIngredient?.amount);
-            const recipeUnit=String(recipeIngredient?.unit||"").toLowerCase();
+            const recipeUnit=String(recipeIngredient?.unit||"").trim().toLowerCase();
             const recipeGrams=Number.isFinite(recipeAmount)&&recipeAmount>0
               ?recipeUnit==="kg"?recipeAmount*1000:recipeUnit==="g"?recipeAmount:null
               :null;
