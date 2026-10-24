@@ -63,3 +63,7 @@ assert(source.includes("if(exactWeighed.length)return exactWeighed"),"Verified w
 assert(source.includes("desktopVerifiedKgPriceCents(p)!==null"),"Exact weighed EAN requires verified kilogram price");
 assert(source.includes("recipeGrams/(Number.isFinite(cartQuantity)"),"Recipe grams must be divided across basket quantity");
 console.log("PASS: weighed produce exact EAN and quantity guards");
+assert(source.includes('logCompareAudit("weighed_comparison_diagnostic"'),"Weight comparison must emit diagnostic audit");
+assert(source.includes('exactEanComparisonPriceUnit:'),"Weight diagnostic must include source comparison unit");
+assert(source.includes('recipeIngredient:item.__recipeIngredient??null'),"Downloaded comparison debug must preserve recipe ingredient quantities");
+console.log("PASS: weight and recipe debug export guards");
