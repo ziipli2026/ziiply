@@ -44,6 +44,7 @@ jobs:
             activeRows:result.activeCount??null,
             discoveredOfferIds:result.discoveredOfferIds??null,
             pages:result.pages??null,
+            unpricedCount:Math.max(0,(result.discoveredOfferIds??0)-(result.count??0)),
             displayedRows:data.activeCount??null,
             verifiedKruokaRows:data.verifiedKruokaCount??null,
             kruokaHttp:data.probe?.httpStatus??null,
