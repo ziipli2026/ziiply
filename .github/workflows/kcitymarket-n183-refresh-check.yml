@@ -37,6 +37,7 @@ jobs:
           const summary={
             ok:data.ok===true,
             degraded:data.degraded===true,
+            secondaryKruokaUnavailable:data.secondaryKruokaUnavailable===true,
             tjekOk:tjek.ok===true,
             tjekError:tjek.error||null,
             collectedRows:result.count??null,
@@ -49,6 +50,6 @@ jobs:
             kruokaBlocked:data.kRuokaSourceBlocked===true
           };
           console.log('N183_TJEK_REFRESH_RESULT',JSON.stringify(summary));
-          if(!summary.ok||!summary.tjekOk||!(summary.activeRows>=5))process.exitCode=1;
+          if(!summary.ok||!summary.tjekOk||!(summary.activeRows>=5)||summary.degraded)process.exitCode=1;
           NODE
           test "$status" = 200
