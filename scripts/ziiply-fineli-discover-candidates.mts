@@ -359,6 +359,7 @@ for (;;) {
     clean=clean.replace(strictBrandPrefixes,"")
       .replace(/\b(?:suomalainen|kotimainen|kotimaista|luomu)\b/g," ")
       .replace(/\b(?:suomi|espanja|hollanti|nl|eg)\b/g," ")
+      .replace(/(?:^|\s)(?:ruotsi|italia|ranska|puola|saksa|belgia|viro|kreikka|turkki)(?=\s|$)/g," ")
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g)\b/g," ")
       .replace(/\b[12]\s*lk\b/g," ")
       .replace(/\s+/g," ").trim();
