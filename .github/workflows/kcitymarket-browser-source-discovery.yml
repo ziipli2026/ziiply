@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Install dependencies for N183 tests
+        run: npm ci --ignore-scripts --legacy-peer-deps --no-audit --no-fund
       - name: Test N183 offer validation
         run: |
           node scripts/test-kcitymarket-n183-validate.mjs
