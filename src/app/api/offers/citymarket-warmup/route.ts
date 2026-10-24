@@ -39,11 +39,15 @@ export async function POST(request: NextRequest) {
   }
   inFlight.add(key);
   recentAttempts.set(key, now);
+  console.info("[Gösta Citymarket warmup] scheduled", { storeName: name, key });
   after(async () => {
+    const startedAt = Date.now();
+    console.info("[Gösta Citymarket warmup] started", { storeName: name, key });
     try {
-      await refreshKCitymarketSelectedStoreSnapshot(name);
+      const offers = await refreshKCitymarketSelectedStoreSnapshot(name);
+      console.info("[Gösta Citymarket warmup] published", { storeName: name, key, count: offers.length, elapsedMs: Date.now() - startedAt });
     } catch (error) {
-      console.warn("[Gösta Citymarket selection refresh]", name, error);
+      console.error("[Gösta Citymarket warmup] failed", { storeName: name, key, elapsedMs: Date.now() - startedAt, error: error instanceof Error ? error.message : String(error) });
     } finally {
       inFlight.delete(key);
     }
