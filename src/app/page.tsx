@@ -9541,8 +9541,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : null;
       const productMeta = match.product as Product & { comparisonPriceUnit?: string; priceUnit?: string; unitPriceUnit?: string };
       const unitText = String(productMeta.comparisonPriceUnit || productMeta.priceUnit || productMeta.unitPriceUnit || "").toLowerCase();
+      const productName = String(match.product?.name || "");
+      const productEan = String((match.product as Product & { ean?: string })?.ean || "").replace(/\D/g, "");
+      // Variable-weight retail barcodes (EAN prefix 20–29) identify weighed goods.
+      // For fresh produce, the provider's item price is the €/kg basis even when
+      // comparisonPriceUnit is absent or incorrectly says "kpl". This is global
+      // across stores; it does not depend on a store ID or a specific product.
+      const isVariableWeightProduce = /^2\d{12}$/.test(productEan) &&
+        /\b(?:peruna|perunoita|porkkana|porkkanaa|sipuli|sipulia|tomaatti|tomaatteja|kurkku|kurkkua|paprika|paprikaa|omena|omenaa|banaani|banaania|appelsiini|päärynä|valkosipuli|purjo|bataatti|inkivääri|viinirypäle|mansikka|mustikka)\b/i.test(productName);
       const isKgPrice = /^(?:kg|\/kg|eur\/kg|€\/kg|euro\/kg|kilogramma)$/.test(unitText.trim()) ||
-        /(?:€|eur)\s*\/\s*kg/i.test(String(match.product?.name || ""));
+        /(?:€|eur)\s*\/\s*kg/i.test(productName) ||
+        isVariableWeightProduce;
       // Only apply gram-based pricing when the source explicitly identifies a kg unit.
       // Never multiply an ordinary packaged product's price by recipe grams.
       if (grams !== null && Number.isFinite(grams) && grams > 0 && isKgPrice) {
