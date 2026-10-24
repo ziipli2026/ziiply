@@ -88,9 +88,7 @@ export async function fetchVerifiedKCitymarketHyvinkaaOffers(): Promise<Row[]> {
 export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: string): Promise<Row[]> {
   const key = normalize(selectedStoreName);
   const now = Date.now();
-  // Preserve K-Ruoka's verified store-scoped offers independently of Tjek.
-  // The alternate key is accepted only for the explicitly verified Hyvinkaa store,
-  // and every row must independently identify the same store (N183).
+  // Preserve the separately verified K-Ruoka feed for N183 only.
   const isHyvinkaa = key === "k citymarket hyvinkaa" || key === "k ruoka k citymarket hyvinkaa";
   const primary = isHyvinkaa
     ? (await readPublishedSnapshot("k-ruoka k citymarket hyvinkaa") ?? [])
@@ -104,11 +102,51 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
     .filter(row => isActiveOffer(row, now)
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
-  // A local Tjek publication and the verified K-Ruoka store feed are independent.
-  // Never replace either source when the other one refreshes, including a
-  // verified-empty K-Ruoka scan. Every row was already validated by source,
-  // store identity and offer validity above.
-  return [...primary, ...fallback].map(normalizeTjekPackagePrice);
+
+  // Restore the original global live-Tjek recovery path for EVERY selected
+  // Citymarket. Snapshots are a fast path, not a prerequisite for search.
+  // A live scan is keyed by the normalized selected store name and verifies
+  // the exact store against Tjek's own store list before accepting any offers.
+  let entry = localCache.get(key);
+  const shouldStart = !entry
+    || (!entry.running && now - entry.finishedAt > (entry.progress.stage === "failed" ? FAILED_RETRY_TTL : LOCAL_TTL));
+  if (shouldStart) {
+    entry = {
+      rows: [], startedAt: now, finishedAt: 0, running: true,
+      progress: { stage: "starting", storeName: selectedStoreName, storeId: null,
+        publicationIds: [], pages: 0, offerIds: 0, accepted: 0, error: null,
+        updatedAt: new Date().toISOString() },
+    };
+    localCache.set(key, entry);
+    const current = entry;
+    current.promise = readKCitymarketSelectedStoreOffers(selectedStoreName, current)
+      .then(() => { current.progress.stage = "complete"; })
+      .catch(error => {
+        current.progress.stage = "failed";
+        current.progress.error = error instanceof Error ? error.message : String(error);
+        console.warn("[K-Citymarket] live Tjek fallback failed", {
+          storeName: selectedStoreName, progress: current.progress,
+        });
+      })
+      .finally(() => {
+        current.running = false;
+        current.finishedAt = Date.now();
+        current.progress.updatedAt = new Date().toISOString();
+      });
+  }
+  if (entry && entry.running && entry.rows.length === 0) {
+    // Do not hold up the offer search indefinitely; subsequent requests reuse
+    // the progressive in-memory results while the complete scan continues.
+    await Promise.race([
+      entry.promise,
+      new Promise<void>(resolve => setTimeout(resolve, 4000)),
+    ]);
+  }
+  const live = (entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
+  // A complete live scan wins over a durable snapshot; until it has results,
+  // keep serving the last valid snapshot. Never cross-import another store.
+  const tjekRows = live.length ? live : fallback;
+  return [...primary, ...tjekRows].map(normalizeTjekPackagePrice);
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
