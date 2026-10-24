@@ -1,9 +1,9 @@
-const fs=require("node:fs");const vm=require("node:vm");const assert=require("node:assert/strict");
+const fs=require("node:fs");const ts=require("typescript");const vm=require("node:vm");const assert=require("node:assert/strict");
 const source=fs.readFileSync("src/app/desktop-preview/page.tsx","utf8");
 const start=source.indexOf("  function desktopStrictCompareIdentity(");
 const end=source.indexOf("\n  function desktopPickCompareCandidate(",start);
 assert(start>=0&&end>start,"Strict comparison helper missing");
-const fn=source.slice(start,end).replace(/:string/g,"").replace(/:boolean/g,"");
+const fn=ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
 const context={};vm.runInNewContext(fn,context);
 const check=context.desktopStrictCompareIdentity;
 const cases=[
@@ -30,7 +30,7 @@ console.log("PASS: comparison matcher guards");
 const packageStart=source.indexOf("  function desktopPackageCompatible(");
 const packageEnd=source.indexOf("\n  function desktopFindPackageAlternative(",packageStart);
 assert(packageStart>=0&&packageEnd>packageStart,"Package compatibility helper missing");
-const packageFn=source.slice(packageStart,packageEnd).replace(/:string/g,"").replace(/:boolean/g,"");
+const packageFn=ts.transpileModule(source.slice(packageStart,packageEnd),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
 vm.runInNewContext(packageFn,context);
 const compatible=context.desktopPackageCompatible;
 for(const [a,b,expected] of [
