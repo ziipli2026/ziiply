@@ -201,9 +201,9 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
    const processed=/pyörykk|gnocch|salaat|sekoit|muus|lastu|sips|ranskan|keitto|laatik|gratiin|pihv|paistet|lohkoperun|uuniperun|valmisruok|peruna-(?:sipuli|kikherne|pekoni)|sämpyl|leipä|snack|linssi|pasta/i.test(name);
    return rawPotato&&!processed?null:"ingredient_product_type_mismatch";
  }
- // A generic ring-sausage ingredient must not silently admit smoked or oven variants.
+ // A generic ring-sausage ingredient may admit oven sausage, but not smoked sausage.
  // Explicit alternatives are handled above before this product-type check.
- if(/lenkkimakkar/.test(term) && !/savulenk|uunilenk/.test(requirement) && /savulenk|uunilenk/.test(name))return "sausage_variant_mismatch";
+ if(/lenkkimakkar/.test(term) && !/savulenk/.test(requirement) && /savulenk/.test(name))return "sausage_variant_mismatch";
  const categoryIntent=recipeCategory(term);
  const categoryRejection=recipeCategoryRejection(term,product);
  if(categoryRejection)return categoryRejection;
