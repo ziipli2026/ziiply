@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '10 */6 * * *'
+  push:
+    paths:
+      - '.github/workflows/kcitymarket-n183-refresh-check.yml'
 permissions:
   contents: read
 jobs:
