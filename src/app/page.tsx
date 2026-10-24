@@ -17871,7 +17871,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const prevUnit=String(previous?.unit||"").toLowerCase();
           const nextUnit=String(incoming.unit||"").toLowerCase();
           const mass=(unit:string)=>unit==="g"||unit==="kg";
-          if(previous&&mass(prevUnit)&&mass(nextUnit)&&Number.isFinite(Number(previous.amount))&&Number.isFinite(Number(incoming.amount))){
+          if(previous&&mass(prevUnit)&&mass(nextUnit)&&previous.amount!=null&&incoming.amount!=null&&Number.isFinite(Number(previous.amount))&&Number.isFinite(Number(incoming.amount))&&Number(previous.amount)>0&&Number(incoming.amount)>0){
             const totalGrams=Number(previous.amount)*(prevUnit==="kg"?1000:1)+Number(incoming.amount)*(nextUnit==="kg"?1000:1);
             return {...incoming,amount:totalGrams,unit:"g"};
           }
