@@ -191,6 +191,8 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
  if(/nelson garden|kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|tuuheuttava|hiussuihke|merisuolasuihke|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
+ // Recipe-only rule: ordinary lenkkimakkara allows uunilenkki, never savulenkki.
+ if(/lenkkimakkar/.test(term) && !/savulenk/.test(requirement) && /savulenk/.test(name))return "sausage_variant_mismatch";
  const categoryIntent=recipeCategory(term);
  const categoryRejection=recipeCategoryRejection(term,product);
  if(categoryRejection)return categoryRejection;
