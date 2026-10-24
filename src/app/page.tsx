@@ -4891,7 +4891,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function traceCompareV824(event: string, details: unknown) {
     if (typeof window === "undefined" || new URLSearchParams(window.location.search).get("compareDebug") !== "1") return;
     const row = new Date().toLocaleTimeString("fi-FI") + " " + event + " " + JSON.stringify(details);
-    setCompareDebugRowsV824((prev) => [...prev.slice(-79), row]);
+    setCompareDebugRowsV824((prev) => [...prev.slice(-499), row]);
   }
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
@@ -13418,6 +13418,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               sTerms.map((term) => fetchSForMatchV801(term, activeStores.sStoreId).catch(() => [] as Product[])),
             );
             const sCandidates = sBatches.flat();
+            traceCompareV824("S-EHDOKKAAT", { sourceName: comparisonSourceName, ean: comparisonSourceEan, storeId: activeStores.sStoreId, queries: sTerms, counts: sBatches.map((batch,index)=>({query:sTerms[index],count:batch.length})), candidates: sCandidates.slice(0,30).map(candidate=>({name:candidate.name,ean:candidate.ean,price:getProductPrice(candidate),compatible:isComparisonAttributeCompatible(comparisonSourceName,candidate.name)})) });
             const exactS = comparisonSourceEan
               ? sCandidates.find((candidate) =>
                   normalizeEan(candidate.ean) === comparisonSourceEan && getProductPrice(candidate) > 0)
@@ -13425,6 +13426,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const best = exactS || (sourceFamilyKnownV823
               ? pickBestSProduct(sCandidates.filter(candidate=>getProductPrice(candidate)>0&&isComparisonAttributeCompatible(comparisonSourceName,candidate.name)), comparisonSourceName, comparisonSourceEan)
               : undefined);
+            traceCompareV824("S-VALINTA", {sourceName:comparisonSourceName,selected:best?{name:best.name,ean:best.ean,price:getProductPrice(best)}:null,reason:best?"priced-compatible-match":sourceFamilyKnownV823?"no-priced-compatible-match":"unknown-product-family"});
             if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: normalizeEan(best.ean) === comparisonSourceEan && comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
           } catch { failed = true; }
         }
@@ -13432,7 +13434,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
         } else {
           try {
-            traceCompareV824("K-HAKUPÄÄTÖS", { sourceName: comparisonSourceName, familyKnown: sourceFamilyKnownV823, storeId: activeStores.kStoreId });
+            traceCompareV824("K-HAKUPÄÄTÖS", { sourceName: comparisonSourceName, ean: comparisonSourceEan, familyKnown: sourceFamilyKnownV823, storeId: activeStores.kStoreId });
             const best = (sourceFamilyKnownV823 || isUsableEan(comparisonSourceEan))
               ? await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan, true)
               : undefined;
@@ -25272,7 +25274,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {compareDebugEnabledV824 && (
           <div style={{ position: "fixed", zIndex: 99999, left: 8, right: 8, top: "max(8px, env(safe-area-inset-top))", maxHeight: "38vh", overflow: "auto", background: "#fff9e6", color: "#182b20", border: "2px solid #74582b", borderRadius: 12, padding: 10, fontSize: 11, boxShadow: "0 2px 18px #0008" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center", marginBottom: 6 }}>
-              <strong>Halpuuta / K-haku debug ({compareDebugRowsV824.length})</strong>
+              <strong>Halpuuta / vertailun diagnostiikka ({compareDebugRowsV824.length})</strong>
               <button type="button" onClick={() => setCompareDebugRowsV824([])}>Tyhjennä</button>
               <button type="button" onClick={() => navigator.clipboard?.writeText(compareDebugRowsV824.join("\\n"))}>Kopioi</button>
               <button type="button" onClick={() => setCompareDebugEnabledV824(false)}>Sulje</button>
