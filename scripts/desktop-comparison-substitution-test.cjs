@@ -58,6 +58,18 @@ assert(source.includes("Math.round(verifiedWeightCents*comparisonGrams/1000)/100
 assert(source.includes("weightEstimate:estimatedWeightPrice!==null"),"Estimated prices must be marked as estimates");
 assert(source.includes("const finalPrice=estimatedWeightPrice??price"),"Verified weight estimate must replace raw item quote");
 console.log("PASS: verified weighed-item estimates");
+const kgHelperStart=source.indexOf("  function desktopVerifiedKgPriceCents(");
+const kgHelperEnd=source.indexOf("\n  function desktopReliableComparePrice(",kgHelperStart);
+assert(kgHelperStart>=0&&kgHelperEnd>kgHelperStart,"Kilogram price helper missing");
+vm.runInNewContext(ts.transpileModule(source.slice(kgHelperStart,kgHelperEnd),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,context);
+const kgCents=context.desktopVerifiedKgPriceCents;
+assert.equal(kgCents({comparisonPrice:89,comparisonPriceUnit:"kg"}),89,"K potato 89 cents/kg must not be multiplied by 100");
+assert.equal(kgCents({comparisonPrice:139,comparisonPriceUnit:"kg"}),139,"K carrot 139 cents/kg must not be multiplied by 100");
+assert.equal(kgCents({unitPrice:"1,39 €/kg"}),139,"Explicit euro/kg labels are converted to cents");
+assert.equal(kgCents({price:89}),null,"Raw product price cannot be treated as kg price");
+assert.equal(kgCents({comparisonPrice:89,comparisonPriceUnit:"kpl"}),null,"Per-piece comparison price is not kg price");
+console.log("PASS: K weight units and unsafe raw-price guards");
+
 
 assert(source.includes("if(exactWeighed.length)return exactWeighed"),"Verified weighed produce exact EAN must survive package-size rejection");
 assert(source.includes("desktopVerifiedKgPriceCents(p)!==null"),"Exact weighed EAN requires verified kilogram price");
