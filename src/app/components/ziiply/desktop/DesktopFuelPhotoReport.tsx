@@ -344,7 +344,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
             {cameraOpen?<div className="relative h-full min-h-[140px] w-full overflow-hidden text-[#f5e5c1]">
               <video ref={videoRef} autoPlay muted playsInline onLoadedData={()=>setCameraReady(true)} className={`absolute inset-0 h-full w-full ${guideOrientation==="landscape"?"object-cover":"object-contain"}`} aria-label="Kameran esikatselu"/>
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                <div ref={fuelGuideRef} className={`relative max-h-[88%] border-[3px] border-[#f8e5ad] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.15)] ${guideOrientation==="portrait"?"h-[84%] aspect-[3/4] max-w-[78%]":"w-[83%] max-h-[70%]"}`} style={guideOrientation==="landscape"?{aspectRatio:"16 / 9"}:undefined}>
+                <div ref={fuelGuideRef} className={`relative max-h-[88%] border-[3px] border-[#f8e5ad] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.15)] ${guideOrientation==="portrait"?"h-[84%] aspect-[3/4] max-w-[78%]":"w-[92%] max-h-[65%]"}`} style={guideOrientation==="landscape"?{aspectRatio:"5 / 2"}:undefined}>
                   <span className="absolute -left-[3px] -top-[3px] h-6 w-6 rounded-tl-xl border-l-[5px] border-t-[5px] border-white"/>
                   <span className="absolute -right-[3px] -top-[3px] h-6 w-6 rounded-tr-xl border-r-[5px] border-t-[5px] border-white"/>
                   <span className="absolute -bottom-[3px] -left-[3px] h-6 w-6 rounded-bl-xl border-b-[5px] border-l-[5px] border-white"/>
