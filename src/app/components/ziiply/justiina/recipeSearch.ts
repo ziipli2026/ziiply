@@ -152,7 +152,17 @@ function cleanName(input: string): string {
  .replace(/\s+(?:rasvaa|lohkoina|kuutioina|pieninä kuutioina)$/g,"").replace(/\s+/g," ").trim();
 }
 export function recipeProductSearchTerm(input: string): string | null {
+ // Restore the previously working basic-potato lookup on desktop preview.
+ // An inflected potato ingredient must not fall through to literal search.
+ const rawIngredient=String(input||"").toLocaleLowerCase("fi");
+ if(/\bperun(?:a|an|aa|at|oita|oiden|oissa|oista|oihin)\b/.test(rawIngredient)
+   && !/peruna[- ](?:sipuli|juures|kikherne|pekoni|broileri)|peruna(?:salaat|pyöryk|pihv|muus|gnocch|gratiin|laatik|keitto)|pakaste|sekoitus/.test(rawIngredient))
+   return "peruna";
  const name=cleanName(cleanRecipeQuery(input));
+ const potatoCore=name
+   .replace(/\b(?:kiinteä|kiinteitä|jauhoinen|jauhoisia|varhais|varhaisia|kuorittu|kuorittuja|pesty|pestyjä|suomalainen|suomalaisia|isoja|pieniä|muutama|muutamia|kuorittuna|kuorittuina|pestynä|keitettynä|raakana|raaka|keltainen|vihreä|pussi)\b/g," ")
+   .replace(/\s+/g," ").trim();
+ if(/^(?:peruna|perunan|perunaa|perunat|perunoita|perunoiden|perunoissa|perunoista|perunoihin)$/.test(potatoCore))return "peruna";
  if(recipeCategory(name))return normalizeRecipeCategoryQuery(name);
  if(!/sipulikeittoaine|salaattisekoit|keittojuure|juuressekoitus|juureskuutio|juuressuikale/.test(name)&&/(?:laatikko|keitto|piirakka|pannukakku|korvapuusti|salaatti|kanapasta|tonnikalapasta|linssicurry)/.test(name))return name;
  if(!name||/^(?:vesi|vettä|veden|pastan keitinvet|keitinvet)/.test(name))return null;
