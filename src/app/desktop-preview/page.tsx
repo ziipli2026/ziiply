@@ -806,6 +806,15 @@ export default function DesktopPreviewPage() {
       const exactResults=await fetchCandidates(normalizedEan);
       const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan&&desktopReliableComparePrice(p)&&desktopPackageCompatible(name,String(p.name||""))&&isComparisonAttributeCompatible(name,String(p.name||"")));
       if(exact.length&&desktopPickCompareCandidate(exact,name,ean,isS))return exact;
+      // Weighed produce has no fixed package size. Keep the exact EAN result
+      // for the verified €/kg estimator, without accepting its raw price.
+      const weighedProduce=/^2\d{7,13}$/.test(normalizedEan)&&/\b(peruna|porkkana|multaporkkana)\b/i.test(name);
+      if(weighedProduce){
+        const exactWeighed=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan
+          &&desktopVerifiedKgPriceCents(p)!==null
+          &&isComparisonAttributeCompatible(name,String(p.name||"")));
+        if(exactWeighed.length)return exactWeighed;
+      }
       if(exactResults.length)logCompareAudit("ean_candidates_rejected_continue_name_search",{store:store.name,name,ean,candidates:exactResults.length});
     }
     const queries=[...new Set([name,packageNeutral,...desktopCompareSearchTerms(name),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,8);
