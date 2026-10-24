@@ -196,6 +196,14 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  if(categoryRejection)return categoryRejection;
  const protein=categoryIntent?null:context?.proteinRequirement||inferRecipeProtein(input);
  if(protein)return proteinProductRejection(protein,product);
+ // A recipe's produce ingredient must resolve to fresh/basic produce, not any
+ // processed product merely containing its name. Apply before generic literal gate.
+ const rawProduceTerms=new Set(["porkkana","sitruuna","peruna","varhaisperuna","sipuli","punasipuli","valkosipuli","inkivääri","purjo","kevätsipuli","fenkoli","bataatti","pinaatti","herne","tomaatti","kirsikkatomaatti","kurkku","paprika","vihreä paprika"]);
+ if(rawProduceTerms.has(term)){
+   const stem=term==="peruna"?"perun":term==="varhaisperuna"?"varhaisperun":term;
+   if(!name.includes(stem))return "raw_produce_name_required";
+   if(/gnocch|salaat|pyöryk|pihv|muus|keitto|laatik|gratiin|vuoka|sips|lastu|sekoit|pakaste|jogur|mehu|keksi|leipä|kastik|pasta|piirak|pizz|sose|valmisruok|rouhe|kuutioitu paist|ranskala|lohko|nugget/.test(name))return "raw_produce_not_processed_dish";
+ }
  const kind=kinds.find(x=>x.term===term);
  if(kind&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
  if(!categoryIntent&&!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
