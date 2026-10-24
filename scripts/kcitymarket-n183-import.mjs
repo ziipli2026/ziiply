@@ -5,6 +5,7 @@
  * Requires DATABASE_URL; never deletes or extends previous offers on failure.
  */
 import { readFile } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 import { neon } from "@neondatabase/serverless";
 import { N183_STORE_KEY, validateN183Batch } from "./kcitymarket-n183-validate.mjs";
 
@@ -39,7 +40,7 @@ export async function importN183Batch(batch, sql, now = Date.now()) {
   return {stored:rows.length,previousActive,publicationIds:publicationIds.length};
 }
 
-if (process.argv[1] && import.meta.url === new URL("file://" + process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const filename = process.argv[2];
   if (!filename || !process.env.DATABASE_URL) {
     console.error("Usage: DATABASE_URL=... node scripts/kcitymarket-n183-import.mjs verified-batch.json");
