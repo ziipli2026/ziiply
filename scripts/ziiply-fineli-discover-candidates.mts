@@ -333,7 +333,7 @@ console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,el
 
 // Conservative second pass for raw produce with trailing origin and quality marks.
 // Do not use this rule for processed foods or recipes.
-const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena","appelsiini","sitruuna","paprika","mansikka","mustikka","vadelma","puolukka","mustaherukka","punaherukka","karviainen","kiivi","ananas","avokado","mandariini","luumu","nektariini","persikka","vesimeloni","hunajameloni"]); // Exact unique names or verified canonical raw-food IDs.
+const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena","appelsiini","sitruuna","paprika","mansikka","mustikka","vadelma","puolukka","mustaherukka","punaherukka","karviainen","kiivi","ananas","avokado","mandariini","luumu","nektariini","persikka","vesimeloni","hunajameloni","aprikoosi","greippi","granaattiomena"]); // Exact unique names or verified canonical raw-food IDs.
 // Fineli's canonical raw-food descriptions are not always bare product names.
 // These are exact, reviewed food-ID choices; processed variants are excluded.
 const canonicalRawFineli = new Map<string,number>([
@@ -343,6 +343,9 @@ const canonicalRawFineli = new Map<string,number>([
   ["appelsiini",28924], // APPELSIINI, PUNNITTU KUORINEEN
   ["sitruuna",28925], // SITRUUNA, KESKIARVO, PUNNITTU KUORINEEN
   ["paprika",355], // PAPRIKA, KESKIARVO
+  ["aprikoosi",28921], // APRIKOOSI, KESKIARVO, PUNNITTU KIVINEEN
+  ["greippi",28926], // GREIPPI, KESKIARVO, PUNNITTU KUORINEEN
+  ["granaattiomena",31555], // GRANAATTIOMENA
   ["luumu",28918], // LUUMU, TUMMA, PUNNITTU KIVINEEN
   ["nektariini",28922], // PERSIKKA/NEKTARIINI, KESKIARVO, PUNNITTU KIVINEEN
   ["persikka",28922], // PERSIKKA/NEKTARIINI, KESKIARVO, PUNNITTU KIVINEEN
@@ -410,6 +413,11 @@ for (;;) {
       clean = original.toLocaleLowerCase("fi").split(" ")[0];
     if (/^(?:vesimeloni|hunajameloni)(?: (?:siemenetön|suomi))?$/.test(original.toLocaleLowerCase("fi")))
       clean = original.toLocaleLowerCase("fi").split(" ")[0];
+    // Whole fresh apricots and grapefruit only; exclude dried, juices and purees.
+    if (/^aprikoosi(?: \d+(?:[.,]\d+)?\s*(?:g|kg)(?: etelä-afrikka)?(?:\s*[12]\s*lk)?)?$/.test(original.toLocaleLowerCase("fi")))
+      clean = "aprikoosi";
+    if (/^greippi(?: (?:vaalea|punainen|pinkki))?$/.test(original.toLocaleLowerCase("fi")))
+      clean = "greippi";
     // Exact raw-carrot labels with washing, soil, bunch and origin qualifiers.
     // Deliberately exclude carrot recipes, prepared vegetables and baby food.
     if (/^(?:porkkana pesty|porkkananippu suomi|porkkana pesty suomi|porkkana multa|porkkana pesty suomi 2lk|koivulan tila porkkananippu)$/.test(original.toLocaleLowerCase("fi")))
