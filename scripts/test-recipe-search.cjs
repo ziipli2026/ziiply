@@ -6,6 +6,11 @@ const {isBadNormalResult,rankProductResultsByRelevanceAndPrice}=require('../src/
 const cases=require('./fixtures/recipe-audit.json');
 const catalog=require('./fixtures/recipe-products.json');
 const distractors=['Vartalosokeri karvanpoistoon 300 g','Pyykkietikka 1 l','Lohikeitto 300 g','Savukirjolohifilee 300 g','Jauheliha-spagetti lastenateria 200 g','Makaroni laatikko valmisateria 400 g','Kookosmaito juoma 1 l','Tilli tuorejuusto 200 g','Valkosipuli jauhettu 50 g','Curry kastike 400 g','Broilerin fileesuikale hunajamarinoitu 400 g','Kananmunan muotoinen suklaa 50 g','Sitruuna saippua 100 g'];
+assert.equal(core.recipeProductSearchTerm('perunoita'),'peruna','potato partitive must map to retail search term');
+assert.equal(core.recipeProductSearchTerm('perunaa'),'peruna','potato partitive singular must map to retail search term');
+assert.equal(core.recipeProductSearchTerm('kiinteitä perunoita'),'peruna','adjective + potato inflection must map to retail search term');
+assert.equal(core.recipeProductSearchTerm('peruna-sipulisekoitusta'),'peruna-sipulisekoitusta','mixed frozen potato product must not collapse to plain potato');
+assert.equal(core.recipeProductCompatible('perunoita',{name:'Peruna kiinteä pesty'}),true,'ordinary fresh potato listing must be accepted for recipe potato');
 const report=[];
 for(const c of cases){
  const d=core.parseRecipeText(c.text);
