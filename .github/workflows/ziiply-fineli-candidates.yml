@@ -1,5 +1,7 @@
 name: Fineli EAN candidate discovery
 on:
+  schedule:
+    - cron: '43 */3 * * *'
   workflow_dispatch:
     inputs:
       confirm_mass_discovery:
@@ -18,10 +20,10 @@ jobs:
       - name: Verify candidate guards
         run: node scripts/test-fineli-candidate-guards.cjs
       - name: Require explicit mass discovery approval
-        if: ${{ inputs.confirm_mass_discovery != true }}
+        if: ${{ github.event_name != 'schedule' && inputs.confirm_mass_discovery != true }}
         run: echo 'Preflight-only mode; mass discovery remains disabled.'
       - name: Install dependencies
-        if: ${{ inputs.confirm_mass_discovery == true }}
+        if: ${{ github.event_name == 'schedule' || inputs.confirm_mass_discovery == true }}
         run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
       - name: Discover review-only matches
         if: ${{ inputs.confirm_mass_discovery == true }}
