@@ -205,6 +205,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const {id,offer}=fetchedEntry;
         if(String(offer.publicationPublicId??publicationId)!==publicationId){reject("publication-mismatch");sampleReject("publication-mismatch",id);continue;}
         const title=String(offer.name??"").trim();
+        const hasPlussaLabel=/\bplussa(?:-etu|-tarjous)?\b/i.test(title+" "+String(offer.description??""));
         const regular=numeric(offer.price),member=numeric(offer.membershipPrice),app=numeric(offer.appPrice);
         const price=app??member??regular??numeric(offer.fromPrice);
         const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
@@ -240,9 +241,9 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
           imageUrl:String(offer.imageLarge??offer.image??""),
           storeId,storeName:String(store.name),storeLabel:String(store.name),chain:"K",storeType:"K-Citymarket",
           source:"K-Citymarket kauppakohtainen julkaisu",provider:"kcitymarket-local",offerId:id,
-          additionalInfo:offer.description??null,benefitText:app!=null?"Mobiilitarjous":member!=null?"Plussa-tarjous":undefined,
+          additionalInfo:offer.description??null,benefitText:app!=null?"Mobiilitarjous":member!=null||hasPlussaLabel?"Plussa-tarjous":undefined,
           validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
-          isPlussaOffer:member!=null,offerQuantity:quantity,
+          isPlussaOffer:member!=null||hasPlussaLabel,offerQuantity:quantity,
           sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
           category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
       }
