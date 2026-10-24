@@ -9,8 +9,8 @@ on:
       - 'scripts/kcitymarket-n183-import.mjs'
       - 'scripts/test-kcitymarket-n183-import.mjs'
       - '.github/workflows/kcitymarket-browser-source-discovery.yml'
-  schedule:
-    - cron: '25 */3 * * *'
+  # Manual and source-change runs only while the upstream site returns HTTP 403.
+  # Avoid repeatedly launching Chromium every three hours against a blocked source.
 permissions:
   contents: read
 jobs:
