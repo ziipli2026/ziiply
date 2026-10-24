@@ -85,4 +85,10 @@ ON CONFLICT (ean) DO UPDATE SET product_name=EXCLUDED.product_name,kcal_100g=COA
  if(rows.length>0&&newRecords===0)console.warn('::warning::OFF import added ZERO new products; inspected '+rows.length+' EANs, not found '+notFound+', errors '+failed+', refreshed '+refreshed);
  if(failed>0&&failed===rows.length)throw Error('OFF import failed for every attempted EAN');
  if(failed>0)console.warn('Transient lookup failures will retry after 24 hours');
+}catch(error){
+ if(error?.code==='53000' || /exceeded the quota/i.test(String(error?.message))){
+  console.error('::error title=Neon database quota exceeded::OFF import cannot read or write Neon. Restore Neon project quota; retrying Open Food Facts API will not help. Existing nutrition data is not deleted.');
+  console.error('OFF_DATABASE_QUOTA_BLOCKED',JSON.stringify({code:error.code,shard,reason:'neon_quota_exceeded'}));
+ }
+ throw error;
 }finally{await pool.end()}
