@@ -6956,7 +6956,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const rawPrice=Number(item?.price??item?.storeItems?.[0]?.price??0);
         const price=mobileRecipePriceInCents(rawPrice,String(item?.priceAmountUnit)==="eur"?"s-kaupat-normal-v220":String(data?.source||""));
         const comparisonPrice=item?.comparisonPrice??item?.storeItems?.[0]?.comparisonPrice;
-        return normalizeSProduct({...item,price,priceAmountUnit:"cent",comparisonPriceAmountUnit:"cent",comparisonPrice:comparisonPrice==null?undefined:mobileRecipePriceInCents(Number(comparisonPrice),String(data?.source||""))});
+        return normalizeSProduct({...item,price,priceAmountUnit:"cent",comparisonPriceAmountUnit:"cent",comparisonPrice:comparisonPrice==null?undefined:mobileRecipePriceInCents(Number(comparisonPrice),String(item?.comparisonPriceAmountUnit)==="eur"?"s-kaupat-normal-v220":String(data?.source||""))});
       })
       .filter((item: Product | null): item is Product =>
         Boolean(item && item.name && getProductPrice(item) > 0),
