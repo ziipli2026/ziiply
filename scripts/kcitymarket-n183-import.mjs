@@ -11,9 +11,15 @@ import { N183_STORE_KEY, validateN183Batch } from "./kcitymarket-n183-validate.m
 
 export async function importN183Batch(batch, sql, now = Date.now()) {
   const rows = validateN183Batch(batch, now);
-  if (!batch.sourceUrl || !/^https:\/\//.test(batch.sourceUrl) ||
+  const source = (() => { try { return new URL(batch.sourceUrl); } catch { return null; } })();
+  if (!source || source.protocol !== "https:" ||
+      !["k-ruoka.fi", "www.k-ruoka.fi"].includes(source.hostname) ||
       !batch.sourceEvidence || batch.sourceEvidence.storeScopeConfirmed !== true ||
-      batch.sourceEvidence.offerScopeConfirmed !== true)
+      batch.sourceEvidence.offerScopeConfirmed !== true ||
+      batch.sourceEvidence.storeId !== "N183" ||
+      !Array.isArray(batch.sourceEvidence.offerIds) ||
+      batch.sourceEvidence.offerIds.length !== rows.length ||
+      rows.some(row => !batch.sourceEvidence.offerIds.includes(String(row.offerId))))
     throw new Error("N183 source evidence missing; refusing to publish");
   const scanTime = Date.parse(String(batch.scannedAt ?? ""));
   if (!Number.isFinite(scanTime) || Math.abs(now - scanTime) > 60 * 60 * 1000)
