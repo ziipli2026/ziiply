@@ -333,7 +333,7 @@ console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,el
 
 // Conservative second pass for raw produce with trailing origin and quality marks.
 // Do not use this rule for processed foods or recipes.
-const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","peruna","omena","banaani","päärynä","appelsiini","sitruuna","lime","valkosipuli"]);
+const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli"]); // Only unique exact Fineli names exist in this database; see strictFoods lookup.
 const rawFineli = new Map<string,{id:number;name:string}>();
 for (const name of rawProduceNames) {
   // Fineli often uses uppercase raw ingredient labels; accept the exact raw label
