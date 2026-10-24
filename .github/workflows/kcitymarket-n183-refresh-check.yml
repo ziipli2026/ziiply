@@ -26,6 +26,7 @@ jobs:
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
             'https://ziiply.vercel.app/api/cron/kcitymarket-campaign-refresh')
           echo "N183_REFRESH_HTTP=$status"
+          echo "N183_REFRESH_TARGET=https://ziiply.vercel.app/api/cron/kcitymarket-campaign-refresh"
           node - <<'NODE'
           const fs=require('node:fs');
           let data;
