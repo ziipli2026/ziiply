@@ -95,6 +95,13 @@ try {
     ]);
   }
   const offerTitle = await page.title();
+  // The chosen offer route may not carry selected-store context.
+  // Record this explicitly rather than assuming the store page selection survived.
+  const selectedStoreNavigation = {
+    storePage: new URL(store).pathname,
+    offerPage: new URL(page.url()).pathname,
+    lostStoreInUrl: !/k-citymarket-hyvinkaa|N183/i.test(page.url()),
+  };
   const pageEvidence = await page.locator("body").innerText().then(s => ({
     hyvinkaa: /Hyvinkää/i.test(s),
     otherStore: /K-Citymarket Vantaa Jumbo/i.test(s),
@@ -138,7 +145,7 @@ try {
     offerHttp: storeNavigationStatus, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
     offerNavigationHost: new URL(offerNavigationUrl).hostname,
-    links, navigationIsStoreScoped, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
+    links, navigationIsStoreScoped, selectedStoreNavigation, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
     sampledResponseShapes: observations.length,
     candidateEndpoints: [...new Set(candidates.map(item => item.endpoint))],
     blockedResponses: observations.filter(item => item.status === 401 || item.status === 403).map(item => ({url:item.url,status:item.status})), apiOfferCandidateCount: apiOfferCandidates.length, n183CandidateCount: n183Candidates.length, rejectedIdentityCount,
