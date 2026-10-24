@@ -305,6 +305,10 @@ for (;;) {
     if (brand && clean.toLocaleLowerCase("fi").startsWith(brand.toLocaleLowerCase("fi")+" "))
       clean = clean.slice(brand.length).trim();
     clean = clean.replace(strictBrandPrefixes,"").replace(strictQuantitySuffix,"").trim();
+    // Bulk pantry normalization for plain dry staples only. Never normalize cooked,
+    // flavoured, gluten-free, wholegrain or mixed products to a generic staple.
+    const plainStaple = clean.toLocaleLowerCase("fi").match(/^(kaurahiutale|makaroni|spagetti)\\s+\\d+(?:[.,]\\d+)?\\s*(?:g|kg)(?:\\s+luomu)?$/);
+    if (plainStaple) clean = plainStaple[1];
     if (clean.length < 5 || /[&/+%]/.test(clean)) return [];
     const matches = strictFoods.get(clean.toLocaleLowerCase("fi")) ?? [];
     if (matches.length !== 1) return [];
