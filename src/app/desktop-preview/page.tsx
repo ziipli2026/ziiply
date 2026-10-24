@@ -1164,7 +1164,7 @@ export default function DesktopPreviewPage() {
           }catch(error){logCompareAudit("product_search_error",{store:store.name,name,ean,error:String(error)});desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         desktopDebug(`Kauppahaku valmis: ${store.name}, hinnat=${rows.filter(x=>x.price!=null).length}/${rows.length}`);
-        return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length}] as const;
+        return [String(store.id),{store,rows,total:rows.reduce((n,r)=>n+(r.price??0)*r.quantity,0),missing:rows.filter(r=>r.price==null).length,complete:rows.every(r=>r.price!=null),totalIsPartial:rows.some(r=>r.price==null)}] as const;
       }));
       if(desktopCompareRequestIdentity.current!==requestIdentity||desktopCompareRunId.current!==runId){desktopDebug("TULOKSET HYLÄTTY: vertailun identiteetti tai ajon tunnus vaihtui");return;}
       const next=Object.fromEntries(results);desktopSaveComparison(key,next);desktopComparisonEdited.current=false;try{window.localStorage.removeItem(desktopComparisonEditedKey)}catch{}setDesktopCompareResults(structuredClone(next));
