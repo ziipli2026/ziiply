@@ -1190,6 +1190,21 @@ export default function DesktopPreviewPage() {
                 const fishCompatible=Boolean(originalSpecies&&fishFilletSpecies(candidateName)===originalSpecies&&!excluded&&(loose||bulkCounterPack));
                 return (fishCompatible||produceCompatible)&&desktopVerifiedKgPriceCents(p)!==null;
               }):null;
+            if(weighedEan&&(originalProduce||originalSpecies)){
+              const exactWeightCandidate=candidates.find((p:any)=>normalizeEan(String(p.ean||""))===normalizeEan(ean));
+              logCompareAudit("weighed_comparison_diagnostic",{
+                store:store.name,name,ean,recipeAmount:Number.isFinite(recipeAmount)?recipeAmount:null,
+                recipeUnit,cartQuantity,comparisonGrams,
+                exactEanFound:Boolean(exactWeightCandidate),
+                exactEanRawPriceCents:exactWeightCandidate?Number(exactWeightCandidate.price):null,
+                exactEanComparisonPrice:exactWeightCandidate?.comparisonPrice??null,
+                exactEanComparisonPriceUnit:exactWeightCandidate?.comparisonPriceUnit??null,
+                exactEanUnitPrice:exactWeightCandidate?.unitPrice??null,
+                verifiedKgPriceCents:exactWeightCandidate?desktopVerifiedKgPriceCents(exactWeightCandidate):null,
+                weightProposalFound:Boolean(weightProposal),
+                reason:comparisonGrams===null?"missing_recipe_grams":!weightProposal?"missing_verified_kg_price_or_compatible_candidate":"ready"
+              });
+            }
             const verifiedWeightCents=weightProposal?desktopVerifiedKgPriceCents(weightProposal):null;
             const estimatedWeightPrice=verifiedWeightCents!==null&&comparisonGrams!==null&&comparisonGrams>0
               ?Math.round(verifiedWeightCents*comparisonGrams/1000)/100:null;
