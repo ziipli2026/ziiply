@@ -1,6 +1,8 @@
 name: K-Citymarket N183 Tjek refresh verification
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '10 */6 * * *'
 permissions:
   contents: read
 jobs:
