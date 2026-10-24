@@ -98,6 +98,23 @@ const reviewPriority = (product: string, food: string, decision: string): string
   if (multiIngredient.test(p) || multiIngredient.test(f)) return 'COMPOSITION_REVIEW';
   return 'CATEGORY_' + category + '_REVIEW';
 };
+// Batch triage: independently classify all remaining manual-review candidates.
+// These labels are queues for human validation, never automatic approvals.
+const reviewQueue = (product: string, food: string, decision: string): string => {
+  if (decision !== 'MANUAL_REVIEW') return decision;
+  const p = product.toLowerCase(), f = food.toLowerCase();
+  if (/koiran|kissan|lemmik|pesuaine|shampoo|saippua|tuoksukynttil/.test(p)) return 'NON_FOOD_REVIEW';
+  if (/laktoositon|gluteeniton|vegaaninen|maidoton|sokeriton|makeuttamaton|rasvaton/.test(p))
+    return 'SPECIAL_DIET_REVIEW';
+  if (/jauheliha|naudan|sian|broilerin|kanan|kalkkunan|kala|lohi|tonnikala/.test(p))
+    return 'PROTEIN_TYPE_REVIEW';
+  if (/öljy|margariini|rasva|voi/.test(p) && !/virvoitusjuoma/.test(p))
+    return 'FAT_SOURCE_REVIEW';
+  if (/pakaste|säilyke|kuivattu|jauhe|keitetty|paistettu|kypsennetty/.test(p) ||
+      /pakaste|säilyke|kuivattu|jauhe|keitetty|paistettu|kypsennetty/.test(f))
+    return 'PROCESSING_REVIEW';
+  return 'GENERAL_COMPOSITION_REVIEW';
+};
 // Read-only nutrient sanity checks against explicit product labels.
 const nutrientSanity = (product: string, nutrients: any): string[] => {
   const issues: string[] = [];
@@ -137,7 +154,7 @@ const review = rows.map(r=>{
   const conflict=issues.some(issue=>!needsVerification.has(issue));
   if(conflict) conflicts++;
   else if(issues.length) verifyOnly++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients,dairy_fat_coverage:dairyCoverage(product,nutrients)};
+  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),review_queue:reviewQueue(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients,dairy_fat_coverage:dairyCoverage(product,nutrients)};
 });
 console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,conflicts,verify_nutrition:verifyOnly,manual_review:review.length-flagged,modified:0}));
 const dairyCoverageCounts = review.reduce((counts: Record<string,number>,row) => {
@@ -145,4 +162,6 @@ const dairyCoverageCounts = review.reduce((counts: Record<string,number>,row) =>
   return counts;
 }, {});
 console.log(JSON.stringify({mode:'dairy_fat_coverage',...dairyCoverageCounts}));
+const queueCounts = review.reduce((counts: Record<string,number>,row) => { counts[row.review_queue] = (counts[row.review_queue] ?? 0) + 1; return counts; }, {});
+console.log(JSON.stringify({mode:'manual_review_queues',...queueCounts}));
 for(const row of review) console.log(JSON.stringify(row));
