@@ -12,5 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install isolated TypeScript transpiler
+        run: npm install --prefix /tmp/ziiply-substitution-test --no-save --ignore-scripts --no-audit --no-fund typescript@5
       - name: Test real comparison helper and safety guards
+        env:
+          NODE_PATH: /tmp/ziiply-substitution-test/node_modules
         run: node scripts/desktop-comparison-substitution-test.cjs
