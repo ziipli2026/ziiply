@@ -9527,7 +9527,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalizeVisibleMatchesV804 = (matches: Match[]) => matches.map((match) => {
       const productPrice = Number(getProductPrice(match.product));
       const rawPrice = Number(match.price);
-      const resolvedRaw = Number.isFinite(productPrice) && productPrice >= 0.05 ? productPrice : rawPrice;
       // getProductPrice always returns integer cents (ziiplyCore); convert explicitly.
       // Only provider match.price needs the legacy mixed-unit fallback.
       const basePrice = Number.isFinite(productPrice) && productPrice >= 0.05
