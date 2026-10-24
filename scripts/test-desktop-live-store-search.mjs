@@ -2,6 +2,7 @@
 // No database writes, no cart mutations, and no deployments.
 import assert from "node:assert/strict";
 const base=process.env.ZIIPLY_TEST_BASE_URL||"https://ziiply.fi";
+const bypass=process.env.VERCEL_AUTOMATION_BYPASS_SECRET||"";
 const stores=[
   {chain:"S",path:"/api/s-products",store:"634976534",storeName:"Prisma Hyvinkää"},
   {chain:"K",path:"/api/k-products",store:"N183",storeName:"K-Citymarket Hyvinkää"}
@@ -11,7 +12,7 @@ let failed=0,seen=0,blocked=0;
 for(const st of stores)for(const search of searches){
  const u=new URL(st.path,base);u.searchParams.set("search",search);u.searchParams.set("store",st.store);if(st.chain==="S")u.searchParams.set("storeName",st.storeName);
  try{
-  const response=await fetch(u,{headers:{accept:"application/json"},signal:AbortSignal.timeout(25000)});
+  const response=await fetch(u,{headers:{accept:"application/json",...(bypass?{"x-vercel-protection-bypass":bypass}:{})},signal:AbortSignal.timeout(25000)});
   if(response.status===401||response.status===403){blocked++;console.log("BLOCKED "+st.chain+" "+search+": HTTP "+response.status+" (preview authentication; search not tested)");continue;}
   if(!response.ok)throw Error("HTTP "+response.status);
   const data=await response.json();
