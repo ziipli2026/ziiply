@@ -580,6 +580,7 @@ function cleanRepeatedOfferTextV4(value: unknown) {
 
 export function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   const source = offer.__sourceOfferSearchResult || {};
+  if (source.displayOnly === true || (offer as any).displayOnly === true) return String(source.priceText ?? offer.priceText ?? "Tarjous · hinta ei tiedossa");
   const quantity = Number(source.offerQuantity ?? offer.offerQuantity ?? source.multiBuyQuantity ?? offer.multiBuyQuantity);
   const unit = String(source.offerUnit ?? offer.offerUnit ?? "kpl").trim() || "kpl";
   const rawPriceText = String(source.priceText ?? offer.priceText ?? "").trim();
@@ -1631,6 +1632,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 const comparisonPrice = getOfferComparisonPrice(offer);
                 const category = String(offer.category || "");
                 const sourceOffer = offer.__sourceOfferSearchResult || {};
+                const isDisplayOnly = sourceOffer.displayOnly === true || (offer as any).displayOnly === true;
                 const isWeightedProduct = Boolean(offer.isWeightedProduct || sourceOffer.isWeightedProduct || (offer as any).isApproximatePrice || sourceOffer.isApproximatePrice || /^(kg|kilogram|kilogramma)$/i.test(String((offer as any).salesUnit ?? sourceOffer.salesUnit ?? "").trim()));
                 const weightedUnitPrice = isWeightedProduct ? (comparisonPrice.match(/\d+[,.]\d{1,2}\s*€\s*\/\s*kg/i)?.[0] || (offerPrice.match(/\d+[,.]\d{1,2}\s*€\s*\/\s*kg/i)?.[0] || "")) : "";
 
@@ -1642,13 +1644,13 @@ export default function ZiiplyMobileOfferSearchCard({
                           <button type="button" onClick={() => setExpandedOfferB(offer)} aria-label={`Suurenna tuote ${productName}`} className="grid h-[5.15rem] w-[5.15rem] place-items-center overflow-hidden rounded-[0.65rem] border-[1.5px] border-[#7b5c2a] bg-[#fffaf0] text-[1.5rem] shadow-[0_2px_3px_rgba(50,31,13,0.18)]">
                             <OfferImageBox src={image} category={category} />
                           </button>
-                          <button type="button" onClick={() => onAddOffer?.(offer)} disabled={!onAddOffer}
+                          <button type="button" onClick={() => { if (!isDisplayOnly) onAddOffer?.(offer); }} disabled={!onAddOffer || isDisplayOnly}
                             aria-label={`Lisää koriin: ${productName}, ${isWeightedProduct ? (weightedUnitPrice || "punnitushinta selviää kassalla") : (offerPrice || "hinta puuttuu")}`}
-                            className={cx("flex min-h-[3.8rem] min-w-0 w-full flex-col items-center justify-center rounded-[0.6rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#edf4d9_0%,#dce8c3_100%)] px-1 py-1 text-[#087237] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", !onAddOffer && "cursor-not-allowed opacity-45")}>
+                            className={cx("flex min-h-[3.8rem] min-w-0 w-full flex-col items-center justify-center rounded-[0.6rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#edf4d9_0%,#dce8c3_100%)] px-1 py-1 text-[#087237] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", (!onAddOffer || isDisplayOnly) && "cursor-not-allowed opacity-45")}>
                             <span className="block w-full max-w-full break-words text-center text-[clamp(0.85rem,3.7vw,1.12rem)] font-black leading-tight tabular-nums" style={{ fontFamily: cooperFont }}>{isWeightedProduct ? (weightedUnitPrice || "Punnitaan") : splitOfferDisplayPrice(offerPrice).amount}</span>
                             {!isWeightedProduct && splitOfferDisplayPrice(offerPrice).basis && <span className="block w-full text-center text-[0.76rem] font-black leading-tight">{splitOfferDisplayPrice(offerPrice).basis}</span>}
                             {isWeightedProduct && <span className="text-center text-[0.56rem] font-bold leading-tight">Lopullinen hinta punnittaessa</span>}
-                            <span className="whitespace-nowrap text-[0.57rem] font-black leading-tight text-[#244525]">🛒 Lisää koriin</span>
+                            <span className="whitespace-nowrap text-[0.57rem] font-black leading-tight text-[#244525]">{isDisplayOnly ? "Ei euromääräistä hintaa" : "🛒 Lisää koriin"}</span>
                           </button>
                         </div>
                         <div className="min-w-0 flex-1">
@@ -1702,7 +1704,7 @@ export default function ZiiplyMobileOfferSearchCard({
                   <div className="grid h-[7.5rem] place-items-center overflow-hidden rounded-lg border border-[#e6dcc3] bg-[#fffaf0]">
                     <OfferImageBox src={getOfferImage(expandedOfferB)} category={String(expandedOfferB.category || "")} />
                   </div>
-                  <button type="button" disabled={!onAddOffer} onClick={() => onAddOffer?.(expandedOfferB)} className="flex min-h-[3.4rem] flex-col items-center justify-center rounded-lg border-2 border-[#496443] bg-[#dce8c3] px-1 text-[#087237] disabled:opacity-45">
+                  <button type="button" disabled={!onAddOffer || expandedOfferB.__sourceOfferSearchResult?.displayOnly === true || (expandedOfferB as any).displayOnly === true} onClick={() => { if (expandedOfferB.__sourceOfferSearchResult?.displayOnly !== true && (expandedOfferB as any).displayOnly !== true) onAddOffer?.(expandedOfferB); }} className="flex min-h-[3.4rem] flex-col items-center justify-center rounded-lg border-2 border-[#496443] bg-[#dce8c3] px-1 text-[#087237] disabled:opacity-45">
                     <strong className="text-lg">{getOfferPrice(expandedOfferB) || "—"}</strong>
                     <span className="text-xs font-black text-[#244525]">🛒 Lisää koriin</span>
                   </button>
