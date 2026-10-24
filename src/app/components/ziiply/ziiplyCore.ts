@@ -1922,6 +1922,28 @@ export function isPremiumBrandProduct(name: string) {
 //
 // Maito ja kahvi jätetään tarkoituksella
 // hieman löysemmiksi, jotta hakutuloksia ei katoa liikaa.
+  export function isSameRetailPackage(source:string,candidate:string):boolean{
+    // Grams and millilitres must never be treated as interchangeable.
+    const measure=(name:string)=>{
+      const matches=[...String(name).toLocaleLowerCase("fi").replace(/,/g,".").matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml|kpl)\b/g)];
+      const last=matches[matches.length-1];
+      if(!last)return null;
+      const amount=Number(last[1]),unit=last[2];
+      const prefix=String(name).toLocaleLowerCase("fi").replace(/,/g,".").slice(0,last.index||0);
+      const multi=prefix.match(/(\d+)\s*[x×]\s*$/);
+      const count=multi?Number(multi[1]):1;
+      return {kind:unit==="kg"||unit==="g"?"mass":unit==="kpl"?"count":"volume",amount:amount*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1)*count};
+    };
+    // A multi-pack is not the same retail unit as a single pack of its component size.
+    const multipack=(name:string)=>String(name).toLocaleLowerCase("fi")
+      .match(/\b(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(kg|g|l|dl|ml|kpl)\b/);
+    const sourceMulti=multipack(source),candidateMulti=multipack(candidate);
+    if(Boolean(sourceMulti)!==Boolean(candidateMulti))return false;
+    if(sourceMulti&&candidateMulti&&Number(sourceMulti[1])!==Number(candidateMulti[1]))return false;
+    const a=measure(source),b=measure(candidate);
+    return a!==null&&b!==null&&a.kind===b.kind&&a.amount===b.amount;
+  }
+
 export function productGroupGate(sourceName: string, targetName: string) {
   const source = normalize(sourceName);
   const target = normalize(targetName);
