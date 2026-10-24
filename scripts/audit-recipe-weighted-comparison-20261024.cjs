@@ -10,6 +10,14 @@ assert.match(block, /ingredient\?\.unit\?\.toLowerCase\(\) === "g"/);
 assert.match(block, /basePrice \* grams \/ 1000, quantity: 1/);
 assert.match(block, /Number\.isFinite\(match\.price\) && match\.price > 0/);
 assert.doesNotMatch(block, /match\.price >= 0\.05/);
+const actualUnitRule = block.match(/const isKgPrice = ([\s\S]*?);/);
+assert.ok(actualUnitRule, "actual production kg unit rule found");
+const recognizeKg = new Function("unitText", "match", "return (" + actualUnitRule[1] + ");");
+for (const unit of ["kg", "/kg", "eur/kg", "€/kg", "euro/kg", "kilogramma"]) {
+  assert.equal(recognizeKg(unit, { product: { name: "Peruna" } }), true, "actual source must recognize " + unit);
+}
+assert.equal(recognizeKg("kpl", { product: { name: "Peruna" } }), false);
+assert.equal(recognizeKg("", { product: { name: "Peruna 0,89 €/kg" } }), true);
 const unitPattern = /^(?:kg|\/kg|eur\/kg|€\/kg|euro\/kg|kilogramma)$/;
 const namePattern = /(?:€|eur)\s*\/\s*kg/i;
 for (const unit of ["kg", "/kg", "eur/kg", "€/kg", "euro/kg", "kilogramma"]) assert.ok(unitPattern.test(unit), unit);
