@@ -1039,8 +1039,8 @@ export default function DesktopPreviewPage() {
             desktopDebug(`Haku alkaa: ${name}, EAN=${ean}, source=${item.source}`);
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
             desktopDebug(`API-ehdokkaita ${candidates.length}: ${name}; ${candidates.slice(0,8).map((p:any)=>`${p.name} [${p.ean}] ${p.price}c`).join(" | ")}`);
-            const matched=candidates.find((candidate:any)=>ean&&normalizeEan(candidate.ean)===normalizeEan(ean)&&Number(candidate.price)>0);
-            desktopDebug(`EAN-osuma: ${matched?`${matched.name} ${matched.price}c`:"EI"}`);
+            const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            desktopDebug(`Vahvistettu tuoteosuma: ${matched?`${matched.name} ${matched.price}c`:"EI"}`);
             const cents=matched?Number(matched.price):NaN;
             if(Number.isFinite(cents)&&cents>0)return {price:cents/100,proposal:null};
             let alternative=desktopFindPackageAlternative(candidates,name,ean)||desktopFindSimilarAlternative(candidates,name,ean);
