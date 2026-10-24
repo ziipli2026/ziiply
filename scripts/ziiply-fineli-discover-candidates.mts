@@ -333,7 +333,7 @@ console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,el
 
 // Conservative second pass for raw produce with trailing origin and quality marks.
 // Do not use this rule for processed foods or recipes.
-const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena","appelsiini","sitruuna","paprika"]); // Exact unique names or verified canonical raw-food IDs.
+const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena","appelsiini","sitruuna","paprika","mansikka","mustikka","vadelma","puolukka","mustaherukka","punaherukka","karviainen","kiivi","ananas","avokado"]); // Exact unique names or verified canonical raw-food IDs.
 // Fineli's canonical raw-food descriptions are not always bare product names.
 // These are exact, reviewed food-ID choices; processed variants are excluded.
 const canonicalRawFineli = new Map<string,number>([
@@ -343,6 +343,16 @@ const canonicalRawFineli = new Map<string,number>([
   ["appelsiini",28924], // APPELSIINI, PUNNITTU KUORINEEN
   ["sitruuna",28925], // SITRUUNA, KESKIARVO, PUNNITTU KUORINEEN
   ["paprika",355], // PAPRIKA, KESKIARVO
+  ["mansikka",447], // MANSIKKA
+  ["mustikka",442], // MUSTIKKA, METSÄMUSTIKKA
+  ["vadelma",448], // VADELMA
+  ["puolukka",440], // PUOLUKKA
+  ["mustaherukka",444], // MUSTAHERUKKA
+  ["punaherukka",445], // PUNAHERUKKA
+  ["karviainen",446], // KARVIAINEN
+  ["kiivi",28939], // KIIVI, KESKIARVO, PUNNITTU KUORINEEN
+  ["ananas",28923], // ANANAS, TUORE, PUNNITTU KUORINEEN
+  ["avokado",28933], // AVOKADO, PUNNITTU KUORINEEN JA KIVINEEN
 ]);
 const rawFineli = new Map<string,{id:number;name:string}>();
 for (const name of rawProduceNames) {
@@ -352,7 +362,7 @@ for (const name of rawProduceNames) {
   if (foods.length === 1) rawFineli.set(name,foods[0]);
   else if (canonicalRawFineli.has(name)) {
     const chosen = fineliDescriptions.find(f => Number(f.fineli_id) === canonicalRawFineli.get(name));
-    if (!chosen || !String(chosen.name_fi).toLocaleLowerCase("fi").startsWith(name + ",")) throw new Error("Invalid Fineli raw food mapping: " + name);
+    if (!chosen || !(String(chosen.name_fi).toLocaleLowerCase("fi") === name || String(chosen.name_fi).toLocaleLowerCase("fi").startsWith(name + ","))) throw new Error("Invalid Fineli raw food mapping: " + name);
     rawFineli.set(name,{id:Number(chosen.fineli_id),name:String(chosen.name_fi)});
   }
 }
