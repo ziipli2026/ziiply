@@ -13423,7 +13423,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   normalizeEan(candidate.ean) === comparisonSourceEan && getProductPrice(candidate) > 0)
               : undefined;
             const best = exactS || (sourceFamilyKnownV823
-              ? pickBestSProduct(sCandidates.filter(candidate=>isComparisonAttributeCompatible(comparisonSourceName,candidate.name)), comparisonSourceName, comparisonSourceEan)
+              ? pickBestSProduct(sCandidates.filter(candidate=>getProductPrice(candidate)>0&&isComparisonAttributeCompatible(comparisonSourceName,candidate.name)), comparisonSourceName, comparisonSourceEan)
               : undefined);
             if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: normalizeEan(best.ean) === comparisonSourceEan && comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
           } catch { failed = true; }
