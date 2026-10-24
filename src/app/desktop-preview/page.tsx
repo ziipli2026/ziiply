@@ -1132,7 +1132,10 @@ export default function DesktopPreviewPage() {
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
             logCompareAudit("product_search_result",{store:store.name,storeId:store.id,externalId:store.externalId,kind,name,ean,candidateCount:candidates.length,exactEanCandidates:candidates.filter((p:any)=>ean&&normalizeEan(p.ean)===normalizeEan(ean)).slice(0,12).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),candidates:candidates.slice(0,15).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),matched:matched?{name:matched.name,ean:matched.ean,priceCents:matched.price}:null,reason:matched?"matched":candidates.length?"no_compatible_match":"no_candidates"});
             desktopDebug(`${store.name}: ${name} EAN=${ean||"-"} → ehdokkaita=${candidates.length}, osuma=${matched?`${matched.name} (${matched.price}c)`:"EI"}, ehdokkaat=${candidates.slice(0,3).map((p:any)=>`${p.name} (${p.price}c)`).join(" | ")||"-"}`);
-            const price=matched?Number(matched.price)/100:null;
+            // A variable-weight EAN is a kilogram-priced item, not a fixed retail package.
+            // Never show its provider quote as a one-piece basket total.
+            const weighedEan=/^2\d{7,13}$/.test(normalizeEan(ean));
+            const price=matched&&!weighedEan?Number(matched.price)/100:null;
             const exact=matched&&ean&&normalizeEan(matched.ean)===normalizeEan(ean);
             const alternative=matched?null:desktopFindPackageAlternative(candidates,name,ean);
             // Fresh fish fillets can be sold loose or in a bulk counter pack (e.g. n5kg).
