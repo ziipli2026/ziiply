@@ -71,24 +71,28 @@ test('selected alternative updates compare row price, quantity total and missing
   const start=source.indexOf('  async function desktopSelectCompareAlternative(');
   const end=source.indexOf('  const [cartNotice,',start);
   assert.ok(start>=0 && end>start,'missing selection implementation');
-  let state={shop:{rows:[{cartItemId:'item',name:'Original',price:2.50,quantity:2},{cartItemId:'other',name:'Other',price:3,quantity:1}],total:8,missing:0}};
+  let state={shop:{rows:[{cartItemId:'item',name:'Laktoositon maito 1 l',price:2.50,quantity:2},{cartItemId:'other',name:'Other',price:3,quantity:1}],total:8,missing:0}};
   const notices=[];
   const env=vm.createContext({
     desktopCompareResults:state,
     desktopComparisonEdited:{current:false},
-    cartItems:[],
+    cartItems:[{id:'item',name:'Laktoositon maito 1 l',quantity:2}],
     selectedStores:{},
     desktopComparisonEditedKey:'test',
     window:{localStorage:{setItem(){}}},
     storeKind:()=> 'sHyper',
     resolvePriceWeightLabel:()=> '',
+    desktopPackageCompatible:()=>true,
+    isComparisonAttributeCompatible:()=>true,
+    desktopStrictCompareIdentity:()=>true,
+    desktopReliableComparePrice:p=>Number.isFinite(Number(p.price))&&Number(p.price)>0,
     setDesktopCompareResults: updater=>{state=updater(state);env.desktopCompareResults=state},
     flashCartNotice: message=>notices.push(message),
   });
   vm.runInContext(ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,env);
-  await env.desktopSelectCompareAlternative('shop',{id:'item'},{name:'Cheaper',price:199});
+  await env.desktopSelectCompareAlternative('shop',{id:'item'},{name:'Laktoositon maito 1 l',price:199});
   assert.equal(state.shop.rows[0].price,1.99);
-  assert.equal(state.shop.rows[0].name,'Cheaper');
+  assert.equal(state.shop.rows[0].name,'Laktoositon maito 1 l');
   assert.equal(state.shop.total,6.98,'2 x 1.99 + 3.00');
   assert.equal(state.shop.missing,0);
   assert.equal(env.desktopComparisonEdited.current,true);
