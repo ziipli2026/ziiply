@@ -333,7 +333,7 @@ console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,el
 
 // Conservative second pass for raw produce with trailing origin and quality marks.
 // Do not use this rule for processed foods or recipes.
-const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena","appelsiini","sitruuna","paprika","mansikka","mustikka","vadelma","puolukka","mustaherukka","punaherukka","karviainen","kiivi","ananas","avokado"]); // Exact unique names or verified canonical raw-food IDs.
+const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena","appelsiini","sitruuna","paprika","mansikka","mustikka","vadelma","puolukka","mustaherukka","punaherukka","karviainen","kiivi","ananas","avokado","mandariini"]); // Exact unique names or verified canonical raw-food IDs.
 // Fineli's canonical raw-food descriptions are not always bare product names.
 // These are exact, reviewed food-ID choices; processed variants are excluded.
 const canonicalRawFineli = new Map<string,number>([
@@ -343,6 +343,7 @@ const canonicalRawFineli = new Map<string,number>([
   ["appelsiini",28924], // APPELSIINI, PUNNITTU KUORINEEN
   ["sitruuna",28925], // SITRUUNA, KESKIARVO, PUNNITTU KUORINEEN
   ["paprika",355], // PAPRIKA, KESKIARVO
+  ["mandariini",28935], // MANDARIINI, KESKIARVO, PUNNITTU KUORINEEN
   ["mansikka",447], // MANSIKKA
   ["mustikka",442], // MUSTIKKA, METSÄMUSTIKKA
   ["vadelma",448], // VADELMA
@@ -396,6 +397,9 @@ for (;;) {
     // proposed matches review-only and never generalize this to prepared foods.
     if (/^(?:pesty (?:jauhoinen|kiinteä) peruna|peruna (?:jauhoinen|kiinteä) (?:pesty|harjattu|pesty\/mull suomi)|suhosfarmi peruna (?:afra jauhoinen|belana kiinteä)|peruna (?:siikli|suomi kg|annabelle|afra paikallinen (?:pesty|harjattu))|(?:nicola peruna kiinteä|varhaisperuna pesty suomi|kesäperuna multainen suomi|uuden sadon peruna ulkomainen|aromäen tila siikli peruna))$/.test(original.toLocaleLowerCase("fi")))
       clean = "peruna";
+    // Only whole fresh mandarins with named retail varieties; no drinks or canned segments.
+    if (/^(?:(?:k-menu|xtra|pirkka|coop) )?mandariini(?: (?:orri|tango|leanri|nadorcott|clemenvilla|satsuma))?$/.test(original.toLocaleLowerCase("fi")))
+      clean = "mandariini";
     // Exact raw-carrot labels with washing, soil, bunch and origin qualifiers.
     // Deliberately exclude carrot recipes, prepared vegetables and baby food.
     if (/^(?:porkkana pesty|porkkananippu suomi|porkkana pesty suomi|porkkana multa|porkkana pesty suomi 2lk|koivulan tila porkkananippu)$/.test(original.toLocaleLowerCase("fi")))
