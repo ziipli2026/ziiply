@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       // Primary store-specific Tjek coverage is required; secondary K-Ruoka coverage is diagnostic only.
       return NextResponse.json({ok:false,degraded:true,error:"Primary Tjek N183 campaigns are missing or incomplete; previous snapshot preserved",tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length,kRuokaSourceBlocked:probe.httpStatus===403},{status:503});
     }
-    return NextResponse.json({ok:true,degraded:verified.length<5,tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length,kRuokaSourceBlocked:probe.httpStatus===403});
+    return NextResponse.json({ok:true,degraded:false,secondaryKruokaUnavailable:verified.length<5,tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length,kRuokaSourceBlocked:probe.httpStatus===403});
   } catch (error) {
     await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:false,count:0,outcome:"store-campaign-refresh-failed",details:{error:error instanceof Error?error.message:String(error)}}).catch(()=>undefined);
     return NextResponse.json({ok:false,error:error instanceof Error ? error.message : String(error)},{status:502});
