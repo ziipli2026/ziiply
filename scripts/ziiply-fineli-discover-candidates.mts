@@ -368,7 +368,7 @@ for (const name of rawProduceNames) {
   if (foods.length === 1) rawFineli.set(name,foods[0]);
   else if (canonicalRawFineli.has(name)) {
     const chosen = fineliDescriptions.find(f => Number(f.fineli_id) === canonicalRawFineli.get(name));
-    if (!chosen || !(String(chosen.name_fi).toLocaleLowerCase("fi") === name || String(chosen.name_fi).toLocaleLowerCase("fi").startsWith(name + ","))) throw new Error("Invalid Fineli raw food mapping: " + name);
+    if (!chosen || !(String(chosen.name_fi).toLocaleLowerCase("fi") === name || String(chosen.name_fi).toLocaleLowerCase("fi").startsWith(name + ",") || (name === "nektariini" && String(chosen.name_fi).toLocaleLowerCase("fi").startsWith("persikka/nektariini,")) || (name === "persikka" && String(chosen.name_fi).toLocaleLowerCase("fi").startsWith("persikka/nektariini,")))) throw new Error("Invalid Fineli raw food mapping: " + name);
     rawFineli.set(name,{id:Number(chosen.fineli_id),name:String(chosen.name_fi)});
   }
 }
