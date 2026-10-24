@@ -778,7 +778,7 @@ export default function DesktopPreviewPage() {
       try{
         const kStoreId=String(store.id||"");
         const kExternalId=String(store.externalId||"");
-        const selectedStoreId=isS?kStoreId:(/^\d+$/.test(kStoreId)?kStoreId:/^\d+$/.test(kExternalId)?kExternalId:/^k-citymarket hyvinkää$/i.test(String(store.name||"").trim())?"k-citymarket-hyvinkaa":"");
+        const selectedStoreId=isS?kStoreId:(/^k-citymarket hyvinkää$/i.test(String(store.name||"").trim())?"k-citymarket-hyvinkaa":/^\d+$/.test(kStoreId)?kStoreId:/^\d+$/.test(kExternalId)?kExternalId:"");
         if(!selectedStoreId){logCompareAudit("store_id_unresolved",{store:store.name,id:store.id,externalId:store.externalId,kind,search});return [];}
         const params=new URLSearchParams({search,store:selectedStoreId});
         if(isS)params.set("storeName",String(store.name||""));
