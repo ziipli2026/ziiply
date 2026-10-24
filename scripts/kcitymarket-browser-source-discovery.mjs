@@ -81,8 +81,10 @@ try {
   const storeSpecificLinks = links.filter(x => /tarjou|edut/i.test(x.text + " " + x.href));
   const offerLink = storeSpecificLinks.find(x => /k-citymarket-hyvinkaa|N183/i.test(x.href || ""))
     ?? storeSpecificLinks.find(x => /tarjoushaku/.test(x.href || ""));
-  const destination = offerLink ? new URL(offerLink.href, store).href : "https://www.k-ruoka.fi/kauppa/tarjoushaku";
+  // Remain on N183 store page if no offer link was found.
+  const destination = offerLink ? new URL(offerLink.href, store).href : store;
   const navigationIsStoreScoped = /k-citymarket-hyvinkaa|N183/i.test(new URL(destination).href);
+  const offerLinkFound = Boolean(offerLink);
   // A store page may link to a generic offer search that defaults to another shop.
   // Capture the actual store identity before and after navigation.
   const beforeOfferStore = await page.locator("body").innerText().then(t => ({
@@ -153,7 +155,7 @@ try {
     offerHttp: storeNavigationStatus, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
     offerNavigationHost: new URL(offerNavigationUrl).hostname,
-    links, navigationIsStoreScoped, selectedStoreNavigation, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
+    links, offerLinkFound, navigationIsStoreScoped, selectedStoreNavigation, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
     sampledResponseShapes: observations.length,
     storeScopedEndpointCount: new Set(observations.filter(r => r.storeScope === "N183").map(r => r.url)).size,
     candidateEndpoints: [...new Set(candidates.map(item => item.endpoint))],
