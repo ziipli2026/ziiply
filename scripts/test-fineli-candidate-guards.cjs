@@ -40,3 +40,21 @@ assert.equal('Pirkka porkkana 500g'.replace(prefix,'').replace(quantity,''),'por
 assert.equal('Coop kurkku 300g 1lk'.replace(prefix,'').replace(quantity,''),'kurkku');
 assert.ok(strictSource.includes('raw_produce_origin_grade'),'origin/grade discovery must remain enabled');
 console.log('Fineli normalization regression OK');
+
+
+const originNormalize = value => value.toLocaleLowerCase('fi')
+  .replace(/(?:^|\s)(?:suomalainen|kotimainen|kotimaista|luomu)(?=\s|$)/g,' ')
+  .replace(/(?:^|\s)(?:suomi|espanja|hollanti|nl|eg)(?=\s|$)/g,' ')
+  .replace(/(?:^|\s)(?:ruotsi|italia|ranska|puola|saksa|belgia|viro|kreikka|turkki)(?=\s|$)/g,' ')
+  .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g)\b/g,' ')
+  .replace(/\b[12]\s*lk\b/g,' ')
+  .replace(/\s+/g,' ').trim();
+for(const [input,expected] of [
+  ['porkkana 500g suomi 1lk','porkkana'],
+  ['luomu sipuli 1 kg ruotsi 2lk','sipuli'],
+  ['kurkku 300g hollanti','kurkku'],
+  ['peruna 2kg viro','peruna'],
+  ['tomaatti 500g italia','tomaatti'],
+]) assert.equal(originNormalize(input),expected,input);
+assert.equal(originNormalize('kurkkusalaatti 300g suomi'),'kurkkusalaatti','must not turn prepared foods into raw produce');
+console.log('Fineli origin mass normalization regression OK');
