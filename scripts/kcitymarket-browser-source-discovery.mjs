@@ -61,7 +61,9 @@ async function inspectResponse(response) {
       if (samples.length && candidates.length < 120) candidates.push({ endpoint: parsed.origin + parsed.pathname, samples });
     } catch {}
   }
-  observations.push({ url: parsed.origin + parsed.pathname, queryKeys, status: response.status(), type: type.slice(0,80), shape });
+  const storeId = parsed.searchParams.get("storeId");
+  const storeScope = storeId === "N183" ? "N183" : storeId ? "OTHER_STORE" : "UNSPECIFIED";
+  observations.push({ url: parsed.origin + parsed.pathname, queryKeys, storeScope, status: response.status(), type: type.slice(0,80), shape });
 }
 try {
   const store = "https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa";
