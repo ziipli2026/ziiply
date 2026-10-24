@@ -1348,14 +1348,14 @@ export default function DesktopPreviewPage() {
       const items=Array.isArray(detail?.items)?detail.items:[];
       if(!title||!items.length)return;
       const byId=new Map(items.map(item=>[String(item.id),item]));
-      let changed=0;
+      const changed=cartItems.filter(item=>item?.source==="justiina"&&String(item.__recipeTitle||"").trim()===title&&item.__recipeIngredient&&byId.has(String(item.__recipeIngredient.id))).length;
+      if(!changed)return;
       setCartItems(current=>current.map(item=>{
         if(item?.source!=="justiina"||String(item.__recipeTitle||"").trim()!==title||!item.__recipeIngredient)return item;
         const previous=item.__recipeIngredient as RecipeIngredient;
         const updated=byId.get(String(previous.id));
         if(!updated)return item;
         const packageCount=recipeRetailPackageCount(updated,{...item,name:String(item.name||item.title||item.productName||"")});
-        changed++;
         return {...item,__recipeIngredient:{...updated},...(packageCount!==null?{quantity:Math.max(1,packageCount),__recipeQuantity:Math.max(1,packageCount)}:{})};
       }));
       if(changed){
@@ -1376,7 +1376,7 @@ export default function DesktopPreviewPage() {
     };
     window.addEventListener("ziiply-recipe-servings-changed",handleRecipeServingsChanged);
     return()=>window.removeEventListener("ziiply-recipe-servings-changed",handleRecipeServingsChanged);
-  },[flashCartNotice]);
+  },[cartItems]);
   function resumeDesktopVoiceList() {
     const resolve = desktopVoiceWaitRef.current;
     desktopVoiceWaitRef.current = null;
