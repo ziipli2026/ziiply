@@ -61,5 +61,5 @@ console.log("PASS: verified weighed-item estimates");
 
 assert(source.includes("if(exactWeighed.length)return exactWeighed"),"Verified weighed produce exact EAN must survive package-size rejection");
 assert(source.includes("desktopVerifiedKgPriceCents(p)!==null"),"Exact weighed EAN requires verified kilogram price");
-assert(source.includes("comparisonGrams/(Number.isFinite(cartQuantity)"),"Recipe grams must be divided across basket quantity");
+assert(source.includes("recipeGrams/(Number.isFinite(cartQuantity)"),"Recipe grams must be divided across basket quantity");
 console.log("PASS: weighed produce exact EAN and quantity guards");
