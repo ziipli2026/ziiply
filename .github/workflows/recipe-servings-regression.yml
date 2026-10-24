@@ -1,0 +1,23 @@
+name: Recipe servings regression
+on:
+  push:
+    branches:
+      - preview/legacy-desktop-ui
+    paths:
+      - 'src/app/components/ziiply/justiina/**'
+      - 'src/app/desktop-preview/page.tsx'
+      - 'scripts/test-recipe-servings-cart.cjs'
+      - '.github/workflows/recipe-servings-regression.yml'
+  workflow_dispatch:
+jobs:
+  recipe-servings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/test-recipe-servings-cart.cjs
+      - run: node scripts/test-recipe-search.cjs
