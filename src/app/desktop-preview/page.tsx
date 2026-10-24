@@ -975,7 +975,7 @@ export default function DesktopPreviewPage() {
     if(!match){
       const unit=String(product?.comparisonPriceUnit||"").trim().toLocaleLowerCase("fi");
       const value=Number(product?.comparisonPrice);
-      if(/^(?:kg|€\/kg|eur\/kg)$/.test(unit)&&Number.isFinite(value)&&value>0)return Math.round(value);
+      if(/^(?:kg|€\/kg|eur\/kg)$/i.test(unit)&&Number.isFinite(value)&&value>0)return value<30?Math.round(value*100):Math.round(value);
       return null;
     }
     const euros=Number(match[1].replace(",","."));
@@ -995,7 +995,7 @@ export default function DesktopPreviewPage() {
     const sourceEan=normalizeEan(ean);
     if(sourceEan){
       const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan
-        &&desktopPackageCompatible(name,String(p.name||""))&&isComparisonAttributeCompatible(name,String(p.name||""))&&desktopReliableComparePrice(p));
+        &&(desktopPackageCompatible(name,String(p.name||""))||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null))&&isComparisonAttributeCompatible(name,String(p.name||""))&&(desktopReliableComparePrice(p)||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null)));
       if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
     // Unlike the original cart price lookup, the comparison may use a verified
