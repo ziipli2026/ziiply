@@ -50,3 +50,11 @@ for(const [a,b,expected] of [
   assert.equal(compatible(a,b),expected,a+" / "+b);
   console.log("PASS package",a,"=>",b,expected);
 }
+
+// Verified weight estimates: cents/kg * grams / 1000 => cents, then euros.
+assert.equal(Math.round(89*500/1000)/100,0.45,"500 g at 0.89 EUR/kg");
+assert.equal(Math.round(139*250/1000)/100,0.35,"250 g at 1.39 EUR/kg");
+assert(source.includes("Math.round(verifiedWeightCents*comparisonGrams/1000)/100"),"Automatic weighed-item price must convert grams to kg");
+assert(source.includes("weightEstimate:estimatedWeightPrice!==null"),"Estimated prices must be marked as estimates");
+assert(source.includes("const finalPrice=estimatedWeightPrice??price"),"Verified weight estimate must replace raw item quote");
+console.log("PASS: verified weighed-item estimates");
