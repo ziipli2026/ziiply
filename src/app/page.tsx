@@ -9546,7 +9546,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return { ...match, price: basePrice * grams / 1000, quantity: 1 };
       }
       return { ...match, price: basePrice };
-    }).filter((match) => Number.isFinite(match.price) && match.price >= 0.05);
+    }).filter((match) => Number.isFinite(match.price) && match.price > 0);
     const visibleSListV804 = normalizeVisibleMatchesV804(sList);
     const visibleKListV804 = normalizeVisibleMatchesV804(kList);
     const sTotal = visibleSListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
