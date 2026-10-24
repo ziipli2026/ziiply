@@ -961,15 +961,15 @@ export async function GET(request: Request) {
         citymarketNotice,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
-          const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
+          const providerRows = (isKCitymarketV19 ? [] : (debug?.kTabClassificationAuditV1 ?? [])) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
           const identity = (row: UnknownRecord) => [
             String((row.debug as UnknownRecord | undefined)?.publicationId ?? ""),
             String(row.offerId ?? ""),
             String(row.campaignType ?? "offer"),
           ].join("|");
           const stages = {
-            provider: providerRows.map(row => ({ id: [row.publicationId, row.offerId, row.campaignType].join("|"), title: row.title })),
-            source: (baseResults as unknown as UnknownRecord[]).map(row => ({ id: identity(row), title: String(row.title ?? "") })),
+            provider: isKCitymarketV19 ? citymarketResults.map(row => ({ id: identity(row), title: String(row.title ?? "") })) : providerRows.map(row => ({ id: [row.publicationId, row.offerId, row.campaignType].join("|"), title: row.title })),
+            source: (isKCitymarketV19 ? citymarketResults : baseResults as unknown as UnknownRecord[]).map(row => ({ id: identity(row), title: String(row.title ?? "") })),
             combined: combinedResultsV20.map(row => ({ id: identity(row), title: String(row.title ?? "") })),
             api: results.map(row => ({ id: identity(row), title: String(row.title ?? "") })),
           };
