@@ -11,6 +11,11 @@ const javascript=ts.transpileModule(node.getText(ast),{compilerOptions:{target:t
 async function run(debug){
  const plan=prepareRecipeSearch(parseRecipeText('Ainekset:\n300 g silakkafileitä\n12 kananmunaa').ingredients);
  const storage=new Map([['ziiply-justiina-active-ingredients-v1',JSON.stringify({items:plan.items})]]);
+ // The queue must retain the same measured ingredient requirements and their order.
+ assert.equal(plan.items.length,2);
+ assert.deepEqual(plan.items.map(item=>({amount:item.amount,unit:item.unit})),[{amount:300,unit:'g'},{amount:12,unit:'kpl'}]);
+ const saved=JSON.parse(storage.get('ziiply-justiina-active-ingredients-v1'));
+ assert.deepEqual(saved.items.map(item=>({id:item.id,amount:item.amount,unit:item.unit,searchTerm:item.searchTerm})),plan.items.map(item=>({id:item.id,amount:item.amount,unit:item.unit,searchTerm:item.searchTerm})));
  if(debug)storage.set('ziiply-mobile-recipe-search-debug-v1','[]');
  const deps={};
  const noop=()=>{};
@@ -28,12 +33,18 @@ async function run(debug){
  let finished=false;const task=fn(plan.terms.join(', '),true,plan.terms).then(()=>{finished=true});
  await new Promise(setImmediate);
  assert.equal(searched.length,1);assert.equal(finished,false);
+ assert.equal(deps.mobileRecipeContextRef.current.ingredient.amount,300);
+ assert.equal(deps.mobileRecipeContextRef.current.ingredient.unit,'g');
+ assert.equal(searched[0].context.ingredient.amount,300);
  const fish={name:'Kotimaista Silakkafilee MSC 250 g',__recipeRunId:1,__recipeStep:0};
  assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,fish),true);
  assert.equal(mobileRecipePackageQuantity(deps.mobileRecipeContextRef.current,fish),2);
  assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,{...fish,name:'Lohikeitto 300g'}),false);
  deps.resolveVoiceResultWaitV509();await new Promise(setImmediate);
  assert.equal(searched.length,2);assert.equal(finished,false,'last ingredient must still await selection');
+ assert.equal(deps.mobileRecipeContextRef.current.ingredient.amount,12);
+ assert.equal(deps.mobileRecipeContextRef.current.ingredient.unit,'kpl');
+ assert.equal(searched[1].context.ingredient.amount,12);
  assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,fish),false,'previous ingredient card rejected');
  const egg={name:'Farmimuna M6 348g Vapaa kananmuna',__recipeRunId:1,__recipeStep:1};
  assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,egg),true);
