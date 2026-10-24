@@ -11,6 +11,11 @@ assert.equal(core.recipeProductSearchTerm('perunaa'),'peruna','potato partitive 
 assert.equal(core.recipeProductSearchTerm('kiinteitä perunoita'),'peruna','adjective + potato inflection must map to retail search term');
 assert.equal(core.recipeProductSearchTerm('peruna-sipulisekoitusta'),'peruna-sipulisekoitusta','mixed frozen potato product must not collapse to plain potato');
 assert.equal(core.recipeProductCompatible('perunoita',{name:'Peruna kiinteä pesty'}),true,'ordinary fresh potato listing must be accepted for recipe potato');
+assert.equal(core.recipeProductSearchTerm('perunoita'),'peruna','potato partitive must resolve before category normalization');
+assert.equal(core.recipeProductSearchTerm('perunaa'),'peruna','potato singular partitive must resolve before category normalization');
+assert.equal(core.recipeProductSearchTerm('kiinteitä perunoita'),'peruna','adjective + potato inflection must remain a specific ingredient');
+assert.equal(core.recipeProductSearchTerm('perunoita kuorittuna'),'peruna','potato preparation suffix must preserve ingredient identity');
+assert.notEqual(core.recipeProductSearchTerm('peruna-sipulisekoitusta'),'peruna','mixed potato-onion product must not collapse to plain potato');
 const report=[];
 for(const c of cases){
  const d=core.parseRecipeText(c.text);
