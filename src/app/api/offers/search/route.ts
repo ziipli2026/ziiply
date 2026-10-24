@@ -975,10 +975,23 @@ export async function GET(request: Request) {
     // Preserve every offer row; enrichment only adds metadata/image fields.
     const categoryEnrichedResults = await enrichOfferCategoriesFromNeon(results) as unknown as Record<string, unknown>[];
     const imageEnrichedResults = await enrichOfferImagesBestEffort(categoryEnrichedResults);
+    // Keep discount-only rows non-purchasable even if an enrichment stage
+    // populates a price or drops the displayOnly marker.
+    const displayOnlyById = new Map(
+      results.filter(row => row.displayOnly === true).map(row => [String(row.id ?? ""), row]),
+    );
+    const safeOfferResults = imageEnrichedResults.map(row => {
+      const original = displayOnlyById.get(String(row.id ?? ""));
+      return original
+        ? { ...row, displayOnly: true, hasVerifiedPrice: false, price: null,
+            offerPrice: null, priceText: original.priceText, discountPercent: original.discountPercent,
+            isPlussaOffer: original.isPlussaOffer }
+        : row;
+    });
     // Queue missing images for every chain, including the approved Citymarket
     // snapshot. This runs best-effort and must never block the search response.
     after(async () => {
-      await queueMissingOfferImagesBestEffort(imageEnrichedResults).catch(error =>
+      await queueMissingOfferImagesBestEffort(safeOfferResults).catch(error =>
         console.warn("[Ziiply offers] optional image queue failed", error));
     });
     return NextResponse.json(
@@ -986,7 +999,7 @@ export async function GET(request: Request) {
         ok: true,
         query: q,
         context,
-        results: imageEnrichedResults,
+        results: safeOfferResults,
         sourceFailures: offerSourceDiagnostics.failures,
         citymarketNotice,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
