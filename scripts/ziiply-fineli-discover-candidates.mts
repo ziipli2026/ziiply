@@ -278,6 +278,7 @@ const strictBrandPrefixes = /^(?:(?:pirkka|coop|xtra|kotimaista|rainbow|k-menu|s
 const strictQuantitySuffix = /\s+\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l)(?:\s+(?:\d+\s*(?:kpl|lk)|suomi|kotimainen))?$/i;
 const excludedNonFood = /(?:koiran|kissan|lemmik|shampoo|saippua|deodorant|hammastahna|voide|meikki|pesuaine|kynttil|suojapeite|pussilakana|kissanhiekka|vitamiini|ravintolisä)/i;
 const strictFoods = new Map<string, Array<{id:number;name:string}>>();
+// Raw names with a single Fineli ID are review-only; never auto-approve.
 for (const f of fineliDescriptions) {
   const name = String(f.name_fi ?? "");
   if (!name || name.includes("�") || name.includes(",") || name.length < 5) continue;
@@ -335,6 +336,8 @@ console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,el
 const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","peruna","omena","banaani","päärynä","appelsiini","sitruuna","lime","valkosipuli"]);
 const rawFineli = new Map<string,{id:number;name:string}>();
 for (const name of rawProduceNames) {
+  // Fineli often uses uppercase raw ingredient labels; accept the exact raw label
+  // only when there is one unambiguous matching Fineli record.
   const foods = strictFoods.get(name) ?? [];
   if (foods.length === 1) rawFineli.set(name,foods[0]);
 }
