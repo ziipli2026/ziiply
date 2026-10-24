@@ -381,6 +381,11 @@ for (;;) {
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g)\b/g," ")
       .replace(/\b[12]\s*lk\b/g," ")
       .replace(/\s+/g," ").trim();
+    // Raw potato grades and washing descriptors are not ingredients or cooking methods.
+    // Only normalize the complete, tightly scoped raw-potato names; keep all
+    // proposed matches review-only and never generalize this to prepared foods.
+    if (/^(?:pesty jauhoinen peruna|peruna jauhoinen (?:pesty|harjattu|pesty\/mull suomi)|suhosfarmi peruna afra jauhoinen)$/.test(original.toLocaleLowerCase("fi")))
+      clean = "peruna";
     const food=rawFineli.get(clean);
     if (!food) return [];
     return [{ean:String(p.ean),fineli_id:food.id,evidence:{
