@@ -172,6 +172,8 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const acceptedOfferKeys=new Set<string>();
   const rejectedReasons: Record<string,number> = {};
   let missingOfferDetails=0;
+  const rejectedSamples: Record<string,string[]> = {};
+  const sampleReject=(reason:string,id:string)=>{const samples=rejectedSamples[reason]??(rejectedSamples[reason]=[]);if(samples.length<5)samples.push(id);};
   let duplicateOfferRows=0;
   const reject=(reason:string)=>{rejectedReasons[reason]=(rejectedReasons[reason]??0)+1;};
   let completedPublications=0;
@@ -198,17 +200,17 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       for(const fetchedEntry of fetched){
         if(!fetchedEntry){missingOfferDetails++;continue;}
         const {id,offer}=fetchedEntry;
-        if(String(offer.publicationPublicId??publicationId)!==publicationId){reject("publication-mismatch");continue;}
+        if(String(offer.publicationPublicId??publicationId)!==publicationId){reject("publication-mismatch");sampleReject("publication-mismatch",id);continue;}
         const title=String(offer.name??"").trim();
         const regular=numeric(offer.price),member=numeric(offer.membershipPrice),app=numeric(offer.appPrice);
         const price=app??member??regular??numeric(offer.fromPrice);
         const from=Date.parse(String(offer.validFrom??publication.validFrom??""));
         const until=Date.parse(String(offer.validUntil??publication.validUntil??""));
-        if(!title){reject("missing-title");continue;}
-        if(price==null||price<=0){reject("missing-or-invalid-price");continue;}
-        if(!Number.isFinite(from)||!Number.isFinite(until)){reject("invalid-dates");continue;}
-        if(from>horizon){reject("future-outside-horizon");continue;}
-        if(until<now){reject("expired");continue;}
+        if(!title){reject("missing-title");sampleReject("missing-title",id);continue;}
+        if(price==null||price<=0){reject("missing-or-invalid-price");sampleReject("missing-or-invalid-price",id);continue;}
+        if(!Number.isFinite(from)||!Number.isFinite(until)){reject("invalid-dates");sampleReject("invalid-dates",id);continue;}
+        if(from>horizon){reject("future-outside-horizon");sampleReject("future-outside-horizon",id);continue;}
+        if(until<now){reject("expired");sampleReject("expired",id);continue;}
         const qty=numeric(offer.pieceCountFrom);
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
@@ -245,7 +247,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   }
   if(completedPublications!==uniquePublications.length)throw new Error(`Only ${completedPublications}/${uniquePublications.length} Tjek publications read`);
   entry.progress.accepted = entry.rows.length;
-  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,missingOfferDetails,duplicateOfferRows,rejectedReasons}));
+  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,missingOfferDetails,duplicateOfferRows,rejectedReasons,rejectedSamples}));
 }
 
 
