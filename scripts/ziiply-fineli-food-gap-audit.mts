@@ -20,11 +20,13 @@ const categories=[
  ["other_food",/suklaa|keksi|keitto|jäätelö|mehu|juoma|kakku|snacks/i]
 ] as const;
 const counts:Record<string,number>={excluded_nonfood:0,uncertain:0};
+const foodCandidates:Record<string,string[]>={};
 const examples:Record<string,string[]>={};
 for(const {name} of rows){
  const s=String(name??"");
  const category=nonfood.test(s)?"excluded_nonfood":categories.find(([,re])=>re.test(s))?.[0]??"uncertain";
  counts[category]=(counts[category]??0)+1;
  if((examples[category]??=[]).length<8)examples[category].push(s);
+ if(category!=="excluded_nonfood"&&category!=="uncertain"&&(foodCandidates[category]??=[]).length<15)foodCandidates[category].push(String(name));
 }
-console.log(JSON.stringify({mode:"read_only_food_gap_audit",uncovered:rows.length,counts,examples,inserted:0,autoApproved:0}));
+console.log(JSON.stringify({mode:"read_only_food_gap_audit",uncovered:rows.length,counts,examples,foodCandidates,inserted:0,autoApproved:0}));
