@@ -94,6 +94,7 @@ jobs:
             '| Offer page HTTP | ' + (report.offerHttp ?? 'unknown') + ' |',
             '| N183 context confirmed | ' + Boolean(report.storeContextConfirmed) + ' |',
             '| Store offer link found | ' + Boolean(report.offerLinkFound) + ' |',
+            '| Generic offer links ignored | ' + (report.genericOfferLinkCount ?? 0) + ' |',
             '| N183 API candidate count | ' + (report.n183CandidateCount ?? 0) + ' |',
             '| Distinct N183 API endpoints | ' + (report.storeScopedEndpointCount ?? 0) + ' |',
             '| Responses scoped to N183 | ' + (report.requests || []).filter(r => r.storeScope === 'N183').length + ' |',
