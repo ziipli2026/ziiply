@@ -113,14 +113,30 @@ try {
       .filter(text => /€|tarjous|plussa/i.test(text))
   ).catch(() => []);
   const apiOfferCandidates = candidates.flatMap(item => item.samples.map(sample => ({endpoint:item.endpoint,storeId:sample.storeId || null,offerId:sample.offerId || null,hasPrice:Boolean(sample.price),hasValidity:Boolean(sample.validFrom && sample.validUntil)})));
-  const n183Candidates = apiOfferCandidates.filter(item => item.storeId === "N183");
+  // A matching storeId alone is insufficient: the offer must independently
+  // identify Hyvinkää, and the source page must not have switched stores.
+  const verifiedIdentitySamples = candidates.flatMap(item => item.samples.map(sample => ({
+    endpoint: item.endpoint,
+    storeId: String(sample.storeId ?? ""),
+    storeName: String(sample.storeName ?? ""),
+    offerId: String(sample.offerId ?? ""),
+    hasPrice: Number.isFinite(Number(sample.price)) && Number(sample.price) > 0,
+    hasValidity: Boolean(sample.validFrom && sample.validUntil &&
+      Number.isFinite(Date.parse(String(sample.validFrom))) &&
+      Number.isFinite(Date.parse(String(sample.validUntil)))),
+  })));
+  const n183Candidates = verifiedIdentitySamples.filter(item =>
+    item.storeId === "N183" && /k[- ]?citymarket\\s+hyvinkää|k[- ]?citymarket\\s+hyvinkaa/i.test(item.storeName)
+    && item.hasPrice && item.hasValidity && Boolean(item.offerId));
+  const rejectedIdentityCount = verifiedIdentitySamples.filter(item =>
+    item.storeId === "N183" && !n183Candidates.includes(item)).length;
   const report = {
     storeHttp: first?.status() ?? null, storeTitle,
     offerHttp: storeNavigationStatus, offerTitle,
     finalOfferPath: new URL(page.url()).pathname,
     offerNavigationHost: new URL(offerNavigationUrl).hostname,
     links, navigationIsStoreScoped, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
-    apiOfferCandidateCount: apiOfferCandidates.length, n183CandidateCount: n183Candidates.length,
+    apiOfferCandidateCount: apiOfferCandidates.length, n183CandidateCount: n183Candidates.length, rejectedIdentityCount,
     storeContextConfirmed: Boolean((pageEvidence.storeIdN183InPage || context.storeMarkerInMarkup) && pageEvidence.hyvinkaa && !pageEvidence.otherStore),
     verifiedStoreOffers: false,
     note: "Diagnostic only. A page marker alone does not prove N183 offer scope."
