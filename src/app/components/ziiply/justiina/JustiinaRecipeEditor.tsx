@@ -82,7 +82,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngr
     setTarget(value);
     if(!draft)return;
     const base=Number(original)>0?Number(original):Number(draft.servings||1);
-    const people=Number(value)>0?Number(value):base;
+    const people=Number(value);
     if(!Number.isFinite(people)||people<1||!Number.isFinite(base)||base<1)return;
     const scaledItems=scaleIngredients(draft.ingredients,base,people).filter(item=>!item.atHome&&item.name.trim());
     const prepared=prepareRecipeSearch(scaledItems,draft.instructions,draft.title);
