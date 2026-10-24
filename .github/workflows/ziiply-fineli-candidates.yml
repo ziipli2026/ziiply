@@ -26,7 +26,7 @@ jobs:
         if: ${{ github.event_name == 'schedule' || inputs.confirm_mass_discovery == true }}
         run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund
       - name: Discover review-only matches
-        if: ${{ inputs.confirm_mass_discovery == true }}
+        if: ${{ github.event_name == 'schedule' || inputs.confirm_mass_discovery == true }}
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
         run: npx tsx scripts/ziiply-fineli-discover-candidates.mts
