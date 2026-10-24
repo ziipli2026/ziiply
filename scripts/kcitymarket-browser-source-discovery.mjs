@@ -61,7 +61,7 @@ async function inspectResponse(response) {
       if (samples.length && candidates.length < 120) candidates.push({ endpoint: parsed.origin + parsed.pathname, samples });
     } catch {}
   }
-  const storeId = parsed.searchParams.get("storeId") || parsed.searchParams.get("storeid");
+  const storeId = [...parsed.searchParams.entries()].find(([name]) => name.toLowerCase() === "storeid")?.[1] ?? null;
   const storeScope = storeId?.toUpperCase() === "N183" ? "N183" : storeId ? "OTHER_STORE" : "UNSPECIFIED";
   observations.push({ url: parsed.origin + parsed.pathname, queryKeys, storeScope, status: response.status(), type: type.slice(0,80), shape });
 }
