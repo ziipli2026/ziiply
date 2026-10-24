@@ -97,6 +97,7 @@ jobs:
             '| Responses scoped to N183 | ' + (report.requests || []).filter(r => r.storeScope === 'N183').length + ' |',
             '| Responses scoped to other stores | ' + (report.requests || []).filter(r => r.storeScope === 'OTHER_STORE').length + ' |',
             '| Responses without store scope | ' + (report.requests || []).filter(r => r.storeScope === 'UNSPECIFIED').length + ' |',
+            '| Paginated responses | ' + (report.requests || []).filter(r => Object.keys(r.pagination || {}).length > 0).length + ' |',
             '| Visible offer cards | ' + (report.offerCards ?? 0) + ' |',
             '| Verified store offers | ' + Boolean(report.verifiedStoreOffers) + ' |',
             '| Diagnostic failed | ' + Boolean(report.failed) + ' |',
