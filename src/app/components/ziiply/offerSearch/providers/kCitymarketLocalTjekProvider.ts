@@ -115,7 +115,7 @@ export async function refreshKCitymarketCampaignCache(storeName: string) {
   // This updater owns Tjek snapshots ONLY. Never allow an alternate K-Ruoka
   // store label to overwrite the independently collected verified N183 feed.
   if (key.startsWith("k ruoka ")) throw new Error("Tjek refresh cannot write a K-Ruoka snapshot key");
-  const entry = {rows: [] as Row[], progress: {stage: "starting", storeName,
+  const entry = {rows: [] as Row[], unpricedRows: [] as Row[], progress: {stage: "starting", storeName,
     storeId: null as string | null, publicationIds: [] as string[], pages: 0,
     offerIds: 0, accepted: 0, error: null as string | null,
     updatedAt: new Date().toISOString()}};
@@ -141,9 +141,15 @@ export async function refreshKCitymarketCampaignCache(storeName: string) {
   }
   entry.rows = entry.rows.map(normalizeTjekPackagePrice);
   await publishSnapshot(key, entry.rows, entry.progress.publicationIds);
+  // Keep display-only discounts separate from priced offers and basket calculations.
+  await publishSnapshot(key+" unpriced", entry.unpricedRows, entry.progress.publicationIds);
   return {count: entry.rows.length, activeCount: currentActive, discoveredOfferIds: entry.progress.offerIds, pages: entry.progress.pages};
 }
-async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, entry: { rows: Row[]; progress: LocalProgress }): Promise<void> {
+export async function fetchKCitymarketUnpricedDiscounts(selectedStoreName: string): Promise<Row[]> {
+  const key=normalize(selectedStoreName);
+  return (await readPublishedSnapshot(key+" unpriced")??[]).filter(row=>isActiveOffer(row));
+}
+async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, entry: { rows: Row[]; unpricedRows?: Row[]; progress: LocalProgress }): Promise<void> {
   const wanted=normalize(selectedStoreName);
   if (!wanted.includes("citymarket") || wanted.length < 13) { entry.progress.stage = "invalid-store-name"; return; }
   const stores=asRows(await tjek("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
@@ -222,6 +228,15 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
           else if(discountPercent!==null)unpricedCategories.percentageOther++;
           else unpricedCategories.other++;
           if(unpricedOfferExamples.length<25)unpricedOfferExamples.push({id,title,unitPrice:offer.unitPrice??null,description:description.slice(0,160),plussa,discountPercent});
+          if(Number.isFinite(from)&&Number.isFinite(until)&&from<=horizon&&until>=now&&entry.unpricedRows){
+            entry.unpricedRows.push({id:"citymarket-discount-"+storeId+"-"+publicationId+"-"+id,title,name:title,productName:title,
+              price:null,priceText:discountPercent!==null?(plussa?"Plussa-etu ":"")+"−"+discountPercent+" %":plussa?"Plussa-etu · hinta vaihtelee":"Tarjous · hinta ei tiedossa",
+              discountPercent,hasVerifiedPrice:false,displayOnly:true,isPlussaOffer:plussa,
+              additionalInfo:description,imageUrl:String(offer.imageLarge??offer.image??""),
+              storeId,storeName:String(store.name),chain:"K",storeType:"K-Citymarket",provider:"kcitymarket-local-discount",offerId:id,
+              validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
+              sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),campaignType:"discount-only"});
+          }
           continue;
         }
         if(!Number.isFinite(from)||!Number.isFinite(until)){reject("invalid-dates");sampleReject("invalid-dates",id);continue;}
