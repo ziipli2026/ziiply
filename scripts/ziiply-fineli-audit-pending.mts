@@ -68,6 +68,12 @@ const flags = (product: string, food: string): string[] => {
   return issues;
 };
 // Review-only priority tiers; these do not imply verified nutrition equivalence.
+// Shared dairy detection for review routing and fat-coverage reporting.
+const dairyProduct = (name: string): boolean => {
+  const n = name.toLowerCase();
+  if (/virvoitusjuoma|limonadi|juustonmakuinen|juuston makuinen|juustonmakuis|juustosipsi|juustonaksu|juustokeksi|juustopopcorn/.test(n)) return false;
+  return /(?:^|[^a-zåäö])(?:maito[a-zåäö]*|kerma[a-zåäö]*|jogurtti[a-zåäö]*|viili[a-zåäö]*|rahka[a-zåäö]*|juusto[a-zåäö]*|raejuusto[a-zåäö]*|piimä[a-zåäö]*|voi)(?=$|[^a-zåäö])/.test(n);
+};
 const reviewPriority = (product: string, food: string, decision: string): string => {
   if (decision !== 'MANUAL_REVIEW') return decision;
   const p = product.toLowerCase(), f = food.toLowerCase();
@@ -76,9 +82,9 @@ const reviewPriority = (product: string, food: string, decision: string): string
     ['FISH', /siika|lohi|kirjolohi|silakka|ahven|kuha|seiti|turska/],
     ['MEAT', /nauta|sika|broileri|kana|kalkkuna|maksa|jauheliha/],
     ['GRAINS', /kaura|vehnä|ruis|ohra|riisi|jauho|hiutale|suurimo/],
-    ['DAIRY', /maito|kerma|jogurtti|viili|rahka|juusto|voi/],
+    ['DAIRY', /(?:^|[^a-zåäö])(?:maito[a-zåäö]*|kerma[a-zåäö]*|jogurtti[a-zåäö]*|viili[a-zåäö]*|rahka[a-zåäö]*|juusto[a-zåäö]*|piimä[a-zåäö]*|voi)(?=$|[^a-zåäö])/],
   ];
-  const matched = categories.filter(([,pattern]) => pattern.test(p) && pattern.test(f)).map(([name])=>name);
+  const matched = categories.filter(([name,pattern]) => name === 'DAIRY' ? dairyProduct(p) && dairyProduct(f) : pattern.test(p) && pattern.test(f)).map(([name])=>name);
   // Category matches are routing hints, not evidence that nutrients are interchangeable.
   if (matched.length !== 1) return 'COMPOSITION_REVIEW';
   const category = matched[0];
@@ -105,7 +111,7 @@ const nutrientSanity = (product: string, nutrients: any): string[] => {
 const dairyCoverage = (product: string, nutrients: any): string => {
   // A word boundary must be a regex escape (single backslash in source), not a literal backslash.
   // Avoid matching 'voi' inside 'virvoitusjuoma'.
-  const isDairy = /(?:^|[^a-zåäö])(?:maito|kerma|jogurtti|viili|rahka|juusto|raejuusto|piimä|voi)(?:[a-zåäö]*)/i.test(product);
+  const isDairy = dairyProduct(product);
   if (!isDairy) return 'NOT_DAIRY';
   const label = product.match(/(?:rasvaa?\s*)?(\d+(?:[.,]\d+)?)\s*%/i);
   if (!label) return 'NO_PRODUCT_FAT_LABEL';
