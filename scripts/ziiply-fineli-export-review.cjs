@@ -28,3 +28,37 @@ const counts = Object.fromEntries(categories.map(category => [category, rows.fil
 if (counts.CONFLICT_REVIEW !== summary.conflicts || counts.VERIFY_NUTRITION !== summary.verify_nutrition || counts.MANUAL_REVIEW !== summary.manual_review) throw new Error('Category counts differ from audit summary');
 fs.writeFileSync(path.join(dir, 'summary.json'), JSON.stringify({ ...summary, categories: counts, priorities: priorityCounts }, null, 2) + '\n');
 console.log('Fineli review files generated:', JSON.stringify(counts));
+
+const queueColumns = ['ean','fineli_id','product','fineli','issues','decision','priority','review_queue','diet_evidence','dairy_fat_coverage'];
+const csvCell = (row, column) => column === 'issues' ? (row.issues || []).join('; ') : column === 'diet_evidence' ? (row.diet_evidence || []).join('; ') : row[column];
+const reviewQueues = {};
+for (const row of rows) {
+  const queue = String(row.review_queue || row.decision || 'UNCLASSIFIED');
+  (reviewQueues[queue] ||= []).push(row);
+}
+const queueCounts = {};
+for (const [queue, subset] of Object.entries(reviewQueues).sort(([a],[b]) => a.localeCompare(b))) {
+  queueCounts[queue] = subset.length;
+  const filename = 'queue-' + queue.toLowerCase().replace(/[^a-z0-9_-]+/g, '-') + '.csv';
+  const output = [serialize(queueColumns), ...subset.map(row => serialize(queueColumns.map(column => csvCell(row, column))))].join('\n') + '\n';
+  fs.writeFileSync(path.join(dir, filename), '\uFEFF' + output);
+}
+const sorted = rows.slice().sort((a,b) =>
+  String(a.review_queue || a.decision).localeCompare(String(b.review_queue || b.decision)) ||
+  String(a.priority).localeCompare(String(b.priority)) ||
+  String(a.ean).localeCompare(String(b.ean)) ||
+  String(a.fineli_id).localeCompare(String(b.fineli_id))
+);
+const batchSize = 100;
+const batches = [];
+for (let i=0;i<sorted.length;i+=batchSize) {
+  const subset = sorted.slice(i,i+batchSize);
+  const filename = 'review-batch-' + String(batches.length+1).padStart(3,'0') + '.csv';
+  fs.writeFileSync(path.join(dir,filename), '\uFEFF' + [serialize(queueColumns),...subset.map(row=>serialize(queueColumns.map(column=>csvCell(row,column))))].join('\n') + '\n');
+  batches.push({file:filename,count:subset.length});
+}
+if (batches.reduce((sum,b)=>sum+b.count,0)!==rows.length) throw new Error('Batch partition count mismatch');
+const key = row => String(row.ean)+'|'+String(row.fineli_id);
+if (new Set(rows.map(key)).size!==rows.length) throw new Error('Duplicate EAN-Fineli candidates in audit');
+fs.writeFileSync(path.join(dir,'review-batches-summary.json'),JSON.stringify({total:rows.length,modified:0,queue_counts:queueCounts,batches},null,2)+'\n');
+console.log('Fineli review batches:',JSON.stringify({total:rows.length,modified:0,queue_counts:queueCounts,batches}));
