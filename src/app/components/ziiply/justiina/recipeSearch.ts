@@ -155,7 +155,13 @@ export function recipeProductSearchTerm(input: string): string | null {
  if(recipeCategory(name))return normalizeRecipeCategoryQuery(name);
  if(!/sipulikeittoaine|salaattisekoit/.test(name)&&/(?:laatikko|keitto|piirakka|pannukakku|korvapuusti|salaatti|kanapasta|tonnikalapasta|linssicurry)/.test(name))return name;
  if(!name||/^(?:vesi|vettä|veden|pastan keitinvet|keitinvet)/.test(name))return null;
- return kinds.find(x=>x.pattern.test(name))?.term||name;
+ const knownKind=kinds.find(x=>x.pattern.test(name));
+ if(knownKind)return knownKind.term;
+ // Canonicalize common Finnish inflections of fresh potatoes before searching.
+ // Recipe text often says "perunoita"/"perunaa", while retail listings use "peruna".
+ // Do not collapse mixed products such as peruna-sipulisekoitus into plain potatoes.
+ if(!/sekoitus|mix|muusi/.test(name)&&/\bperun(?:a|an|aa|at|ia|oita|oiden|oissa|oista|oihin)\b/.test(name))return "peruna";
+ return name;
 }
 export function classifyRecipeIngredient(input: string): RecipeFoodGroup | null {
  const term=recipeProductSearchTerm(input);const category=recipeCategory(input);
