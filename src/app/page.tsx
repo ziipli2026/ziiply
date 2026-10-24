@@ -9528,7 +9528,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const productPrice = Number(getProductPrice(match.product));
       const rawPrice = Number(match.price);
       const resolvedRaw = Number.isFinite(productPrice) && productPrice >= 0.05 ? productPrice : rawPrice;
-      const basePrice = normalizeComparisonUnitV807(resolvedRaw);
+      // getProductPrice always returns integer cents (ziiplyCore); convert explicitly.
+      // Only provider match.price needs the legacy mixed-unit fallback.
+      const basePrice = Number.isFinite(productPrice) && productPrice >= 0.05
+        ? productPrice / 100
+        : normalizeComparisonUnitV807(rawPrice);
       const cartRow = comparableCart.find((item) => item.id === match.cartItemId);
       const ingredient = (cartRow as (CartItem & { recipeIngredient?: RecipeIngredient }) | undefined)?.recipeIngredient;
       const grams = ingredient?.unit?.toLowerCase() === "kg"
