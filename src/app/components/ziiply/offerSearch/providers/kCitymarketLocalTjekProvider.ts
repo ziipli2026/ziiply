@@ -167,6 +167,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
     throw new Error(entry.progress.error);
   }
   const failedOfferIds=new Set<string>();
+  const acceptedOfferKeys=new Set<string>();
   let completedPublications=0;
   let pageLimitReached=false;
   for(const publication of uniquePublications){
@@ -202,7 +203,10 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
         const unitValue=numeric(offer.unitPrice);
-        entry.rows.push({id:"citymarket-local-"+storeId+"-"+id,title,name:title,productName:title,price,
+        const offerKey=publicationId+":"+id;
+        if(acceptedOfferKeys.has(offerKey))continue;
+        acceptedOfferKeys.add(offerKey);
+        entry.rows.push({id:"citymarket-local-"+storeId+"-"+publicationId+"-"+id,title,name:title,productName:title,price,
           priceText:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" kpl" : price.toFixed(2).replace(".",",")+" €",
           previousPrice:regular!=null&&regular!==price?regular:null,
           unitPrice:unitValue==null?"":unitValue.toFixed(2).replace(".",",")+(unit?"/"+unit:""),
