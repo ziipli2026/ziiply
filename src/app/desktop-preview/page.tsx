@@ -804,7 +804,7 @@ export default function DesktopPreviewPage() {
     };
     if(normalizedEan){
       const exactResults=await fetchCandidates(normalizedEan);
-      const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan&&desktopReliableComparePrice(p)&&desktopPackageCompatible(name,String(p.name||"")));
+      const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan&&desktopReliableComparePrice(p)&&desktopPackageCompatible(name,String(p.name||""))&&isComparisonAttributeCompatible(name,String(p.name||"")));
       if(exact.length)return exact;
       if(exactResults.length)logCompareAudit("ean_candidates_rejected_continue_name_search",{store:store.name,name,ean,candidates:exactResults.length});
     }
@@ -968,7 +968,7 @@ export default function DesktopPreviewPage() {
     const sourceEan=normalizeEan(ean);
     if(sourceEan){
       const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan
-        &&(desktopPackageCompatible(name,String(p.name||"")) || (!desktopHasExplicitPackage(name) && !desktopHasExplicitPackage(String(p.name||""))))&&desktopReliableComparePrice(p));
+        &&desktopPackageCompatible(name,String(p.name||""))&&isComparisonAttributeCompatible(name,String(p.name||""))&&desktopReliableComparePrice(p));
       if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
     // Unlike the original cart price lookup, the comparison may use a verified
