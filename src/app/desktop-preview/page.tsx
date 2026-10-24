@@ -7,7 +7,7 @@ import ArvoSettingsPanel from "../components/ziiply/ArvoSettingsPanel";
 import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferences } from "../components/ziiply/ArvoSettingsPanel";
 
 import { useEffect, useRef, useState } from "react";
-import { getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible } from "../components/ziiply/ziiplyCore";
+import { getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList, autocorrectNormalSearchTerm } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -785,7 +785,7 @@ export default function DesktopPreviewPage() {
     };
     if(normalizedEan){
       const exactResults=await fetchCandidates(normalizedEan);
-      const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan&&desktopReliableComparePrice(p)&&desktopPackageCompatible(name,String(p.name||""))&&isComparisonAttributeCompatible(name,String(p.name||"")));
+      const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan&&desktopReliableComparePrice(p)&&isSameRetailPackage(name,String(p.name||""))&&isComparisonAttributeCompatible(name,String(p.name||"")));
       if(exact.length&&desktopPickCompareCandidate(exact,name,ean,isS))return exact;
       // Weighed produce has no fixed package size. Keep the exact EAN result
       // for the verified €/kg estimator, without accepting its raw price.
@@ -798,7 +798,7 @@ export default function DesktopPreviewPage() {
       }
       if(exactResults.length)logCompareAudit("ean_candidates_rejected_continue_name_search",{store:store.name,name,ean,candidates:exactResults.length});
     }
-    const queries=[...new Set([name,...getNormalSearchQueries(name),...getKSearchTerms(name)].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,12);
+    const queries=[...new Set([name,...getNormalSearchQueries(name),...getKSearchTerms(name)].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan&&!/^\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)$/i.test(v)))].slice(0,12);
     const responses=await Promise.all(queries.slice(0,4).map(fetchCandidates));
     let candidates=responses.flat();
     // Only broaden the search if the first batch produced no compatible priced product.
@@ -816,7 +816,7 @@ export default function DesktopPreviewPage() {
       return true;
     });
     if(!desktopPickCompareCandidate(unique,name,ean,isS)){
-      logCompareAudit("comparison_product_unmatched",{store:store.name,kind,name,ean,queries,candidateCount:unique.length,reason:unique.length?"candidates_rejected_by_identity_or_price":"no_candidates_from_price_api",sample:unique.slice(0,5).map((p:any)=>({name:p.name,ean:p.ean,price:p.price,priceReliable:desktopReliableComparePrice(p),eanMatches:Boolean(normalizedEan)&&normalizeEan(p.ean)===normalizedEan,packageCompatible:desktopPackageCompatible(name,String(p.name||"")),attributesCompatible:isComparisonAttributeCompatible(name,String(p.name||"")),identityCompatible:productGroupGate(name,String(p.name||""))}))});
+      logCompareAudit("comparison_product_unmatched",{store:store.name,kind,name,ean,queries,candidateCount:unique.length,reason:unique.length?"candidates_rejected_by_identity_or_price":"no_candidates_from_price_api",sample:unique.slice(0,5).map((p:any)=>({name:p.name,ean:p.ean,price:p.price,priceReliable:desktopReliableComparePrice(p),eanMatches:Boolean(normalizedEan)&&normalizeEan(p.ean)===normalizedEan,packageCompatible:isSameRetailPackage(name,String(p.name||"")),attributesCompatible:isComparisonAttributeCompatible(name,String(p.name||"")),identityCompatible:productGroupGate(name,String(p.name||""))}))});
     }
     return unique;
   }
@@ -835,27 +835,6 @@ export default function DesktopPreviewPage() {
     const countMatch=prefix.match(/(\d+)\s*[x×]\s*$/);
     const count=countMatch?Number(countMatch[1]):1;
     return Number.isFinite(perUnit*count)&&count>0?perUnit*count:null;
-  }
-  function desktopPackageCompatible(source:string,candidate:string):boolean{
-    // Grams and millilitres must never be treated as interchangeable.
-    const measure=(name:string)=>{
-      const matches=[...String(name).toLocaleLowerCase("fi").replace(/,/g,".").matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml|kpl)\b/g)];
-      const last=matches[matches.length-1];
-      if(!last)return null;
-      const amount=Number(last[1]),unit=last[2];
-      const prefix=String(name).toLocaleLowerCase("fi").replace(/,/g,".").slice(0,last.index||0);
-      const multi=prefix.match(/(\d+)\s*[x×]\s*$/);
-      const count=multi?Number(multi[1]):1;
-      return {kind:unit==="kg"||unit==="g"?"mass":unit==="kpl"?"count":"volume",amount:amount*(unit==="kg"||unit==="l"?1000:unit==="dl"?100:1)*count};
-    };
-    // A multi-pack is not the same retail unit as a single pack of its component size.
-    const multipack=(name:string)=>String(name).toLocaleLowerCase("fi")
-      .match(/\b(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(kg|g|l|dl|ml|kpl)\b/);
-    const sourceMulti=multipack(source),candidateMulti=multipack(candidate);
-    if(Boolean(sourceMulti)!==Boolean(candidateMulti))return false;
-    if(sourceMulti&&candidateMulti&&Number(sourceMulti[1])!==Number(candidateMulti[1]))return false;
-    const a=measure(source),b=measure(candidate);
-    return a!==null&&b!==null&&a.kind===b.kind&&a.amount===b.amount;
   }
   function desktopFindPackageAlternative(candidates:any[],name:string,ean:string){
     const sourceSize=desktopPackageSize(name);
@@ -956,7 +935,7 @@ export default function DesktopPreviewPage() {
     const sourceEan=normalizeEan(ean);
     if(sourceEan){
       const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan
-        &&(desktopPackageCompatible(name,String(p.name||""))||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null))&&isComparisonAttributeCompatible(name,String(p.name||""))&&(desktopReliableComparePrice(p)||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null)));
+        &&(isSameRetailPackage(name,String(p.name||""))||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null))&&isComparisonAttributeCompatible(name,String(p.name||""))&&(desktopReliableComparePrice(p)||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null)));
       if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
     // Unlike the original cart price lookup, the comparison may use a verified
@@ -970,13 +949,13 @@ export default function DesktopPreviewPage() {
         return desktopReliableComparePrice(p)
           &&new RegExp("\\b"+sourceHerb+"\\b","i").test(candidate)
           &&!/kuivatt|mauste|jauhe|purkki|pussi|levite|kastike|salaatti|filee|broiler|kana|juusto|krutonki|grissini|kalafile|pasta|risotto/i.test(candidate)
-          &&(!desktopHasExplicitPackage(name)||desktopPackageCompatible(name,candidate))
+          &&(!desktopHasExplicitPackage(name)||isSameRetailPackage(name,candidate))
           &&isComparisonAttributeCompatible(name,candidate);
       });
       if(freshHerbs.length)return freshHerbs.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
     const compatible=candidates.filter((p:any)=>desktopReliableComparePrice(p)
-      &&desktopPackageCompatible(name,String(p.name||""))
+      &&isSameRetailPackage(name,String(p.name||""))
       &&isComparisonAttributeCompatible(name,String(p.name||""))
       &&productGroupGate(name,String(p.name||"")));
     const sourceOwn=/^(?:pirkka|k-menu|coop|xtra|kotimaista|rainbow)\b/i.test(name);
@@ -1308,7 +1287,7 @@ export default function DesktopPreviewPage() {
     // manual/cheapest suggestion. Different pack sizes need a separate
     // quantity-adjusted proposal flow, not a direct price replacement.
     if(!originalName||!alternativeName
-      ||!desktopPackageCompatible(originalName,alternativeName)
+      ||!isSameRetailPackage(originalName,alternativeName)
       ||!isComparisonAttributeCompatible(originalName,alternativeName)
       ||!productGroupGate(originalName,alternativeName)){
       flashCartNotice("Vaihtoehto ei vastaa alkuperäistä tuotetta tai pakkauskokoa. Valitse yhteensopiva tuote.");
