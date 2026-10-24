@@ -328,3 +328,59 @@ for (;;) {
   }
 }
 console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,eligible:strictEligible,inserted:strictInserted,autoApproved:0}));
+
+
+// Conservative second pass for raw produce with trailing origin and quality marks.
+// Do not use this rule for processed foods or recipes.
+const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","peruna","omena","banaani","päärynä","appelsiini","sitruuna","lime","valkosipuli"]);
+const rawFineli = new Map<string,{id:number;name:string}>();
+for (const name of rawProduceNames) {
+  const foods = strictFoods.get(name) ?? [];
+  if (foods.length === 1) rawFineli.set(name,foods[0]);
+}
+let originAfter="",originScanned=0,originEligible=0,originInserted=0;
+for (;;) {
+  const page=await sql`
+    SELECT e.ean,e.name,e.brand FROM public.ziiply_ean_products e
+    WHERE e.ean > ${originAfter}
+      AND NOT EXISTS(SELECT 1 FROM public.ziiply_ean_fineli_matches m WHERE m.ean=e.ean)
+      AND NOT EXISTS(SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean=e.ean)
+    ORDER BY e.ean LIMIT ${batchSize}
+  `;
+  if (!page.length) break;
+  originAfter=String(page[page.length-1].ean);
+  originScanned+=page.length;
+  const proposals=page.flatMap(p=>{
+    const original=String(p.name??"").trim();
+    if (excludedNonFood.test(original)) return [];
+    const brand=String(p.brand??"").trim();
+    let clean=original.toLocaleLowerCase("fi");
+    if (brand && clean.startsWith(brand.toLocaleLowerCase("fi")+" ")) clean=clean.slice(brand.length+1);
+    clean=clean.replace(strictBrandPrefixes,"")
+      .replace(/\\b(?:suomalainen|kotimainen|kotimaista|luomu)\\b/g," ")
+      .replace(/\\b(?:suomi|espanja|hollanti|nl|eg)\\b/g," ")
+      .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g)\\b/g," ")
+      .replace(/\\b[12]\\s*lk\\b/g," ")
+      .replace(/\\s+/g," ").trim();
+    const food=rawFineli.get(clean);
+    if (!food) return [];
+    return [{ean:String(p.ean),fineli_id:food.id,evidence:{
+      productName:original,brand:p.brand,fineliName:food.name,
+      rule:"whole raw produce name with origin, grade and weight removed; manual review required"
+    }}];
+  });
+  originEligible+=proposals.length;
+  for (let i=0;i<proposals.length;i+=batchSize) {
+    const saved=await sql`
+      INSERT INTO public.ziiply_ean_fineli_candidates(ean,fineli_id,method,confidence,status,evidence)
+      SELECT c.ean,c.fineli_id,'raw_produce_origin_grade','review_required','pending',c.evidence
+      FROM jsonb_to_recordset(${JSON.stringify(proposals.slice(i,i+batchSize))}::jsonb)
+        AS c(ean text,fineli_id integer,evidence jsonb)
+      WHERE NOT EXISTS(SELECT 1 FROM public.ziiply_ean_fineli_matches m WHERE m.ean=c.ean)
+        AND NOT EXISTS(SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean=c.ean)
+      ON CONFLICT(ean,fineli_id) DO NOTHING RETURNING ean
+    `;
+    originInserted+=saved.length;
+  }
+}
+console.log(JSON.stringify({mode:"raw_produce_origin_grade",scanned:originScanned,eligible:originEligible,inserted:originInserted,autoApproved:0}));
