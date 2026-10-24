@@ -23,7 +23,8 @@ async function inspectResponse(response) {
   const parsed = new URL(url);
   // Drop all query parameters, which may contain tokens or user identifiers.
   const queryKeys = [...new Set([...parsed.searchParams.keys()])].sort();
-  const key = response.status() + " " + parsed.origin + parsed.pathname + "?" + queryKeys.join(",");
+  const storeParam = [...parsed.searchParams.entries()].find(([name]) => name.toLowerCase() === "storeid")?.[1] ?? null;
+  const key = response.status() + " " + parsed.origin + parsed.pathname + "?" + queryKeys.join(",") + "|store:" + (storeParam?.toUpperCase() === "N183" ? "N183" : storeParam ? "OTHER" : "NONE");
   // Multiple paginated responses can share a pathname and query-key set.
   // Keep a bounded number of each shape instead of silently dropping pages.
   const repeated = seen.get(key) ?? 0;
@@ -61,7 +62,7 @@ async function inspectResponse(response) {
       if (samples.length && candidates.length < 120) candidates.push({ endpoint: parsed.origin + parsed.pathname, samples });
     } catch {}
   }
-  const storeId = [...parsed.searchParams.entries()].find(([name]) => name.toLowerCase() === "storeid")?.[1] ?? null;
+  const storeId = storeParam;
   const storeScope = storeId?.toUpperCase() === "N183" ? "N183" : storeId ? "OTHER_STORE" : "UNSPECIFIED";
   const pagination = {};
   for (const name of ["offset", "page", "limit"]) {
