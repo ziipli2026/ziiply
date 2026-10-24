@@ -24,13 +24,12 @@ export async function GET(request: NextRequest) {
         .catch(error => ({ok:false as const,result:null,error:error instanceof Error?error.message:String(error)})),
     ]);
     const active = await fetchKCitymarketSelectedStoreOffers("K-Citymarket Hyvinkää");
-    await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:verified.length>=5,count:verified.length,outcome:verified.length>=5?"store-campaigns-available":"store-campaigns-missing",details:{kRuokaProbeStatus:probe.status,kRuokaHttpStatus:probe.httpStatus,tjekRows:tjek.result?.count ?? 0,tjekOk:tjek.ok,tjekError:tjek.error,verifiedKruokaRows:verified.length,displayedRows:active.length}}).catch(()=>undefined);
-    if (verified.length < 5) {
-      // Missing verified N183 offers must remain a visible failure in monitoring.
-      // Report Tjek success separately; never turn the combined source green.
-      return NextResponse.json({ok:false,degraded:true,error:"Verified K-Ruoka N183 campaigns are missing or expired; Tjek status is independent",tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length},{status:503});
+    await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:tjek.ok && (tjek.result?.activeCount ?? 0)>=5,count:tjek.result?.activeCount ?? 0,outcome:tjek.ok && (tjek.result?.activeCount ?? 0)>=5?"store-campaigns-available":"store-campaigns-missing",details:{kRuokaProbeStatus:probe.status,kRuokaHttpStatus:probe.httpStatus,tjekRows:tjek.result?.count ?? 0,tjekOk:tjek.ok,tjekError:tjek.error,verifiedKruokaRows:verified.length,displayedRows:active.length}}).catch(()=>undefined);
+    if (!tjek.ok || (tjek.result?.activeCount ?? 0) < 5) {
+      // Primary store-specific Tjek coverage is required; secondary K-Ruoka coverage is diagnostic only.
+      return NextResponse.json({ok:false,degraded:true,error:"Primary Tjek N183 campaigns are missing or incomplete; previous snapshot preserved",tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length},{status:503});
     }
-    return NextResponse.json({ok:true,degraded:false,tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length});
+    return NextResponse.json({ok:true,degraded:verified.length<5,tjek,probe:{status:probe.status,httpStatus:probe.httpStatus,diagnostic:probe.diagnostic},activeCount:active.length,verifiedKruokaCount:verified.length});
   } catch (error) {
     await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:false,count:0,outcome:"store-campaign-refresh-failed",details:{error:error instanceof Error?error.message:String(error)}}).catch(()=>undefined);
     return NextResponse.json({ok:false,error:error instanceof Error ? error.message : String(error)},{status:502});
