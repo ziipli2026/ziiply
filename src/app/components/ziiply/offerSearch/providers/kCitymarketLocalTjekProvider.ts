@@ -166,11 +166,12 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
     entry.progress.error = `Tjek ei palauttanut kauppakohtaisia julkaisuja myymälälle ${String(store.name)} (storeId=${storeId}). Tarjousten määrää ei voida vahvistaa; aiempi aineisto säilytetään.`;
     throw new Error(entry.progress.error);
   }
-  const seen=new Set<string>();
   const failedOfferIds=new Set<string>();
   let completedPublications=0;
   let pageLimitReached=false;
   for(const publication of uniquePublications){
+    // Offer IDs must be deduplicated within each publication, not across all publications.
+    const seen=new Set<string>();
     const publicationId=String(publication.id??"");
     if(!publicationId)continue;
     for(let page=1;page<=100;page++){
