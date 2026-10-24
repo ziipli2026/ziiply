@@ -16,6 +16,7 @@ export default function TankkausPage(){
  const [loading,setLoading]=useState(false);
  const [fuel,setFuel]=useState<"diesel"|"price95"|"price98">("price95");
  const [radius,setRadius]=useState(25);
+ const [order,setOrder]=useState<"distance"|"price">("distance");
  const load=()=>{
   if(!navigator.geolocation){setStatus("Selain ei tue paikannusta.");return;}
   setLoading(true);setStatus("Haetaan sijaintia…");
@@ -31,17 +32,33 @@ export default function TankkausPage(){
   },e=>{setStatus("Sijaintia ei saatu: "+e.message+". Salli sijainti selaimessa.");setLoading(false);},{enableHighAccuracy:false,timeout:12000,maximumAge:60000});
  };
  useEffect(()=>{if(mode==="prices"&&!coords)load();},[mode]);
- const visible=stations.filter(s=>s.distanceKm<=radius&&s[fuel]!=null).sort((a,b)=>(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
+ const visible=stations.filter(s=>s.distanceKm<=radius&&s[fuel]!=null).sort((a,b)=>order==="distance"?a.distanceKm-b.distanceKm:(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
  return <main className="min-h-screen bg-[#fff4cf] px-4 py-8 text-[#174c35]">
   <div className="mx-auto max-w-5xl">
    {!embedded&&<header className="mb-7 text-center"><a href="/" className="text-sm font-bold underline">Ziiply.fi</a><h1 className="mt-3 text-4xl font-black">Tankataan yhdessä halvemmalla!</h1><p className="mt-2 text-lg font-bold">Yksi kuva. Kaikkien hyöty.</p><p className="mt-2">Auta muita autoilijoita ilmoittamalla polttoainehintoja. Hintojen katselu on aina ilmaista.</p></header>}
    {!embedded&&<nav className="mb-6 grid grid-cols-2 gap-3"><button onClick={()=>setMode("report")} className="rounded-2xl border-2 border-[#17573c] bg-[#e3edc9] p-5 text-lg font-black shadow">📷 Ilmoita hinnat</button><button onClick={()=>setMode("prices")} className="rounded-2xl border-2 border-[#17573c] bg-white p-5 text-lg font-black shadow">⛽ Katso hinnat</button></nav>}
    {mode==="home"&&<p className="text-center">Valitse hintojen ilmoittaminen tai lähialueen hintojen katselu.</p>}
-   {mode==="prices"&&<section className="rounded-2xl border-2 border-[#17573c] bg-white p-4">
-    <div className="flex flex-wrap items-center gap-3"><label className="font-bold">Polttoaine <select aria-label="Polttoaine" value={fuel} onChange={e=>setFuel(e.target.value as typeof fuel)} className="ml-2 rounded border p-2"><option value="price95">95E10</option><option value="price98">98E5</option><option value="diesel">Diesel</option></select></label><label className="font-bold">Etäisyys <select aria-label="Etäisyys" value={radius} onChange={e=>setRadius(Number(e.target.value))} className="ml-2 rounded border p-2"><option value={10}>10 km</option><option value={25}>25 km</option><option value={50}>50 km</option><option value={100}>100 km</option></select></label><button onClick={load} disabled={loading} className="rounded-lg bg-[#17573c] px-4 py-2 font-bold text-white disabled:opacity-50">Päivitä sijainti</button></div>
-    <p role="status" className="my-3 text-sm">{status}</p>
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{visible.map(s=><article key={s.id} className="rounded-xl border border-[#b38a4a] bg-[#fff9e6] p-4"><h2 className="font-black">{s.name}</h2><p className="text-sm">{s.address}</p><p className="my-2 text-2xl font-black">{fmt(s[fuel])} €/l</p><p className="text-sm">{s.distanceKm.toLocaleString("fi-FI",{maximumFractionDigits:1})} km</p><p className="text-xs">Havainto: {(()=>{const t=fuel==="diesel"?s.observedDiesel:fuel==="price95"?s.observed95:s.observed98;return t?new Date(t).toLocaleString("fi-FI"):"Ei aikaleimaa";})()}</p></article>)}</div>
-    {!loading&&coords&&visible.length===0&&<p>Ei ilmoitettuja hintoja tällä alueella ja polttoainetyypillä.</p>}
+   {mode==="prices"&&<section className="rounded-[28px] border-[3px] border-[#754322] bg-[#f3e4c1] p-2 sm:p-4 shadow-inner h-[min(76dvh,900px)] flex flex-col min-h-0">
+    <div className="flex items-center gap-2 rounded-[22px] border-2 border-[#c9a15b] bg-[#f9eac4] p-2 sm:p-3">
+      <button onClick={()=>setFuel("diesel")} aria-pressed={fuel==="diesel"} className={`flex-1 rounded-2xl border-[3px] px-2 py-3 font-bold text-xs sm:text-base ${fuel==="diesel"?"bg-[#d8eaf4] border-[#79a8bf] text-[#20577b]":"bg-[#e9f4fa] border-[#9cbcca] text-[#20577b]"}`}>DI · Näytä halvin diesel</button>
+      <h2 className="hidden sm:block shrink-0 text-center font-serif text-xl italic font-black text-[#20523d]">Göstan<br/>polttoainevertailu</h2>
+      <button onClick={()=>setFuel("price95")} aria-pressed={fuel==="price95"} className={`flex-1 rounded-2xl border-[3px] px-2 py-3 font-bold text-xs sm:text-base ${fuel==="price95"?"bg-[#f4dfc1] border-[#d5a46d] text-[#92501e]":"bg-[#fff0d9] border-[#d5a46d] text-[#92501e]"}`}>95 · Näytä halvin bensa</button>
+    </div>
+    <h2 className="sm:hidden text-center font-serif italic font-black text-[#20523d] py-1">Göstan polttoainevertailu</h2>
+    <div className="mt-2 flex min-h-0 flex-1 flex-col rounded-[24px] border-[3px] border-[#c59a53] bg-[#fff4cf] p-3 sm:p-5">
+      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+       <span className="font-semibold">Kaikki ketjut</span>
+       <label>Polttoaine <select aria-label="Polttoaine" value={fuel} onChange={e=>setFuel(e.target.value as typeof fuel)} className="rounded border p-1"><option value="price95">95E10</option><option value="price98">98E5</option><option value="diesel">Diesel</option></select></label>
+       <label>Alue <select aria-label="Hakualue" value={radius} onChange={e=>setRadius(Number(e.target.value))} className="rounded border p-1"><option value={10}>10 km</option><option value={25}>25 km</option><option value={50}>50 km</option><option value={100}>100 km</option></select></label>
+       <label>Järjestys <select aria-label="Järjestys" value={order} onChange={e=>setOrder(e.target.value as typeof order)} className="rounded border p-1"><option value="distance">Lähin ensin</option><option value="price">Halvin ensin</option></select></label>
+       <button onClick={load} disabled={loading} className="rounded-lg bg-[#17573c] px-3 py-1.5 font-bold text-white disabled:opacity-50">Päivitä sijainti</button>
+      </div>
+      <p role="status" className="my-2 text-center text-xs text-[#685b46]">{status}</p>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{visible.map(s=><article key={s.id} className="rounded-xl border border-[#c59a53] bg-[#fff9e6] p-3"><h3 className="font-black">{s.name}</h3><p className="text-sm">{s.address}</p><p className="my-1 text-2xl font-black">{fmt(s[fuel])} €/l</p><p className="text-sm">{s.distanceKm.toLocaleString("fi-FI",{maximumFractionDigits:1})} km</p><p className="text-xs">Havainto: {(()=>{const t=fuel==="diesel"?s.observedDiesel:fuel==="price95"?s.observed95:s.observed98;return t?new Date(t).toLocaleString("fi-FI"):"Ei aikaleimaa";})()}</p></article>)}</div>
+       {!loading&&coords&&visible.length===0&&<p className="text-center py-10">Ei ilmoitettuja hintoja tällä alueella ja polttoainetyypillä.</p>}
+      </div>
+    </div>
    </section>}
    {mode==="report"&&<DesktopFuelPhotoReport onClose={()=>setMode("home")}/>}
   </div>
