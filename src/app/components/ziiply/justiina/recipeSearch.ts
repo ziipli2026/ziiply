@@ -163,10 +163,6 @@ export function classifyRecipeIngredient(input: string): RecipeFoodGroup | null 
  if(category&&term)return {ingredient:term,searchTerm:term,mainGroup:category.label,subGroup:category.label};
  // Broth concentrates are not interchangeable with portion gels or stock cubes.
  // Preserve the requested physical form independently of recipe quantity.
- const sourceLine=String(context?.sourceLine||input).toLocaleLowerCase("fi");
- const wantsFond=/fond/i.test(sourceLine)&&!/annosfond|fond du chef/i.test(sourceLine);
- const isPortionFond=/annosfond|fond du chef|liemikuutio|liemipala/i.test(name);
- if(wantsFond&&isPortionFond)return "fond_form_mismatch";
  const kind=kinds.find(x=>x.term===term);
  return kind?{ingredient:kind.term,searchTerm:kind.term,mainGroup:kind.group,subGroup:kind.group}:null;
 }
