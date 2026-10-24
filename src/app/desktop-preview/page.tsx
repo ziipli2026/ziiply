@@ -707,24 +707,6 @@ export default function DesktopPreviewPage() {
   // Cross-chain comparison: try the source name first, then brand-neutral
   // descriptions. A candidate must still match the milk type and package size.
   // Cross-chain comparison: search without store-specific brands, then verify milk type and volume.
-  function desktopCompareSearchTerms(name:string):string[]{
-    const base=name.trim();
-    const withoutBrand=base.replace(/^(?:kotimaista|coop|xtra|rainbow|pirkka|k-menu)\s+/i,"").trim();
-    const withoutSize=withoutBrand.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ").replace(/\s+/g," ").trim();
-    // A chain-specific brand or package suffix must not hide a matching product.
-    // Search with the product type as well, but leave equivalence validation to the matcher.
-    const keyWords=withoutSize.split(/\s+/).filter(w=>w.length>=4);
-    const key=keyWords.find(w=>/sokeriherne/i.test(w))?.replace(/sokeriherneet$/i,"sokeriherne")
-      ||(keyWords.length===1?keyWords[0]:"");
-    const terms=[base,withoutBrand,withoutSize,key];
-    // Loose produce has store-specific weighing labels and EANs. Search its
-    // actual produce category as well, not just the source store's full label.
-    // Candidate identity and price/unit validation remain separate.
-    const looseProduce=/^(peruna|porkkana)\b/i.exec(withoutSize)?.[1];
-    if(looseProduce)terms.push(looseProduce.toLocaleLowerCase("fi"));
-    if(/\bkevyt\s*maito\b/i.test(withoutBrand))terms.push("kevytmaito","kevyt maito");
-    return [...new Set(terms.filter(Boolean))];
-  }
   function desktopCompareCompatibleName(source:string,candidate:string):boolean{
     const norm=(v:string)=>v.toLocaleLowerCase("fi").replace(/,/g,".").replace(/\s+/g," ").trim();
     const a=norm(source),b=norm(candidate);
@@ -764,7 +746,6 @@ export default function DesktopPreviewPage() {
     if(!["sHyper","sLocal","kHyper","kLocal"].includes(kind))return [];
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
-    const packageNeutral=name.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ").replace(/\s+/g," ").trim();
     // Search the exact barcode first. Broader name searches are only necessary
     // when the selected store has no valid EAN match.
     const fetchCandidates=async(search:string)=>{
@@ -817,7 +798,7 @@ export default function DesktopPreviewPage() {
       }
       if(exactResults.length)logCompareAudit("ean_candidates_rejected_continue_name_search",{store:store.name,name,ean,candidates:exactResults.length});
     }
-    const queries=[...new Set([name,packageNeutral,...desktopCompareSearchTerms(name),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,8);
+    const queries=[...new Set([name,...getNormalSearchQueries(name),...getKSearchTerms(name)].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,12);
     const responses=await Promise.all(queries.slice(0,4).map(fetchCandidates));
     let candidates=responses.flat();
     // Only broaden the search if the first batch produced no compatible priced product.
