@@ -3,10 +3,10 @@ const url = process.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL is required');
 const sql = neon(url);
 const rows = await sql`
-  SELECT ean,fineli_id,evidence->>'productName' AS product_name,
+  SELECT ean,fineli_id,method,evidence->>'productName' AS product_name,
          evidence->>'fineliName' AS fineli_name
   FROM public.ziiply_ean_fineli_candidates
-  WHERE method='category_token_overlap' AND status='pending'
+  WHERE status='pending'
   ORDER BY ean,fineli_id
 `;
 // Nutrition is attached as read-only evidence, never as an approval decision.
@@ -14,7 +14,7 @@ const nutrientRows = await sql`
   SELECT c.ean, c.fineli_id, f.nutrients
   FROM public.ziiply_ean_fineli_candidates c
   LEFT JOIN public.ziiply_fineli_foods f ON f.fineli_id = c.fineli_id
-  WHERE c.method='category_token_overlap' AND c.status='pending'
+  WHERE c.status='pending'
 `;
 const nutrientByPair = new Map(nutrientRows.map(r => [String(r.ean)+'|'+String(r.fineli_id),r.nutrients ?? null]));
 const unsafe = /(?:koiran|koiralle|koirille|kissan|kissalle|kissoille|lemmik|levite|tuorejuusto|monivilja|quinoa|nuudeli|long drink|suklaa|patukka|juustoperun)/i;
@@ -168,7 +168,7 @@ const review = rows.map(r=>{
   const conflict=issues.some(issue=>!needsVerification.has(issue));
   if(conflict) conflicts++;
   else if(issues.length) verifyOnly++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),review_queue:reviewQueue(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients,diet_evidence:dietEvidence(product,food),dairy_fat_coverage:dairyCoverage(product,nutrients)};
+  return {ean:r.ean,fineli_id:r.fineli_id,method:r.method,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),review_queue:reviewQueue(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients,diet_evidence:dietEvidence(product,food),dairy_fat_coverage:dairyCoverage(product,nutrients)};
 });
 console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,conflicts,verify_nutrition:verifyOnly,manual_review:review.length-flagged,modified:0}));
 const dairyCoverageCounts = review.reduce((counts: Record<string,number>,row) => {
@@ -183,4 +183,10 @@ const dietCounts = review.reduce((acc: Record<string,number>,row) => {
   return acc;
 }, {});
 console.log(JSON.stringify({mode:'diet_evidence_coverage',...dietCounts}));
+const methodCounts = review.reduce((acc: Record<string,number>,row) => {
+  const key = String(row.method) + ':' + String(row.decision);
+  acc[key] = (acc[key] ?? 0) + 1;
+  return acc;
+}, {});
+console.log(JSON.stringify({mode:'all_pending_methods',...methodCounts}));
 for(const row of review) console.log(JSON.stringify(row));
