@@ -630,7 +630,7 @@ export default function DesktopPreviewPage() {
   }
   function acceptDesktopWeightProposal(storeId:string,rowId:string){
     const selectedRow=(desktopCompareResults[storeId]?.rows||[]).find((row:any)=>String(row.cartItemId)===rowId);
-    const proposal=selectedRow?.weightProposal;
+    const proposal=(selectedRow as any)?.weightProposal;
     const grams=Number(proposal?.gramsPerItem);
     const kgCents=Number(proposal?.pricePerKgCents);
     // A weight estimate is only valid with an explicitly verified €/kg quote.
