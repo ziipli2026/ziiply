@@ -333,7 +333,7 @@ console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,el
 
 // Conservative second pass for raw produce with trailing origin and quality marks.
 // Do not use this rule for processed foods or recipes.
-const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena","appelsiini","sitruuna","paprika","mansikka","mustikka","vadelma","puolukka","mustaherukka","punaherukka","karviainen","kiivi","ananas","avokado","mandariini"]); // Exact unique names or verified canonical raw-food IDs.
+const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena","appelsiini","sitruuna","paprika","mansikka","mustikka","vadelma","puolukka","mustaherukka","punaherukka","karviainen","kiivi","ananas","avokado","mandariini","luumu","nektariini","persikka","vesimeloni","hunajameloni"]); // Exact unique names or verified canonical raw-food IDs.
 // Fineli's canonical raw-food descriptions are not always bare product names.
 // These are exact, reviewed food-ID choices; processed variants are excluded.
 const canonicalRawFineli = new Map<string,number>([
@@ -343,6 +343,11 @@ const canonicalRawFineli = new Map<string,number>([
   ["appelsiini",28924], // APPELSIINI, PUNNITTU KUORINEEN
   ["sitruuna",28925], // SITRUUNA, KESKIARVO, PUNNITTU KUORINEEN
   ["paprika",355], // PAPRIKA, KESKIARVO
+  ["luumu",28918], // LUUMU, TUMMA, PUNNITTU KIVINEEN
+  ["nektariini",28922], // PERSIKKA/NEKTARIINI, KESKIARVO, PUNNITTU KIVINEEN
+  ["persikka",28922], // PERSIKKA/NEKTARIINI, KESKIARVO, PUNNITTU KIVINEEN
+  ["vesimeloni",28931], // VESIMELONI, PUNNITTU KUORINEEN
+  ["hunajameloni",28944], // HUNAJAMELONI, PUNNITTU KUORINEEN
   ["mandariini",28935], // MANDARIINI, KESKIARVO, PUNNITTU KUORINEEN
   ["mansikka",447], // MANSIKKA
   ["mustikka",442], // MUSTIKKA, METSÄMUSTIKKA
@@ -400,6 +405,11 @@ for (;;) {
     // Only whole fresh mandarins with named retail varieties; no drinks or canned segments.
     if (/^(?:(?:k-menu|xtra|pirkka|coop) )?mandariini(?: (?:orri|tango|leanri|nadorcott|clemenvilla|satsuma))?$/.test(original.toLocaleLowerCase("fi")))
       clean = "mandariini";
+    // Whole fresh stone fruit and melon only. No drinks, puree, dried fruit or salads.
+    if (/^(?:nektariini|persikka|luumu)(?: \d+(?:[.,]\d+)?\s*(?:g|kg)(?:\s*[12]\s*lk)?)?$/.test(original.toLocaleLowerCase("fi")))
+      clean = original.toLocaleLowerCase("fi").split(" ")[0];
+    if (/^(?:vesimeloni|hunajameloni)(?: (?:siemenetön|suomi))?$/.test(original.toLocaleLowerCase("fi")))
+      clean = original.toLocaleLowerCase("fi").split(" ")[0];
     // Exact raw-carrot labels with washing, soil, bunch and origin qualifiers.
     // Deliberately exclude carrot recipes, prepared vegetables and baby food.
     if (/^(?:porkkana pesty|porkkananippu suomi|porkkana pesty suomi|porkkana multa|porkkana pesty suomi 2lk|koivulan tila porkkananippu)$/.test(original.toLocaleLowerCase("fi")))
