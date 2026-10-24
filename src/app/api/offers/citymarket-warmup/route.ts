@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const sql = neon(process.env.DATABASE_URL);
-    const rows = await sql`SELECT updated_at FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = ${key} AND updated_at > NOW() - INTERVAL '15 minutes' LIMIT 1`;
+    const rows = await sql`SELECT updated_at FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = ${key} AND updated_at > NOW() - INTERVAL '15 minutes' AND jsonb_array_length(offers) > 0 LIMIT 1`;
     if (rows.length) return NextResponse.json({ ok: true, status: "fresh" });
   } catch (error) {
     return NextResponse.json({ ok: false, error: "Campaign freshness check failed" }, { status: 503 });
