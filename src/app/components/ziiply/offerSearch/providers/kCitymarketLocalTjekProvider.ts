@@ -171,6 +171,8 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const failedOfferIds=new Set<string>();
   const acceptedOfferKeys=new Set<string>();
   const rejectedReasons: Record<string,number> = {};
+  let missingOfferDetails=0;
+  let duplicateOfferRows=0;
   const reject=(reason:string)=>{rejectedReasons[reason]=(rejectedReasons[reason]??0)+1;};
   let completedPublications=0;
   let pageLimitReached=false;
@@ -194,7 +196,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         try {const result=await tjek("offer",{publicId:id});return result&&typeof result==="object"&&!Array.isArray(result)?{id,offer:result as Row}:null;}catch{failedOfferIds.add(id);return null;}
       }));
       for(const fetchedEntry of fetched){
-        if(!fetchedEntry)continue;
+        if(!fetchedEntry){missingOfferDetails++;continue;}
         const {id,offer}=fetchedEntry;
         if(String(offer.publicationPublicId??publicationId)!==publicationId){reject("publication-mismatch");continue;}
         const title=String(offer.name??"").trim();
@@ -212,7 +214,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const unit=String(offer.baseUnit??"");
         const unitValue=numeric(offer.unitPrice);
         const offerKey=publicationId+":"+id;
-        if(acceptedOfferKeys.has(offerKey))continue;
+        if(acceptedOfferKeys.has(offerKey)){duplicateOfferRows++;continue;}
         acceptedOfferKeys.add(offerKey);
         entry.rows.push({id:"citymarket-local-"+storeId+"-"+publicationId+"-"+id,title,name:title,productName:title,price,
           priceText:quantity ? price.toFixed(2).replace(".",",")+" € / "+quantity+" kpl" : price.toFixed(2).replace(".",",")+" €",
@@ -243,7 +245,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   }
   if(completedPublications!==uniquePublications.length)throw new Error(`Only ${completedPublications}/${uniquePublications.length} Tjek publications read`);
   entry.progress.accepted = entry.rows.length;
-  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,rejectedReasons}));
+  console.info("[K-Citymarket] Tjek N183 offer coverage",JSON.stringify({storeName:selectedStoreName,storeId:entry.progress.storeId,publications:uniquePublications.length,pages:entry.progress.pages,discoveredOfferIds:entry.progress.offerIds,accepted:entry.rows.length,missingOfferDetails,duplicateOfferRows,rejectedReasons}));
 }
 
 
