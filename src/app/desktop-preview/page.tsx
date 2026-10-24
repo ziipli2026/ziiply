@@ -1380,6 +1380,14 @@ export default function DesktopPreviewPage() {
       if(!title||!items.length)return;
       const byId=new Map(items.map(item=>[String(item.id),item]));
       const changed=cartItems.filter(item=>item?.source==="justiina"&&String(item.__recipeTitle||"").trim()===title&&item.__recipeIngredient&&byId.has(String(item.__recipeIngredient.id))).length;
+      // Keep the active recipe amounts current even before its products are in the cart.
+      recipeSearchItemsRef.current=items;
+      try{
+        const active=JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"{}");
+        if(!active.title||String(active.title).trim()===title){
+          sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({...active,title,servings:detail?.servings,items}));
+        }
+      }catch{}
       if(!changed)return;
       setCartItems(current=>current.map(item=>{
         if(item?.source!=="justiina"||String(item.__recipeTitle||"").trim()!==title||!item.__recipeIngredient)return item;
@@ -1390,11 +1398,6 @@ export default function DesktopPreviewPage() {
         return {...item,__recipeIngredient:{...updated},...(packageCount!==null?{quantity:Math.max(1,packageCount),__recipeQuantity:Math.max(1,packageCount)}:{})};
       }));
       if(changed){
-        recipeSearchItemsRef.current=items;
-        try{
-          const active=JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"{}");
-          sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({...active,title,servings:detail?.servings,items}));
-        }catch{}
         desktopCompareCache.current.clear();
         desktopOriginalComparison.current=null;
         desktopComparisonEdited.current=true;
