@@ -17918,6 +17918,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       chain: normalSearchChain,
       storeName: normalSearchStoreName,
       quantity: recipeQuantity,
+      // Preserve the scaled recipe ingredient for later weighed-price comparison.
+      ...(mobileRecipeContextRef.current ? { recipeIngredient: { ...mobileRecipeContextRef.current.ingredient } } : {}),
       source: "search",
       product,
       ean: product.ean,
