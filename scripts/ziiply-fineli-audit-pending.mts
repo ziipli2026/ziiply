@@ -96,15 +96,14 @@ const reviewPriority = (product: string, food: string, decision: string): string
 const nutrientSanity = (product: string, nutrients: any): string[] => {
   const issues: string[] = [];
   if (!nutrients || typeof nutrients !== 'object') return ['fineli_nutrients_missing'];
-  const fat = nutrients.FAT;
-  const fatValue = typeof fat?.value === 'number' ? fat.value : Number(fat?.value);
-  const label = product.match(/(?:rasvaa?\\s*)?(\\d+(?:[.,]\\d+)?)\\s*\\%/);
-  const isDairy = /maito|kerma|jogurtti|viili|rahka|juusto|voi/.test(product);
-  if (isDairy && label && Number.isFinite(fatValue)) {
-    const expected = Number(label[1].replace(',','.'));
-    if (Math.abs(expected - fatValue) > Math.max(0.5, expected * 0.15))
-      issues.push('dairy_fat_nutrient_discrepancy');
-  }
+  if (!dairyProduct(product)) return issues;
+  const label = product.match(/(?:rasvaa?\s*)?(\d+(?:[.,]\d+)?)\s*%/i);
+  if (!label) return issues;
+  const fatValue = Number(nutrients.FAT?.value);
+  if (!Number.isFinite(fatValue)) return issues;
+  const expected = Number(label[1].replace(',','.'));
+  if (Math.abs(expected - fatValue) > Math.max(0.5, expected * 0.15))
+    issues.push('dairy_fat_nutrient_discrepancy');
   return issues;
 };
 // Report how often an actual dairy fat nutrient comparison was possible.
