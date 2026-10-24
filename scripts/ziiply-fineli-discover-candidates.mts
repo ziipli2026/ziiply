@@ -357,8 +357,8 @@ for (;;) {
     let clean=original.toLocaleLowerCase("fi");
     if (brand && clean.startsWith(brand.toLocaleLowerCase("fi")+" ")) clean=clean.slice(brand.length+1);
     clean=clean.replace(strictBrandPrefixes,"")
-      .replace(/\b(?:suomalainen|kotimainen|kotimaista|luomu)\b/g," ")
-      .replace(/\b(?:suomi|espanja|hollanti|nl|eg)\b/g," ")
+      .replace(/(?:^|\s)(?:suomalainen|kotimainen|kotimaista|luomu)(?=\s|$)/g," ")
+      .replace(/(?:^|\s)(?:suomi|espanja|hollanti|nl|eg)(?=\s|$)/g," ")
       .replace(/(?:^|\s)(?:ruotsi|italia|ranska|puola|saksa|belgia|viro|kreikka|turkki)(?=\s|$)/g," ")
       .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g)\b/g," ")
       .replace(/\b[12]\s*lk\b/g," ")
