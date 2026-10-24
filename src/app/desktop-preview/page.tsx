@@ -826,7 +826,7 @@ export default function DesktopPreviewPage() {
       return true;
     });
     if(!desktopPickCompareCandidate(unique,name,ean,isS)){
-      logCompareAudit("comparison_product_unmatched",{store:store.name,kind,name,ean,queries,candidateCount:unique.length,reason:unique.length?"candidates_rejected_by_identity_or_price":"no_candidates_from_price_api",sample:unique.slice(0,5).map((p:any)=>({name:p.name,ean:p.ean,price:p.price}))});
+      logCompareAudit("comparison_product_unmatched",{store:store.name,kind,name,ean,queries,candidateCount:unique.length,reason:unique.length?"candidates_rejected_by_identity_or_price":"no_candidates_from_price_api",sample:unique.slice(0,5).map((p:any)=>({name:p.name,ean:p.ean,price:p.price,priceReliable:desktopReliableComparePrice(p),eanMatches:Boolean(normalizedEan)&&normalizeEan(p.ean)===normalizedEan,packageCompatible:desktopPackageCompatible(name,String(p.name||"")),attributesCompatible:isComparisonAttributeCompatible(name,String(p.name||"")),identityCompatible:desktopStrictCompareIdentity(name,String(p.name||""))}))});
     }
     return unique;
   }
