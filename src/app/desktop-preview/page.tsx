@@ -805,7 +805,7 @@ export default function DesktopPreviewPage() {
     if(normalizedEan){
       const exactResults=await fetchCandidates(normalizedEan);
       const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan);
-      if(exact.length)return [exact[0]];
+      if(exact.length)return exact;
     }
     const queries=[...new Set([name,packageNeutral,...desktopCompareSearchTerms(name),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,4);
     const responses=await Promise.all(queries.map(fetchCandidates));
