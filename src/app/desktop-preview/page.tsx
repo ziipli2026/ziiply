@@ -794,7 +794,7 @@ export default function DesktopPreviewPage() {
           ...p,
           name:String(p.name||p.title||"").trim(),
           ean:String(p.ean||p.gtin||p.barcode||""),
-          price:(isS&&data?.source==="s-kaupat-normal-v220")||(!isS&&data?.source==="ruoanhinta-k")?Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100):Number(p.price??p.storeItems?.[0]?.price??0)
+          price:isS&&data?.source==="s-kaupat-normal-v220"?Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100):Number(p.price??p.storeItems?.[0]?.price??0)
         })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
       }catch(error){logCompareAudit("price_api_request_error",{store:store.name,kind,search,error:String(error)});desktopProductSearchCache.delete(cacheKey);return []}
       })();
