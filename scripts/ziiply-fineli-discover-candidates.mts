@@ -390,6 +390,9 @@ for (;;) {
     // Deliberately exclude carrot recipes, prepared vegetables and baby food.
     if (/^(?:porkkana pesty|porkkananippu suomi|porkkana pesty suomi|porkkana multa|porkkana pesty suomi 2lk|koivulan tila porkkananippu)$/.test(original.toLocaleLowerCase("fi")))
       clean = "porkkana";
+    // Whole raw cucumbers only; exclude pickles, salads, lozenges and sauces.
+    if (/^(?:kurkku pakattu suomi 2 lk kg|kurkku paikallinen|h&h tuominen vanhamyllyn puutarhan kurkku|luomumaan luomu kurkku irto|hortiherttua suomalainen kurkku 1\\. luokka min\\. 300g)$/.test(original.toLocaleLowerCase("fi")))
+      clean = "kurkku";
     const food=rawFineli.get(clean);
     if (!food) return [];
     return [{ean:String(p.ean),fineli_id:food.id,evidence:{
