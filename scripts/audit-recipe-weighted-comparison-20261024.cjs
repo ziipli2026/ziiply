@@ -17,6 +17,10 @@ for (const unit of ["kg", "/kg", "eur/kg", "€/kg", "euro/kg", "kilogramma"]) {
   assert.equal(recognizeKg(unit, { product: { name: "Peruna" } }), true, "actual source must recognize " + unit);
 }
 assert.equal(recognizeKg("kpl", { product: { name: "Peruna" } }), false);
+assert.equal(recognizeKg("kpl", { product: { name: "Peruna sopiv kiinteä pesty Suomi", ean: "2000616700002" } }), true,
+  "variable-weight fresh produce EAN must identify kg pricing even without provider unit metadata");
+assert.equal(recognizeKg("", { product: { name: "Pirkka peruna-sipulisekoitus 1kg pakaste", ean: "6410405234087" } }), false,
+  "fixed-pack frozen mixes must not be treated as loose €/kg produce");
 assert.equal(recognizeKg("", { product: { name: "Peruna 0,89 €/kg" } }), true);
 const unitPattern = /^(?:kg|\/kg|eur\/kg|€\/kg|euro\/kg|kilogramma)$/;
 const namePattern = /(?:€|eur)\s*\/\s*kg/i;
