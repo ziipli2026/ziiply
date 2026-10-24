@@ -22,7 +22,7 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
   clean=line.replace(/(\d)([½¼¾⅓⅔⅛])/g,"$1 $2").replace(/[½¼¾⅓⅔⅛]/g,x=>fractions[x]).replace(/[\u00a0\u202f]/g," ").replace(/^[#*•–-]+\s*/,"").trim();
   clean=clean.replace(/^(?:n\.|noin|vajaa|reilu)\s*/i,"");
   // When a fish recipe explicitly offers fillets, retain that alternative's own amount.
-  const alternative=clean.split(/\s+tai\s+/i);
+  const alternative=clean.replace(/\([^()]*\)/g, segment => segment.replace(/\s+tai\s+/gi, " __RECIPE_PAREN_OR__ ")).split(/\s+tai\s+/i).map(segment => segment.replace(/ __RECIPE_PAREN_OR__ /g, " tai "));
   const filletAlternative=alternative.length>1&&alternative.every(x=>/silak|kirjoloh|loh(?:i|ta)/i.test(x))?alternative.find(x=>/file/i.test(x)):undefined;
   // Keep ordinary alternatives as one ingredient, retaining the original choices
   // for later product selection rather than creating two shopping-list entries.
