@@ -820,7 +820,7 @@ export default function DesktopPreviewPage() {
     }
     const seen=new Set<string>();
     return candidates.filter((p:any)=>{
-      const key=normalizeEan(p.ean)||String(p.name).toLocaleLowerCase("fi")+"|"+String(p.price);
+      const key=[normalizeEan(p.ean),String(p.name||"").toLocaleLowerCase("fi"),String(p.price)].join("|");
       if(seen.has(key))return false;
       seen.add(key);
       return true;
