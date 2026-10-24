@@ -770,7 +770,7 @@ export default function DesktopPreviewPage() {
     const fetchCandidates=async(search:string)=>{
       // Reuse identical in-flight and recent searches within this browser session.
       // Prices remain short-lived and are never substituted across stores.
-      const cacheKey=[kind,String(store.id||""),search].join("|");
+      const cacheKey=[kind,String(store.id||""),String(store.externalId||""),String(store.name||""),search].join("|");
       const now=Date.now();
       const cached=desktopProductSearchCache.get(cacheKey);
       if(cached&&now-cached.at<60_000)return cached.promise;
