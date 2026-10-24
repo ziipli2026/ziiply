@@ -155,6 +155,7 @@ try {
     offerNavigationHost: new URL(offerNavigationUrl).hostname,
     links, navigationIsStoreScoped, selectedStoreNavigation, pageEvidence, context, offerCards, visibleOfferSamples, requests: observations, candidates,
     sampledResponseShapes: observations.length,
+    storeScopedEndpointCount: new Set(observations.filter(r => r.storeScope === "N183").map(r => r.url)).size,
     candidateEndpoints: [...new Set(candidates.map(item => item.endpoint))],
     blockedResponses: observations.filter(item => item.status === 401 || item.status === 403).map(item => ({url:item.url,status:item.status})), apiOfferCandidateCount: apiOfferCandidates.length, n183CandidateCount: n183Candidates.length, rejectedIdentityCount,
     storeContextConfirmed: Boolean((pageEvidence.storeIdN183InPage || context.storeMarkerInMarkup) && pageEvidence.hyvinkaa && !pageEvidence.otherStore),
