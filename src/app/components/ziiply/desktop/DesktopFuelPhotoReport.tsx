@@ -142,7 +142,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   const [evidence,setEvidence]=useState<PhotoEvidence>({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});const [conflictConfirmed,setConflictConfirmed]=useState(false);const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
   const [rawText,setRawText]=useState("");const [busy,setBusy]=useState(false);const [status,setStatus]=useState("");const [error,setError]=useState("");
   const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
-  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [captureCountdown,setCaptureCountdown]=useState<number|null>(null);const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
+  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [captureCountdown,setCaptureCountdown]=useState<number|null>(null);const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const fuelGuideRef=useRef<HTMLDivElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
   const conflict=comparePhotoEvidence(mode,evidence);
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{alive.current=true;const previous=document.activeElement as HTMLElement|null;closeRef.current?.focus();return()=>{alive.current=false;gpsRequest.current++;void workerRef.current?.terminate();previous?.focus();};},[]);
@@ -212,9 +212,27 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
   async function capturePhoto(){
     const video=videoRef.current;
     if(!cameraReady||!video?.videoWidth||!video.videoHeight)return;
-    const canvas=document.createElement("canvas");canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+    const canvas=document.createElement("canvas");
+    const guide=fuelGuideRef.current;
+    const videoRect=video.getBoundingClientRect();
+    const guideRect=guide?.getBoundingClientRect();
+    // Match the landscape object-cover preview to the actual captured pixels.
+    // Portrait mode retains the original full-frame capture.
+    let sx=0,sy=0,sw=video.videoWidth,sh=video.videoHeight;
+    if(guideOrientation==="landscape"&&guideRect&&videoRect.width>0&&videoRect.height>0){
+      const scale=Math.max(videoRect.width/video.videoWidth,videoRect.height/video.videoHeight);
+      const renderedWidth=video.videoWidth*scale,renderedHeight=video.videoHeight*scale;
+      const left=videoRect.left+(videoRect.width-renderedWidth)/2;
+      const top=videoRect.top+(videoRect.height-renderedHeight)/2;
+      const x1=Math.max(0,Math.min(video.videoWidth,(guideRect.left-left)/scale));
+      const y1=Math.max(0,Math.min(video.videoHeight,(guideRect.top-top)/scale));
+      const x2=Math.max(0,Math.min(video.videoWidth,(guideRect.right-left)/scale));
+      const y2=Math.max(0,Math.min(video.videoHeight,(guideRect.bottom-top)/scale));
+      if(x2-x1>=32&&y2-y1>=32){sx=x1;sy=y1;sw=x2-x1;sh=y2-y1;}
+    }
+    canvas.width=Math.round(sw);canvas.height=Math.round(sh);
     const context=canvas.getContext("2d");if(!context){setError("Kuvan ottaminen epäonnistui.");return;}
-    context.drawImage(video,0,0);
+    context.drawImage(video,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
     const location=requestCaptureLocation();
     onlineCapture.current={time:localDateTime(),gps:location};
     stopCamera();setBusy(true);
@@ -326,7 +344,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
             {cameraOpen?<div className="relative h-full min-h-[140px] w-full overflow-hidden text-[#f5e5c1]">
               <video ref={videoRef} autoPlay muted playsInline onLoadedData={()=>setCameraReady(true)} className={`absolute inset-0 h-full w-full ${guideOrientation==="landscape"?"object-cover":"object-contain"}`} aria-label="Kameran esikatselu"/>
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
-                <div className={`relative max-h-[88%] border-[3px] border-[#f8e5ad] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.15)] ${guideOrientation==="portrait"?"h-[84%] aspect-[3/4] max-w-[78%]":"w-[83%] max-h-[70%]"}`} style={guideOrientation==="landscape"?{aspectRatio:"16 / 9"}:undefined}>
+                <div ref={fuelGuideRef} className={`relative max-h-[88%] border-[3px] border-[#f8e5ad] rounded-xl shadow-[0_0_0_999px_rgba(0,0,0,0.15)] ${guideOrientation==="portrait"?"h-[84%] aspect-[3/4] max-w-[78%]":"w-[83%] max-h-[70%]"}`} style={guideOrientation==="landscape"?{aspectRatio:"16 / 9"}:undefined}>
                   <span className="absolute -left-[3px] -top-[3px] h-6 w-6 rounded-tl-xl border-l-[5px] border-t-[5px] border-white"/>
                   <span className="absolute -right-[3px] -top-[3px] h-6 w-6 rounded-tr-xl border-r-[5px] border-t-[5px] border-white"/>
                   <span className="absolute -bottom-[3px] -left-[3px] h-6 w-6 rounded-bl-xl border-b-[5px] border-l-[5px] border-white"/>
