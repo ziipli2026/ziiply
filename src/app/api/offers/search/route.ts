@@ -67,7 +67,7 @@ import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/of
 import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
-import { fetchKCitymarketSelectedStoreOffers, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
+import { fetchKCitymarketSelectedStoreOffers, fetchKCitymarketUnpricedDiscounts, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
 import { fetchLidlPublicCampaignOffers, fetchLidlPublicLeafletOffers } from "../../../components/ziiply/offerSearch/providers/lidlPublicLeafletProvider";
@@ -931,6 +931,10 @@ export async function GET(request: Request) {
           citymarketLocalCount = uniqueLocalCampaigns.length;
           citymarketLocalStoreId = uniqueLocalCampaigns.length ? String(uniqueLocalCampaigns[0].storeId ?? "") || null : null;
           citymarketResults.push(...uniqueLocalCampaigns);
+          // Display-only percentage/Plussa offers have no verified euro price.
+          // They must never be used as priced basket rows.
+          const discounts = await fetchKCitymarketUnpricedDiscounts(selectedCitymarket);
+          citymarketResults.push(...discounts.filter(offer => offerMatchesQuery(q, offer)));
         }
       } catch (localError) {
         console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
