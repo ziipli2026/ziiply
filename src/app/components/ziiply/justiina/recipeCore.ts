@@ -121,7 +121,10 @@ export function recipeIngredientForSearch(items: RecipeIngredient[], searchTerm:
   if (!ingredient || ingredient.atHome || !ingredient.name.trim()) return null;
   const expected = normalize(ingredient.name);
   const actual = normalize(searchTerm);
-  // Search queues use the canonical term, while the ingredient keeps its original wording.\n  // Never borrow a requirement from another queue step.\n  const canonical = normalize(ingredient.searchTerm || recipeProductSearchTerm(ingredient.name) || ingredient.name);\n  return actual === expected || actual === canonical ? ingredient : null;
+  // Search queues use the canonical term, while the ingredient keeps its original wording.
+  // Never borrow a requirement from another queue step.
+  const canonical = normalize(ingredient.searchTerm || recipeProductSearchTerm(ingredient.name) || ingredient.name);
+  return actual === expected || actual === canonical ? ingredient : null;
 }
 
 import { recipeProductSearchTerm, classifyRecipeIngredient } from "./recipeSearch";
