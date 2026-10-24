@@ -3,7 +3,7 @@
 import pg from 'pg';
 const {Pool}=pg;
 const shard=Math.max(0,Math.min(9,Number(process.argv.find(x=>x.startsWith('--shard='))?.split('=')[1]||0)));
-const limit=Math.min(10,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
+const limit=Math.min(50,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
 const refreshIncomplete=process.argv.includes('--refresh-incomplete');
 const progressEvery=1;
 if(!process.env.DATABASE_URL)throw Error('DATABASE_URL is required');
