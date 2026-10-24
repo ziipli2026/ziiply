@@ -962,7 +962,12 @@ export default function DesktopPreviewPage() {
     const match=label.match(/(\d+(?:[.,]\d+)?)\s*(?:€|eur)\s*\/\s*kg\b/i)
       ||label.match(/(\d+(?:[.,]\d+)?)\s*(?:€|eur)\s*\/\s*1\s*kg\b/i)
       ||label.match(/\bkg\s*[:=]\s*(\d+(?:[.,]\d+)?)\s*(?:€|eur)\b/i);
-    if(!match)return null;
+    if(!match){
+      const unit=String(product?.comparisonPriceUnit||"").trim().toLocaleLowerCase("fi");
+      const value=Number(product?.comparisonPrice);
+      if(/^(?:kg|€\/kg|eur\/kg)$/.test(unit)&&Number.isFinite(value)&&value>0)return Math.round(value*100);
+      return null;
+    }
     const euros=Number(match[1].replace(",","."));
     return Number.isFinite(euros)&&euros>0?Math.round(euros*100):null;
   }
