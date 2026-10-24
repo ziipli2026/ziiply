@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'scripts/kcitymarket-browser-source-discovery.mjs'
+      - 'scripts/kcitymarket-n183-validate.mjs'
+      - 'scripts/test-kcitymarket-n183-validate.mjs'
       - '.github/workflows/kcitymarket-browser-source-discovery.yml'
   schedule:
     - cron: '25 */3 * * *'
@@ -18,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Test N183 offer validation
+        run: node scripts/test-kcitymarket-n183-validate.mjs
       - name: Install browser runner
         run: npm install --no-save --package-lock=false --ignore-scripts --legacy-peer-deps --no-audit --no-fund playwright
       - name: Install Chromium
