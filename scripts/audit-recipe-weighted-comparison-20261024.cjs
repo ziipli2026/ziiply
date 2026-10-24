@@ -39,5 +39,8 @@ assert.match(source, /if \(!Number\.isFinite\(unitPrice\) \|\| unitPrice < 0\.05
 assert.match(block, /productPrice \/ 100/, "getProductPrice cents must convert explicitly even below one euro");
 assert.match(source, /function getProductPrice|import \{[\s\S]*?getProductPrice/, "product price helper available");
 console.log("PASS actual production price normalization and placeholder rejection guard");
+assert.match(source, /const totalGrams=Number\(previous\.amount\)/, "duplicate recipe items must add previous weight");
+assert.match(source, /Number\(incoming\.amount\)/, "duplicate recipe items must add incoming weight");
+assert.match(source, /return \{\.\.\.incoming,amount:totalGrams,unit:"g"\}/, "merged weight retained for comparison");
 console.log("PASS recipe weight units, kg pricing, small positive prices, serving scaling arithmetic");
 console.log("NOTE static source assertions plus isolated arithmetic, not browser or provider integration");
