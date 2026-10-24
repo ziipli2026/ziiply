@@ -808,10 +808,18 @@ export default function DesktopPreviewPage() {
       if(exact.length)return exact;
       if(exactResults.length)logCompareAudit("ean_candidates_rejected_continue_name_search",{store:store.name,name,ean,candidates:exactResults.length});
     }
-    const queries=[...new Set([name,packageNeutral,...desktopCompareSearchTerms(name),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,4);
-    const responses=await Promise.all(queries.map(fetchCandidates));
+    const queries=[...new Set([name,packageNeutral,...desktopCompareSearchTerms(name),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,8);
+    const responses=await Promise.all(queries.slice(0,4).map(fetchCandidates));
+    let candidates=responses.flat();
+    // Only broaden the search if the first batch produced no compatible priced product.
+    // Avoid extra API requests for successful searches.
+    if(queries.length>4&&!desktopPickCompareCandidate(candidates,name,ean,isS)){
+      const fallback=await Promise.all(queries.slice(4).map(fetchCandidates));
+      candidates=candidates.concat(fallback.flat());
+      logCompareAudit("comparison_fallback_search",{store:store.name,name,additionalQueries:queries.slice(4),candidates:candidates.length});
+    }
     const seen=new Set<string>();
-    return responses.flat().filter((p:any)=>{
+    return candidates.filter((p:any)=>{
       const key=normalizeEan(p.ean)||String(p.name).toLocaleLowerCase("fi")+"|"+String(p.price);
       if(seen.has(key))return false;
       seen.add(key);
