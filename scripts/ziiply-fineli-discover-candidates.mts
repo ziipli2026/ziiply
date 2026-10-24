@@ -384,7 +384,7 @@ for (;;) {
     // Raw potato grades and washing descriptors are not ingredients or cooking methods.
     // Only normalize the complete, tightly scoped raw-potato names; keep all
     // proposed matches review-only and never generalize this to prepared foods.
-    if (/^(?:pesty jauhoinen peruna|peruna jauhoinen (?:pesty|harjattu|pesty\/mull suomi)|suhosfarmi peruna afra jauhoinen)$/.test(original.toLocaleLowerCase("fi")))
+    if (/^(?:pesty (?:jauhoinen|kiinteä) peruna|peruna (?:jauhoinen|kiinteä) (?:pesty|harjattu|pesty\/mull suomi)|suhosfarmi peruna (?:afra jauhoinen|belana kiinteä)|peruna (?:siikli|suomi kg|annabelle|afra paikallinen (?:pesty|harjattu))|(?:nicola peruna kiinteä|varhaisperuna pesty suomi|kesäperuna multainen suomi|uuden sadon peruna ulkomainen|aromäen tila siikli peruna))$/.test(original.toLocaleLowerCase("fi")))
       clean = "peruna";
     const food=rawFineli.get(clean);
     if (!food) return [];
