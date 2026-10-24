@@ -63,7 +63,12 @@ async function inspectResponse(response) {
   }
   const storeId = [...parsed.searchParams.entries()].find(([name]) => name.toLowerCase() === "storeid")?.[1] ?? null;
   const storeScope = storeId?.toUpperCase() === "N183" ? "N183" : storeId ? "OTHER_STORE" : "UNSPECIFIED";
-  observations.push({ url: parsed.origin + parsed.pathname, queryKeys, storeScope, status: response.status(), type: type.slice(0,80), shape });
+  const pagination = {};
+  for (const name of ["offset", "page", "limit"]) {
+    const value = [...parsed.searchParams.entries()].find(([key]) => key.toLowerCase() === name)?.[1];
+    if (value && /^[0-9]{1,6}$/.test(value)) pagination[name] = Number(value);
+  }
+  observations.push({ url: parsed.origin + parsed.pathname, queryKeys, storeScope, pagination, status: response.status(), type: type.slice(0,80), shape });
 }
 try {
   const store = "https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa";
