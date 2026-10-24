@@ -1,0 +1,19 @@
+name: Ziiply Fineli food gap audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 2 * * *'
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - name: Read-only food category gap audit
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: npx tsx scripts/ziiply-fineli-food-gap-audit.mts
