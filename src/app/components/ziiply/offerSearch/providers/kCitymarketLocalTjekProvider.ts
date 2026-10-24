@@ -143,9 +143,10 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
     ]);
   }
   const live = (entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
-  // A complete live scan wins over a durable snapshot; until it has results,
-  // keep serving the last valid snapshot. Never cross-import another store.
-  const tjekRows = live.length ? live : fallback;
+  const liveScanComplete = Boolean(entry && !entry.running && entry.progress.stage === "complete");
+  // Only a fully completed live scan may supersede a durable snapshot.
+  // Never expose a partial scan as if it were the complete store catalogue.
+  const tjekRows = liveScanComplete && live.length ? live : fallback;
   return [...primary, ...tjekRows].map(normalizeTjekPackagePrice);
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
