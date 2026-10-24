@@ -36,6 +36,8 @@ for (const [raw, expected] of [[439, 4.39], [145, 1.45], [1.45, 1.45], [99, 99],
 }
 assert.match(source, /const normalizeMatchPriceV803 =/);
 assert.match(source, /if \(!Number\.isFinite\(unitPrice\) \|\| unitPrice < 0\.05\)/, "reject missing/placeholder provider prices before recipe weighting");
+assert.match(block, /productPrice \/ 100/, "getProductPrice cents must convert explicitly even below one euro");
+assert.match(source, /function getProductPrice|import \{[\s\S]*?getProductPrice/, "product price helper available");
 console.log("PASS actual production price normalization and placeholder rejection guard");
 console.log("PASS recipe weight units, kg pricing, small positive prices, serving scaling arithmetic");
 console.log("NOTE static source assertions plus isolated arithmetic, not browser or provider integration");
