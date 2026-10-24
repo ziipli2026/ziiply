@@ -115,6 +115,20 @@ const reviewQueue = (product: string, food: string, decision: string): string =>
     return 'PROCESSING_REVIEW';
   return 'GENERAL_COMPOSITION_REVIEW';
 };
+// Report diet-label agreement in bulk without approving any candidate.
+const dietEvidence = (product: string, food: string): string[] => {
+  const patterns: Array<[string, RegExp]> = [
+    ['LACTOSE_FREE', /laktoositon/],
+    ['GLUTEN_FREE', /gluteeniton/],
+    ['MILK_FREE', /maidoton/],
+    ['VEGAN', /vegaaninen|vegaani/],
+    ['SUGAR_FREE', /sokeriton/],
+    ['UNSWEETENED', /makeuttamaton/],
+    ['FAT_FREE', /rasvaton/],
+  ];
+  return patterns.filter(([,re]) => re.test(product)).map(([label,re]) =>
+    label + (re.test(food) ? '_LABEL_MATCH' : '_NOT_CONFIRMED'));
+};
 // Read-only nutrient sanity checks against explicit product labels.
 const nutrientSanity = (product: string, nutrients: any): string[] => {
   const issues: string[] = [];
@@ -154,7 +168,7 @@ const review = rows.map(r=>{
   const conflict=issues.some(issue=>!needsVerification.has(issue));
   if(conflict) conflicts++;
   else if(issues.length) verifyOnly++;
-  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),review_queue:reviewQueue(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients,dairy_fat_coverage:dairyCoverage(product,nutrients)};
+  return {ean:r.ean,fineli_id:r.fineli_id,product:r.product_name,fineli:r.fineli_name,issues,decision:conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW',priority:reviewPriority(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),review_queue:reviewQueue(product,food,conflict?'CONFLICT_REVIEW':issues.length?'VERIFY_NUTRITION':'MANUAL_REVIEW'),fineli_nutrients:nutrients,diet_evidence:dietEvidence(product,food),dairy_fat_coverage:dairyCoverage(product,nutrients)};
 });
 console.log(JSON.stringify({mode:'read_only_pending_audit',total:review.length,flagged,conflicts,verify_nutrition:verifyOnly,manual_review:review.length-flagged,modified:0}));
 const dairyCoverageCounts = review.reduce((counts: Record<string,number>,row) => {
@@ -164,4 +178,9 @@ const dairyCoverageCounts = review.reduce((counts: Record<string,number>,row) =>
 console.log(JSON.stringify({mode:'dairy_fat_coverage',...dairyCoverageCounts}));
 const queueCounts = review.reduce((counts: Record<string,number>,row) => { counts[row.review_queue] = (counts[row.review_queue] ?? 0) + 1; return counts; }, {});
 console.log(JSON.stringify({mode:'manual_review_queues',...queueCounts}));
+const dietCounts = review.reduce((acc: Record<string,number>,row) => {
+  for(const key of row.diet_evidence) acc[key] = (acc[key] ?? 0) + 1;
+  return acc;
+}, {});
+console.log(JSON.stringify({mode:'diet_evidence_coverage',...dietCounts}));
 for(const row of review) console.log(JSON.stringify(row));
