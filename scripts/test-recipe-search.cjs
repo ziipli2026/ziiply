@@ -31,10 +31,10 @@ for(const c of cases){
  }
  report.push({recipe:c.title,source:c.url,ingredients:terms.length,searches:search.terms.length,cart});
 }
-const queued=core.prepareRecipeSearch([core.parseRecipeIngredient('300 g silakkafileitä','fish'),core.parseRecipeIngredient('12 kananmunaa','eggs')]);
-assert.equal(core.recipeIngredientForSearch(queued.items,queued.terms[0],0)?.amount,300,'canonical fish search must keep recipe quantity');
-assert.equal(core.recipeIngredientForSearch(queued.items,queued.terms[1],1)?.amount,12,'canonical egg search must keep recipe quantity');
-assert.equal(core.recipeIngredientForSearch(queued.items,queued.terms[1],0),null,'another ingredient search must not borrow the previous quantity');
+const queued=[{...core.parseRecipeIngredient('300 g silakkafileitä','fish'),searchTerm:'silakkafilee'},{...core.parseRecipeIngredient('12 kananmunaa','eggs'),searchTerm:'kananmuna'}];
+assert.equal(core.recipeIngredientForSearch(queued,'silakkafilee',0)?.amount,300,'canonical fish search must keep recipe quantity');
+assert.equal(core.recipeIngredientForSearch(queued,'kananmuna',1)?.amount,12,'canonical egg search must keep recipe quantity');
+assert.equal(core.recipeIngredientForSearch(queued,'kananmuna',0),null,'another ingredient search must not borrow the previous quantity');
 assert.equal(core.parseRecipeIngredient('lohta 600 g').amount,600);
 assert.equal(core.packageCount(1,'mystery',2,'mystery'),null);
 assert.equal(core.parseRecipeIngredient('5½ dl vehnäjauhoja').amount,5.5);
