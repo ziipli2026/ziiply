@@ -1,0 +1,46 @@
+name: K-Citymarket N183 Tjek refresh verification
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Refresh and verify Hyvinkaa local campaign snapshot
+        env:
+          KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "Missing KCITYMARKET_MANUAL_SECRET"; exit 1; }
+          status=$(curl --silent --show-error --max-time 250 --output /tmp/n183-refresh.json --write-out '%{http_code}' \
+            -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
+            'https://ziiply.vercel.app/api/cron/kcitymarket-campaign-refresh')
+          echo "N183_REFRESH_HTTP=$status"
+          node - <<'NODE'
+          const fs=require('node:fs');
+          let data;
+          try { data=JSON.parse(fs.readFileSync('/tmp/n183-refresh.json','utf8')); }
+          catch { console.error('N183_REFRESH_INVALID_JSON'); process.exit(1); }
+          const tjek=data.tjek||{};
+          const result=tjek.result||{};
+          const summary={
+            ok:data.ok===true,
+            degraded:data.degraded===true,
+            tjekOk:tjek.ok===true,
+            tjekError:tjek.error||null,
+            collectedRows:result.count??null,
+            activeRows:result.activeCount??null,
+            discoveredOfferIds:result.discoveredOfferIds??null,
+            pages:result.pages??null,
+            displayedRows:data.activeCount??null,
+            verifiedKruokaRows:data.verifiedKruokaCount??null,
+            kruokaHttp:data.probe?.httpStatus??null,
+            kruokaBlocked:data.kRuokaSourceBlocked===true
+          };
+          console.log('N183_TJEK_REFRESH_RESULT',JSON.stringify(summary));
+          if(!summary.ok||!summary.tjekOk||!(summary.activeRows>=5))process.exitCode=1;
+          NODE
+          test "$status" = 200
