@@ -763,14 +763,15 @@ export default function DesktopPreviewPage() {
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
     const packageNeutral=name.replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ").replace(/\s+/g," ").trim();
-    const queries=[...new Set([...desktopCompareSearchTerms(name),...(normalizedEan?[normalizedEan]:[]),name,packageNeutral,...(packageNeutral!==name?(isS?getNormalSearchQueries(packageNeutral):getKSearchTerms(packageNeutral)):[]),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(Boolean))].slice(0,16);
-    const responses=await Promise.all(queries.map(async search=>{
+    // Search the exact barcode first. Broader name searches are only necessary
+    // when the selected store has no valid EAN match.
+    const fetchCandidates=async(search:string)=>{
       try{
         const kStoreId=String(store.id||"");
         const selectedStoreId=isS?kStoreId:(/^\d+$/.test(kStoreId)?kStoreId:"");
         if(!selectedStoreId)return [];
         const params=new URLSearchParams({search,store:selectedStoreId});
-        if(isS){params.set("storeName",String(store.name||""));}
+        if(isS)params.set("storeName",String(store.name||""));
         const response=await fetch((isS?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
         const data=await response.json();
@@ -782,8 +783,21 @@ export default function DesktopPreviewPage() {
           price:isS&&data?.source==="s-kaupat-normal-v220"?Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100):Number(p.price??p.storeItems?.[0]?.price??0)
         })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
       }catch{return []}
-    }));
-    return responses.flat();
+    };
+    if(normalizedEan){
+      const exactResults=await fetchCandidates(normalizedEan);
+      const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan);
+      if(exact.length)return [exact[0]];
+    }
+    const queries=[...new Set([name,packageNeutral,...desktopCompareSearchTerms(name),...(isS?getNormalSearchQueries(name):getKSearchTerms(name))].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan))].slice(0,4);
+    const responses=await Promise.all(queries.map(fetchCandidates));
+    const seen=new Set<string>();
+    return responses.flat().filter((p:any)=>{
+      const key=normalizeEan(p.ean)||String(p.name).toLocaleLowerCase("fi")+"|"+String(p.price);
+      if(seen.has(key))return false;
+      seen.add(key);
+      return true;
+    });
   }
   // Never attach a different package's price to the original cart product.
   // Unknown package sizes are not proof of equivalence.
