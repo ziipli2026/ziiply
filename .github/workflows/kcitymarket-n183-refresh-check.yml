@@ -6,6 +6,8 @@ on:
   push:
     paths:
       - '.github/workflows/kcitymarket-n183-refresh-check.yml'
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'
+      - 'src/app/api/cron/kcitymarket-campaign-refresh/route.ts'
 permissions:
   contents: read
 jobs:
