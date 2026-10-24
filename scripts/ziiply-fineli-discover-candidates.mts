@@ -333,13 +333,24 @@ console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,el
 
 // Conservative second pass for raw produce with trailing origin and quality marks.
 // Do not use this rule for processed foods or recipes.
-const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli"]); // Only unique exact Fineli names exist in this database; see strictFoods lookup.
+const rawProduceNames = new Set(["porkkana","sipuli","kurkku","tomaatti","valkosipuli","peruna","banaani","omena"]); // Only unique exact Fineli names exist in this database; see strictFoods lookup.
+// Fineli's canonical raw-food descriptions are not always bare product names.
+// These are exact, reviewed food-ID choices; processed variants are excluded.
+const canonicalRawFineli = new Map<string,number>([
+  ["peruna",28913], // PERUNA, PUNNITTU KUORINEEN
+  ["banaani",28934], // BANAANI, PUNNITTU KUORINEEN
+  ["omena",28916], // OMENA, KESKIARVO, PUNNITTU KUORINEEN
+]);
 const rawFineli = new Map<string,{id:number;name:string}>();
 for (const name of rawProduceNames) {
   // Fineli often uses uppercase raw ingredient labels; accept the exact raw label
   // only when there is one unambiguous matching Fineli record.
   const foods = strictFoods.get(name) ?? [];
   if (foods.length === 1) rawFineli.set(name,foods[0]);
+  else if (canonicalRawFineli.has(name)) {
+    const chosen = fineliDescriptions.find(f => Number(f.fineli_id) === canonicalRawFineli.get(name));
+    if (chosen) rawFineli.set(name,{id:Number(chosen.fineli_id),name:String(chosen.name_fi)});
+  }
 }
 let originAfter="",originScanned=0,originEligible=0,originInserted=0;
 for (;;) {
