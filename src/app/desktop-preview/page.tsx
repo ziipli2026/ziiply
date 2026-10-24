@@ -737,7 +737,8 @@ export default function DesktopPreviewPage() {
   }
 
   // Use the same query expansion and ranking as the mobile comparison.
-  const desktopProductSearchCache=new Map<string,{at:number;promise:Promise<any[]>}>();
+  const desktopProductSearchCacheRef=useRef<Map<string,{at:number;promise:Promise<any[]>}>>(new Map());
+  const desktopProductSearchCache=desktopProductSearchCacheRef.current;
   async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean){
     // The selected store is authoritative: never search S products for a K store (or vice versa).
     const kind=storeKind(store);
