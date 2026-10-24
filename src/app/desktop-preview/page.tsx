@@ -1174,9 +1174,10 @@ export default function DesktopPreviewPage() {
             // comparison subtotal multiplies row.price by cart quantity.
             // Split the recipe weight across cart units to avoid counting it twice.
             const cartQuantity=Number(item.quantity||1);
-            const comparisonGrams=recipeGrams!==null
-              ?recipeGrams/(Number.isFinite(cartQuantity)&&cartQuantity>0?cartQuantity:1)
-              :desktopPackageSize(name);
+            // Basket comparison uses the retail selling unit, never a recipe portion.
+            // Loose variable-weight produce is compared per 1 kg; packaged
+            // products retain their full package price in the normal path.
+            const comparisonGrams=weighedEan?1000:desktopPackageSize(name);
             const weightProposal=(!matched||weighedEan)&&(originalSpecies||originalProduce)&&comparisonGrams!==null
               ?[...candidates].sort((a:any,b:any)=>Number(normalizeEan(String(b.ean||""))===normalizeEan(ean))-Number(normalizeEan(String(a.ean||""))===normalizeEan(ean))).find((p:any)=>{
                 const candidateName=String(p.name||"").toLocaleLowerCase("fi");
