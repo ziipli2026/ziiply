@@ -17865,7 +17865,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ) {
       if(mobileRecipeContextRef.current){
         const quantity=recipeSelectedPackageQuantity(product);
-        const next=cartWithoutMatchingManualRows.map(item=>normalize(item.name)===normalize(product.name)?{...item,quantity:(item.quantity||1)+quantity,recipeIngredient:{...mobileRecipeContextRef.current!.ingredient}}:item);
+        const next=cartWithoutMatchingManualRows.map(item=>normalize(item.name)===normalize(product.name)?{...item,quantity:(item.quantity||1)+quantity,recipeIngredient:(()=>{
+          const previous=(item as CartItem & {recipeIngredient?:RecipeIngredient}).recipeIngredient;
+          const incoming=mobileRecipeContextRef.current!.ingredient;
+          const prevUnit=String(previous?.unit||"").toLowerCase();
+          const nextUnit=String(incoming.unit||"").toLowerCase();
+          const mass=(unit:string)=>unit==="g"||unit==="kg";
+          if(previous&&mass(prevUnit)&&mass(nextUnit)&&Number.isFinite(Number(previous.amount))&&Number.isFinite(Number(incoming.amount))){
+            const totalGrams=Number(previous.amount)*(prevUnit==="kg"?1000:1)+Number(incoming.amount)*(nextUnit==="kg"?1000:1);
+            return {...incoming,amount:totalGrams,unit:"g"};
+          }
+          return {...incoming};
+        })()}:item);
         cartRefV124.current=next;setCart(next);persistCartImmediately(next);
         appendRecipeDebug("recipe-cart-quantity-added",{product:product.name,quantity});
         showCartToast("✓ Lisätty ostoskoriin");return true;
