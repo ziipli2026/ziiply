@@ -157,9 +157,12 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const horizon=now+3*24*60*60*1000;
   const publications=(Array.isArray(fronts)?fronts:[]).flatMap(front => front && typeof front==="object" && Array.isArray((front as Row).publications) ? (front as Row).publications as Row[] : [])
     .filter(p => {const from=Date.parse(String(p.validFrom??"")),until=Date.parse(String(p.validUntil??""));return Number.isFinite(from)&&Number.isFinite(until)&&from<=horizon&&now<=until;});
-  entry.progress.publicationIds = publications.map(p => String(p.id ?? "")).filter(Boolean);
-  entry.progress.stage = publications.length ? "reading-pages" : "source-unavailable";
-  if (!publications.length) {
+  // The fronts feed may repeat a publication across front sections. Process each
+  // publication once, otherwise coverage metrics and offer scans are distorted.
+  const uniquePublications = [...new Map(publications.filter(p => p.id != null).map(p => [String(p.id), p])).values()];
+  entry.progress.publicationIds = uniquePublications.map(p => String(p.id));
+  entry.progress.stage = uniquePublications.length ? "reading-pages" : "source-unavailable";
+  if (!uniquePublications.length) {
     entry.progress.error = `Tjek ei palauttanut kauppakohtaisia julkaisuja myymälälle ${String(store.name)} (storeId=${storeId}). Tarjousten määrää ei voida vahvistaa; aiempi aineisto säilytetään.`;
     throw new Error(entry.progress.error);
   }
@@ -167,7 +170,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
   const failedOfferIds=new Set<string>();
   let completedPublications=0;
   let pageLimitReached=false;
-  for(const publication of publications){
+  for(const publication of uniquePublications){
     const publicationId=String(publication.id??"");
     if(!publicationId)continue;
     for(let page=1;page<=100;page++){
@@ -223,7 +226,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
     entry.progress.error=`${failedOfferIds.size} Tjek offer detail requests failed`;
     throw new Error(entry.progress.error);
   }
-  if(completedPublications!==publications.length)throw new Error(`Only ${completedPublications}/${publications.length} Tjek publications read`);
+  if(completedPublications!==uniquePublications.length)throw new Error(`Only ${completedPublications}/${uniquePublications.length} Tjek publications read`);
   entry.progress.accepted = entry.rows.length;
 }
 
