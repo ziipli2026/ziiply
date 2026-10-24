@@ -274,8 +274,8 @@ console.log(JSON.stringify({ mode: "broad_category_discovery", scanned: broadSca
 
 // Additional database-wide strict name discovery: strip known retail brand prefixes
 // and terminal package quantities only. Never infer a recipe from ingredient words.
-const strictBrandPrefixes = /^(?:(?:pirkka|coop|xtra|kotimaista|rainbow|k-menu|s-market)\\s+)+/i;
-const strictQuantitySuffix = /\\s+\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|l)(?:\\s+(?:\\d+\\s*(?:kpl|lk)|suomi|kotimainen))?$/i;
+const strictBrandPrefixes = /^(?:(?:pirkka|coop|xtra|kotimaista|rainbow|k-menu|s-market)\s+)+/i;
+const strictQuantitySuffix = /\s+\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l)(?:\s+(?:\d+\s*(?:kpl|lk)|suomi|kotimainen))?$/i;
 const excludedNonFood = /(?:koiran|kissan|lemmik|shampoo|saippua|deodorant|hammastahna|voide|meikki|pesuaine|kynttil|suojapeite|pussilakana|kissanhiekka|vitamiini|ravintolisä)/i;
 const strictFoods = new Map<string, Array<{id:number;name:string}>>();
 for (const f of fineliDescriptions) {
@@ -357,11 +357,11 @@ for (;;) {
     let clean=original.toLocaleLowerCase("fi");
     if (brand && clean.startsWith(brand.toLocaleLowerCase("fi")+" ")) clean=clean.slice(brand.length+1);
     clean=clean.replace(strictBrandPrefixes,"")
-      .replace(/\\b(?:suomalainen|kotimainen|kotimaista|luomu)\\b/g," ")
-      .replace(/\\b(?:suomi|espanja|hollanti|nl|eg)\\b/g," ")
-      .replace(/\\b\\d+(?:[.,]\\d+)?\\s*(?:kg|g)\\b/g," ")
-      .replace(/\\b[12]\\s*lk\\b/g," ")
-      .replace(/\\s+/g," ").trim();
+      .replace(/\b(?:suomalainen|kotimainen|kotimaista|luomu)\b/g," ")
+      .replace(/\b(?:suomi|espanja|hollanti|nl|eg)\b/g," ")
+      .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g)\b/g," ")
+      .replace(/\b[12]\s*lk\b/g," ")
+      .replace(/\s+/g," ").trim();
     const food=rawFineli.get(clean);
     if (!food) return [];
     return [{ean:String(p.ean),fineli_id:food.id,evidence:{
