@@ -299,6 +299,9 @@ for (;;) {
   strictScanned += page.length;
   const proposals = page.flatMap(p => {
     const original = String(p.name ?? "").trim();
+    // Grocery food only: block household, pet, clothing, cosmetics and alcohol.
+    // Remaining matches still require an exact food name and manual review.
+    if (/\\b(?:kissanruoka|koiranruoka|lemmikin|pesuaine|puhdistusaine|wc-|shampoo|saippua|deodorantti|hammastahna|vaippa|aurinkovoide|kasvovoide|toppahousut|fleece|hanskat|sukat|olut|siideri|lonkero|cocktail)\\b/i.test(original)) return [];
     if (excludedNonFood.test(original)) return [];
     const brand = String(p.brand ?? "").trim();
     let clean = original;
@@ -307,7 +310,7 @@ for (;;) {
     clean = clean.replace(strictBrandPrefixes,"").replace(strictQuantitySuffix,"").trim();
     // Bulk pantry normalization for plain dry staples only. Never normalize cooked,
     // flavoured, gluten-free, wholegrain or mixed products to a generic staple.
-    const plainStaple = clean.toLocaleLowerCase("fi").match(/^(kaurahiutale|makaroni|spagetti)\\s+\\d+(?:[.,]\\d+)?\\s*(?:g|kg)(?:\\s+luomu)?$/);
+    const plainStaple = clean.toLocaleLowerCase("fi").match(/^(kaurahiutale|makaroni|spagetti)\s+\d+(?:[.,]\d+)?\s*(?:g|kg)(?:\s+luomu)?$/);
     if (plainStaple) clean = plainStaple[1];
     if (clean.length < 5 || /[&/+%]/.test(clean)) return [];
     const matches = strictFoods.get(clean.toLocaleLowerCase("fi")) ?? [];
