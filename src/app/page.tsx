@@ -6242,6 +6242,40 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Kun aktiivinen kauppavalinta on ratkennut, käynnistä Göstan täsmälleen saman
     // ketjukohtaisen master-cachen lämmitys heti. Jos Gösta avataan kesken latauksen,
     // näkyvä haku käyttää samaa cacheen tallennettua promisea eikä tee tuplapyyntöä.
+    // Citymarket snapshots are collected server-side. Selection triggers the existing
+    // collector without blocking the normal leaflet/master-cache warmup.
+    // Rewarm after the collector has had time to publish its completed snapshot.
+    if (storeModeChosenV299 && kStore && /^K-Citymarket\\s+/i.test(kStore.name || "")) {
+      const citymarketContext = warmContexts.find((item) => item.kStoreName === kStore.name);
+      const selectedName = kStore.name;
+      void fetch("/api/offers/citymarket-warmup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storeName: selectedName }),
+      }).then((response) => response.json()).then((result) => {
+        if (result?.status !== "scheduled" && result?.status !== "running") return;
+        // The server collector is asynchronous; refresh the master cache after
+        // completion rather than displaying the previous empty snapshot forever.
+        if (!citymarketContext) return;
+        const startedAt = Date.now();
+        const check = async () => {
+          if (Date.now() - startedAt > 120000) return;
+          try {
+            const response = await fetch("/api/offers/citymarket-warmup-status?storeName=" + encodeURIComponent(selectedName), { cache: "no-store" });
+            if (response.ok) {
+              const status = await response.json();
+              if (status?.fresh) {
+                invalidateZiiplyGostaOfferCacheV804(citymarketContext);
+                void warmZiiplyGostaOfferCacheV182(citymarketContext);
+                return;
+              }
+            }
+          } catch {}
+          window.setTimeout(check, 8000);
+        };
+        window.setTimeout(check, 8000);
+      }).catch((error) => console.debug("[Gösta Citymarket background refresh]", error));
+    }
     for (const context of warmContexts) {
       void warmZiiplyGostaOfferCacheV182(context).catch((error) => {
         console.debug("[Ziiply offer warmup] skipped after provider failure", error);
