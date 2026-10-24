@@ -11,6 +11,9 @@ import { N183_STORE_KEY, validateN183Batch } from "./kcitymarket-n183-validate.m
 
 export async function importN183Batch(batch, sql, now = Date.now()) {
   const rows = validateN183Batch(batch, now);
+  // Never accept the browser-discovery report as a verified batch.
+  if (batch.note?.includes("Diagnostic only") || batch.requests || batch.candidates)
+    throw new Error("N183 diagnostic discovery is not an importable source");
   const source = (() => { try { return new URL(batch.sourceUrl); } catch { return null; } })();
   if (!source || source.protocol !== "https:" ||
       !["k-ruoka.fi", "www.k-ruoka.fi"].includes(source.hostname) ||
@@ -19,7 +22,8 @@ export async function importN183Batch(batch, sql, now = Date.now()) {
       batch.sourceEvidence.storeId !== "N183" ||
       !Array.isArray(batch.sourceEvidence.offerIds) ||
       batch.sourceEvidence.offerIds.length !== rows.length ||
-      rows.some(row => !batch.sourceEvidence.offerIds.includes(String(row.offerId))))
+      rows.some(row => !batch.sourceEvidence.offerIds.includes(String(row.offerId))) ||
+      new Set(batch.sourceEvidence.offerIds).size !== rows.length)
     throw new Error("N183 source evidence missing; refusing to publish");
   const scanTime = Date.parse(String(batch.scannedAt ?? ""));
   if (!Number.isFinite(scanTime) || Math.abs(now - scanTime) > 60 * 60 * 1000)
