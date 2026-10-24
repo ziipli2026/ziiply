@@ -8,6 +8,8 @@ type Coords = {lat:number;lon:number};
 const fmt=(n:number|null)=>n==null||!Number.isFinite(n)?"–":n.toLocaleString("fi-FI",{minimumFractionDigits:3,maximumFractionDigits:3});
 export default function TankkausPage(){
  const [mode,setMode]=useState<"home"|"prices"|"report">("home");
+ const [embedded,setEmbedded]=useState(false);
+ useEffect(()=>{const params=new URLSearchParams(window.location.search);const requested=params.get("mode");if(requested==="prices"||requested==="report"){setMode(requested);setEmbedded(true);}},[]);
  const [coords,setCoords]=useState<Coords|null>(null);
  const [stations,setStations]=useState<Station[]>([]);
  const [status,setStatus]=useState("Sijaintia ei ole vielä haettu.");
@@ -32,8 +34,8 @@ export default function TankkausPage(){
  const visible=stations.filter(s=>s.distanceKm<=radius&&s[fuel]!=null).sort((a,b)=>(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
  return <main className="min-h-screen bg-[#fff4cf] px-4 py-8 text-[#174c35]">
   <div className="mx-auto max-w-5xl">
-   <header className="mb-7 text-center"><a href="/" className="text-sm font-bold underline">Ziiply.fi</a><h1 className="mt-3 text-4xl font-black">Tankataan yhdessä halvemmalla!</h1><p className="mt-2 text-lg font-bold">Yksi kuva. Kaikkien hyöty.</p><p className="mt-2">Auta muita autoilijoita ilmoittamalla polttoainehintoja. Hintojen katselu on aina ilmaista.</p></header>
-   <nav className="mb-6 grid grid-cols-2 gap-3"><button onClick={()=>setMode("report")} className="rounded-2xl border-2 border-[#17573c] bg-[#e3edc9] p-5 text-lg font-black shadow">📷 Ilmoita hinnat</button><button onClick={()=>setMode("prices")} className="rounded-2xl border-2 border-[#17573c] bg-white p-5 text-lg font-black shadow">⛽ Katso hinnat</button></nav>
+   {!embedded&&<header className="mb-7 text-center"><a href="/" className="text-sm font-bold underline">Ziiply.fi</a><h1 className="mt-3 text-4xl font-black">Tankataan yhdessä halvemmalla!</h1><p className="mt-2 text-lg font-bold">Yksi kuva. Kaikkien hyöty.</p><p className="mt-2">Auta muita autoilijoita ilmoittamalla polttoainehintoja. Hintojen katselu on aina ilmaista.</p></header>}
+   {!embedded&&<nav className="mb-6 grid grid-cols-2 gap-3"><button onClick={()=>setMode("report")} className="rounded-2xl border-2 border-[#17573c] bg-[#e3edc9] p-5 text-lg font-black shadow">📷 Ilmoita hinnat</button><button onClick={()=>setMode("prices")} className="rounded-2xl border-2 border-[#17573c] bg-white p-5 text-lg font-black shadow">⛽ Katso hinnat</button></nav>}
    {mode==="home"&&<p className="text-center">Valitse hintojen ilmoittaminen tai lähialueen hintojen katselu.</p>}
    {mode==="prices"&&<section className="rounded-2xl border-2 border-[#17573c] bg-white p-4">
     <div className="flex flex-wrap items-center gap-3"><label className="font-bold">Polttoaine <select aria-label="Polttoaine" value={fuel} onChange={e=>setFuel(e.target.value as typeof fuel)} className="ml-2 rounded border p-2"><option value="price95">95E10</option><option value="price98">98E5</option><option value="diesel">Diesel</option></select></label><label className="font-bold">Etäisyys <select aria-label="Etäisyys" value={radius} onChange={e=>setRadius(Number(e.target.value))} className="ml-2 rounded border p-2"><option value={10}>10 km</option><option value={25}>25 km</option><option value={50}>50 km</option><option value={100}>100 km</option></select></label><button onClick={load} disabled={loading} className="rounded-lg bg-[#17573c] px-4 py-2 font-bold text-white disabled:opacity-50">Päivitä sijainti</button></div>
