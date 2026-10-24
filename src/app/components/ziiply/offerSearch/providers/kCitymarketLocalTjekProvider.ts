@@ -216,6 +216,8 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
       }
       }
       entry.progress.accepted = entry.rows.length; entry.progress.updatedAt = new Date().toISOString();
+      // A page may contain non-offer hotspots (links, images, navigation).
+      // Do not mistake an empty offer-ID set for the end of pagination.
       if(hotspots.length===0)break;
       if(page===100)pageLimitReached=true;
     }
