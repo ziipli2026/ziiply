@@ -8,7 +8,9 @@ export const maxDuration = 300;
 // Existing collector, triggered when a Citymarket is selected. Do not block Gösta.
 const inFlight = new Set<string>();
 const recentAttempts = new Map<string, number>();
+const recentFailures = new Map<string, string>();
 const MIN_RETRY_MS = 15 * 60 * 1000;
+const FAILURE_RETRY_MS = 60 * 1000;
 
 export async function POST(request: NextRequest) {
   let name = "";
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
   }
   if (inFlight.has(key)) return NextResponse.json({ ok: true, status: "running" });
   const now = Date.now();
-  if (now - (recentAttempts.get(key) ?? 0) < MIN_RETRY_MS) {
+  if (now - (recentAttempts.get(key) ?? 0) < (recentFailures.has(key) ? FAILURE_RETRY_MS : MIN_RETRY_MS)) {
     return NextResponse.json({ ok: true, status: "recently-requested" });
   }
   try {
@@ -45,8 +47,11 @@ export async function POST(request: NextRequest) {
     console.info("[Gösta Citymarket warmup] started", { storeName: name, key });
     try {
       const offers = await refreshKCitymarketSelectedStoreSnapshot(name);
+      recentFailures.delete(key);
       console.info("[Gösta Citymarket warmup] published", { storeName: name, key, count: offers.length, elapsedMs: Date.now() - startedAt });
     } catch (error) {
+      recentFailures.set(key, error instanceof Error ? error.message : String(error));
+      recentAttempts.set(key, Date.now());
       console.error("[Gösta Citymarket warmup] failed", { storeName: name, key, elapsedMs: Date.now() - startedAt, error: error instanceof Error ? error.message : String(error) });
     } finally {
       inFlight.delete(key);
