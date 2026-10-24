@@ -143,10 +143,21 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
     ]);
   }
   const live = (entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
+  // Return verified rows from the exact selected store as soon as they have
+  // been fetched. In serverless requests the process may end before a long
+  // Tjek scan completes; suppressing these rows made every non-N183 store look
+  // empty because its previous snapshot may not exist. The debug payload keeps
+  // stage/pages/offerIds/running visible so partial coverage is never hidden.
+  // A complete scan still wins; if no live rows arrived, use the last snapshot.
   const liveScanComplete = Boolean(entry && !entry.running && entry.progress.stage === "complete");
-  // Only a fully completed live scan may supersede a durable snapshot.
-  // Never expose a partial scan as if it were the complete store catalogue.
-  const tjekRows = liveScanComplete && live.length ? live : fallback;
+  const tjekRows = live.length ? live : fallback;
+  if (entry && !liveScanComplete && live.length) {
+    console.info("[K-Citymarket] serving verified progressive Tjek rows", JSON.stringify({
+      storeName: selectedStoreName, storeId: entry.progress.storeId,
+      stage: entry.progress.stage, pages: entry.progress.pages,
+      offerIds: entry.progress.offerIds, accepted: live.length,
+    }));
+  }
   return [...primary, ...tjekRows].map(normalizeTjekPackagePrice);
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
