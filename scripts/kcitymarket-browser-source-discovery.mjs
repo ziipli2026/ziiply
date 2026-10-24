@@ -126,7 +126,7 @@ try {
       Number.isFinite(Date.parse(String(sample.validUntil)))),
   })));
   const n183Candidates = verifiedIdentitySamples.filter(item =>
-    item.storeId === "N183" && /k[- ]?citymarket\\s+hyvinkää|k[- ]?citymarket\\s+hyvinkaa/i.test(item.storeName)
+    item.storeId === "N183" && /k[- ]?citymarket\s+hyvinkää|k[- ]?citymarket\s+hyvinkaa/i.test(item.storeName)
     && item.hasPrice && item.hasValidity && Boolean(item.offerId));
   const rejectedIdentityCount = verifiedIdentitySamples.filter(item =>
     item.storeId === "N183" && !n183Candidates.includes(item)).length;
