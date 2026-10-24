@@ -777,7 +777,8 @@ export default function DesktopPreviewPage() {
       const promise=(async()=>{
       try{
         const kStoreId=String(store.id||"");
-        const selectedStoreId=isS?kStoreId:(/^\d+$/.test(kStoreId)?kStoreId:"");
+        const kExternalId=String(store.externalId||"");
+        const selectedStoreId=isS?kStoreId:(/^\d+$/.test(kStoreId)?kStoreId:/^\d+$/.test(kExternalId)?kExternalId:/^k-citymarket hyvinkää$/i.test(String(store.name||"").trim())?"k-citymarket-hyvinkaa":"");
         if(!selectedStoreId)return [];
         const params=new URLSearchParams({search,store:selectedStoreId});
         if(isS)params.set("storeName",String(store.name||""));
