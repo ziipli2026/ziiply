@@ -816,7 +816,7 @@ export default function DesktopPreviewPage() {
       return true;
     });
     if(!desktopPickCompareCandidate(unique,name,ean,isS)){
-      logCompareAudit("comparison_product_unmatched",{store:store.name,kind,name,ean,queries,candidateCount:unique.length,reason:unique.length?"candidates_rejected_by_identity_or_price":"no_candidates_from_price_api",sample:unique.slice(0,5).map((p:any)=>({name:p.name,ean:p.ean,price:p.price,priceReliable:desktopReliableComparePrice(p),eanMatches:Boolean(normalizedEan)&&normalizeEan(p.ean)===normalizedEan,packageCompatible:desktopPackageCompatible(name,String(p.name||"")),attributesCompatible:isComparisonAttributeCompatible(name,String(p.name||"")),identityCompatible:desktopStrictCompareIdentity(name,String(p.name||""))}))});
+      logCompareAudit("comparison_product_unmatched",{store:store.name,kind,name,ean,queries,candidateCount:unique.length,reason:unique.length?"candidates_rejected_by_identity_or_price":"no_candidates_from_price_api",sample:unique.slice(0,5).map((p:any)=>({name:p.name,ean:p.ean,price:p.price,priceReliable:desktopReliableComparePrice(p),eanMatches:Boolean(normalizedEan)&&normalizeEan(p.ean)===normalizedEan,packageCompatible:desktopPackageCompatible(name,String(p.name||"")),attributesCompatible:isComparisonAttributeCompatible(name,String(p.name||"")),identityCompatible:productGroupGate(name,String(p.name||""))}))});
     }
     return unique;
   }
@@ -922,26 +922,6 @@ export default function DesktopPreviewPage() {
       return da-db||Number(a.price)-Number(b.price);
     })[0]||null;
   }
-  function desktopStrictCompareIdentity(source:string,candidate:string):boolean{
-    // Compare the product identity, not retail-chain brand labels or grammatical endings.
-    // Attribute and package compatibility are checked separately before this helper.
-    const tokens=(value:string)=>String(value).toLocaleLowerCase("fi")
-      .replace(/^(?:(?:kotimaista|coop|xtra|rainbow|pirkka|k-menu|eldorado|first price|meira|santa maria)\s+)+/i,"")
-      .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)\b/gi," ")
-      .replace(/[^a-zåäö0-9 ]/g," ").split(/\s+/)
-      .filter(w=>w.length>=3&&!["msc","luomu","suomi","suomalainen","pussi","purkki","mauste"].includes(w));
-    const stem=(word:string)=>word.replace(/(eet|eiden|iden|ien|et|en|ja|jä|t)$/u,"");
-    const sourceWords=tokens(source),candidateWords=tokens(candidate);
-    if(!sourceWords.length||!candidateWords.length)return false;
-    // Distinct named varieties are not interchangeable even when a generic noun matches.
-    // Preserve qualifiers such as valko-/mauste-/musta- in compound food names.
-    const matches=(a:string,b:string)=>a===b||(a.length>=5&&b.length>=5&&stem(a)===stem(b))
-      ||(a.length>=7&&b.length>=7&&a.slice(0,6)===b.slice(0,6));
-    // Do not infer equivalence from a shared generic modifier or package size.
-    // Every source identity token must have a counterpart, with inflection tolerance.
-    return sourceWords.every(w=>candidateWords.some(c=>matches(w,c)))
-      &&candidateWords.every(w=>sourceWords.some(c=>matches(w,c)));
-  }
   function desktopHasExplicitPackage(name:string):boolean{
     return /\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl)\b/i.test(String(name));
   }
@@ -998,7 +978,7 @@ export default function DesktopPreviewPage() {
     const compatible=candidates.filter((p:any)=>desktopReliableComparePrice(p)
       &&desktopPackageCompatible(name,String(p.name||""))
       &&isComparisonAttributeCompatible(name,String(p.name||""))
-      &&desktopStrictCompareIdentity(name,String(p.name||"")));
+      &&productGroupGate(name,String(p.name||"")));
     const sourceOwn=/^(?:pirkka|k-menu|coop|xtra|kotimaista|rainbow)\b/i.test(name);
     const ownRe=isS?/^(?:coop|xtra|kotimaista|rainbow)\b/i:/^(?:pirkka|k-menu)\b/i;
     const own=compatible.filter((p:any)=>ownRe.test(p.name));
@@ -1330,7 +1310,7 @@ export default function DesktopPreviewPage() {
     if(!originalName||!alternativeName
       ||!desktopPackageCompatible(originalName,alternativeName)
       ||!isComparisonAttributeCompatible(originalName,alternativeName)
-      ||!desktopStrictCompareIdentity(originalName,alternativeName)){
+      ||!productGroupGate(originalName,alternativeName)){
       flashCartNotice("Vaihtoehto ei vastaa alkuperäistä tuotetta tai pakkauskokoa. Valitse yhteensopiva tuote.");
       return;
     }
