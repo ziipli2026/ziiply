@@ -134,6 +134,8 @@ export async function refreshKCitymarketCampaignCache(storeName: string) {
   if (previousActive >= 5 && currentActive < Math.max(3, Math.floor(previousActive * 0.5))) {
     throw new Error(`Tjek campaign coverage regression: ${currentActive} active rows vs ${previousActive} previously; previous snapshot preserved`);
   }
+  // Report accepted/identified offer coverage; do not silently interpret a
+  // successful source request as complete coverage of every hotspot.
   if (entry.progress.offerIds >= 5 && entry.rows.length < Math.max(3, Math.floor(entry.progress.offerIds * 0.2))) {
     throw new Error(`Tjek campaign detail coverage incomplete: ${entry.rows.length}/${entry.progress.offerIds}; previous snapshot preserved`);
   }
