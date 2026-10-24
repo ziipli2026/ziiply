@@ -44,5 +44,12 @@ assert.match(source, /Number\(incoming\.amount\)/, "duplicate recipe items must 
 assert.match(source, /return \{\.\.\.incoming,amount:totalGrams,unit:"g"\}/, "merged weight retained for comparison");
 assert.match(source, /previous\.amount!=null&&incoming\.amount!=null/, "missing recipe amounts cannot be merged as zero");
 assert.match(source, /Number\(previous\.amount\)>0&&Number\(incoming\.amount\)>0/, "merged recipe amounts must be positive");
+const actualWeightExpression = source.match(/const totalGrams=([^;]+);/);
+assert.ok(actualWeightExpression, "production duplicate ingredient weight expression found");
+const mergedWeight = new Function("previous", "incoming", "prevUnit", "nextUnit", "return (" + actualWeightExpression[1] + ");");
+assert.equal(mergedWeight({amount:300},{amount:0.5},"g","kg"),800);
+assert.equal(mergedWeight({amount:0.5},{amount:300},"kg","g"),800);
+assert.equal(mergedWeight({amount:0.2},{amount:0.3},"kg","kg"),500);
+console.log("PASS production duplicate ingredient expression: grams/kilograms");
 console.log("PASS recipe weight units, kg pricing, small positive prices, serving scaling arithmetic");
 console.log("NOTE static source assertions plus isolated arithmetic, not browser or provider integration");
