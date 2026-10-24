@@ -181,7 +181,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  // Explicit recipe alternatives are OR choices, never separate requirements.
  // Evaluate each choice with the same category/attribute checks as an ordinary ingredient.
  const original=String(context?.sourceLine||"");
- if(/\s+tai\s+/i.test(original)){
+ if(/\s+tai\s+/i.test(original) && !/\([^)]*\btai\b[^)]*\)/i.test(original)){
    const alternatives=original.split(/\s+tai\s+/i).map(x=>x.trim()).filter(Boolean);
    if(alternatives.length>1){
      const stripQuantity=(x:string)=>x.replace(/^\s*\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt|pss|prk|rkl|tl)\s+/i,"").trim();
