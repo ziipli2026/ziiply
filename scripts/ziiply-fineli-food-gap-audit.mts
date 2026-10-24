@@ -10,7 +10,7 @@ const rows=await sql`
  AND NOT EXISTS(SELECT 1 FROM public.ziiply_ean_fineli_matches m WHERE m.ean=e.ean)
  AND NOT EXISTS(SELECT 1 FROM public.ziiply_ean_fineli_candidates c WHERE c.ean=e.ean)
 `;
-const nonfood=/\\b(?:kissanruoka|koiranruoka|lemmikin|kissanhiekka|pesuaine|puhdistusaine|wc-paperi|shampoo|saippua|deodorantti|hammastahna|vaippa|aurinkovoide|kasvovoide|toppahousut|fleece|hanskat|sukat|lautapeli|palapeli|paristo|led|plafondi|lautanen|lelu|olut|siideri|lonkero|cocktail)\\b/i;
+const nonfood=/\b(?:kissanruoka|koiranruoka|lemmikin|kissanhiekka|pesuaine|puhdistusaine|wc-paperi|shampoo|saippua|deodorantti|hammastahna|vaippa|aurinkovoide|kasvovoide|toppahousut|fleece|hanskat|sukat|lautapeli|palapeli|paristo|led|plafondi|lautanen|lelu|olut|siideri|lonkero|cocktail)\b/i;
 const categories=[
  ["dairy_eggs",/maito|jogurtti|juusto|rahka|kananmuna|kerma|piimä/i],
  ["bakery_grains",/leipä|pulla|jauho|kaurahiutale|riisi|pasta|spagetti|makaroni|muro|puuro/i],
