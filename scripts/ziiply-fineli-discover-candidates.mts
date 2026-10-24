@@ -270,3 +270,61 @@ console.log(JSON.stringify({ mode:"category_token_overlap", scanned:categoryScan
 console.log(JSON.stringify({ mode: "broad_category_discovery", scanned: broadScanned,
   eligible: broadEligible, inserted: broadInserted, pages: broadPages,
   categories: broadRules.length, autoApproved: 0 }));
+
+
+// Additional database-wide strict name discovery: strip known retail brand prefixes
+// and terminal package quantities only. Never infer a recipe from ingredient words.
+const strictBrandPrefixes = /^(?:(?:pirkka|coop|xtra|kotimaista|rainbow|k-menu|s-market)\\s+)+/i;
+const strictQuantitySuffix = /\\s+\\d+(?:[.,]\\d+)?\\s*(?:kg|g|ml|l)(?:\\s+(?:\\d+\\s*(?:kpl|lk)|suomi|kotimainen))?$/i;
+const excludedNonFood = /(?:koiran|kissan|lemmik|shampoo|saippua|deodorant|hammastahna|voide|meikki|pesuaine|kynttil|suojapeite|pussilakana|kissanhiekka|vitamiini|ravintolisä)/i;
+const strictFoods = new Map<string, Array<{id:number;name:string}>>();
+for (const f of fineliDescriptions) {
+  const name = String(f.name_fi ?? "");
+  if (!name || name.includes("�") || name.includes(",") || name.length < 5) continue;
+  const key = name.toLocaleLowerCase("fi").trim();
+  strictFoods.set(key,[...(strictFoods.get(key) ?? []),{id:Number(f.fineli_id),name}]);
+}
+let strictAfter = "", strictScanned = 0, strictEligible = 0, strictInserted = 0;
+for (;;) {
+  const page = await sql`
+    SELECT e.ean,e.name,e.brand FROM public.ziiply_ean_products e
+    WHERE e.ean > ${strictAfter}
+      AND NOT EXISTS (SELECT 1 FROM public.ziiply_ean_fineli_matches m WHERE m.ean=e.ean)
+      AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean=e.ean)
+    ORDER BY e.ean LIMIT ${batchSize}
+  `;
+  if (!page.length) break;
+  strictAfter = String(page[page.length-1].ean);
+  strictScanned += page.length;
+  const proposals = page.flatMap(p => {
+    const original = String(p.name ?? "").trim();
+    if (excludedNonFood.test(original)) return [];
+    const brand = String(p.brand ?? "").trim();
+    let clean = original;
+    if (brand && clean.toLocaleLowerCase("fi").startsWith(brand.toLocaleLowerCase("fi")+" "))
+      clean = clean.slice(brand.length).trim();
+    clean = clean.replace(strictBrandPrefixes,"").replace(strictQuantitySuffix,"").trim();
+    if (clean.length < 5 || /[&/+%]/.test(clean)) return [];
+    const matches = strictFoods.get(clean.toLocaleLowerCase("fi")) ?? [];
+    if (matches.length !== 1) return [];
+    const f = matches[0];
+    return [{ean:String(p.ean),fineli_id:f.id,evidence:{
+      productName:original,brand:p.brand,fineliName:f.name,
+      rule:"strict whole food name after retail brand and terminal pack-size removal; review required"
+    }}];
+  });
+  strictEligible += proposals.length;
+  for (let offset=0;offset<proposals.length;offset+=batchSize) {
+    const saved = await sql`
+      INSERT INTO public.ziiply_ean_fineli_candidates(ean,fineli_id,method,confidence,status,evidence)
+      SELECT c.ean,c.fineli_id,'strict_packsize_name','review_required','pending',c.evidence
+      FROM jsonb_to_recordset(${JSON.stringify(proposals.slice(offset,offset+batchSize))}::jsonb)
+        AS c(ean text,fineli_id integer,evidence jsonb)
+      WHERE NOT EXISTS(SELECT 1 FROM public.ziiply_ean_fineli_matches m WHERE m.ean=c.ean)
+        AND NOT EXISTS(SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean=c.ean)
+      ON CONFLICT(ean,fineli_id) DO NOTHING RETURNING ean
+    `;
+    strictInserted += saved.length;
+  }
+}
+console.log(JSON.stringify({mode:"strict_packsize_name",scanned:strictScanned,eligible:strictEligible,inserted:strictInserted,autoApproved:0}));
