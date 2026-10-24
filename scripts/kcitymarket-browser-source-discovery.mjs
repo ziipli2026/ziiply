@@ -40,18 +40,21 @@ async function inspectResponse(response) {
       // nodes, results or store objects. Inspect structure only; never log bodies.
       const rows = [];
       const visited = new Set();
+      let visitedNodes = 0;
       function collect(value, depth = 0) {
-        if (!value || typeof value !== "object" || depth > 7 || visited.has(value) || rows.length >= 300) return;
+        if (!value || typeof value !== "object" || depth > 9 || visited.has(value) || rows.length >= 300 || visitedNodes >= 5000) return;
         visited.add(value);
+        visitedNodes++;
         if (Array.isArray(value)) {
           for (const item of value.slice(0, 300)) collect(item, depth + 1);
           return;
         }
         if (/price|discount|campaign/i.test(Object.keys(value).join(" ")) &&
             /name|title|ean|offer|product/i.test(Object.keys(value).join(" "))) rows.push(value);
-        for (const [key, child] of Object.entries(value)) {
-          if (/data|edge|node|result|offer|campaign|benefit|product|item|store|page/i.test(key))
-            collect(child, depth + 1);
+        // APIs also nest product lists under content, hits, records and arbitrary
+        // GraphQL aliases. Traverse object children without logging raw values.
+        for (const child of Object.values(value)) {
+          if (child && typeof child === "object") collect(child, depth + 1);
         }
       }
       collect(body);
