@@ -27,6 +27,12 @@ const flags = (product: string, food: string): string[] => {
   // Normalize Finnish pizza spelling; otherwise a matching pitsa is falsely flagged.
   const normalizedProduct = product.replace(/pitsa/g, 'pizza').replace(/pinsa/g, 'pizza');
   if (dish.test(food) && !dish.test(normalizedProduct)) issues.push('prepared_dish_vs_product');
+  // A named ingredient cannot inherit nutrition from a prepared dish merely because
+  // the dish mentions that ingredient (e.g. maitojuoma -> pannukakku).
+  const preparedFood = /pannukakku|lettu|ohukainen|vohveli|kakku|muffinssi|pull[aä]|piirakka|pizza|pitsa|pata|keitto|kastike|laatikko|gratiini|kiusaus|risotto|puuro|muhennos|salaatti|wokki|pihvi|pyörykkä/i;
+  const preparedProduct = /pannukakku|lettu|ohukainen|vohveli|kakku|muffinssi|pull[aä]|piirakka|pizza|pitsa|pata|keitto|kastike|laatikko|gratiini|kiusaus|risotto|puuro|muhennos|salaatti|wokki|pihvi|pyörykkä/i;
+  if (preparedFood.test(food) && !preparedProduct.test(product) && !issues.includes('prepared_dish_vs_product'))
+    issues.push('prepared_dish_vs_product');
   // Non-food merchandise must never be proposed for nutrition matching.
   if (/tuoksukynttil|tuoksutikku|tuoksulämpökynttil|pesuaine|shampoo|saippua|koiran|kissan|lemmik/i.test(product)) issues.push('non_food_product');
   if (/juustokastikkeella|juustoperunoilla/.test(product) && !/kastike|peruna/.test(food)) issues.push('prepared_meal_vs_ingredient');
