@@ -194,6 +194,13 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
  if(/nelson garden|kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|tuuheuttava|hiussuihke|merisuolasuihke|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
+ // Raw potato ingredients must not fall through to the unknown-literal gate.
+ // This applies to every store and accepts whole potatoes only, not prepared dishes.
+ if(term==="peruna"){
+   const rawPotato=/(?:^|[\\s-])(?:peruna|perunat|ruokaperuna|puikulaperuna|siikliperuna)(?=$|[\\s-])/i.test(name);
+   const processed=/pyörykk|gnocch|salaat|sekoit|muus|lastu|sips|ranskan|keitto|laatik|gratiin|pihv|paistet|lohkoperun|uuniperun|valmisruok|peruna-(?:sipuli|kikherne|pekoni)/i.test(name);
+   return rawPotato&&!processed?null:"ingredient_product_type_mismatch";
+ }
  const categoryIntent=recipeCategory(term);
  const categoryRejection=recipeCategoryRejection(term,product);
  if(categoryRejection)return categoryRejection;
