@@ -386,6 +386,10 @@ for (;;) {
     // proposed matches review-only and never generalize this to prepared foods.
     if (/^(?:pesty (?:jauhoinen|kiinteä) peruna|peruna (?:jauhoinen|kiinteä) (?:pesty|harjattu|pesty\/mull suomi)|suhosfarmi peruna (?:afra jauhoinen|belana kiinteä)|peruna (?:siikli|suomi kg|annabelle|afra paikallinen (?:pesty|harjattu))|(?:nicola peruna kiinteä|varhaisperuna pesty suomi|kesäperuna multainen suomi|uuden sadon peruna ulkomainen|aromäen tila siikli peruna))$/.test(original.toLocaleLowerCase("fi")))
       clean = "peruna";
+    // Exact raw-carrot labels with washing, soil, bunch and origin qualifiers.
+    // Deliberately exclude carrot recipes, prepared vegetables and baby food.
+    if (/^(?:porkkana pesty|porkkananippu suomi|porkkana pesty suomi|porkkana multa|porkkana pesty suomi 2lk|koivulan tila porkkananippu)$/.test(original.toLocaleLowerCase("fi")))
+      clean = "porkkana";
     const food=rawFineli.get(clean);
     if (!food) return [];
     return [{ean:String(p.ean),fineli_id:food.id,evidence:{
