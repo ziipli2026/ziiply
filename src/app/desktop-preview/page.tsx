@@ -1426,6 +1426,7 @@ export default function DesktopPreviewPage() {
   function addRecipeSelectionToCart(product:any) {
     const ingredient=activeRecipeSelectionIngredient();
     const count=selectedRecipePackageCount(product);
+    if(!ingredient)appendDesktopRecipeDebug("cart_selection_missing_ingredient",{step:recipeSearchStepRef.current,refCount:recipeSearchItemsRef.current.length,productName:String(product?.name||product?.title||"")});
     let recipeTitle="";
     try{recipeTitle=String(JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"{}").title||"")}catch{}
     appendDesktopRecipeDebug("cart_selection",{step:recipeSearchStepRef.current,ingredient:recipeSearchItemsRef.current[recipeSearchStepRef.current]||null,product,packageCount:count,cartQuantity:count??1,usedDefaultQuantity:count===null,recipeTitle});
