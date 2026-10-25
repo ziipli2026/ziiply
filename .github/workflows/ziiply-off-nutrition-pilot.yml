@@ -4,6 +4,11 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
     inputs:
+      retry_not_found:
+        description: 'Retry OFF not-found EANs older than 24h (instead of waiting 30 days)'
+        required: false
+        default: true
+        type: boolean
       limit:
         description: 'EAN codes per shard (25-150)'
         required: true
@@ -33,7 +38,7 @@ jobs:
       - name: Import isolated OFF nutrition records
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '100' }} --shard=${{ matrix.shard }}
+        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '100' }} --shard=${{ matrix.shard }} ${{ inputs.retry_not_found == true && '--retry-not-found' || '' }}
       - name: Verify import coverage
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
