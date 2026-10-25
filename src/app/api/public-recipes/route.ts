@@ -28,13 +28,11 @@ export async function POST(req:NextRequest){
  const connection=process.env.DATABASE_URL||process.env.POSTGRES_URL;
  if(!connection)return reply({error:"Reseptikirjaston tietokantayhteys puuttuu."},503);
  const sql=neon(connection);
- // Atomic contributor limit: serialize writes by contributor using a transaction-level advisory lock.
- const result=await sql.transaction([
- sql`SELECT pg_advisory_xact_lock(hashtextextended(${contributorId},0))`,
- sql`SELECT COUNT(*)::int AS count FROM ziiply_acme_recipe_submissions WHERE contributor_id=${contributorId}::uuid`
- ]);
- if(Number(result[1]?.[0]?.count)>=2)return reply({error:"Olet jo lähettänyt kaksi reseptiä. Kiitos osallistumisesta!"},409);
- const rows=await sql`INSERT INTO ziiply_acme_recipe_submissions(id,contributor_id,title,ingredients,instructions,servings,source_method) VALUES(${id}::uuid,${contributorId}::uuid,${title},${ingredients},${instructions},${servings},${body.sourceMethod}) ON CONFLICT(id) DO NOTHING RETURNING id`;
+ const rows=await sql`INSERT INTO ziiply_acme_recipe_submissions(id,contributor_id,title,ingredients,instructions,servings,source_method)
+ SELECT ${id}::uuid,${contributorId}::uuid,${title},${ingredients},${instructions},${servings},${body.sourceMethod}
+ WHERE (SELECT COUNT(*) FROM ziiply_acme_recipe_submissions WHERE contributor_id=${contributorId}::uuid)<2
+ ON CONFLICT(id) DO NOTHING RETURNING id`;
+ if(rows.length===0)return reply({error:"Kaksi reseptiä on jo lähetetty tai lähetys on jo tallennettu."},409);
  return reply({ok:true,status:"pending_review",saved:rows.length===1});
  }catch(e){console.error("public recipes",e instanceof Error?e.message:"unknown");return reply({error:"Tallennus epäonnistui. Yritä uudelleen."},503);}
 }
