@@ -1,0 +1,27 @@
+name: Ziiply OFF Finnish catalogue
+on:
+  workflow_dispatch:
+    inputs:
+      pages:
+        description: 'OFF pages to collect (100 products per page)'
+        required: true
+        default: '5'
+        type: choice
+        options: ['1', '5', '10', '20']
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install PostgreSQL client
+        run: npm install --no-save --ignore-scripts pg
+      - name: Validate catalogue importer
+        run: node --check scripts/import-off-catalogue.mjs
+      - name: Collect Finnish OFF catalogue into isolated staging
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: node scripts/import-off-catalogue.mjs --pages=${{ inputs.pages || '5' }}
