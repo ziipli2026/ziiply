@@ -303,11 +303,13 @@ export default function DesktopPreviewPage() {
           }catch(error){detailLogs.push({title:p.title,error:String(error)});return null}
         }))).filter((p):p is {title:string;url:string;source:string;content:string}=>p!==null);
         if(controller.signal.aborted)return;
-        trace.results=results.length;
+        const relevantResults=results.filter(r=>r.title.toLocaleLowerCase("fi").includes(query.toLocaleLowerCase("fi")));
+        trace.results=relevantResults.length;
+        trace.filteredOut=results.filter(r=>!relevantResults.includes(r)).map(r=>r.title);
         trace.status="valmis";
         setJustiinaRecipeDebug({...trace});
-        setJustiinaRecipeResults(results);
-        setJustiinaRecipeMessage(results.length?results.length+" reseptiosumaa":"Ei suoria reseptiosumia.");
+        setJustiinaRecipeResults(relevantResults);
+        setJustiinaRecipeMessage(relevantResults.length?relevantResults.length+" reseptiosumaa":"Ei reseptejä tällä nimellä.");
       }catch(error){if(!controller.signal.aborted){setJustiinaRecipeDebug({...trace,status:"virhe",error:String(error)});setJustiinaRecipeResults([]);setJustiinaRecipeMessage("Reseptipalvelu ei vastaa.")}}
       finally{if(!controller.signal.aborted)setJustiinaRecipeLoading(false)}
     },300);
