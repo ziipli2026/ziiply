@@ -98,7 +98,14 @@ export async function GET(req: NextRequest) {
         }
       }
     }
-    const deduplicated = [...unique.values()].sort((a,b) => a.distanceKm-b.distanceKm);
+    const radiusRaw = req.nextUrl.searchParams.get("maxDistanceKm");
+    const radius = radiusRaw === null ? null : Number(radiusRaw);
+    if (radius !== null && (!Number.isFinite(radius) || radius <= 0 || radius > 100)) {
+      return NextResponse.json({ ok: false, error: "Invalid station radius" }, { status: 400 });
+    }
+    const deduplicated = [...unique.values()]
+      .filter((station) => radius === null || station.distanceKm <= radius)
+      .sort((a,b) => a.distanceKm-b.distanceKm);
     // GPS affects sorting only. No radius or movement threshold is applied.
     // Legacy clients receive all stations; pagination is opt-in.
     const pageRaw = req.nextUrl.searchParams.get("page");
