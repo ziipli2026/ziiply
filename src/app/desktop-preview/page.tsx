@@ -234,7 +234,7 @@ export default function DesktopPreviewPage() {
   const [gostaHomeSearchOpen, setGostaHomeSearchOpen] = useState(false);
   const [justiinaRecipeSearchOpen,setJustiinaRecipeSearchOpen]=useState(false);
   const [justiinaRecipeQuery,setJustiinaRecipeQuery]=useState("");
-  const [justiinaRecipeResults,setJustiinaRecipeResults]=useState<{title:string;url:string;source:string}[]>([]);
+  const [justiinaRecipeResults,setJustiinaRecipeResults]=useState<{title:string;url:string;source:string;content:string}[]>([]);
   const [justiinaRecipeLoading,setJustiinaRecipeLoading]=useState(false);
   const [justiinaRecipeMessage,setJustiinaRecipeMessage]=useState("");
   useEffect(()=>{
@@ -245,12 +245,12 @@ export default function DesktopPreviewPage() {
     const timer=setTimeout(async()=>{
       setJustiinaRecipeLoading(true);
       try{
-        const url="https://fi.wikibooks.org/w/api.php?"+new URLSearchParams({action:"query",generator:"search",gsrsearch:"intitle:Resepti "+query,gsrnamespace:"0",gsrlimit:"15",prop:"info",inprop:"url",format:"json",origin:"*"});
+        const url="https://fi.wikibooks.org/w/api.php?"+new URLSearchParams({action:"query",generator:"search",gsrsearch:"intitle:Resepti "+query,gsrnamespace:"0",gsrlimit:"15",prop:"info|extracts",inprop:"url",explaintext:"1",exintro:"0",exchars:"4500",format:"json",origin:"*"});
         const response=await fetch(url,{signal:controller.signal});
         if(!response.ok)throw new Error("Hakupalvelu ei vastaa");
         const data=await response.json();
         if(controller.signal.aborted)return;
-        const results=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;index?:number}[]).filter(p=>p.title&&p.fullurl&&/resept/i.test(p.title)).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>({title:p.title,url:p.fullurl,source:"Wikikirjasto"}));
+        const results=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;extract?:string;index?:number}[]).filter(p=>p.title&&p.fullurl&&/resept/i.test(p.title)).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>({title:p.title,url:p.fullurl,source:"Wikikirjasto",content:(p.extract||"").trim()})).filter(p=>p.content.length>60);
         setJustiinaRecipeResults(results);
         setJustiinaRecipeMessage(results.length?results.length+" reseptiosumaa":"Ei suoria reseptiosumia.");
       }catch{if(!controller.signal.aborted){setJustiinaRecipeResults([]);setJustiinaRecipeMessage("Reseptipalvelu ei vastaa.")}}
@@ -2553,11 +2553,12 @@ export default function DesktopPreviewPage() {
               <section className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border-2 border-[#c69b54] bg-[#fff4cf] p-4">
                 <p role="status" className="mb-3 text-sm font-bold text-[#50664d]">{justiinaRecipeLoading?"Haetaan reseptejä…":justiinaRecipeMessage}</p>
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto">
-                  {justiinaRecipeResults.map((recipe,i)=><article key={recipe.url+i} className="flex items-center gap-3 rounded-xl border-2 border-[#c69b54] bg-[#f4dda4] px-4 py-3">
-                    <a href={recipe.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 font-bold text-[#17573c] underline">{recipe.title} – {recipe.source}</a>
-                    <button type="button" onClick={()=>navigator.clipboard.writeText(recipe.title+" – "+recipe.source+"\n"+recipe.url)} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-2 font-bold text-[#17573c]">Kopioi</button>
+                  {justiinaRecipeResults.map((recipe,i)=><article key={recipe.url+i} className="rounded-xl border-2 border-[#c69b54] bg-[#f4dda4] px-4 py-3">
+                    <div className="mb-2 flex items-center gap-3"><h3 className="min-w-0 flex-1 font-bold text-[#17573c]">{recipe.title} – {recipe.source}</h3><button type="button" onClick={()=>navigator.clipboard.writeText(recipe.title+" – "+recipe.source+"\\n\\n"+recipe.content+"\\n\\nLähde: "+recipe.url)} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-2 font-bold text-[#17573c]">Kopioi resepti</button></div>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#354a35]">{recipe.content}</p>
+                    <p className="mt-2 text-xs text-[#64704f]">Lähde: {recipe.source}</p>
                   </article>)}
-                  {!!justiinaRecipeQuery.trim() && <div className="space-y-2 pt-2"><p className="text-sm font-bold text-[#17573c]">Muut reseptilähteet (hakutulokset avautuvat lähdesivustolle)</p>{([["K-Ruoka","k-ruoka.fi"],["Valio","valio.fi"],["Kotiliesi","kotiliesi.fi"],["Martat","martat.fi"],["Yhteishyvä / S-ryhmä","yhteishyva.fi"]] as const).map(([name,domain])=><a key={domain} target="_blank" rel="noopener noreferrer" className="block rounded-xl border border-[#c69b54] bg-[#fff9e7] px-4 py-3 font-bold text-[#17573c]" href={"https://www.google.com/search?"+new URLSearchParams({q:"site:"+domain+" resepti "+justiinaRecipeQuery.trim()})}>Hae {justiinaRecipeQuery.trim()} – {name} ↗</a>)}</div>}
+                  {!justiinaRecipeLoading && justiinaRecipeResults.length===0 && <p className="text-sm text-[#64704f]">Reseptisisältöjä ei löytynyt. Hakulinkkejä ei näytetä resepteinä.</p>}
                 </div>
               </section>
             </div>}
