@@ -5,6 +5,7 @@ const {Pool}=pg;
 const shard=Math.max(0,Math.min(9,Number(process.argv.find(x=>x.startsWith('--shard='))?.split('=')[1]||0)));
 const limit=Math.min(150,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
 const refreshIncomplete=process.argv.includes('--refresh-incomplete');
+const refreshFallback=process.argv.includes('--refresh-fallback');
 const retryNotFound=process.argv.includes('--retry-not-found');
 // Rechecking a missing barcode every day wastes requests: only retry after a meaningful delay.
 const notFoundRetryDays=retryNotFound?14:90;
@@ -27,7 +28,7 @@ try {
  console.log('DATABASE_CHECK',JSON.stringify(target));
  if(!target.products||!target.nutrition)throw Error('Wrong Neon database or missing schema: both public.ziiply_ean_products and public.ziiply_off_nutrition must exist. Check GitHub Actions DATABASE_URL secret.');
  await pool.query('CREATE TABLE IF NOT EXISTS public.ziiply_off_lookup_status (ean text PRIMARY KEY, status text NOT NULL, attempted_at timestamptz NOT NULL DEFAULT now(), error text)');
- const {rows}=await pool.query(`
+ const selectionSql=`
  SELECT p.ean, (n.ean IS NOT NULL) AS previously_imported
  FROM public.ziiply_ean_products p
  LEFT JOIN public.ziiply_off_nutrition n ON n.ean=p.ean
@@ -50,7 +51,14 @@ try {
        AND n.fetched_at < now()-interval '1 day')
    )
  ORDER BY CASE WHEN $3::boolean AND n.ean IS NOT NULL THEN 0 WHEN a.ean IS NULL THEN 1 WHEN a.status='error' THEN 2 WHEN a.status='found' THEN 3 ELSE 4 END, a.attempted_at NULLS FIRST, p.ean
- LIMIT $1`,[limit,shard,refreshIncomplete,notFoundRetryDays]);
+ LIMIT $1`;
+ let {rows}=await pool.query(selectionSql,[limit,shard,refreshIncomplete,notFoundRetryDays]);
+ if(rows.length===0 && refreshFallback && !refreshIncomplete){
+   // When fresh EANs are exhausted, improve existing incomplete nutrition instead of doing nothing.
+   ({rows}=await pool.query(selectionSql,[limit,shard,true,notFoundRetryDays]));
+   console.log('OFF_REFRESH_FALLBACK',JSON.stringify({shard,selected:rows.length}));
+ }
+ if(rows.length===0)console.warn('::warning::OFF queue empty for shard '+shard+'; no API calls performed');
  console.log('OFF_SELECTED',JSON.stringify({shard,retryNotFound,notFoundRetryDays,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
  let matched=0,notFound=0,failed=0,refreshed=0,newRecords=0,withoutNutrition=0;
  for(const [i,{ean,previously_imported}] of rows.entries()){
