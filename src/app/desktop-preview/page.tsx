@@ -238,7 +238,7 @@ export default function DesktopPreviewPage() {
   const [justiinaRecipeLoading,setJustiinaRecipeLoading]=useState(false);
   const [justiinaRecipeMessage,setJustiinaRecipeMessage]=useState("");
   const [justiinaDebugOpen,setJustiinaDebugOpen]=useState(false);
-  const [justiinaDebug,setJustiinaDebug]=useState<Record<string,unknown>>({status:"Hakua ei ole vielä tehty"});
+  const [justiinaRecipeDebug,setJustiinaRecipeDebug]=useState<Record<string,unknown>>({status:"Hakua ei ole vielä tehty"});
   useEffect(()=>{
     if(!justiinaRecipeSearchOpen)return;
     const query=justiinaRecipeQuery.trim();
@@ -247,7 +247,7 @@ export default function DesktopPreviewPage() {
     const timer=setTimeout(async()=>{
       setJustiinaRecipeLoading(true);
       const trace:Record<string,unknown>={timestamp:new Date().toISOString(),query,status:"haetaan",searchHttp:null,rawHits:0,recipePages:0,details:[],results:0};
-      setJustiinaDebug({...trace});
+      setJustiinaRecipeDebug({...trace});
       try{
         const api="https://fi.wikibooks.org/w/api.php?";
         const searchUrl=api+new URLSearchParams({action:"query",generator:"search",gsrsearch:query+" prefix:Keittokirja/",gsrnamespace:"0",gsrlimit:"20",prop:"info",inprop:"url",format:"json",origin:"*"});
@@ -282,10 +282,10 @@ export default function DesktopPreviewPage() {
         if(controller.signal.aborted)return;
         trace.results=results.length;
         trace.status="valmis";
-        setJustiinaDebug({...trace});
+        setJustiinaRecipeDebug({...trace});
         setJustiinaRecipeResults(results);
         setJustiinaRecipeMessage(results.length?results.length+" reseptiosumaa":"Ei suoria reseptiosumia.");
-      }catch(error){if(!controller.signal.aborted){setJustiinaDebug({...trace,status:"virhe",error:String(error)});setJustiinaRecipeResults([]);setJustiinaRecipeMessage("Reseptipalvelu ei vastaa.")}}
+      }catch(error){if(!controller.signal.aborted){setJustiinaRecipeDebug({...trace,status:"virhe",error:String(error)});setJustiinaRecipeResults([]);setJustiinaRecipeMessage("Reseptipalvelu ei vastaa.")}}
       finally{if(!controller.signal.aborted)setJustiinaRecipeLoading(false)}
     },300);
     return()=>{clearTimeout(timer);controller.abort()};
@@ -2584,9 +2584,9 @@ export default function DesktopPreviewPage() {
               </div>
               <div className="mx-auto mt-2 flex w-full max-w-[680px] items-center gap-3">
                 <button type="button" onClick={()=>setJustiinaDebugOpen(v=>!v)} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-1 text-sm font-bold text-[#17573c]">Debug {justiinaDebugOpen?"piilota":"näytä"}</button>
-                <button type="button" onClick={()=>{const data={...justiinaDebug,visibleResults:justiinaRecipeResults.map(r=>({title:r.title,source:r.source,characters:r.content.length}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="ziiply-reseptihaku-debug.json";link.click();URL.revokeObjectURL(url)}} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-1 text-sm font-bold text-[#17573c]">Lataa debug JSON</button>
+                <button type="button" onClick={()=>{const data={...justiinaRecipeDebug,visibleResults:justiinaRecipeResults.map(r=>({title:r.title,source:r.source,characters:r.content.length}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="ziiply-reseptihaku-debug.json";link.click();URL.revokeObjectURL(url)}} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-1 text-sm font-bold text-[#17573c]">Lataa debug JSON</button>
               </div>
-              {justiinaDebugOpen && <pre className="mx-auto mt-2 max-h-44 w-full max-w-[680px] overflow-auto rounded-lg bg-[#fffdf5] p-3 text-xs text-[#354a35]">{JSON.stringify(justiinaDebug,null,2)}</pre>}
+              {justiinaDebugOpen && <pre className="mx-auto mt-2 max-h-44 w-full max-w-[680px] overflow-auto rounded-lg bg-[#fffdf5] p-3 text-xs text-[#354a35]">{JSON.stringify(justiinaRecipeDebug,null,2)}</pre>}
               <section className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border-2 border-[#c69b54] bg-[#fff4cf] p-4">
                 <p role="status" className="mb-3 text-sm font-bold text-[#50664d]">{justiinaRecipeLoading?"Haetaan reseptejä…":justiinaRecipeMessage}</p>
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto">
