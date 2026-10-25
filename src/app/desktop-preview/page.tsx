@@ -2471,18 +2471,23 @@ export default function DesktopPreviewPage() {
               <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
                 {title === "AJOAINE" ? (
-                  <span className="min-w-0 flex-1 overflow-visible">
-                    <span className="block text-[10px] font-black tracking-[0.08em] text-[#625b43]">AJOAINE</span>
-                    <span className="mt-0.5 block whitespace-nowrap text-[12px] font-black leading-tight text-[#102a24] tabular-nums">
-                      DI {fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "—"} · 95 {fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "—"}
+                  <>
+                    <span className="absolute left-3 top-1.5 whitespace-nowrap text-[11px] font-black leading-none text-[#625b43]">
+                      {fuelNearestStation ? Number(fuelNearestStation.distanceKm).toLocaleString("fi-FI",{maximumFractionDigits:1})+" km" : "— km"}
                     </span>
-                    <span className="block whitespace-nowrap text-[12px] font-black leading-tight text-[#102a24] tabular-nums">
-                      98 {fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "—"}
+                    <span className="absolute bottom-1.5 left-3 whitespace-nowrap text-[11px] font-black leading-none text-[#625b43]">
+                      {fuelNearestStation ? fuelStationBrand(fuelNearestStation) : "—"}
                     </span>
-                    <span className="mt-0.5 block whitespace-nowrap text-[11px] font-black leading-tight text-[#625b43]">
-                      {fuelNearestStation ? `${fuelStationBrand(fuelNearestStation)} · ${Number(fuelNearestStation.distanceKm).toLocaleString("fi-FI",{maximumFractionDigits:1})} km` : (fuelLoading ? "Haetaan asemaa…" : "Ei GPS-asemaa")}
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[10px] font-black tracking-[0.08em] text-[#625b43]">AJOAINE</span>
+                      <span className="mt-0.5 block whitespace-nowrap text-[13px] font-black leading-tight text-[#102a24] tabular-nums">
+                        DI {fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "—"}
+                      </span>
+                      <span className="block whitespace-nowrap text-[13px] font-black leading-tight text-[#102a24] tabular-nums">
+                        BE {fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "—"} / {fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "—"}
+                      </span>
                     </span>
-                  </span>
+                  </>
                 ) : (
                   <span className="min-w-0">
                     <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
