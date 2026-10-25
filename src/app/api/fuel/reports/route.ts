@@ -2,6 +2,7 @@ import {NextRequest,NextResponse} from "next/server";
 import {neon} from "@neondatabase/serverless";
 import {fuelDatabaseConfig} from "../../../../lib/fuelDatabase";
 import {comparePhotoEvidence,validPhotoLocation,validateFuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {recordFuelPhotoCorrection} from "../../../../lib/fuelPhotoLearning";
 export const dynamic="force-dynamic";
 export async function POST(req:NextRequest){
   // Reports and station lookup must use the same curated Neon registry.
@@ -32,6 +33,9 @@ export async function POST(req:NextRequest){
     const rows=await sql`INSERT INTO ziiply_user_fuel_reports(id,source_station_id,observed_at,prices,photo_data_url,gps_latitude,gps_longitude,gps_accuracy_m,metadata)
       VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(prices)}::jsonb,${body.photo},${gps?.lat??null},${gps?.lon??null},${gps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
       ON CONFLICT(id) DO NOTHING RETURNING id`;
+    if(typeof body.learningToken==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.learningToken)){
+      try{const saved=await sql`SELECT prices FROM ziiply_user_fuel_reports WHERE id=${body.id}::uuid`;await recordFuelPhotoCorrection(body.id,body.learningToken,saved[0].prices,body.id);}catch(e){console.error('fuel-photo-learning feedback',e instanceof Error?e.message:'failed');}
+    }
     return NextResponse.json({ok:true,id:body.id,status:"pending_review",duplicate:rows.length===0});
   }catch{return NextResponse.json({error:"Ilmoituksen tallennus epäonnistui. Yritä uudelleen."},{status:503});}
 }
