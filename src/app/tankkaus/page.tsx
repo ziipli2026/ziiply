@@ -43,7 +43,7 @@ export default function TankkausPage(){
  };
  useEffect(()=>{if(mode==="prices"&&!coords)load();},[mode]);
  const visible=stations.filter(s=>s.distanceKm<=radius&&s[fuel]!=null).sort((a,b)=>order==="distance"?a.distanceKm-b.distanceKm:(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
- return <main className="min-h-screen bg-[#fff4cf] px-4 py-8 text-[#174c35]">
+ return <main className={embedded ? "h-dvh overflow-hidden bg-transparent p-0 text-[#174c35]" : "min-h-screen bg-[#fff4cf] px-4 py-8 text-[#174c35]"}>
   <div className={embedded ? "mx-auto h-full max-w-5xl" : "mx-auto max-w-5xl"}>
    {!embedded&&<header className="mb-7 text-center"><a href="/" className="text-sm font-bold underline">Ziiply.fi</a><h1 className="mt-3 text-4xl font-black">Tankataan yhdessä halvemmalla!</h1><p className="mt-2 text-lg font-bold">Yksi kuva. Kaikkien hyöty.</p><p className="mt-2">Auta muita autoilijoita ilmoittamalla polttoainehintoja. Hintojen katselu on aina ilmaista.</p></header>}
    {!embedded&&<nav className="mb-6 grid grid-cols-2 gap-3"><button onClick={()=>setMode("report")} className="rounded-2xl border-2 border-[#17573c] bg-[#e3edc9] p-5 text-lg font-black shadow">📷 Ilmoita hinnat</button><button onClick={()=>setMode("prices")} className="rounded-2xl border-2 border-[#17573c] bg-white p-5 text-lg font-black shadow">⛽ Katso hinnat</button></nav>}
