@@ -26,7 +26,9 @@ export async function GET(req:NextRequest){
  const id=req.nextUrl.searchParams.get('id'),token=req.headers.get('x-fuel-photo-token');if(!uuid(id)||!uuid(token))return NextResponse.json({error:'Not found'},{status:404});
  try{const sql=await checkedLearningDatabase();const [job]=await sql`SELECT status,recovered_prices,readings,attempts FROM ziiply_fuel_photo_learning WHERE id=${id}::uuid AND token_hash=${learningHash(token)}`;
   if(!job)return NextResponse.json({error:'Not found'},{status:404});if(job.status==='queued')enqueue(id);
-  return NextResponse.json({ok:true,status:job.status,prices:job.recovered_prices,provisionalPrices:recoveryPreview((job.readings||[]) as RecoveryReading[]),attempts:job.attempts},{headers:{'Cache-Control':'no-store'}});
+  const brands=[...new Set((job.readings||[]).map((r:RecoveryReading)=>r.brand).filter(Boolean))];
+  return NextResponse.json({ok:true,status:job.status,brand:brands.length===1?brands[0]:null,prices:job.recovered_prices,provisionalPrices:recoveryPreview((job.readings||[]) as RecoveryReading[]),attempts:job.attempts},{headers:{'Cache-Control':'no-store'}});
  }catch{return NextResponse.json({error:'Photo recovery unavailable'},{status:503});}
 }
+
 

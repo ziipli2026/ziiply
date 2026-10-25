@@ -69,14 +69,17 @@ async function prepareLearningPhoto(file:File,fallback:string){
       return {left:Math.max(0,Math.floor((row.left-w*1.55)*sx)),right:Math.min(original.width,Math.ceil((row.right+w*.2)*sx)),top:Math.max(0,Math.floor((row.top-h*.3)*sy)),bottom:Math.min(original.height,Math.ceil((row.bottom+h*.3)*sy))};
     }).filter(b=>b.right>b.left&&b.bottom>b.top);
     if(!bands.length)return fallback;
-    const maxWidth=1600,margin=18,bandHeight=240;
-    const output=document.createElement("canvas");output.width=maxWidth;output.height=bands.length*(bandHeight+margin)+margin;
+    const maxWidth=1600,margin=18,bandHeight=240,overviewHeight=440;
+    const output=document.createElement("canvas");output.width=maxWidth;output.height=bands.length*(bandHeight+margin)+margin+overviewHeight;
     const ctx=output.getContext("2d");if(!ctx)return fallback;
     ctx.fillStyle="#ffffff";ctx.fillRect(0,0,output.width,output.height);
+    // Keep the full board logo: price-only strips cannot identify a station chain.
+    const overviewScale=Math.min((maxWidth-margin*2)/original.width,(overviewHeight-margin*2)/original.height);
+    ctx.drawImage(original,(maxWidth-original.width*overviewScale)/2,margin,original.width*overviewScale,original.height*overviewScale);
     bands.forEach((b,i)=>{
       const w=b.right-b.left,h=b.bottom-b.top,scale=Math.min((maxWidth-margin*2)/w,bandHeight/h);
       const dw=Math.round(w*scale),dh=Math.round(h*scale);
-      ctx.drawImage(original,b.left,b.top,w,h,margin,margin+i*(bandHeight+margin)+(bandHeight-dh)/2,dw,dh);
+      ctx.drawImage(original,b.left,b.top,w,h,margin,overviewHeight+margin+i*(bandHeight+margin)+(bandHeight-dh)/2,dw,dh);
     });
     const compact=output.toDataURL("image/jpeg",.88);
     return compact.length<=3800000?compact:fallback;
@@ -87,6 +90,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
   const [recognitionActive,setRecognitionActive]=useState(false);
   const learningToken=useRef("");const learningTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const confirmedPrices=useRef<Partial<Record<keyof FuelPrices,boolean>>>({});
+  const [photoBrand,setPhotoBrand]=useState("");const stationChoiceEdited=useRef(false);const capturingBurst=useRef(false);
   const priceEdits=useRef<Partial<Record<keyof FuelPrices,boolean>>>({});
   // Warm up the OCR runtime while the user is choosing a photo, not after selection.
   const warmWorker=useRef<Promise<Worker>|null>(null);
@@ -106,6 +110,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     if(round>=20){setRecognitionActive(false);logDebug("recovery-timeout",{round});setLearningInfo("60 sekunnin aikaraja täyttyi. Puuttuvia hintoja ei tunnistettu; voit syöttää ne käsin.");return;}
     try{const pollStarted=performance.now();const response=await fetch(`/api/fuel/photo-learning?id=${id}`,{headers:{"x-fuel-photo-token":token},cache:"no-store"});const result=await response.json();logDebug("recovery-poll",{round,httpStatus:response.status,durationMs:Math.round(performance.now()-pollStarted),status:result.status,attempts:result.attempts,prices:result.prices,error:result.error});
       if(!alive.current||requestId.current!==id)return;
+      if(typeof result.brand==="string")setPhotoBrand(result.brand);
       if((result.prices && Object.keys(result.prices).length)||(result.provisionalPrices&&Object.keys(result.provisionalPrices).length)){
         setPrices(previous=>{const next={...previous};for(const key of ["diesel","price95","price98"] as const)if(!priceEdits.current[key]){const confirmed=typeof result.prices?.[key]==="number";const value=confirmed?result.prices[key]:result.provisionalPrices?.[key];if(typeof value==="number"&&(confirmed||!confirmedPrices.current[key])){next[key]=value.toFixed(3).replace(".",",");if(confirmed)confirmedPrices.current[key]=true;}}return next;});
         setPriceReview(true);setLearningInfo("");if(result.status==="recovered"){setRecognitionActive(false);return;}
@@ -146,6 +151,11 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
   const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [captureCountdown,setCaptureCountdown]=useState<number|null>(null);const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const fuelGuideRef=useRef<HTMLDivElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
   const conflict=comparePhotoEvidence(mode,evidence);
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    if(!photoBrand||!gps||!stations.length||mode==='manual'||stationChoiceEdited.current)return;
+    const identified=identifyFuelPhotoStation(stations,gps,photoBrand,comparePhotoEvidence(mode,evidence).reasons.length>0);
+    if(identified)setStationId(identified);
+  },[photoBrand,gps?.lat,gps?.lon,gps?.accuracy,stations,mode,evidence]);
   useEffect(()=>{alive.current=true;const previous=document.activeElement as HTMLElement|null;/* Do not autofocus the close button; Safari otherwise draws a permanent blue focus ring. */return()=>{alive.current=false;gpsRequest.current++;void workerRef.current?.terminate();previous?.focus();};},[]);
   useEffect(()=>{const timer=setInterval(()=>{if(autoTime.current)setObserved(localDateTime());},1000);return()=>clearInterval(timer);},[]);
   useEffect(()=>{let cancelled=false;void requestCaptureLocation().then(location=>{if(cancelled||!alive.current)return;setGps(location);logDebug("report-open-location",{location});});return()=>{cancelled=true;};},[]);
@@ -210,7 +220,6 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       },failure=>{logDebug("gps-error",{code:failure.code,message:failure.message});resolve(null);},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
     });
   }
-  const capturingBurst=useRef(false);
   async function capturePhoto(){
     const video=videoRef.current;
     if(capturingBurst.current||!cameraReady||!video?.videoWidth||!video.videoHeight)return;
@@ -272,7 +281,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     let recoveryData="",recoverySaved=false;
     debugStarted.current=performance.now();debugEvents.current=[];
     logDebug("photo-file",{source,name:file.name,type:file.type,size:file.size,lastModified:file.lastModified});
-    autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setRecognitionActive(true);setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(true);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");requestId.current=crypto.randomUUID();
+    autoTime.current=false;setBusy(true);setPriceReview(false);setPhoto("");setError("");setStatus("Luetaan hintoja…");setRecognitionActive(true);setConflictConfirmed(false);setEvidence({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});setEditing(true);setSent(false);setPrices({diesel:"",price95:"",price98:""});setRawText("");setPhotoBrand("");stationChoiceEdited.current=false;requestId.current=crypto.randomUUID();
     try{
       setMode(source);setGps(null);setObserved("");setTimeSource("manual");setLocationSource("manual");setMetadataInfo("");
       let meta:PhotoMeta|undefined;
@@ -300,7 +309,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       void stationSearch.then(candidates=>{
         if(!alive.current)return;
         const identified=identifyFuelPhotoStation(candidates||[],location,"",checked.reasons.length>0);
-        setStationId(identified);
+        if(!stationChoiceEdited.current)setStationId(identified);
         logDebug("station-identification-early",{identified,location});
       });
       setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":metadataFailed?"Kuvan sijaintitietojen lukeminen epäonnistui: valitse asema itse.":"Kuvasta ei löytynyt sijaintitietoja: valitse asema itse."}`:deviceGps?"Kuvaushetken sijainti haettu. Tarkista asema ja kuvausaika.":"Kuvaushetken sijaintia ei saatu. Tarkista selaimen sijaintilupa ja valitse asema itse.");
@@ -314,7 +323,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
       logDebug("local-ocr-start",{});const result=await readFuelPhoto(worker,data,partial=>{logDebug("local-price-progress",{partial});if(alive.current){setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(partial).filter(([key,value])=>Boolean(value)&&!priceEdits.current[key as keyof FuelPrices]&&!confirmedPrices.current[key as keyof FuelPrices]))}));setPriceReview(true);}},(stage,details)=>logDebug("ocr-"+stage,details));logDebug("local-ocr-complete",{prices:result.prices,review:result.review});if(!alive.current)return;
       const parsed=result.prices;setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(parsed).filter(([key,value])=>Boolean(value)&&!priceEdits.current[key as keyof FuelPrices]&&!confirmedPrices.current[key as keyof FuelPrices]))}));setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
-      const candidates=await stationSearch;if(!alive.current)return;const identified=identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0);const gpsIdentified=identifyFuelPhotoStation(candidates||[],location,"",checked.reasons.length>0);const finalIdentified=identified||gpsIdentified;setStationId(previous=>finalIdentified||previous);logDebug("station-identification",{identified,location,conflict:checked,candidates:(candidates||[]).slice(0,10).map(s=>({id:s.id,name:s.name,chain:s.chain,distanceM:location?Math.round(fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000):null}))});
+      const candidates=await stationSearch;if(!alive.current)return;const identified=identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0);const gpsIdentified=identifyFuelPhotoStation(candidates||[],location,"",checked.reasons.length>0);const finalIdentified=identified||gpsIdentified;setStationId(previous=>stationChoiceEdited.current?previous:finalIdentified||previous);logDebug("station-identification",{identified,location,conflict:checked,candidates:(candidates||[]).slice(0,10).map(s=>({id:s.id,name:s.name,chain:s.chain,distanceM:location?Math.round(fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000):null}))});
       setStatus(Object.values(parsed).some(Boolean)?"Hinnat luettu. Tarkista numerot, asema ja havaintoaika.":"Hintoja ei tunnistettu varmasti. Voit korjata hinnat kuvasta tai ottaa uuden kuvan.");
     }catch(e){logDebug("read-photo-error",{message:String(e)});if(recoveryData&&!recoverySaved)await saveLearningPhoto(file,recoveryData,{diesel:"",price95:"",price98:""},"");if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
     finally{const worker=workerRef.current;workerRef.current=null;if(worker)await worker.terminate().catch(()=>{});if(alive.current)setBusy(false);logDebug("read-photo-finished",{});}
@@ -385,7 +394,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
                 {!editing&&!priceReview&&validateFuelPrices(prices)&&<div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-center">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).filter(([key])=>prices[key]).map(([key,label])=><p key={key} className="text-sm">{label} <strong className="text-lg">{prices[key]} €/l</strong></p>)}</div>}
                 {observed&&!editing&&<p className="text-center text-xs text-[#e5ddc6]">{new Date(exifInstant.current||observed).toLocaleString("fi-FI",{dateStyle:"short",timeStyle:"short"})}</p>}
                 {stationId&&selectedStation&&mode!=="manual"&&<div className="rounded-xl border border-[#8bb56d] bg-[#e3edc9] p-3 text-center text-sm font-bold text-[#174c35]">✓ Asema tunnistettu<div>{selectedStation.name}</div><div className="text-xs font-normal">{selectedStation.address}</div></div>}
-                {(mode==="manual"||!stationId)&&<label className="block text-sm font-bold">{mode==="manual"?"Valitse asema":"Kuvattua asemaa ei tunnistettu. Valitse asema."}<select value={stationId} disabled={!stations.length||locating} onChange={e=>{setStationId(e.target.value);setConflictConfirmed(false);}} className={input}><option value="">{mode==="manual"?"Valitse asema (lähin ensin)":"Valitse kuvassa oleva asema"}</option>{stations.map((s,i)=><option key={s.id} value={s.id}>{mode==="manual"&&i===0?"Lähin · ":""}{s.chain} · {s.name} · {s.address}{mode==="manual"&&gps?` · ${fuelDistanceKm(gps.lat,gps.lon,s.latitude,s.longitude).toLocaleString("fi-FI",{maximumFractionDigits:2})} km`:""}</option>)}</select></label>}
+                {(mode==="manual"||!stationId)&&<label className="block text-sm font-bold">{mode==="manual"?"Valitse asema":"Kuvattua asemaa ei tunnistettu. Valitse asema."}<select value={stationId} disabled={!stations.length||locating} onChange={e=>{stationChoiceEdited.current=true;setStationId(e.target.value);setConflictConfirmed(false);}} className={input}><option value="">{mode==="manual"?"Valitse asema (lähin ensin)":"Valitse kuvassa oleva asema"}</option>{stations.map((s,i)=><option key={s.id} value={s.id}>{mode==="manual"&&i===0?"Lähin · ":""}{s.chain} · {s.name} · {s.address}{mode==="manual"&&gps?` · ${fuelDistanceKm(gps.lat,gps.lon,s.latitude,s.longitude).toLocaleString("fi-FI",{maximumFractionDigits:2})} km`:""}</option>)}</select></label>}
                 {(busy||editing||priceReview||!validateFuelPrices(prices))&&<div><div className="grid grid-cols-3 gap-2">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).map(([key,label])=><label key={key} className="text-xs font-bold">{label}<input aria-label={`${label} hinta euroa litralta`} inputMode="decimal" placeholder="–" value={prices[key]} onChange={e=>{priceEdits.current[key]=true;setPrices(p=>({...p,[key]:e.target.value}));}} className={`${input} ${invalidPrices.includes(key)?"border-2 border-red-600":""}`}/><span className="mt-1 block min-h-[14px] text-[11px] text-[#ffb8a4]">{invalidPrices.includes(key)?"Virheellinen hinta (0,50–5,00 €/l)":mode!=="manual"&&!busy&&!prices[key]&&Object.values(prices).some(Boolean)?"Syötä käsin":""}</span></label>)}</div></div>}
                 {(editing||!validObserved)&&<label className="flex flex-col items-start gap-1 text-sm font-bold"><span>{mode==="manual"?"Milloin näit hinnat?":"Milloin kuva otettiin?"}</span><input type="datetime-local" value={observed} onChange={e=>{autoTime.current=false;exifInstant.current=null;setObserved(e.target.value);setTimeSource("manual");setConflictConfirmed(false);}} className={`${input} block !w-[40%] min-w-0 max-w-full box-border`}/></label>}
                 {conflict.reasons.length>0&&<div role="alert" className="rounded-xl border border-[#bd6b2a] bg-[#ffe6c8] p-3 text-sm text-[#713d1c]"><p className="font-bold">Kuvan ja kuvaushetken tiedot poikkeavat toisistaan.</p>{conflict.reasons.includes("location")&&<p>Sijaintien ero noin {Math.round(conflict.distanceM||0)} m.</p>}{conflict.reasons.includes("time")&&<p>Kuvausaikojen ero noin {Math.round(conflict.timeDifferenceMinutes||0)} min. Käytä aiemmalle kuvalle offline-valintaa.</p>}<label className="mt-2 flex gap-2"><input type="checkbox" checked={conflictConfirmed} disabled={!stationId} onChange={e=>setConflictConfirmed(e.target.checked)}/><span>Vahvistan kuvatun aseman ja kuvausajan.</span></label></div>}
@@ -413,4 +422,5 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     </section></div>}
   </div>,document.body);
 }
+
 

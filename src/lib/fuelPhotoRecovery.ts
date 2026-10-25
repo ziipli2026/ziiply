@@ -1,6 +1,6 @@
-import {validateFuelPrices} from './fuelPhoto';
+import {validateFuelPrices,fuelPhotoBrand} from './fuelPhoto';
 export const fuelKeys=['diesel','price95','price98'] as const;
-export type RecoveryReading={prices:Record<string,number>;visible:string[];method:string};
+export type RecoveryReading={prices:Record<string,number>;visible:string[];method:string;brand?:string};
 export type FuelPhotoExample={id:string;signature:string;prices:Record<string,number>};
 /** Retrieve confirmed visual examples, never a station's previous price. */
 export function selectFuelPhotoExamples(signature:string,examples:FuelPhotoExample[]):FuelPhotoExample[]{
@@ -17,7 +17,8 @@ export function parseRecoveryReading(value:unknown,method:string):RecoveryReadin
  const uncertain=Array.isArray(v.uncertain)?v.uncertain:[];
  for(const key of uncertain)if(typeof key==='string')delete prices[key];
  const visible=Array.isArray(v.visibleFuels)?fuelKeys.filter(k=>(v.visibleFuels as unknown[]).includes(k)):[];
- return {prices,visible,method};
+ const brand=typeof v.stationBrand==='string'?fuelPhotoBrand(v.stationBrand):null;
+ return {prices,visible,method,...(brand?{brand}:{})};
 }
 export function recoveryConsensus(readings:RecoveryReading[]):Record<string,number>|null{
  const visible=new Set(readings.flatMap(r=>r.visible));
@@ -48,4 +49,5 @@ export function recoveryComplete(readings:RecoveryReading[],recovered:Record<str
  const expected=new Set(readings.flatMap(r=>[...r.visible,...Object.keys(r.prices)]).filter(k=>fuelKeys.includes(k as typeof fuelKeys[number])));
  return expected.size>0 && recovered!==null && [...expected].every(key=>recovered[key]!=null);
 }
+
 
