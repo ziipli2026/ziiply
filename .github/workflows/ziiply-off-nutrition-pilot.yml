@@ -7,7 +7,7 @@ on:
       refresh_fallback:
         description: 'Refresh incomplete nutrition if no new EANs are eligible'
         required: false
-        default: true
+        default: false
         type: boolean
       retry_not_found:
         description: 'Retry OFF not-found EANs older than 14 days (otherwise 90 days)'
@@ -43,7 +43,7 @@ jobs:
       - name: Import isolated OFF nutrition records
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '100' }} --shard=${{ matrix.shard }} ${{ inputs.retry_not_found == true && '--retry-not-found' || '' }} ${{ inputs.refresh_fallback != false && '--refresh-fallback' || '' }}
+        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '100' }} --shard=${{ matrix.shard }} ${{ inputs.retry_not_found == true && '--retry-not-found' || '' }} ${{ inputs.refresh_fallback == true && '--refresh-fallback' || '' }}
       - name: Verify import coverage
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
