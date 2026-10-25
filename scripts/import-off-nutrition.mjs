@@ -4,9 +4,10 @@ import pg from 'pg';
 const {Pool}=pg;
 const shard=Math.max(0,Math.min(9,Number(process.argv.find(x=>x.startsWith('--shard='))?.split('=')[1]||0)));
 const limit=Math.min(150,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
-const refreshIncomplete=process.argv.includes('--refresh-incomplete');
-const refreshFallback=process.argv.includes('--refresh-fallback');
-const retryNotFound=process.argv.includes('--retry-not-found');
+const newOnly=process.argv.includes('--new-only');
+const refreshIncomplete=!newOnly && process.argv.includes('--refresh-incomplete');
+const refreshFallback=!newOnly && process.argv.includes('--refresh-fallback');
+const retryNotFound=!newOnly && process.argv.includes('--retry-not-found');
 // Rechecking a missing barcode every day wastes requests: only retry after a meaningful delay.
 const notFoundRetryDays=retryNotFound?14:90;
 const progressEvery=1;
@@ -41,7 +42,8 @@ try {
    AND lower(p.name) !~ '(play-doh|ryhmä hau|bloomables|flexfigs|lelu|lelut|pehmolelu|figuuri|palapeli|lautapeli|värityskirja|askartelu|paristo|patteri|pesuaine|shampoo|saippua|hammastahna|wc-paperi|talouspaperi|vaippa|roskapussi|astianpesu|pyykinpesu|kissanhiekka|koiranruoka|kissanruoka|lemmikin|lemmikkiportti|leipäveitsi|tomaattiveitsi|pastakauha|öljykynttilä|ilmanraikastin|meikkisieni|pussilakanasetti|olut|siideri|lonkero|viini|vodka)'
    AND right(p.ean,1)::int=$2
    AND (
-     (n.ean IS NULL AND (
+     ($5::boolean AND n.ean IS NULL AND a.ean IS NULL)
+     OR (NOT $5::boolean AND n.ean IS NULL AND (
        a.ean IS NULL
        OR (a.status='not_found' AND a.attempted_at < now()-make_interval(days => $4::int))
        OR (a.status='error' AND a.attempted_at < now()-interval '1 day')
@@ -57,11 +59,11 @@ try {
  let {rows}=await pool.query(selectionSql,[limit,shard,refreshIncomplete,notFoundRetryDays]);
  if(rows.length===0 && refreshFallback && !refreshIncomplete){
    // When fresh EANs are exhausted, improve existing incomplete nutrition instead of doing nothing.
-   ({rows}=await pool.query(selectionSql,[limit,shard,true,notFoundRetryDays]));
+   ({rows}=await pool.query(selectionSql,[limit,shard,true,notFoundRetryDays,false]));
    console.log('OFF_REFRESH_FALLBACK',JSON.stringify({shard,selected:rows.length}));
  }
  if(rows.length===0)console.warn('::warning::OFF queue empty for shard '+shard+'; no API calls performed');
- console.log('OFF_SELECTED',JSON.stringify({shard,retryNotFound,notFoundRetryDays,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
+ console.log('OFF_SELECTED',JSON.stringify({shard,newOnly,retryNotFound,notFoundRetryDays,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
  let matched=0,notFound=0,failed=0,refreshed=0,newRecords=0,withoutNutrition=0;
  for(const [i,{ean,previously_imported}] of rows.entries()){
   try{
