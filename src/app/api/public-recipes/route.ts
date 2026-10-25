@@ -7,6 +7,23 @@ const cors={"Access-Control-Allow-Origin":origin,"Access-Control-Allow-Methods":
 const reply=(data:unknown,status=200)=>NextResponse.json(data,{status,headers:cors});
 export async function OPTIONS(req:NextRequest){return new Response(null,{status:req.headers.get("origin")===origin?204:403,headers:cors});}
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// Conservative deterministic gate: ambiguous recipes remain pending for human review.
+function assessRecipe(title:string,ingredients:string,instructions:string,servings:number|null){
+ const lines=ingredients.split(/\n/).map(x=>x.trim()).filter(Boolean);
+ const amount=/^(?:\d+(?:[.,]\d+)?|[¼½¾⅓⅔]|\d+\s*\/\s*\d+)\s*(?:kg|g|mg|l|dl|cl|ml|tl|rkl|kpl|pkt|pss|purkki|purkkia|kananmuna|kananmunaa|sipuli|sipulia|valkosipulinkynsi|valkosipulinkynttä)\b/i;
+ const measured=lines.filter(x=>amount.test(x));
+ const uncertain=/\[\?\]|\b(?:epäselvä|lukukelvoton|arvaus|tuntematon)\b/i;
+ const unsafe=/\b(?:juo\s+pesuainetta|syö\s+raakaa\s+kanaa|syö\s+raakaa\s+jauhelihaa)\b/i;
+ const ad=/https?:\/\/|www\.|@\w+|\b(?:osta nyt|tilaa tästä|alennuskoodi)\b/i;
+ const reasons:string[]=[];
+ if(lines.length<2||measured.length<2)reasons.push("Raaka-aineiden määrät ovat puutteellisia");
+ if(instructions.trim().length<35||!/[.!?]/.test(instructions))reasons.push("Valmistusohje on puutteellinen");
+ if(servings===null)reasons.push("Annosmäärä puuttuu");
+ if(uncertain.test(title+" "+ingredients+" "+instructions))reasons.push("Kuvanluvussa tai tekstissä on epäselvyyksiä");
+ if(unsafe.test(ingredients+" "+instructions))reasons.push("Mahdollisesti vaarallinen ohje");
+ if(ad.test(title+" "+ingredients+" "+instructions))reasons.push("Mahdollinen mainos tai linkki");
+ return reasons;
+}
 export async function POST(req:NextRequest){
  if(req.headers.get("origin")!==origin)return reply({error:"Virheellinen lähetyslähde."},403);
  if(Number(req.headers.get("content-length")||0)>17000000)return reply({error:"Lähetys on liian suuri."},413);
@@ -28,11 +45,16 @@ export async function POST(req:NextRequest){
  const connection=process.env.DATABASE_URL||process.env.POSTGRES_URL;
  if(!connection)return reply({error:"Reseptikirjaston tietokantayhteys puuttuu."},503);
  const sql=neon(connection);
- const rows=await sql`INSERT INTO ziiply_acme_recipe_submissions(id,contributor_id,title,ingredients,instructions,servings,source_method)
- SELECT ${id}::uuid,${contributorId}::uuid,${title},${ingredients},${instructions},${servings},${body.sourceMethod}
+ const duplicate=await sql`SELECT id FROM ziiply_acme_recipe_submissions WHERE lower(regexp_replace(title,'[^[:alnum:]]','','g'))=lower(regexp_replace(${title},'[^[:alnum:]]','','g')) AND lower(regexp_replace(ingredients,'\\s+','','g'))=lower(regexp_replace(${ingredients},'\\s+','','g')) LIMIT 1`;
+ const reasons=assessRecipe(title,ingredients,instructions,servings);
+ if(duplicate.length)reasons.push("Mahdollinen kaksoiskappale");
+ const status=reasons.length?"pending_review":"approved";
+ const reviewReason=reasons.length?reasons.join("; "):"Automaattisesti hyväksytty: ainekset, määrät, annokset ja ohje tarkistettu";
+ const rows=await sql`INSERT INTO ziiply_acme_recipe_submissions(id,contributor_id,title,ingredients,instructions,servings,source_method,status,reviewed_at,review_reason)
+ SELECT ${id}::uuid,${contributorId}::uuid,${title},${ingredients},${instructions},${servings},${body.sourceMethod},${status},CASE WHEN ${status}='approved' THEN now() ELSE NULL END,${reviewReason}
  WHERE (SELECT COUNT(*) FROM ziiply_acme_recipe_submissions WHERE contributor_id=${contributorId}::uuid)<2
  ON CONFLICT(id) DO NOTHING RETURNING id`;
  if(rows.length===0)return reply({error:"Kaksi reseptiä on jo lähetetty tai lähetys on jo tallennettu."},409);
- return reply({ok:true,status:"pending_review",saved:rows.length===1});
+ return reply({ok:true,status,saved:rows.length===1});
  }catch(e){console.error("public recipes",e instanceof Error?e.message:"unknown");return reply({error:"Tallennus epäonnistui. Yritä uudelleen."},503);}
 }
