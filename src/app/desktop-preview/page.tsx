@@ -245,12 +245,31 @@ export default function DesktopPreviewPage() {
     const timer=setTimeout(async()=>{
       setJustiinaRecipeLoading(true);
       try{
-        const url="https://fi.wikibooks.org/w/api.php?"+new URLSearchParams({action:"query",generator:"search",gsrsearch:query,gsrnamespace:"0",gsrlimit:"30",prop:"info|extracts",inprop:"url",explaintext:"1",exintro:"0",exchars:"4500",format:"json",origin:"*"});
-        const response=await fetch(url,{signal:controller.signal});
+        const api="https://fi.wikibooks.org/w/api.php?";
+        const searchUrl=api+new URLSearchParams({action:"query",generator:"search",gsrsearch:query+" prefix:Keittokirja/",gsrnamespace:"0",gsrlimit:"20",prop:"info",inprop:"url",format:"json",origin:"*"});
+        const response=await fetch(searchUrl,{signal:controller.signal});
         if(!response.ok)throw new Error("Hakupalvelu ei vastaa");
         const data=await response.json();
+        if(data.error)throw new Error(data.error.info||"Wikikirjaston API-virhe");
         if(controller.signal.aborted)return;
-        const results=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;extract?:string;index?:number}[]).filter(p=>p.title&&p.fullurl).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>({title:p.title,url:p.fullurl,source:"Wikikirjasto",content:(p.extract||"").trim()})).filter(p=>p.content.length>0);
+        const pages=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;index?:number}[])
+          .filter(p=>p.title?.startsWith("Keittokirja/")&&p.fullurl)
+          .sort((a,b)=>(a.index||0)-(b.index||0)).slice(0,12);
+        const results=(await Promise.all(pages.map(async p=>{
+          try{
+            const detailUrl=api+new URLSearchParams({action:"parse",page:p.title,prop:"text",format:"json",origin:"*"});
+            const detailResponse=await fetch(detailUrl,{signal:controller.signal});
+            if(!detailResponse.ok)return null;
+            const detail=await detailResponse.json();
+            const html=detail.parse?.text?.["*"];
+            if(typeof html!=="string")return null;
+            const doc=new DOMParser().parseFromString(html,"text/html");
+            doc.querySelectorAll("script,style,.mw-editsection,.reference,.reflist,.navbox,.metadata").forEach(el=>el.remove());
+            const content=(doc.querySelector(".mw-parser-output")||doc.body).textContent?.replace(/\\n[ \\t]+/g,"\\n").replace(/\\n{3,}/g,"\\n\\n").trim()||"";
+            return content.length>35?{title:p.title.replace(/^Keittokirja\\//,""),url:p.fullurl,source:"Wikikirjasto / Keittokirja",content:content.slice(0,10000)}:null;
+          }catch{return null}
+        }))).filter((p):p is {title:string;url:string;source:string;content:string}=>p!==null);
+        if(controller.signal.aborted)return;
         setJustiinaRecipeResults(results);
         setJustiinaRecipeMessage(results.length?results.length+" reseptiosumaa":"Ei suoria reseptiosumia.");
       }catch{if(!controller.signal.aborted){setJustiinaRecipeResults([]);setJustiinaRecipeMessage("Reseptipalvelu ei vastaa.")}}
