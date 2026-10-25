@@ -2197,59 +2197,28 @@ function KauppiasMobileTopBar({
   const [fuelValueV744, setFuelValueV744] = useState("—");
   const [fuelTextV744, setFuelTextV744] = useState("Ei hintaa");
 
-  // V744_FUEL_PROVIDER_ISOLATED:
-  // AJOAINE käyttää vain page-tason olemassa olevia GPS-koordinaatteja.
-  // Ulkoinen datalähde on piilotettu /api/fuel-providerin taakse ja voidaan
-  // sammuttaa palvelinpuolen feature flagilla ilman UI- tai GPS-muutoksia.
+  const [nearestFuelV744, setNearestFuelV744] = useState<{ chain: string; distanceKm: number; diesel: number | null; price95: number | null; price98: number | null } | null>(null);
   useEffect(() => {
-    if (hidden || !gpsCoords) {
-      setFuelValueV744("—");
-      setFuelTextV744(gpsCoords ? "Ei hintaa" : "GPS");
-      return;
-    }
-
+    if (hidden || !gpsCoords) { setNearestFuelV744(null); return; }
     let cancelled = false;
     const controller = new AbortController();
-
-    async function loadFuelV744() {
+    async function loadNearestFuel() {
       try {
-        const response = await fetch(
-          `/api/fuel?lat=${encodeURIComponent(gpsCoords!.latitude)}&lon=${encodeURIComponent(gpsCoords!.longitude)}&fuel=diesel`,
-          { cache: "no-store", signal: controller.signal },
-        );
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
+        const response = await fetch(`/api/fuel/stations?lat=${encodeURIComponent(gpsCoords!.latitude)}&lon=${encodeURIComponent(gpsCoords!.longitude)}&page=1&limit=1`, { cache: "no-store", signal: controller.signal });
+        if (!response.ok) throw new Error("Fuel stations unavailable");
         const data = await response.json();
-        const price = Number(data?.item?.price);
-        if (!Number.isFinite(price) || price <= 0 || cancelled) throw new Error("ei hintaa");
-
-        const station = String(data?.item?.station || "").trim();
-        const distance = Number(data?.item?.distanceKm);
-        const detail = station
-          ? Number.isFinite(distance)
-            ? `${station} · ${distance.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
-            : station
-          : "Diesel";
-
-        setFuelValueV744(
-          price.toLocaleString("fi-FI", { minimumFractionDigits: 3, maximumFractionDigits: 3 }),
-        );
-        setFuelTextV744(detail);
-      } catch (error) {
-        if (cancelled || controller.signal.aborted) return;
-        setFuelValueV744("—");
-        setFuelTextV744("Ei hintaa");
-      }
+        const station = data?.stations?.[0];
+        if (cancelled) return;
+        if (!station) { setNearestFuelV744(null); return; }
+        const name = String(station.chain || station.name || "").trim();
+        const chain = /abc/i.test(name) ? "ABC" : /st1/i.test(name) ? "St1" : /neste/i.test(name) ? "Neste" : /shell/i.test(name) ? "Shell" : /kärkkäinen/i.test(name) ? "Kärkkäinen" : /seo/i.test(name) ? "SEO" : "Muu";
+        const price = (v: unknown) => v != null && Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : null;
+        setNearestFuelV744({ chain, distanceKm: Number(station.distanceKm), diesel: price(station.diesel), price95: price(station.price95), price98: price(station.price98) });
+      } catch { if (!cancelled && !controller.signal.aborted) setNearestFuelV744(null); }
     }
-
-    void loadFuelV744();
-    const interval = window.setInterval(loadFuelV744, 10 * 60 * 1000);
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-      window.clearInterval(interval);
-    };
+    void loadNearestFuel();
+    const interval = window.setInterval(loadNearestFuel, 10 * 60 * 1000);
+    return () => { cancelled = true; controller.abort(); window.clearInterval(interval); };
   }, [hidden, gpsCoords?.latitude, gpsCoords?.longitude]);
 
   // V482_SINGLE_GPS_OWNER:
@@ -2850,9 +2819,9 @@ function KauppiasMobileTopBar({
     {
       id: "fuel" as const,
       title: "AJOAINE",
-      value: fuelValueV744,
-      unit: fuelValueV744 === "—" ? "" : "€/l",
-      detail: fuelTextV744,
+      value: nearestFuelV744 ? `DI ${nearestFuelV744.diesel?.toFixed(3).replace(".", ",") ?? "—"} 95 ${nearestFuelV744.price95?.toFixed(3).replace(".", ",") ?? "—"} 98 ${nearestFuelV744.price98?.toFixed(3).replace(".", ",") ?? "—"}` : "DI — 95 — 98 —",
+      unit: "",
+      detail: nearestFuelV744 ? `${nearestFuelV744.chain} · ${nearestFuelV744.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km` : "—",
       graphic: <KauppiasFuelGraphic />,
       onClick: () => {
         setElectricityChartOpen(false);
@@ -2905,7 +2874,7 @@ function KauppiasMobileTopBar({
                   </div>
                 ) : panel.id === "fuel" ? (
                   <div className="relative z-10 h-full min-w-0">
-                    <div className="absolute left-[1px] top-[3px] w-[35px] text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.match(/[0-9]+(?:[,.][0-9]+)?\\s*km/)?.[0] ?? "— km"}</div>
+                    <div className="absolute left-[1px] top-[3px] w-[35px] text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.match(/[0-9]+(?:[,.][0-9]+)?\s*km/)?.[0] ?? "— km"}</div>
                     <div className="absolute left-[1px] top-1/2 flex w-[35px] -translate-y-1/2 items-center justify-center">{panel.graphic}</div>
                     <div className="absolute bottom-[3px] left-[1px] w-[35px] truncate text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.split("·")[0]?.trim() || "—"}</div>
                     <div className="absolute inset-y-[5px] left-[39px] right-[1px] flex min-w-0 flex-col justify-center overflow-hidden">
