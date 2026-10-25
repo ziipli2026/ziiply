@@ -35,6 +35,8 @@ console.log('PASS: bottom-row diesel retry, partial petrol, all visible fuels, d
  const sql=async(strings,...values)=>{
   const query=strings.join('?');
   if(query.includes('current_setting'))return [{branch:'test-branch'}];
+  if(query.includes("metadata->>'visualSignature'"))return [{id:'known-photo',signature:'1'.repeat(255)+'0',prices:{diesel:2.111,price95:2.011,price98:2.121}}];
+  if(query.includes('SELECT r.photo_data_url'))return [{photo_data_url:photo}];
   if(query.includes('WITH candidate'))return [{...job,attempts:++job.attempts}];
   if(query.includes('recovered_prices=')){job.readings=JSON.parse(values[0]);saved={prices:JSON.parse(values[1]),status:values[2]};}
   return [];
@@ -45,12 +47,15 @@ console.log('PASS: bottom-row diesel retry, partial petrol, all visible fuels, d
   {prices:{price95:2.215,price98:2.290},visibleFuels:['price95','price98']},
   {prices:{diesel:2.412},visibleFuels:['diesel']}
  ];
- const sharp=()=>{const pipe={rotate:()=>pipe,jpeg:()=>pipe,extract:()=>pipe,resize:()=>pipe,normalise:()=>pipe,sharpen:()=>pipe,metadata:async()=>({width:600,height:900}),toBuffer:async()=>Buffer.from('enlarged crop')};return pipe;};
+ const sharp=()=>{let raw=false;const pipe={rotate:()=>pipe,jpeg:()=>pipe,extract:()=>pipe,resize:()=>pipe,normalise:()=>pipe,sharpen:()=>pipe,greyscale:()=>pipe,raw:()=>{raw=true;return pipe;},metadata:async()=>({width:600,height:900}),toBuffer:async()=>raw?Buffer.alloc(256,64):Buffer.from('enlarged crop')};return pipe;};
  const exports={};
  vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{
   exports,Buffer,process:{env:{OPENAI_API_KEY:'test'}},AbortSignal,
   fetch:async(url,options)=>{
    const body=JSON.parse(options.body);
+   assert.equal(body.messages.length,4,'confirmed feedback is inserted into the actual next vision request');
+   assert.equal(JSON.parse(body.messages[2].content).prices.diesel,2.111);
+   assert.match(body.messages[0].content,/NEVER the current price/);
    overviewRequests.push(body.messages[body.messages.length-1].content);
    return {ok:true,json:async()=>({choices:[{message:{content:JSON.stringify(outputs.shift())}}]})};
   },
@@ -72,6 +77,7 @@ console.log('PASS: bottom-row diesel retry, partial petrol, all visible fuels, d
  assert.equal(saved.status,'recovered');
  assert.equal(saved.prices.diesel,2.412);
  assert.equal(overviewRequests.length,3);
+ assert.equal(job.readings[0].exampleIds[0],'known-photo','actual reads retain the teaching example ID');
  for(const views of overviewRequests)assert.equal(views[0].image_url.url,photo,'every retry retains the full board');
  console.log('PASS: actual recovery worker retains every row and continues to a third diesel confirmation');
 })().catch(error=>{console.error(error);process.exitCode=1;});
