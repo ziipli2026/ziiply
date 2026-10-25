@@ -33,7 +33,7 @@ try {
   for(const p of products){
    fetched++;
    const ean=String(p.code||'').trim();
-   if(!/^\\d{8,14}$/.test(ean)||!p.product_name||!p.nutriments||Object.keys(p.nutriments).length===0){skipped++;continue;}
+   if(!/^[0-9]{8,14}$/.test(ean)||!p.product_name||!p.nutriments||Object.keys(p.nutriments).length===0){skipped++;continue;}
    const result=await pool.query(`INSERT INTO public.ziiply_off_catalogue_staging
     (ean,product_name,brands,categories,nutriments,source_url)
     VALUES($1,$2,$3,$4,$5::jsonb,$6)
