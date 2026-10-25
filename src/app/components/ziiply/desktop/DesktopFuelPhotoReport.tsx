@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from "react";
 import {createPortal} from "react-dom";
 import {readFuelPhoto} from "../../../../lib/fuelPhotoOcr";
 import {findFuelLedRows,selectFuelBurstRows} from "../../../../lib/fuelPhotoLed";
-import {comparePhotoEvidence,identifyFuelPhotoStation,fuelDistanceKm,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {comparePhotoEvidence,validateFuelStationLocation,identifyFuelPhotoStation,fuelDistanceKm,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 
 type Station={id:string;name:string;chain?:string;address?:string;latitude:number;longitude:number};
 type Worker={setParameters:(parameters:Record<string,string>)=>Promise<unknown>;recognize:(image:string)=>Promise<{data:{text:string}}>;terminate:()=>Promise<unknown>};
@@ -340,6 +340,8 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
   }
   const input="w-full rounded-xl border border-[#baa46a] bg-[#fffaf0] px-3 py-1.5 text-[#174c35]";
   const selectedStation=stations.find(s=>s.id===stationId);
+  const stationLocation=selectedStation?validateFuelStationLocation(mode,evidence,selectedStation):null;
+  const stationLocationError=stationLocation&&!stationLocation.ok?stationLocation.error:'';
   const observedInstant=Date.parse(exifInstant.current||observed);
   const validObserved=Boolean(observed)&&Number.isFinite(observedInstant)&&observedInstant<=Date.now()+60000;
   const priceLabels={diesel:"Diesel",price95:"95 E10",price98:"98 E5"} as const;
@@ -350,6 +352,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
   });
   const missingReasons=[
     ...(!stationId?["Valitse kuvassa oleva asema."]:[]),
+    ...(stationLocationError?[stationLocationError]:[]),
     ...(!validObserved?["Tarkista kuvausaika."]:[]),
     ...(invalidPrices.length?["Korjaa virheelliset hinnat: "+invalidPrices.map(key=>priceLabels[key]).join(", ")+" (sallittu 0,50–5,00 €/l)."]:[]),
     ...(!invalidPrices.length&&!validateFuelPrices(prices)?["Anna vähintään yksi polttoainehinta."]:[]),
@@ -397,6 +400,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
                 {(mode==="manual"||!stationId)&&<label className="block text-sm font-bold">{mode==="manual"?"Valitse asema":"Kuvattua asemaa ei tunnistettu. Valitse asema."}<select value={stationId} disabled={!stations.length||locating} onChange={e=>{stationChoiceEdited.current=true;setStationId(e.target.value);setConflictConfirmed(false);}} className={input}><option value="">{mode==="manual"?"Valitse asema (lähin ensin)":"Valitse kuvassa oleva asema"}</option>{stations.map((s,i)=><option key={s.id} value={s.id}>{mode==="manual"&&i===0?"Lähin · ":""}{s.chain} · {s.name} · {s.address}{mode==="manual"&&gps?` · ${fuelDistanceKm(gps.lat,gps.lon,s.latitude,s.longitude).toLocaleString("fi-FI",{maximumFractionDigits:2})} km`:""}</option>)}</select></label>}
                 {(busy||editing||priceReview||!validateFuelPrices(prices))&&<div><div className="grid grid-cols-3 gap-2">{([['diesel','Diesel'],['price95','95 E10'],['price98','98 E5']] as const).map(([key,label])=><label key={key} className="text-xs font-bold">{label}<input aria-label={`${label} hinta euroa litralta`} inputMode="decimal" placeholder="–" value={prices[key]} onChange={e=>{priceEdits.current[key]=true;setPrices(p=>({...p,[key]:e.target.value}));}} className={`${input} ${invalidPrices.includes(key)?"border-2 border-red-600":""}`}/><span className="mt-1 block min-h-[14px] text-[11px] text-[#ffb8a4]">{invalidPrices.includes(key)?"Virheellinen hinta (0,50–5,00 €/l)":mode!=="manual"&&!busy&&!prices[key]&&Object.values(prices).some(Boolean)?"Syötä käsin":""}</span></label>)}</div></div>}
                 {(editing||!validObserved)&&<label className="flex flex-col items-start gap-1 text-sm font-bold"><span>{mode==="manual"?"Milloin näit hinnat?":"Milloin kuva otettiin?"}</span><input type="datetime-local" value={observed} onChange={e=>{autoTime.current=false;exifInstant.current=null;setObserved(e.target.value);setTimeSource("manual");setConflictConfirmed(false);}} className={`${input} block !w-[40%] min-w-0 max-w-full box-border`}/></label>}
+                {stationLocationError&&<p role="alert" className="rounded-xl border border-red-600 bg-red-50 p-3 text-sm text-red-900">{stationLocationError}</p>}
                 {conflict.reasons.length>0&&<div role="alert" className="rounded-xl border border-[#bd6b2a] bg-[#ffe6c8] p-3 text-sm text-[#713d1c]"><p className="font-bold">Kuvan ja kuvaushetken tiedot poikkeavat toisistaan.</p>{conflict.reasons.includes("location")&&<p>Sijaintien ero noin {Math.round(conflict.distanceM||0)} m.</p>}{conflict.reasons.includes("time")&&<p>Kuvausaikojen ero noin {Math.round(conflict.timeDifferenceMinutes||0)} min. Käytä aiemmalle kuvalle offline-valintaa.</p>}<label className="mt-2 flex gap-2"><input type="checkbox" checked={conflictConfirmed} disabled={!stationId} onChange={e=>setConflictConfirmed(e.target.checked)}/><span>Vahvistan kuvatun aseman ja kuvausajan.</span></label></div>}
 
               </>}
@@ -408,7 +412,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       </div>
       <footer className={`relative z-10 flex h-[76px] shrink-0 flex-col justify-center border-t border-[#baa46a]/50 text-[#174c35] ${cameraOpen||(!sent&&(Boolean(photo)||mode==="manual"))?"":"invisible"}`}>
         {cameraOpen?<><div className="flex justify-center gap-3"><button type="button" disabled={!cameraReady||captureCountdown!==null} onClick={startTimedCapture} className="rounded-xl bg-[#e3edc9] px-8 py-2 font-black text-[#174c35] disabled:opacity-40">{captureCountdown===null?"Ota kuva (3 s)":`Kuva ${captureCountdown}…`}</button><button type="button" onClick={stopCamera} className="rounded-xl border border-[#baa46a] px-4 py-2 font-bold">Peruuta</button></div><p className="text-center text-[11px] text-[#6d604c]">{cameraReady?"Kohdista kamera hintatauluun ja ota kuva.":"Avataan kameraa…"}</p></>:<>
-                <div className="flex items-center justify-center gap-3"><button type="button" onClick={()=>void submit()} disabled={busy||locating||(conflict.reasons.length>0&&!conflictConfirmed)||!validObserved||!stationId||!validateFuelPrices(prices)} className="min-w-[120px] rounded-xl border-2 border-[#8bb56d] bg-[#e3edc9] px-8 py-2 text-lg font-black text-[#174c35] disabled:opacity-40">OK</button>{mode==="online"&&<button type="button" disabled={busy||locating} onClick={startOnline} className="rounded-xl border border-[#17573c] px-4 py-2 text-sm font-bold disabled:opacity-40">Ota uusi kuva</button>}</div>
+                <div className="flex items-center justify-center gap-3"><button type="button" onClick={()=>void submit()} disabled={busy||locating||Boolean(stationLocationError)||(conflict.reasons.length>0&&!conflictConfirmed)||!validObserved||!stationId||!validateFuelPrices(prices)} className="min-w-[120px] rounded-xl border-2 border-[#8bb56d] bg-[#e3edc9] px-8 py-2 text-lg font-black text-[#174c35] disabled:opacity-40">OK</button>{mode==="online"&&<button type="button" disabled={busy||locating} onClick={startOnline} className="rounded-xl border border-[#17573c] px-4 py-2 text-sm font-bold disabled:opacity-40">Ota uusi kuva</button>}</div>
                 <p className="text-center text-[11px] text-[#6d604c]">OK lähettää hintailmoituksen tarkistettavaksi.</p>
         </>}
       </footer>
