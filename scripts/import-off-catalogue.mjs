@@ -19,16 +19,44 @@ try {
    fetched_at timestamptz NOT NULL DEFAULT now()
  )`);
  for(let page=1;page<=pages;page++){
+  // Prefer the OFF API v2 search endpoint. Legacy CGI search can return HTTP 503.
   const params=new URLSearchParams({
-   action:'process',json:'1',search_simple:'1',
-   tagtype_0:'countries',tag_contains_0:'contains',tag_0:'finland',
-   page_size:String(pageSize),page:String(page),
+   countries_tags:'en:finland',page_size:String(pageSize),page:String(page),
    fields:'code,product_name,brands,categories,nutriments'
   });
-  const url='https://world.openfoodfacts.org/cgi/search.pl?'+params;
-  const response=await fetch(url,{signal:AbortSignal.timeout(45000),headers:{'User-Agent':'Ziiply/1.0 (https://ziiply.fi; OFF catalogue enrichment)'}});
-  if(!response.ok)throw Error('OFF catalogue HTTP '+response.status+' on page '+page);
-  const payload=await response.json();
+  const endpoints=[
+   'https://world.openfoodfacts.org/api/v2/search?'+params,
+   'https://world.openfoodfacts.org/cgi/search.pl?'+new URLSearchParams({
+    action:'process',json:'1',search_simple:'1',
+    tagtype_0:'countries',tag_contains_0:'contains',tag_0:'finland',
+    page_size:String(pageSize),page:String(page),
+    fields:'code,product_name,brands,categories,nutriments'
+   })
+  ];
+  let payload=null;
+  for(const url of endpoints){
+   for(let attempt=1;attempt<=3;attempt++){
+    try{
+     const response=await fetch(url,{
+      signal:AbortSignal.timeout(45000),
+      headers:{'User-Agent':'Ziiply/1.0 (https://ziiply.fi; Finnish OFF nutrition catalogue)','Accept':'application/json'}
+     });
+     if(response.ok){
+      const candidate=await response.json();
+      if(Array.isArray(candidate.products)){payload=candidate;break;}
+      console.warn('OFF_CATALOGUE_INVALID_RESPONSE',JSON.stringify({page,url,attempt}));
+     }else{
+      console.warn('OFF_CATALOGUE_HTTP',JSON.stringify({page,status:response.status,attempt,url}));
+      if(![429,500,502,503,504].includes(response.status))break;
+     }
+    }catch(error){
+     console.warn('OFF_CATALOGUE_NETWORK',JSON.stringify({page,attempt,message:String(error.message)}));
+    }
+    if(attempt<3)await new Promise(resolve=>setTimeout(resolve,Math.min(12000,2000*2**(attempt-1))));
+   }
+   if(payload)break;
+  }
+  if(!payload)throw Error('OFF catalogue endpoints unavailable after retries on page '+page);
   const products=Array.isArray(payload.products)?payload.products:[];
   for(const p of products){
    fetched++;
