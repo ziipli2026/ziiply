@@ -261,14 +261,23 @@ export default function DesktopPreviewPage() {
   const [savedOnlineRecipes,setSavedOnlineRecipes]=useState<string[]>([]);
   useEffect(()=>{try{setSavedOnlineRecipes(JSON.parse(window.localStorage.getItem("ziiply-saved-online-recipes")||"[]").map((r:{url:string})=>r.url))}catch{}},[]);
   function saveOnlineRecipe(recipe:{title:string;url:string;source:string;content:string}){
-    try{const key="ziiply-saved-online-recipes";const old=JSON.parse(window.localStorage.getItem(key)||"[]");const next=[...old.filter((r:{url:string})=>r.url!==recipe.url),recipe];window.localStorage.setItem(key,JSON.stringify(next));setSavedOnlineRecipes(next.map((r:{url:string})=>r.url));setJustiinaRecipeMessage("Resepti tallennettu");}catch{setJustiinaRecipeMessage("Tallennus epäonnistui")}
+    try{const key="ziiply-saved-online-recipes";const old=JSON.parse(window.localStorage.getItem(key)||"[]");const next=[...old.filter((r:{url:string})=>r.url!==recipe.url),{...recipe,category:"muualta",library:"oma",ingredients:parseRecipeIngredients(recipe.content),savedAt:new Date().toISOString()}];window.localStorage.setItem(key,JSON.stringify(next));setSavedOnlineRecipes(next.map((r:{url:string})=>r.url));setJustiinaRecipeMessage("Resepti tallennettu");}catch{setJustiinaRecipeMessage("Tallennus epäonnistui")}
   }
   function searchOnlineRecipeIngredients(recipe:{title:string;content:string}){
-    const ingredients=parseRecipeIngredients(recipe.content).filter(item=>item.complete&&item.name.trim());
-    if(!ingredients.length){setJustiinaRecipeMessage("Reseptistä ei löytynyt haettavia aineksia");return}
+    const parsed=parseRecipeIngredients(recipe.content).filter(item=>item.name.trim());
+    if(!parsed.length){setJustiinaRecipeMessage("Reseptistä ei löytynyt ainesosia");return}
+    const fractions:Record<string,number>={"½":0.5,"¼":0.25,"¾":0.75,"⅓":1/3,"⅔":2/3};
+    const ingredients:RecipeIngredient[]=parsed.map((item,index)=>{
+      const m=item.amount.match(/^([\d.,½¼¾⅓⅔]+)\s*(.*)$/);
+      const raw=m?.[1]||"";
+      const mixed=raw.match(/^(\d+)([½¼¾⅓⅔])$/);
+      const amount=mixed?Number(mixed[1])+fractions[mixed[2]]:fractions[raw]??Number(raw.replace(",","."));
+      return {id:"online-"+index,name:item.name,amount:Number.isFinite(amount)?amount:null,unit:m?.[2]||null,uncertain:!item.complete,atHome:false,sourceLine:item.amount+" "+item.name,searchTerm:recipeProductSearchTerm(item.name)||item.name};
+    });
+    try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:ingredients}))}catch{}
     setJustiinaRecipeSearchOpen(false);
-    setJustiinaRecipeMessage("Ainesosat valmiina tuotehakuun");
-    window.dispatchEvent(new CustomEvent("ziiply-recipe-ingredients-search",{detail:{title:recipe.title,ingredients}}));
+    setWorkspace("justiina");
+    void runDesktopVoiceList(ingredients.map(item=>item.name).join(", "),ingredients);
   }
   const [justiinaRecipeLoading,setJustiinaRecipeLoading]=useState(false);
   const [justiinaRecipeMessage,setJustiinaRecipeMessage]=useState("");
