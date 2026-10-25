@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       retry_not_found:
-        description: 'Retry OFF not-found EANs older than 24h (instead of waiting 30 days)'
+        description: 'Retry OFF not-found EANs older than 14 days (otherwise 90 days)'
         required: false
-        default: true
+        default: false
         type: boolean
       limit:
         description: 'EAN codes per shard (25-150)'
