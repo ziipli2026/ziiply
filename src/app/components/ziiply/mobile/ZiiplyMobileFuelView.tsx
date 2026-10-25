@@ -91,12 +91,13 @@ export default function ZiiplyMobileFuelView({
   }, [coords?.lat, coords?.lon]);
   // Match desktop: select chain groups and show the nearest eligible station.
   const filtered = useMemo(
-    () => stations
-      .filter((s) => stationSide === "both"
-        ? [s.diesel, s.price95, s.price98].some((value) => value != null && Number.isFinite(Number(value)) && Number(value) > 0)
-        : s.isTrafficStation === (stationSide === "traffic"))
+    () => !coords ? [] : stations
+      // Station cards are LOCAL discovery, not a nationwide fallback.
+      // Missing fuel prices do not make a nearby station disappear.
+      .filter((s) => Number.isFinite(s.distanceKm) && s.distanceKm >= 0 && s.distanceKm <= 30)
+      .filter((s) => stationSide === "both" || s.isTrafficStation === (stationSide === "traffic"))
       .sort((a, b) => a.distanceKm - b.distanceKm),
-    [stations, stationSide],
+    [stations, stationSide, coords],
   );
   function toggleGroup(key: string) {
     setSelectedGroups((previous) => previous.includes(key)
@@ -236,7 +237,7 @@ export default function ZiiplyMobileFuelView({
                 </button>
                 <span className="col-start-1 row-start-1 flex min-h-0 items-center justify-center overflow-hidden pl-[32px] pr-[26px] text-[clamp(10px,2.8vw,13px)] font-black leading-[1.1] text-[#050505]">
                   <span className="line-clamp-2 break-words">
-                  {station?.name ?? (loading ? "Haetaan…" : "Ei asemaa")}
+                  {station?.name ?? (loading ? "Haetaan…" : !coords ? "Sijainti puuttuu" : "Ei lähiasemaa")}
                   </span>
                 </span>
                 <span className={`col-start-1 row-start-2 text-[11px] font-black leading-[14px] text-black ${g.logo ? "flex w-[30px] justify-self-start justify-center whitespace-nowrap" : "block"}`}>
