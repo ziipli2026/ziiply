@@ -2615,27 +2615,13 @@ export default function DesktopPreviewPage() {
                     if(time==="00.00.00" || time==="00:00:00")return "Lähteen päiväys "+date.toLocaleDateString("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric"});
                     return date.toLocaleString("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"});
                   };
-                  return groups.length===0?<p className="py-8 text-center font-bold">Valitse ensin vähintään yksi ketju.</p>:<div className="grid min-h-0 flex-1 gap-x-4 gap-y-5 pt-2" style={{gridTemplateColumns:groups.length===1?"minmax(0,1fr)":"repeat(4,minmax(0,1fr))",gridTemplateRows:groups.length===5?"repeat(3,minmax(0,1fr))":groups.length>=3?"repeat(2,minmax(0,1fr))":"minmax(0,1fr)"}}>
-                    {groups.map((group,groupIndex)=>{
-                      const candidates=fuelVisible.filter((station:any)=>group==="Muut"?["Gulf","Ritoil","Muut"].includes(fuelGroupOf(station)):fuelGroupOf(station)===group).filter((station:any)=>[station.diesel,station.price95,station.price98].some(value=>value!=null && Number.isFinite(Number(value)) && Number(value)>0)).sort(compareStations);
-                      return <section key={group} aria-label={group==="Muut"?"Gulf / Ritoil / muut":group} className="relative flex min-h-0 min-w-0 flex-col rounded-[22px] border-[3px] border-[#17573c] bg-[#fff9dd] shadow-[0_4px_0_rgba(72,73,48,.12)]" style={groups.length===5?{gridColumn:groupIndex===2?"2 / span 2":groupIndex===1||groupIndex===4?"3 / span 2":"1 / span 2",gridRow:groupIndex<2?1:groupIndex===2?2:3}:groups.length===1?{width:"min(100%,380px)",justifySelf:"center"}:{gridColumn:groups.length===3&&groupIndex===2?"2 / span 2":"span 2"}}>
-                        <div className="absolute -top-3 left-4 z-10 flex h-6 items-center gap-2 rounded-lg bg-[#fff9dd] px-2">
-                          {group==="Muut"?<div className="flex h-6 shrink-0 items-center gap-1"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Gulf_Oil_logo.svg" alt="Gulf" className="h-full w-6 object-contain"/><img src="https://commons.wikimedia.org/wiki/Special:FilePath/RITOIL_Logo.svg" alt="Ritoil" className="h-full w-7 object-contain"/></div>:<div className="h-6 w-12 shrink-0"><FuelBrandLogo brand={group}/></div>}
-                          <h2 className="min-w-0 text-center text-[12px] font-black text-[#174c35]">{group==="Muut"?"Gulf / Ritoil / muut":group}</h2>
-                        </div>
-                        <div key={`${group}-${fuelSort}`} className="min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-[18px] px-2 pb-2 pt-4" tabIndex={0} aria-label={`Selaa ketjun ${group} asemia`}>
-                          {candidates.length===0?<p className="py-5 text-center text-sm font-bold text-[#6d604c]">Ei hintahavaintoja valituista asemista.</p>:candidates.map((station:any)=><article key={station.id} className="mb-1 grid grid-cols-[minmax(0,.65fr)_minmax(0,1.35fr)] items-center gap-1 rounded-lg border border-[#dcc99a] bg-white/90 px-2 py-1.5 last:mb-0">
-                            <div className="min-w-0">
-                              <div className="break-words text-[12px] font-black leading-[1.1] text-[#174c35]">{station.name}</div>
-                              <div className="mt-0.5 text-[9px] font-semibold leading-[1.1] text-[#6d604c]">{Number(station.distanceKm).toFixed(1).replace(".",",")} km · {fuelIsTraffic(station)?"Liikenneasema":"Kylmä / muu"}</div>
-                            </div>
-                            <div className="grid min-w-0 grid-cols-3 gap-0.5 text-center">
-                              {([["DI","diesel","observedDiesel"],["95","price95","observed95"],["98","price98","observed98"]] as const).map(([label,key,dateKey])=><div key={key} className="min-w-0 rounded bg-[#fff4cf] px-0.5 py-1"><div className="text-left text-[8px] font-bold leading-none text-[#6d604c]">{label}</div><strong className="mt-0.5 block whitespace-nowrap text-[17px] font-black leading-none tabular-nums text-[#174c35]">{price(station[key])}</strong><div className="mt-1 whitespace-nowrap text-[8px] leading-none text-[#6d604c]">{price(station[key])==="–"?"–":observed(station[dateKey]).replace(/klo\s*/,"")}</div></div>)}
-                            </div>
-                          </article>)}
-                        </div>
-                      </section>;
-                    })}
+                  const candidates=fuelVisible.filter((station:any)=>[station.diesel,station.price95,station.price98].some(value=>value!=null&&Number.isFinite(Number(value))&&Number(value)>0)).sort(compareStations);
+                  return groups.length===0?<p className="py-8 text-center font-bold">Valitse ensin vähintään yksi ketju.</p>:<div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-[#d9c89c] bg-white/90" tabIndex={0} aria-label="Polttoaineasemien hintaluettelo">
+                    <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] gap-1 border-b border-[#d9c89c] bg-[#fff4cf] px-3 py-2 text-[11px] font-black text-[#174c35]"><span>Asema / etäisyys</span><span className="text-right">DI</span><span className="text-right">95</span><span className="text-right">98</span></div>
+                    {candidates.length===0?<p className="p-5 text-center text-sm font-bold text-[#6d604c]">Ei hintahavaintoja valituista asemista.</p>:candidates.map((station:any)=><article key={station.id} className="grid grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] items-center gap-1 border-b border-[#e6dfcc] px-3 py-1.5 last:border-b-0">
+                      <div className="min-w-0"><div className="truncate text-[12px] font-black text-[#174c35]">{station.chain} · {station.name}</div><div className="text-[10px] text-[#6d604c]">{Number(station.distanceKm).toFixed(1).replace(".",",")} km</div></div>
+                      {(["diesel","price95","price98"] as const).map(key=><span key={key} className="text-right text-[13px] font-black tabular-nums text-[#174c35]">{price(station[key])}</span>)}
+                    </article>)}
                   </div>;
                 })()}
               </div>
