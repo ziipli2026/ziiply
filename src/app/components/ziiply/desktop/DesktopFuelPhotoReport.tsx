@@ -99,9 +99,15 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     const canvas=document.createElement("canvas");canvas.width=video.videoWidth;canvas.height=video.videoHeight;
     const context=canvas.getContext("2d");if(!context){setError("Kuvan ottaminen epäonnistui.");return;}
     context.drawImage(video,0,0);
+    // Prefer a recent verified outdoor fix when GPS disappears inside the station.
     const location=new Promise<{lat:number;lon:number;accuracy:number}|null>(resolve=>{
-      if(!navigator.geolocation){resolve(null);return;}
-      navigator.geolocation.getCurrentPosition(position=>resolve({lat:position.coords.latitude,lon:position.coords.longitude,accuracy:position.coords.accuracy}),()=>resolve(null),{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+      const cached=(()=>{try{const v=JSON.parse(sessionStorage.getItem("ziiply-fuel-last-fix")||"null");return v&&Date.now()-v.at<30*60*1000&&v.accuracy<=50?v:null;}catch{return null;}})();
+      if(!navigator.geolocation){resolve(cached);return;}
+      navigator.geolocation.getCurrentPosition(position=>{
+        const fix={lat:position.coords.latitude,lon:position.coords.longitude,accuracy:position.coords.accuracy,at:Date.now()};
+        if(fix.accuracy<=50){try{sessionStorage.setItem("ziiply-fuel-last-fix",JSON.stringify(fix));}catch{}}
+        resolve(fix.accuracy<=50?fix:cached);
+      },()=>resolve(cached),{enableHighAccuracy:true,timeout:6000,maximumAge:30000});
     });
     onlineCapture.current={time:localDateTime(),gps:location};
     stopCamera();setBusy(true);
