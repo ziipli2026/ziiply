@@ -270,6 +270,8 @@ export default function DesktopPreviewPage() {
       const ingredients=parseRecipeIngredients(recipe.content);
       const entry={id,title:recipe.title,ingredients:ingredients.map(item=>item.amount+" "+item.name).join("\n"),instructions:parts.length>1?parts.slice(1).join("\n"):recipe.content,source:"muualta",category:"muualta",sourceUrl:recipe.url,sourceName:recipe.source,createdAt:new Date().toISOString()};
       localStorage.setItem(key,JSON.stringify([entry,...recipes.filter((item:{id:string})=>item.id!==id)]));
+      const verified=JSON.parse(localStorage.getItem(key)||"[]");
+      if(!Array.isArray(verified)||!verified.some((item:{id:string})=>item.id===id))throw new Error("Reseptikirjaston tallennus ei vahvistunut");
       setSavedOnlineRecipes(current=>[...new Set([...current,recipe.url])]);
       window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));
       setJustiinaRecipeMessage("Tallennettu omaan reseptikirjastoon / Muualta tulleet");
@@ -289,8 +291,9 @@ export default function DesktopPreviewPage() {
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:ingredients}))}catch{}
     setJustiinaRecipeSearchOpen(false);
     setWorkspace("justiina");
-    setTimeout(()=>{void runDesktopVoiceList(ingredients.map(item=>item.name).join(", "),ingredients)},0);
+    setPendingOnlineRecipeIngredients(ingredients);
   }
+  const [pendingOnlineRecipeIngredients,setPendingOnlineRecipeIngredients]=useState<RecipeIngredient[]|null>(null);
   const [justiinaRecipeLoading,setJustiinaRecipeLoading]=useState(false);
   const [justiinaRecipeMessage,setJustiinaRecipeMessage]=useState("");
   const [justiinaDebugOpen,setJustiinaDebugOpen]=useState(false);
@@ -1570,6 +1573,12 @@ export default function DesktopPreviewPage() {
   }, [workspace]);
   useEffect(() => () => cancelDesktopVoiceList(), []);
 
+  useEffect(()=>{
+    if(workspace!=="justiina"||!pendingOnlineRecipeIngredients?.length||justiinaRecipeSearchOpen)return;
+    const ingredients=pendingOnlineRecipeIngredients;
+    setPendingOnlineRecipeIngredients(null);
+    void runDesktopVoiceList(ingredients.map(item=>item.name).join(", "),ingredients);
+  },[workspace,pendingOnlineRecipeIngredients,justiinaRecipeSearchOpen]);
   async function runDesktopVoiceList(transcript: string, recipeItems?:RecipeIngredient[], typedNormalSearch = false) {
     cancelDesktopVoiceList();
     const runId = desktopVoiceRunRef.current;
