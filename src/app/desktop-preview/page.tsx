@@ -2474,10 +2474,10 @@ export default function DesktopPreviewPage() {
                 {title === "AJOAINE" ? <span className="absolute left-[19px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
                 {title === "AJOAINE" ? (
                   <>
-                    <span className="absolute left-3 top-[6px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43]">
+                    <span className="absolute left-[35px] top-[6px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
                       {fuelNearestStation ? Number(fuelNearestStation.distanceKm).toLocaleString("fi-FI",{maximumFractionDigits:1})+" km" : "— km"}
                     </span>
-                    <span className="absolute bottom-[6px] left-3 whitespace-nowrap text-[10px] font-black leading-none text-[#625b43]">
+                    <span className="absolute bottom-[6px] left-[35px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
                       {fuelNearestStation ? fuelStationBrand(fuelNearestStation) : "—"}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col justify-center overflow-hidden">
