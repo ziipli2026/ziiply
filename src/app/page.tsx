@@ -2838,7 +2838,13 @@ function KauppiasMobileTopBar({
                           panel.id === "electricity" ? "text-[16.5px]" : "text-[17.5px]"
                         }`}
                       >
-                        {panel.value}
+                        {panel.id === "fuel" ? (
+                          <span className="flex flex-col gap-[1px] text-[9px] tracking-normal">
+                            {panel.value.split(/ (?=95 |98 )/).map((grade) => (
+                              <span key={grade} className="block whitespace-nowrap">{grade}</span>
+                            ))}
+                          </span>
+                        ) : panel.value}
                       </span>
                       {panel.unit && (
                         <span className="ml-[2px] pb-[1px] text-[7px] font-black leading-none opacity-85">
