@@ -7,8 +7,8 @@ const limit=Math.min(150,Math.max(1,Number(process.argv.find(x=>x.startsWith('--
 // New-only means existing Ziiply EANs without an OFF nutrition record.
 const newOnly=process.argv.includes('--new-only');
 const retryMissing=process.argv.includes('--retry-missing');
-// Avoid hammering codes already confirmed absent; retry missing OFF barcodes monthly; prioritize plausible food products.
-const missingRetryDays=30;
+// Avoid hammering codes already confirmed absent; retry food candidates after 24 hours; exclude obvious nonfood before requesting OFF.
+const missingRetryDays=1;
 const refreshIncomplete=!newOnly && process.argv.includes('--refresh-incomplete');
 const refreshFallback=!newOnly && process.argv.includes('--refresh-fallback');
 const retryNotFound=!newOnly && process.argv.includes('--retry-not-found');
