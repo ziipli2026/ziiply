@@ -82,7 +82,7 @@ async function prepareLearningPhoto(file:File,fallback:string){
     return compact.length<=3800000?compact:fallback;
   }catch{return fallback;}finally{URL.revokeObjectURL(url);}
 }
-export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
+export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose:()=>void;embedded?:boolean}){
   const [learningInfo,setLearningInfo]=useState("");
   const [recognitionActive,setRecognitionActive]=useState(false);
   const learningToken=useRef("");const learningTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -321,7 +321,7 @@ export default function DesktopFuelPhotoReport({onClose}:{onClose:()=>void}){
     ...(!invalidPrices.length&&!validateFuelPrices(prices)?["Anna vähintään yksi polttoainehinta."]:[]),
     ...(conflict.reasons.length>0&&!conflictConfirmed?["Vahvista kuvan sijainti- tai aikapoikkeama."]:[])
   ];
-  return createPortal(<div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 p-1.5 sm:p-2" onKeyDown={e=>{if(e.key==="Escape")onClose();if(e.key==="Tab"){const items=dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),summary');if(!items?.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}>
+  return createPortal(<div className={embedded ? "fixed inset-0 z-[99999] flex items-center justify-center bg-transparent p-0" : "fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 p-1.5 sm:p-2"} onKeyDown={e=>{if(e.key==="Escape")onClose();if(e.key==="Tab"){const items=dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),summary');if(!items?.length)return;const first=items[0],last=items[items.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}>
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="fuel-report-title" className="flex h-[calc(100dvh-12px)] max-h-[760px] min-h-0 w-full max-w-[720px] flex-col rounded-[20px] border-[3px] border-[#17573c] bg-[#fff4cf] p-2 shadow-2xl sm:h-[min(680px,calc(100dvh-16px))] sm:rounded-[28px] sm:p-3">
       <header className="relative mb-2 flex shrink-0 items-center justify-center px-12"><h2 id="fuel-report-title" className="text-center text-lg font-black text-[#174c35] sm:text-xl">Ilmoita polttoainehintoja</h2><button ref={closeRef} type="button" onClick={onClose} aria-label="Sulje hintailmoitus" className="absolute right-0 top-1/2 h-10 w-10 -translate-y-1/2 rounded-full border-2 border-[#17573c] text-xl">×</button></header>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
