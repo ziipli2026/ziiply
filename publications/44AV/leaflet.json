@@ -1,0 +1,859 @@
+{
+  "leaflet": "https://kcm-tarjouslehdet.k-ruoka.fi/87taxgk_tarjouslehti_44AV_KCM/index.html",
+  "pdfUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/87taxgk_tarjouslehti_44AV_KCM/files/extfile/DownloadURL.pdf",
+  "pdfSha256": "56ca2b178712f297d77f4de8bedd20700105941414f45f20880e7ac27095f52e",
+  "pageCount": 18,
+  "rows": [
+    {
+      "id": "kcm:spatial:1:ulkofileepalat:8.95",
+      "page": 1,
+      "title": "ULKOFILEEPALAT",
+      "anchor": {
+        "left": 0.503656,
+        "top": 0.624446,
+        "width": 0.08699599999999996,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Snellman",
+        "MAATIAISPOSSUN",
+        "ULKOFILEEPALAT",
+        "NATUREL tai MAUSTETTU",
+        "n 1 1–1 3 kg",
+        "Ytterfilébit av lantgris natural",
+        "eller kryddad",
+        "KG"
+      ]
+    },
+    {
+      "id": "kcm:spatial:1:kananpojan ileesuikaleet 700–800 g:5.99",
+      "page": 1,
+      "title": "KANANPOJAN ILEESUIKALEET 700–800 g",
+      "anchor": {
+        "left": 0.178185,
+        "top": 0.62222,
+        "width": 0.07333199999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "LIHAPULLILLA",
+        "Katso resepti »",
+        "Kariniemen",
+        "KANANPOJAN",
+        "ILEESUIKALEET 700–800 g",
+        "(7,49–8,56/kg) g",
+        "Strimlad kycklingfilé",
+        "RS",
+        "7,69/rs",
+        "Ilman Plussa-korttia",
+        "(9,61–10,99/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:1:creamy jäätelöt 750–850 ml:4.32",
+      "page": 1,
+      "title": "CREAMY JÄÄTELÖT 750–850 ml",
+      "anchor": {
+        "left": 0.395763,
+        "top": 0.870437,
+        "width": 0.15991200000000005,
+        "height": 0.013773
+      },
+      "nearby": [
+        "   ÖTÖKKÄLANGAT",
+        "Stickgarn, insekter",
+        "10.",
+        "Ilman Plussa-korttia 7,79/kerä",
+        "-2 -35%",
+        "   KERÄÄ",
+        "          APPANVÄNDARE",
+        "AKTIVERA VECKANS MOBILFÖRMÅN!",
+        "-21-30% 10.-(3,92–4,44/l) 3RS",
+        "Ingman",
+        "CREAMY JÄÄTELÖT 750–850 ml",
+        "Rajoitus 1 erä/asiakas Glass",
+        "Ilman aktivointia ja Plussa-korttia 4,25–4,79/rs (5,00–5,81/l)",
+        "Mobiilietu voimassa / Mobilförmån gäller 26.10–1.11.2026 Etu vain sovelluksesta.",
+        "AKTIVOI VIIKON",
+        " MOBIILIETU!",
+        "      HINNAT VOIMASSA MA–KE 26.–28.10.2026, ellei toisin mainita. Hinnat voimassa vain kotitalouksille. Tuotteita rajoitetut erät.",
+        "Priserna gäller MÅN.–ONS. 26–28.10.2026, ifall inget annat nämns."
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:129 k-menu 099 punajuuri 2 kg:0.99",
+      "page": 2,
+      "title": "129 K-Menu 099 PUNAJUURI 2 kg",
+      "anchor": {
+        "left": 0.673994,
+        "top": 0.390827,
+        "width": 0.039329999999999976,
+        "height": 0.010369
+      },
+      "nearby": [
+        "K-Menu",
+        "PORKKANA LANTTU tai",
+        "PUNAJUURI 2 kg",
+        "Suomi (0,50/kg) kg",
+        "KG",
+        "PS",
+        "Morot kålrot eller rödbeta",
+        "A",
+        "T"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:salame napoli ilmakuivattu kestomakkara 70 g (35,57/kg):2.49",
+      "page": 3,
+      "title": "SALAME NAPOLI ILMAKUIVATTU KESTOMAKKARA 70 g (35,57/kg)",
+      "anchor": {
+        "left": 0.173436,
+        "top": 0.554278,
+        "width": 0.08242799999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "SALAME NAPOLI",
+        "ILMAKUIVATTU",
+        "KESTOMAKKARA 70 g",
+        "(35,57/kg) g",
+        "Lufttorkad skinka",
+        "KPL"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:viilu kanalastut 180 g:2.99",
+      "page": 3,
+      "title": "VIILU KANALASTUT 180 g",
+      "anchor": {
+        "left": 0.839567,
+        "top": 0.568055,
+        "width": 0.13158100000000006,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Savuhovi",
+        "VIILU KANALASTUT 180 g",
+        "(16,61/kg) g",
+        "Kycklingflarn",
+        "PKT",
+        "3,99/pkt",
+        "Ilman Plussa-korttia",
+        "(22,17/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:leikkeleet 120 g:3.59",
+      "page": 3,
+      "title": "LEIKKELEET 120 g",
+      "anchor": {
+        "left": 0.372167,
+        "top": 0.644472,
+        "width": 0.08888999999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "99",
+        "ANTIPASTO",
+        "PANNUKIUSAUS",
+        "Katso resepti »",
+        "           SALAME NAPOLI ILMAKUIVATTU KESTOMAKKARA 70 g (35,57/kg)",
+        "Savuhovi",
+        "24",
+        "2",
+        "VIILU KANALASTUT 180 g",
+        "(16,61/kg) Kycklingflarn",
+        "  LEIKKELEET 120 g",
+        "PKT",
+        "Ilman Plussa-korttia 3,99/pkt (22,17/kg)",
+        "  KPL (36,58/kg) KPL Antipastopålägg",
+        "-25%",
+        "                        Kuusamon Juusto",
+        "PKT",
+        "Pekan Leipä",
+        "LAKTOOSITON",
+        "Valio PROfeel",
+        "4",
+        "PRK",
+        "Ilman Plussa-korttia 1,19/prk (6,80/kg)",
+        " ERÄNKÄVIJÄ JUUSTOPALAT 300 g (16,63/kg)",
+        "Ostbitar 99",
+        "VOIRINKELI 7 kpl/350 g"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:eränkävijä juustopalat 300 g (16,63/kg):4.99",
+      "page": 3,
+      "title": "ERÄNKÄVIJÄ JUUSTOPALAT 300 g (16,63/kg)",
+      "anchor": {
+        "left": 0.173436,
+        "top": 0.796344,
+        "width": 0.06656100000000001,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Kuusamon Juusto",
+        "ERÄNKÄVIJÄ",
+        "JUUSTOPALAT 300 g",
+        "(16,63/kg) g",
+        "Ostbitar",
+        "PKT",
+        "5,55/pkt",
+        "Ilman Plussa-korttia",
+        "(18 5,50/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:voirinkeli 7 kpl/350 g:3.59",
+      "page": 3,
+      "title": "VOIRINKELI 7 kpl/350 g",
+      "anchor": {
+        "left": 0.506095,
+        "top": 0.789739,
+        "width": 0.12160500000000007,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Pekan Leipä",
+        "VOIRINKELI 7 kpl/350 g",
+        "(10,26/kg) g",
+        "Smörkringlor",
+        "PS",
+        "3,99/ps",
+        "Ilman Plussa-korttia",
+        "(11,40/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:proteiinirahkat 175 g:4",
+      "page": 3,
+      "title": "PROTEIINIRAHKAT 175 g",
+      "anchor": {
+        "left": 0.835742,
+        "top": 0.807942,
+        "width": 0.12444100000000002,
+        "height": 0.013773
+      },
+      "nearby": [
+        "LAKTOOSITON",
+        "Valio PROfeel",
+        "PROTEIINIRAHKAT 175 g",
+        "(5,71/kg) g",
+        "Laktosfri proteinkvarg",
+        "4",
+        "PRK",
+        "1,19/prk",
+        "Ilman Plussa-korttia",
+        "(6,80/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:p3atongit 230–245 g (16,29–17,35/kg) baguetter 99:3.99",
+      "page": 4,
+      "title": "P3ATONGIT 230–245 g (16,29–17,35/kg) Baguetter 99",
+      "anchor": {
+        "left": 0.502523,
+        "top": 0.595644,
+        "width": 0.048951999999999996,
+        "height": 0.010369
+      },
+      "nearby": [
+        "Hetki",
+        "230–245 g",
+        "(16,29–17,35/kg) g",
+        "Baguetter g",
+        "KPL",
+        "4,39/kpl",
+        "Ilman Plussa-korttia",
+        "(17,92–19,09/kg) g"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:aito nakki 360 g:3.79",
+      "page": 4,
+      "title": "AITO NAKKI 360 g",
+      "anchor": {
+        "left": 0.07606,
+        "top": 0.604229,
+        "width": 0.09286000000000001,
+        "height": 0.013773
+      },
+      "nearby": [
+        "HK",
+        "AITO NAKKI 360 g",
+        "(10,53/kg) g",
+        "Knackkorv",
+        "PKT",
+        "4,49/pkt",
+        "Ilman Plussa-korttia",
+        "(12 4,47/kg)",
+        "Kariniemen"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:härkis härkäpapu- murskat 250 g (13,96/kg) bondbönekross:3.49",
+      "page": 4,
+      "title": "HÄRKIS HÄRKÄPAPU- MURSKAT 250 g (13,96/kg) Bondbönekross",
+      "anchor": {
+        "left": 0.697392,
+        "top": 0.602042,
+        "width": 0.11173799999999989,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Gold&Green",
+        "HÄRKIS HÄRKÄPAPU-",
+        "MURSKAT 250 g",
+        "(13,96/kg) g",
+        "Bondbönekross",
+        "KPL",
+        "3,95/kpl",
+        "Ilman Plussa-korttia",
+        "(15,80/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:nopeat kananugetit tai kanapuikot dipillä 218 g (13,72/kg):2.99",
+      "page": 4,
+      "title": "NOPEAT KANANUGETIT tai KANAPUIKOT DIPILLÄ 218 g (13,72/kg)",
+      "anchor": {
+        "left": 0.497779,
+        "top": 0.791479,
+        "width": 0.13591499999999995,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Pouttu",
+        "NOPEAT KANANUGETIT tai",
+        "KANAPUIKOT DIPILLÄ 218 g",
+        "(13,72/kg) 2 g",
+        "Nuggets och kycklingpinnar",
+        "med dipp",
+        "KPL",
+        "3,39/kpl",
+        "Ilman Plussa-korttia",
+        "(15 5,55/kg) 5"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:ufileet 340 g:7",
+      "page": 5,
+      "title": "UFILEET 340 g",
+      "anchor": {
+        "left": 0.178677,
+        "top": 0.355511,
+        "width": 0.138769,
+        "height": 0.013773
+      },
+      "nearby": [
+        "  MARRY ME - LASAGNE",
+        "Katso resepti »",
+        "              KANAN PIKK",
+        "UFILEET 340 g",
+        "PORSAAN MINUUTTI- SUIKALEET 300 g",
+        "HUNAJAMARINOITU KANASUIKALE 450 g",
+        "9.",
+        "7.",
+        "2RS --",
+        "- 8.",
+        "Ilman Plussa-korttia 4,45/rs (9,89/kg)",
+        "  -9%",
+        "2",
+        "RS",
+        "-10%",
+        "2",
+        "RS",
+        "(13,24/kg)",
+        "Liten kyckling filé"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:porsaan minuutti- suikaleet 300 g:7",
+      "page": 5,
+      "title": "PORSAAN MINUUTTI- SUIKALEET 300 g",
+      "anchor": {
+        "left": 0.504202,
+        "top": 0.349407,
+        "width": 0.11071299999999995,
+        "height": 0.013773
+      },
+      "nearby": [
+        "PORSAAN MINUUTTI-",
+        "SUIKALEET 300 g",
+        "(11,67/kg) 7 g",
+        "Minutstrimlor av gris",
+        "2",
+        "RS",
+        "3,99/rs",
+        "Ilman Plussa-korttia -",
+        "(13 3,30/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:hunajamarinoitu kanasuikale 450 g:8",
+      "page": 5,
+      "title": "HUNAJAMARINOITU KANASUIKALE 450 g",
+      "anchor": {
+        "left": 0.833232,
+        "top": 0.345474,
+        "width": 0.10381300000000004,
+        "height": 0.013773
+      },
+      "nearby": [
+        "HUNAJAMARINOITU",
+        "KANASUIKALE 450 g",
+        "(8 8,89/kg) g",
+        "Kycklingstrimlor",
+        "2",
+        "RS",
+        "4,45/rs",
+        "Ilman Plussa-korttia -",
+        "(9 8,89/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:ruokakerma 10 % 2 dl:2",
+      "page": 5,
+      "title": "RUOKAKERMA 10 % 2 dl",
+      "anchor": {
+        "left": 0.833232,
+        "top": 0.581908,
+        "width": 0.12232600000000005,
+        "height": 0.013773
+      },
+      "nearby": [
+        "LAKTOOSITON",
+        "RUOKAKERMA 10 % 2 dl",
+        "(3,33/l)",
+        "Laktosfri matlagningsgrädde",
+        "3",
+        "TLK",
+        "0,75/tlk",
+        "Ilman Plussa-korttia -",
+        "(3,75/l) 5",
+        "N P",
+        "E",
+        "E",
+        "I",
+        "R",
+        "K",
+        "K"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:ohukaiset 400 g:2",
+      "page": 5,
+      "title": "OHUKAISET 400 g",
+      "anchor": {
+        "left": 0.080074,
+        "top": 0.620028,
+        "width": 0.093329,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Liten kyckling filé",
+        "(11,67/kg) Minutstrimlor av gris",
+        "(8,89/kg) Kycklingstrimlor",
+        " Ilman Plussa-korttia 4,99/rs (14,68/kg)",
+        "-12% Ilman Plussa-korttia 3,99/rs (13,30/kg)",
+        "                LAKTOOSITON",
+        "RUOKAKERMA 10 % 2 dl",
+        " 4.-             5.-             2.-",
+        "(3,33/l)",
+        "Laktosfri matlagningsgrädde",
+        " OHUKAISET 400 g",
+        "(5,00/kg) Plättar",
+        "2RS",
+        "KIISSELIT 365 g",
+        "(4,57/kg) Krämer",
+        "33",
+        " -4–19% Ilman Plussa-korttia 2,09–2,49/rs (5,23–6,23/kg)",
+        "-11%",
+        "-14%",
+        "KPL TLK",
+        "Ilman Plussa-korttia 1,95/kpl Ilman Plussa-korttia 0,75/tlk",
+        "(5,34/kg)",
+        "(3,75/l)",
+        "     5",
+        "E",
+        "N"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:mini suklaapatukat 301 g (16,58/kg):4.99",
+      "page": 6,
+      "title": "MINI SUKLAAPATUKAT 301 g (16,58/kg)",
+      "anchor": {
+        "left": 0.843239,
+        "top": 0.09503,
+        "width": 0.120591,
+        "height": 0.013773
+      },
+      "nearby": [
+        "KitKat",
+        "SUKLAAPATUKAT 301 g",
+        "(16,58/kg) g",
+        "Chokladstänger g",
+        "PS",
+        "Trolli",
+        "HALLOWEEN"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:vampyrer makeispussit 375 g (7,97/kg):2.99",
+      "page": 6,
+      "title": "VAMPYRER MAKEISPUSSIT 375 g (7,97/kg)",
+      "anchor": {
+        "left": 0.320183,
+        "top": 0.553581,
+        "width": 0.05681400000000003,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Haribo",
+        "VAMPYRER",
+        "MAKEISPUSSIT 375 g",
+        "(7,97/kg) g",
+        "Godispåsar",
+        "PS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:mini friends biscuit 122 g:3.99",
+      "page": 6,
+      "title": "MINI FRIENDS BISCUIT 122 g",
+      "anchor": {
+        "left": 0.320183,
+        "top": 0.8097,
+        "width": 0.140897,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Kinder",
+        "MINI FRIENDS tai",
+        "MINI FRIENDS BISCUIT 122 g",
+        "(32,70/kg) g",
+        "Chokladgodis och -kex",
+        "PS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:kääreelliset konvehdit 250–320 g:percent:16",
+      "page": 6,
+      "title": "KÄÄREELLISET KONVEHDIT 250–320 g",
+      "anchor": {
+        "left": 0.832002,
+        "top": 0.798102,
+        "width": 0.07424600000000003,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Godispåsar",
+        "PAKKAUS 38- (52,63/kg) Ögonbollar godis",
+        " 99",
+        "  -16% Ilman Plussa-korttia 2,39/kpl (62,89/kg)",
+        "            MINI FRIENDS tai",
+        "MINI FRIENDS BISCUIT 122 g",
+        "(32,70/kg) (18,41–23,56/kg) Chokladgodis och -kex Inslagen konfekt",
+        "35",
+        "99 89",
+        "Fazer",
+        "KÄÄREELLISET KONVEHDIT 250–320 g",
+        "   PS RS",
+        "  6",
+        "Helpot halloween- naposteltavat juhliin"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:energiajuomat 0,5 l/tlk:4",
+      "page": 7,
+      "title": "ENERGIAJUOMAT 0,5 l/tlk",
+      "anchor": {
+        "left": 0.207986,
+        "top": 0.318498,
+        "width": 0.13402399999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "ja",
+        "maullaan",
+        "runsaalla",
+        "Juissi",
+        "ENERGIAJUOMAT 0 5 l/tlk",
+        "(3,70/l) 0 Sis",
+        "0 30",
+        "Energidrycker",
+        "2",
+        "TLK",
+        "2,09/tlk",
+        "Ilman Plussa-korttia",
+        "(3,88/l) Sis pantin 0 15"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:isotonic urheilujuomat:4.6",
+      "page": 7,
+      "title": "ISOTONIC URHEILUJUOMAT",
+      "anchor": {
+        "left": 0.489092,
+        "top": 0.791837,
+        "width": 0.13868600000000003,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Oshee",
+        "ISOTONIC URHEILUJUOMAT",
+        "0 75 l/pl",
+        "2",
+        "(2,93/l) 3",
+        "Sis pantit 0 40",
+        "Sportdryck",
+        "PL",
+        "2PL 2",
+        "2,85–2,95/pl",
+        "Ilman Plussa-korttia",
+        "(3,67/l) Sis pantin 0 20"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:energiajuomat 0,33–0,355 l/tlk (6,15–6,62/l):7",
+      "page": 7,
+      "title": "ENERGIAJUOMAT 0,33–0,355 l/tlk (6,15–6,62/l)",
+      "anchor": {
+        "left": 0.332034,
+        "top": 0.545033,
+        "width": 0.08748099999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Nocco",
+        "ENERGIAJUOMAT",
+        "0,33–0 355 l/tlk",
+        "(6,15–6,62/l)",
+        "Sis pantit 0 45",
+        "Energidrycker",
+        "3",
+        "TLK",
+        "2,85/tlk",
+        "Ilman Plussa-korttia -",
+        "(7,61–8,18/l) Sis pantin 0 15"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:urheilujuomat 0,70 l/pl:5",
+      "page": 7,
+      "title": "URHEILUJUOMAT 0,70 l/pl",
+      "anchor": {
+        "left": 0.831345,
+        "top": 0.566146,
+        "width": 0.13555099999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "URHEILUJUOMAT 0 70 l/pl",
+        "(2,16/l) Sis pantit 0 60",
+        "Sportdryck",
+        "3",
+        "PL",
+        "2,15/pl",
+        "Ilman Plussa-korttia -",
+        "(2,79/l) Sis pantin 0 20"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:vitamiinij-uomat 0,5 l/pl:2.3",
+      "page": 7,
+      "title": "VITAMIINIJ-UOMAT 0,5 l/pl",
+      "anchor": null,
+      "nearby": [
+        "5.-",
+        "Ilman Plussa-korttia 2,15/pl (2,79/l) Sis. pantin 0,20",
+        "33",
+        "(2,16/l) Sis. pantit 0,60 Sportdryck",
+        "  -18%",
+        "Vitamin Well",
+        "TLK",
+        "-22%",
+        "PL",
+        "                     0,75 l/pl 2",
+        "VITAMIINIJ-UOMAT 0,5 l/pl",
+        "Vitamindrycker Sportdryck PL Vitaminvatten",
+        "(2,93/l)",
+        "(4,60/l) Sis. pantit 0,40 Sis. pantit 0,40 (0,97/l) Sis. pantit 0,80",
+        "2PL 2PL 5. 4 3",
+        "60 70",
+        "VITAMIINIVEDET 1,5 l/pl",
+        "     -16% Ilman Plussa-korttia 2,95/pl Ilman Plussa-korttia 2,85–2,95/pl Ilman Plussa-korttia 2,09/pl",
+        "(5,50/l) Sis. pantin 0,20",
+        "-19%",
+        "(3,67/l) Sis. pantin 0,20",
+        "-14%",
+        "(1,13/l) Sis. pantin 0,40",
+        "    7",
+        "Alkoholiton tyrni-sour hurmaa raikkaalla kirpeydellään ja runsaalla maullaan"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:vitamiinivedet 1,5 l/pl:3.7",
+      "page": 7,
+      "title": "VITAMIINIVEDET 1,5 l/pl",
+      "anchor": {
+        "left": 0.822542,
+        "top": 0.812949,
+        "width": 0.12461599999999995,
+        "height": 0.013773
+      },
+      "nearby": [
+        "TLK",
+        "-22%",
+        "PL",
+        "                     0,75 l/pl 2",
+        "VITAMIINIJ-UOMAT 0,5 l/pl",
+        "Vitamindrycker Sportdryck PL Vitaminvatten",
+        "(2,93/l)",
+        "(4,60/l) Sis. pantit 0,40 Sis. pantit 0,40 (0,97/l) Sis. pantit 0,80",
+        "2PL 2PL 5. 4 3",
+        "60 70",
+        "VITAMIINIVEDET 1,5 l/pl",
+        "     -16% Ilman Plussa-korttia 2,95/pl Ilman Plussa-korttia 2,85–2,95/pl Ilman Plussa-korttia 2,09/pl",
+        "(5,50/l) Sis. pantin 0,20",
+        "-19%",
+        "(3,67/l) Sis. pantin 0,20",
+        "-14%",
+        "(1,13/l) Sis. pantin 0,40",
+        "    7",
+        "Alkoholiton tyrni-sour hurmaa raikkaalla kirpeydellään ja runsaalla maullaan"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:hammastahnat 75 ml:2.99",
+      "page": 8,
+      "title": "HAMMASTAHNAT 75 ml",
+      "anchor": {
+        "left": 0.378764,
+        "top": 0.828388,
+        "width": 0.10170999999999997,
+        "height": 0.016385
+      },
+      "nearby": [
+        "7 7 79/kerä",
+        "Ilman Plussa-korttia",
+        "Mobiilietu",
+        "jopa",
+        "KPL",
+        "Repair&Protect",
+        "ja Clinical",
+        "HAMMASTAHNAT",
+        "75 ml",
+        "39,87/l",
+        "Tandkrämer",
+        "Rajoitus 2 kpl/asiakas",
+        "Ilman aktivointia ja",
+        "Plussa-korttia",
+        "5,45–5,89/kpl",
+        "(72,67–78 5,53/l)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:wc-paperi 16 rl valkoinen:7.99",
+      "page": 8,
+      "title": "WC-PAPERI 16 rl VALKOINEN",
+      "anchor": {
+        "left": 0.561381,
+        "top": 0.876,
+        "width": 0.17217800000000005,
+        "height": 0.016527
+      },
+      "nearby": [
+        "Lotus Emilia talouspaperi",
+        "8 rl valkoinen tai design",
+        "Plussa-kortilla 4,99/pkt",
+        "ilman Plussa-korttia",
+        "5,85-6,59/pkt",
+        "Soft Embo",
+        "WC-PAPERI 16 rl VALKOINEN",
+        "0,50/rl rl",
+        "Toalettpapper vitt",
+        "8,39/pkt (0,52/rl)",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:11:kahvinkeittimen puhdistusaine 250 ml rengöringsmedel till kaffebryggare:11",
+      "page": 11,
+      "title": "KAHVINKEITTIMEN PUHDISTUSAINE 250 ml Rengöringsmedel till kaffebryggare",
+      "anchor": {
+        "left": 0.865281,
+        "top": 0.397168,
+        "width": 0.10091800000000006,
+        "height": 0.010369
+      },
+      "nearby": [
+        "24990",
+        "Ilman Plussa-korttia 279,90",
+        "    Season Pro 7941",
+        "TYHJIÖPAKKAUSLAITE",
+        "Vakuumförpackare",
+        "9999 -33% Ilman Plussa-korttia 149,90",
+        "Inox 6322",
+        "RIISINKEITIN",
+        "99 11",
+        "Moccamaster",
+        "KAHVINKEITTIMEN PUHDISTUSAINE 250 ml Rengöringsmedel till kaffebryggare",
+        "  -20%",
+        "Ilman Plussa-korttia",
+        "14,99",
+        "         99",
+        "24 -37%",
+        "Ilman Plussa-korttia 39,99",
+        "3000 Series NA341/00",
+        "One pot 1&2 tai",
+        "K food - korealaista katu- ja kotiruokaa",
+        "RUOKAKIRJAT",
+        "Kokböcker",
+        "Riskokare",
+        "19 -20% Ilman Plussa-korttia 24,99/kpl",
+        "99",
+        "KPL"
+      ]
+    },
+    {
+      "id": "kcm:spatial:14:soft embo 7 wc-paperi 16 rl:7.99",
+      "page": 14,
+      "title": "Soft Embo 7 WC-PAPERI 16 rl",
+      "anchor": {
+        "left": 0.099669,
+        "top": 0.354126,
+        "width": 0.06302100000000001,
+        "height": 0.012961
+      },
+      "nearby": [
+        "Soft Embo",
+        "WC-PAPERI 16 rl",
+        "VALKOINEN",
+        "0,50/rl",
+        "Toalettpapper vitt",
+        "8,39/pkt (0 5,52/rl)",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:15:kleenex nenäliinat ja kasvopaperit:percent:15",
+      "page": 15,
+      "title": "KLEENEX NENÄLIINAT ja KASVOPAPERIT",
+      "anchor": {
+        "left": 0.434252,
+        "top": 0.544696,
+        "width": 0.14466399999999996,
+        "height": 0.016527
+      },
+      "nearby": [
+        "KLEENEX NENÄLIINAT ja",
+        "KASVOPAPERIT",
+        "Kleenex näsdukar och ansiktsdukar",
+        "Ilman Plussa-korttia",
+        "1,59-2,39/pkt (0,03-0,25/kpl)"
+      ]
+    }
+  ]
+}

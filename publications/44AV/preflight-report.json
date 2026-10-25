@@ -1,0 +1,22 @@
+{
+  "ok": false,
+  "outcome": "source-archive-review-needed",
+  "period": "2026-10-26-W44-AV",
+  "issue": "44AV",
+  "pdfReview": "pending",
+  "runUrl": "https://github.com/ziipli2026/ziiply/actions/runs/40199099264",
+  "firstParserAt": "2026-10-25 13:11:07.334925+00",
+  "firstParserOk": true,
+  "sourceVerified": true,
+  "publisherUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/87taxgk_tarjouslehti_44AV_KCM/index.html",
+  "pdfSha256": "56ca2b178712f297d77f4de8bedd20700105941414f45f20880e7ac27095f52e",
+  "pages": 18,
+  "count": 34,
+  "parserRows": 35,
+  "unresolved": [
+    "5|KIISSELIT 365 g"
+  ],
+  "unverified": [],
+  "duplicates": [],
+  "auditScope": "Frozen source and automatic parser checks; full printed PDF comparison pending"
+}
