@@ -7,8 +7,8 @@ const limit=Math.min(150,Math.max(1,Number(process.argv.find(x=>x.startsWith('--
 // New-only means existing Ziiply EANs without an OFF nutrition record.
 const newOnly=process.argv.includes('--new-only');
 const retryMissing=process.argv.includes('--retry-missing');
-// Avoid hammering codes already confirmed absent; retry monthly, not daily.
-const missingRetryDays=30;
+// Avoid hammering codes already confirmed absent; retry after one day while the queue has no fresh eligible EANs.
+const missingRetryDays=1;
 const refreshIncomplete=!newOnly && process.argv.includes('--refresh-incomplete');
 const refreshFallback=!newOnly && process.argv.includes('--refresh-fallback');
 const retryNotFound=!newOnly && process.argv.includes('--retry-not-found');
