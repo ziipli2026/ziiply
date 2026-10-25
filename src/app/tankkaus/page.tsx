@@ -71,7 +71,7 @@ export default function TankkausPage(){
       </div>
     </div>
    </section>}
-   {mode==="report"&&<DesktopFuelPhotoReport embedded={embedded} onClose={()=>setMode("home")}/>}
+   {mode==="report"&&<DesktopFuelPhotoReport embedded={embedded} onClose={()=>{if(embedded&&window.parent!==window){window.parent.postMessage({type:"ziiply-fuel-close"},"https://ziiply.fi");}else{setMode("home");}}}/>}
   </div>
  </main>;
 }
