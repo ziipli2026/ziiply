@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from "react";
 import {createPortal} from "react-dom";
 import {readFuelPhoto} from "../../../../lib/fuelPhotoOcr";
-import {findFuelLedRows} from "../../../../lib/fuelPhotoLed";
+import {findFuelLedRows,selectFuelBurstRows} from "../../../../lib/fuelPhotoLed";
 import {comparePhotoEvidence,identifyFuelPhotoStation,fuelDistanceKm,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 
 type Station={id:string;name:string;chain?:string;address?:string;latitude:number;longitude:number};
@@ -86,6 +86,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
   const [learningInfo,setLearningInfo]=useState("");
   const [recognitionActive,setRecognitionActive]=useState(false);
   const learningToken=useRef("");const learningTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const confirmedPrices=useRef<Partial<Record<keyof FuelPrices,boolean>>>({});
   const priceEdits=useRef<Partial<Record<keyof FuelPrices,boolean>>>({});
   // Warm up the OCR runtime while the user is choosing a photo, not after selection.
   const warmWorker=useRef<Promise<Worker>|null>(null);
@@ -105,8 +106,8 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     if(round>=20){setRecognitionActive(false);logDebug("recovery-timeout",{round});setLearningInfo("60 sekunnin aikaraja täyttyi. Puuttuvia hintoja ei tunnistettu; voit syöttää ne käsin.");return;}
     try{const pollStarted=performance.now();const response=await fetch(`/api/fuel/photo-learning?id=${id}`,{headers:{"x-fuel-photo-token":token},cache:"no-store"});const result=await response.json();logDebug("recovery-poll",{round,httpStatus:response.status,durationMs:Math.round(performance.now()-pollStarted),status:result.status,attempts:result.attempts,prices:result.prices,error:result.error});
       if(!alive.current||requestId.current!==id)return;
-      if(result.prices && Object.keys(result.prices).length){
-        setPrices(previous=>{const next={...previous};for(const key of ["diesel","price95","price98"] as const)if(!priceEdits.current[key]&&!previous[key]&&typeof result.prices?.[key]==="number")next[key]=result.prices[key].toFixed(3).replace(".",",");return next;});
+      if((result.prices && Object.keys(result.prices).length)||(result.provisionalPrices&&Object.keys(result.provisionalPrices).length)){
+        setPrices(previous=>{const next={...previous};for(const key of ["diesel","price95","price98"] as const)if(!priceEdits.current[key]){const confirmed=typeof result.prices?.[key]==="number";const value=confirmed?result.prices[key]:result.provisionalPrices?.[key];if(typeof value==="number"&&(confirmed||!confirmedPrices.current[key])){next[key]=value.toFixed(3).replace(".",",");if(confirmed)confirmedPrices.current[key]=true;}}return next;});
         setPriceReview(true);setLearningInfo("");if(result.status==="recovered"){setRecognitionActive(false);return;}
       }
       if(result.status==="discarded"){setRecognitionActive(false);setLearningInfo("Taustaluku päättyi. Kuvasta ei saatu riittävän varmaa tulosta. Tarkista hinnat kuvasta tai syötä ne käsin.");return;}
@@ -209,9 +210,10 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       },failure=>{logDebug("gps-error",{code:failure.code,message:failure.message});resolve(null);},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
     });
   }
+  const capturingBurst=useRef(false);
   async function capturePhoto(){
     const video=videoRef.current;
-    if(!cameraReady||!video?.videoWidth||!video.videoHeight)return;
+    if(capturingBurst.current||!cameraReady||!video?.videoWidth||!video.videoHeight)return;
     const canvas=document.createElement("canvas");
     const guide=fuelGuideRef.current;
     const videoRect=video.getBoundingClientRect();
@@ -230,12 +232,35 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       const y2=Math.max(0,Math.min(video.videoHeight,(guideRect.bottom-top)/scale));
       if(x2-x1>=32&&y2-y1>=32){sx=x1;sy=y1;sw=x2-x1;sh=y2-y1;}
     }
-    canvas.width=Math.round(sw);canvas.height=Math.round(sh);
+    const captureScale=Math.min(1,1600/Math.max(sw,sh));
+    canvas.width=Math.round(sw*captureScale);canvas.height=Math.round(sh*captureScale);
     const context=canvas.getContext("2d");if(!context){setError("Kuvan ottaminen epäonnistui.");return;}
-    context.drawImage(video,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+    capturingBurst.current=true;setCameraReady(false);setBusy(true);
     const location=requestCaptureLocation();
     onlineCapture.current={time:localDateTime(),gps:location};
-    stopCamera();setBusy(true);
+    try{
+      const frames:ImageData[]=[];
+      for(let frame=0;frame<6;frame++){
+        if(!alive.current||streamRef.current?.active!==true)return;
+        // Unequal delays sample different phases of a pulsing LED display.
+        if(frame)await new Promise(resolve=>setTimeout(resolve,113+frame*7));
+        if(!alive.current||streamRef.current?.active!==true)return;
+        context.drawImage(video,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+        frames.push(context.getImageData(0,0,canvas.width,canvas.height));
+      }
+      // Analyze a small copy; keep full resolution only for the selected output rows.
+      const sample=document.createElement('canvas');const scale=Math.min(1,480/canvas.width);
+      sample.width=Math.round(canvas.width*scale);sample.height=Math.round(canvas.height*scale);
+      const sampleContext=sample.getContext('2d')!;
+      const analysis=frames.map(frame=>{context.putImageData(frame,0,0);sampleContext.drawImage(canvas,0,0,sample.width,sample.height);return sampleContext.getImageData(0,0,sample.width,sample.height).data;});
+      const bands=selectFuelBurstRows(analysis,sample.width,sample.height).map(b=>({...b,top:Math.max(0,Math.floor(b.top/scale)),bottom:Math.min(canvas.height,Math.ceil(b.bottom/scale))}));
+      context.putImageData(frames[0],0,0);
+      // Each band, including its fuel label, comes from one actual frame.
+      // Do not synthesize digits or combine different prices within a row.
+      for(const band of bands)context.putImageData(frames[band.frame],0,0,0,band.top,canvas.width,band.bottom-band.top);
+      logDebug('live-burst-selected',{frames:frames.length,bands:bands.map(({top,bottom,frame})=>({top,bottom,frame}))});
+    }catch(error){setError(error instanceof Error?error.message:'Videoruutujen lukeminen epäonnistui.');setBusy(false);return;}
+    finally{capturingBurst.current=false;stopCamera();if(alive.current)setBusy(false);}
     canvas.toBlob(blob=>{
       if(!alive.current)return;
       if(!blob){setBusy(false);setError("Kuvan ottaminen epäonnistui. Kokeile uudelleen.");return;}
@@ -243,7 +268,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     },"image/jpeg",0.95);
   }
   async function readPhoto(file:File,source:"online"|"offline"){
-    if(learningTimer.current)clearTimeout(learningTimer.current);learningToken.current="";priceEdits.current={};setLearningInfo("");
+    if(learningTimer.current)clearTimeout(learningTimer.current);learningToken.current="";priceEdits.current={};confirmedPrices.current={};setLearningInfo("");
     let recoveryData="",recoverySaved=false;
     debugStarted.current=performance.now();debugEvents.current=[];
     logDebug("photo-file",{source,name:file.name,type:file.type,size:file.size,lastModified:file.lastModified});
@@ -287,8 +312,8 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       logDebug("ocr-worker-await-start",{prewarmed:!!warmWorker.current});const worker=await (warmWorker.current??loadOcr().then(ocr=>ocr.createWorker("eng",1,{})));logDebug("ocr-worker-ready",{});
       warmWorker.current=null;
       workerRef.current=worker;if(!alive.current){await worker.terminate();return;}
-      logDebug("local-ocr-start",{});const result=await readFuelPhoto(worker,data,partial=>{logDebug("local-price-progress",{partial});if(alive.current){setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(partial).filter(([,value])=>Boolean(value)))}));setPriceReview(true);}},(stage,details)=>logDebug("ocr-"+stage,details));logDebug("local-ocr-complete",{prices:result.prices,review:result.review});if(!alive.current)return;
-      const parsed=result.prices;setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(parsed).filter(([,value])=>Boolean(value)))}));setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
+      logDebug("local-ocr-start",{});const result=await readFuelPhoto(worker,data,partial=>{logDebug("local-price-progress",{partial});if(alive.current){setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(partial).filter(([key,value])=>Boolean(value)&&!priceEdits.current[key as keyof FuelPrices]&&!confirmedPrices.current[key as keyof FuelPrices]))}));setPriceReview(true);}},(stage,details)=>logDebug("ocr-"+stage,details));logDebug("local-ocr-complete",{prices:result.prices,review:result.review});if(!alive.current)return;
+      const parsed=result.prices;setPrices(previous=>({...previous,...Object.fromEntries(Object.entries(parsed).filter(([key,value])=>Boolean(value)&&!priceEdits.current[key as keyof FuelPrices]&&!confirmedPrices.current[key as keyof FuelPrices]))}));setRawText(result.text);setPriceReview(result.review||!validateFuelPrices(parsed));
       const candidates=await stationSearch;if(!alive.current)return;const identified=identifyFuelPhotoStation(candidates||[],location,result.text,checked.reasons.length>0);const gpsIdentified=identifyFuelPhotoStation(candidates||[],location,"",checked.reasons.length>0);const finalIdentified=identified||gpsIdentified;setStationId(previous=>finalIdentified||previous);logDebug("station-identification",{identified,location,conflict:checked,candidates:(candidates||[]).slice(0,10).map(s=>({id:s.id,name:s.name,chain:s.chain,distanceM:location?Math.round(fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000):null}))});
       setStatus(Object.values(parsed).some(Boolean)?"Hinnat luettu. Tarkista numerot, asema ja havaintoaika.":"Hintoja ei tunnistettu varmasti. Voit korjata hinnat kuvasta tai ottaa uuden kuvan.");
     }catch(e){logDebug("read-photo-error",{message:String(e)});if(recoveryData&&!recoverySaved)await saveLearningPhoto(file,recoveryData,{diesel:"",price95:"",price98:""},"");if(alive.current)setError(e instanceof Error?e.message:"Kuvan lukeminen epäonnistui.");}
@@ -388,3 +413,4 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     </section></div>}
   </div>,document.body);
 }
+

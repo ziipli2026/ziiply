@@ -51,7 +51,7 @@ console.log('PASS: bottom-row diesel retry, partial petrol, all visible fuels, d
   exports,Buffer,process:{env:{OPENAI_API_KEY:'test'}},AbortSignal,
   fetch:async(url,options)=>{
    const body=JSON.parse(options.body);
-   overviewRequests.push(body.messages[1].content);
+   overviewRequests.push(body.messages[body.messages.length-1].content);
    return {ok:true,json:async()=>({choices:[{message:{content:JSON.stringify(outputs.shift())}}]})};
   },
   require:name=>{
@@ -75,3 +75,14 @@ console.log('PASS: bottom-row diesel retry, partial petrol, all visible fuels, d
  for(const views of overviewRequests)assert.equal(views[0].image_url.url,photo,'every retry retains the full board');
  console.log('PASS: actual recovery worker retains every row and continues to a third diesel confirmation');
 })().catch(error=>{console.error(error);process.exitCode=1;});
+
+
+const {recoveryPreview:preview,selectFuelPhotoExamples:examples}=load('src/lib/fuelPhotoRecovery.ts');
+assert.equal(preview([first]).diesel,2.412,'first reading is available before consensus');
+assert.equal(preview([first,conflict]).diesel,undefined,'conflicting previews are suppressed');
+const sig='0'.repeat(256),feedback={id:'confirmed',signature:'1'+'0'.repeat(255),prices:{diesel:2.412}};
+assert.equal(examples(sig,[]).length,0);
+assert.equal(examples(sig,[feedback])[0].id,'confirmed','new feedback changes the next recognition context');
+assert.equal(examples(sig,[{...feedback,signature:'1'.repeat(256)}]).length,0,'unrelated board is not a teaching example');
+assert.equal(examples(sig,[{...feedback,prices:{price95:3,price98:2}}]).length,0,'inconsistent corrections must not teach the reader');
+console.log('PASS: instant first result, conflicting previews and feedback selection');

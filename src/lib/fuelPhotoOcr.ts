@@ -29,6 +29,10 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     trace('led-rows-enhanced-retry',{count:rows.length});
   }
   trace('led-rows-detected',{count:rows.length,width:canvas.width,height:canvas.height});
+  if(rows.length>=4){
+    const heights=rows.map(r=>r.bottom-r.top).sort((a,b)=>a-b),median=heights[Math.floor(heights.length/2)];
+    rows=rows.filter(r=>r.bottom-r.top<=median*1.3);
+  }
   // Preserve a general-purpose fallback for images where red LED rows cannot be located.
   if(!rows.length){
     // Full-frame Tesseract consistently yields only scenery noise on iPhone photos
@@ -51,12 +55,28 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     if(row.left<15)continue;
     await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
     const labelVotes=new Map<NonNullable<ReturnType<typeof fuelRowLabel>>,number>();
-    for(const threshold of [0,80]){
-      const found=fuelRowLabel((await worker.recognize(crop(Math.max(0,row.left-(row.right-row.left)*.65),Math.max(1,row.left-8),false,true,threshold))).data.text);
-      if(found)labelVotes.set(found,(labelVotes.get(found)||0)+1);
+    // A white D/95/98 plaque must be trimmed inside its white border; otherwise
+    // OCR commonly reads the rounded plaque itself as brackets instead of D.
+    let plaqueLeft=canvas.width,plaqueRight=0,plaqueTop=canvas.height,plaqueBottom=0,count=0;
+    const scanLeft=Math.max(0,Math.floor(row.left-(row.right-row.left)*.45));
+    for(let y=row.top;y<row.bottom;y++)for(let x=scanLeft;x<row.left-8;x++){
+      const i=(y*canvas.width+x)*4,r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];
+      if(Math.min(r,g,b)>155&&Math.max(r,g,b)-Math.min(r,g,b)<65){plaqueLeft=Math.min(plaqueLeft,x);plaqueRight=Math.max(plaqueRight,x);plaqueTop=Math.min(plaqueTop,y);plaqueBottom=Math.max(plaqueBottom,y);count++;}
     }
-    if(labelVotes.size!==1){
-      for(const threshold of [0,120]){const found=fuelRowLabel((await worker.recognize(crop(Math.max(0,row.left-(row.right-row.left)*.65),Math.max(1,row.left-8),false,true,threshold,true))).data.text);if(found)labelVotes.set(found,(labelVotes.get(found)||0)+1);}
+    if(count>100&&plaqueRight>plaqueLeft&&plaqueBottom>plaqueTop&&count/((plaqueRight-plaqueLeft)*(plaqueBottom-plaqueTop))>.45){
+      const w=plaqueRight-plaqueLeft,h=plaqueBottom-plaqueTop,c=document.createElement('canvas');c.width=400;c.height=400;
+      const x=c.getContext('2d')!;x.fillStyle='white';x.fillRect(0,0,400,400);
+      x.drawImage(image,plaqueLeft+w*.15,plaqueTop+h*.15,w*.7,h*.7,30,30,340,340);
+      await worker.setParameters({tessedit_pageseg_mode:'10',tessedit_char_whitelist:''});
+      const found=fuelRowLabel((await worker.recognize(c.toDataURL('image/png'))).data.text);
+      if(found)labelVotes.set(found,2);
+    }
+    if(!labelVotes.size){
+      await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
+      for(const threshold of [0,80]){
+        const found=fuelRowLabel((await worker.recognize(crop(Math.max(0,row.left-(row.right-row.left)*.65),Math.max(1,row.left-8),false,true,threshold))).data.text);
+        if(found){labelVotes.set(found,(labelVotes.get(found)||0)+1);break;}
+      }
     }
     // A separate green MY Diesel label must never be mapped to ordinary diesel.
     // Inspect the whole label band as well as the narrow OCR crops: green lettering
@@ -70,8 +90,8 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     labelCanvas.height=Math.max(1,(labelBottom-labelTop)*2);
     labelCanvas.getContext('2d')?.drawImage(image,labelLeft,labelTop,labelRight-labelLeft,labelBottom-labelTop,0,0,labelCanvas.width,labelCanvas.height);
     await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
-    const fullLabelText=(await worker.recognize(labelCanvas.toDataURL('image/png'))).data.text;
-    if(/\b(?:MY\s*(?:DIESEL|D)|NESTE\s*MY)\b/i.test(fullLabelText))continue;
+    const fullLabelText=labelVotes.size===1?[...labelVotes.keys()][0]==='diesel'?'D':[...labelVotes.keys()][0]==='price95'?'95':'98':(await worker.recognize(labelCanvas.toDataURL('image/png'))).data.text;
+    if(/\b(?:MY\s*(?:DIESEL|D)|NESTE\s*MY|NERO\s*DIESEL|MP[ÖO]|E\s*85|AD\s*BLUE)\b/i.test(fullLabelText))continue;
     const fullLabel=fuelRowLabel(fullLabelText);
     if(fullLabel)labelVotes.set(fullLabel,(labelVotes.get(fullLabel)||0)+2);
     const labels=[...labelVotes].sort((a,b)=>b[1]-a[1]);
@@ -89,7 +109,7 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
       for(const [red,invert,threshold] of [[false,false,0],[true,false,0],[false,true,0]] as const){
         const view=`${red}:${invert}:${threshold}`;
         const p=fuelLedPrice((await worker.recognize(crop(row.left,row.right,red,invert,threshold))).data.text);
-        if(p)candidates.push({price:p,view});
+        if(p){candidates.push({price:p,view});onProgress?.({...prices,[label]:p});}
         if(p&&candidates.filter(candidate=>candidate.price===p).length>=2)break;
       }
     }
@@ -99,7 +119,9 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     // Without that evidence, disagreement with the original pass remains a conflict.
     prices[label]=segments?segments:prices[label]&&candidate&&prices[label]!==candidate?'':candidate;
     if(prices[label])onProgress?.({...prices});
+    if(prices.diesel&&prices.price95&&prices.price98)break;
   }
   trace('complete',{prices,review});
   return {prices,text:originalText,review};
 }
+
