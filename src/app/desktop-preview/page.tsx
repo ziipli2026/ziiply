@@ -237,6 +237,8 @@ export default function DesktopPreviewPage() {
   const [justiinaRecipeResults,setJustiinaRecipeResults]=useState<{title:string;url:string;source:string;content:string}[]>([]);
   const [justiinaRecipeLoading,setJustiinaRecipeLoading]=useState(false);
   const [justiinaRecipeMessage,setJustiinaRecipeMessage]=useState("");
+  const [justiinaDebugOpen,setJustiinaDebugOpen]=useState(false);
+  const [justiinaDebug,setJustiinaDebug]=useState<Record<string,unknown>>({status:"Hakua ei ole vielä tehty"});
   useEffect(()=>{
     if(!justiinaRecipeSearchOpen)return;
     const query=justiinaRecipeQuery.trim();
@@ -244,35 +246,46 @@ export default function DesktopPreviewPage() {
     const controller=new AbortController();
     const timer=setTimeout(async()=>{
       setJustiinaRecipeLoading(true);
+      const trace:Record<string,unknown>={timestamp:new Date().toISOString(),query,status:"haetaan",searchHttp:null,rawHits:0,recipePages:0,details:[],results:0};
+      setJustiinaDebug({...trace});
       try{
         const api="https://fi.wikibooks.org/w/api.php?";
         const searchUrl=api+new URLSearchParams({action:"query",generator:"search",gsrsearch:query+" prefix:Keittokirja/",gsrnamespace:"0",gsrlimit:"20",prop:"info",inprop:"url",format:"json",origin:"*"});
         const response=await fetch(searchUrl,{signal:controller.signal});
-        if(!response.ok)throw new Error("Hakupalvelu ei vastaa");
+        trace.searchHttp=response.status;
+        if(!response.ok)throw new Error("Hakupalvelu ei vastaa: HTTP "+response.status);
         const data=await response.json();
         if(data.error)throw new Error(data.error.info||"Wikikirjaston API-virhe");
         if(controller.signal.aborted)return;
+        trace.rawHits=Object.keys(data.query?.pages||{}).length;
         const pages=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;index?:number}[])
           .filter(p=>p.title?.startsWith("Keittokirja/")&&p.fullurl)
           .sort((a,b)=>(a.index||0)-(b.index||0)).slice(0,12);
+        trace.recipePages=pages.length;
+        const detailLogs:{title:string;http?:number;characters?:number;error?:string}[]=[];
+        trace.details=detailLogs;
         const results=(await Promise.all(pages.map(async p=>{
           try{
             const detailUrl=api+new URLSearchParams({action:"parse",page:p.title,prop:"text",format:"json",origin:"*"});
             const detailResponse=await fetch(detailUrl,{signal:controller.signal});
-            if(!detailResponse.ok)return null;
+            if(!detailResponse.ok){detailLogs.push({title:p.title,http:detailResponse.status,error:"HTTP-virhe"});return null;}
             const detail=await detailResponse.json();
             const html=detail.parse?.text?.["*"];
-            if(typeof html!=="string")return null;
+            if(typeof html!=="string"){detailLogs.push({title:p.title,http:detailResponse.status,error:"Sisältö puuttuu"});return null;}
             const doc=new DOMParser().parseFromString(html,"text/html");
             doc.querySelectorAll("script,style,.mw-editsection,.reference,.reflist,.navbox,.metadata").forEach(el=>el.remove());
             const content=(doc.querySelector(".mw-parser-output")||doc.body).textContent?.replace(/\n[ \t]+/g,"\n").replace(/\n{3,}/g,"\n\n").trim()||"";
+            detailLogs.push({title:p.title,http:detailResponse.status,characters:content.length});
             return content.length>35?{title:p.title.replace(/^Keittokirja\//,""),url:p.fullurl,source:"Wikikirjasto / Keittokirja",content:content.slice(0,10000)}:null;
-          }catch{return null}
+          }catch(error){detailLogs.push({title:p.title,error:String(error)});return null}
         }))).filter((p):p is {title:string;url:string;source:string;content:string}=>p!==null);
         if(controller.signal.aborted)return;
+        trace.results=results.length;
+        trace.status="valmis";
+        setJustiinaDebug({...trace});
         setJustiinaRecipeResults(results);
         setJustiinaRecipeMessage(results.length?results.length+" reseptiosumaa":"Ei suoria reseptiosumia.");
-      }catch{if(!controller.signal.aborted){setJustiinaRecipeResults([]);setJustiinaRecipeMessage("Reseptipalvelu ei vastaa.")}}
+      }catch(error){if(!controller.signal.aborted){setJustiinaDebug({...trace,status:"virhe",error:String(error)});setJustiinaRecipeResults([]);setJustiinaRecipeMessage("Reseptipalvelu ei vastaa.")}}
       finally{if(!controller.signal.aborted)setJustiinaRecipeLoading(false)}
     },300);
     return()=>{clearTimeout(timer);controller.abort()};
@@ -2569,6 +2582,11 @@ export default function DesktopPreviewPage() {
               <div className="mx-auto mt-4 flex w-full max-w-[680px] items-center justify-center">
                 <input autoFocus type="search" aria-label="Hae reseptejä" placeholder="Kirjoita resepti tai raaka-aine..." value={justiinaRecipeQuery} onChange={e=>setJustiinaRecipeQuery(e.target.value)} className="h-[56px] w-full rounded-[18px] border-[3px] border-[#b58a45] bg-[#fffdf5] px-5 text-lg text-[#174c35] outline-offset-2" />
               </div>
+              <div className="mx-auto mt-2 flex w-full max-w-[680px] items-center gap-3">
+                <button type="button" onClick={()=>setJustiinaDebugOpen(v=>!v)} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-1 text-sm font-bold text-[#17573c]">Debug {justiinaDebugOpen?"piilota":"näytä"}</button>
+                <button type="button" onClick={()=>{const data={...justiinaDebug,visibleResults:justiinaRecipeResults.map(r=>({title:r.title,source:r.source,characters:r.content.length}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="ziiply-reseptihaku-debug.json";link.click();URL.revokeObjectURL(url)}} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-1 text-sm font-bold text-[#17573c]">Lataa debug JSON</button>
+              </div>
+              {justiinaDebugOpen && <pre className="mx-auto mt-2 max-h-44 w-full max-w-[680px] overflow-auto rounded-lg bg-[#fffdf5] p-3 text-xs text-[#354a35]">{JSON.stringify(justiinaDebug,null,2)}</pre>}
               <section className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border-2 border-[#c69b54] bg-[#fff4cf] p-4">
                 <p role="status" className="mb-3 text-sm font-bold text-[#50664d]">{justiinaRecipeLoading?"Haetaan reseptejä…":justiinaRecipeMessage}</p>
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto">
