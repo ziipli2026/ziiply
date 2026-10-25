@@ -3959,7 +3959,7 @@ export default function Page() {
         desktopArrivalStateRef.current = result.state;
         if(result.status==="in-store" && result.isSelectedStore && result.store) desktopArrivalConfirmedRef.current={id:result.store.id,name:result.store.name};
         // Do not reset the visit merely because the phone loses satellite reception indoors.
-        if(result.status==="away" && !result.state.arrivalStoreId) desktopArrivalConfirmedRef.current=null;
+        if(result.status==="moving" && !result.state.arrivalStoreId) desktopArrivalConfirmedRef.current=null;
         scannerInStoreRefV828.current=!!desktopArrivalConfirmedRef.current;
         scannerStoreCheckDoneRefV791.current=!!desktopArrivalConfirmedRef.current;
         scannerConfirmedStoreNameRefV828.current=desktopArrivalConfirmedRef.current?.name||"";
