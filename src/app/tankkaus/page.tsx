@@ -26,8 +26,8 @@ export default function TankkausPage(){
  const [status,setStatus]=useState("Sijaintia ei ole vielä haettu.");
  const [loading,setLoading]=useState(false);
  const [fuel,setFuel]=useState<"diesel"|"price95"|"price98">("price95");
- const [radius,setRadius]=useState(25);
- const [order,setOrder]=useState<"distance"|"price">("distance");
+ const radius=100;
+ const order="price" as const;
  const load=()=>{
   if(!navigator.geolocation){setStatus("Selain ei tue paikannusta.");return;}
   setLoading(true);setStatus("Haetaan sijaintia…");
@@ -58,11 +58,8 @@ export default function TankkausPage(){
     </div>
     <h2 className="sm:hidden text-center font-serif italic font-black text-[#20523d] py-1">Göstan polttoainevertailu</h2>
     <div className="mt-2 flex min-h-0 flex-1 flex-col rounded-[24px] border-[3px] border-[#c59a53] bg-[#fff4cf] p-3 sm:p-5">
-      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
-       <span className="font-semibold">Kaikki ketjut</span>
-       <label>Polttoaine <select aria-label="Polttoaine" value={fuel} onChange={e=>setFuel(e.target.value as typeof fuel)} className="rounded border p-1"><option value="price95">95E10</option><option value="price98">98E5</option><option value="diesel">Diesel</option></select></label>
-       <label>Alue <select aria-label="Hakualue" value={radius} onChange={e=>setRadius(Number(e.target.value))} className="rounded border p-1"><option value={10}>10 km</option><option value={25}>25 km</option><option value={50}>50 km</option><option value={100}>100 km</option></select></label>
-       <label>Järjestys <select aria-label="Järjestys" value={order} onChange={e=>setOrder(e.target.value as typeof order)} className="rounded border p-1"><option value="distance">Lähin ensin</option><option value="price">Halvin ensin</option></select></label>
+      <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
+       <span className="font-semibold">Kaikki ketjut · Edullisin ensin · 100 km säteellä</span>
        <button onClick={load} disabled={loading} className="rounded-lg bg-[#17573c] px-3 py-1.5 font-bold text-white disabled:opacity-50">Päivitä sijainti</button>
       </div>
       <p role="status" className="my-2 text-center text-xs text-[#685b46]">{status}</p>
