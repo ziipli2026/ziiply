@@ -224,7 +224,6 @@ export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenCh
         </div>
         <button type="button" onClick={()=>{setCameraOpen(true);setCameraShot(false);setCameraReview(false);setCameraError("");setImagePreview("");setText("");setSavedId(null);stopCamera()}} aria-label="Filmaa resepti" className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/ui/scanner/scanner-idle.webp" alt="Filmaa" className="mx-auto h-[clamp(84px,25vw,120px)] w-full object-contain"/></button>
       </div>
-      <div className="mt-3 flex justify-center"><a href="/reseptit" className="rounded-xl border-2 border-[#17573c] bg-[#e3edc9] px-5 py-3 text-center font-black text-[#17573c]">Näytä reseptit</a></div>
       <div className="mt-3 flex justify-center"><input aria-label="Hae reseptiä omista" value={notebookFilter} onChange={event=>setNotebookFilter(event.target.value)} placeholder="Hae reseptiä omista..." className="min-w-0 w-[90%] rounded-lg border border-[#b99d62] bg-[#fffdf5] px-3 py-3 text-base"/></div>
       {importing&&!cameraOpen?<div className="mt-2">
         <textarea ref={textareaRef} aria-label="Reseptiteksti" rows={6} value={text} onChange={event=>{clipboardRequestRef.current++;setText(event.target.value)}} onPaste={()=>{clipboardRequestRef.current++}} placeholder="Liitä reseptin teksti tai kirjoita itse" className="min-h-[140px] w-full resize-y rounded-xl border-2 border-[#27412a] bg-[#fffdf5] p-3 text-base font-normal leading-relaxed text-[#27412a]"/>
