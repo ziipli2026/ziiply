@@ -1913,7 +1913,7 @@ function kauppiasTopBarPanelClass(kind: KauppiasTopBarKind) {
   }
 
   if (kind === "fuel") {
-    return `${base} !h-[82px] border-[#c98d65] bg-[linear-gradient(180deg,#fff0d7_0%,#ffd3af_100%)] text-[#5a1f00]`;
+    return `${base}  border-[#c98d65] bg-[linear-gradient(180deg,#fff0d7_0%,#ffd3af_100%)] text-[#5a1f00]`;
   }
 
   return `${base} border-[#caa66d] bg-[linear-gradient(180deg,#fff9de_0%,#ffe9a8_100%)] text-[#3f2b00]`;
@@ -2848,7 +2848,7 @@ function KauppiasMobileTopBar({
 
   return (
     <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[300] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
-      <div className="mx-auto flex h-[104px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
+      <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
         <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,0.96fr)_minmax(0,1.20fr)_minmax(0,1.12fr)_minmax(0,0.96fr)] gap-[clamp(2px,1.4vw,6px)]">
           {panels.map((panel) => {
             const inner = (
@@ -2877,9 +2877,9 @@ function KauppiasMobileTopBar({
                     <div className="absolute left-[1px] top-[3px] w-[35px] text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.match(/[0-9]+(?:[,.][0-9]+)?\s*km/)?.[0] ?? "— km"}</div>
                     <div className="absolute left-[1px] top-1/2 flex w-[35px] -translate-y-1/2 items-center justify-center">{panel.graphic}</div>
                     <div className="absolute bottom-[3px] left-[1px] w-[35px] truncate text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.split("·")[0]?.trim() || "—"}</div>
-                    <div className="absolute inset-y-[3px] left-[39px] right-[1px] flex min-w-0 flex-col justify-center gap-[2px] overflow-hidden">
+                    <div className="absolute inset-y-[2px] left-[39px] right-[1px] flex min-w-0 flex-col justify-center gap-0 overflow-visible">
                       <span className="text-[8px] font-black leading-tight text-[#173b31]">AJOAINE</span>
-                      {panel.value.split(/ (?=95 |98 )/).map((grade) => <span key={grade} className="block whitespace-nowrap text-[9px] font-black leading-tight tracking-tight text-[#041b19]">{grade}</span>)}
+                      {panel.value.split(/ (?=95 |98 )/).map((grade) => <span key={grade} className="block whitespace-nowrap text-[8px] font-black leading-none tracking-tight text-[#041b19]">{grade}</span>)}
                     </div>
                   </div>
                 ) : (
