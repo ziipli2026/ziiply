@@ -536,6 +536,13 @@ export default function DesktopPreviewPage() {
     const timestamp=Date.parse(String(fuelNearestStation?.[type==="diesel"?"observedDiesel":type==="price95"?"observed95":"observed98"]??""));
     return value!=null && Number.isFinite(Number(value)) && Number(value)>0 && Number.isFinite(timestamp) && timestamp<=Date.now() && Date.now()-timestamp<=7*24*60*60*1000?Number(value):undefined;
   };
+  const fuelStationBrand=(station:any)=>{
+    const combined=String(station?.name??"")+" "+String(station?.chain??"");
+    if(/abc/i.test(combined))return "ABC";
+    if(/st[ -]?1|shell/i.test(combined))return "ST1";
+    if(/neste/i.test(combined))return "Neste";
+    return "Muu";
+  };
 
   const fuelGroupOf=(s:any)=>{const t=String(s.chain||"").toLowerCase();return t.includes("neste")?"Neste":t.includes("st1")||t.includes("shell")?"St1":t.includes("abc")?"ABC":t.includes("seo")?"SEO":t.includes("gulf")?"Gulf":t.includes("ritoil")?"Ritoil":"Muut";};
   const fuelIsTraffic=(s:any)=>s.isTrafficStation===true;
@@ -2473,7 +2480,7 @@ export default function DesktopPreviewPage() {
                       98 {fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "—"}
                     </span>
                     <span className="mt-0.5 block whitespace-nowrap text-[11px] font-black leading-tight text-[#625b43]">
-                      {fuelNearestStation ? `${/abc/i.test(String(fuelNearestStation.chain||""))?"ABC":/st\\s*1|shell/i.test(String(fuelNearestStation.chain||""))?"ST1":/neste/i.test(String(fuelNearestStation.chain||""))?"Neste":"Muu"} · ${Number(fuelNearestStation.distanceKm).toLocaleString("fi-FI",{maximumFractionDigits:1})} km` : (fuelLoading ? "Haetaan asemaa…" : "Ei GPS-asemaa")}
+                      {fuelNearestStation ? `${fuelStationBrand(fuelNearestStation)} · ${Number(fuelNearestStation.distanceKm).toLocaleString("fi-FI",{maximumFractionDigits:1})} km` : (fuelLoading ? "Haetaan asemaa…" : "Ei GPS-asemaa")}
                     </span>
                   </span>
                 ) : (
