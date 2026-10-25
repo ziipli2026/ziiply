@@ -20,7 +20,7 @@ try {
    fetched_at timestamptz NOT NULL DEFAULT now()
  )`);
  let lastCompletedPage=startPage-1;
- let blockedPage=null;
+ const failedPages=[];
  for(let page=startPage;page<startPage+pages;page++){
   // Prefer the OFF API v2 search endpoint. Legacy CGI search can return HTTP 503.
   const params=new URLSearchParams({
@@ -60,9 +60,9 @@ try {
    if(payload)break;
   }
   if(!payload){
-   blockedPage=page;
-   console.warn('OFF_CATALOGUE_PAUSED',JSON.stringify({blockedPage,lastCompletedPage,reason:'OFF endpoints unavailable; saved rows retained',resumeStartPage:page}));
-   break;
+   failedPages.push(page);
+   console.warn('OFF_CATALOGUE_SKIPPED_PAGE',JSON.stringify({page,reason:'OFF endpoints unavailable; continue with next page'}));
+   continue;
   }
   const products=Array.isArray(payload.products)?payload.products:[];
   for(const p of products){
@@ -86,5 +86,5 @@ try {
   if(products.length<pageSize)break;
   await new Promise(resolve=>setTimeout(resolve,1500));
  }
- console.log('OFF_CATALOGUE_REPORT',JSON.stringify({fetched,inserted,updated,skipped,startPage,lastCompletedPage,blockedPage,resumeStartPage:blockedPage||lastCompletedPage+1}));
+ console.log('OFF_CATALOGUE_REPORT',JSON.stringify({fetched,inserted,updated,skipped,startPage,lastCompletedPage,failedPages,nextStartPage:startPage+pages}));
 }finally{await pool.end()}
