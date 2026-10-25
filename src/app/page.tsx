@@ -2904,6 +2904,17 @@ function KauppiasMobileTopBar({
                     <span aria-hidden="true" className="pointer-events-none absolute right-[1px] top-1/2 flex h-[12px] w-[12px] -translate-y-1/2 items-center justify-center rounded-full border border-[#006e32] bg-[linear-gradient(155deg,#7aff78_0%,#2bd844_42%,#079c30_78%,#00752b_100%)] text-[11px] font-black leading-none text-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),0_1px_2px_rgba(0,67,28,0.35)]">›</span>
                   </div>
                 ) : (
+                {panel.id === "fuel" ? (
+                  <div className="relative z-10 h-full min-w-0">
+                    <div className="absolute left-[1px] top-[3px] w-[35px] text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.match(/[0-9]+(?:[,.][0-9]+)?\\s*km/)?.[0] ?? "— km"}</div>
+                    <div className="absolute left-[1px] top-1/2 flex w-[35px] -translate-y-1/2 items-center justify-center">{panel.graphic}</div>
+                    <div className="absolute bottom-[3px] left-[1px] w-[35px] truncate text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.split("·")[0]?.trim() || "—"}</div>
+                    <div className="absolute inset-y-[5px] left-[39px] right-[1px] flex min-w-0 flex-col justify-center overflow-hidden">
+                      <span className="text-[8px] font-black leading-tight text-[#173b31]">AJOAINE</span>
+                      {panel.value.split(/ (?=95 |98 )/).map((grade) => <span key={grade} className="block whitespace-nowrap text-[9px] font-black leading-tight tracking-tight text-[#041b19]">{grade}</span>)}
+                    </div>
+                  </div>
+                ) : (
                 <div className="relative z-10 grid h-full grid-cols-[auto_minmax(0,1fr)] items-center gap-[3px] text-left leading-none">
                   <div className="flex items-center justify-center">
                     {panel.graphic}
@@ -2938,6 +2949,7 @@ function KauppiasMobileTopBar({
                     )}
                   </div>
                 </div>
+                )}
                 )}
               </>
             );
