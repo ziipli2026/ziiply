@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
 import {neon} from "@neondatabase/serverless";
-import {comparePhotoEvidence,validPhotoLocation,validateFuelStationLocation,validateFuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {comparePhotoEvidence,fuelPhotoStationDistanceLimit,validPhotoLocation,validateFuelStationLocation,validateFuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 import {fuelDatabaseConfig} from "../../../../lib/fuelDatabase";
 import {recordFuelPhotoCorrection} from "../../../../lib/fuelPhotoLearning";
 export const dynamic="force-dynamic";
@@ -31,7 +31,7 @@ export async function POST(req:NextRequest){
     const station=await sql`SELECT source, source_station_id,latitude,longitude FROM ziiply_fuel_stations WHERE source_station_id=${stationId} AND lower(coalesce(name,'')||' '||coalesce(chain,'')) NOT LIKE '%teboil%' LIMIT 1`;
     if(!station.length)return NextResponse.json({error:"Asemaa ei löytynyt."},{status:400});
     const stationLocation=validateFuelStationLocation(body.mode,evidence,station[0] as {latitude:number;longitude:number});
-    if(!stationLocation.ok)return NextResponse.json({error:stationLocation.error,distanceM:stationLocation.distanceM,maxDistanceM:250},{status:409});
+    if(!stationLocation.ok)return NextResponse.json({error:stationLocation.error,distanceM:stationLocation.distanceM,maxDistanceM:fuelPhotoStationDistanceLimit(evidence.photoGps || (body.mode==="online"?evidence.deviceGps:null))},{status:409});
     const verifiedGps=manual?null:evidence.photoGps||evidence.deviceGps;
     const rows=await sql`INSERT INTO ziiply_user_fuel_reports(id,source_station_id,observed_at,prices,photo_data_url,gps_latitude,gps_longitude,gps_accuracy_m,metadata)
       VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(prices)}::jsonb,${body.photo},${verifiedGps?.lat??null},${verifiedGps?.lon??null},${verifiedGps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
