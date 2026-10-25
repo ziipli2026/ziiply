@@ -21,6 +21,7 @@ function normalizeStore(store: RawStore) {
     city: store.city,
     postalCode: store.postalCode,
     externalId: store.externalId,
+    address: String(store.name || "").trim().toLowerCase() === "prisma varkaus" ? "Sorvikatu 3" : store.address,
     latitude: store.lat ?? store.latitude,
     longitude: store.long ?? store.lon ?? store.lng ?? store.longitude,
   };
