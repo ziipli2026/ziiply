@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
     for (const station of stations.sort((a, b) => Number(a.id) - Number(b.id))) {
       const address = String(station.address ?? "").trim().toLowerCase().replace(/\s+/g, " ");
       const chain = String(station.chain ?? "").trim().toLowerCase();
-      const key = address && chain ? chain + "|" + address : "id|" + station.id;
+      const key = "id|" + station.id;
       const previous = unique.get(key);
       if (!previous) { unique.set(key, station); continue; }
       // Completed classification: a verified traffic record wins over its duplicate.
