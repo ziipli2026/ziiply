@@ -27,7 +27,6 @@ export default function TankkausPage(){
  const [loading,setLoading]=useState(false);
  const [fuel,setFuel]=useState<"diesel"|"price95"|"price98">("price95");
  const radius=100;
- const order="price" as const;
  const load=()=>{
   if(!navigator.geolocation){setStatus("Selain ei tue paikannusta.");return;}
   setLoading(true);setStatus("Haetaan sijaintia…");
@@ -43,7 +42,7 @@ export default function TankkausPage(){
   },e=>{setStatus("Sijaintia ei saatu: "+e.message+". Salli sijainti selaimessa.");setLoading(false);},{enableHighAccuracy:false,timeout:12000,maximumAge:60000});
  };
  useEffect(()=>{if(mode==="prices"&&!coords)load();},[mode]);
- const visible=stations.filter(s=>s.distanceKm<=radius&&s[fuel]!=null).sort((a,b)=>order==="distance"?a.distanceKm-b.distanceKm:(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
+ const visible=stations.filter(s=>s.distanceKm<=radius&&s[fuel]!=null).sort((a,b)=>(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
  return <main className={embedded ? "h-dvh overflow-hidden bg-transparent p-0 text-[#174c35]" : "min-h-screen bg-[#fff4cf] px-4 py-8 text-[#174c35]"}>
   <div className={embedded ? "mx-auto h-full max-w-5xl" : "mx-auto max-w-5xl"}>
    {!embedded&&<header className="mb-7 text-center"><a href="/" className="text-sm font-bold underline">Ziiply.fi</a><h1 className="mt-3 text-4xl font-black">Tankataan yhdessä halvemmalla!</h1><p className="mt-2 text-lg font-bold">Yksi kuva. Kaikkien hyöty.</p><p className="mt-2">Auta muita autoilijoita ilmoittamalla polttoainehintoja. Hintojen katselu on aina ilmaista.</p></header>}
