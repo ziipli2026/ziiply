@@ -2822,6 +2822,17 @@ function KauppiasMobileTopBar({
                 <span className="absolute bottom-[4px] right-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.70),transparent_55%)]" />
 
+                {panel.id === "fuel" ? (
+                  <div className="relative z-10 h-full min-w-0">
+                    <div className="absolute left-[1px] top-[3px] w-[35px] text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.match(/[0-9]+(?:[,.][0-9]+)?\\s*km/)?.[0] ?? "— km"}</div>
+                    <div className="absolute left-[1px] top-1/2 flex w-[35px] -translate-y-1/2 items-center justify-center">{panel.graphic}</div>
+                    <div className="absolute bottom-[3px] left-[1px] w-[35px] truncate text-center text-[7px] font-black leading-none text-[#173b31]">{panel.detail.split("·")[0]?.trim() || "—"}</div>
+                    <div className="absolute inset-y-[5px] left-[39px] right-[1px] flex min-w-0 flex-col justify-center overflow-hidden">
+                      <span className="text-[8px] font-black leading-tight text-[#173b31]">AJOAINE</span>
+                      {panel.value.split(/ (?=95 |98 )/).map((grade) => <span key={grade} className="block whitespace-nowrap text-[9px] font-black leading-tight tracking-tight text-[#041b19]">{grade}</span>)}
+                    </div>
+                  </div>
+                ) : (
                 <div className="relative z-10 grid h-full grid-cols-[auto_minmax(0,1fr)] items-center gap-[3px] text-left leading-none">
                   <div className="flex items-center justify-center">
                     {panel.graphic}
@@ -2862,6 +2873,7 @@ function KauppiasMobileTopBar({
                     )}
                   </div>
 
+                )}
                   {panel.id === "calendar" && (
                     <span className="absolute right-[5px] top-1/2 flex h-[16px] w-[16px] -translate-y-1/2 items-center justify-center rounded-full border border-[#7f6230] bg-[radial-gradient(circle_at_35%_30%,#fffdf0_0%,#e8d298_52%,#0d4d3f_100%)] text-[11px] font-black text-white shadow-[0_1px_4px_rgba(75,52,16,0.26)]">
                       ›
