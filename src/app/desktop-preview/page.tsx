@@ -186,6 +186,20 @@ function ZiiplyVintageMillLoader() {
   </div>;
 }
 
+function parseRecipeIngredients(content:string){
+  const lines=content.split(/\n/).map(line=>line.replace(/^[•*–-]\s*/,"").trim()).filter(Boolean);
+  const amount=/^(?:(\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?|[½¼¾⅓⅔])\s*(kg|g|mg|l|dl|cl|ml|kpl|rkl|tl|prk|pkt|pss|purkkia|purkki|sipulia|valkosipulinkynttä|munaa|perunaa|viipaletta|ripaus)\b\s*(.*))$/i;
+  const ingredients:{amount:string;name:string;complete:boolean}[]=[];
+  let inIngredients=false;
+  for(const line of lines){
+    if(/^(ainekset|raaka-aineet|tarvikkeet|ainesosat)(?:\s*[:：])?$/i.test(line)){inIngredients=true;continue}
+    if(/^(valmistus|valmistusohje|ohje|työvaiheet|tekeminen)(?:\s*[:：])?$/i.test(line)){inIngredients=false;continue}
+    const match=line.match(amount);
+    if(match && (inIngredients||ingredients.length===0||ingredients.length<35))ingredients.push({amount:match[1]+" "+match[2],name:match[3]||match[2],complete:!!match[3]});
+    else if(inIngredients && line.length<90 && !/[.!?]$/.test(line) && ingredients.length<35)ingredients.push({amount:"Täydennettävä",name:line,complete:false});
+  }
+  return ingredients;
+}
 export default function DesktopPreviewPage() {
   const desktopHeaderRef = useRef<HTMLElement | null>(null);
   const [desktopOverlayTop, setDesktopOverlayTop] = useState(128);
@@ -2592,6 +2606,7 @@ export default function DesktopPreviewPage() {
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto">
                   {justiinaRecipeResults.map((recipe,i)=><article key={recipe.url+i} className="rounded-xl border-2 border-[#c69b54] bg-[#f4dda4] px-4 py-3">
                     <div className="mb-2 flex items-center gap-3"><h3 className="min-w-0 flex-1 font-bold text-[#17573c]">{recipe.title} – {recipe.source}</h3><button type="button" onClick={()=>navigator.clipboard.writeText(recipe.title+" – "+recipe.source+"\\n\\n"+recipe.content+"\\n\\nLähde: "+recipe.url)} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-2 font-bold text-[#17573c]">Kopioi resepti</button></div>
+                    {(()=>{const ingredients=parseRecipeIngredients(recipe.content);return <div className="mb-3 rounded-lg bg-[#fff8e7] p-3 text-sm text-[#354a35]"><strong>Ainekset ja määrät</strong>{ingredients.length?<ul className="mt-2 list-disc pl-5">{ingredients.map((item,j)=><li key={j}>{item.amount} {item.name}{!item.complete?" (tarkista)":""}</li>)}</ul>:<p className="mt-1">Määrällisiä aineksia ei tunnistettu. Tarkista alkuperäinen ohje ennen ostoslistaa.</p>}</div>})()}
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#354a35]">{recipe.content}</p>
                     <p className="mt-2 text-xs text-[#64704f]">Lähde: {recipe.source}</p>
                   </article>)}
