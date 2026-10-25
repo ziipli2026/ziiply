@@ -4,25 +4,15 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
     inputs:
-      retry_missing:
-        description: 'Retry missing OFF EANs last checked over 24 hours ago (no existing OFF records updated)'
-        required: false
-        default: false
-        type: boolean
       new_only:
-        description: 'Only EANs never searched before; no refreshes or retries'
+        description: 'Search Ziiply EANs missing OFF data; never update existing OFF records'
         required: true
         default: true
         type: boolean
-      refresh_fallback:
-        description: 'Refresh incomplete nutrition if no new EANs are eligible'
-        required: false
-        default: false
-        type: boolean
-      retry_not_found:
-        description: 'Retry OFF not-found EANs older than 14 days (otherwise 90 days)'
-        required: false
-        default: false
+      retry_missing:
+        description: 'Retry missing OFF records last checked more than 24 hours ago'
+        required: true
+        default: true
         type: boolean
       limit:
         description: 'EAN codes per shard (25-150)'
@@ -53,7 +43,7 @@ jobs:
       - name: Import isolated OFF nutrition records
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: node scripts/import-off-nutrition.mjs ${{ inputs.new_only != false && '--new-only' || '' }} ${{ inputs.retry_missing == true && '--retry-missing' || '' }} --limit=${{ inputs.limit || '100' }} --shard=${{ matrix.shard }} ${{ inputs.retry_not_found == true && '--retry-not-found' || '' }} ${{ inputs.refresh_fallback == true && '--refresh-fallback' || '' }}
+        run: node scripts/import-off-nutrition.mjs ${{ inputs.new_only != false && '--new-only' || '' }} ${{ inputs.retry_missing == true && '--retry-missing' || '' }} --limit=${{ inputs.limit || '100' }} --shard=${{ matrix.shard }}
       - name: Verify import coverage
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
