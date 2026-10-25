@@ -205,7 +205,7 @@ for (;;) {
     // A broad token overlap is insufficient evidence for a finished food.
     // Conservative review-only discovery: exclude pet foods, multi-ingredient
     // products and nutritional variants that token overlap cannot establish.
-    const unsafeProduct = /(?:öljykynttil|pesusien|meikkisien|leipäveits|tomaattiveits|pastakauh|ilmanraikast|pussilakana|lemmikkiport|primacat|dagsmark|täysravinto|koiran|koiralle|kissan|kissalle|lemmik|koirille|kissoille|koiran|koiralle|kissan|kissalle|lemmik|juustokastik|juustoperun|levite|tuorejuusto|monivilja|quinoa|seos|sekoitus|jogurtti|rahka|vanukas|patukka|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|täytteinen|maustettu|lihapiirakka|pasteija)/i.test(unbranded);
+    const unsafeProduct = /(?:öljykynttil|pesusien|meikkisien|leipäveits|tomaattiveits|pastakauh|ilmanraikast|pussilakana|lemmikkiport|primacat|dagsmark|täysravinto|koiran|koiralle|kissan|kissalle|lemmik|koirille|kissoille|juustokastik|juustoperun|levite|tuorejuusto|monivilja|quinoa|seos|sekoitus|jogurtti|rahka|vanukas|patukka|nuudeli|keitto|salaatti|pizza|ateria|kastike|long drink|suklaa|täytteinen|maustettu|lihapiirakka|pasteija)/i.test(unbranded);
     if (unsafeProduct) return [];
     const preparationTerms = ["paistettu","keitetty","kypsennetty","savustettu","kuivattu","pakaste","kuorittu","jauhettu"];
     const prep = (s: string) => preparationTerms.filter(term => s.toLowerCase().includes(term));
