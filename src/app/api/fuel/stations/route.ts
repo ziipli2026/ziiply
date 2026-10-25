@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
+import { fuelDatabaseConfig } from "../../../../lib/fuelDatabase";
+
 export const dynamic = "force-dynamic";
 
 function distanceKm(a: number, b: number, c: number, d: number) {
@@ -18,53 +20,42 @@ export async function GET(req: NextRequest) {
       !Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
     return NextResponse.json({ ok: false, error: "GPS coordinates required" }, { status: 400 });
   }
-  const testConnection = process.env.VERCEL_ENV === "preview" ? process.env.TANKKAUS_TEST_DATABASE_URL : undefined;
-  const connection = testConnection || process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  // Station lookup and photo report submission must use the same fuel registry.
+  const database = fuelDatabaseConfig();
+  const testConnection = database.production ? undefined : database.connection;
+  const connection = database.connection || process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (!connection) return NextResponse.json({ ok: false, error: "Fuel database not configured" }, { status: 503 });
   try {
     const sql = neon(connection);
     const identity = await sql`SELECT current_setting(\'neon.branch_id\',true) AS branch_id`;
-    if (testConnection && identity[0]?.branch_id !== "br-weathered-meadow-b1bwpzst") {
-      return NextResponse.json({ ok: false, error: "Fuel preview database does not identify the approved test branch" }, { status: 503 });
+    if ((testConnection || database.production) && identity[0]?.branch_id !== database.expectedBranch) {
+      return NextResponse.json({ ok: false, error: "Fuel database does not identify the configured branch" }, { status: 503 });
     }
-    const rows = await sql`
+    // Only Ziiply's own normalized price observations are used.
+    const rows = await sql.query(`
       SELECT s.source_station_id, s.name, s.chain, s.address, s.latitude, s.longitude, s.is_traffic_station, s.traffic_station_verified,
-        country.payload->'station'->>'country_id' AS country_id,
-        country.payload->'station'->'country'->>'name_short' AS country_code,
+        NULL::text AS country_id,
+        NULL::text AS country_code,
         p95.price_eur_per_litre AS price95, p95.observed_at AS observed95,
         p98.price_eur_per_litre AS price98, p98.observed_at AS observed98,
         pd.price_eur_per_litre AS diesel, pd.observed_at AS observed_diesel
       FROM ziiply_fuel_stations s
-      LEFT JOIN LATERAL (SELECT payload FROM ziiply_tankkaus_feed_observations raw
-        WHERE raw.source_station_id=s.source_station_id ORDER BY observed_at DESC LIMIT 1) country ON TRUE
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
-        WHERE p.source=s.source AND p.source_station_id=s.source_station_id AND p.fuel_type='95'
-        UNION ALL
-        SELECT raw.price_eur_per_litre, raw.observed_at FROM ziiply_tankkaus_feed_observations raw
-        WHERE s.source='tankkaus.com' AND raw.source_station_id=s.source_station_id
-          AND raw.fuel_type_id=1 AND raw.price_eur_per_litre > 0 AND raw.price_eur_per_litre <= 5
-          AND raw.observed_at <= NOW()
+        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.fuel_type='95'
+
         ORDER BY observed_at DESC LIMIT 1) p95 ON TRUE
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
-        WHERE p.source=s.source AND p.source_station_id=s.source_station_id AND p.fuel_type='98'
-        UNION ALL
-        SELECT raw.price_eur_per_litre, raw.observed_at FROM ziiply_tankkaus_feed_observations raw
-        WHERE s.source='tankkaus.com' AND raw.source_station_id=s.source_station_id
-          AND raw.fuel_type_id=2 AND raw.price_eur_per_litre > 0 AND raw.price_eur_per_litre <= 5
-          AND raw.observed_at <= NOW()
+        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.fuel_type='98'
+
         ORDER BY observed_at DESC LIMIT 1) p98 ON TRUE
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
-        WHERE p.source=s.source AND p.source_station_id=s.source_station_id AND p.fuel_type='diesel'
-        UNION ALL
-        SELECT raw.price_eur_per_litre, raw.observed_at FROM ziiply_tankkaus_feed_observations raw
-        WHERE s.source='tankkaus.com' AND raw.source_station_id=s.source_station_id
-          AND raw.fuel_type_id=6 AND raw.price_eur_per_litre > 0 AND raw.price_eur_per_litre <= 5
-          AND raw.observed_at <= NOW()
+        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.fuel_type='diesel'
+
         ORDER BY observed_at DESC LIMIT 1) pd ON TRUE
       WHERE lower(coalesce(s.chain, '')) NOT LIKE '%teboil%'
         AND lower(coalesce(s.name, '')) NOT LIKE '%teboil%'
         AND s.source_station_id NOT IN (12564,12577,12683,554,3028,398,11828,11829,12579)
-    `;
+    `);
     const stations = rows.filter((r) => {
       // Geographic validity, independent of the user's location: never a search radius.
       if (r.latitude == null || r.longitude == null) return false;
@@ -124,7 +115,7 @@ export async function GET(req: NextRequest) {
       ok: true, stations: visible, total: deduplicated.length,
       ...(paginated ? { page, limit, hasMore: start + limit < deduplicated.length } : {}),
       ...(process.env.VERCEL_ENV === "preview" ? { databaseBranch: identity[0]?.branch_id ?? null } : {}),
-      source: "Neon / tankkaus.com observations"
+      source: "Neon / Ziiply observations"
     });
   } catch {
     return NextResponse.json({ ok: false, error: "Fuel stations unavailable" }, { status: 503 });
