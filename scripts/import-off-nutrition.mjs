@@ -3,7 +3,7 @@
 import pg from 'pg';
 const {Pool}=pg;
 const shard=Math.max(0,Math.min(9,Number(process.argv.find(x=>x.startsWith('--shard='))?.split('=')[1]||0)));
-const limit=Math.min(50,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
+const limit=Math.min(150,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
 const refreshIncomplete=process.argv.includes('--refresh-incomplete');
 const progressEvery=1;
 if(!process.env.DATABASE_URL)throw Error('DATABASE_URL is required');
@@ -46,7 +46,7 @@ try {
          OR n.carbohydrates_100g IS NULL OR n.proteins_100g IS NULL OR n.salt_100g IS NULL)
        AND n.fetched_at < now()-interval '1 day')
    )
- ORDER BY CASE WHEN $3::boolean AND n.ean IS NOT NULL THEN 0 ELSE 1 END, p.ean
+ ORDER BY CASE WHEN $3::boolean AND n.ean IS NOT NULL THEN 0 WHEN a.ean IS NULL THEN 1 WHEN a.status='error' THEN 2 WHEN a.status='found' THEN 3 ELSE 4 END, a.attempted_at NULLS FIRST, p.ean
  LIMIT $1`,[limit,shard,refreshIncomplete]);
  console.log('OFF_SELECTED',JSON.stringify({shard,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
  let matched=0,notFound=0,failed=0,refreshed=0,newRecords=0,withoutNutrition=0;
