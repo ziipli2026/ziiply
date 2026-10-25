@@ -4,6 +4,7 @@ import pg from 'pg';
 const {Pool}=pg;
 if(!process.env.DATABASE_URL) throw Error('DATABASE_URL is required');
 const pages=Math.min(20,Math.max(1,Number(process.argv.find(x=>x.startsWith('--pages='))?.split('=')[1]||5)));
+const startPage=Math.max(1,Number(process.argv.find(x=>x.startsWith('--start-page='))?.split('=')[1]||1));
 const pageSize=100;
 const pool=new Pool({connectionString:process.env.DATABASE_URL,connectionTimeoutMillis:12000});
 let fetched=0,inserted=0,updated=0,skipped=0;
@@ -18,7 +19,9 @@ try {
    source_license text NOT NULL DEFAULT 'ODbL / Open Food Facts',
    fetched_at timestamptz NOT NULL DEFAULT now()
  )`);
- for(let page=1;page<=pages;page++){
+ let lastCompletedPage=startPage-1;
+ let blockedPage=null;
+ for(let page=startPage;page<startPage+pages;page++){
   // Prefer the OFF API v2 search endpoint. Legacy CGI search can return HTTP 503.
   const params=new URLSearchParams({
    countries_tags:'en:finland',page_size:String(pageSize),page:String(page),
@@ -56,7 +59,11 @@ try {
    }
    if(payload)break;
   }
-  if(!payload)throw Error('OFF catalogue endpoints unavailable after retries on page '+page);
+  if(!payload){
+   blockedPage=page;
+   console.warn('OFF_CATALOGUE_PAUSED',JSON.stringify({blockedPage,lastCompletedPage,reason:'OFF endpoints unavailable; saved rows retained',resumeStartPage:page}));
+   break;
+  }
   const products=Array.isArray(payload.products)?payload.products:[];
   for(const p of products){
    fetched++;
@@ -74,9 +81,10 @@ try {
     'https://world.openfoodfacts.org/product/'+ean]);
    if(result.rows[0]?.inserted)inserted++;else updated++;
   }
+  lastCompletedPage=page;
   console.log('OFF_CATALOGUE_PAGE',JSON.stringify({page,received:products.length,fetched,inserted,updated,skipped}));
   if(products.length<pageSize)break;
   await new Promise(resolve=>setTimeout(resolve,1500));
  }
- console.log('OFF_CATALOGUE_REPORT',JSON.stringify({fetched,inserted,updated,skipped}));
+ console.log('OFF_CATALOGUE_REPORT',JSON.stringify({fetched,inserted,updated,skipped,startPage,lastCompletedPage,blockedPage,resumeStartPage:blockedPage||lastCompletedPage+1}));
 }finally{await pool.end()}
