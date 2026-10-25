@@ -7,6 +7,7 @@ assert.ok(unsafeMatch,'unsafe-product filter must exist');
 const unsafePattern = unsafeMatch[1];
 const unsafe = new RegExp(unsafePattern.slice(1,-2),'i');
 for (const name of ['koiran annosrasia naudan maksa','paprika kasvipohjainen levite','riisi-quinoa-moniviljaseos','pekoni nuudeli','kreikkalainen jogurtti 10%','suklaa välipalapatukka']) assert.equal(unsafe.test(name),true,name);
+for (const name of ['Öljykynttilä 5 kpl','Pesusieni Miny porkkana','PrimaCat Soup tonnikala','Dagsmark Buusti kana patee','Xtra leipäveitsi','Xtra pastakauha','Ilmanraikastin Omena']) assert.equal(unsafe.test(name),true,'nonfood guard: '+name);
 for (const name of ['siika savustettu','paprika keltainen','herne kuivattu']) assert.equal(unsafe.test(name),false,name);
 const percent = /(\d+(?:[.,]\d+)?)\s*%/;
 assert.equal(percent.exec('jogurtti 10%')[1],'10');
