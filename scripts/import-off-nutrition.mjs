@@ -57,7 +57,7 @@ try {
    )
  ORDER BY CASE WHEN $3::boolean AND n.ean IS NOT NULL THEN 0 WHEN a.ean IS NULL THEN 1 WHEN a.status='error' THEN 2 WHEN a.status='found' THEN 3 ELSE 4 END, a.attempted_at NULLS FIRST, p.ean
  LIMIT $1`;
- let {rows}=await pool.query(selectionSql,[limit,shard,refreshIncomplete,notFoundRetryDays]);
+ let {rows}=await pool.query(selectionSql,[limit,shard,refreshIncomplete,notFoundRetryDays,newOnly]);
  if(rows.length===0 && refreshFallback && !refreshIncomplete){
    // When fresh EANs are exhausted, improve existing incomplete nutrition instead of doing nothing.
    ({rows}=await pool.query(selectionSql,[limit,shard,true,notFoundRetryDays,false]));
