@@ -40,7 +40,7 @@ export async function POST(req:NextRequest){
   return reply({title:String(parsed.title||"").slice(0,200),ingredients:String(parsed.ingredients||"").slice(0,12000),instructions:String(parsed.instructions||"").slice(0,12000)});
  }
  if(body.action!=="submit")return reply({error:"Tuntematon toiminto."},400);
- const {id,contributorId}=body;const title=String(body.title||"").trim(),ingredients=String(body.ingredients||"").trim(),instructions=String(body.instructions||"").trim();const servings=body.servings==null?null:Number(body.servings);
+ const {id,contributorId}=body;const title=String(body.title||"").trim(),ingredients=String(body.ingredients||"").trim().replace(/\\b1 kananmunaa\\b/gi,"1 kananmuna"),instructions=String(body.instructions||"").trim();const titleServings=title.match(/\\b(?:kahdelle|kolmelle|neljälle|viidelle|kuudelle)\\b/i);const inferred=titleServings?({kahdelle:2,kolmelle:3,neljälle:4,viidelle:5,kuudelle:6} as Record<string,number>)[titleServings[0].toLowerCase()]:null;const servings=body.servings==null?inferred:Number(body.servings);
  if(!uuid.test(id)||!uuid.test(contributorId)||title.length<2||title.length>200||ingredients.length<5||ingredients.length>12000||instructions.length>12000||!["camera","upload","manual"].includes(body.sourceMethod)||servings!==null&&(!Number.isInteger(servings)||servings<1||servings>100))return reply({error:"Tarkista reseptin tiedot."},400);
  const connection=process.env.DATABASE_URL||process.env.POSTGRES_URL;
  if(!connection)return reply({error:"Reseptikirjaston tietokantayhteys puuttuu."},503);
