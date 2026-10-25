@@ -54,7 +54,7 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     // Read the label separately; never infer fuel from top-to-bottom order.
     if(row.left<15)continue;
     await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
-    const labelVotes=new Map<NonNullable<ReturnType<typeof fuelRowLabel>>,number>();
+    const labelVotes=new Map<NonNullable<ReturnType<typeof fuelRowLabel>>,number>();let plaqueRecognized=false;
     // A white D/95/98 plaque must be trimmed inside its white border; otherwise
     // OCR commonly reads the rounded plaque itself as brackets instead of D.
     let plaqueLeft=canvas.width,plaqueRight=0,plaqueTop=canvas.height,plaqueBottom=0,count=0;
@@ -69,7 +69,7 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
       x.drawImage(image,plaqueLeft+w*.15,plaqueTop+h*.15,w*.7,h*.7,30,30,340,340);
       await worker.setParameters({tessedit_pageseg_mode:'10',tessedit_char_whitelist:''});
       const found=fuelRowLabel((await worker.recognize(c.toDataURL('image/png'))).data.text);
-      if(found)labelVotes.set(found,2);
+      if(found){labelVotes.set(found,2);plaqueRecognized=true;}
     }
     if(!labelVotes.size){
       await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
@@ -90,7 +90,7 @@ export async function readFuelPhoto(worker:Worker,data:string,onProgress?:(price
     labelCanvas.height=Math.max(1,(labelBottom-labelTop)*2);
     labelCanvas.getContext('2d')?.drawImage(image,labelLeft,labelTop,labelRight-labelLeft,labelBottom-labelTop,0,0,labelCanvas.width,labelCanvas.height);
     await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:''});
-    const fullLabelText=labelVotes.size===1?[...labelVotes.keys()][0]==='diesel'?'D':[...labelVotes.keys()][0]==='price95'?'95':'98':(await worker.recognize(labelCanvas.toDataURL('image/png'))).data.text;
+    const fullLabelText=plaqueRecognized?[...labelVotes.keys()][0]==='diesel'?'D':[...labelVotes.keys()][0]==='price95'?'95':'98':(await worker.recognize(labelCanvas.toDataURL('image/png'))).data.text;
     if(/\b(?:MY\s*(?:DIESEL|D)|NESTE\s*MY|NERO\s*DIESEL|MP[ÖO]|E\s*85|AD\s*BLUE)\b/i.test(fullLabelText))continue;
     const fullLabel=fuelRowLabel(fullLabelText);
     if(fullLabel)labelVotes.set(fullLabel,(labelVotes.get(fullLabel)||0)+2);
