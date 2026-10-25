@@ -258,6 +258,18 @@ export default function DesktopPreviewPage() {
   const [justiinaRecipeSearchOpen,setJustiinaRecipeSearchOpen]=useState(false);
   const [justiinaRecipeQuery,setJustiinaRecipeQuery]=useState("");
   const [justiinaRecipeResults,setJustiinaRecipeResults]=useState<{title:string;url:string;source:string;content:string}[]>([]);
+  const [savedOnlineRecipes,setSavedOnlineRecipes]=useState<string[]>([]);
+  useEffect(()=>{try{setSavedOnlineRecipes(JSON.parse(window.localStorage.getItem("ziiply-saved-online-recipes")||"[]").map((r:{url:string})=>r.url))}catch{}},[]);
+  function saveOnlineRecipe(recipe:{title:string;url:string;source:string;content:string}){
+    try{const key="ziiply-saved-online-recipes";const old=JSON.parse(window.localStorage.getItem(key)||"[]");const next=[...old.filter((r:{url:string})=>r.url!==recipe.url),recipe];window.localStorage.setItem(key,JSON.stringify(next));setSavedOnlineRecipes(next.map((r:{url:string})=>r.url));setJustiinaRecipeMessage("Resepti tallennettu");}catch{setJustiinaRecipeMessage("Tallennus epäonnistui")}
+  }
+  function searchOnlineRecipeIngredients(recipe:{title:string;content:string}){
+    const ingredients=parseRecipeIngredients(recipe.content).filter(item=>item.complete&&item.name.trim());
+    if(!ingredients.length){setJustiinaRecipeMessage("Reseptistä ei löytynyt haettavia aineksia");return}
+    setJustiinaRecipeSearchOpen(false);
+    setJustiinaRecipeMessage("Ainesosat valmiina tuotehakuun");
+    window.dispatchEvent(new CustomEvent("ziiply-recipe-ingredients-search",{detail:{title:recipe.title,ingredients}}));
+  }
   const [justiinaRecipeLoading,setJustiinaRecipeLoading]=useState(false);
   const [justiinaRecipeMessage,setJustiinaRecipeMessage]=useState("");
   const [justiinaDebugOpen,setJustiinaDebugOpen]=useState(false);
@@ -2616,7 +2628,7 @@ export default function DesktopPreviewPage() {
                 <p role="status" className="mb-3 text-sm font-bold text-[#50664d]">{justiinaRecipeLoading?"Haetaan reseptejä…":justiinaRecipeMessage}</p>
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto">
                   {justiinaRecipeResults.map((recipe,i)=><article key={recipe.url+i} className="rounded-xl border-2 border-[#c69b54] bg-[#f4dda4] px-4 py-3">
-                    <div className="mb-2 flex items-center gap-3"><h3 className="min-w-0 flex-1 font-bold text-[#17573c]">{recipe.title} – {recipe.source}</h3><button type="button" onClick={()=>navigator.clipboard.writeText(recipe.title+" – "+recipe.source+"\\n\\n"+recipe.content+"\\n\\nLähde: "+recipe.url)} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-2 font-bold text-[#17573c]">Kopioi resepti</button></div>
+                    <div className="mb-2 flex items-center gap-3"><h3 className="min-w-0 flex-1 font-bold text-[#17573c]">{recipe.title} – {recipe.source}</h3><button type="button" onClick={()=>saveOnlineRecipe(recipe)} title="Tallenna resepti" aria-label="Tallenna resepti" className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-2 font-bold text-[#17573c]">💾 {savedOnlineRecipes.includes(recipe.url)?"Tallennettu":"Tallenna"}</button><button type="button" onClick={()=>searchOnlineRecipeIngredients(recipe)} title="Hae reseptin tuotteet" aria-label="Hae reseptin tuotteet" className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-2 font-bold text-[#17573c]">🛒 Hae tuotteet</button></div>
                     {(()=>{const ingredients=parseRecipeIngredients(recipe.content);return <div className="mb-3 rounded-lg bg-[#fff8e7] p-3 text-sm text-[#354a35]"><strong>Ainekset ja määrät</strong>{ingredients.length?<ul className="mt-2 list-disc pl-5">{ingredients.map((item,j)=><li key={j}>{item.amount} {item.name}{!item.complete?" (tarkista)":""}</li>)}</ul>:<p className="mt-1">Määrällisiä aineksia ei tunnistettu. Tarkista alkuperäinen ohje ennen ostoslistaa.</p>}</div>})()}
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#354a35]">{recipe.content}</p>
                     <p className="mt-2 text-xs text-[#64704f]">Lähde: {recipe.source}</p>
