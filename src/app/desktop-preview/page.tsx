@@ -245,12 +245,12 @@ export default function DesktopPreviewPage() {
     const timer=setTimeout(async()=>{
       setJustiinaRecipeLoading(true);
       try{
-        const url="https://fi.wikibooks.org/w/api.php?"+new URLSearchParams({action:"query",generator:"search",gsrsearch:"intitle:Resepti "+query,gsrnamespace:"0",gsrlimit:"15",prop:"info|extracts",inprop:"url",explaintext:"1",exintro:"0",exchars:"4500",format:"json",origin:"*"});
+        const url="https://fi.wikibooks.org/w/api.php?"+new URLSearchParams({action:"query",generator:"search",gsrsearch:query,gsrnamespace:"0",gsrlimit:"30",prop:"info|extracts",inprop:"url",explaintext:"1",exintro:"0",exchars:"4500",format:"json",origin:"*"});
         const response=await fetch(url,{signal:controller.signal});
         if(!response.ok)throw new Error("Hakupalvelu ei vastaa");
         const data=await response.json();
         if(controller.signal.aborted)return;
-        const results=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;extract?:string;index?:number}[]).filter(p=>p.title&&p.fullurl&&/resept/i.test(p.title)).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>({title:p.title,url:p.fullurl,source:"Wikikirjasto",content:(p.extract||"").trim()})).filter(p=>p.content.length>60);
+        const results=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;extract?:string;index?:number}[]).filter(p=>p.title&&p.fullurl).sort((a,b)=>(a.index||0)-(b.index||0)).map(p=>({title:p.title,url:p.fullurl,source:"Wikikirjasto",content:(p.extract||"").trim()})).filter(p=>p.content.length>0);
         setJustiinaRecipeResults(results);
         setJustiinaRecipeMessage(results.length?results.length+" reseptiosumaa":"Ei suoria reseptiosumia.");
       }catch{if(!controller.signal.aborted){setJustiinaRecipeResults([]);setJustiinaRecipeMessage("Reseptipalvelu ei vastaa.")}}
