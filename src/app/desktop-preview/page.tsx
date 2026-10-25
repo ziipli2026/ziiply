@@ -1579,6 +1579,12 @@ export default function DesktopPreviewPage() {
     setPendingOnlineRecipeIngredients(null);
     void runDesktopVoiceList(ingredients.map(item=>item.name).join(", "),ingredients);
   },[workspace,pendingOnlineRecipeIngredients,justiinaRecipeSearchOpen]);
+  function downloadRecipeIngredientDebug(){
+    const stored=(()=>{try{return JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"null")}catch{return null}})();
+    const payload={timestamp:new Date().toISOString(),workspace,recipeSearchOpen:justiinaRecipeSearchOpen,pendingIngredients:pendingOnlineRecipeIngredients,activeRecipe:stored,searchTerms:recipeTermsRef.current,searchStep:recipeSearchStepRef.current,searchItems:recipeSearchItemsRef.current,runId:desktopVoiceRunRef.current};
+    const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
+    const a=document.createElement("a");a.href=url;a.download="ziiply-resepti-tuotehaku-debug.json";a.click();URL.revokeObjectURL(url);
+  }
   async function runDesktopVoiceList(transcript: string, recipeItems?:RecipeIngredient[], typedNormalSearch = false) {
     cancelDesktopVoiceList();
     const runId = desktopVoiceRunRef.current;
@@ -2641,6 +2647,7 @@ export default function DesktopPreviewPage() {
               }}
             />
 
+            {workspace==="justiina" && !justiinaRecipeSearchOpen && !fuelSelected && <button type="button" onClick={downloadRecipeIngredientDebug} className="fixed bottom-20 right-5 z-[96] rounded-xl border-2 border-[#986b36] bg-[#fff8e7] px-4 py-2 text-sm font-bold text-[#17573c] shadow-lg">Reseptin tuotehaku debug ↓</button>}
             {justiinaRecipeSearchOpen && !fuelSelected && <div role="dialog" aria-modal="true" aria-label="Justiinan reseptihaku" className={`${GOSTA_DESKTOP_OVERLAY_SHELL} z-[95]`}>
               <header className="relative mx-auto flex h-[54px] w-[min(100%,680px)] shrink-0 items-center justify-center rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] px-[65px]">
                 <button type="button" aria-label="Sulje reseptihaku" onClick={()=>setJustiinaRecipeSearchOpen(false)} className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border-2 border-[#caa15d] bg-[#754322] text-xl font-black text-white">×</button>
