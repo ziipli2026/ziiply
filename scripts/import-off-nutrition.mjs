@@ -41,7 +41,7 @@ try {
  LEFT JOIN public.ziiply_off_nutrition n ON n.ean=p.ean
  LEFT JOIN public.ziiply_off_lookup_status a ON a.ean=p.ean
  WHERE p.ean ~ '^[0-9]{8,14}$'
-   AND p.ean !~ '^2[0-9]{12}   AND length(trim(coalesce(p.name,''))) > 2
+   AND p.ean !~ '^2[0-9]{12}(trim(coalesce(p.name,''))) > 2
    AND lower(p.name) !~ '(play-doh|ryhmä hau|bloomables|flexfigs|lelu|lelut|pehmolelu|figuuri|palapeli|lautapeli|värityskirja|askartelu|paristo|patteri|pesuaine|shampoo|saippua|hammastahna|wc-paperi|talouspaperi|vaippa|roskapussi|astianpesu|pyykinpesu|kissanhiekka|koiranruoka|kissanruoka|lemmikin|lemmikkiportti|leipäveitsi|tomaattiveitsi|pastakauha|öljykynttilä|ilmanraikastin|meikkisieni|pussilakanasetti|olut|siideri|lonkero|viini|vodka)'
    AND right(p.ean,1)::int=$2
    AND lower(p.name) !~ '(koiran|kissan|lemmik|eläin|shamp|saippu|suihkugeeli|deodorant|hammastahn|harja|lelu|lelut|palapeli|paristo|patteri|pesuain|pyykin|astianpes|puhdistus|siivous|paperi|vaippa|roskapuss|kynttil|vaate|sukka|käsine|kenkä|sisustus|meikki|kosmeti|voide|hajuvesi|kirja|kortti|kampa|saks|partahöyl|terä|pussi[kl]akan|lakana|pyyhe|muoviastia|pakasterasia)'
