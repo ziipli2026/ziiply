@@ -10,7 +10,7 @@ on:
         default: true
         type: boolean
       retry_missing:
-        description: 'Retry missing OFF records last checked more than 24 hours ago'
+        description: 'Retry missing OFF records last checked more than 30 days ago'
         required: true
         default: true
         type: boolean
