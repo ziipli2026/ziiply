@@ -1,7 +1,5 @@
 name: Ziiply OFF nutrition pilot
 on:
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
     inputs:
       new_only:
