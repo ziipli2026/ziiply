@@ -427,7 +427,18 @@ export default function DesktopPreviewPage() {
       .then(data => setFuelStations((Array.isArray(data.stations) ? data.stations : []).filter((station: any) => !/\bteboil\b/i.test(String(station?.chain ?? "") + " " + String(station?.name ?? "")))))
       .catch(error => { if (!controller.signal.aborted) { setFuelStations([]); setFuelError(String(error.message || error)); } })
       .finally(() => { if (!controller.signal.aborted) setFuelLoading(false); });
-    return () => controller.abort();
+    // Refresh submitted/approved prices when the tab becomes active and while it stays open.
+    const refreshOnFocus = () => { if (!document.hidden) refreshFuelStations(); };
+    const refreshFuelStations = () => {
+      fetch(`/api/fuel/stations?lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}&t=${Date.now()}`, {cache:"no-store"})
+        .then(async response => { const data=await response.json(); if(!response.ok||!data.ok) throw new Error(data.error||"Asematietojen haku epäonnistui"); return data; })
+        .then(data => { if(!controller.signal.aborted) setFuelStations(Array.isArray(data.stations)?data.stations:[]); })
+        .catch(() => {});
+    };
+    document.addEventListener("visibilitychange",refreshOnFocus);
+    window.addEventListener("focus",refreshOnFocus);
+    const interval=window.setInterval(refreshFuelStations,60000);
+    return () => { controller.abort(); document.removeEventListener("visibilitychange",refreshOnFocus);window.removeEventListener("focus",refreshOnFocus);window.clearInterval(interval); };
   }, [gpsCoords?.latitude, gpsCoords?.longitude]);
 
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
