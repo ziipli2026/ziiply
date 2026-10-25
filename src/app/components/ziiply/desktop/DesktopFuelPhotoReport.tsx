@@ -172,11 +172,11 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
   async function findStations(location:{lat:number;lon:number;accuracy:number}|null){
     const id=++gpsRequest.current;setLocating(true);setStations([]);setStationId("");
     try{
-      const response=await fetch(`/api/fuel/stations?lat=${location?.lat??64}&lon=${location?.lon??26}`,{cache:"no-store"});const data=await response.json();
+      const response=await fetch(`/api/fuel/stations?lat=${location?.lat??64}&lon=${location?.lon??26}${location?"&maxDistanceKm=10&limit=30":""}`,{cache:"no-store"});const data=await response.json();
       logDebug("stations-response",{httpStatus:response.status,ok:data.ok,error:data.error,total:data.total,count:data.stations?.length,location});
       if(!response.ok || !data.ok)throw new Error("Asemien haku epäonnistui.");
       if(!alive.current || id!==gpsRequest.current)return [];
-      const list=(data.stations as Station[]).filter(s=>!/teboil/i.test(`${s.chain} ${s.name}`)).sort((a,b)=>location?fuelDistanceKm(location.lat,location.lon,a.latitude,a.longitude)-fuelDistanceKm(location.lat,location.lon,b.latitude,b.longitude):`${a.chain} ${a.name}`.localeCompare(`${b.chain} ${b.name}`,"fi"));
+      const list=(data.stations as Station[]).filter(s=>!/teboil/i.test(`${s.chain} ${s.name}`) && (!location || fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)<=10)).sort((a,b)=>location?fuelDistanceKm(location.lat,location.lon,a.latitude,a.longitude)-fuelDistanceKm(location.lat,location.lon,b.latitude,b.longitude):`${a.chain} ${a.name}`.localeCompare(`${b.chain} ${b.name}`,"fi"));
       setStations(list);setStationId("");return list;
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Asemien haku epäonnistui.");}finally{if(alive.current&&id===gpsRequest.current)setLocating(false);}
   }
