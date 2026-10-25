@@ -11,6 +11,7 @@ const rows=await sql`
  AND NOT EXISTS(SELECT 1 FROM public.ziiply_ean_fineli_candidates c WHERE c.ean=e.ean)
 `;
 const nonfood=/\b(?:kissanruoka|koiranruoka|lemmikin|lemmikkiportti|primacat|dagsmark|koirille|kissoille|täysravinto|kissanhiekka|pesuaine|puhdistusaine|wc-paperi|shampoo|saippua|deodorantti|hammastahna|vaippa|aurinkovoide|kasvovoide|toppahousut|fleece|hanskat|sukat|lautapeli|palapeli|paristo|led|plafondi|lautanen|leipäveitsi|tomaattiveitsi|pastakauha|öljykynttilä|öljykynttil|ilmanraikastin|meikkisieni|pesusieni|pussilakanasetti|lelu|olut|siideri|lonkero|cocktail)\b/i;
+const nonfoodCompounds=/öljykynttil|pesusien|lemmikkiport|koiranruo|kissanruo|pussilakana|leipäveits|tomaattiveits|pastakauh|ilmanraikast|meikkisien/i;
 const categories=[
  ["dairy_eggs",/maito|jogurtti|juusto|rahka|kananmuna|kerma|piimä/i],
  ["bakery_grains",/leipä|pulla|jauho|kaurahiutale|riisi|pasta|spagetti|makaroni|muro|puuro/i],
@@ -24,7 +25,7 @@ const foodCandidates:Record<string,string[]>={};
 const examples:Record<string,string[]>={};
 for(const {name} of rows){
  const s=String(name??"");
- const category=nonfood.test(s)?"excluded_nonfood":categories.find(([,re])=>re.test(s))?.[0]??"uncertain";
+ const category=(nonfood.test(s)||nonfoodCompounds.test(s))?"excluded_nonfood":categories.find(([,re])=>re.test(s))?.[0]??"uncertain";
  counts[category]=(counts[category]??0)+1;
  if((examples[category]??=[]).length<8)examples[category].push(s);
  if(category!=="excluded_nonfood"&&category!=="uncertain"&&(foodCandidates[category]??=[]).length<15)foodCandidates[category].push(String(name));
