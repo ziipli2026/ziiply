@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const exportsPhoto={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/fuelPhoto.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:exportsPhoto});
+const {identifyFuelPhotoStation:identify,fuelPhotoBrand:brand}=exportsPhoto;
+const gps={lat:61.43472222222222,lon:26.596527777777776,accuracy:0};
+const st1={id:'st1',name:'St1 Mäntyharju Karankamäki',chain:'St1',latitude:61.43491,longitude:26.59569};
+const neste={id:'neste',name:'Neste Mäntyharju Vihantasalmi',chain:'Neste',latitude:61.44149,longitude:26.68029};
+assert.equal(identify([st1,neste],gps,'',false),'st1','actual photo GPS is 49 metres from the correct map pin');
+assert.equal(identify([st1,neste],gps,'St1',false),'st1');
+assert.equal(identify([st1,neste],null,'St1',false),'','a logo alone cannot locate a branch');
+assert.equal(identify([st1,neste],gps,'Neste',false),'','a distant chain must not replace the photographed station');
+assert.equal(identify([st1,neste],gps,'St1',true),'','conflicting location evidence requires confirmation');
+const neighbour={...st1,id:'other',name:'Neste neighbouring station',chain:'Neste',latitude:61.4348,longitude:26.5961};
+assert.equal(identify([st1,neighbour],gps,'',false),'','two nearby brands are ambiguous without a logo');
+assert.equal(identify([st1,neighbour],gps,'St1',false),'st1','a different neighbouring brand must not veto a visible St1 logo');
+assert.equal(identify([st1,{...st1,id:'second'}],gps,'St1',false),'','two same-chain candidates remain ambiguous');
+assert.equal(brand('St1 Shell'),'St1');assert.equal(brand('ST 1'),'St1');
+assert.equal(brand('St1 ABC'),null);
+console.log('PASS: actual St1 photo GPS, logo/GPS combination, neighbouring brands, ambiguity and absent GPS');

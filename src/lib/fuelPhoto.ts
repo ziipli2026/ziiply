@@ -55,13 +55,23 @@ export function comparePhotoEvidence(mode:string,evidence:PhotoEvidence){
 
 // A brand supports GPS evidence; it cannot locate a station by itself.
 export function fuelPhotoBrand(text:string):string|null {
-  const brands=["ABC","Neste","St1","Shell","SEO","Gulf","Teboil"];
-  const found=brands.filter(brand=>new RegExp("\\b"+brand+"\\b","i").test(text));
+  const normalized=text.replace(/\bst[\s-]*[1il]\b/gi,'St1');
+  const brands=["ABC","Neste","St1","Shell","SEO","Gulf"];
+  const found=[...new Set(brands.filter(brand=>new RegExp("\\b"+brand+"\\b","i").test(normalized)).map(brand=>brand==='Shell'?'St1':brand))];
   return found.length===1?found[0]:null;
 }
 export function identifyFuelPhotoStation<T extends {id:string;name:string;chain?:string;latitude:number;longitude:number}>(stations:T[],location:PhotoLocation|null,text:string,conflicted:boolean):string {
   if(!location || conflicted || location.accuracy>200)return "";
   const brand=fuelPhotoBrand(text);
-  const candidates=stations.filter(s=>(!brand || fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=Math.max(100,location.accuracy+50));
-  return candidates.length===1?candidates[0].id:"";
+  // A photo is commonly taken across the road from the station map pin.
+  // Exact EXIF coordinates do not imply the camera is at the pump coordinate.
+  const radius=Math.max(100,Math.min(250,50+location.accuracy*2));
+  const candidates=stations.filter(s=>(!brand || fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=radius);
+  if(candidates.length!==1)return "";
+  // Nearby stations can be confused by GPS drift even when only one is within the matching radius.
+  // Require manual confirmation when any other station is within 75 m of the candidate.
+  const selected=candidates[0];
+  if(stations.some(s=>s.id!==selected.id && (!brand||fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(selected.latitude,selected.longitude,s.latitude,s.longitude)*1000<=75))return "";
+  return selected.id;
 }
+
