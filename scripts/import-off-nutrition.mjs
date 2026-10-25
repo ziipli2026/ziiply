@@ -6,6 +6,8 @@ const shard=Math.max(0,Math.min(9,Number(process.argv.find(x=>x.startsWith('--sh
 const limit=Math.min(150,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
 const refreshIncomplete=process.argv.includes('--refresh-incomplete');
 const retryNotFound=process.argv.includes('--retry-not-found');
+// Rechecking a missing barcode every day wastes requests: only retry after a meaningful delay.
+const notFoundRetryDays=retryNotFound?14:90;
 const progressEvery=1;
 if(!process.env.DATABASE_URL)throw Error('DATABASE_URL is required');
 const pool=new Pool({connectionString:process.env.DATABASE_URL,connectionTimeoutMillis:12000,query_timeout:30000});
@@ -38,8 +40,7 @@ try {
    AND (
      (n.ean IS NULL AND (
        a.ean IS NULL
-       OR (a.status='not_found' AND a.attempted_at < now()-interval '30 days')
-       OR ($4::boolean AND a.status='not_found' AND a.attempted_at < now()-interval '1 day')
+       OR (a.status='not_found' AND a.attempted_at < now()-make_interval(days => $4::int))
        OR (a.status='error' AND a.attempted_at < now()-interval '1 day')
        OR (a.status='found' AND a.attempted_at < now()-interval '1 day')
      ))
@@ -49,8 +50,8 @@ try {
        AND n.fetched_at < now()-interval '1 day')
    )
  ORDER BY CASE WHEN $3::boolean AND n.ean IS NOT NULL THEN 0 WHEN a.ean IS NULL THEN 1 WHEN a.status='error' THEN 2 WHEN a.status='found' THEN 3 ELSE 4 END, a.attempted_at NULLS FIRST, p.ean
- LIMIT $1`,[limit,shard,refreshIncomplete,retryNotFound]);
- console.log('OFF_SELECTED',JSON.stringify({shard,retryNotFound,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
+ LIMIT $1`,[limit,shard,refreshIncomplete,notFoundRetryDays]);
+ console.log('OFF_SELECTED',JSON.stringify({shard,retryNotFound,notFoundRetryDays,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
  let matched=0,notFound=0,failed=0,refreshed=0,newRecords=0,withoutNutrition=0;
  for(const [i,{ean,previously_imported}] of rows.entries()){
   try{
