@@ -20,6 +20,7 @@ export default function TankkausPage(){
  },[mode,embedded]);
 
  useEffect(()=>{const params=new URLSearchParams(window.location.search);const requested=params.get("mode");if(requested==="prices"||requested==="report"){setMode(requested);setEmbedded(true);}},[]);
+ useEffect(()=>{if(!embedded)return;const previousBody=document.body.style.background;const previousHtml=document.documentElement.style.background;document.body.style.setProperty("background","transparent","important");document.documentElement.style.setProperty("background","transparent","important");return()=>{document.body.style.background=previousBody;document.documentElement.style.background=previousHtml;};},[embedded]);
  const [coords,setCoords]=useState<Coords|null>(null);
  const [stations,setStations]=useState<Station[]>([]);
  const [status,setStatus]=useState("Sijaintia ei ole vielä haettu.");
