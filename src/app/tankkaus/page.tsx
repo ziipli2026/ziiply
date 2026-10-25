@@ -60,7 +60,7 @@ export default function TankkausPage(){
       </div>
     </div>
    </section>}
-   {mode==="report"&&<DesktopFuelPhotoReport onClose={()=>setMode("home")}/>}
+   {mode==="report"&&<DesktopFuelPhotoReport embedded={embedded} onClose={()=>setMode("home")}/>}
   </div>
  </main>;
 }
