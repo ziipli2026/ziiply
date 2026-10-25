@@ -265,8 +265,8 @@ export default function DesktopPreviewPage() {
             if(typeof html!=="string")return null;
             const doc=new DOMParser().parseFromString(html,"text/html");
             doc.querySelectorAll("script,style,.mw-editsection,.reference,.reflist,.navbox,.metadata").forEach(el=>el.remove());
-            const content=(doc.querySelector(".mw-parser-output")||doc.body).textContent?.replace(/\\n[ \\t]+/g,"\\n").replace(/\\n{3,}/g,"\\n\\n").trim()||"";
-            return content.length>35?{title:p.title.replace(/^Keittokirja\\//,""),url:p.fullurl,source:"Wikikirjasto / Keittokirja",content:content.slice(0,10000)}:null;
+            const content=(doc.querySelector(".mw-parser-output")||doc.body).textContent?.replace(/\n[ \t]+/g,"\n").replace(/\n{3,}/g,"\n\n").trim()||"";
+            return content.length>35?{title:p.title.replace(/^Keittokirja\//,""),url:p.fullurl,source:"Wikikirjasto / Keittokirja",content:content.slice(0,10000)}:null;
           }catch{return null}
         }))).filter((p):p is {title:string;url:string;source:string;content:string}=>p!==null);
         if(controller.signal.aborted)return;
