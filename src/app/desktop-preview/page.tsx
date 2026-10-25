@@ -406,13 +406,19 @@ export default function DesktopPreviewPage() {
   const fuelSelectedStation=(group:string)=>{const items=fuelCandidates(group);return items.length?items[(fuelStationIndex[group]||0)%items.length]:null;};
   const fuelChangeStation=(group:string)=>{setFuelStationIndex(prev=>({...prev,[group]:((prev[group]||0)+1)%Math.max(1,fuelCandidates(group).length)}));setFuelCompared(false);};
   // All displayed fuel grades belong to one nearest station, never a mix of stations.
-  const fuelNearestStation=fuelStations.filter((station:any)=>
-    Number.isFinite(Number(station.distanceKm)) &&
-    [station.diesel,station.price95,station.price98].some((value:any)=>value!=null && Number.isFinite(Number(value)) && Number(value)>0)
-  ).reduce((nearest:any,station:any)=>!nearest || Number(station.distanceKm)<Number(nearest.distanceKm)?station:nearest,null);
+  // Prefer the nearest station with a recent Ziiply observation. Never silently
+  // show an old price from another region as if it were the local live price.
+  const fuelNearestStation=fuelStations.filter((station:any)=>{
+    const distance=Number(station.distanceKm);
+    if(!Number.isFinite(distance)||distance>30)return false;
+    const observed=[station.observedDiesel,station.observed95,station.observed98]
+      .map((value:any)=>Date.parse(String(value??""))).filter((value:number)=>Number.isFinite(value));
+    return observed.some((timestamp:number)=>timestamp<=Date.now()&&Date.now()-timestamp<=7*24*60*60*1000);
+  }).sort((a:any,b:any)=>Number(a.distanceKm)-Number(b.distanceKm))[0]??null;
   const fuelClosestPrice=(type:"diesel"|"price95"|"price98")=>{
     const value=fuelNearestStation?.[type];
-    return value!=null && Number.isFinite(Number(value)) && Number(value)>0?Number(value):undefined;
+    const timestamp=Date.parse(String(fuelNearestStation?.[type==="diesel"?"observedDiesel":type==="price95"?"observed95":"observed98"]??""));
+    return value!=null && Number.isFinite(Number(value)) && Number(value)>0 && Number.isFinite(timestamp) && timestamp<=Date.now() && Date.now()-timestamp<=7*24*60*60*1000?Number(value):undefined;
   };
 
   const fuelGroupOf=(s:any)=>{const t=String(s.chain||"").toLowerCase();return t.includes("neste")?"Neste":t.includes("st1")||t.includes("shell")?"St1":t.includes("abc")?"ABC":t.includes("seo")?"SEO":t.includes("gulf")?"Gulf":t.includes("ritoil")?"Ritoil":"Muut";};
@@ -2330,7 +2336,7 @@ export default function DesktopPreviewPage() {
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
                 {title === "AJOAINE" ? (
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">AJOAINE</span>
+                    <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]" title={fuelNearestStation?`${fuelNearestStation.name} · ${Number(fuelNearestStation.distanceKm).toFixed(1)} km`:"Ei tuoreita hintoja 30 km säteellä"}>AJOAINE</span>
                     <span className="mt-0.5 grid grid-cols-[20px_minmax(0,1fr)] items-baseline gap-x-1 text-[13px] font-black leading-[1.15] text-[#102a24] tabular-nums">
                       <span>DI</span><span className="whitespace-nowrap">{fuelClosestPrice("diesel")!=null?Number(fuelClosestPrice("diesel")).toFixed(2).replace(".",","):"—"}</span>
                       <span className="mt-0.5">BE</span><span className="mt-0.5 whitespace-nowrap">{fuelClosestPrice("price95")!=null?Number(fuelClosestPrice("price95")).toFixed(2).replace(".",","):"—"} / {fuelClosestPrice("price98")!=null?Number(fuelClosestPrice("price98")).toFixed(2).replace(".",","):"—"}</span>
