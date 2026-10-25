@@ -1,4 +1,3 @@
-import { evaluateZiiplyArrival, initialZiiplyArrivalState } from "./components/ziiply/location/ziiplyArrivalSequence";
 // ============================================================================
 // PAGE_V550_GOSTA_VISIBLE_KRUOKA_PIPELINE_DEBUG
 // Revision: V550-GOSTA-VISIBLE-KRUOKA-PIPELINE-DEBUG
@@ -695,6 +694,8 @@ import { evaluateZiiplyArrival, initialZiiplyArrivalState } from "./components/z
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import { evaluateZiiplyArrival, initialZiiplyArrivalState } from "./components/ziiply/location/ziiplyArrivalSequence";
+
 
 // PAGE_V442_MOBILE_LANDSCAPE_BLOCK_IGNORE_KEYBOARD_VISUAL_VIEWPORT
 // Korjaus: iPhone/mobile landscape ei saa avata vanhaa sm/desktop-page-näkymää.
