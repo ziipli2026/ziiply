@@ -21,6 +21,15 @@ function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   return 6371 * 2 * Math.asin(Math.sqrt(a));
 }
 
+// Verified Prisma Varkaus location (Sorvikatu 3); upstream store coordinates may be stale.
+function storeCoordinates(store: RawStore) {
+  const name = String(store.name || "").trim().toLowerCase();
+  const isVarkausPrisma = name === "prisma varkaus" || String(store.externalId || "") === "726015093";
+  return isVarkausPrisma
+    ? { latitude: 62.313288, longitude: 27.856216 }
+    : { latitude: store.lat ?? store.latitude, longitude: store.long ?? store.lon ?? store.lng ?? store.longitude };
+}
+
 function normalizeStore(store: RawStore) {
   return {
     id: store.id,
@@ -31,8 +40,8 @@ function normalizeStore(store: RawStore) {
     postalCode: store.postalCode,
     externalId: store.externalId,
     address: String(store.name || "").trim().toLowerCase() === "prisma varkaus" ? "Sorvikatu 3" : store.address,
-    latitude: store.lat ?? store.latitude,
-    longitude: store.long ?? store.lon ?? store.lng ?? store.longitude,
+    latitude: storeCoordinates(store).latitude,
+    longitude: storeCoordinates(store).longitude,
   };
 }
 
@@ -82,8 +91,8 @@ export async function GET(request: NextRequest) {
           if (/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) return false;
           const country = String(store.country || store.countryCode || "").trim().toUpperCase();
           if (country && !["FI","FIN","FINLAND","SUOMI"].includes(country)) return false;
-          const lat = Number(store.lat ?? store.latitude);
-          const lon = Number(store.long ?? store.lon ?? store.lng ?? store.longitude);
+          const lat = Number(storeCoordinates(store).latitude);
+          const lon = Number(storeCoordinates(store).longitude);
           if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
           if (distanceKm(latitude, longitude, lat, lon) > 100) return false;
           const key = storeDedupeKey(store) || `${name}:${lat}:${lon}`;
