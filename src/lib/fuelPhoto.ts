@@ -64,6 +64,6 @@ export function fuelPhotoBrand(text:string):string|null {
 export function identifyFuelPhotoStation<T extends {id:string;name:string;chain?:string;latitude:number;longitude:number}>(stations:T[],location:PhotoLocation|null,text:string,conflicted:boolean):string {
   if(!location || conflicted || location.accuracy>200)return "";
   const brand=fuelPhotoBrand(text);
-  const candidates=stations.filter(s=>(!brand || fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=Math.max(100,location.accuracy+50));
+  const candidates=stations.filter(s=>(!brand || fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=(location.accuracy<=10?25:location.accuracy<=30?25+(location.accuracy-10)*0.75:location.accuracy<=50?40+(location.accuracy-30)*0.5:50));
   return candidates.length===1?candidates[0].id:"";
 }
