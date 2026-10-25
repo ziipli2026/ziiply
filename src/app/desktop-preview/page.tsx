@@ -2614,7 +2614,7 @@ export default function DesktopPreviewPage() {
               </div>
             </div>}
             {fuelSelected && fuelReportOpen && <DesktopFuelPhotoReport onClose={()=>setFuelReportOpen(false)}/>}
-            {fuelSelected && fuelCompared && !fuelReportOpen && <div className={`${GOSTA_DESKTOP_OVERLAY_SHELL} z-[60]`}>
+            {fuelSelected && fuelCompared && !fuelReportOpen && <div className="fixed left-1/2 top-1/2 z-[60] flex h-[min(680px,calc(100dvh-16px))] w-[min(720px,calc(100vw-16px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[28px] border-[3px] border-[#5a321b] bg-[#efe0bd] p-3 shadow-[0_28px_80px_rgba(34,54,43,.28)]">
               <div className="relative grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-[20px] border-2 border-[#caa15d] bg-[#f7e7bd] py-2 pl-2 pr-12">
                 <button type="button" aria-pressed={fuelSort==="diesel"} onClick={()=>setFuelSort(current=>current==="diesel"?"distance":"diesel")} className={`flex min-w-0 items-center justify-center gap-2 rounded-[15px] border-2 px-2 py-2 text-[11px] font-black leading-tight shadow-[0_3px_0_rgba(34,54,43,.15)] transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#174c35] ${fuelSort==="diesel"?"border-[#174f78] bg-[#246b96] text-white":"border-[#83a8bb] bg-gradient-to-b from-[#f5fcff] to-[#dcecf3] text-[#174f78]"}`}><span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/25 text-[10px]">DI</span><span>Näytä halvin diesel</span></button>
                 <span className="text-center font-serif text-[18px] font-black italic leading-tight text-[#174c35]">Göstan<br/>polttoainevertailu</span>
