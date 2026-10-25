@@ -54,9 +54,16 @@ export async function POST(req:NextRequest){
         if(inserted.length)published.push(fuelType);
       }
     }
+    // The report review state must reflect validation, not just public price insertion.
+    // An older valid report is accepted as history even if a newer price is displayed.
+    const gasolineConflict=prices.price95!=null && prices.price98!=null && prices.price95>prices.price98;
+    const accepted=Object.keys(prices).some(key=>key==="diesel" || !gasolineConflict);
+    if(rows.length){
+      await sql`UPDATE ziiply_user_fuel_reports SET status=${accepted?"accepted":"rejected"} WHERE id=${body.id}::uuid AND status='pending_review'`;
+    }
     if(typeof body.learningToken==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.learningToken)){
       try{const saved=await sql`SELECT prices FROM ziiply_user_fuel_reports WHERE id=${body.id}::uuid`;await recordFuelPhotoCorrection(body.id,body.learningToken,saved[0].prices,body.id);}catch(e){console.error('fuel-photo-learning feedback',e instanceof Error?e.message:'failed');}
     }
-    return NextResponse.json({ok:true,id:body.id,status:published.length?"published":"saved",published,duplicate:rows.length===0,environment:database.production?"production":"test"});
+    return NextResponse.json({ok:true,id:body.id,status:accepted?"accepted":"rejected",published,duplicate:rows.length===0,environment:database.production?"production":"test"});
   }catch{return NextResponse.json({error:"Ilmoituksen tallennus epäonnistui. Yritä uudelleen."},{status:503});}
 }
