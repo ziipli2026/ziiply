@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useDesktopVoiceInput } from "../desktop/justiina/useDesktopVoiceInput";
 type Item={title?:string;name?:string;quantity?:number;[key:string]:any};
 export type DesktopSavedList={id:string;name:string;createdAt:string;items:Item[]};
-type Recipe={id:string;title:string;ingredients:string;instructions:string;createdAt:string};
+type Recipe={id:string;title:string;ingredients:string;instructions:string;category?:string;sourceUrl?:string;createdAt:string};
 type Props={recipePickerOnly?:boolean;open:boolean;lists:DesktopSavedList[];currentCartCount:number;openedListId:string|null;onToggleList:(id:string)=>void;onSaveCurrentCart:()=>void;onRestoreList:(list:DesktopSavedList)=>void;onDeleteList:(id:string)=>void;onClose:()=>void};
 export default function ZiiplyDesktopNotebookCard({open,recipePickerOnly=false,lists,currentCartCount,openedListId,onToggleList,onSaveCurrentCart,onRestoreList,onDeleteList,onClose}:Props){
 const [recipes,setRecipes]=React.useState<Recipe[]>([]);
@@ -134,7 +134,7 @@ if(recipePickerOnly||focusRecipes)return <div className="fixed inset-0 z-[95] fl
     <div className="mb-4 flex shrink-0 items-center justify-between gap-3"><h2 className="font-serif text-2xl font-black text-[#174c3a]">Valitse resepti</h2><button type="button" onClick={()=>{setFocusRecipes(false);onClose()}} aria-label="Sulje reseptin valinta" className="grid h-10 w-10 place-items-center rounded-full border-2 border-[#76502e] bg-[#a56c34] text-2xl font-black text-white">×</button></div>
     <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
       {recipes.map(recipe=><div key={recipe.id} className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-[#b89552] bg-[#fff9e7] px-4 py-3">
-        <span className="min-w-0 flex-1 break-words text-base font-black text-[#26352b]">{recipe.title}</span>
+        <span className="min-w-0 flex-1 break-words text-base font-black text-[#26352b]">{recipe.title}{recipe.category==="muualta"&&<small className="ml-2 block text-xs font-medium text-[#76684f]">Muualta tulleet</small>}</span>
         <div className="flex shrink-0 items-center gap-2">
           <button type="button" onClick={()=>{setFocusRecipes(false);selectSavedRecipe(recipe)}} aria-label={`Valitse ${recipe.title}`} title="Valitse resepti" className="grid h-11 w-11 place-items-center rounded-xl border-2 border-[#6b8b61] bg-[#edf3df] text-xl">🛒</button>
           <button type="button" onClick={()=>{setFocusRecipes(false);setEditingRecipeId(recipe.id);setRecipeTitle(recipe.title);setRecipeIngredients(recipe.ingredients);setRecipeInstructions(recipe.instructions);setRecipeEditing(true)}} aria-label={`Muokkaa ${recipe.title}`} title="Muokkaa" className="grid h-11 w-11 place-items-center rounded-xl border-2 border-[#9a7a3d] bg-[#fff7dd] text-xl">✎</button>
