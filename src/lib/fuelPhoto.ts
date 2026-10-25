@@ -65,5 +65,10 @@ export function identifyFuelPhotoStation<T extends {id:string;name:string;chain?
   if(!location || conflicted || location.accuracy>200)return "";
   const brand=fuelPhotoBrand(text);
   const candidates=stations.filter(s=>(!brand || fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=(location.accuracy<=10?25:location.accuracy<=30?25+(location.accuracy-10)*0.75:location.accuracy<=50?40+(location.accuracy-30)*0.5:50));
-  return candidates.length===1?candidates[0].id:"";
+  if(candidates.length!==1)return "";
+  // Nearby stations can be confused by GPS drift even when only one is within the matching radius.
+  // Require manual confirmation when any other station is within 75 m of the candidate.
+  const selected=candidates[0];
+  if(stations.some(s=>s.id!==selected.id && fuelDistanceKm(selected.latitude,selected.longitude,s.latitude,s.longitude)*1000<=75))return "";
+  return selected.id;
 }
