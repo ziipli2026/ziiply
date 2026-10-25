@@ -14924,15 +14924,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         !Number.isFinite(position.coords.accuracy) || position.coords.accuracy <= 0 || position.coords.accuracy > 50 ||
         !Number.isFinite(position.coords.latitude) || !Number.isFinite(position.coords.longitude)) {
       if (now - liveArrivalLastFixAtRefV864.current <= 30000) return;
-      liveArrivalStateRefV864.current = initialZiiplyArrivalState();
-      liveArrivalDecisionRefV864.current = null;
-      scannerStoreCheckDoneRefV791.current = false;
-      scannerInStoreRefV828.current = false;
+      if (!liveArrivalDecisionRefV864.current?.state.arrivalStoreId) {
+        liveArrivalStateRefV864.current = initialZiiplyArrivalState();
+        liveArrivalDecisionRefV864.current = null;
+        scannerStoreCheckDoneRefV791.current = false;
+        scannerInStoreRefV828.current = false;
+      }
       if (eanScannerOpen) setScannerLocationStatusV855(current => current ? {...current, verified:false, checking:true} : null);
       return;
     }
     if (position.timestamp <= liveArrivalLastFixAtRefV864.current) return;
-    if (position.timestamp - liveArrivalLastFixAtRefV864.current > 30000)
+    if (position.timestamp - liveArrivalLastFixAtRefV864.current > 30000 && !liveArrivalDecisionRefV864.current?.state.arrivalStoreId)
       liveArrivalStateRefV864.current = initialZiiplyArrivalState();
     liveArrivalLastFixAtRefV864.current = position.timestamp;
     const names = [
@@ -14963,10 +14965,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     gpsCoordsLatestRefV137.current = coords;
     setGpsCoordsV320(coords);
     if (!eanScannerOpen) return;
-    const verified = decision.status === "in-store" && decision.isSelectedStore;
+    const verified = (decision.status === "in-store" && decision.isSelectedStore) || (!!decision.state.arrivalStoreId && names.some(name => normalize(name) === decision.state.arrivalStoreId));
     scannerStoreCheckDoneRefV791.current = verified;
     scannerInStoreRefV828.current = verified;
-    scannerConfirmedStoreNameRefV828.current = verified ? decision.store!.name : "";
+    scannerConfirmedStoreNameRefV828.current = verified ? (decision.store?.name || names.find(name => normalize(name) === decision.state.arrivalStoreId) || "") : "";
     setScannerLocationStatusV855({
       name:decision.store?.name || names[0] || "",
       verified, checking:decision.status === "checking" || decision.status === "near-store" || decision.status === "uncertain",
@@ -14998,11 +15000,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setEanModalClosing(false);
     setEanModalOpen(true);
-    scannerStoreCheckDoneRefV791.current = false;
-    scannerInStoreRefV828.current = false;
-    scannerConfirmedStoreNameRefV828.current = "";
-    setScannerLocationStatusV855(current => current ? {...current,verified:false,checking:true} : null);
-    checkScannerLocationOnOpenV856();
+    const existingVisit = liveArrivalDecisionRefV864.current;
+    const confirmedName = existingVisit?.state.arrivalStoreId && existingVisit.isSelectedStore ? existingVisit.store?.name : null;
+    scannerStoreCheckDoneRefV791.current = !!confirmedName;
+    scannerInStoreRefV828.current = !!confirmedName;
+    scannerConfirmedStoreNameRefV828.current = confirmedName || "";
+    setScannerLocationStatusV855(confirmedName ? {name:confirmedName,verified:true,checking:false} : null);
+    if (!confirmedName) checkScannerLocationOnOpenV856();
     // Mobiilin SCAN-nappi avaa aina uuden ZiiplyMobileScannerCard-näkymän heti.
     // Kamera käynnistetään perässä, mutta renderi ei saa jäädä riippumaan
     // startEanCameraScannerin asynkronisesta onnistumisesta.
