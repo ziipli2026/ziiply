@@ -4,6 +4,7 @@ import pg from 'pg';
 const {Pool}=pg;
 const shard=Math.max(0,Math.min(9,Number(process.argv.find(x=>x.startsWith('--shard='))?.split('=')[1]||0)));
 const limit=Math.min(150,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
+// New-only means existing Ziiply EANs without an OFF nutrition record.
 const newOnly=process.argv.includes('--new-only');
 const refreshIncomplete=!newOnly && process.argv.includes('--refresh-incomplete');
 const refreshFallback=!newOnly && process.argv.includes('--refresh-fallback');
@@ -42,7 +43,7 @@ try {
    AND lower(p.name) !~ '(play-doh|ryhmä hau|bloomables|flexfigs|lelu|lelut|pehmolelu|figuuri|palapeli|lautapeli|värityskirja|askartelu|paristo|patteri|pesuaine|shampoo|saippua|hammastahna|wc-paperi|talouspaperi|vaippa|roskapussi|astianpesu|pyykinpesu|kissanhiekka|koiranruoka|kissanruoka|lemmikin|lemmikkiportti|leipäveitsi|tomaattiveitsi|pastakauha|öljykynttilä|ilmanraikastin|meikkisieni|pussilakanasetti|olut|siideri|lonkero|viini|vodka)'
    AND right(p.ean,1)::int=$2
    AND (
-     ($5::boolean AND n.ean IS NULL AND a.ean IS NULL)
+     ($5::boolean AND n.ean IS NULL AND (a.ean IS NULL OR (a.status='not_found' AND a.attempted_at < now()-interval '14 days') OR (a.status='error' AND a.attempted_at < now()-interval '1 day') OR (a.status='found' AND a.attempted_at < now()-interval '1 day')))
      OR (NOT $5::boolean AND n.ean IS NULL AND (
        a.ean IS NULL
        OR (a.status='not_found' AND a.attempted_at < now()-make_interval(days => $4::int))
