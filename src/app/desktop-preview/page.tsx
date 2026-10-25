@@ -1592,7 +1592,7 @@ export default function DesktopPreviewPage() {
     cancelDesktopVoiceList();
     const runId = desktopVoiceRunRef.current;
     // Tap water belongs in the recipe, not in the grocery product search queue.
-    const searchableRecipeItems=recipeItems?.filter(item=>!/^\s*(?:vesi|vettä|veden|hanavesi)\s*$/i.test(item.name.trim())) ?? recipeItems;
+    const searchableRecipeItems=recipeItems?.filter(item=>!/^\s*(?:vesi|vettä|veden|hanavesi|hanavettä|hanaveden)\s*$/i.test(item.name.trim()) && !/^\s*(?:vesi|vettä|veden|hanavesi|hanavettä|hanaveden)\s*$/i.test(item.searchTerm||"")) ?? recipeItems;
     const terms = searchableRecipeItems?.length ? searchableRecipeItems.map(item=>item.searchTerm||recipeProductSearchTerm(item.name)||item.name) : typedNormalSearch ? parseTerms(transcript).map(term=>autocorrectNormalSearchTerm(term.trim())).filter(Boolean) : parseMobileVoiceList(transcript);
     recipeSearchStepRef.current=-1;
     recipeSearchItemsRef.current=Array.isArray(searchableRecipeItems)&&searchableRecipeItems.length===terms.length?searchableRecipeItems:[];
