@@ -44,14 +44,14 @@ export default function TankkausPage(){
  useEffect(()=>{if(mode==="prices"&&!coords)load();},[mode]);
  const visible=stations.filter(s=>s.distanceKm<=radius&&s[fuel]!=null).sort((a,b)=>(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
  return <main className={embedded ? "h-dvh overflow-hidden bg-transparent p-0 text-[#174c35]" : "min-h-screen bg-[#fff4cf] px-4 py-8 text-[#174c35]"}>
-  <div className={embedded ? "mx-auto h-full max-w-5xl" : "mx-auto max-w-5xl"}>
+  <div className={embedded ? "mx-auto h-full max-w-[720px]" : "mx-auto max-w-5xl"}>
    {!embedded&&<header className="mb-7 text-center"><a href="/" className="text-sm font-bold underline">Ziiply.fi</a><h1 className="mt-3 text-4xl font-black">Tankataan yhdessä halvemmalla!</h1><p className="mt-2 text-lg font-bold">Yksi kuva. Kaikkien hyöty.</p><p className="mt-2">Auta muita autoilijoita ilmoittamalla polttoainehintoja. Hintojen katselu on aina ilmaista.</p></header>}
    {!embedded&&<nav className="mb-6 grid grid-cols-2 gap-3"><button onClick={()=>setMode("report")} className="rounded-2xl border-2 border-[#17573c] bg-[#e3edc9] p-5 text-lg font-black shadow">📷 Ilmoita hinnat</button><button onClick={()=>setMode("prices")} className="rounded-2xl border-2 border-[#17573c] bg-white p-5 text-lg font-black shadow">⛽ Katso hinnat</button></nav>}
    {mode==="home"&&<p className="text-center">Valitse hintojen ilmoittaminen tai lähialueen hintojen katselu.</p>}
    {mode==="prices"&&<section className={embedded ? "h-full min-h-0 flex flex-col rounded-[28px] border-[3px] border-[#754322] bg-[#fff4cf] p-2 sm:p-3 overflow-hidden" : "rounded-[28px] border-[3px] border-[#754322] bg-[#f3e4c1] p-2 sm:p-4 shadow-inner h-[min(76dvh,900px)] flex flex-col min-h-0"}>
     <div className={`flex items-center gap-2 rounded-[22px] border-2 border-[#c9a15b] bg-[#f9eac4] p-2 sm:p-3 `}>
-      <button onClick={()=>setFuel("diesel")} aria-pressed={fuel==="diesel"} className={`flex-1 rounded-2xl border-[3px] px-2 py-3 font-bold text-xs sm:text-base ${fuel==="diesel"?"bg-[#d8eaf4] border-[#79a8bf] text-[#20577b]":"bg-[#e9f4fa] border-[#9cbcca] text-[#20577b]"}`}>DI · Näytä halvin diesel</button>
-      <h2 className="hidden sm:block shrink-0 text-center font-serif text-xl italic font-black text-[#20523d]">Göstan<br/>polttoainevertailu</h2>
+      <button onClick={()=>setFuel("diesel")} aria-pressed={fuel==="diesel"} className={`flex-1 rounded-2xl border-[3px] px-2 py-3 font-bold text-xs sm:text-sm ${fuel==="diesel"?"bg-[#d8eaf4] border-[#79a8bf] text-[#20577b]":"bg-[#e9f4fa] border-[#9cbcca] text-[#20577b]"}`}>DI · Näytä halvin diesel</button>
+      <h2 className="hidden sm:block shrink-0 text-center font-serif text-base italic font-black text-[#20523d]">Göstan<br/>polttoainevertailu</h2>
       <button onClick={()=>setFuel("price95")} aria-pressed={fuel==="price95"} className={`flex-1 rounded-2xl border-[3px] px-2 py-3 font-bold text-xs sm:text-base ${fuel==="price95"?"bg-[#f4dfc1] border-[#d5a46d] text-[#92501e]":"bg-[#fff0d9] border-[#d5a46d] text-[#92501e]"}`}>95 · Näytä halvin bensa</button>
       {embedded&&<button type="button" aria-label="Sulje hintavertailu" onClick={()=>window.parent.postMessage({type:"ziiply-fuel-close"},"https://ziiply.fi")} className="shrink-0 h-11 w-11 rounded-full border-[3px] border-[#17573c] bg-[#754322] text-2xl font-bold text-white" >×</button>}
     </div>
