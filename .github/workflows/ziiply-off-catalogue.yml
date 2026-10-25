@@ -2,6 +2,11 @@ name: Ziiply OFF Finnish catalogue
 on:
   workflow_dispatch:
     inputs:
+      start_page:
+        description: 'First OFF page to collect; resume at page 9 after the previous interrupted run'
+        required: true
+        default: '9'
+        type: string
       pages:
         description: 'OFF pages to collect (100 products per page)'
         required: true
@@ -24,4 +29,4 @@ jobs:
       - name: Collect Finnish OFF catalogue into isolated staging
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: node scripts/import-off-catalogue.mjs --pages=${{ inputs.pages || '5' }}
+        run: node scripts/import-off-catalogue.mjs --start-page=${{ inputs.start_page || '9' }} --pages=${{ inputs.pages || '5' }}
