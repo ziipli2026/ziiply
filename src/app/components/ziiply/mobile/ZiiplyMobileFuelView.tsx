@@ -2,7 +2,7 @@
 
 import FuelStationBackdrop from "./FuelStationBackdrop";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ZiiplyMobileStoreModeSelector from "./ZiiplyMobileStoreModeSelector";
 import { isValidFuelPrice, sortFuelStations, type FuelComparisonSort } from "./fuelComparison";
 
@@ -64,32 +64,47 @@ export default function ZiiplyMobileFuelView({
   const [stationSide, setStationSide] = useState<"traffic" | "both" | "cold">("both");
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [comparisonSort, setComparisonSort] = useState<FuelComparisonSort>("distance");
+  const latestCoords = useRef(coords);
+  latestCoords.current = coords;
+  const hasCoords = coords !== null;
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError("");
-    if (!coords) { setStations([]); setLoading(false); return () => controller.abort(); }
-    fetch(
-      `/api/fuel/stations?lat=${coords.lat}&lon=${coords.lon}&maxDistanceKm=30`,
-      { signal: controller.signal, cache: "no-store" },
-    )
-      .then((r) => {
-        if (!r.ok) throw Error();
-        return r.json();
-      })
-      .then((data) => {
+    if (!hasCoords) { setStations([]); setLoading(false); return () => controller.abort(); }
+
+    async function refreshStations(initial = false) {
+      const position = latestCoords.current;
+      if (!position || controller.signal.aborted) return;
+      try {
+        const response = await fetch(
+          `/api/fuel/stations?lat=${position.lat}&lon=${position.lon}&maxDistanceKm=30`,
+          { signal: controller.signal, cache: "no-store" },
+        );
+        if (!response.ok) throw Error();
+        const data = await response.json();
         if (!data.ok || !Array.isArray(data.stations)) throw Error();
-        setStations(data.stations);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted)
+        if (!controller.signal.aborted) {
+          setStations(data.stations);
+          setError("");
+        }
+      } catch {
+        if (initial && !controller.signal.aborted)
           setError("Asemien haku epäonnistui. Avaa hintanäkymä uudelleen.");
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-    return () => controller.abort();
-  }, [coords?.lat, coords?.lon]);
+      } finally {
+        if (initial && !controller.signal.aborted) setLoading(false);
+      }
+    }
+    void refreshStations(true);
+    // GPS updates only replace the latest position; fuel data refreshes silently once a minute.
+    const interval = window.setInterval(() => {
+      if (!document.hidden) void refreshStations();
+    }, 60_000);
+    return () => {
+      controller.abort();
+      window.clearInterval(interval);
+    };
+  }, [hasCoords]);
   // Match desktop: select chain groups and show the nearest eligible station.
   const filtered = useMemo(
     () => !coords ? [] : stations
@@ -141,7 +156,7 @@ export default function ZiiplyMobileFuelView({
           ))}
         </div>
         <p role="status" className="shrink-0 text-center text-[10px] font-bold leading-tight">
-          {loading ? "Päivitetään…" : error ? "Asematietojen päivitys epäonnistui" : `${comparisonStations.length} asemaa · ${comparisonSort === "distance" ? "lähin ensin" : "halvin ensin, tasahinnalla lähin"}`}
+          {loading ? "" : error ? "Asematietojen haku epäonnistui" : `${comparisonStations.length} asemaa · ${comparisonSort === "distance" ? "lähin ensin" : "halvin ensin, tasahinnalla lähin"}`}
         </p>
         <div aria-label="Vertailun asemat" className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-1">
           {!loading && !error && comparisonStations.length === 0 && <p className="rounded-xl bg-[#fff8df] p-3 text-center text-xs">Valituista ketjuista ei löytynyt asemia.</p>}
