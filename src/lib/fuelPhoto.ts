@@ -32,6 +32,17 @@ export function validateFuelPrices(value:unknown): Record<string,number> | null 
 
 export type PhotoLocation={lat:number;lon:number;accuracy:number};
 export type PhotoEvidence={photoGps:PhotoLocation|null;deviceGps:PhotoLocation|null;photoTime:string|null;captureTime:string|null};
+export const FUEL_PHOTO_STATION_MAX_DISTANCE_M=250;
+/** Hard server-side limit: uncertainty or a confirmation checkbox never increases it. */
+export function validateFuelStationLocation(mode:string,evidence:PhotoEvidence,station:{latitude:number;longitude:number}){
+ if(mode==='manual')return {ok:true,distanceM:null,error:''};
+ const anchors=[evidence.photoGps,...(mode==='online'?[evidence.deviceGps]:[])].filter(validPhotoLocation);
+ if(!anchors.length)return {ok:false,distanceM:null,error:'Kuvan sijaintia ei voitu varmistaa. Kuvailmoitusta ei voi tallentaa ilman kuvauspaikan GPS-tietoa.'};
+ if(anchors.some(p=>p.accuracy>200))return {ok:false,distanceM:null,error:'Kuvauspaikan GPS-tarkkuus ei riitä aseman varmistamiseen. Ota uusi kuva tarkemmalla sijainnilla.'};
+ const distanceM=Math.max(...anchors.map(p=>fuelDistanceKm(p.lat,p.lon,Number(station.latitude),Number(station.longitude))*1000));
+ if(!Number.isFinite(distanceM)||distanceM>FUEL_PHOTO_STATION_MAX_DISTANCE_M)return {ok:false,distanceM,error:'Valittu asema on yli 250 metrin päässä kuvauspaikasta. Valitse kuvan oikea asema. Tätä rajaa ei voi ohittaa vahvistuksella.'};
+ return {ok:true,distanceM,error:''};
+}
 export function validPhotoLocation(value:unknown):value is PhotoLocation{
   if(!value || typeof value!=="object")return false;
   const p=value as PhotoLocation;

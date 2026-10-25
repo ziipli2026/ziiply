@@ -1,7 +1,7 @@
 import {NextRequest,NextResponse} from "next/server";
 import {neon} from "@neondatabase/serverless";
 import {fuelDatabaseConfig} from "../../../../lib/fuelDatabase";
-import {comparePhotoEvidence,validPhotoLocation,validateFuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {comparePhotoEvidence,validPhotoLocation,validateFuelStationLocation,validateFuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 import {recordFuelPhotoCorrection} from "../../../../lib/fuelPhotoLearning";
 export const dynamic="force-dynamic";
 export async function POST(req:NextRequest){
@@ -28,10 +28,13 @@ export async function POST(req:NextRequest){
     const sql=neon(database.connection);
     const branch=await sql`SELECT current_setting('neon.branch_id',true) AS id`;
     if(branch[0]?.id!==database.expectedBranch)return NextResponse.json({error:"Polttoainetietokannan haara ei vastaa asemarekisteriä."},{status:503});
-    const station=await sql`SELECT source_station_id FROM ziiply_fuel_stations WHERE source_station_id=${stationId} AND lower(coalesce(name,'')||' '||coalesce(chain,'')) NOT LIKE '%teboil%' LIMIT 1`;
+    const station=await sql`SELECT source_station_id,latitude,longitude FROM ziiply_fuel_stations WHERE source_station_id=${stationId} AND lower(coalesce(name,'')||' '||coalesce(chain,'')) NOT LIKE '%teboil%' LIMIT 1`;
     if(!station.length)return NextResponse.json({error:"Asemaa ei löytynyt."},{status:400});
+    const stationLocation=validateFuelStationLocation(body.mode,evidence,station[0] as {latitude:number;longitude:number});
+    if(!stationLocation.ok)return NextResponse.json({error:stationLocation.error,distanceM:stationLocation.distanceM,maxDistanceM:250},{status:409});
+    const verifiedGps=manual?null:evidence.photoGps||evidence.deviceGps;
     const rows=await sql`INSERT INTO ziiply_user_fuel_reports(id,source_station_id,observed_at,prices,photo_data_url,gps_latitude,gps_longitude,gps_accuracy_m,metadata)
-      VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(prices)}::jsonb,${body.photo},${gps?.lat??null},${gps?.lon??null},${gps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
+      VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(prices)}::jsonb,${body.photo},${verifiedGps?.lat??null},${verifiedGps?.lon??null},${verifiedGps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
       ON CONFLICT(id) DO NOTHING RETURNING id`;
     if(typeof body.learningToken==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.learningToken)){
       try{const saved=await sql`SELECT prices FROM ziiply_user_fuel_reports WHERE id=${body.id}::uuid`;await recordFuelPhotoCorrection(body.id,body.learningToken,saved[0].prices,body.id);}catch(e){console.error('fuel-photo-learning feedback',e instanceof Error?e.message:'failed');}
