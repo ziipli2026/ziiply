@@ -1602,8 +1602,9 @@ export default function DesktopPreviewPage() {
       if (runId !== desktopVoiceRunRef.current) return;
       if(recipeItems?.length&&!found)missingRecipeTerms.push(terms[index]);
       // Mobile V509: keep this product's choices open until selection or return.
-      if (found) {
-        // Wait for an explicit selection or dismissal, including the last item.
+      if (found || recipeItems?.length) {
+        // Recipe mode must not silently advance past ingredients without matches.
+        // Wait for explicit selection or skip, including the last ingredient.
         await new Promise<void>(resolve => { desktopVoiceWaitRef.current = resolve; });
       }
     }
