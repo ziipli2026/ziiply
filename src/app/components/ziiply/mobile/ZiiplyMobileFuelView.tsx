@@ -68,8 +68,9 @@ export default function ZiiplyMobileFuelView({
     const controller = new AbortController();
     setLoading(true);
     setError("");
+    if (!coords) { setStations([]); setLoading(false); return () => controller.abort(); }
     fetch(
-      `/api/fuel/stations?lat=${coords?.lat ?? 64}&lon=${coords?.lon ?? 26}`,
+      `/api/fuel/stations?lat=${coords.lat}&lon=${coords.lon}&maxDistanceKm=30`,
       { signal: controller.signal, cache: "no-store" },
     )
       .then((r) => {
