@@ -389,6 +389,7 @@ export default function DesktopPreviewPage() {
   const [fuelSelected, setFuelSelected] = useState(false);
   const [fuelMode, setFuelMode] = useState<"nearby" | "compare">("nearby");
   const [fuelStations, setFuelStations] = useState<any[]>([]);
+  const [fuelLocationCoords,setFuelLocationCoords]=useState<{latitude:number;longitude:number}|null>(null);
   const [fuelLoading, setFuelLoading] = useState(false);
   const [fuelError, setFuelError] = useState("");
   const [fuelType, setFuelType] = useState<"diesel" | "price95" | "price98">("diesel");
@@ -419,10 +420,11 @@ export default function DesktopPreviewPage() {
   const fuelVisible=fuelStations.filter((s:any)=>fuelGroups.includes(fuelGroupOf(s)) && (fuelStationSide==="both" || (fuelStationSide==="traffic" ? fuelIsTraffic(s) : !fuelIsTraffic(s))));
 
   useEffect(() => {
-    if (!gpsCoords) { setFuelStations([]); setFuelLoading(false); setFuelError("Käynnistä GPS, jotta lähimmät asemat voidaan järjestää etäisyyden mukaan."); return; }
+    const fuelCoords=gpsCoords||fuelLocationCoords;
+    if (!fuelCoords) { setFuelStations([]); setFuelLoading(false); setFuelError("Käynnistä GPS, jotta lähimmät asemat voidaan järjestää etäisyyden mukaan."); return; }
     const controller = new AbortController();
     setFuelLoading(true); setFuelError("");
-    fetch(`/api/fuel/stations?lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}`, { signal: controller.signal, cache: "no-store" })
+    fetch(`/api/fuel/stations?lat=${fuelCoords.latitude}&lon=${fuelCoords.longitude}`, { signal: controller.signal, cache: "no-store" })
       .then(async response => { const data = await response.json(); if (!response.ok || !data.ok) throw new Error(data.error || "Asematietojen haku epäonnistui"); return data; })
       .then(data => setFuelStations((Array.isArray(data.stations) ? data.stations : []).filter((station: any) => !/\bteboil\b/i.test(String(station?.chain ?? "") + " " + String(station?.name ?? "")))))
       .catch(error => { if (!controller.signal.aborted) { setFuelStations([]); setFuelError(String(error.message || error)); } })
@@ -430,7 +432,7 @@ export default function DesktopPreviewPage() {
     // Refresh submitted/approved prices when the tab becomes active and while it stays open.
     const refreshOnFocus = () => { if (!document.hidden) refreshFuelStations(); };
     const refreshFuelStations = () => {
-      fetch(`/api/fuel/stations?lat=${gpsCoords.latitude}&lon=${gpsCoords.longitude}&t=${Date.now()}`, {cache:"no-store"})
+      fetch(`/api/fuel/stations?lat=${fuelCoords.latitude}&lon=${fuelCoords.longitude}&t=${Date.now()}`, {cache:"no-store"})
         .then(async response => { const data=await response.json(); if(!response.ok||!data.ok) throw new Error(data.error||"Asematietojen haku epäonnistui"); return data; })
         .then(data => { if(!controller.signal.aborted) setFuelStations(Array.isArray(data.stations)?data.stations:[]); })
         .catch(() => {});
@@ -439,7 +441,7 @@ export default function DesktopPreviewPage() {
     window.addEventListener("focus",refreshOnFocus);
     const interval=window.setInterval(refreshFuelStations,60000);
     return () => { controller.abort(); document.removeEventListener("visibilitychange",refreshOnFocus);window.removeEventListener("focus",refreshOnFocus);window.clearInterval(interval); };
-  }, [gpsCoords?.latitude, gpsCoords?.longitude]);
+  }, [gpsCoords?.latitude, gpsCoords?.longitude,fuelLocationCoords?.latitude,fuelLocationCoords?.longitude]);
 
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
@@ -1575,6 +1577,13 @@ export default function DesktopPreviewPage() {
     setLocationResolved(true);
     setGpsOn(false);
     setGpsCoords(null);
+    setFuelLocationCoords(null);
+    fetch(`/api/store-search?search=${encodeURIComponent(value)}`,{cache:"no-store"})
+      .then(r=>r.json()).then(data=>{
+        const stores=Array.isArray(data?.items)?data.items:[];
+        const item=stores.find((s:any)=>Number.isFinite(Number(s.latitude??s.lat))&&Number.isFinite(Number(s.longitude??s.lon??s.lng)));
+        if(item)setFuelLocationCoords({latitude:Number(item.latitude??item.lat),longitude:Number(item.longitude??item.lon??item.lng)});
+      }).catch(()=>undefined);
     setLocationStatus(`Valittu sijainti: ${value}`);
     loadIndependentStores(value); fetch(`/api/store-search?search=${encodeURIComponent(value)}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{ const items=Array.isArray(d?.items)?d.items:[]; setStores(items) }).catch(()=>setStores([]));
   }
@@ -2168,6 +2177,7 @@ export default function DesktopPreviewPage() {
       setUserLocationAction(true);
       setLocationResolved(true);
       setGpsCoords({latitude:coords.latitude,longitude:coords.longitude});
+      setFuelLocationCoords(null);
       setGpsToast("GPS päällä");
       window.setTimeout(()=>setGpsToast(""),1800);
       setAppliedLocation(`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
