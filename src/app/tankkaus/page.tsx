@@ -9,6 +9,16 @@ const fmt=(n:number|null)=>n==null||!Number.isFinite(n)?"–":n.toLocaleString("
 export default function TankkausPage(){
  const [mode,setMode]=useState<"home"|"prices"|"report">("home");
  const [embedded,setEmbedded]=useState(false);
+ useEffect(()=>{
+  const send=()=>{
+   if(window.parent===window)return;
+   const selectors=["html","body","main","main > div","main section","main section > div","main section > div + div",'[role="dialog"]'];
+   const layers=selectors.map(selector=>{const el=document.querySelector(selector);if(!el)return {selector,found:false};const cs=getComputedStyle(el),r=el.getBoundingClientRect();return {selector,found:true,tag:el.tagName,classes:String(el.className).slice(0,220),background:cs.backgroundColor,border:cs.border,shadow:cs.boxShadow,position:cs.position,zIndex:cs.zIndex,rect:{x:Math.round(r.x),y:Math.round(r.y),width:Math.round(r.width),height:Math.round(r.height)}}});
+   window.parent.postMessage({type:"ziiply-fuel-debug",payload:{time:new Date().toISOString(),url:location.href,viewport:{width:innerWidth,height:innerHeight},layers}}, "https://ziiply.fi");
+  };
+  send();const id=window.setInterval(send,3000);return()=>window.clearInterval(id);
+ },[mode,embedded]);
+
  useEffect(()=>{const params=new URLSearchParams(window.location.search);const requested=params.get("mode");if(requested==="prices"||requested==="report"){setMode(requested);setEmbedded(true);}},[]);
  const [coords,setCoords]=useState<Coords|null>(null);
  const [stations,setStations]=useState<Station[]>([]);
