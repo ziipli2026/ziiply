@@ -188,15 +188,24 @@ function ZiiplyVintageMillLoader() {
 
 function parseRecipeIngredients(content:string){
   const lines=content.split(/\n/).map(line=>line.replace(/^[•*–-]\s*/,"").trim()).filter(Boolean);
-  const amount=/^(?:(\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?|[½¼¾⅓⅔])\s*(kg|g|mg|l|dl|cl|ml|kpl|rkl|tl|prk|pkt|pss|purkkia|purkki|sipulia|valkosipulinkynttä|munaa|perunaa|viipaletta|ripaus)\b\s*(.*))$/i;
   const ingredients:{amount:string;name:string;complete:boolean}[]=[];
   let inIngredients=false;
+  const number=String.raw`(?:\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?|[½¼¾⅓⅔]|\d+[½¼¾⅓⅔])`;
+  const units=String.raw`(?:kg|g|mg|l|dl|cl|ml|kpl|rkl|tl|prk|pkt|pss|pussi|purkki|purkkia|viipaletta|siivua)`;
+  const quantified=new RegExp("^(?:n\\.?\\s*)?("+number+")\\s*("+units+")\\s+(.+)$","i");
+  const counted=new RegExp("^(?:n\\.?\\s*)?("+number+")\\s+(.+)$","i");
   for(const line of lines){
-    if(/^(ainekset|raaka-aineet|tarvikkeet|ainesosat)(?:\s*[:：])?$/i.test(line)){inIngredients=true;continue}
-    if(/^(valmistus|valmistusohje|ohje|työvaiheet|tekeminen)(?:\s*[:：])?$/i.test(line)){inIngredients=false;continue}
-    const match=line.match(amount);
-    if(match && (inIngredients||ingredients.length===0||ingredients.length<35))ingredients.push({amount:match[1]+" "+match[2],name:match[3]||match[2],complete:!!match[3]});
-    else if(inIngredients && line.length<90 && !/[.!?]$/.test(line) && ingredients.length<35)ingredients.push({amount:"Täydennettävä",name:line,complete:false});
+    if(/^(ainekset|raaka-aineet|ainesosat|valinnaiset ainekset)\s*:?\s*$/i.test(line)){inIngredients=true;continue}
+    if(/^(valmistus|valmistaminen|valmistusohje|ohje|työvaiheet|tekeminen|tarvikkeet|vinkkejä|sukulaiset|linkit|katso myös|aiheesta muualla)\s*:?\s*$/i.test(line)){inIngredients=false;continue}
+    if(!inIngredients||ingredients.length>=35)continue;
+    if(/^(tässä on|jos haluat|voit lisätä)/i.test(line))continue;
+    const match=line.match(quantified);
+    if(match){ingredients.push({amount:match[1]+" "+match[2],name:match[3],complete:true});continue}
+    const count=line.match(counted);
+    if(count){ingredients.push({amount:count[1]+" kpl",name:count[2],complete:true});continue}
+    const word=line.match(/^(yksi|kaksi|kolme|neljä|viisi|kuusi)\s+(.+)$/i);
+    if(word){const nums:{[key:string]:number}={yksi:1,kaksi:2,kolme:3,neljä:4,viisi:5,kuusi:6};ingredients.push({amount:nums[word[1].toLowerCase()]+" kpl",name:word[2],complete:true});continue}
+    if(line.length<110)ingredients.push({amount:"Täydennettävä",name:line,complete:false});
   }
   return ingredients;
 }
