@@ -1591,9 +1591,11 @@ export default function DesktopPreviewPage() {
   async function runDesktopVoiceList(transcript: string, recipeItems?:RecipeIngredient[], typedNormalSearch = false) {
     cancelDesktopVoiceList();
     const runId = desktopVoiceRunRef.current;
-    const terms = recipeItems?.length ? recipeItems.map(item=>item.searchTerm||recipeProductSearchTerm(item.name)||item.name) : typedNormalSearch ? parseTerms(transcript).map(term=>autocorrectNormalSearchTerm(term.trim())).filter(Boolean) : parseMobileVoiceList(transcript);
+    // Tap water belongs in the recipe, not in the grocery product search queue.
+    const searchableRecipeItems=recipeItems?.filter(item=>!/^\s*(?:vesi|vettä|veden|hanavesi)\s*$/i.test(item.name.trim())) ?? recipeItems;
+    const terms = searchableRecipeItems?.length ? searchableRecipeItems.map(item=>item.searchTerm||recipeProductSearchTerm(item.name)||item.name) : typedNormalSearch ? parseTerms(transcript).map(term=>autocorrectNormalSearchTerm(term.trim())).filter(Boolean) : parseMobileVoiceList(transcript);
     recipeSearchStepRef.current=-1;
-    recipeSearchItemsRef.current=Array.isArray(recipeItems)&&recipeItems.length===terms.length?recipeItems:[];
+    recipeSearchItemsRef.current=Array.isArray(searchableRecipeItems)&&searchableRecipeItems.length===terms.length?searchableRecipeItems:[];
     recipeTermsRef.current=recipeSearchItemsRef.current.length?terms:[];
     if(!recipeItems?.length)startDesktopRecipeDebug({mode:"normal_or_voice",transcript});
     appendDesktopRecipeDebug("search_start",{runId,transcript,terms,recipeItems:recipeItems||null});
@@ -1603,7 +1605,7 @@ export default function DesktopPreviewPage() {
     for (let index = 0; index < terms.length; index++) {
       if (runId !== desktopVoiceRunRef.current) return;
       recipeSearchStepRef.current=index;
-      appendDesktopRecipeDebug("ingredient_step",{runId,index,term:terms[index],ingredient:recipeItems?.[index]||null});
+      appendDesktopRecipeDebug("ingredient_step",{runId,index,term:terms[index],ingredient:searchableRecipeItems?.[index]||null});
       setJustiinaActiveTerm(terms[index]);
       const found = await runDesktopJustiinaSearch(terms[index], runId);
       if (runId !== desktopVoiceRunRef.current) return;
