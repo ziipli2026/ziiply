@@ -4,6 +4,11 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
     inputs:
+      new_only:
+        description: 'Only EANs never searched before; no refreshes or retries'
+        required: true
+        default: true
+        type: boolean
       refresh_fallback:
         description: 'Refresh incomplete nutrition if no new EANs are eligible'
         required: false
@@ -43,7 +48,7 @@ jobs:
       - name: Import isolated OFF nutrition records
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-        run: node scripts/import-off-nutrition.mjs --limit=${{ inputs.limit || '100' }} --shard=${{ matrix.shard }} ${{ inputs.retry_not_found == true && '--retry-not-found' || '' }} ${{ inputs.refresh_fallback == true && '--refresh-fallback' || '' }}
+        run: node scripts/import-off-nutrition.mjs ${{ inputs.new_only != false && '--new-only' || '' }} --limit=${{ inputs.limit || '100' }} --shard=${{ matrix.shard }} ${{ inputs.retry_not_found == true && '--retry-not-found' || '' }} ${{ inputs.refresh_fallback == true && '--refresh-fallback' || '' }}
       - name: Verify import coverage
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
