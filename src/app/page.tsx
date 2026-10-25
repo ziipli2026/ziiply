@@ -1,3 +1,4 @@
+import { evaluateZiiplyArrival, initialZiiplyArrivalState } from "./components/ziiply/location/ziiplyArrivalSequence";
 // ============================================================================
 // PAGE_V550_GOSTA_VISIBLE_KRUOKA_PIPELINE_DEBUG
 // Revision: V550-GOSTA-VISIBLE-KRUOKA-PIPELINE-DEBUG
@@ -3939,6 +3940,36 @@ export default function Page() {
     }
   }
 
+  // Share the mobile arrival evaluator with desktop preview. Indoor GPS failures
+  // never clear a previously confirmed visit; only verified departure may do so.
+  useEffect(() => {
+    if (!usingOwnLocation || gpsUserDisabledRefV306.current || !navigator.geolocation) return;
+    let cancelled = false;
+    const sample = () => {
+      navigator.geolocation.getCurrentPosition(position => {
+        if (cancelled || position.timestamp <= desktopArrivalLastFixRef.current || position.coords.accuracy > 50) return;
+        desktopArrivalLastFixRef.current = position.timestamp;
+        const stores = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores).flatMap(store => {
+          const latitude = getStoreCoordinateV320(store, ["latitude","lat","y"]);
+          const longitude = getStoreCoordinateV320(store, ["longitude","lng","lon","x"]);
+          return latitude == null || longitude == null ? [] : [{id:normalize(String(store.name||"")),name:String(store.name||""),latitude,longitude}];
+        });
+        const names = [selectedChains.s ? activeStores.sStoreName : "",selectedChains.k ? activeStores.kStoreName : "",selectedChains.lidl ? selectedLidlStoreV750?.name : "",selectedChains.tokmanni ? selectedTokmanniStoreV756?.name : ""].filter(Boolean).map(name=>normalize(String(name)));
+        const result = evaluateZiiplyArrival(desktopArrivalStateRef.current, {at:position.timestamp,latitude:position.coords.latitude,longitude:position.coords.longitude,accuracyMeters:position.coords.accuracy,speedKmh:position.coords.speed != null && position.coords.speed >= 0 ? position.coords.speed*3.6 : null},stores,names);
+        desktopArrivalStateRef.current = result.state;
+        if(result.status==="in-store" && result.isSelectedStore && result.store) desktopArrivalConfirmedRef.current={id:result.store.id,name:result.store.name};
+        // Do not reset the visit merely because the phone loses satellite reception indoors.
+        if(result.status==="away" && !result.state.arrivalStoreId) desktopArrivalConfirmedRef.current=null;
+        scannerInStoreRefV828.current=!!desktopArrivalConfirmedRef.current;
+        scannerStoreCheckDoneRefV791.current=!!desktopArrivalConfirmedRef.current;
+        scannerConfirmedStoreNameRefV828.current=desktopArrivalConfirmedRef.current?.name||"";
+      },()=>{}, {enableHighAccuracy:true,maximumAge:0,timeout:4000});
+    };
+    sample();
+    const timer=window.setInterval(sample,5000);
+    return ()=>{cancelled=true;window.clearInterval(timer);};
+  }, [usingOwnLocation,foundStores,selectedChains,activeStores,selectedLidlStoreV750,selectedTokmanniStoreV756]);
+
   function startSilentGpsWatchV391() {
     // V469: älä käynnistä watchPositionia automaattisesti avauksessa.
     // Aiemmin tämä aiheutti toisen GPS-paikannuksen heti alkuhaun jälkeen ja UI jäi
@@ -4634,6 +4665,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V828: scanner session knows separately whether scans are collection scans.
   // "En" never blocks product lookup; it only disables automatic collected-state.
   const scannerInStoreRefV828 = useRef(false);
+  const desktopArrivalStateRef = useRef(initialZiiplyArrivalState());
+  const desktopArrivalLastFixRef = useRef(0);
+  const desktopArrivalConfirmedRef = useRef<{id:string;name:string}|null>(null);
   const scannerConfirmedStoreNameRefV828 = useRef("");
   const scannerStorePromptResolverRefV828 = useRef<null | ((inStore: boolean) => void)>(null);
   const scannerStorePromptTimerRefV828 = useRef<number | null>(null);
