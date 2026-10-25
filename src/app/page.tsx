@@ -4425,9 +4425,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       resolvePendingStorePromptV835(false);
     }
     setScannerStorePromptV828(null);
-    scannerStoreCheckDoneRefV791.current = false;
-    scannerInStoreRefV828.current = false;
-    scannerConfirmedStoreNameRefV828.current = "";
+    // Closing the scanner must not discard an already confirmed store visit.
     queuedPhysicalScanRefV837.current = null;
   }, [eanModalOpen]);
 
@@ -14224,9 +14222,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setEanModalClosing(false);
     setEanModalOpen(true);
-    scannerStoreCheckDoneRefV791.current = false;
-    scannerInStoreRefV828.current = false;
-    scannerConfirmedStoreNameRefV828.current = "";
+    // Preserve store confirmation across repeated scanner openings.
     // Mobiilin SCAN-nappi avaa aina uuden ZiiplyMobileScannerCard-näkymän heti.
     // Kamera käynnistetään perässä, mutta renderi ei saa jäädä riippumaan
     // startEanCameraScannerin asynkronisesta onnistumisesta.
