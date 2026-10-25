@@ -32,6 +32,8 @@ const kinds: Kind[] = [
  {term:"dijonsinappi",pattern:/dijonsinap/,product:/dijon.*sinappi|sinappi.*dijon/,group:"Sinapit"},
  {term:"kapris",pattern:/kaprik/,product:/kapris/,group:"Säilykkeet"},
  {term:"fenkoli",pattern:/fenkol/,product:/fenkoli/,group:"Kasvikset"},
+ {term:"selleri",pattern:/\b(?:selleri|selleriä|sellerin)\b/,product:/\b(?:selleri|selleriä|sellerin)\b/,exclude:/sellerisuola|sellerinsiemen|sellerijauhe|sellerikeitto|sellerisalaatti/,group:"Kasvikset"},
+ {term:"lanttu",pattern:/\b(?:lanttu|lanttua|lantun|lanttuja)\b/,product:/\b(?:lanttu|lanttua|lantun|lanttuja)\b/,exclude:/lanttulaatikko|lanttusose|lanttukeitto|lanttusalaatti/,group:"Kasvikset"},
  {term:"kevätsipuli",pattern:/kevätsipul/,product:/kevätsipuli/,group:"Kasvikset"},
  {term:"purjo",pattern:/purjo/,product:/purjo/,group:"Kasvikset"},
  {term:"herne",pattern:/hernei|^herne/,product:/herne/,group:"Kasvikset",exclude:/keitto|sokeriherne|herneproteiini|hernerouhe|hernejauho/},
