@@ -57,7 +57,7 @@ export function comparePhotoEvidence(mode:string,evidence:PhotoEvidence){
 
 // A brand supports GPS evidence; it cannot locate a station by itself.
 export function fuelPhotoBrand(text:string):string|null {
-  const brands=["ABC","Neste","St1","Shell","SEO","Gulf","Teboil"];
+  const brands=["ABC","Neste","St1","Shell","SEO","Gulf"];
   const found=brands.filter(brand=>new RegExp("\\b"+brand+"\\b","i").test(text));
   return found.length===1?found[0]:null;
 }
