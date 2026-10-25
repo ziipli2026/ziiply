@@ -66,7 +66,7 @@ export function evaluateZiiplyArrival(
     state.tripStartedAt ??= sample.at;
     if(sample.at-state.tripStartedAt>=ZIIPLY_TRIP_CONFIRM_MS)state.tripConfirmed=true;
     state.stoppedAt=null;state.lastStationarySampleAt=null;state.lastStationaryPosition=null;
-    state.arrivalStoreId=null;
+    // Keep a confirmed session until departure is independently established.
   }else if(valid && ((speed!==null && Number.isFinite(speed) && speed>=0 && speed<=ZIIPLY_PARKED_SPEED_KMH)
     // Safari may supply null speed even at rest. Require repeated stable fixes.
     || (speed===null && (!state.lastStationaryPosition
@@ -89,8 +89,14 @@ export function evaluateZiiplyArrival(
   // do not claim a particular store.
   const ambiguous=candidates.length>1&&candidates[1].distance-candidates[0].distance<=sample.accuracyMeters;
   const store=ambiguous?null:candidates[0]?.store??null;
+  // Arrival is mode-independent: walking and opening the app at a shop work too.
+  // Multiple nearby reliable fixes confirm presence without a driving history.
   const parked=state.stoppedAt!==null&&sample.at-state.stoppedAt>=ZIIPLY_PARKED_CONFIRM_MS;
-  const inStore=!!store&&parked&&valid;
+  const slowApproach=valid&&speed!==null&&speed>=0&&speed<=12;
+  const nearbyStable=!!store&&state.lastStationarySampleAt!==null&&state.stoppedAt!==null
+    &&sample.at-state.stoppedAt>=ZIIPLY_PARKED_CONFIRM_MS;
+  const arrivalConfirmed=parked||(slowApproach&&nearbyStable);
+  const inStore=!!store&&arrivalConfirmed&&valid;
   const showArrivalMessage=!!inStore&&state.arrivalStoreId!==store?.id;
   if(inStore)state.arrivalStoreId=store.id;
   const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
