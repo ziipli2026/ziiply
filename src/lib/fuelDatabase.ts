@@ -1,8 +1,11 @@
+// The curated fuel registry lives on the primary Neon branch. The desktop
+// preview must read the same station catalog and prices as the mobile app.
+// Do not silently fall back to the obsolete Tankkaus validation branch.
 export function fuelDatabaseConfig(env:Record<string,string|undefined>=process.env){
-  const production=env.FUEL_PRODUCTION_ENABLED==='true';
-  const connection=production?(env.DATABASE_URL||env.POSTGRES_URL):env.TANKKAUS_TEST_DATABASE_URL;
+  const connection=env.DATABASE_URL||env.POSTGRES_URL;
   return {
-    production,connection,
-    expectedBranch:production?'br-lucky-fog-b1hwz641':'br-weathered-meadow-b1bwpzst',
+    production:true,
+    connection,
+    expectedBranch:'br-lucky-fog-b1hwz641',
   };
 }
