@@ -159,6 +159,9 @@ export function recipeProductSearchTerm(input: string): string | null {
    && !/peruna[- ](?:sipuli|juures|kikherne|pekoni|broileri)|peruna(?:salaat|pyöryk|pihv|muus|gnocch|gratiin|laatik|keitto)|pakaste|sekoitus/.test(rawIngredient))
    return "peruna";
  const name=cleanName(cleanRecipeQuery(input));
+ // Normalize inflected single-root vegetables before product lookup.
+ if(/\b(?:selleri|selleriä|sellerin|selleriäkin)\b/.test(name))return "selleri";
+ if(/\b(?:lanttu|lanttua|lantun|lanttuja)\b/.test(name))return "lanttu";
  const potatoCore=name
    .replace(/\b(?:kiinteä|kiinteitä|jauhoinen|jauhoisia|varhais|varhaisia|kuorittu|kuorittuja|pesty|pestyjä|suomalainen|suomalaisia|isoja|pieniä|muutama|muutamia|kuorittuna|kuorittuina|pestynä|keitettynä|raakana|raaka|keltainen|vihreä|pussi)\b/g," ")
    .replace(/\s+/g," ").trim();
