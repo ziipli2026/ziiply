@@ -83,6 +83,8 @@ test('selected alternative updates compare row price, quantity total and missing
     storeKind:()=> 'sHyper',
     resolvePriceWeightLabel:()=> '',
     desktopPackageCompatible:()=>true,
+    isSameRetailPackage:()=>true,
+    productGroupGate:()=>true,
     isComparisonAttributeCompatible:()=>true,
     desktopStrictCompareIdentity:()=>true,
     desktopReliableComparePrice:p=>Number.isFinite(Number(p.price))&&Number(p.price)>0,
