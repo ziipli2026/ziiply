@@ -15,7 +15,8 @@
     "posthog-js": "^1.374.2",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "@neondatabase/serverless": "^1.0.2"
+    "@neondatabase/serverless": "^1.0.2",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
