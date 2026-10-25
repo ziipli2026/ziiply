@@ -529,7 +529,7 @@ export default function DesktopPreviewPage() {
   // Never substitute a more distant station when the closest has missing prices.
   const fuelNearestStation=fuelStations.filter((station:any)=>{
     const distance=Number(station.distanceKm);
-    return Number.isFinite(distance)&&distance>=0&&distance<=30;
+    return Number.isFinite(distance)&&distance>=0;
   }).sort((a:any,b:any)=>Number(a.distanceKm)-Number(b.distanceKm))[0]??null;
   const fuelClosestPrice=(type:"diesel"|"price95"|"price98")=>{
     const value=fuelNearestStation?.[type];
@@ -2463,14 +2463,16 @@ export default function DesktopPreviewPage() {
               <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center gap-3 rounded-[19px] border bg-gradient-to-b ${theme} px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
                 <span className="text-[27px] drop-shadow-sm">{icon}</span>
                 {title === "AJOAINE" ? (
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]" title={fuelNearestStation?`${fuelNearestStation.name} · ${Number(fuelNearestStation.distanceKm).toFixed(1)} km`:"Ei asemaa 30 km säteellä"}>AJOAINE</span>
-                    <span className="mt-0.5 grid grid-cols-[20px_minmax(0,1fr)] items-baseline gap-x-1 text-[13px] font-black leading-[1.15] text-[#102a24] tabular-nums">
-                      <span>DI</span><span className="whitespace-nowrap">{fuelClosestPrice("diesel")!=null?Number(fuelClosestPrice("diesel")).toFixed(2).replace(".",","):"—"}</span>
-                      <span className="mt-0.5">BE</span><span className="mt-0.5 whitespace-nowrap">{fuelClosestPrice("price95")!=null?Number(fuelClosestPrice("price95")).toFixed(2).replace(".",","):"—"} / {fuelClosestPrice("price98")!=null?Number(fuelClosestPrice("price98")).toFixed(2).replace(".",","):"—"}</span>
+                  <span className="min-w-0 flex-1 overflow-visible">
+                    <span className="block text-[10px] font-black tracking-[0.08em] text-[#625b43]">AJOAINE</span>
+                    <span className="mt-0.5 block whitespace-nowrap text-[12px] font-black leading-tight text-[#102a24] tabular-nums">
+                      DI {fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "—"} · 95 {fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "—"}
                     </span>
-                    <span className="mt-0.5 block truncate text-[9px] font-black leading-none text-[#625b43]">
-                      {fuelNearestStation ? `${/\\babc\\b/i.test(String(fuelNearestStation.chain||""))?"ABC":/\\bst\\s*1\\b/i.test(String(fuelNearestStation.chain||""))?"ST1":/\\bneste\\b/i.test(String(fuelNearestStation.chain||""))?"Neste":"Muu"} · ${Number(fuelNearestStation.distanceKm).toLocaleString("fi-FI",{maximumFractionDigits:1})} km` : "Ei lähiasemaa"}
+                    <span className="block whitespace-nowrap text-[12px] font-black leading-tight text-[#102a24] tabular-nums">
+                      98 {fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "—"}
+                    </span>
+                    <span className="mt-0.5 block whitespace-nowrap text-[11px] font-black leading-tight text-[#625b43]">
+                      {fuelNearestStation ? `${/abc/i.test(String(fuelNearestStation.chain||""))?"ABC":/st\\s*1|shell/i.test(String(fuelNearestStation.chain||""))?"ST1":/neste/i.test(String(fuelNearestStation.chain||""))?"Neste":"Muu"} · ${Number(fuelNearestStation.distanceKm).toLocaleString("fi-FI",{maximumFractionDigits:1})} km` : (fuelLoading ? "Haetaan asemaa…" : "Ei GPS-asemaa")}
                     </span>
                   </span>
                 ) : (
