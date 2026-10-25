@@ -22,7 +22,7 @@ function loadOcr():Promise<Ocr>{
   }).catch(error=>{ocrPromise=null;throw error;});
   return ocrPromise;
 }
-type PhotoMeta={latitude?:number;longitude?:number;DateTimeOriginal?:string;OffsetTimeOriginal?:string};
+type PhotoMeta={latitude?:number;longitude?:number;DateTimeOriginal?:string;OffsetTimeOriginal?:string;GPSSpeed?:number;GPSSpeedRef?:string};
 let metaPromise:Promise<{parse:(file:File,options:Record<string,unknown>)=>Promise<PhotoMeta|undefined>}>|null=null;
 function loadMetadata(){
   if(metaPromise)return metaPromise;
@@ -147,8 +147,8 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
   const [priceReview,setPriceReview]=useState(false);
   const [evidence,setEvidence]=useState<PhotoEvidence>({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});const [conflictConfirmed,setConflictConfirmed]=useState(false);const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
   const [rawText,setRawText]=useState("");const [busy,setBusy]=useState(false);const [status,setStatus]=useState("");const [error,setError]=useState("");
-  const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
-  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [captureCountdown,setCaptureCountdown]=useState<number|null>(null);const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const fuelGuideRef=useRef<HTMLDivElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
+  const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
+  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [captureCountdown,setCaptureCountdown]=useState<number|null>(null);const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const fuelGuideRef=useRef<HTMLDivElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
   const conflict=comparePhotoEvidence(mode,evidence);
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{
@@ -180,7 +180,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     void open();
     return()=>{cancelled=true;stream?.getTracks().forEach(track=>track.stop());if(streamRef.current===stream)streamRef.current=null;};
   },[cameraOpen]);
-  async function findStations(location:{lat:number;lon:number;accuracy:number}|null){
+  async function findStations(location:{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null){
     const id=++gpsRequest.current;setLocating(true);setStations([]);setStationId("");
     try{
       const response=await fetch(`/api/fuel/stations?lat=${location?.lat??64}&lon=${location?.lon??26}${location?"&maxDistanceKm=10&limit=30":""}`,{cache:"no-store"});const data=await response.json();
@@ -210,13 +210,13 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     },1000);
   }
   function requestCaptureLocation(){
-    return new Promise<{lat:number;lon:number;accuracy:number}|null>(resolve=>{
+    return new Promise<{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null>(resolve=>{
       if(!navigator.geolocation){logDebug("gps-unavailable",{});resolve(null);return;}
       logDebug("gps-request",{enableHighAccuracy:true,timeout:20000,maximumAge:0});
       navigator.geolocation.getCurrentPosition(position=>{
         logDebug("gps-result",{timestamp:position.timestamp,ageMs:Date.now()-position.timestamp,latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy});
         // Reject stale fixes even if the browser ignores maximumAge.
-        resolve(Date.now()-position.timestamp<=15000?{lat:position.coords.latitude,lon:position.coords.longitude,accuracy:position.coords.accuracy}:null);
+        resolve(Date.now()-position.timestamp<=15000?{lat:position.coords.latitude,lon:position.coords.longitude,accuracy:position.coords.accuracy,speedKmh:typeof position.coords.speed==='number'&&Number.isFinite(position.coords.speed)&&position.coords.speed>=0?position.coords.speed*3.6:null}:null);
       },failure=>{logDebug("gps-error",{code:failure.code,message:failure.message});resolve(null);},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
     });
   }
@@ -294,8 +294,8 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       const validDate=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(exifDate)&&Number.isFinite(new Date(exifDate).getTime());
       if(validDate && /^[+-]\d{2}:\d{2}$/.test(meta?.OffsetTimeOriginal||"")){const instant=new Date(exifDate+meta!.OffsetTimeOriginal);if(Number.isFinite(instant.getTime()))exifInstant.current=instant.toISOString();}
       setObserved(validDate?exifDate:source==="online"?onlineCapture.current?.time||"":"");setTimeSource(validDate?"photo_exif":source==="online"?"capture_session":"manual");
-      let photoGps:{lat:number;lon:number;accuracy:number}|null=null;
-      if(typeof meta?.latitude==="number"&&typeof meta.longitude==="number"&&Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude)&&Math.abs(meta.latitude)<=90&&Math.abs(meta.longitude)<=180)photoGps={lat:meta.latitude,lon:meta.longitude,accuracy:0};
+      let photoGps:{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null=null;
+      if(typeof meta?.latitude==="number"&&typeof meta.longitude==="number"&&Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude)&&Math.abs(meta.latitude)<=90&&Math.abs(meta.longitude)<=180)photoGps={lat:meta.latitude,lon:meta.longitude,accuracy:0,speedKmh:typeof meta.GPSSpeed==='number'&&Number.isFinite(meta.GPSSpeed)&&meta.GPSSpeed>=0?meta.GPSSpeed*(meta.GPSSpeedRef==='M'?1.609344:meta.GPSSpeedRef==='N'?1.852:meta.GPSSpeedRef==='K'?1:NaN):null};
       const deviceGps=source==="online"&&onlineCapture.current?await onlineCapture.current.gps:null;
       if(!alive.current)return;
       const photoTime=validDate?(exifInstant.current||new Date(exifDate).toISOString()):null;
