@@ -2939,13 +2939,7 @@ function KauppiasMobileTopBar({
                       )}
                     </div>
 
-                    {panel.id === "weather" || panel.id === "electricity" ? (
-                      <div />
-                    ) : (
-                      <div className="truncate text-[7.5px] font-black leading-none opacity-75">
-                        {panel.detail}
-                      </div>
-                    )}
+                    <div />
                   </div>
                 </div>
                 )}
