@@ -191,7 +191,7 @@ function parseRecipeIngredients(content:string){
   const ingredients:{amount:string;name:string;complete:boolean}[]=[];
   let inIngredients=false;
   const number=String.raw`(?:\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?|[½¼¾⅓⅔]|\d+[½¼¾⅓⅔])`;
-  const units=String.raw`(?:kg|g|mg|l|dl|cl|ml|kpl|rkl|tl|prk|pkt|pss|pussi|purkki|purkkia|viipaletta|siivua)`;
+  const units=String.raw`(?:kg|g|mg|l|dl|cl|ml|cm|kpl|rkl|tl|prk|pkt|pss|pussi|purkki|purkkia|viipaletta|siivua)`;
   const quantified=new RegExp("^(?:n\\.?\\s*)?("+number+")\\s*("+units+")\\s+(.+)$","i");
   const counted=new RegExp("^(?:n\\.?\\s*)?("+number+")\\s+(.+)$","i");
   for(const line of lines){
@@ -200,7 +200,7 @@ function parseRecipeIngredients(content:string){
     if(!inIngredients||ingredients.length>=35)continue;
     if(/^(tässä on|jos haluat|voit lisätä)/i.test(line))continue;
     const match=line.match(quantified);
-    if(match){ingredients.push({amount:match[1]+" "+match[2],name:match[3],complete:true});continue}
+    if(match){const pack=match[3].match(/^\((\d+(?:[,.]\d+)?)\s*(g|kg|ml|l)\)\s+(.+)$/i);ingredients.push({amount:pack?pack[1]+" "+pack[2]:match[1]+" "+match[2],name:pack?pack[3]:match[3],complete:true});continue}
     const count=line.match(counted);
     if(count){ingredients.push({amount:count[1]+" kpl",name:count[2],complete:true});continue}
     const word=line.match(/^(yksi|kaksi|kolme|neljä|viisi|kuusi)\s+(.+)$/i);
