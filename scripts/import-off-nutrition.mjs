@@ -6,6 +6,7 @@ const shard=Math.max(0,Math.min(9,Number(process.argv.find(x=>x.startsWith('--sh
 const limit=Math.min(150,Math.max(1,Number(process.argv.find(x=>x.startsWith('--limit='))?.split('=')[1]||10)));
 // New-only means existing Ziiply EANs without an OFF nutrition record.
 const newOnly=process.argv.includes('--new-only');
+const retryMissing=process.argv.includes('--retry-missing');
 const refreshIncomplete=!newOnly && process.argv.includes('--refresh-incomplete');
 const refreshFallback=!newOnly && process.argv.includes('--refresh-fallback');
 const retryNotFound=!newOnly && process.argv.includes('--retry-not-found');
@@ -43,7 +44,7 @@ try {
    AND lower(p.name) !~ '(play-doh|ryhmä hau|bloomables|flexfigs|lelu|lelut|pehmolelu|figuuri|palapeli|lautapeli|värityskirja|askartelu|paristo|patteri|pesuaine|shampoo|saippua|hammastahna|wc-paperi|talouspaperi|vaippa|roskapussi|astianpesu|pyykinpesu|kissanhiekka|koiranruoka|kissanruoka|lemmikin|lemmikkiportti|leipäveitsi|tomaattiveitsi|pastakauha|öljykynttilä|ilmanraikastin|meikkisieni|pussilakanasetti|olut|siideri|lonkero|viini|vodka)'
    AND right(p.ean,1)::int=$2
    AND (
-     ($5::boolean AND n.ean IS NULL AND (a.ean IS NULL OR (a.status='not_found' AND a.attempted_at < now()-interval '14 days') OR (a.status='error' AND a.attempted_at < now()-interval '1 day') OR (a.status='found' AND a.attempted_at < now()-interval '1 day')))
+     ($5::boolean AND n.ean IS NULL AND (a.ean IS NULL OR (a.status='not_found' AND a.attempted_at < now()-make_interval(days => CASE WHEN $6::boolean THEN 1 ELSE 14 END)) OR (a.status='error' AND a.attempted_at < now()-interval '1 day') OR (a.status='found' AND a.attempted_at < now()-interval '1 day')))
      OR (NOT $5::boolean AND n.ean IS NULL AND (
        a.ean IS NULL
        OR (a.status='not_found' AND a.attempted_at < now()-make_interval(days => $4::int))
@@ -57,14 +58,14 @@ try {
    )
  ORDER BY CASE WHEN $3::boolean AND n.ean IS NOT NULL THEN 0 WHEN a.ean IS NULL THEN 1 WHEN a.status='error' THEN 2 WHEN a.status='found' THEN 3 ELSE 4 END, a.attempted_at NULLS FIRST, p.ean
  LIMIT $1`;
- let {rows}=await pool.query(selectionSql,[limit,shard,refreshIncomplete,notFoundRetryDays,newOnly]);
+ let {rows}=await pool.query(selectionSql,[limit,shard,refreshIncomplete,notFoundRetryDays,newOnly,retryMissing]);
  if(rows.length===0 && refreshFallback && !refreshIncomplete){
    // When fresh EANs are exhausted, improve existing incomplete nutrition instead of doing nothing.
-   ({rows}=await pool.query(selectionSql,[limit,shard,true,notFoundRetryDays,false]));
+   ({rows}=await pool.query(selectionSql,[limit,shard,true,notFoundRetryDays,false,false]));
    console.log('OFF_REFRESH_FALLBACK',JSON.stringify({shard,selected:rows.length}));
  }
  if(rows.length===0)console.warn('::warning::OFF queue empty for shard '+shard+'; no API calls performed');
- console.log('OFF_SELECTED',JSON.stringify({shard,newOnly,retryNotFound,notFoundRetryDays,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
+ console.log('OFF_SELECTED',JSON.stringify({shard,newOnly,retryMissing,retryNotFound,notFoundRetryDays,selected:rows.length,firstEans:rows.slice(0,3).map(r=>r.ean)}));
  let matched=0,notFound=0,failed=0,refreshed=0,newRecords=0,withoutNutrition=0;
  for(const [i,{ean,previously_imported}] of rows.entries()){
   try{
