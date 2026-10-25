@@ -13,13 +13,13 @@ const stations=[
 ];
 const lib=fs.readFileSync('src/lib/fuelPhoto.ts','utf8');
 const js=ts.transpileModule(lib,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
-const exports={};vm.runInNewContext(js,{exports,require});
+const moduleExports={};vm.runInNewContext(js,{exports:moduleExports,require});
 test('25 Oct Varkaus GPS alone selects ABC Prisma Varkaus',()=>{
- assert.equal(exports.identifyFuelPhotoStation(stations,gps,'',false),stations[0].id);
+ assert.equal(moduleExports.identifyFuelPhotoStation(stations,gps,'',false),stations[0].id);
 });
 test('25 Oct Varkaus: OCR without brand cannot erase GPS selection',()=>{
- const gpsId=exports.identifyFuelPhotoStation(stations,gps,'',false);
- const ocrId=exports.identifyFuelPhotoStation(stations,gps,'Neste',false);
+ const gpsId=moduleExports.identifyFuelPhotoStation(stations,gps,'',false);
+ const ocrId=moduleExports.identifyFuelPhotoStation(stations,gps,'Neste',false);
  assert.equal(ocrId,'');
  const component=fs.readFileSync('src/app/components/ziiply/desktop/DesktopFuelPhotoReport.tsx','utf8');
  assert.match(component,/const finalIdentified=identified\|\|gpsIdentified/);
@@ -27,6 +27,6 @@ test('25 Oct Varkaus: OCR without brand cannot erase GPS selection',()=>{
  assert.equal(ocrId||gpsId,gpsId);
 });
 test('25 Oct Varkaus evidence has no GPS conflict',()=>{
- const comparison=exports.comparePhotoEvidence('online',{photoGps:null,deviceGps:gps,photoTime:null,captureTime:'2026-10-25T07:27:00.000Z'});
+ const comparison=moduleExports.comparePhotoEvidence('online',{photoGps:null,deviceGps:gps,photoTime:null,captureTime:'2026-10-25T07:27:00.000Z'});
  assert.equal(comparison.reasons.length,0);
 });
