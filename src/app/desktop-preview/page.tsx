@@ -85,7 +85,7 @@ function FuelStationCardDetails({ chain, station }: { chain: string; station: an
   return <div className="pointer-events-none absolute inset-x-0 top-1 z-10 flex h-[calc(100%-8px)] min-w-0 flex-col items-center text-center">
     <div className="flex w-[calc(100%-128px)] min-w-0 flex-col items-center">
       <div className={`w-full text-center font-black leading-[1.05] text-[#111827] ${compact ? "whitespace-nowrap text-[clamp(9px,.72vw,12px)]" : "text-[clamp(12px,1vw,16px)]"}`}>{chain}</div>
-      <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.1] text-[#111827]">{station?.name || "Ei asemaa saatavilla"}</div>
+      <div className="w-full text-center text-[clamp(11px,.9vw,14px)] font-bold leading-[1.1] text-[#111827]">{station?.name || "Ei lähiasemaa (30 km)"}</div>
       {station && <div className="text-[12px] font-bold leading-[1.1] text-black">{Number(station.distanceKm).toFixed(1).replace(".", ",")} km</div>}
     </div>
     {station && <div className="absolute bottom-1.5 left-2 flex w-14 shrink-0 flex-col items-center whitespace-nowrap text-[clamp(10px,.8vw,13px)] font-extrabold leading-[1.05] text-[#172b24]">
@@ -402,7 +402,7 @@ export default function DesktopPreviewPage() {
   const [fuelCompared,setFuelCompared]=useState(false);
   const [fuelStationSide,setFuelStationSide]=useState<"both"|"traffic"|"cold">("both");
   const [fuelStationIndex,setFuelStationIndex]=useState<Record<string,number>>({});
-  const fuelCandidates=(group:string)=>fuelStations.filter((s:any)=>fuelGroupOf(s)===group && Number.isFinite(Number(s.distanceKm)) && Number(s.distanceKm)<=30 && (fuelStationSide==="both" ? true : (fuelStationSide==="traffic"?fuelIsTraffic(s):!fuelIsTraffic(s)))).sort((a:any,b:any)=>Number(a.distanceKm)-Number(b.distanceKm));
+  const fuelCandidates=(group:string)=>fuelStations.filter((s:any)=>{const distance=Number(s.distanceKm);return Boolean(gpsCoords||fuelLocationCoords) && fuelGroupOf(s)===group && Number.isFinite(distance) && distance>=0 && distance<=30 && (fuelStationSide==="both" || (fuelStationSide==="traffic"?fuelIsTraffic(s):!fuelIsTraffic(s)));}).sort((a:any,b:any)=>Number(a.distanceKm)-Number(b.distanceKm));
   const fuelSelectedStation=(group:string)=>{const items=fuelCandidates(group);return items.length?items[(fuelStationIndex[group]||0)%items.length]:null;};
   const fuelChangeStation=(group:string)=>{setFuelStationIndex(prev=>({...prev,[group]:((prev[group]||0)+1)%Math.max(1,fuelCandidates(group).length)}));setFuelCompared(false);};
   // All displayed fuel grades belong to one nearest station, never a mix of stations.
