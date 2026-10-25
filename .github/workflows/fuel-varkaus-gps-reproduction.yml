@@ -1,0 +1,21 @@
+name: Fuel Varkaus GPS reproduction
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'tests/fuel-varkaus-2026-10-25.test.cjs'
+      - 'src/lib/fuelPhoto.ts'
+      - 'src/app/components/ziiply/desktop/DesktopFuelPhotoReport.tsx'
+      - '.github/workflows/fuel-varkaus-gps-reproduction.yml'
+jobs:
+  reproduce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Reproduce actual Varkaus GPS and OCR station fallback
+        run: node --test tests/fuel-varkaus-2026-10-25.test.cjs
