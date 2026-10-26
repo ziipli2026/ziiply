@@ -695,6 +695,7 @@
 
 "use client";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
+import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { scannerStickerPrice } from "../lib/scannerStickerPrice";
 import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
@@ -3838,6 +3839,7 @@ export default function Page() {
   const [mobileCompareCheckedV733, setMobileCompareCheckedV733] = useState<Record<string, boolean>>({});
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
+  const [arrivalNotebookPage, setArrivalNotebookPage] = useState<"lists" | "recipes">("lists");
   function preloadSearchUiAssetsV774() {
     [
       "/assistants/gosta.png",
@@ -4781,6 +4783,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerStorePromptV828, setScannerStorePromptV828] = useState<{ storeName: string; seconds: number } | null>(null);
   const [scannerLocationStatusV855, setScannerLocationStatusV855] = useState<{name:string;verified:boolean;checking?:boolean}|null>(null);
   const scannerLocationSessionV856 = useRef(0);
+  const arrivalNotice = useZiiplyArrivalNotice(usingOwnLocation);
+  const [arrivalOfferChain, setArrivalOfferChain] = useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
   const liveArrivalStateRefV864 = useRef(initialZiiplyArrivalState());
   const liveArrivalLastFixAtRefV864 = useRef(0);
   const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
@@ -11619,6 +11623,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         (position) => {
           inFlight = false;
           if (cancelled || gpsUserDisabledRefV306.current) return;
+          liveArrivalHandlerRefV864.current(position);
           const speed = position.coords.speed;
           // Yli 10 km/h ei käytetä pysähtyneen asiakkaan nopeaa tarkistusta.
           if (typeof speed === "number" && speed > 10 / 3.6) return;
@@ -11796,7 +11801,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       sample();
     };
     sample();
-    const timer = setInterval(sample, ZIIPLY_PARKED_SAMPLE_MS);
+    const timer = setInterval(sample, Math.max(5000, ZIIPLY_PARKED_SAMPLE_MS));
     document.addEventListener("visibilitychange", resume);
     window.addEventListener("focus", sample);
     return () => {
@@ -14923,12 +14928,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         !Number.isFinite(position.coords.accuracy) || position.coords.accuracy <= 0 || position.coords.accuracy > 50 ||
         !Number.isFinite(position.coords.latitude) || !Number.isFinite(position.coords.longitude)) {
       if (now - liveArrivalLastFixAtRefV864.current <= 30000) return;
+      arrivalNotice.update(evaluateZiiplyArrival(liveArrivalStateRefV864.current, { at: now, latitude: NaN, longitude: NaN, accuracyMeters: Infinity, speedKmh: null }, [], []), now);
       if (!liveArrivalDecisionRefV864.current?.state.arrivalStoreId) {
         liveArrivalStateRefV864.current = initialZiiplyArrivalState();
         liveArrivalDecisionRefV864.current = null;
-        scannerStoreCheckDoneRefV791.current = false;
-        scannerInStoreRefV828.current = false;
       }
+      scannerStoreCheckDoneRefV791.current = false;
+      scannerInStoreRefV828.current = false;
       if (eanScannerOpen) setScannerLocationStatusV855(current => current ? {...current, verified:false, checking:true} : null);
       return;
     }
@@ -14959,12 +14965,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, [...unique.values()], names.map(name => normalize(name)));
     liveArrivalStateRefV864.current = decision.state;
     liveArrivalDecisionRefV864.current = decision;
+    arrivalNotice.update(decision, position.timestamp);
     // Publish fixes before the expensive store search's 60/120-second throttle.
     const coords = {latitude:position.coords.latitude,longitude:position.coords.longitude};
     gpsCoordsLatestRefV137.current = coords;
     setGpsCoordsV320(coords);
     if (!eanScannerOpen) return;
-    const verified = (decision.status === "in-store" && decision.isSelectedStore) || (!!decision.state.arrivalStoreId && names.some(name => normalize(name) === decision.state.arrivalStoreId));
+    const verified = decision.status === "in-store" && decision.isSelectedStore;
     scannerStoreCheckDoneRefV791.current = verified;
     scannerInStoreRefV828.current = verified;
     scannerConfirmedStoreNameRefV828.current = verified ? (decision.store?.name || names.find(name => normalize(name) === decision.state.arrivalStoreId) || "") : "";
@@ -15000,7 +15007,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanModalClosing(false);
     setEanModalOpen(true);
     const existingVisit = liveArrivalDecisionRefV864.current;
-    const confirmedName = existingVisit?.state.arrivalStoreId && existingVisit.isSelectedStore ? existingVisit.store?.name : null;
+    const confirmedName = existingVisit?.status === "in-store" && existingVisit.isSelectedStore && Date.now() - liveArrivalLastFixAtRefV864.current <= 30000 ? existingVisit.store?.name : null;
     scannerStoreCheckDoneRefV791.current = !!confirmedName;
     scannerInStoreRefV828.current = !!confirmedName;
     scannerConfirmedStoreNameRefV828.current = confirmedName || "";
@@ -19167,6 +19174,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleGostaOfferSearch() {
+    setArrivalOfferChain(null);
     if (gostaSearchDisabled) return;
 
     trackZiiplyEvent("gosta_offer_search_clicked", {
@@ -19191,6 +19199,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleMainOfferSearch() {
+    setArrivalOfferChain(null);
     // V110: Gösta saa avautua myös tyhjällä tekstikentällä.
     // Tyhjä haku käsitellään searchOffers()-funktiossa "kaikki alueen tarjoukset" -tilana.
     if (loadingOffers) return;
@@ -24588,6 +24597,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {!showLaunchScreen && notebookOpen && (
           <ZiiplyMobileNotebookCard
+            initialPage={arrivalNotebookPage}
             open={true}
             lists={savedShoppingLists}
             currentCartItems={cart}
@@ -24610,6 +24620,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
           <ZiiplyMobileOfferSearchCardLoose
+            initialOfferChain={arrivalOfferChain}
             open={true}
             title="Tarjous- ja kampanjahaku"
             query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
@@ -25328,6 +25339,43 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
+        <ZiiplyArrivalNotice
+          notice={arrivalNotice.notice}
+          onDismiss={arrivalNotice.dismiss}
+          onSkip={arrivalNotice.skip}
+          onList={() => {
+            arrivalNotice.dismiss();
+            setArrivalNotebookPage("lists");
+            setShopsPanelOpen(false);
+            setSearchPanelOpen(false); setCartModalOpen(false); setActiveResult("none");
+            setNotebookOpen(true);
+          }}
+          onRecipe={() => {
+            arrivalNotice.dismiss();
+            setArrivalNotebookPage("recipes");
+            setShopsPanelOpen(false);
+            setSearchPanelOpen(false); setCartModalOpen(false); setActiveResult("none");
+            setNotebookOpen(true);
+          }}
+          onOffers={() => {
+            const decision = liveArrivalDecisionRefV864.current;
+            arrivalNotice.dismiss();
+            if (!decision?.store || !["near-store", "in-store"].includes(decision.status)) { openShopsPanel(); return; }
+            const name = normalize(decision.store.name);
+            const chain = selectedChains.s && normalize(String(activeStores.sStoreName || "")) === name ? "S"
+              : selectedChains.k && normalize(String(activeStores.kStoreName || "")) === name ? "K"
+              : selectedChains.lidl && normalize(String(selectedLidlStoreV750?.name || "")) === name ? "LIDL"
+              : selectedChains.tokmanni && normalize(String(selectedTokmanniStoreV756?.name || "")) === name ? "TOKMANNI"
+              : selectedChains.tokmanni && normalize(String(selectedEurosparStoreV751?.name || "")) === name ? "EUROSPAR" : null;
+            if (!chain) { openShopsPanel(); return; }
+            gostaSelectedOfferChainRefV547.current = chain;
+            setArrivalOfferChain(chain);
+            setGostaContentTabV1("offers");
+            setOfferCardFilterV106("");
+            setOfferSearchQuerySnapshot("");
+            void searchOffers("");
+          }}
+        />
         {/* V506 GPS debug panel removed */}
 
 
