@@ -76,6 +76,13 @@ export async function GET(req: NextRequest) {
       price98: r.price98 == null ? null : Number(r.price98),
       observedDiesel: r.observed_diesel, observed95: r.observed95, observed98: r.observed98,
     }));
+    // Hide the known bogus all-3.000 report from public station cards immediately.
+    for(const station of stations){
+      if(station.price95===3 && station.price98===3 && station.diesel===3){
+        station.price95=null;station.price98=null;station.diesel=null;
+        station.observed95=null;station.observed98=null;station.observedDiesel=null;
+      }
+    }
     // Collapse duplicate provider records at response time; keep database IDs and history intact.
     // Prefer the lowest source ID for a stable public station identifier.
     const unique = new Map<string, (typeof stations)[number]>();
