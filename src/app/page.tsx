@@ -4791,7 +4791,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const gpsArrivalApproachRefV866 = useRef<string | null>(null);
   useEffect(() => {
     if (gpsArrivalStepV866 !== "approach") return;
-    const timer = window.setTimeout(() => setGpsArrivalStepV866(current => current === "approach" ? (liveArrivalDecisionRefV864.current?.status === "in-store" ? "confirm" : null) : current), 4000);
+    const timer = window.setTimeout(() => setGpsArrivalStepV866(current => current === "approach" ? (liveArrivalDecisionRefV864.current?.status === "in-store" ? (liveArrivalDecisionRefV864.current?.isSelectedStore ? "list" : "confirm") : null) : current), 4000);
     return () => window.clearTimeout(timer);
   }, [gpsArrivalStepV866]);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
@@ -14977,7 +14977,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (decision.store && decision.showArrivalMessage && gpsArrivalVisitRefV866.current !== decision.store.id) {
       gpsArrivalVisitRefV866.current = decision.store.id;
       setGpsArrivalNoticeV865(decision.store.name);
-      setGpsArrivalStepV866(gpsArrivalApproachRefV866.current === decision.store.id ? "confirm" : "approach");
+      setGpsArrivalStepV866(gpsArrivalApproachRefV866.current === decision.store.id ? (decision.isSelectedStore ? "list" : "confirm") : "approach");
     }
     if (decision.status === "checking" && !decision.state.arrivalStoreId) {
       gpsArrivalVisitRefV866.current = null;
