@@ -406,7 +406,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
               </>}
             </div>}
           </div>
-          <div className="flex min-h-[36px] shrink-0 items-center justify-center rounded-b-xl bg-[#dceac8] px-2 py-1 text-[#174c35] sm:min-h-[64px]">{!cameraOpen&&!sent&&<p role="status" aria-live="polite" className="text-center text-sm font-bold">{mode==="manual"?"Syötä vähintään yksi hinta (€/l)":Object.values(prices).some(Boolean)?"Tarkasta löydetyt hinnat tai syötä käsin.":busy||recognitionActive?"Haetaan hintoja kuvasta…":""}</p>}
+          <div className="flex min-h-[36px] shrink-0 items-center justify-center rounded-b-xl bg-[#dceac8] px-2 py-1 text-[#174c35] sm:min-h-[64px]">{!cameraOpen&&!sent&&<p role="status" aria-live="polite" className="text-center text-sm font-bold">{mode==="manual"?(validateFuelPrices(prices)?"Hinnat syötetty. Tarkista asema ja havaintoaika.":"Syötä vähintään yksi hinta (€/l)"):Object.values(prices).some(Boolean)?"Tarkasta löydetyt hinnat tai syötä käsin.":busy||recognitionActive?"Haetaan hintoja kuvasta…":""}</p>}
           {!busy&&error&&<p role="alert" className="mt-2 rounded-xl bg-[#ffe1cf] p-3 text-sm font-bold text-[#8b331d]">{error}</p>}</div>
         </div>
       </div>
