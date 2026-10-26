@@ -32,3 +32,13 @@ This browser test exposed a `Pirkka pullotutti (maito)` feeding accessory appear
 ## Checks
 
 The new diverse live fixture, eight wiki source fixtures, 20-recipe / 195-step existing product fixture, 10-recipe product-choice regressions, K-route category mapping, query coverage, protein states, servings/cart quantities, and strict TypeScript checks passed locally. Preview build and latest-alias checks accompany release. Broader offline tests do not substitute for browser verification of every individual recipe.
+
+## Completed pasta browser run
+
+Valkosipulipasta completed from the visible wiki search through all nine product selections into the cart at K-Citymarket Hyvinkää. Cart: butter, dried basil, lemon juice, garlic powder, salt, spaghetti, broccoli, walnuts and Parmesan. The 430 g broccoli requirement correctly produced two 300 g packs. Nine distinct ingredient rows / ten retail packs; total 16.91 euros. Parmesan has no source quantity and remains a reviewable requirement rather than an invented measured amount. Proof: wiki-pasta-cart-2026-10-26.jpg.
+
+The browser observation connection timed out during broccoli twice. Resetting the automation kernel and rebinding the same tab recovered the six existing cart rows and completed the remaining three without restarting or double-adding those rows.
+
+Two further irrelevant candidates appeared and were not selected: Kukkakaali-parsakaali 350g/2kpl for a single broccoli requirement, and Old Irish Creamery Cheddar saksanpähkinä 150g for walnuts. General rules now reject multi-vegetable names without a mix label when additional vegetables were not requested, and reject nut-flavoured dairy products as pantry ingredients. Tests cover multiple vegetable pairs, whole garlic/red onion, plain walnuts and soup-root mixtures.
+
+Query-change UI check: switching from Valkosipulipasta to lihakeitto removed the old recipe immediately; the latter showed no recipes rather than unrelated dishes.

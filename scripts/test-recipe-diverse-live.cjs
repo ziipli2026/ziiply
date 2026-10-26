@@ -72,3 +72,22 @@ assert.deepEqual(onlineRecipeMatchingResults(oldResults,'valkosipulipasta').map(
 assert.deepEqual(onlineRecipeMatchingResults(oldResults,'lihakeitto'),[]);
 assert.deepEqual(onlineRecipeMatchingResults(oldResults,''),[]);
 console.log('PASS: changing recipe query immediately excludes stale unrelated dishes');
+
+for(const [ingredient,name]of [
+ ['parsakaalia','Kukkakaali-parsakaali 350g/2kpl ES 1lk'],
+ ['porkkanaa','Porkkana ja herne 500g'],
+ ['paprikaa','Paprika-tomaatti 400g'],
+ ['sipulia','Peruna-sipuli 500g']
+])assert.equal(recipeProductCompatible(ingredient,{name,category:'hedelmat-ja-vihannekset/vihannekset'}),false,name);
+for(const [ingredient,name]of [
+ ['parsakaalia','Pirkka espanjalainen parsakaali 300g 1lk'],
+ ['valkosipulia','Valkosipuli 100g'],
+ ['punasipulia','Punasipuli 500g'],
+ ['porkkanaa','Porkkana 1kg']
+])assert.equal(recipeProductCompatible(ingredient,{name,category:'hedelmat-ja-vihannekset/vihannekset'}),true,name);
+assert.equal(recipeProductCompatible('keittojuureksia',{name:'Porkkana peruna sipuli keittojuurekset 500g',category:'pakasteet/vihannes-pakasteet'}),true);
+console.log('PASS: named multi-vegetable packs rejected for single ingredients; whole vegetables and soup roots retained');
+assert.equal(recipeProductCompatible('saksanpähkinää',{name:'Old Irish Creamery Cheddar saksanpähkinä 150g'}),false);
+assert.equal(recipeProductCompatible('saksanpähkinää',{name:'Saksanpähkinä 150g',category:'maito-juusto-munat-ja-rasvat/juustot'}),false);
+assert.equal(recipeProductCompatible('saksanpähkinää',{name:'Salliselta Saksanpähkinä 70g',category:'kuivaelintarvikkeet/pahkinat'}),true);
+console.log('PASS: nut-flavoured dairy products cannot qualify as nuts');

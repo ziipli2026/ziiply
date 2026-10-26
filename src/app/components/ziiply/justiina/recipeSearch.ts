@@ -243,6 +243,8 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  if(protein)return proteinProductRejection(protein,product);
  const kind=kinds.find(x=>x.term===term);
  if(kind&&["Pastat","Riisit","Jauhot","Pähkinät"].includes(kind.group)&&/valmisruo|ateria|pata-ainek|mausteseos|lasten|lapset|lemmik/.test(category))return "basic_pantry_ingredient_required";
+ if(kind&&["Pastat","Riisit","Jauhot","Pähkinät"].includes(kind.group)&&/maito|juusto|jogur|leivat|makeis|jaatelo|juomat|lihat/.test(category))return "basic_pantry_ingredient_required";
+ if(kind?.group==="Pähkinät"&&/cheddar|gouda|brie|camembert|cheese|emmental|sinihome/.test(name))return "nut_ingredient_required";
  if(kind&&term!=="peruna"&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
  if(!categoryIntent&&!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
  if(term==="sokeri"){
@@ -283,6 +285,12 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  if(produceTerms.includes(term)&&/idut|versot|oraat/.test(category)&&!/itu|verso|oras/.test(requirement))return "whole_vegetable_required";
  if(["sitruunamehu","limettimehu"].includes(term)&&/rypäle|mustik|omena|appelsiini|greippi|mango|persik|ananas|vadelm|mansik/.test(name))return "single_fruit_juice_required";
  if(produceTerms.includes(term)&&/mix|sekoitu/.test(name+" "+category)&&!/mix|sekoitu/.test(requirement))return "single_vegetable_required";
+ // Multi-vegetable packs may list their contents without saying "mix".
+ // Match complete vegetable names so garlic/red onion remain single ingredients.
+ if(produceTerms.includes(term)){
+   const vegetables=Array.from(new Set(name.match(/(?<!\p{L})(?:valkosipuli|punasipuli|kevätsipuli|kirsikkatomaatti|parsakaali|kukkakaali|porkkana|peruna|sipuli|bataatti|pinaatti|herne|maissi|tomaatti|kurkku|paprika|purjo|fenkoli)(?!\p{L})/gu)||[]));
+   if(vegetables.length>1&&vegetables.some(vegetable=>!requirement.includes(vegetable)))return "single_vegetable_required";
+ }
  if(["basilika","timjami","korianteri","persilja","tilli","oregano","inkivääri"].includes(term)){
    const dried=/kuivatt|jauhett/.test(requirement)||(!/tuore/.test(requirement)&&/\b(?:tl|rkl)\b/.test(context?.sourceLine||"")&&term!=="tilli"&&!/hienonnet|lehti/.test(requirement));
    const productDried=/kuivatt|jauhett|\bjauh\b|mauste|purkki|\bpussi\b|meira|santa maria|\b\d+(?:[,.]\d+)?\s*g\b/.test(name)&&!/tuore|ruukku|rkk|pakast/.test(name)||/^caabgbaak/.test(category)||category.includes("/mauste");
