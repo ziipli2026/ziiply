@@ -82,7 +82,11 @@
       "85832",
       "85828",
       "5842",
-      "79504"
+      "79504",
+      "105516",
+      "1856411",
+      "15301",
+      "15318"
     ],
     "kevytmaito": [
       "78914",
@@ -2803,6 +2807,30 @@
           "comparisonPriceUnit": "kg"
         }
       ]
+    },
+    "105516": {
+      "id": 105516,
+      "name": "Pirkka pullotutti (maito) 3+kk 2kpl",
+      "category": "lapset/vaipat-ja-lastenhoito/lastenhoitotarvikkeet",
+      "ean": "6410405132598"
+    },
+    "1856411": {
+      "id": 1856411,
+      "name": "MAM Teat 1 2kpl vesi-maitotutti alk 0kk",
+      "category": "lapset/vauvanhoitotarvikkeet/tuttipullot-ja-tarvikkeet",
+      "ean": "9001616864964"
+    },
+    "15301": {
+      "id": 15301,
+      "name": "Ainu MAM teat3 vesi-maitotutti 2kpl 4+kk",
+      "category": "lapset/vaipat-ja-lastenhoito/lastenhoitotarvikkeet",
+      "ean": "9001616382079"
+    },
+    "15318": {
+      "id": 15318,
+      "name": "Ainu MAM vesi- ja maitotutti silikoninen 0kk 2kpl",
+      "category": "lapset/vaipat-ja-lastenhoito/lastenhoitotarvikkeet",
+      "ean": "9001616609916"
     }
   }
 }

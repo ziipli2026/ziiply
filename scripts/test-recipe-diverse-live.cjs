@@ -1,6 +1,6 @@
 require('./recipe-audit-runtime.cjs');
 const assert=require('node:assert/strict');
-const {onlineRecipeIngredients,onlineRecipeSearchPlan}=require('../src/app/components/ziiply/justiina/onlineRecipe.ts');
+const {onlineRecipeIngredients,onlineRecipeDisplayIngredients,onlineRecipeSearchPlan}=require('../src/app/components/ziiply/justiina/onlineRecipe.ts');
 const {parseRecipeIngredient,prepareRecipeSearch,recipeProductCompatible,recipeProductSearchTerm}=require('../src/app/components/ziiply/justiina/recipeCore.ts');
 const {recipeCoverageQueries}=require('../src/app/components/ziiply/justiina/recipeSearchCoverage.ts');
 const {getNormalSearchQueries}=require('../src/app/components/ziiply/ziiplyCore.ts');
@@ -54,3 +54,15 @@ assert.equal(fishItems.length,8,'servings in ingredient heading must not hide fi
 assert.equal(recipeProductSearchTerm(fishItems[0].name),'ruokaöljy');
 assert.ok(fishItems.some(i=>/kalaa/.test(i.name)&&i.uncertain),'unspecified fish requirement must remain reviewable');
 console.log(`PASS: 3 diverse wiki recipes / ${steps} product-search steps, measured quantities, optional extras, preparation form, pantry categories, and reviewable fish recipe`);
+
+const choiceDisplay=onlineRecipeDisplayIngredients('Ainekset\n2 dl kermaa tai 3 dl maitoa\nValmistus')[0];
+assert.equal(choiceDisplay.name,'2 dl kermaa tai 3 dl maitoa');assert.equal(choiceDisplay.amount,'');
+assert.ok(onlineRecipeDisplayIngredients(pancake.content).some(i=>i.name.includes('öljyä ja/tai voita')));
+console.log('PASS: recipe display retains complete alternatives and their quantities');
+
+for(const [ingredient,product]of [
+ ['maitoa',{name:'Pirkka pullotutti (maito) 3+kk 2kpl',category:'lapset/vaipat-ja-lastenhoito/lastenhoitotarvikkeet'}],
+ ['maitoa',{name:'MAM Teat 1 2kpl vesi-maitotutti alk 0kk',category:'lapset/vauvanhoitotarvikkeet/tuttipullot-ja-tarvikkeet'}],
+ ['spagettia',{name:'Spagetti mitta 1kpl',category:'koti-ja-keittio/keittiotarvikkeet'}]
+])assert.equal(recipeProductCompatible(ingredient,product),false,product.name);
+console.log('PASS: accessory categories cannot qualify as food ingredients');

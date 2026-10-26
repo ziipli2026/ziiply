@@ -224,6 +224,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const term=recipeProductSearchTerm(input);if(!term)return "not_purchasable_ingredient";
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
+ if(/pullotutti|maitotutti|tuttipullo/.test(name)||/lastenhoitotarvik|vauvanhoitotarvik|tuttipullo|keittiotarvik|ruoanvalmistusvaline|leivontavaline|(?:^|\/)astiat|ruokailuvaline/.test(category))return "non_food_product";
  if(/nelson garden|kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|tuuheuttava|hiussuihke|merisuolasuihke|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
  // Raw potato ingredients must not fall through to the unknown-literal gate.
  // This applies to every store and accepts whole potatoes only, not prepared dishes.

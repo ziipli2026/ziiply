@@ -33,10 +33,15 @@ export function onlineRecipeIngredients(content:string): RecipeIngredient[] {
 }
 
 export function onlineRecipeDisplayIngredients(content:string){
-  return onlineRecipeIngredients(content).map(item=>({
-    name:item.name,amount:item.amount===null?"Täydennettävä":String(item.amount).replace(".",",")+(item.unit?" "+item.unit:""),
-    complete:!item.uncertain
-  }));
+  return onlineRecipeIngredients(content).map(item=>{
+    const source=item.sourceLine||item.name;
+    const alternatives=/\s+(?:tai|ja\s*\/\s*tai)\s+/i.test(source)&&!/\([^)]*\btai\b[^)]*\)/i.test(source);
+    // The editor/search use the parsed first choice; the displayed recipe must
+    // retain every explicit choice and its own quantity from the source line.
+    return {name:alternatives?source:item.name,
+      amount:alternatives?"":item.amount===null?"Täydennettävä":String(item.amount).replace(".",",")+(item.unit?" "+item.unit:""),
+      complete:!item.uncertain};
+  });
 }
 
 /** A body-text search hit is insufficient: every query word must match the dish title. */
