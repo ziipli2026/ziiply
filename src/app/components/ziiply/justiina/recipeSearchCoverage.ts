@@ -1,8 +1,9 @@
+import { recipeIdentityQueries } from "./recipeSearch";
 import { recipeCategoryQueries } from "./recipeCategories";
 import type { RecipeIngredient } from './recipeCore';
 
 /** Supplement noisy ingredient searches even when the first query has a match. */
-export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredient | null): string[] {
+export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredient | null, fallbackQueries: string[] = []): string[] {
   if (!ingredient) return [];
   const term = (ingredient.searchTerm || query).toLowerCase().trim();
   // Search every explicitly offered alternative, but keep one ingredient/cart line.
@@ -31,24 +32,26 @@ export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredie
     'juokseva margariini': ['juokseva', 'margariini'],
     'ancho chili': ['ancho'],
     'sipulikeittoaines': ['sipulikeitto'],
-    'vihreä paprika': ['paprika'],
+    'vihreä paprika': ['paprika vihreä', 'paprika'],
     'sitruuna': ['sitruuna luomu', 'sitruunat'],
     'ruokaöljy': ['rypsiöljy', 'oliiviöljy', 'rapsiöljy'],
     'kananjauheliha': ['jauheliha'],
     'maissi pakaste': ['maissi'],
     'sweet chili kastike': ['sweet chili'],
     'vaalea suuruste': ['suuruste'],
-    'villiriisisekoitus': ['villiriisi', 'riisisekoitus', 'riisi'],
+    'villiriisisekoitus': ['villiriisi', 'villi riisi', 'wild rice', 'riisisekoitus', 'riisi'],
     'jauhoinen peruna': ['peruna', 'rosamunda'],
     'aura muru': ['aura'],
   };
-  if (aliases[term]) return [...new Set([query, ...aliases[term]])];
+  if (aliases[term]) return [...new Set([...recipeIdentityQueries(ingredient.name||term,term),query, ...aliases[term]])];
+  const identityQueries=recipeIdentityQueries(ingredient.name||term,term);
   const protein = ingredient.proteinRequirement;
   if (protein?.family === "meat" && protein.processing === "raw" && protein.marinated) return [...new Set([query, protein.marinade ? protein.marinade + "marinoitu" : "marinoitu", "fileesuikale"])];
   if (protein?.family === 'fish' && protein.processing === 'raw') {
     return [...new Set([query, protein.species])];
   }
-  return [];
+  if(protein)return []; // Keep existing meat-query expansion and preparation requirements.
+  return identityQueries.length ? [...new Set([...identityQueries,query,...fallbackQueries])] : [];
 }
 
 export function mergeRecipeSearchResponses(responses: any[]): any {

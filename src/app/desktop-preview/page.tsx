@@ -1,4 +1,5 @@
 "use client";
+import { onlineRecipeIngredients, onlineRecipeDisplayIngredients, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
 import { citymarketFailureNotice } from "../components/ziiply/offerSearch/citymarketAvailability";
 import { recipeCoverageQueries, mergeRecipeSearchResponses } from "../components/ziiply/justiina/recipeSearchCoverage";
@@ -186,29 +187,7 @@ function ZiiplyVintageMillLoader() {
   </div>;
 }
 
-function parseRecipeIngredients(content:string){
-  const lines=content.split(/\n/).map(line=>line.replace(/^[•*–-]\s*/,"").trim()).filter(Boolean);
-  const ingredients:{amount:string;name:string;complete:boolean}[]=[];
-  let inIngredients=false;
-  const number=String.raw`(?:\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?|[½¼¾⅓⅔]|\d+[½¼¾⅓⅔])`;
-  const units=String.raw`(?:kg|g|mg|l|dl|cl|ml|cm|kpl|rkl|tl|prk|pkt|pss|pussi|purkki|purkkia|viipaletta|siivua)`;
-  const quantified=new RegExp("^(?:n\\.?\\s*)?("+number+")\\s*("+units+")\\s+(.+)$","i");
-  const counted=new RegExp("^(?:n\\.?\\s*)?("+number+")\\s+(.+)$","i");
-  for(const line of lines){
-    if(/^(ainekset|raaka-aineet|ainesosat|valinnaiset ainekset)\s*:?\s*$/i.test(line)){inIngredients=true;continue}
-    if(/^(valmistus|valmistaminen|valmistusohje|ohje|työvaiheet|tekeminen|tarvikkeet|vinkkejä|sukulaiset|linkit|katso myös|aiheesta muualla)\s*:?\s*$/i.test(line)){inIngredients=false;continue}
-    if(!inIngredients||ingredients.length>=35)continue;
-    if(/^(tässä on|jos haluat|voit lisätä)/i.test(line))continue;
-    const match=line.match(quantified);
-    if(match){const pack=match[3].match(/^\((\d+(?:[,.]\d+)?)\s*(g|kg|ml|l)\)\s+(.+)$/i);ingredients.push({amount:pack?pack[1]+" "+pack[2]:match[1]+" "+match[2],name:pack?pack[3]:match[3],complete:true});continue}
-    const count=line.match(counted);
-    if(count){ingredients.push({amount:count[1]+" kpl",name:count[2],complete:true});continue}
-    const word=line.match(/^(yksi|kaksi|kolme|neljä|viisi|kuusi)\s+(.+)$/i);
-    if(word){const nums:{[key:string]:number}={yksi:1,kaksi:2,kolme:3,neljä:4,viisi:5,kuusi:6};ingredients.push({amount:nums[word[1].toLowerCase()]+" kpl",name:word[2],complete:true});continue}
-    if(line.length<110)ingredients.push({amount:"Täydennettävä",name:line,complete:false});
-  }
-  return ingredients;
-}
+const parseRecipeIngredients=onlineRecipeDisplayIngredients;
 export default function DesktopPreviewPage() {
   const desktopHeaderRef = useRef<HTMLElement | null>(null);
   const [desktopOverlayTop, setDesktopOverlayTop] = useState(128);
@@ -278,16 +257,8 @@ export default function DesktopPreviewPage() {
     }catch{setJustiinaRecipeMessage("Reseptin tallennus epäonnistui")}
   }
   function searchOnlineRecipeIngredients(recipe:{title:string;content:string}){
-    const parsed=parseRecipeIngredients(recipe.content).filter(item=>item.name.trim());
-    if(!parsed.length){setJustiinaRecipeMessage("Reseptistä ei löytynyt ainesosia");return}
-    const fractions:Record<string,number>={"½":0.5,"¼":0.25,"¾":0.75,"⅓":1/3,"⅔":2/3};
-    const ingredients:RecipeIngredient[]=parsed.map((item,index)=>{
-      const m=item.amount.match(/^([\d.,½¼¾⅓⅔]+)\s*(.*)$/);
-      const raw=m?.[1]||"";
-      const mixed=raw.match(/^(\d+)([½¼¾⅓⅔])$/);
-      const amount=mixed?Number(mixed[1])+fractions[mixed[2]]:fractions[raw]??Number(raw.replace(",","."));
-      return {id:"online-"+index,name:item.name,amount:Number.isFinite(amount)?amount:null,unit:m?.[2]||null,uncertain:!item.complete,atHome:false,sourceLine:item.amount+" "+item.name,searchTerm:recipeProductSearchTerm(item.name)||item.name};
-    });
+    const ingredients=onlineRecipeIngredients(recipe.content);
+    if(!ingredients.length){setJustiinaRecipeMessage("Reseptistä ei löytynyt ainesosia");return}
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:ingredients}))}catch{}
     setJustiinaRecipeSearchOpen(false);
     setWorkspace("justiina");
@@ -339,7 +310,7 @@ export default function DesktopPreviewPage() {
           }catch(error){detailLogs.push({title:p.title,error:String(error)});return null}
         }))).filter((p):p is {title:string;url:string;source:string;content:string}=>p!==null);
         if(controller.signal.aborted)return;
-        const relevantResults=results.filter(r=>r.title.toLocaleLowerCase("fi").includes(query.toLocaleLowerCase("fi")));
+        const relevantResults=results.filter(r=>onlineRecipeTitleMatches(r.title,query));
         trace.results=relevantResults.length;
         trace.filteredOut=results.filter(r=>!relevantResults.includes(r)).map(r=>r.title);
         trace.status="valmis";
@@ -2195,7 +2166,7 @@ export default function DesktopPreviewPage() {
     // The typing debounce is applied in the effect below; never delay a started search again.
     try{
       async function fetchSearchData(url: string) {
-        const coverageQueries = recipeCoverageQueries(query, recipeIngredient);
+        const coverageQueries = recipeCoverageQueries(query, recipeIngredient, [...new Set(getNormalSearchQueries(query))].slice(0,6));
         const queries = coverageQueries.length ? coverageQueries : [...new Set(getNormalSearchQueries(query))].slice(0, 6);
         const coverageResponses: any[] = [];
         let coverageError: unknown;

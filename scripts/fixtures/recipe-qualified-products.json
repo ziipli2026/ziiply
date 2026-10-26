@@ -1,0 +1,1466 @@
+{
+  "fetchedAt": "2026-10-26",
+  "storeId": 3221,
+  "source": "https://api.ruoanhinta.fi/api/items",
+  "queries": {
+    "ancho": [
+      {
+        "id": 22403,
+        "name": "Santa Maria Ancho-Chili, purkki 35g",
+        "category": "mausteet-ja-maustaminen/mausteet/purkit",
+        "ean": "7311311015625",
+        "storeItems": [
+          {
+            "id": 8635677,
+            "price": 235,
+            "priceUnit": "kpl",
+            "comparisonPrice": 6714,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 22403,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:41:15.337Z",
+            "updatedAt": "2026-10-25T21:27:27.695Z"
+          }
+        ]
+      }
+    ],
+    "paprika vihreä": [
+      {
+        "id": 77839,
+        "name": "Paprika vihreä ulkomainen",
+        "category": "hedelmat-ja-vihannekset/vihannekset/paprikat",
+        "ean": "2000608000004",
+        "storeItems": [
+          {
+            "id": 8627668,
+            "price": 689,
+            "priceUnit": "kg",
+            "comparisonPrice": 689,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 77839,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:37:29.779Z",
+            "updatedAt": "2026-10-25T21:24:59.414Z"
+          }
+        ]
+      },
+      {
+        "id": 52050,
+        "name": "Filos vihreä kivetön paprikatäytteinen oliivi 315/165g",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/oliivisailykkeet",
+        "ean": "6416710020841",
+        "storeItems": [
+          {
+            "id": 8634949,
+            "price": 325,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1970,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 52050,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:40:54.960Z",
+            "updatedAt": "2026-10-25T21:27:06.668Z"
+          }
+        ]
+      },
+      {
+        "id": 111233,
+        "name": "Figaro vihreä oliivi 935g/575g paprikatahnatäyte",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/oliivisailykkeet",
+        "ean": "8410159017156",
+        "storeItems": [
+          {
+            "id": 36764067,
+            "price": 529,
+            "priceUnit": "kpl",
+            "comparisonPrice": 920,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 111233,
+            "archivedAt": null,
+            "createdAt": "2026-08-04T05:57:17.000Z",
+            "updatedAt": "2026-10-25T21:27:06.668Z"
+          }
+        ]
+      },
+      {
+        "id": 93581,
+        "name": "Figaro vihreä oliivi 142g/85g paprikapasta täytteellä",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/oliivisailykkeet",
+        "ean": "8410159017088",
+        "storeItems": [
+          {
+            "id": 10739335,
+            "price": 169,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1988,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 93581,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:39:44.925Z",
+            "updatedAt": "2026-10-25T21:27:06.668Z"
+          }
+        ]
+      },
+      {
+        "id": 93558,
+        "name": "K-Menu vihreät oliivit paprikatäytteellä 935g/550g",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/oliivisailykkeet",
+        "ean": "6410405138422",
+        "storeItems": [
+          {
+            "id": 10739298,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 435,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 93558,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:39:44.925Z",
+            "updatedAt": "2026-10-25T21:27:06.668Z"
+          }
+        ]
+      },
+      {
+        "id": 93495,
+        "name": "Pirkka vihreät oliivit paprikatäytteellä 350g/200g",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/oliivisailykkeet",
+        "ean": "6410400046241",
+        "storeItems": [
+          {
+            "id": 8634542,
+            "price": 129,
+            "priceUnit": "kpl",
+            "comparisonPrice": 645,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 93495,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:40:54.020Z",
+            "updatedAt": "2026-10-25T21:27:06.668Z"
+          }
+        ]
+      },
+      {
+        "id": 1816589,
+        "name": "Päivänsäde Herkkuoliivi vihreät oliivit paprikatäytteellä kivetön vähäsuolainen 300g/130g",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/oliivisailykkeet",
+        "ean": "6430025259888",
+        "storeItems": [
+          {
+            "id": 22037621,
+            "price": 249,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1915,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1816589,
+            "archivedAt": null,
+            "createdAt": "2024-08-21T21:54:00.833Z",
+            "updatedAt": "2026-10-25T21:27:06.668Z"
+          }
+        ]
+      }
+    ],
+    "villiriisi": [],
+    "riisisekoitus": [
+      {
+        "id": 9013,
+        "name": "Apetit Vihannes-riisisekoitus 300g pa",
+        "category": "pakasteet/vihannes--ja-juurespakasteet/kasvis--ja-vihannessekoitukset",
+        "ean": "6430104921408",
+        "storeItems": [
+          {
+            "id": 38820775,
+            "price": 215,
+            "priceUnit": "kpl",
+            "comparisonPrice": 717,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 9013,
+            "archivedAt": null,
+            "createdAt": "2026-09-25T21:28:36.135Z",
+            "updatedAt": "2026-10-25T21:27:58.532Z"
+          }
+        ]
+      },
+      {
+        "id": 79076,
+        "name": "Pirkka itämainen riisisekoitus 4x125g",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/riisit/annospakatut-riisit",
+        "ean": "6410405046130",
+        "storeItems": [
+          {
+            "id": 8632475,
+            "price": 209,
+            "priceUnit": "kpl",
+            "comparisonPrice": 418,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 79076,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:55.252Z",
+            "updatedAt": "2026-10-25T21:26:51.500Z"
+          }
+        ]
+      }
+    ],
+    "emmental mozzarella": [
+      {
+        "id": 84686,
+        "name": "Pirkka emmental-mozzarella juustoraaste 150g vähälaktoosinen",
+        "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+        "ean": "6410405048561",
+        "storeItems": [
+          {
+            "id": 8632012,
+            "price": 175,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1167,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84686,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:43.502Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      }
+    ],
+    "italian yrtit": [
+      {
+        "id": 149216,
+        "name": "Basiron Italian Yrtit 200g",
+        "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/muut-erikoisjuustot",
+        "ean": "8718053510682",
+        "storeItems": [
+          {
+            "id": 29226812,
+            "price": 595,
+            "priceUnit": "kpl",
+            "comparisonPrice": 2975,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 149216,
+            "archivedAt": null,
+            "createdAt": "2025-12-15T15:31:02.439Z",
+            "updatedAt": "2026-06-04T03:00:55.895Z"
+          }
+        ]
+      },
+      {
+        "id": 84593,
+        "name": "Pirkka tuorejuusto Italian yrtit 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156068",
+        "storeItems": [
+          {
+            "id": 10738280,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84593,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:38:58.951Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      }
+    ],
+    "tuorejuusto": [
+      {
+        "id": 1851192,
+        "name": "Sushi Take Tuorejuusto-lohirulla",
+        "category": "valmisruoka/palvelutiskin-herkut/kaupan-oma-sushi",
+        "ean": "8435821600269",
+        "storeItems": [
+          {
+            "id": 31042697,
+            "price": 825,
+            "priceUnit": "kpl",
+            "comparisonPrice": 3113,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1851192,
+            "archivedAt": null,
+            "createdAt": "2026-03-01T22:30:32.349Z",
+            "updatedAt": "2026-10-25T21:25:56.138Z"
+          }
+        ]
+      },
+      {
+        "id": 1853077,
+        "name": "Sushi Take Tuorejuusto-lohi Gunkan",
+        "category": "valmisruoka/palvelutiskin-herkut/kaupan-oma-sushi",
+        "ean": "8435821600122",
+        "storeItems": [
+          {
+            "id": 32011267,
+            "price": 395,
+            "priceUnit": "kpl",
+            "comparisonPrice": 3347,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1853077,
+            "archivedAt": null,
+            "createdAt": "2026-04-11T17:59:01.184Z",
+            "updatedAt": "2026-06-07T07:16:04.265Z"
+          }
+        ]
+      },
+      {
+        "id": 1848574,
+        "name": "Taffel Kartanon tuorejuusto-yrtit maustettu sipsi 180g",
+        "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+        "ean": "6410380054625",
+        "storeItems": [
+          {
+            "id": 28558086,
+            "price": 199,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1106,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1848574,
+            "archivedAt": null,
+            "createdAt": "2025-10-30T11:24:29.315Z",
+            "updatedAt": "2026-10-25T21:28:22.461Z"
+          }
+        ]
+      },
+      {
+        "id": 3449,
+        "name": "Philadelphia Light tuorejuusto 200g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "5700419083360",
+        "storeItems": [
+          {
+            "id": 8631921,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1195,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3449,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.903Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1924793,
+        "name": "K-Menu Maustamaton tuorejuusto 300g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405362889",
+        "storeItems": [
+          {
+            "id": 35910208,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 630,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1924793,
+            "archivedAt": null,
+            "createdAt": "2026-05-18T21:08:44.402Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3585,
+        "name": "Arla Lempi tuorejuusto 160g Jalapeno",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "5711953169540",
+        "storeItems": [
+          {
+            "id": 8632009,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1181,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3585,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:38.340Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3657,
+        "name": "Castello ruohosipuli tuorejuusto 125g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "5760466923156",
+        "storeItems": [
+          {
+            "id": 8631966,
+            "price": 299,
+            "priceUnit": "kpl",
+            "comparisonPrice": 2392,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3657,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:38.152Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3334,
+        "name": "Philadelphia Orginal Tuorejuusto 200g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "4000339697908",
+        "storeItems": [
+          {
+            "id": 8631805,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1195,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3334,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.317Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3389,
+        "name": "Philadelphia Original Tuorejuusto 300g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "7310700443698",
+        "storeItems": [
+          {
+            "id": 8631842,
+            "price": 355,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1183,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3389,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.488Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3613,
+        "name": "Castello 125 g mustapippuri tuorejuusto",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/halloumit-grillijuustot-ja-muut-erikoisjuustot",
+        "ean": "5760466923125",
+        "storeItems": [
+          {
+            "id": 8631949,
+            "price": 299,
+            "priceUnit": "kpl",
+            "comparisonPrice": 2392,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3613,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:38.060Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3500,
+        "name": "Philadelphia Original  tuorejuusto 500g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "7622400005947",
+        "storeItems": [
+          {
+            "id": 8631972,
+            "price": 649,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1298,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3500,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:38.180Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3528,
+        "name": "Philadelphia Laktoositon Tuorejuusto 265",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "7622210861085",
+        "storeItems": [
+          {
+            "id": 8631896,
+            "price": 355,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1340,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3528,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.782Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1847528,
+        "name": "Jokilaakson Juusto Tuorejuusto chili 90g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/halloumit-grillijuustot-ja-muut-erikoisjuustot",
+        "ean": "6430016341097",
+        "storeItems": [
+          {
+            "id": 28250831,
+            "price": 294,
+            "priceUnit": "kpl",
+            "comparisonPrice": 3267,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1847528,
+            "archivedAt": null,
+            "createdAt": "2025-09-19T14:55:33.973Z",
+            "updatedAt": "2026-04-23T17:40:16.630Z"
+          }
+        ]
+      },
+      {
+        "id": 3569,
+        "name": "Arla Lempi tuorejuusto 160g vihreät yrtit",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "5711953169526",
+        "storeItems": [
+          {
+            "id": 8632010,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1181,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3569,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:38.344Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 63325,
+        "name": "Castello ananas-manteli tuorejuusto 125 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "5740200029122",
+        "storeItems": [
+          {
+            "id": 8631931,
+            "price": 299,
+            "priceUnit": "kpl",
+            "comparisonPrice": 2392,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 63325,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.949Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 84604,
+        "name": "Pirkka tuorejuusto chili 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156099",
+        "storeItems": [
+          {
+            "id": 10738291,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84604,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:38:58.951Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3583,
+        "name": "Philadelphia sweet chili tuorejuusto 200 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "7622300684327",
+        "storeItems": [
+          {
+            "id": 8631928,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1195,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3583,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.935Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3530,
+        "name": "Philadelphia ruohosipuli tuorejuusto 200 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "7310700676492",
+        "storeItems": [
+          {
+            "id": 8631935,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1195,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3530,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.967Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1807975,
+        "name": "Jokilaakson Juusto Tuorejuusto pippuri 90g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6430016340984",
+        "storeItems": [
+          {
+            "id": 20375770,
+            "price": 295,
+            "priceUnit": "kpl",
+            "comparisonPrice": 3278,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1807975,
+            "archivedAt": null,
+            "createdAt": "2024-04-30T19:21:15.827Z",
+            "updatedAt": "2026-06-30T18:36:52.203Z"
+          }
+        ]
+      },
+      {
+        "id": 84610,
+        "name": "Pirkka tuorejuusto vanilja 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156198",
+        "storeItems": [
+          {
+            "id": 10738297,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84610,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:38:58.951Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 84606,
+        "name": "Pirkka tuorejuusto pippuri 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156174",
+        "storeItems": [
+          {
+            "id": 10738293,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84606,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:38:58.951Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1943854,
+        "name": "Philadelphia Västerbotten tuorejuusto  150g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "7622202371455",
+        "storeItems": [
+          {
+            "id": 37298389,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1593,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1943854,
+            "archivedAt": null,
+            "createdAt": "2026-08-18T21:25:33.364Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3675,
+        "name": "Boursin valkosipuli & yrtti tuorejuusto 150g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "3175460000017",
+        "storeItems": [
+          {
+            "id": 8631971,
+            "price": 449,
+            "priceUnit": "kpl",
+            "comparisonPrice": 2993,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3675,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:38.175Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1798016,
+        "name": "Philadelphia Sipuli & Yrtit tuorejuusto 175 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "7622210650641",
+        "storeItems": [
+          {
+            "id": 19152189,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1366,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1798016,
+            "archivedAt": null,
+            "createdAt": "2024-03-17T20:26:54.175Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1859041,
+        "name": "Cantadou Yrtti & valkosipuli tuorejuusto 140g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "3073781124644",
+        "storeItems": [
+          {
+            "id": 32351542,
+            "price": 399,
+            "priceUnit": "kpl",
+            "comparisonPrice": 2850,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1859041,
+            "archivedAt": null,
+            "createdAt": "2026-04-23T17:40:13.018Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1839002,
+        "name": "Jokilaakson Juusto Tuorejuusto valkosipuli 90g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/halloumit-grillijuustot-ja-muut-erikoisjuustot",
+        "ean": "6430016341059",
+        "storeItems": [
+          {
+            "id": 26431193,
+            "price": 295,
+            "priceUnit": "kpl",
+            "comparisonPrice": 3278,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1839002,
+            "archivedAt": null,
+            "createdAt": "2025-05-14T22:59:17.320Z",
+            "updatedAt": "2026-07-29T06:01:29.118Z"
+          }
+        ]
+      },
+      {
+        "id": 84588,
+        "name": "Pirkka tuorejuusto ruohosipuli 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156075",
+        "storeItems": [
+          {
+            "id": 8631652,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84588,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.150Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 78104,
+        "name": "Wasa Sandwich tuorejuusto tomaatti basilika 40g",
+        "category": "leivat-keksit-ja-leivonnaiset/nakkileivat-ja-hapankorput/krutongit-ja-muut-kuivatut-leivat",
+        "ean": "7300400127363",
+        "storeItems": [
+          {
+            "id": 10737266,
+            "price": 99,
+            "priceUnit": "kpl",
+            "comparisonPrice": 2475,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 78104,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:38:15.833Z",
+            "updatedAt": "2026-10-25T21:25:18.865Z"
+          }
+        ]
+      },
+      {
+        "id": 84589,
+        "name": "Pirkka tuorejuusto maustamaton 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156051",
+        "storeItems": [
+          {
+            "id": 10738275,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84589,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:38:58.951Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 84675,
+        "name": "Arla Lempi tuorejuusto 150g valkosipuli & yrtit",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "5711953166860",
+        "storeItems": [
+          {
+            "id": 8631765,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1260,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84675,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.150Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3548,
+        "name": "Philadelphia tuorejuusto valkosipuli yrtit 200 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "7622400969034",
+        "storeItems": [
+          {
+            "id": 8631927,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1195,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3548,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.931Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 84671,
+        "name": "Arla Lempi tuorejuusto 150g kuohkea mustapippuri",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "5711953169564",
+        "storeItems": [
+          {
+            "id": 8631761,
+            "price": 184,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1227,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84671,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.150Z",
+            "updatedAt": "2026-06-01T11:23:35.278Z"
+          }
+        ]
+      },
+      {
+        "id": 84646,
+        "name": "Philadelphia grillattu paprika tuorejuusto 175 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "7622210067944",
+        "storeItems": [
+          {
+            "id": 8631715,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1366,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84646,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.150Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3459,
+        "name": "Valio Viola® yrtti tuorejuusto laktoositon e200 g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "6408430338085",
+        "storeItems": [
+          {
+            "id": 8631846,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3459,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.507Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 84593,
+        "name": "Pirkka tuorejuusto Italian yrtit 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156068",
+        "storeItems": [
+          {
+            "id": 10738280,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84593,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:38:58.951Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3568,
+        "name": "Valio Viola® sitruuna tuorejuusto laktoositon 200g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6408430338535",
+        "storeItems": [
+          {
+            "id": 8631901,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3568,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.807Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1796558,
+        "name": "Valio Viola® Meksiko tuorejuusto laktoositon e200g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6408430347650",
+        "storeItems": [
+          {
+            "id": 17494592,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1796558,
+            "archivedAt": null,
+            "createdAt": "2024-02-02T21:18:56.095Z",
+            "updatedAt": "2026-07-29T06:01:29.118Z"
+          }
+        ]
+      },
+      {
+        "id": 84617,
+        "name": "Philadelphia tuorejuusto original laktoositon 175g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "7622210166692",
+        "storeItems": [
+          {
+            "id": 8631682,
+            "price": 239,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1366,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84617,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.150Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3466,
+        "name": "Valio Viola® vanilja tuorejuusto laktoositon e200 g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "6408430339136",
+        "storeItems": [
+          {
+            "id": 8631833,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3466,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.444Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1868391,
+        "name": "Valio Viola® tzatziki tuorejuusto laktoositon e200 g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "6408430348268",
+        "storeItems": [
+          {
+            "id": 32351546,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1868391,
+            "archivedAt": null,
+            "createdAt": "2026-04-23T17:40:13.406Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3448,
+        "name": "Valio Viola tuorejuusto valkosipuli laktoositon 200g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6408430339488",
+        "storeItems": [
+          {
+            "id": 8631827,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3448,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.418Z",
+            "updatedAt": "2026-06-10T02:45:53.660Z"
+          }
+        ]
+      },
+      {
+        "id": 1817918,
+        "name": "Arla Lempi Paprika & chili tuorejuusto kuohkea 150 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "5711953162565",
+        "storeItems": [
+          {
+            "id": 22527069,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1260,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1817918,
+            "archivedAt": null,
+            "createdAt": "2024-09-15T23:33:47.672Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1868390,
+        "name": "Valio Viola® valkosipuli tuorejuusto laktoositon e200 g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "6408430348329",
+        "storeItems": [
+          {
+            "id": 32351545,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1868390,
+            "archivedAt": null,
+            "createdAt": "2026-04-23T17:40:13.388Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3354,
+        "name": "Valio Viola® maustamaton tuorejuusto laktoositon e200 g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "6408430032686",
+        "storeItems": [
+          {
+            "id": 8631799,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3354,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.280Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3392,
+        "name": "Valio Viola® ruohosipuli tuorejuusto laktoositon e200 g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "6408430032747",
+        "storeItems": [
+          {
+            "id": 8631813,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3392,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.353Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3483,
+        "name": "Valio Viola® paprika-chili tuorejuusto laktoositon e200 g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "6408430032044",
+        "storeItems": [
+          {
+            "id": 8631859,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3483,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.562Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 84602,
+        "name": "Pirkka tuorejuusto aurinkokuivattu tomaatti 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156105",
+        "storeItems": [
+          {
+            "id": 8631667,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84602,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.150Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3503,
+        "name": "Valio Viola kevyt 200g kylmäsavulohi tuorejuusto laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6408430032402",
+        "storeItems": [
+          {
+            "id": 8631851,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3503,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.526Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3422,
+        "name": "Valio Viola® kevyt maustamaton tuorejuusto laktoositon e200 g",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/levitettavat-juustot",
+        "ean": "6408430336500",
+        "storeItems": [
+          {
+            "id": 8631849,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3422,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.519Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 20076,
+        "name": "Valio Viola® kevyt 200 g kolme pippuria tuorejuusto laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6408430032037",
+        "storeItems": [
+          {
+            "id": 8631884,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 20076,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.705Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 3475,
+        "name": "Valio Viola kevyt aurinkokuivattu tomaatti tuorejuusto laktoositon 200g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6408430338078",
+        "storeItems": [
+          {
+            "id": 8631873,
+            "price": 229,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1145,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 3475,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:37.625Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 22210,
+        "name": "Haapala 250g juustoleipä, 1.luokkainen, pehmeä, täysrasvainen, kypsyttämätön tuorejuusto",
+        "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/halloumit-grillijuustot-ja-muut-erikoisjuustot",
+        "ean": "6407955361103",
+        "storeItems": [
+          {
+            "id": 28944884,
+            "price": 439,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1756,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 22210,
+            "archivedAt": null,
+            "createdAt": "2025-11-11T15:07:21.500Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 6865,
+        "name": "Jalostaja Tomaatti-tuorejuustokeitto 500g",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/keitot-ja-keittoainekset/tetra--ja-pussikeitot",
+        "ean": "6409535050926",
+        "storeItems": [
+          {
+            "id": 8634161,
+            "price": 379,
+            "priceUnit": "kpl",
+            "comparisonPrice": 758,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 6865,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:40:39.907Z",
+            "updatedAt": "2026-10-25T21:27:06.668Z"
+          }
+        ]
+      },
+      {
+        "id": 1808844,
+        "name": "Mö Dreamy valkosipuli vaihtoehto tuorejuustolle 150 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6430068540332",
+        "storeItems": [
+          {
+            "id": 20464192,
+            "price": 265,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1767,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1808844,
+            "archivedAt": null,
+            "createdAt": "2024-05-04T15:00:58.794Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1857661,
+        "name": "Mö Dreamy mustapippuri vaihtoehto tuorejuustolle 150 g",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6430068540356",
+        "storeItems": [
+          {
+            "id": 30241569,
+            "price": 265,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1767,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1857661,
+            "archivedAt": null,
+            "createdAt": "2026-02-12T21:20:21.359Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      },
+      {
+        "id": 1868466,
+        "name": "Porokylän Mokkaherkku 2 kpl/160 g mokkaleivos vanilja-tuorejuustotäytteellä",
+        "category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-leivat",
+        "ean": "6416192084218",
+        "storeItems": [
+          {
+            "id": 33162847,
+            "price": 475,
+            "priceUnit": "kpl",
+            "comparisonPrice": 2969,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 1868466,
+            "archivedAt": null,
+            "createdAt": "2026-05-11T18:31:25.033Z",
+            "updatedAt": "2026-10-25T21:25:18.865Z"
+          }
+        ]
+      },
+      {
+        "id": 60180,
+        "name": "Peppadoro tuorejuustotäytteinen makea punainen paprika auringonkukkaöljyssä 250/140g",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/vihannessailykkeet",
+        "ean": "5201194001834",
+        "storeItems": [
+          {
+            "id": 8634934,
+            "price": 515,
+            "priceUnit": "kpl",
+            "comparisonPrice": 3679,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 60180,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:40:54.866Z",
+            "updatedAt": "2026-10-25T21:27:06.668Z"
+          }
+        ]
+      }
+    ],
+    "emmental mozzarella juustoraaste": [
+      {
+        "id": 84686,
+        "name": "Pirkka emmental-mozzarella juustoraaste 150g vähälaktoosinen",
+        "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+        "ean": "6410405048561",
+        "storeItems": [
+          {
+            "id": 8632012,
+            "price": 175,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1167,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84686,
+            "archivedAt": null,
+            "createdAt": "2023-12-05T22:39:43.502Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      }
+    ],
+    "italian yrtit tuorejuusto": [
+      {
+        "id": 84593,
+        "name": "Pirkka tuorejuusto Italian yrtit 180g laktoositon",
+        "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+        "ean": "6410405156068",
+        "storeItems": [
+          {
+            "id": 10738280,
+            "price": 189,
+            "priceUnit": "kpl",
+            "comparisonPrice": 1050,
+            "comparisonPriceUnit": "kg",
+            "storeId": 3221,
+            "itemId": 84593,
+            "archivedAt": null,
+            "createdAt": "2023-12-10T12:38:58.951Z",
+            "updatedAt": "2026-10-25T21:26:25.730Z"
+          }
+        ]
+      }
+    ],
+    "villi riisi": [],
+    "wild rice": []
+  }
+}
