@@ -10,7 +10,8 @@ export type ArrivalNotice = {
 export type ArrivalNoticeEvent =
   | { type: 'sample'; decision: ZiiplyArrivalDecision; at: number }
   | { type: 'tick' | 'skip' | 'resume'; at: number }
-  | { type: 'dismiss' | 'reset' };
+  | { type: 'dismiss' }
+  | { type: 'reset' };
 
 function choices(state: ArrivalNotice, at: number): ArrivalNotice {
   if (!state.confirmed) return { ...state, phase: 'waiting', deadline: null };
