@@ -4,6 +4,7 @@
  * Never changes a store selection or a cart price by itself.
  */
 export const ZIIPLY_STORE_RADIUS_METERS = 50;
+export const ZIIPLY_APPROACH_RADIUS_METERS = 200;
 // Compatibility export: no arrival delay is applied.
 export const ZIIPLY_PARKED_SAMPLE_MS = 0;
 
@@ -58,16 +59,17 @@ export function evaluateZiiplyArrival(
     &&Number.isFinite(sample.accuracyMeters)&&sample.accuracyMeters>0
     &&sample.accuracyMeters<=50;
   const candidates=valid?stores.map(store=>({store,distance:ziiplyDistanceMeters(sample,store)}))
-    .filter(x=>x.distance<=ZIIPLY_STORE_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
+    .filter(x=>x.distance<=ZIIPLY_APPROACH_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
   // GPS uncertainty: if two shops are indistinguishable within the accuracy radius,
   // do not claim a particular store.
   const ambiguous=candidates.length>1&&candidates[1].distance-candidates[0].distance<=sample.accuracyMeters;
   const store=ambiguous?null:candidates[0]?.store??null;
   // GPS location alone determines store presence. No speed, travel history or time delays.
-  const arrivalConfirmed=!!store&&valid;
+  const arrivalConfirmed=!!store&&valid&&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS;
   const inStore=!!store&&arrivalConfirmed&&valid;
   const showArrivalMessage=!!inStore&&state.arrivalStoreId!==store?.id;
   if(inStore)state.arrivalStoreId=store.id;
+  else if(valid&&!ambiguous&&!store)state.arrivalStoreId=null;
   const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
   return {
     state,status:!valid||ambiguous?'uncertain':inStore?'in-store':store?'near-store':'checking',

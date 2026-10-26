@@ -52,6 +52,7 @@ export type ZiiplyMobileNotebookCardProps = {
   onDeleteList?: (list: ZiiplySavedShoppingList) => void;
   onSearchIngredients?: (terms: string[]) => void;
   className?: string;
+  initialPage?: "lists" | "recipes";
 };
 
 type SavedRecipe = { id: string; title: string; ingredients: string; instructions: string; sourceText?: string; servings?: number | null };
@@ -191,10 +192,11 @@ export default function ZiiplyMobileNotebookCard({
   onDeleteList,
   onSearchIngredients,
   className = "",
+  initialPage = "lists",
 }: ZiiplyMobileNotebookCardProps) {
   if (!open) return null;
 
-  const [page, setPage] = useState<"lists" | "recipes">("lists");
+  const [page, setPage] = useState<"lists" | "recipes">(initialPage);
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [recipeFilter, setRecipeFilter] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<SavedRecipe | null>(null);
