@@ -33,7 +33,7 @@ for(const [title,query,expected]of [
 console.log(`PASS: online transfer of ${fixtures.length} recipes / ${count} ingredients; real wiki quantities; water; missing amount; ranges; 13 title relevance cases`);
 
 const wikiRecipes=require('./fixtures/wiki-recipe-flow.json');
-const expectedCounts={'Makaronilaatikko':11,'Makkarakeitto':8,'Amerikkalainen pannukakku':8,'Lihapullat':17,'Bataatti-porkkanakeitto':9,'Valkosipulipasta':9,'Munakas':5};
+const expectedCounts={'Makaronilaatikko':11,'Makkarakeitto':8,'Amerikkalainen pannukakku':8,'Lihapullat':17,'Bataatti-porkkanakeitto':9,'Valkosipulipasta':9,'Munakas':5,'Tomaatti-kalakeitto':8};
 for(const recipe of wikiRecipes){
  const ingredients=onlineRecipeIngredients(recipe.content);
  assert.equal(ingredients.length,expectedCounts[recipe.title],recipe.title+' wiki ingredient count');

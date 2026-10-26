@@ -1,14 +1,15 @@
-import { parseRecipeIngredient, prepareRecipeSearch, type RecipeIngredient } from "./recipeCore";
+import { parseRecipeIngredient, prepareRecipeSearch, classifyRecipeIngredient, type RecipeIngredient } from "./recipeCore";
 
 /** Keep the displayed ingredient and the item sent to Justiina on the same parser. */
 export function onlineRecipeIngredients(content:string): RecipeIngredient[] {
   const items:RecipeIngredient[]=[];
   let active=false;
-  const hasHeading=/^(?:ainekset|raaka-aineet|ainesosat|valinnaiset ainekset|tarvikkeet|tarvitset)\s*:?\s*$/im.test(content);
+  const heading=/^(?:ainekset|raaka-aineet|ainesosat|valinnaiset ainekset|tarvikkeet|tarvitset)(?:\s+[^:\n]+?\s+(?:hengelle|henkilölle|annokselle|annosta|hlö))?\s*:?$/i;
+  const hasHeading=content.split(/\n/).some(line=>heading.test(line.trim()));
   let method=false;
   for(const raw of content.split(/\n/)){
     const line=raw.replace(/^[•*–-]\s*/,"").trim();
-    if(/^(ainekset|raaka-aineet|ainesosat|valinnaiset ainekset|tarvikkeet|tarvitset)\s*:?$/i.test(line)){active=true;continue;}
+    if(heading.test(line)){active=true;continue;}
     if(/^(valmistus|valmistaminen|valmistusohje|ohje|työvaiheet|tekeminen|vinkkejä|sukulaiset|linkit|katso myös|aiheesta muualla)\s*:?$/i.test(line)){active=false;method=true;continue;}
     if(!hasHeading&&!method&&/^(?:n\.?\s*)?[\d½¼¾⅓⅔⅛]/.test(line))active=true;
     if(/^(?:kuivat|nestemäiset|perustaikina|taikina|pohja|täyte|kastike|lisäksi|päälle|pinnalle|voiteluun|paistamiseen|tarjoiluun)\s*:?$/i.test(line))continue;
@@ -24,6 +25,7 @@ export function onlineRecipeIngredients(content:string): RecipeIngredient[] {
     if(!item.name)continue;
     // An unqualified quantity in an ingredient list counts the named items.
     if(item.amount!==null&&!item.unit&&!/^cm\b/i.test(normalized.replace(/^[\d.,\s]+/,""))){item.unit="kpl";item.uncertain=/[?]|\s+tai\s+|^(?:pala|palan)\b/i.test(item.name);}
+    item.uncertain ||= !classifyRecipeIngredient(item.name);
     item.sourceLine=line;
     items.push(item);
   }

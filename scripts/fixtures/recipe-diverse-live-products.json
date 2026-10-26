@@ -1,0 +1,2808 @@
+{
+  "fetchedAt": "2026-10-26",
+  "storeId": 3221,
+  "source": "Ruoanhinta K-store live responses",
+  "boundary": "Sampled regression corpus: compatible and rejected examples from complete live query checks.",
+  "queries": {
+    "vehnäjauho": [
+      "1795843",
+      "1943876",
+      "29881",
+      "20299"
+    ],
+    "ruisjauho": [
+      "79263",
+      "6220",
+      "92869",
+      "6649"
+    ],
+    "sokeri": [
+      "79551",
+      "85316",
+      "5486",
+      "1848026",
+      "76233",
+      "1811423",
+      "77854"
+    ],
+    "taloussokeri": [
+      "5371"
+    ],
+    "leivinjauhe": [
+      "5682",
+      "79480",
+      "34517",
+      "29479"
+    ],
+    "suola": [
+      "4412",
+      "5145",
+      "4362",
+      "80055",
+      "1841025",
+      "1833958",
+      "719792",
+      "93979"
+    ],
+    "merisuola": [
+      "80052",
+      "4831",
+      "4877",
+      "4394",
+      "1803499",
+      "1838894",
+      "5919",
+      "1814263",
+      "2924",
+      "2843",
+      "1868417"
+    ],
+    "muna": [
+      "31388",
+      "31387",
+      "1765171",
+      "79049",
+      "1937965",
+      "3943",
+      "80685",
+      "786714"
+    ],
+    "kananmuna": [
+      "30434",
+      "168638",
+      "84830",
+      "2643",
+      "1791749"
+    ],
+    "maito": [
+      "1788245",
+      "45761",
+      "2526",
+      "2626",
+      "85832",
+      "85828",
+      "5842",
+      "79504"
+    ],
+    "kevytmaito": [
+      "78914",
+      "2454",
+      "78866",
+      "51817"
+    ],
+    "öljyä": [
+      "2749",
+      "1856422",
+      "2723"
+    ],
+    "rypsiöljy": [
+      "4357",
+      "4335",
+      "4505",
+      "79888",
+      "2961",
+      "2968",
+      "2843",
+      "2924",
+      "2922",
+      "2951",
+      "1817825",
+      "2749"
+    ],
+    "oliiviöljy": [
+      "4970",
+      "79889",
+      "5093",
+      "1809792",
+      "1846646",
+      "67287",
+      "85548",
+      "1206",
+      "2616"
+    ],
+    "bataatti": [
+      "77816",
+      "232885",
+      "77933",
+      "84258",
+      "1839884",
+      "9277",
+      "20668"
+    ],
+    "porkkana": [
+      "31363",
+      "19463",
+      "77921",
+      "296888",
+      "1845363",
+      "775",
+      "29174",
+      "1857255"
+    ],
+    "peruna": [
+      "369141",
+      "83475",
+      "67861",
+      "77942",
+      "1794296",
+      "4231",
+      "84375",
+      "80432"
+    ],
+    "peruna pesty": [
+      "67861",
+      "91093",
+      "100312",
+      "77916"
+    ],
+    "kasvisliemikuutio": [
+      "4472",
+      "4693"
+    ],
+    "kasvis liemikuutio": [
+      "1960004",
+      "4681",
+      "1956101",
+      "1866704"
+    ],
+    "ruokakerma": [
+      "78961",
+      "1938912",
+      "1831556",
+      "119201"
+    ],
+    "kerma": [
+      "1790909",
+      "61656",
+      "1951732",
+      "86579",
+      "9277"
+    ],
+    "mustapippuri": [
+      "4483",
+      "4442",
+      "4544",
+      "93839",
+      "21995",
+      "1806689",
+      "3613",
+      "1976"
+    ],
+    "valkopippuri": [
+      "4736",
+      "4528",
+      "93869",
+      "4718"
+    ],
+    "voi": [
+      "2777",
+      "2639",
+      "79050",
+      "61111",
+      "1842133",
+      "1838894",
+      "1806692",
+      "1827867"
+    ],
+    "voi 500g": [
+      "2777",
+      "79050",
+      "61111",
+      "1842133",
+      "1838894",
+      "1806692",
+      "7166"
+    ],
+    "basilika": [
+      "93853",
+      "29420",
+      "93913",
+      "4858",
+      "4573",
+      "1835344",
+      "7022",
+      "1638"
+    ],
+    "sitruunamehu": [
+      "140837",
+      "1842319"
+    ],
+    "mehu": [
+      "1821108",
+      "1847449",
+      "1847455",
+      "1847248"
+    ],
+    "valkosipulijauhe": [
+      "1956872",
+      "93844",
+      "4511",
+      "22340"
+    ],
+    "banaani": [
+      "1857215",
+      "1844852",
+      "13931",
+      "1839220"
+    ],
+    "spagetti": [
+      "79106",
+      "79113",
+      "79107",
+      "5455",
+      "5888",
+      "1948844",
+      "6147",
+      "43931"
+    ],
+    "parsakaali": [
+      "118301",
+      "396742",
+      "1813552",
+      "9009",
+      "634",
+      "1835112",
+      "1842936",
+      "80375"
+    ],
+    "saksanpähkinä": [
+      "85141",
+      "29492",
+      "39218",
+      "29483",
+      "66736"
+    ],
+    "parmesaani": [
+      "1955283",
+      "84742",
+      "22572",
+      "4117",
+      "1837397",
+      "1859244"
+    ]
+  },
+  "products": {
+    "634": {
+      "id": 634,
+      "name": "Parsakaali Silmusalaatti",
+      "category": "hedelmat-ja-vihannekset/vihannekset/idut-versot-ja-oraat",
+      "ean": "6430048012019",
+      "storeItems": [
+        {
+          "price": 298,
+          "comparisonPrice": 2709,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "775": {
+      "id": 775,
+      "name": "Pirjon Pakari Porkkana-Riivi 360g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6430047630740",
+      "storeItems": [
+        {
+          "price": 268,
+          "comparisonPrice": 744,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1206": {
+      "id": 1206,
+      "name": "Breton voileipäkeksi 112g basilika oliiviöljy",
+      "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/suola--ja-valipalakeksit",
+      "ean": "0055653685005",
+      "storeItems": [
+        {
+          "price": 244,
+          "comparisonPrice": 2179,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1638": {
+      "id": 1638,
+      "name": "Jyväbroiler 350g Basilika-sitruunaruoho Iso Suikale Broilerin Fileestä",
+      "category": "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/suikaleet-ja-kuutiot",
+      "ean": "6407830038465",
+      "storeItems": [
+        {
+          "price": 399,
+          "comparisonPrice": 1140,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1976": {
+      "id": 1976,
+      "name": "Atria Vuolu mustapippuri kanafilee 200g",
+      "category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/kinkkusuikaleet-ja-lihapalat",
+      "ean": "6407810018258",
+      "storeItems": [
+        {
+          "price": 395,
+          "comparisonPrice": 1975,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2454": {
+      "id": 2454,
+      "name": "Valio kevytmaito 5 dl",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "ean": "6408430000456",
+      "storeItems": [
+        {
+          "price": 129,
+          "comparisonPrice": 258,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "2526": {
+      "id": 2526,
+      "name": "Valio Plus™ rasvaton maito 1l",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+      "ean": "6408430000289",
+      "storeItems": [
+        {
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "2616": {
+      "id": 2616,
+      "name": "Becel 380g Oliivi Kevyt 38% kasvirasvalevite - sisältää oliiviöljyä",
+      "category": "maito-munat-ja-rasvat/rasvat/margariinit",
+      "ean": "8719200235403",
+      "storeItems": [
+        {
+          "price": 349,
+          "comparisonPrice": 918,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2626": {
+      "id": 2626,
+      "name": "Valio Luomu™ rasvaton maito 1l",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "ean": "6408430000173",
+      "storeItems": [
+        {
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "2639": {
+      "id": 2639,
+      "name": "Valio Luomu™ voi 200g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "ean": "6408430310630",
+      "storeItems": [
+        {
+          "price": 265,
+          "comparisonPrice": 1325,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2643": {
+      "id": 2643,
+      "name": "Kultamuna luomu kananmuna M/L10 630g",
+      "category": "maito-munat-ja-rasvat/munat/luomukananmunat",
+      "ean": "6431000000525",
+      "storeItems": [
+        {
+          "price": 495,
+          "comparisonPrice": 786,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2723": {
+      "id": 2723,
+      "name": "Valio Oivariini 550 g kolme öljyä vähärasvaisempi laktoositon",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "ean": "6408430310937",
+      "storeItems": [
+        {
+          "price": 439,
+          "comparisonPrice": 798,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2749": {
+      "id": 2749,
+      "name": "Keiju 3 öljyä rypsiöljymargariini 60 400 g",
+      "category": "maito-munat-ja-rasvat/rasvat/margariinit",
+      "ean": "6438207016106",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 748,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2777": {
+      "id": 2777,
+      "name": "Valio voi 500g voimakassuolainen",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "ean": "6408430030019",
+      "storeItems": [
+        {
+          "price": 515,
+          "comparisonPrice": 1030,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2843": {
+      "id": 2843,
+      "name": "Keiju 400 g merisuola rypsiöljy-kasvirasvalevite 70 %",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "ean": "6438207020110",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 748,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2922": {
+      "id": 2922,
+      "name": "Keiju kaura rypsiöljymargariini 60% 400 g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "ean": "6438207019688",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 748,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2924": {
+      "id": 2924,
+      "name": "Keiju 600g merisuola rypsiöljy-kasvirasvalevite 70%",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "ean": "6438207020226",
+      "storeItems": [
+        {
+          "price": 459,
+          "comparisonPrice": 765,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2951": {
+      "id": 2951,
+      "name": "Keiju Valkea rypsiöljymargariini 60 400 g",
+      "category": "maito-munat-ja-rasvat/rasvat/margariinit",
+      "ean": "6438207000051",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 748,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2961": {
+      "id": 2961,
+      "name": "Keiju rypsi rypsiöljy-kasvirasvalevite 75% 400g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "ean": "6438207010920",
+      "storeItems": [
+        {
+          "price": 194,
+          "comparisonPrice": 485,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "2968": {
+      "id": 2968,
+      "name": "Keiju Rypsi rypsiöljy-kasvirasvalevite 75 % 600 g",
+      "category": "maito-munat-ja-rasvat/rasvat/margariinit",
+      "ean": "6438207014072",
+      "storeItems": [
+        {
+          "price": 295,
+          "comparisonPrice": 492,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "3613": {
+      "id": 3613,
+      "name": "Castello 125 g mustapippuri tuorejuusto",
+      "category": "juustot-tofut-ja-kasvipohjaiset/ruoka-ja-herkuttelujuustot/halloumit-grillijuustot-ja-muut-erikoisjuustot",
+      "ean": "5760466923125",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 2392,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "3943": {
+      "id": 3943,
+      "name": "HK muna-pekoni kolmioleipä 160g",
+      "category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+      "ean": "6409100077433",
+      "storeItems": [
+        {
+          "price": 339,
+          "comparisonPrice": 2119,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4117": {
+      "id": 4117,
+      "name": "Via pekoni-parmesaanirisotto 320g",
+      "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+      "ean": "6409100071288",
+      "storeItems": [
+        {
+          "price": 399,
+          "comparisonPrice": 1247,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4231": {
+      "id": 4231,
+      "name": "Rana 500g peruna-gnocchit tuorepasta",
+      "category": "valmisruoka/lisakesalaatit-tuorepastat-ja-lisukkeet/tuorepastat-ja-lisukkeet",
+      "ean": "8001665722131",
+      "storeItems": [
+        {
+          "price": 467,
+          "comparisonPrice": 934,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4335": {
+      "id": 4335,
+      "name": "Keiju Rypsiöljy 500 ml",
+      "category": "oljyt-maustaminen-ja-kastikkeet/oljyt/rypsioljyt",
+      "ean": "6438207011453",
+      "storeItems": [
+        {
+          "price": 214,
+          "comparisonPrice": 428,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "4357": {
+      "id": 4357,
+      "name": "Keiju Rypsiöljy 1 l",
+      "category": "oljyt-maustaminen-ja-kastikkeet/oljyt/rypsioljyt",
+      "ean": "6438207011460",
+      "storeItems": [
+        {
+          "price": 599,
+          "comparisonPrice": 599,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "4362": {
+      "id": 4362,
+      "name": "Jozo jodioitu hieno suola 1kg",
+      "category": "mausteet-ja-maustaminen/suola/tavallinen-suola",
+      "ean": "5701027004129",
+      "storeItems": [
+        {
+          "price": 149,
+          "comparisonPrice": 149,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4394": {
+      "id": 4394,
+      "name": "Meira Merisuola 800g karkea",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "ean": "6414203450175",
+      "storeItems": [
+        {
+          "price": 109,
+          "comparisonPrice": 136,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4412": {
+      "id": 4412,
+      "name": "Jozo hieno suola 600g",
+      "category": "mausteet-ja-maustaminen/suola/tavallinen-suola",
+      "ean": "8715800002339",
+      "storeItems": [
+        {
+          "price": 159,
+          "comparisonPrice": 265,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4442": {
+      "id": 4442,
+      "name": "Meira Mustapippuri kokonainen 60g",
+      "category": "oljyt-maustaminen-ja-kastikkeet/mausteet/pippurit",
+      "ean": "6414201002925",
+      "storeItems": [
+        {
+          "price": 254,
+          "comparisonPrice": 4233,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4472": {
+      "id": 4472,
+      "name": "Knorr kasvisliemikuutio 10x10g",
+      "category": "mausteet-ja-maustaminen/liemivalmiseet-ja-fondit/kasvisliemikuutiot",
+      "ean": "8714100783498",
+      "storeItems": [
+        {
+          "price": 155,
+          "comparisonPrice": 1550,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4483": {
+      "id": 4483,
+      "name": "Meira Mustapippuri rouhittu 65g",
+      "category": "oljyt-maustaminen-ja-kastikkeet/mausteet/pippurit",
+      "ean": "6414201003106",
+      "storeItems": [
+        {
+          "price": 275,
+          "comparisonPrice": 4231,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4505": {
+      "id": 4505,
+      "name": "Keiju rypsiöljy D-vitaminoitu 500 ml",
+      "category": "oljyt-etikat-ja-salaattikastikkeet/oljyt/rypsi--ja-rapsioljyt",
+      "ean": "6438207000310",
+      "storeItems": [
+        {
+          "price": 335,
+          "comparisonPrice": 670,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "4511": {
+      "id": 4511,
+      "name": "Santa Maria Valkosipulijauhe 49g",
+      "category": "mausteet-ja-maustaminen/mausteet/purkit",
+      "ean": "7311311015168",
+      "storeItems": [
+        {
+          "price": 179,
+          "comparisonPrice": 3653,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4528": {
+      "id": 4528,
+      "name": "Meira Valkopippuri jauhettu 31g",
+      "category": "oljyt-maustaminen-ja-kastikkeet/mausteet/pippurit",
+      "ean": "6414200137017",
+      "storeItems": [
+        {
+          "price": 185,
+          "comparisonPrice": 5968,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4544": {
+      "id": 4544,
+      "name": "Meira Mustapippuri kokonainen 27g",
+      "category": "oljyt-maustaminen-ja-kastikkeet/mausteet/pippurit",
+      "ean": "6414201002901",
+      "storeItems": [
+        {
+          "price": 124,
+          "comparisonPrice": 4593,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4573": {
+      "id": 4573,
+      "name": "Barilla pastakastike 400g basilika-tom",
+      "category": "sailykkeet-keitot-ja-ateria-ainekset/kastikkeet-pestot-ja-suolaiset-levitteet/pastakastikkeet",
+      "ean": "8076809513739",
+      "storeItems": [
+        {
+          "price": 219,
+          "comparisonPrice": 548,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4681": {
+      "id": 4681,
+      "name": "Knorr Liemikuutio Kasvis 20x10g",
+      "category": "mausteet-ja-maustaminen/liemivalmiseet-ja-fondit/kasvisliemikuutiot",
+      "ean": "8720182105837",
+      "storeItems": [
+        {
+          "price": 235,
+          "comparisonPrice": 1175,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4693": {
+      "id": 4693,
+      "name": "Bong kasvisliemikuutiot 12-pack 120g",
+      "category": "oljyt-maustaminen-ja-kastikkeet/liemivalmisteet-ja-fondit/kasvisliemet",
+      "ean": "7322550049609",
+      "storeItems": [
+        {
+          "price": 199,
+          "comparisonPrice": 1658,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4718": {
+      "id": 4718,
+      "name": "Meira Valkopippuri kokonainen 34g",
+      "category": "oljyt-maustaminen-ja-kastikkeet/mausteet/pippurit",
+      "ean": "6414200127001",
+      "storeItems": [
+        {
+          "price": 228,
+          "comparisonPrice": 6706,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4736": {
+      "id": 4736,
+      "name": "Meira Valkopippuri 38g jauh tlk",
+      "category": "mausteet-ja-maustaminen/mausteet/purkit",
+      "ean": "6414201104902",
+      "storeItems": [
+        {
+          "price": 349,
+          "comparisonPrice": 9184,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4831": {
+      "id": 4831,
+      "name": "Jozo 500g Hieno Merisuola",
+      "category": "oljyt-maustaminen-ja-kastikkeet/suolat/merisuola",
+      "ean": "5701027004402",
+      "storeItems": [
+        {
+          "price": 189,
+          "comparisonPrice": 378,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4858": {
+      "id": 4858,
+      "name": "Santa Maria Basilika, pussi 6g",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "ean": "7311311004087",
+      "storeItems": [
+        {
+          "price": 95,
+          "comparisonPrice": 15833,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4877": {
+      "id": 4877,
+      "name": "Jozo karkea merisuola 500g",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "ean": "5701027004426",
+      "storeItems": [
+        {
+          "price": 199,
+          "comparisonPrice": 398,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "4970": {
+      "id": 4970,
+      "name": "Bertolli classico jalostetusta oliiviöljystä ja neitsytoliiviöljystä valmistettu oliiviöljy 500ml",
+      "category": "oljyt-etikat-ja-salaattikastikkeet/oljyt/oliivioljyt",
+      "ean": "8041790200128",
+      "storeItems": [
+        {
+          "price": 799,
+          "comparisonPrice": 1598,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "5093": {
+      "id": 5093,
+      "name": "Fontana oliiviöljy ONE 1l",
+      "category": "oljyt-etikat-ja-salaattikastikkeet/oljyt/oliivioljyt",
+      "ean": "7316150670417",
+      "storeItems": [
+        {
+          "price": 1569,
+          "comparisonPrice": 1569,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "5145": {
+      "id": 5145,
+      "name": "Jozo Himalajan suola 500g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "ean": "5701027004488",
+      "storeItems": [
+        {
+          "price": 379,
+          "comparisonPrice": 758,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "5371": {
+      "id": 5371,
+      "name": "Dansukker suomalainen taloussokeri 1kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/sokerit",
+      "ean": "5701259100187",
+      "storeItems": [
+        {
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "5455": {
+      "id": 5455,
+      "name": "Myllyn Paras Spagetti 1 kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/spagetit",
+      "ean": "6417700051777",
+      "storeItems": [
+        {
+          "price": 205,
+          "comparisonPrice": 205,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "5486": {
+      "id": 5486,
+      "name": "Dansukker Siro erikoishieno sokeri 1 kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/sokerit",
+      "ean": "6414000020021",
+      "storeItems": [
+        {
+          "price": 179,
+          "comparisonPrice": 179,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "5682": {
+      "id": 5682,
+      "name": "Meira Leivinjauhe 50g",
+      "category": "kuivatuotteet-ja-leivonta/leivontatarvikkeet/perustuotteet-leivontaan",
+      "ean": "6414200210055",
+      "storeItems": [
+        {
+          "price": 79,
+          "comparisonPrice": 1580,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "5842": {
+      "id": 5842,
+      "name": "Törsleffs kondensoitu maito sokeroitu 397g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+      "ean": "7315200015406",
+      "storeItems": [
+        {
+          "price": 275,
+          "comparisonPrice": 693,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "5888": {
+      "id": 5888,
+      "name": "Blå Band laktoositon Italian Pata Spagetti-kasvis-mausteseos 150g",
+      "category": "sailykkeet-keitot-ja-ateria-ainekset/kuivaruoka-ateriat-ja--ainekset/pata-ainekset",
+      "ean": "7322550038306",
+      "storeItems": [
+        {
+          "price": 259,
+          "comparisonPrice": 1727,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "5919": {
+      "id": 5919,
+      "name": "Taffel Manteli 90g merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/snacks-pahkinat",
+      "ean": "6410381092800",
+      "storeItems": [
+        {
+          "price": 269,
+          "comparisonPrice": 2989,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "6147": {
+      "id": 6147,
+      "name": "Blå Band laktoositon Italian pata XL Perhepakkaus spagetti-kasvis-mausteseos 265g",
+      "category": "sailykkeet-keitot-ja-ateria-ainekset/kuivaruoka-ateriat-ja--ainekset/pata-ainekset",
+      "ean": "7322550038498",
+      "storeItems": [
+        {
+          "price": 449,
+          "comparisonPrice": 1694,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "6220": {
+      "id": 6220,
+      "name": "Myllyn Paras Ruisjauho 1 kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/ruisjauhot",
+      "ean": "6417700051487",
+      "storeItems": [
+        {
+          "price": 149,
+          "comparisonPrice": 149,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "6649": {
+      "id": 6649,
+      "name": "Myllärin Luomu Ruisjauho 1kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/ruisjauhot",
+      "ean": "6417721072010",
+      "storeItems": [
+        {
+          "price": 209,
+          "comparisonPrice": 209,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "7022": {
+      "id": 7022,
+      "name": "Gaea Oliivilajitelma kivetön basilika-sitruunamarinadi 150g",
+      "category": "hillot-ja-sailykkeet/kasvissailykkeet/oliivit",
+      "ean": "5201671802480",
+      "storeItems": [
+        {
+          "price": 335,
+          "comparisonPrice": 2233,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "7166": {
+      "id": 7166,
+      "name": "Voima-Papu Härkäpapu kokonainen 500g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/kuivatut-herneet-pavut-ja-linssit/kuivatut-herneet-pavut-ja-linssit",
+      "ean": "6415350017570",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 598,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "9009": {
+      "id": 9009,
+      "name": "Apetit parsakaali 200g pakaste",
+      "category": "pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset",
+      "ean": "6430104921200",
+      "storeItems": [
+        {
+          "price": 195,
+          "comparisonPrice": 975,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "9277": {
+      "id": 9277,
+      "name": "Apetit bataatti-kermaperunat 700g pakaste",
+      "category": "pakasteet/perunapakasteet/kerma--ja-juustoperunat",
+      "ean": "6430104966294",
+      "storeItems": [
+        {
+          "price": 365,
+          "comparisonPrice": 521,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "13931": {
+      "id": 13931,
+      "name": "TEHO Banaani-Suklaa palautusjuoma 0,33 l",
+      "category": "urheiluravinteet-terveys-ja-itsehoito/urheiluravinteet/urheiluravinnejuomat",
+      "ean": "6419800120926",
+      "storeItems": [
+        {
+          "price": 245,
+          "comparisonPrice": 742,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "19463": {
+      "id": 19463,
+      "name": "Porkkana pesty Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "2000610500004",
+      "storeItems": [
+        {
+          "price": 179,
+          "comparisonPrice": 179,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "20299": {
+      "id": 20299,
+      "name": "Myllärin Luomu vehnäjauho 1kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/vehnajauhot",
+      "ean": "6417721070016",
+      "storeItems": [
+        {
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "20668": {
+      "id": 20668,
+      "name": "Apetit bataatti-juuresgratiini 700g pakaste",
+      "category": "pakasteet/perunapakasteet/kerma--ja-juustoperunat",
+      "ean": "6430104966386",
+      "storeItems": [
+        {
+          "price": 539,
+          "comparisonPrice": 770,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "21995": {
+      "id": 21995,
+      "name": "Atria Wilhelm Feta-mustapippuri 350g",
+      "category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/makkarat",
+      "ean": "6407870078827",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 854,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "22340": {
+      "id": 22340,
+      "name": "Golden Star 500g Valkosipulijauhe",
+      "category": "oljyt-maustaminen-ja-kastikkeet/mausteet/mausteseokset",
+      "ean": "6434800005813",
+      "storeItems": [
+        {
+          "price": 799,
+          "comparisonPrice": 1598,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "22572": {
+      "id": 22572,
+      "name": "Riso Scotti Parmesaani risotto 210g",
+      "category": "valmisruoka/ateriaratkaisut/ateriaratkaisut",
+      "ean": "8001860257773",
+      "storeItems": [
+        {
+          "price": 215,
+          "comparisonPrice": 1024,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "29174": {
+      "id": 29174,
+      "name": "Rosten porkkana-peruna maalaisleipä 400g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6409770014202",
+      "storeItems": [
+        {
+          "price": 269,
+          "comparisonPrice": 673,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "29420": {
+      "id": 29420,
+      "name": "Salliselta Basilika 110g",
+      "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+      "ean": "6436501005116",
+      "storeItems": [
+        {
+          "price": 369,
+          "comparisonPrice": 3355,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "29479": {
+      "id": 29479,
+      "name": "Salliselta Leivinjauhe 630g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivinjauheet-ruokasoodat-ja-kuivahiivat",
+      "ean": "6436501005680",
+      "storeItems": [
+        {
+          "price": 590,
+          "comparisonPrice": 937,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "29483": {
+      "id": 29483,
+      "name": "Salliselta Saksanpähkinä 250g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/siemenet-pahkinat-ja-kuivatut-hedelmat/pahkinat",
+      "ean": "6436501016990",
+      "storeItems": [
+        {
+          "price": 499,
+          "comparisonPrice": 1996,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "29492": {
+      "id": 29492,
+      "name": "Salliselta Saksanpähkinä 70g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/siemenet-pahkinat-ja-kuivatut-hedelmat/pahkinat",
+      "ean": "6436501008988",
+      "storeItems": [
+        {
+          "price": 179,
+          "comparisonPrice": 2557,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "29881": {
+      "id": 29881,
+      "name": "Krannin Tila Vehnäjauho 1,5kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/vehnajauhot",
+      "ean": "6430061690003",
+      "storeItems": [
+        {
+          "price": 527,
+          "comparisonPrice": 351,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "30434": {
+      "id": 30434,
+      "name": "Nikulan vapaa kananmuna M10 580g",
+      "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "ean": "6430016974110",
+      "storeItems": [
+        {
+          "price": 225,
+          "comparisonPrice": 388,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "31363": {
+      "id": 31363,
+      "name": "Muumi porkkana 600g",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6430035370979",
+      "storeItems": [
+        {
+          "price": 209,
+          "comparisonPrice": 348,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "31387": {
+      "id": 31387,
+      "name": "Munatukku Nikulan Virike kananmuna L15 1020g",
+      "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "ean": "6430016975032",
+      "storeItems": [
+        {
+          "price": 479,
+          "comparisonPrice": 470,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "31388": {
+      "id": 31388,
+      "name": "Munatukku Nikulan Virike kananmuna M10 580g",
+      "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "ean": "6430016975025",
+      "storeItems": [
+        {
+          "price": 279,
+          "comparisonPrice": 481,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "34517": {
+      "id": 34517,
+      "name": "Dr.Oetker 160g leivinjauhe",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivinjauheet-ruokasoodat-ja-kuivahiivat",
+      "ean": "5701073066485",
+      "storeItems": [
+        {
+          "price": 175,
+          "comparisonPrice": 1094,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "39218": {
+      "id": 39218,
+      "name": "Salliselta Saksanpähkinä 800g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/siemenet-pahkinat-ja-kuivatut-hedelmat/pahkinat",
+      "ean": "6436501008995",
+      "storeItems": [
+        {
+          "price": 1649,
+          "comparisonPrice": 2061,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "43931": {
+      "id": 43931,
+      "name": "Wotkin´s 600 g Spagetti bolognese",
+      "category": "valmisruoka/laatikot-pastat-ja-lasagnet/pastat-ja-lasagnet",
+      "ean": "6408800007153",
+      "storeItems": [
+        {
+          "price": 645,
+          "comparisonPrice": 1075,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "45761": {
+      "id": 45761,
+      "name": "Arla rasvaton maito 1l luomu",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "ean": "6413300015058",
+      "storeItems": [
+        {
+          "price": 115,
+          "comparisonPrice": 115,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "51817": {
+      "id": 51817,
+      "name": "Arla kevytmaito 1l luomu",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "ean": "6413300015041",
+      "storeItems": [
+        {
+          "price": 115,
+          "comparisonPrice": 115,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "61111": {
+      "id": 61111,
+      "name": "Valio Eila voi laktoositon 500g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "ean": "6408430310654",
+      "storeItems": [
+        {
+          "price": 539,
+          "comparisonPrice": 1078,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "61656": {
+      "id": 61656,
+      "name": "Sahlman Kerma pehmeä toffee 50g",
+      "category": "makeiset-ja-naposteltavat/muut-makeiset/laku-ja-toffeepatukat",
+      "ean": "6417238005013",
+      "storeItems": [
+        {
+          "price": 128,
+          "comparisonPrice": 2560,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "66736": {
+      "id": 66736,
+      "name": "Abel Saksanpähkinäöljy 250ml",
+      "category": "oljyt-etikat-ja-salaattikastikkeet/oljyt/erikoisoljyt",
+      "ean": "3155700000502",
+      "storeItems": [
+        {
+          "price": 895,
+          "comparisonPrice": 3580,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "67287": {
+      "id": 67287,
+      "name": "El Valle chips 150g oliiviöljy suola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "ean": "8437001210688",
+      "storeItems": [
+        {
+          "price": 489,
+          "comparisonPrice": 3260,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "67861": {
+      "id": 67861,
+      "name": "Peruna jauhoinen pesty",
+      "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "ean": "2000650400005",
+      "storeItems": [
+        {
+          "price": 129,
+          "comparisonPrice": 129,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "76233": {
+      "id": 76233,
+      "name": "Sprite sokeriton 1,5l",
+      "category": "juomat/virvoitusjuomat/sitrusjuomat",
+      "ean": "6415600545969",
+      "storeItems": [
+        {
+          "price": 329,
+          "comparisonPrice": 193,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "77816": {
+      "id": 77816,
+      "name": "Bataatti",
+      "category": "hedelmat-ja-vihannekset/vihannekset/muut-vihannekset",
+      "ean": "2000600100009",
+      "storeItems": [
+        {
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "77854": {
+      "id": 77854,
+      "name": "Pirkka sokeriherne 150g",
+      "category": "hedelmat-ja-vihannekset/vihannekset/muut-vihannekset",
+      "ean": "6410405234124",
+      "storeItems": [
+        {
+          "price": 259,
+          "comparisonPrice": 1727,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "77916": {
+      "id": 77916,
+      "name": "Peruna sopiv kiinteä pesty Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "ean": "2000616700002",
+      "storeItems": [
+        {
+          "price": 89,
+          "comparisonPrice": 89,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "77921": {
+      "id": 77921,
+      "name": "Porkkana multa Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "2000606200000",
+      "storeItems": [
+        {
+          "price": 139,
+          "comparisonPrice": 139,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "77933": {
+      "id": 77933,
+      "name": "Pirkka bataattisose 400g",
+      "category": "hedelmat-ja-vihannekset/juurekset/jalostetut-juurekset",
+      "ean": "6410405304728",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 748,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "77942": {
+      "id": 77942,
+      "name": "Muumi kiinteä peruna 1kg",
+      "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "ean": "6430064460368",
+      "storeItems": [
+        {
+          "price": 110,
+          "comparisonPrice": 110,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "78866": {
+      "id": 78866,
+      "name": "Pirkka kevytmaito 5dl",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "ean": "6410405267825",
+      "storeItems": [
+        {
+          "price": 85,
+          "comparisonPrice": 170,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "78914": {
+      "id": 78914,
+      "name": "Valio kevytmaito 2dl",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+      "ean": "6408430102440",
+      "storeItems": [
+        {
+          "price": 68,
+          "comparisonPrice": 340,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "78961": {
+      "id": 78961,
+      "name": "Pirkka ruokakerma 10% 2dl laktoositon",
+      "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+      "ean": "6410405319005",
+      "storeItems": [
+        {
+          "price": 75,
+          "comparisonPrice": 375,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "79049": {
+      "id": 79049,
+      "name": "Munatukku Nikula Vapaa kananmuna ruskea M10 580g",
+      "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "ean": "6430016979450",
+      "storeItems": [
+        {
+          "price": 289,
+          "comparisonPrice": 498,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79050": {
+      "id": 79050,
+      "name": "Pirkka suomalainen voi 500g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "ean": "6410405235442",
+      "storeItems": [
+        {
+          "price": 425,
+          "comparisonPrice": 850,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79106": {
+      "id": 79106,
+      "name": "K-Menu spagetti 1kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/spagetit",
+      "ean": "6410405294258",
+      "storeItems": [
+        {
+          "price": 76,
+          "comparisonPrice": 76,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79107": {
+      "id": 79107,
+      "name": "Pirkka spagetti 500g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/spagetit",
+      "ean": "6410405242242",
+      "storeItems": [
+        {
+          "price": 135,
+          "comparisonPrice": 270,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79113": {
+      "id": 79113,
+      "name": "Pirkka spagetti 1kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/spagetit",
+      "ean": "6410405242266",
+      "storeItems": [
+        {
+          "price": 195,
+          "comparisonPrice": 195,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79263": {
+      "id": 79263,
+      "name": "Pirkka ruisjauho 1kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/ruisjauhot",
+      "ean": "6410405269935",
+      "storeItems": [
+        {
+          "price": 139,
+          "comparisonPrice": 139,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79480": {
+      "id": 79480,
+      "name": "Pirkka leivinjauhe 100g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivinjauheet-ruokasoodat-ja-kuivahiivat",
+      "ean": "6410402023783",
+      "storeItems": [
+        {
+          "price": 115,
+          "comparisonPrice": 1150,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79504": {
+      "id": 79504,
+      "name": "Markomilk makeutettu kondensoitu maito 397 g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+      "ean": "4770209043431",
+      "storeItems": [
+        {
+          "price": 379,
+          "comparisonPrice": 955,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79551": {
+      "id": 79551,
+      "name": "Pirkka sokeri 1kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/sokerit",
+      "ean": "6410405040817",
+      "storeItems": [
+        {
+          "price": 109,
+          "comparisonPrice": 109,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "79888": {
+      "id": 79888,
+      "name": "Pirkka kylmäpuristettu rypsiöljy 500ml",
+      "category": "oljyt-etikat-ja-salaattikastikkeet/oljyt/rypsi--ja-rapsioljyt",
+      "ean": "6410402016587",
+      "storeItems": [
+        {
+          "price": 329,
+          "comparisonPrice": 658,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "79889": {
+      "id": 79889,
+      "name": "Pirkka oliiviöljy 1l",
+      "category": "oljyt-etikat-ja-salaattikastikkeet/oljyt/oliivioljyt",
+      "ean": "6410405250186",
+      "storeItems": [
+        {
+          "price": 999,
+          "comparisonPrice": 999,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "80052": {
+      "id": 80052,
+      "name": "K-Menu merisuola 1kg",
+      "category": "mausteet-ja-maustaminen/suola/merisuola",
+      "ean": "6410405140692",
+      "storeItems": [
+        {
+          "price": 109,
+          "comparisonPrice": 109,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "80055": {
+      "id": 80055,
+      "name": "Pirkka Parhaat Himalajan suola 500g",
+      "category": "mausteet-ja-maustaminen/suola/muu-suola",
+      "ean": "6410405222534",
+      "storeItems": [
+        {
+          "price": 265,
+          "comparisonPrice": 530,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "80375": {
+      "id": 80375,
+      "name": "K-Menu parsakaalisekoitus 1kg pakaste",
+      "category": "pakasteet/vihannes--ja-juurespakasteet/kasvis--ja-vihannessekoitukset",
+      "ean": "6410405153111",
+      "storeItems": [
+        {
+          "price": 215,
+          "comparisonPrice": 215,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "80432": {
+      "id": 80432,
+      "name": "Pirkka peruna-sipulisekoitus 1kg pakaste",
+      "category": "pakasteet/perunapakasteet/perunasuikaleet-ja-lohkoperunat",
+      "ean": "6410405234087",
+      "storeItems": [
+        {
+          "price": 165,
+          "comparisonPrice": 165,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "80685": {
+      "id": 80685,
+      "name": "Pirkka muna-riisipasteija 14kpl/490 g pakaste",
+      "category": "pakasteet/leipa--ja-leivonnaispakasteet/leipapakasteet",
+      "ean": "6410402005116",
+      "storeItems": [
+        {
+          "price": 319,
+          "comparisonPrice": 651,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "83475": {
+      "id": 83475,
+      "name": "Peruna kiinteä Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "ean": "2000608300005",
+      "storeItems": [
+        {
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "84258": {
+      "id": 84258,
+      "name": "Pirkka bataatti-chilikeitto 300g",
+      "category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+      "ean": "6410405258342",
+      "storeItems": [
+        {
+          "price": 229,
+          "comparisonPrice": 763,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "84375": {
+      "id": 84375,
+      "name": "Atria grillisalaatti peruna-pekoni 350g",
+      "category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+      "ean": "6407860063222",
+      "storeItems": [
+        {
+          "price": 265,
+          "comparisonPrice": 757,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "84742": {
+      "id": 84742,
+      "name": "Parmareggio Parmigiano Reggiano parmesaanijuustoraaste 30kk 60g",
+      "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/parmesan",
+      "ean": "8010721998120",
+      "storeItems": [
+        {
+          "price": 335,
+          "comparisonPrice": 5583,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "84830": {
+      "id": 84830,
+      "name": "Kultamuna vapaa kananmuna S/M18 954g",
+      "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "ean": "6431000000808",
+      "storeItems": [
+        {
+          "price": 469,
+          "comparisonPrice": 492,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "85141": {
+      "id": 85141,
+      "name": "Pirkka saksanpähkinä 100g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/siemenet-pahkinat-ja-kuivatut-hedelmat/pahkinat",
+      "ean": "6410405295071",
+      "storeItems": [
+        {
+          "price": 235,
+          "comparisonPrice": 2350,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "85316": {
+      "id": 85316,
+      "name": "K-Menu sokeri 1kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/sokerit",
+      "ean": "6410405285508",
+      "storeItems": [
+        {
+          "price": 89,
+          "comparisonPrice": 89,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "85548": {
+      "id": 85548,
+      "name": "Borges arom oliiviöljy 200ml basilika",
+      "category": "oljyt-etikat-ja-salaattikastikkeet/oljyt/maustetut-oliivioljyt",
+      "ean": "8410179000046",
+      "storeItems": [
+        {
+          "price": 675,
+          "comparisonPrice": 3375,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "85828": {
+      "id": 85828,
+      "name": "Dovgan Kondensoitu maito makeutettu 397g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+      "ean": "4032549001770",
+      "storeItems": [
+        {
+          "price": 279,
+          "comparisonPrice": 703,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "85832": {
+      "id": 85832,
+      "name": "Dovgan kondensoitu maito 397g karamel",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+      "ean": "4032549003378",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 753,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "86579": {
+      "id": 86579,
+      "name": "Pirkka Rooibos maustettu yrttijuoma karpalo & kerma 20ps/40g",
+      "category": "juomat/tee-ja-haudutuspussit/rooibos-teet",
+      "ean": "6410405270160",
+      "storeItems": [
+        {
+          "price": 339,
+          "comparisonPrice": 85,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "91093": {
+      "id": 91093,
+      "name": "Peruna kiinteä pesty Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "ean": "2000610000009",
+      "storeItems": [
+        {
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "92869": {
+      "id": 92869,
+      "name": "Krannin Tila Ruisjauho 1,5kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/ruisjauhot",
+      "ean": "6430061690065",
+      "storeItems": [
+        {
+          "price": 527,
+          "comparisonPrice": 351,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "93839": {
+      "id": 93839,
+      "name": "Pirkka mustapippuri 15 g rouhittu",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "ean": "6410405240507",
+      "storeItems": [
+        {
+          "price": 89,
+          "comparisonPrice": 5933,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "93844": {
+      "id": 93844,
+      "name": "Pirkka valkosipulijauhe 34g",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "ean": "6410405240767",
+      "storeItems": [
+        {
+          "price": 115,
+          "comparisonPrice": 3382,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "93853": {
+      "id": 93853,
+      "name": "Pirkka basilika 8g",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "ean": "6410405240323",
+      "storeItems": [
+        {
+          "price": 65,
+          "comparisonPrice": 8125,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "93869": {
+      "id": 93869,
+      "name": "Pirkka valkopippuri 20g jauhettu",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "ean": "6410405240729",
+      "storeItems": [
+        {
+          "price": 89,
+          "comparisonPrice": 4450,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "93913": {
+      "id": 93913,
+      "name": "Santa Maria Basilika 10g",
+      "category": "mausteet-ja-maustaminen/mausteet/purkit",
+      "ean": "7311311014154",
+      "storeItems": [
+        {
+          "price": 225,
+          "comparisonPrice": 22500,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "93979": {
+      "id": 93979,
+      "name": "Naughty BRGR 30 g Cuba suola",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "ean": "6430061521437",
+      "storeItems": [
+        {
+          "price": 188,
+          "comparisonPrice": 6267,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "100312": {
+      "id": 100312,
+      "name": "Peruna Annabelle 1kg pesty Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "ean": "6415350017327",
+      "storeItems": [
+        {
+          "price": 140,
+          "comparisonPrice": 140,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "118301": {
+      "id": 118301,
+      "name": "Parsakaali Suomi",
+      "category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "ean": "2000609300004",
+      "storeItems": [
+        {
+          "price": 789,
+          "comparisonPrice": 789,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "119201": {
+      "id": 119201,
+      "name": "Menu laktoositon ruokakerma 15% 1l UHT",
+      "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+      "ean": "6410405304773",
+      "storeItems": [
+        {
+          "price": 499,
+          "comparisonPrice": 499,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "140837": {
+      "id": 140837,
+      "name": "Limmi sitruunamehu 200ml",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "ean": "8020542111110",
+      "storeItems": [
+        {
+          "price": 229,
+          "comparisonPrice": 1145,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "168638": {
+      "id": 168638,
+      "name": "Pirkka vapaa iso kananmuna L15 1020g",
+      "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "ean": "6410405319661",
+      "storeItems": [
+        {
+          "price": 459,
+          "comparisonPrice": 450,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "232885": {
+      "id": 232885,
+      "name": "Bataatti purppura",
+      "category": "hedelmat-ja-vihannekset/vihannekset/muut-vihannekset",
+      "ean": "2000797900000",
+      "storeItems": [
+        {
+          "price": 596,
+          "comparisonPrice": 596,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "296888": {
+      "id": 296888,
+      "name": "Porkkana pesty Suomi 2lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "2000644700005",
+      "storeItems": [
+        {
+          "price": 118,
+          "comparisonPrice": 118,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "369141": {
+      "id": 369141,
+      "name": "Peruna uudensadon",
+      "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+      "ean": "2000638000005",
+      "storeItems": [
+        {
+          "price": 369,
+          "comparisonPrice": 369,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "396742": {
+      "id": 396742,
+      "name": "Parsakaali luomu Suomi",
+      "category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "ean": "2000629500002",
+      "storeItems": [
+        {
+          "price": 549,
+          "comparisonPrice": 549,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "719792": {
+      "id": 719792,
+      "name": "Pophouse popcorn 50g suola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/popcornit",
+      "ean": "4751028310188",
+      "storeItems": [
+        {
+          "price": 79,
+          "comparisonPrice": 1580,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "786714": {
+      "id": 786714,
+      "name": "Mignon muna 52g",
+      "category": "makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset",
+      "ean": "6411401054150",
+      "storeItems": [
+        {
+          "price": 259,
+          "comparisonPrice": 4981,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1765171": {
+      "id": 1765171,
+      "name": "Munatukku Nikulan vapaa kananmuna plastattu M24",
+      "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+      "ean": "6430016978071",
+      "storeItems": [
+        {
+          "price": 399,
+          "comparisonPrice": 287,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1788245": {
+      "id": 1788245,
+      "name": "Koivulan Tilan maito 1l",
+      "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+      "ean": "6405344000046",
+      "storeItems": [
+        {
+          "price": 339,
+          "comparisonPrice": 339,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1790909": {
+      "id": 1790909,
+      "name": "Elonen kerma-mansikka kranssi 435g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/leivokset-ja-wienerit",
+      "ean": "6410580037480",
+      "storeItems": [
+        {
+          "price": 719,
+          "comparisonPrice": 1653,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1791749": {
+      "id": 1791749,
+      "name": "Dogman Harmony mousse kissanpennuille viiriäistä ja kananmunaa 85g",
+      "category": "lemmikit/kissanruoat/kissan-annosruoat",
+      "ean": "7312134705014",
+      "storeItems": [
+        {
+          "price": 165,
+          "comparisonPrice": 1941,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1794296": {
+      "id": 1794296,
+      "name": "Baba Pyörykkä peruna-kikherne 200g",
+      "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+      "ean": "6430056262628",
+      "storeItems": [
+        {
+          "price": 294,
+          "comparisonPrice": 1470,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1795843": {
+      "id": 1795843,
+      "name": "K-Menu Vehnäjauho 2kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/vehnajauhot",
+      "ean": "6410405327680",
+      "storeItems": [
+        {
+          "price": 85,
+          "comparisonPrice": 43,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1803499": {
+      "id": 1803499,
+      "name": "Estrella Maalaissipsi 180g merisuola-etikka",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit",
+      "ean": "7310532304600",
+      "storeItems": [
+        {
+          "price": 279,
+          "comparisonPrice": 1550,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1806689": {
+      "id": 1806689,
+      "name": "Atria mustapippuri grillisalaatti 350g",
+      "category": "valmisruoka/lisakesalaatit-ja-tuorepasta/muut-valmissalaatit",
+      "ean": "6407800020261",
+      "storeItems": [
+        {
+          "price": 255,
+          "comparisonPrice": 729,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1806692": {
+      "id": 1806692,
+      "name": "Atria grilliperunat voi-tilli 500g",
+      "category": "valmisruoka/laatikot-pastat-ja-lasagnet/peruna--ja-kasvilisakkeet",
+      "ean": "6407850058603",
+      "storeItems": [
+        {
+          "price": 429,
+          "comparisonPrice": 858,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1809792": {
+      "id": 1809792,
+      "name": "Päivänsäde Oliiviöljy 500 ml",
+      "category": "oljyt-etikat-ja-salaattikastikkeet/oljyt/neitsytoliivioljyt",
+      "ean": "6430025259697",
+      "storeItems": [
+        {
+          "price": 719,
+          "comparisonPrice": 1438,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1811423": {
+      "id": 1811423,
+      "name": "Sokerimaissi 2kpl/300g",
+      "category": "hedelmat-ja-vihannekset/vihannekset/maissi",
+      "ean": "8712785000398",
+      "storeItems": [
+        {
+          "price": 429,
+          "comparisonPrice": 1430,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1813552": {
+      "id": 1813552,
+      "name": "Luomu parsakaali 250g 1lk",
+      "category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "ean": "8718868261953",
+      "storeItems": [
+        {
+          "price": 369,
+          "comparisonPrice": 1476,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1814263": {
+      "id": 1814263,
+      "name": "Ossi possusnack 40g merisuola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/muut-snacksit",
+      "ean": "4740053006401",
+      "storeItems": [
+        {
+          "price": 179,
+          "comparisonPrice": 4475,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1817825": {
+      "id": 1817825,
+      "name": "Keiju Makuisa rypsiöljymargariini 60 600 g",
+      "category": "maito-munat-ja-rasvat/rasvat/margariinit",
+      "ean": "6438207000693",
+      "storeItems": [
+        {
+          "price": 399,
+          "comparisonPrice": 665,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1821108": {
+      "id": 1821108,
+      "name": "Mehukatti Hyvän aamun mehu päärynä 1l",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "ean": "6415130118060",
+      "storeItems": [
+        {
+          "price": 228,
+          "comparisonPrice": 228,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1827867": {
+      "id": 1827867,
+      "name": "Laitilan Kanatarha Muna & Voi-levite 180 g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+      "ean": "6430017905137",
+      "storeItems": [
+        {
+          "price": 269,
+          "comparisonPrice": 1494,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1831556": {
+      "id": 1831556,
+      "name": "Maitokolmio ruokakerma 5dl laktoositon",
+      "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+      "ean": "6417777011605",
+      "storeItems": [
+        {
+          "price": 159,
+          "comparisonPrice": 318,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1833958": {
+      "id": 1833958,
+      "name": "Taffel Popcorn 100g suola",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/popcornit",
+      "ean": "6410380044916",
+      "storeItems": [
+        {
+          "price": 325,
+          "comparisonPrice": 3250,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1835112": {
+      "id": 1835112,
+      "name": "Nôgel luomu parsakaali, 70 g",
+      "category": "lapset/lastenruoat/lastenruoat-4-kk",
+      "ean": "4742023680925",
+      "storeItems": [
+        {
+          "price": 99,
+          "comparisonPrice": 1414,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1835344": {
+      "id": 1835344,
+      "name": "Perniön Bääsiäisnakki 190g basilika-valkosipuli",
+      "category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/nakit",
+      "ean": "6440001900550",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 1574,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1837397": {
+      "id": 1837397,
+      "name": "Saarioinen Hurmaava Kana-parmesaanipasta 290 g",
+      "category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/mikroateriat",
+      "ean": "6412000033676",
+      "storeItems": [
+        {
+          "price": 399,
+          "comparisonPrice": 1376,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1838894": {
+      "id": 1838894,
+      "name": "Flora & voi Merisuola 500g",
+      "category": "maito-munat-ja-rasvat/rasvat/rasvaseokset",
+      "ean": "8719200295537",
+      "storeItems": [
+        {
+          "price": 355,
+          "comparisonPrice": 710,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1839220": {
+      "id": 1839220,
+      "name": "Big Pro proteiinijuoma 0,33l banaani-suklaa",
+      "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+      "ean": "6430042025312",
+      "storeItems": [
+        {
+          "price": 225,
+          "comparisonPrice": 682,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1839884": {
+      "id": 1839884,
+      "name": "Pirkka bataatti-linssikeitto 390g",
+      "category": "sailykkeet-keitot-ja-ateria-ainekset/keitot-ja-keittoainekset/tetra--ja-pussikeitot",
+      "ean": "6410405345431",
+      "storeItems": [
+        {
+          "price": 245,
+          "comparisonPrice": 628,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1841025": {
+      "id": 1841025,
+      "name": "Nutisal kuivapaahdetut maapähkinät 175g suola-pippuri",
+      "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/snacks-pahkinat",
+      "ean": "4740085315076",
+      "storeItems": [
+        {
+          "price": 355,
+          "comparisonPrice": 2029,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1842133": {
+      "id": 1842133,
+      "name": "Flora & voi 500g",
+      "category": "maito-munat-ja-rasvat/rasvat/rasvaseokset",
+      "ean": "8719200296015",
+      "storeItems": [
+        {
+          "price": 339,
+          "comparisonPrice": 678,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1842319": {
+      "id": 1842319,
+      "name": "Pirkka Virkeä rypäle-mustikka-sitruunamehu B6 + B12 +C-vitamiinit 1l",
+      "category": "juomat/mehut/mehut-lampimasta",
+      "ean": "6410405347879",
+      "storeItems": [
+        {
+          "price": 229,
+          "comparisonPrice": 229,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1842936": {
+      "id": 1842936,
+      "name": "Blå Band Selected keitto Juusto-parsakaali 73g",
+      "category": "sailykkeet-keitot-ja-ateria-ainekset/keitot-ja-keittoainekset/keittoainekset",
+      "ean": "7322550033394",
+      "storeItems": [
+        {
+          "price": 175,
+          "comparisonPrice": 2397,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1844852": {
+      "id": 1844852,
+      "name": "Elovena smoothie 2,5dl banaani-passion",
+      "category": "juomat/mehut/smoothiet",
+      "ean": "6411200004950",
+      "storeItems": [
+        {
+          "price": 229,
+          "comparisonPrice": 916,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1845363": {
+      "id": 1845363,
+      "name": "Vaasan Muhku Porkkana sämpylä 360 g 6 kpl porkkana-vehnäsämpylä",
+      "category": "leivat-ja-leivonnaiset/leivat/sampylat",
+      "ean": "6408180738128",
+      "storeItems": [
+        {
+          "price": 255,
+          "comparisonPrice": 708,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1846646": {
+      "id": 1846646,
+      "name": "Ecostyler-geeli oliiviöljy 473ml",
+      "category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet",
+      "ean": "0748378001112",
+      "storeItems": [
+        {
+          "price": 300,
+          "comparisonPrice": 634,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1847248": {
+      "id": 1847248,
+      "name": "Pirkka mansikka-lime mehu-kivennäisvesijuoma 0,33l",
+      "category": "juomat/kivennais--ja-lahdevedet/maustetut-kivennaisvedet",
+      "ean": "6410405356062",
+      "storeItems": [
+        {
+          "price": 85,
+          "comparisonPrice": 227,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1847449": {
+      "id": 1847449,
+      "name": "Pirkka sitrus mehu-kivennäisvesijuoma 0,33l",
+      "category": "juomat/kivennais--ja-lahdevedet/maustetut-kivennaisvedet",
+      "ean": "6410405356147",
+      "storeItems": [
+        {
+          "price": 85,
+          "comparisonPrice": 227,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1847455": {
+      "id": 1847455,
+      "name": "Pirkka passiohedelmä mehu-kivennäisvesijuoma 0,33l",
+      "category": "juomat/kivennais--ja-lahdevedet/maustetut-kivennaisvedet",
+      "ean": "6410405356109",
+      "storeItems": [
+        {
+          "price": 85,
+          "comparisonPrice": 227,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1848026": {
+      "id": 1848026,
+      "name": "Apetit Wok Sokeriherne-paprika pakaste 400g",
+      "category": "pakasteet/vihannes--ja-juurespakasteet/wokit-ja-muut",
+      "ean": "6430104926663",
+      "storeItems": [
+        {
+          "price": 255,
+          "comparisonPrice": 638,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1856422": {
+      "id": 1856422,
+      "name": "Garnier Micellar öljyä sisältävä puhdistusvesi 100ml",
+      "category": "kosmetiikka-terveys-ja-hygienia/kasvojenhoito/kasvovedet",
+      "ean": "3600542601245",
+      "storeItems": [
+        {
+          "price": 351,
+          "comparisonPrice": 3510,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1857215": {
+      "id": 1857215,
+      "name": "Saarioinen banaani-rahkalettu 200g",
+      "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "ean": "6412000057153",
+      "storeItems": [
+        {
+          "price": 275,
+          "comparisonPrice": 1375,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1857255": {
+      "id": 1857255,
+      "name": "Naapurin kypsä porkkana-halloumtikku 200g",
+      "category": "liha-ja-kasviproteiinit/kasviproteiinit-ja-lihattomat-tuotteet/kasvipohjaiset-ja-lihattomat-suikaleet-murut-ja-lastut",
+      "ean": "6405857341704",
+      "storeItems": [
+        {
+          "price": 299,
+          "comparisonPrice": 1495,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1859244": {
+      "id": 1859244,
+      "name": "Bong Touch of Taste Just add Valkosipuli-parmesaanikastike 300ml",
+      "category": "sailykkeet-keitot-ja-ateria-ainekset/kastikkeet-pestot-ja-suolaiset-levitteet/valmiskastikkeet-ja-kastikepohjat",
+      "ean": "7322550010890",
+      "storeItems": [
+        {
+          "price": 425,
+          "comparisonPrice": 1417,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1866704": {
+      "id": 1866704,
+      "name": "Maggi Kasvisliemi liemikuutio 18kpl 180g",
+      "category": "mausteet-ja-maustaminen/liemivalmiseet-ja-fondit/kasvisliemikuutiot",
+      "ean": "8585002485823",
+      "storeItems": [
+        {
+          "price": 255,
+          "comparisonPrice": 1417,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1868417": {
+      "id": 1868417,
+      "name": "Eleplant Merisuola Kasvivoimaa kasvirasvalevite 75 % 400g",
+      "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet",
+      "ean": "6438207001096",
+      "storeItems": [
+        {
+          "price": 289,
+          "comparisonPrice": 723,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1937965": {
+      "id": 1937965,
+      "name": "Pirkka muna-riisipasteija 67g",
+      "category": "leivat-keksit-ja-leivonnaiset/paistopisteen-tuotteet/paistopisteen-tuotteet",
+      "ean": "2007105300002",
+      "storeItems": [
+        {
+          "price": 59,
+          "comparisonPrice": 881,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1938912": {
+      "id": 1938912,
+      "name": "Pirkka ruokakerma 15% 2dl laktoositon",
+      "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+      "ean": "6410405375759",
+      "storeItems": [
+        {
+          "price": 59,
+          "comparisonPrice": 295,
+          "comparisonPriceUnit": "l"
+        }
+      ]
+    },
+    "1943876": {
+      "id": 1943876,
+      "name": "Myllärin Vehnäjauho 2.0 2 kg",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/jauhot-ja-suurusteet/vehnajauhot",
+      "ean": "6415000110293",
+      "storeItems": [
+        {
+          "price": 209,
+          "comparisonPrice": 105,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1948844": {
+      "id": 1948844,
+      "name": "Saarioinen Spagetti Bolognese; spagettia ja jauhelihakastiketta 310g",
+      "category": "valmisruoka/valmisateriat-keitot-ja-aterianosat/mikroateriat",
+      "ean": "6412000037094",
+      "storeItems": [
+        {
+          "price": 325,
+          "comparisonPrice": 1048,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1951732": {
+      "id": 1951732,
+      "name": "Baileys suklaatryffeli 135g Mansikka & kerma",
+      "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+      "ean": "5099872018669",
+      "storeItems": [
+        {
+          "price": 689,
+          "comparisonPrice": 5104,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1955283": {
+      "id": 1955283,
+      "name": "Parmareggio Parmesaani juusto DOP puikko 100g",
+      "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/parmesan",
+      "ean": "0000080391005",
+      "storeItems": [
+        {
+          "price": 635,
+          "comparisonPrice": 6350,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1956101": {
+      "id": 1956101,
+      "name": "Knorr  Kasvis Liemikuutio 20x10g",
+      "category": "mausteet-ja-maustaminen/liemivalmiseet-ja-fondit/kasvisliemikuutiot",
+      "ean": "8721497014388",
+      "storeItems": [
+        {
+          "price": 235,
+          "comparisonPrice": 1175,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1956872": {
+      "id": 1956872,
+      "name": "Meira Valkosipulijauhe 100g",
+      "category": "mausteet-ja-maustaminen/mausteet/pussit",
+      "ean": "6420101888668",
+      "storeItems": [
+        {
+          "price": 269,
+          "comparisonPrice": 2690,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    },
+    "1960004": {
+      "id": 1960004,
+      "name": "Knorr Kasvis Liemikuutio 10x10g",
+      "category": "oljyt-maustaminen-ja-kastikkeet/liemivalmisteet-ja-fondit/kalaliemet",
+      "ean": "8721497022208",
+      "storeItems": [
+        {
+          "price": 155,
+          "comparisonPrice": 1550,
+          "comparisonPriceUnit": "kg"
+        }
+      ]
+    }
+  }
+}

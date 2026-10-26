@@ -1,6 +1,6 @@
 import { inferRecipeProtein, type RecipeProteinRequirement } from "./recipeProtein";
 /** Shared Justiina recipe draft logic. No product is added to the cart here. */
-export type RecipeIngredient = { id: string; name: string; amount: number | null; unit: string | null; uncertain: boolean; atHome: boolean; sourceLine?:string; searchTerm?:string; proteinRequirement?:RecipeProteinRequirement|null; wholeSpice?:boolean };
+export type RecipeIngredient = { id: string; name: string; amount: number | null; unit: string | null; uncertain: boolean; atHome: boolean; sourceLine?:string; optionalNotes?:string[]; searchTerm?:string; proteinRequirement?:RecipeProteinRequirement|null; wholeSpice?:boolean };
 export type RecipeDraft = { title: string; servings: number | null; ingredients: RecipeIngredient[]; instructions: string; source: "text" | "dish" };
 const units: Record<string, number> = { kg: 1000, g: 1, l: 1000, dl: 100, cl: 10, ml: 1, rkl: 15, tl: 5, kpl: 1, pkt: 1, prk: 1, pss: 1, rs: 1, tlk: 1, pussi: 1, ruukku: 1, nippu: 1 };
 const family: Record<string, string> = { kg: "mass", g: "mass", l: "volume", dl: "volume", cl: "volume", ml: "volume", rkl: "volume", tl: "volume", kpl: "count", pkt: "pack", prk: "can", pss: "bag", rs: "pack", tlk: "can", pussi: "bag", ruukku: "count", nippu: "count" };
@@ -19,7 +19,7 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
   const fractions:Record<string,string>={"½":"1/2","¼":"1/4","¾":"3/4","⅓":"1/3","⅔":"2/3","⅛":"1/8"};
   let clean:string;
   // Keep mixed unicode fractions distinct: 5½ means 5 + 1/2, never 51/2.
-  clean=line.replace(/(\d)([½¼¾⅓⅔⅛])/g,"$1 $2").replace(/[½¼¾⅓⅔⅛]/g,x=>fractions[x]).replace(/[\u00a0\u202f]/g," ").replace(/^[#*•–-]+\s*/,"").trim();
+  clean=normalizeRecipeAlternatives(line).replace(/(\d)([½¼¾⅓⅔⅛])/g,"$1 $2").replace(/[½¼¾⅓⅔⅛]/g,x=>fractions[x]).replace(/[\u00a0\u202f]/g," ").replace(/^[#*•–-]+\s*/,"").trim();
   clean=clean.replace(/^(?:n\.|noin|vajaa|reilu)\s*/i,"");
   // When a fish recipe explicitly offers fillets, retain that alternative's own amount.
   const alternative=clean.replace(/\([^()]*\)/g, segment => segment.replace(/\s+tai\s+/gi, " __RECIPE_PAREN_OR__ ")).split(/\s+tai\s+/i).map(segment => segment.replace(/ __RECIPE_PAREN_OR__ /g, " tai "));
@@ -126,7 +126,7 @@ export function recipeIngredientForSearch(items: RecipeIngredient[], searchTerm:
   return actual === expected ? ingredient : null;
 }
 
-import { recipeProductSearchTerm, classifyRecipeIngredient } from "./recipeSearch";
+import { recipeProductSearchTerm, classifyRecipeIngredient, normalizeRecipeAlternatives } from "./recipeSearch";
 export { recipeProductSearchTerm, classifyRecipeIngredient, recipeProductCompatible } from "./recipeSearch";
 export type { RecipeFoodGroup } from "./recipeSearch";
 
@@ -153,7 +153,16 @@ export function prepareRecipeSearch(items: RecipeIngredient[], instructions="", 
       if(family[normalized.unit]==="mass"){normalized.amount*=units[normalized.unit];normalized.unit="g";}
       if(family[normalized.unit]==="volume"){normalized.amount*=units[normalized.unit];normalized.unit="ml";}
     }
-    const existing=entries.find(x=>x.term===term&&JSON.stringify(x.item.proteinRequirement)===JSON.stringify(normalized.proteinRequirement)&&(x.item.unit===normalized.unit||!x.item.unit||!normalized.unit));
+    // An optional extra of an already required ingredient does not create a second
+    // retail purchase or erase the measured requirement. Keep the source note.
+    const optionalExtra=normalized.amount===null&&/^\s*(?:tarvittaessa|halutessasi|maun mukaan)\b/i.test(item.sourceLine||"")
+      ?entries.find(x=>x.term===term&&x.item.amount!==null):undefined;
+    if(optionalExtra){
+      optionalExtra.item.optionalNotes=[...(optionalExtra.item.optionalNotes||[]),item.sourceLine||item.name];
+      optionalExtra.item.uncertain=true;
+      continue;
+    }
+    const existing=entries.find(x=>x.term===term&&JSON.stringify(x.item.proteinRequirement)===JSON.stringify(normalized.proteinRequirement)&&(x.item.unit===normalized.unit)&&(x.item.amount===null)===(normalized.amount===null));
     if(existing){existing.item.amount=existing.item.amount!==null&&normalized.amount!==null?existing.item.amount+normalized.amount:null;existing.item.uncertain ||= normalized.uncertain;}
     else entries.push({term,item:normalized});
   }

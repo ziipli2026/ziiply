@@ -1,4 +1,4 @@
-import { recipeIdentityQueries } from "./recipeSearch";
+import { recipeIdentityQueries, normalizeRecipeAlternatives, recipeProductSearchTerm } from "./recipeSearch";
 import { recipeCategoryQueries } from "./recipeCategories";
 import type { RecipeIngredient } from './recipeCore';
 
@@ -14,11 +14,15 @@ export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredie
     const variants: Record<string,string[]>={peruna:["peruna pesty","peruna kiinteä","perunat","irtoperuna","ruokaperuna"]};
     return [...new Set([term,...(variants[term]||[])])];
   }
-  const source=String(ingredient.sourceLine||"");
+  const source=normalizeRecipeAlternatives(String(ingredient.sourceLine||""));
   const alternatives=source.split(/\s+tai\s+/i);
   if(alternatives.length>1){
     const stripAmount=(value:string)=>value.replace(/^\s*(?:\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt|pss|prk|rkl|tl)\s+)?/i,"").trim();
-    const variants=alternatives.map(stripAmount).filter(Boolean);
+    const variants=alternatives.map(stripAmount).filter(Boolean).flatMap(name=>{
+      const alternativeTerm=recipeProductSearchTerm(name);
+      if(!alternativeTerm)return [];
+      return [alternativeTerm,...recipeCoverageQueries(alternativeTerm,{...ingredient,name,sourceLine:name,searchTerm:alternativeTerm})];
+    });
     return [...new Set([query,...variants])];
   }
   const categoryQueries=recipeCategoryQueries(term);
