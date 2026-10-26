@@ -16,6 +16,14 @@ export async function POST(req:NextRequest){
     const stationId=Number(body.stationId);const manual=body.mode==="manual";
     const validPhoto=manual?body.photo==="":typeof body.photo==="string"&&body.photo.length<=1500000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(body.photo);
     if(body.confirmed!==true || !prices || !Number.isSafeInteger(stationId)||stationId<1 || !Number.isFinite(date)||date>Date.now()+60000 || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.id||"") || !validPhoto || !["online","offline","manual"].includes(body.mode)||!["photo_exif","capture_session","manual"].includes(body.timeSource)||!["photo_exif","capture_session","manual"].includes(body.locationSource))return NextResponse.json({error:"Tarkista kuva, hinnat, asema ja havaintoaika."},{status:400});
+    // Reject obvious placeholder/troll reports before any database write.
+    const entered=Object.values(prices);
+    if(entered.length>=2 && entered.every(value=>value===entered[0])){
+      return NextResponse.json({error:"Epäuskottava hintailmoitus: eri polttoainelajeille on annettu sama hinta. Tarkista hinnat.",rejected:true},{status:422});
+    }
+    if(entered.some(value=>value===3)){
+      return NextResponse.json({error:"Hinta 3,000 €/l vaatii tarkistuksen eikä sitä julkaista automaattisesti.",rejected:true},{status:422});
+    }
     const gps=body.gps;
     if(gps && (typeof gps.lat!=="number"||typeof gps.lon!=="number"||typeof gps.accuracy!=="number"||!Number.isFinite(gps.lat)||!Number.isFinite(gps.lon)||!Number.isFinite(gps.accuracy)||Math.abs(gps.lat)>90||Math.abs(gps.lon)>180||gps.accuracy<0))return NextResponse.json({error:"Virheellinen kuvan sijainti."},{status:400});
     if(body.mode==="offline" && (body.locationSource==="capture_session"||body.timeSource==="capture_session"))return NextResponse.json({error:"Vanhan kuvan tietoja ei saa korvata lähetyshetken tiedoilla."},{status:400});
