@@ -2,7 +2,8 @@
 import json, os, time, urllib.request, urllib.error
 import psycopg, certifi
 LIMIT = int(os.getenv("OFF_LOOKUP_LIMIT", "1000"))
-DELAY = float(os.getenv("OFF_LOOKUP_DELAY", "1.2"))
+DELAY = float(os.getenv("OFF_LOOKUP_DELAY", "5"))
+MAX_RETRIES = int(os.getenv("OFF_LOOKUP_RETRIES", "4"))
 with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootcert=certifi.where()) as conn:
     with conn.cursor() as cur:
         cur.execute("""CREATE TABLE IF NOT EXISTS public.ziiply_off_ean_lookup_log (
@@ -19,8 +20,24 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootc
         url = "https://world.openfoodfacts.org/api/v2/product/"+ean+".json?fields=code,product_name,brands,categories,nutriments"
         try:
             req=urllib.request.Request(url,headers={"User-Agent":"Ziiply/1.0 (https://ziiply.fi; contact via website)"})
-            with urllib.request.urlopen(req,timeout=30) as res:
-                data=json.load(res)
+            for attempt in range(MAX_RETRIES):
+                try:
+                    with urllib.request.urlopen(req,timeout=30) as res:
+                        data=json.load(res)
+                    break
+                except urllib.error.HTTPError as exc:
+                    if exc.code == 404:
+                        data={"status":0}
+                        break
+                    if exc.code != 429 or attempt == MAX_RETRIES-1:
+                        raise
+                    retry_after=exc.headers.get("Retry-After")
+                    try:
+                        pause=max(15.0,min(180.0,float(retry_after))) if retry_after else min(180.0,20.0*(attempt+1))
+                    except ValueError:
+                        pause=min(180.0,20.0*(attempt+1))
+                    print("OFF_RATE_LIMIT_RETRY",ean,attempt+1,pause,flush=True)
+                    time.sleep(pause)
             product=data.get("product") or {}
             nutrients=product.get("nutriments") or {}
             wanted=("energy-kcal_100g","energy-kj_100g","fat_100g","saturated-fat_100g","carbohydrates_100g","sugars_100g","fiber_100g","proteins_100g","salt_100g")
@@ -51,4 +68,6 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootc
             print("OFF_LOOKUP_ERROR",ean,str(exc)[:160],flush=True)
         if i%100==0: print("OFF_LOOKUP_PROGRESS",i,totals,flush=True)
         time.sleep(DELAY)
+    if totals["errors"]:
+        raise RuntimeError("OFF lookup had %s transient failures; retry them on the next run" % totals["errors"])
     print("OFF_LOOKUP_REPORT",json.dumps({"attempted":len(codes),**totals}),flush=True)
