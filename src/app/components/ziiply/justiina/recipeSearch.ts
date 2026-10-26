@@ -264,7 +264,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
    if(/^ca[a-z]+$/.test(category)&&!/^caaaa|^caabq|^caabgbaak/.test(category))return "herb_category_required";
  }
  if(term==="inkivääri"&&/smuuti|smoothie|välipala|siirappi|hapankaali|sima|liquid|mausteseos|säilötty|elektrolyyt/.test(name))return "ginger_ingredient_required";
- if(produceTerms.includes(term)&&/mix|sekoitus/.test(name)&&!/mix|sekoitus/.test(requirement))return "single_vegetable_required";
+ if(produceTerms.includes(term)&&/mix|sekoitu/.test(name+" "+category)&&!/mix|sekoitu/.test(requirement))return "single_vegetable_required";
  if(["basilika","timjami","korianteri","persilja","tilli","oregano","inkivääri"].includes(term)){
    const dried=/kuivatt|jauhett/.test(requirement)||(!/tuore/.test(requirement)&&/\b(?:tl|rkl)\b/.test(context?.sourceLine||"")&&term!=="tilli"&&!/hienonnet|lehti/.test(requirement));
    const productDried=/kuivatt|jauhett|\bjauh\b|mauste|purkki|\bpussi\b|meira|santa maria|\b\d+(?:[,.]\d+)?\s*g\b/.test(name)&&!/tuore|ruukku|rkk|pakast/.test(name)||/^caabgbaak/.test(category)||category.includes("/mauste");

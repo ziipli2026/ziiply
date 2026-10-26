@@ -1,0 +1,885 @@
+{
+  "source": "Ruoanhinta K-store 3221, fetched 2026-10-26",
+  "items": [
+    {
+      "id": 775,
+      "name": "Pirjon Pakari Porkkana-Riivi 360g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6430047630740",
+      "storeItems": [
+        {
+          "price": 268
+        }
+      ]
+    },
+    {
+      "id": 1857255,
+      "name": "Naapurin porkkana-halloumitikku 200g",
+      "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+      "ean": "6405857341704",
+      "storeItems": [
+        {
+          "price": 299
+        }
+      ]
+    },
+    {
+      "id": 29174,
+      "name": "Rosten porkkana-peruna maalaisleipä 400g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6409770014202",
+      "storeItems": [
+        {
+          "price": 269
+        }
+      ]
+    },
+    {
+      "id": 1845363,
+      "name": "Vaasan Muhku porkkana-vehnäsämpylä 6kpl/360g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6408180738128",
+      "storeItems": [
+        {
+          "price": 255
+        }
+      ]
+    },
+    {
+      "id": 80468,
+      "name": "Pirkka porkkana-kvinoapihvi 4kpl/240g pakaste",
+      "category": "pakasteet/liha--kala--ja-kasvispakasteet/kasvispihvit--pyorykat-ja--nakit",
+      "ean": "6410405194091",
+      "storeItems": [
+        {
+          "price": 295
+        }
+      ]
+    },
+    {
+      "id": 87157,
+      "name": "Ella's Kitchen Luomu porkkana-palsternakka maissinaksu 20g 6kk",
+      "category": "lapset/lastenruoat/lasten-valipalat-12kk",
+      "ean": "5060503500013",
+      "storeItems": [
+        {
+          "price": 195
+        }
+      ]
+    },
+    {
+      "id": 1820639,
+      "name": "Green Planet Astronauts Luomu kaurapatukka porkkana-appelsiini 25g 1 v",
+      "category": "lapset/lastenruoat/lasten-valipalat-12kk",
+      "ean": "6430074540302",
+      "storeItems": [
+        {
+          "price": 95
+        }
+      ]
+    },
+    {
+      "id": 765,
+      "name": "Perheleipuri Salonen Aamiaissämpylä porkkana 7/420 g porkkanalla maustettu vehnäsämpylä, halkaistu",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6405506177159",
+      "storeItems": [
+        {
+          "price": 279
+        }
+      ]
+    },
+    {
+      "id": 31363,
+      "name": "Muumi porkkana 600g",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6430035370979",
+      "storeItems": [
+        {
+          "price": 209
+        }
+      ]
+    },
+    {
+      "id": 77921,
+      "name": "Porkkana multa Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "2000606200000",
+      "storeItems": [
+        {
+          "price": 139
+        }
+      ]
+    },
+    {
+      "id": 19463,
+      "name": "Porkkana pesty Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "2000610500004",
+      "storeItems": [
+        {
+          "price": 179
+        }
+      ]
+    },
+    {
+      "id": 296888,
+      "name": "Porkkana pesty Suomi 2lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "2000644700005",
+      "storeItems": [
+        {
+          "price": 118
+        }
+      ]
+    },
+    {
+      "id": 407,
+      "name": "Porkkana 500g luomu Suomi 1lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6415350000718",
+      "storeItems": [
+        {
+          "price": 169
+        }
+      ]
+    },
+    {
+      "id": 1825804,
+      "name": "Porkkana violetti 1kg Suomi 1lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6408643134542",
+      "storeItems": [
+        {
+          "price": 325
+        }
+      ]
+    },
+    {
+      "id": 1806877,
+      "name": "Porkkana keltainen 1kg Suomi 1lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6408643137550",
+      "storeItems": [
+        {
+          "price": 325
+        }
+      ]
+    },
+    {
+      "id": 1807999,
+      "name": "Samin Porkkana sämpylärinkeli 420g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6409720011428",
+      "storeItems": [
+        {
+          "price": 199
+        }
+      ]
+    },
+    {
+      "id": 556,
+      "name": "Kaali-porkkana-purjo mix 200g Suomi",
+      "category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "ean": "6416054154004",
+      "storeItems": [
+        {
+          "price": 198
+        }
+      ]
+    },
+    {
+      "id": 15560,
+      "name": "Pedigree tölkki 400g riista-porkkana",
+      "category": "lemmikit/koiranruoat/koiran-tolkkiruoat",
+      "ean": "8001220136557",
+      "storeItems": [
+        {
+          "price": 275
+        }
+      ]
+    },
+    {
+      "id": 77922,
+      "name": "K-Menu suomalainen pesty porkkana 2kg",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6410405152305",
+      "storeItems": [
+        {
+          "price": 179
+        }
+      ]
+    },
+    {
+      "id": 1824314,
+      "name": "Viksu koiran köysilelu porkkana 19,5cm",
+      "category": "lemmikit/koiratarvikkeet/koiran-lelut",
+      "ean": "6417783173861",
+      "storeItems": [
+        {
+          "price": 599
+        }
+      ]
+    },
+    {
+      "id": 1835529,
+      "name": "Kaali-porkkana-punakaali mix 200g Suomi",
+      "category": "hedelmat-ja-vihannekset/vihannekset/kaalit",
+      "ean": "6416054154141",
+      "storeItems": [
+        {
+          "price": 189
+        }
+      ]
+    },
+    {
+      "id": 8957,
+      "name": "Apetit herne-maissi-porkkana 200g pakaste",
+      "category": "pakasteet/vihannes--ja-juurespakasteet/kasvis--ja-vihannessekoitukset",
+      "ean": "6430104920500",
+      "storeItems": [
+        {
+          "price": 109
+        }
+      ]
+    },
+    {
+      "id": 77901,
+      "name": "Pirkka suomalainen pesty porkkana 1kg 1lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6410402008896",
+      "storeItems": [
+        {
+          "price": 119
+        }
+      ]
+    },
+    {
+      "id": 77903,
+      "name": "Pirkka suomalainen pesty porkkana 500g 1lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6410402008919",
+      "storeItems": [
+        {
+          "price": 95
+        }
+      ]
+    },
+    {
+      "id": 25728,
+      "name": "Muru Baby Luomu kaurasnack porkkana 20g 1v",
+      "category": "lapset/lastenruoat/lasten-valipalat-12kk",
+      "ean": "6430067350505",
+      "storeItems": [
+        {
+          "price": 95
+        }
+      ]
+    },
+    {
+      "id": 80365,
+      "name": "Pirkka herne-maissi-porkkana 200 g pakaste",
+      "category": "pakasteet/vihannes--ja-juurespakasteet/kasvis--ja-vihannessekoitukset",
+      "ean": "6410405044907",
+      "storeItems": [
+        {
+          "price": 79
+        }
+      ]
+    },
+    {
+      "id": 87147,
+      "name": "Pirkka Luomu maissileijona 20g 8kk porkkana",
+      "category": "lapset/lastenruoat/lasten-valipalat-12kk",
+      "ean": "6410405224118",
+      "storeItems": [
+        {
+          "price": 85
+        }
+      ]
+    },
+    {
+      "id": 1838860,
+      "name": "Pekan Leipä Pehmosämpylä porkkana 6 kpl 360g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6416147030574",
+      "storeItems": [
+        {
+          "price": 239
+        }
+      ]
+    },
+    {
+      "id": 147172,
+      "name": "Nurmileipä puhtileipä porkkana ja kaura 400g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6430040853658",
+      "storeItems": [
+        {
+          "price": 299
+        }
+      ]
+    },
+    {
+      "id": 77391,
+      "name": "Torino Kaura-Porkkana Täysjyvämakaroni 380 g",
+      "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/makaronit",
+      "ean": "6411200110798",
+      "storeItems": [
+        {
+          "price": 215
+        }
+      ]
+    },
+    {
+      "id": 7482,
+      "name": "Valio Gefilus® mehu 1 l ananas-porkkana+kalsium",
+      "category": "kahvit-teet-ja-mehut/mehut/terveysvaikutteiset-juomat",
+      "ean": "6408430064892",
+      "storeItems": [
+        {
+          "price": 299
+        }
+      ]
+    },
+    {
+      "id": 1809690,
+      "name": "Pirkka Luomu pesty uuden sadon porkkana 750g 1lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6410405109736",
+      "storeItems": [
+        {
+          "price": 289
+        }
+      ]
+    },
+    {
+      "id": 77914,
+      "name": "Pirkka Luomu suomalainen pesty porkkana 1 kg 1 lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6410402027521",
+      "storeItems": [
+        {
+          "price": 219
+        }
+      ]
+    },
+    {
+      "id": 25741,
+      "name": "Muuti luomu mango porkkana tyrni smoothie 110g 6kk",
+      "category": "lapset/lasten-valipalasoseet-ja-muut-valipalat/valipalasoseet-5-6-kk",
+      "ean": "4740073072998",
+      "storeItems": [
+        {
+          "price": 109
+        }
+      ]
+    },
+    {
+      "id": 77917,
+      "name": "Pirkka Parhaat suomalainen snack porkkana 200g 1lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6410405195746",
+      "storeItems": [
+        {
+          "price": 129
+        }
+      ]
+    },
+    {
+      "id": 29194,
+      "name": "Rosten Porkkana sämpylä 5 kpl/350g moniviljasämpylä",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6409770015766",
+      "storeItems": [
+        {
+          "price": 225
+        }
+      ]
+    },
+    {
+      "id": 1850691,
+      "name": "Lovemade naksu 20g 8kk+  maissi porkkana mango luomu",
+      "category": "lapset/lastenruoat/lasten-valipalat-12kk",
+      "ean": "5745001279073",
+      "storeItems": [
+        {
+          "price": 125
+        }
+      ]
+    },
+    {
+      "id": 1866632,
+      "name": "Innocent appelsiini-porkkana-sitruuna-omenamehu 900ml",
+      "category": "juomat/mehut/mehut-viileasta",
+      "ean": "5038862016629",
+      "storeItems": [
+        {
+          "price": 399
+        }
+      ]
+    },
+    {
+      "id": 14866,
+      "name": "Oikia Moomin Luomukauranaksu herne-porkkana 35g 6+ kk",
+      "category": "lapset/lastenruoat/lasten-valipalat-12kk",
+      "ean": "6430013258893",
+      "storeItems": [
+        {
+          "price": 105
+        }
+      ]
+    },
+    {
+      "id": 1800588,
+      "name": "Nôgel lastenruoka luomu kurpitsa ja porkkana 120 g 4kk+",
+      "category": "lapset/lastenruoat/lastenruoat-4-kk",
+      "ean": "4742023680796",
+      "storeItems": [
+        {
+          "price": 134
+        }
+      ]
+    },
+    {
+      "id": 25764,
+      "name": "Green Planet Astronauts Luomu Porkkana Persikka 70g 4kk",
+      "category": "lapset/lastenruoat/lastenruoat-5-kk",
+      "ean": "6430074541132",
+      "storeItems": [
+        {
+          "price": 76
+        }
+      ]
+    },
+    {
+      "id": 1863844,
+      "name": "Pyymäen Leipomo Sevillan sämpylä - Porkkana 4 kpl 350 g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6416513017024",
+      "storeItems": [
+        {
+          "price": 315
+        }
+      ]
+    },
+    {
+      "id": 25896,
+      "name": "Best Friend 3 in 1 Kebab kana-porkkana 12 cm 7 kpl 160 g",
+      "category": "lemmikit/koiranruoat/koiran-puruluut",
+      "ean": "5700551172175",
+      "storeItems": [
+        {
+          "price": 389
+        }
+      ]
+    },
+    {
+      "id": 95624,
+      "name": "God Morgon täysmehu 0,85l luomu omena-mandariini-porkkana",
+      "category": "juomat/mehut/mehut-viileasta",
+      "ean": "7313619000914",
+      "storeItems": [
+        {
+          "price": 559
+        }
+      ]
+    },
+    {
+      "id": 1789358,
+      "name": "Voihan Kuono! herajäätelö kissoille ja koirille 90g porkkana",
+      "category": "lemmikit/koiranruoat/koiran-pakasteruoat",
+      "ean": "6405919000273",
+      "storeItems": [
+        {
+          "price": 527
+        }
+      ]
+    },
+    {
+      "id": 88430,
+      "name": "Best Friend 3 in 1 purutikku kana-porkkana 12 cm 18 kpl 160 g",
+      "category": "lemmikit/koiranruoat/koiran-puruluut",
+      "ean": "5700551172076",
+      "storeItems": [
+        {
+          "price": 389
+        }
+      ]
+    },
+    {
+      "id": 25880,
+      "name": "Best Friend 3 in 1 kierrerulla kana-porkkana 12 cm 5 kpl 160 g",
+      "category": "lemmikit/koiranruoat/koiran-puruluut",
+      "ean": "5700551172090",
+      "storeItems": [
+        {
+          "price": 389
+        }
+      ]
+    },
+    {
+      "id": 20901,
+      "name": "Best Friend 3 in 1 kierrerulla ankka-porkkana 12 cm 5 kpl 160 g",
+      "category": "lemmikit/koiranruoat/koiran-puruluut",
+      "ean": "5700551172151",
+      "storeItems": [
+        {
+          "price": 389
+        }
+      ]
+    },
+    {
+      "id": 15724,
+      "name": "Best-In kanarisotto koiran tuoreruoka 500g riisi-porkkana-herne",
+      "category": "lemmikit/koiranruoat/koiran-makkarat",
+      "ean": "6438019090592",
+      "storeItems": [
+        {
+          "price": 275
+        }
+      ]
+    },
+    {
+      "id": 1847878,
+      "name": "Best Friend 3in1 kierrerulla ka Big Bag 10kpl 350g kana-porkkana",
+      "category": "lemmikit/koiranruoat/koiran-puruluut",
+      "ean": "5700551173349",
+      "storeItems": [
+        {
+          "price": 1039
+        }
+      ]
+    },
+    {
+      "id": 20864,
+      "name": "Piltti Iso välipala Omena-banaani-porkkana 1,5+v annospussi 150g",
+      "category": "lapset/lastenruoat/lastenruoat-12-kk",
+      "ean": "7613287694867",
+      "storeItems": [
+        {
+          "price": 114
+        }
+      ]
+    },
+    {
+      "id": 15164,
+      "name": "Piltti Kasvis Kikherne-porkkana-kaura lastenateria 6kk 190g Luomu",
+      "category": "lapset/lastenruoat/lastenruoat-5-kk",
+      "ean": "8445290832900",
+      "storeItems": [
+        {
+          "price": 135
+        }
+      ]
+    },
+    {
+      "id": 87152,
+      "name": "Lovemade Luomu Smoothie kvinoa, porkkana, maissi & mango 100g 6kk",
+      "category": "lapset/lastenruoat/lastenruoat-5-kk",
+      "ean": "3444570200991",
+      "storeItems": [
+        {
+          "price": 115
+        }
+      ]
+    },
+    {
+      "id": 15120,
+      "name": "Piltti Kasvis Kikherne-porkkana-pasta lastenateria 1-3v 190g Luomu",
+      "category": "lapset/lastenruoat/lastenruoat-12-kk",
+      "ean": "8445290871299",
+      "storeItems": [
+        {
+          "price": 155
+        }
+      ]
+    },
+    {
+      "id": 1819220,
+      "name": "Dagsmark MELLILÄ kana-kalkkuna-porkkana jaettava nami koirille 100g",
+      "category": "lemmikit/koiranruoat/koiran-makupalat",
+      "ean": "6430066384402",
+      "storeItems": [
+        {
+          "price": 365
+        }
+      ]
+    },
+    {
+      "id": 1818500,
+      "name": "Piltti Iso välipala Omena, mansikka, porkkana & banaani 150g 1,5+ v",
+      "category": "lapset/lastenruoat/lastenruoat-12-kk",
+      "ean": "8445291272439",
+      "storeItems": [
+        {
+          "price": 114
+        }
+      ]
+    },
+    {
+      "id": 87138,
+      "name": "Pirkka Luomu kaurasmoothie porkkana- aprikoosi-tyrni 120g alkaen 6kk",
+      "category": "lapset/lastenruoat/lastenruoat-5-kk",
+      "ean": "6410405240903",
+      "storeItems": [
+        {
+          "price": 89
+        }
+      ]
+    },
+    {
+      "id": 1466203,
+      "name": "Lovemade Luomu bulgur risotto porkkana, kurpitsa & rosmariini 185g 8kk",
+      "category": "lapset/lastenruoat/lastenruoat-8-kk",
+      "ean": "3444570200793",
+      "storeItems": [
+        {
+          "price": 169
+        }
+      ]
+    },
+    {
+      "id": 1866114,
+      "name": "Hannun Sinnikäs 100 Kaura-Porkkana Jälkiuunileipä 6kpl/160g gluteeniton",
+      "category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-leivat",
+      "ean": "6430047632065",
+      "storeItems": [
+        {
+          "price": 477
+        }
+      ]
+    },
+    {
+      "id": 15659,
+      "name": "Best-In härkärisotto koiran tuoreruoka 500g riisi-porkkana-herne-persilja",
+      "category": "lemmikit/koiranruoat/koiran-makkarat",
+      "ean": "6438019090585",
+      "storeItems": [
+        {
+          "price": 275
+        }
+      ]
+    },
+    {
+      "id": 25822,
+      "name": "Green Planet Astronauts Luomu kaurakasvisateria linssi-porkkana 100g 6kk+",
+      "category": "lapset/lastenruoat/lastenruoat-5-kk",
+      "ean": "6430074547349",
+      "storeItems": [
+        {
+          "price": 149
+        }
+      ]
+    },
+    {
+      "id": 1863485,
+      "name": "Fruitfunk Pipsa Possu hedelmäsose omena, porkkana, banaani 90g 6+ kk luomu",
+      "category": "lapset/lastenruoat/lastenruoat-5-kk",
+      "ean": "8720618786791",
+      "storeItems": [
+        {
+          "price": 135
+        }
+      ]
+    },
+    {
+      "id": 1799003,
+      "name": "Råsaft kylmäpuristettu mehu omena-porkkana-appelsiini-inkiväär-kurkuma 250ml",
+      "category": "juomat/mehut/mehut-viileasta",
+      "ean": "7350068171734",
+      "storeItems": [
+        {
+          "price": 285
+        }
+      ]
+    },
+    {
+      "id": 1799005,
+      "name": "Råsaft kylmäpuristettu mehu omena-porkkana-appelsiini-inkivääri-kurkuma 700ml",
+      "category": "juomat/mehut/mehut-viileasta",
+      "ean": "7350068170539",
+      "storeItems": [
+        {
+          "price": 499
+        }
+      ]
+    },
+    {
+      "id": 1833401,
+      "name": "Piltti Kasvis Hedelmä-kasvis välipala 110g alkaen 8kk omena-banaani-porkkana-kikherne-kaura Luomu",
+      "category": "lapset/lastenruoat/lastenruoat-8-kk",
+      "ean": "8445291317642",
+      "storeItems": [
+        {
+          "price": 125
+        }
+      ]
+    },
+    {
+      "id": 1817879,
+      "name": "Vaasan Moilas Free From Porkkanapala 3kpl/210g gluteeniton porkkanarieskapala",
+      "category": "leivat-keksit-ja-leivonnaiset/gluteenittomat/gluteenittomat-leivat",
+      "ean": "6431901820239",
+      "storeItems": [
+        {
+          "price": 395
+        }
+      ]
+    },
+    {
+      "id": 1798009,
+      "name": "Putaan Pulla Näppärät Porkkanakaura 4kpl/250g halkaistu porkkanakaurapalaleipä",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6411090042131",
+      "storeItems": [
+        {
+          "price": 214
+        }
+      ]
+    },
+    {
+      "id": 29216,
+      "name": "Leipomo Salonen Juuresta leiväksi Porkkanaleipä viipaloitu 400 g porkkanalla maustettu sekaleipä, vi",
+      "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+      "ean": "6405506090250",
+      "storeItems": [
+        {
+          "price": 315
+        }
+      ]
+    },
+    {
+      "id": 27756,
+      "name": "Porkkanapussi 1 kg",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6415350000022",
+      "storeItems": [
+        {
+          "price": 199
+        }
+      ]
+    },
+    {
+      "id": 53468,
+      "name": "Porkkananippu pakattu",
+      "category": "CAAAAACAEACAA",
+      "ean": "6415350001838",
+      "storeItems": [
+        {
+          "price": 399
+        }
+      ]
+    },
+    {
+      "id": 1833428,
+      "name": "Porkkananippu pakattu",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "8024802000008",
+      "storeItems": [
+        {
+          "price": 195
+        }
+      ]
+    },
+    {
+      "id": 1854015,
+      "name": "Porkkanaraaste 150g Suomi",
+      "category": "hedelmat-ja-vihannekset/juurekset/jalostetut-juurekset",
+      "ean": "6416054154127",
+      "storeItems": [
+        {
+          "price": 119
+        }
+      ]
+    },
+    {
+      "id": 78145,
+      "name": "Pirkka porkkanakakku 300g",
+      "category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/leivokset-ja-wienerit",
+      "ean": "6410405269959",
+      "storeItems": [
+        {
+          "price": 447
+        }
+      ]
+    },
+    {
+      "id": 9337,
+      "name": "Apetit Porkkanapihvi 240 g",
+      "category": "pakasteet/liha--kala--ja-kasvispakasteet/kasvispihvit--pyorykat-ja--nakit",
+      "ean": "6430104965150",
+      "storeItems": [
+        {
+          "price": 265
+        }
+      ]
+    },
+    {
+      "id": 35773,
+      "name": "Porkkananippu irto Suomi 1lk",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6415350018003",
+      "storeItems": [
+        {
+          "price": 219
+        }
+      ]
+    },
+    {
+      "id": 3793,
+      "name": "Atria Porkkanaohukainen 400g",
+      "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "ean": "6407850056685",
+      "storeItems": [
+        {
+          "price": 275
+        }
+      ]
+    },
+    {
+      "id": 78766,
+      "name": "Pirkka porkkanaohukainen 400g",
+      "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+      "ean": "6410400049013",
+      "storeItems": [
+        {
+          "price": 249
+        }
+      ]
+    },
+    {
+      "id": 1875,
+      "name": "Atria rehti porkkananakki 280g",
+      "category": "liha-ja-kasviproteiinit/makkarat-nakit-ja-pekonit/nakit",
+      "ean": "6407870074645",
+      "storeItems": [
+        {
+          "price": 299
+        }
+      ]
+    },
+    {
+      "id": 39887,
+      "name": "Yli-Karkelan porkkanapussi 1kg",
+      "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+      "ean": "6429990001479",
+      "storeItems": [
+        {
+          "price": 179
+        }
+      ]
+    },
+    {
+      "id": 6151,
+      "name": "Torino 400g kaura-porkkanapasta",
+      "category": "pastat-riisit-ja-nuudelit/pastat/fusillit-pennet-ja-muut-kuviopastat",
+      "ean": "6411200110545",
+      "storeItems": [
+        {
+          "price": 249
+        }
+      ]
+    }
+  ]
+}

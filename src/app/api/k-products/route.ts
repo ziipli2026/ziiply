@@ -7,6 +7,7 @@ import { observeEanProductsBestEffort } from "@/lib/eanBank";
 type RuoanhintaProduct = {
   id: number;
   name: string;
+  category?: string;
   ean?: string;
   gtin?: string;
   eanCode?: string;
@@ -141,6 +142,7 @@ export async function GET(request: Request) {
       .map((product) => ({
         id: String(product.id),
         name: fixEncoding(product.name),
+        category: product.category,
         ean: getEan(product),
         familyKey: product.familyKey,
         brandName: product.brandName ? fixEncoding(product.brandName) : undefined,
