@@ -4785,6 +4785,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const liveArrivalLastFixAtRefV864 = useRef(0);
   const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
   const liveArrivalDecisionRefV864 = useRef<ReturnType<typeof evaluateZiiplyArrival> | null>(null);
+  const [gpsArrivalNoticeV865, setGpsArrivalNoticeV865] = useState<string | null>(null);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
@@ -11796,7 +11797,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       sample();
     };
     sample();
-    const timer = setInterval(sample, ZIIPLY_PARKED_SAMPLE_MS);
+    const timer = setInterval(sample, Math.max(5000, ZIIPLY_PARKED_SAMPLE_MS));
     document.addEventListener("visibilitychange", resume);
     window.addEventListener("focus", sample);
     return () => {
@@ -14959,6 +14960,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, [...unique.values()], names.map(name => normalize(name)));
     liveArrivalStateRefV864.current = decision.state;
     liveArrivalDecisionRefV864.current = decision;
+    if (decision.showArrivalMessage && decision.store) setGpsArrivalNoticeV865(decision.store.name);
+    if (decision.status !== "in-store") setGpsArrivalNoticeV865(null);
     // Publish fixes before the expensive store search's 60/120-second throttle.
     const coords = {latitude:position.coords.latitude,longitude:position.coords.longitude};
     gpsCoordsLatestRefV137.current = coords;
@@ -25328,6 +25331,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
+        {gpsArrivalNoticeV865 && (
+          <div role="status" aria-live="polite" style={{position:"fixed",zIndex:100001,top:"max(12px, env(safe-area-inset-top))",left:12,right:12,maxWidth:440,margin:"0 auto",padding:16,borderRadius:16,background:"#e4f8e8",color:"#103b25",boxShadow:"0 6px 28px #0005",border:"2px solid #3a9a65"}}>
+            <div style={{display:"flex",alignItems:"start",justifyContent:"space-between",gap:12}}>
+              <div><strong>Olet saapunut kauppaan</strong><div>{gpsArrivalNoticeV865}</div></div>
+              <button type="button" aria-label="Sulje saapumisilmoitus" onClick={()=>setGpsArrivalNoticeV865(null)} style={{fontSize:24,lineHeight:1,padding:4}}>×</button>
+            </div>
+          </div>
+        )}
         {/* V506 GPS debug panel removed */}
 
 
