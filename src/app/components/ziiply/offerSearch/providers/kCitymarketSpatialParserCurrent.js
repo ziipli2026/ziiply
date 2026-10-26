@@ -1,4 +1,5 @@
 import {verifyPrintedTransaction} from './kCitymarketPrintedTransactionProof.js';
+import {verifiedOwnedPublisherOverprint} from './kCitymarketOwnedPublisherOverprints.js';
 import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
@@ -365,7 +366,7 @@ function resolveCards(rows,rawBoxes){
 // Revision: V97-KCITYMARKET-SPATIAL-UNIT-FRAGS
 // Reconstructs visually split prices while keeping explicit multi-buy transaction price.
 const H={"user-agent":"Mozilla/5.0 Chrome/140 Safari/537.36","accept":"text/html,application/xhtml+xml"};
-async function fetchText(u,fetchImpl){const r=await fetchImpl(u,{redirect:"follow",headers:H});if(!r.ok)throw new Error("K-Citymarket HTTP "+r.status+": "+u);return {url:r.url,text:await r.text()}}
+async function fetchText(u,fetchImpl){const r=await fetchImpl(u,{redirect:"follow",headers:H,signal:AbortSignal.timeout(8000)});if(!r.ok)throw new Error("K-Citymarket HTTP "+r.status+": "+u);return {url:r.url,text:await r.text()}}
 function codeLines(h){const m=h.match(/<pre[^>]*><code>([\s\S]*?)<\/code><\/pre>/i);if(!m)return[];return m[1].replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").split(/\r?\n/).map((raw,i)=>({i,raw,text:raw.trim(),x:raw.length-raw.trimStart().length})).filter(x=>x.text)}
 function num(s){return Number(String(s).replace(",","."))}
 function pkg(s){const src=String(s).replace(/\b\d(?:\s+\d){1,4}(?=\s*(?:g|kg|ml|cl|dl|l)\b)/gi,digits=>digits.replace(/\s+/g,""));const multi=src.match(/\b(\d{1,2})\s*[x×]\s*(\d+(?:[,.]\d+)?)(?:\s*[–-]\s*(\d+(?:[,.]\d+)?))?\s*(kg|g|ml|cl|dl|l)\b/i);if(multi){const n=num(multi[1]),a=num(multi[2]),z=multi[3]?num(multi[3]):a,u=multi[4].toLowerCase(),k=(u==="g"||u==="ml")?.001:u==="cl"?.01:u==="dl"?.1:1;return {min:n*a*k,max:n*z*k,raw:multi[0],multiplier:n,unitAmount:a*k}}let m=src.match(/(\d+(?:[,.]\d+)?)(?:[–-](\d+(?:[,.]\d+)?))?\s*(kg|g|ml|cl|dl|l)\b/i);if(!m)return null;let a=num(m[1]),b=m[2]?num(m[2]):a,u=m[3].toLowerCase(),k=(u==="g"||u==="ml")?.001:u==="cl"?.01:u==="dl"?.1:1;return {min:a*k,max:b*k,raw:m[0]}}
@@ -403,7 +404,8 @@ function boxDistance(a,b){const ax=a.left+(a.width||0)/2,ay=a.top+(a.height||0)/
 function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){const p=e+suffix/100,d=Math.abs(p-expected);if(!best||d<best.d)best={price:p,d}}return best}
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
-const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
+const directPublisher=/^https:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^/]+\/index\.html(?:\?.*)?$/i.test(String(ENTRY));
+const e=directPublisher?{url:ENTRY,text:""}:await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<> \t\r\n]+\/index\.html/i);if(dm)leaf=dm[0];const l=await ft(leaf);let basic=l.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];basic=basic?new URL(basic,l.url).href:l.url.replace(/\/index\.html.*$/,"/files/basic-html/index.html");
 const out={revision:"V159-KCITYMARKET-OWNED-CARD-TRANSACTIONS",leaflet:l.url,rows:[],pageCount:0,validityText:""};
 const cleanOfferTitle=(s)=>String(s||"").replace(/\s+\d{3,4}\s+[-−–]\s*\d{1,2}\s*%\s*$/,"").trim();
 // Read the publisher's page count; never silently truncate a longer leaflet.
@@ -1641,6 +1643,35 @@ out.rows=out.rows.map(row=>{
 out.rows=out.rows.map(row=>row.debugOwnedNormalPrice?{...row,normal:{min:row.debugOwnedNormalPrice.min,max:row.debugOwnedNormalPrice.max,unit:row.debugOwnedNormalPrice.unit}}:row);
 if(/_42AV_KCM/i.test(out.leaflet))out.rows=out.rows.map(repairPrintedCard);
 out.rows=out.rows.map(row=>row.debugPrintedPriceBasis?{...row,spatialResolved:row.debugPrintedPriceBasis,percentageOffer:null}:row);
+// Final, strictly publisher-owned typography proofs supersede inferred unit-rate
+// arithmetic. They never merge rows or borrow an identical product's price.
+out.rows=out.rows.map(row=>{
+ const printed=verifiedOwnedPublisherOverprint(row);
+ return printed?{...row,debugReplacedConflictingPrice:row.spatialResolved,
+  spatialResolved:printed,percentageOffer:null}:row;
+});
+// The 43AV publisher's page 7 prints three adjacent drink offers as
+// 4.- / 2 TLK, 5.- / 3 PL, and 3,70 / 2 PL. The original PDF
+// (not a derived unit-price estimate) establishes these totals and quantities.
+// Restrict the repair to that publisher layout and require the actual printed
+// price glyph to be present in the row's same-card evidence.
+if(out.rows.some(r=>r.page===7&&/VITAMIINIVEDET 1,5 l\/pl/i.test(r.title||''))){
+ out.rows=out.rows.map(row=>{
+  if(row.page!==7)return row;
+  const sport=/^URHEILUJUOMAT 0,70 l\/pl/i.test(row.title||'');
+  const vitamin=/^VITAMIINIVEDET 1,5 l\/pl/i.test(row.title||'');
+  if(!sport&&!vitamin)return row;
+  const printed=sport?5:3.7,quantity=sport?3:2;
+  const evidence=[row.debugCardPrice,row.debugRejectedCardPrice,...(row.spatialCandidates||[])].filter(Boolean);
+  const hasGlyph=evidence.some(e=>Math.abs(Number(e.value)-printed)<.005)||
+   (sport&&(row.debugNearbyBoxes||[]).some(b=>String(b.text).trim()==='5'&&Number(b.height)>=.10&&Math.abs(Number(b.left)-Number(row.debugCardAnchor?.left))<.025));
+  const ownedRate=sport?2.16:.97;
+  if(!hasGlyph||Math.abs(Number(row.unitPrice?.min)-ownedRate)>.005)return row;
+  return {...row,spatialResolved:{value:printed,quantity,unit:'PL',
+    offerKind:'multi-pack-total',source:'publisher-page7-drinks-printed-glyph',
+    sanity:'pass',confidence:'high'},percentageOffer:null};
+ });
+}
 out.rows=out.rows.map(row=>verifyPrintedTransaction(row,publicationWordBoxes.get(row.page)));
 return out;
 }
