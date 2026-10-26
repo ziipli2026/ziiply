@@ -41,15 +41,15 @@ export async function GET(req: NextRequest) {
         pd.price_eur_per_litre AS diesel, pd.observed_at AS observed_diesel
       FROM ziiply_fuel_stations s
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
-        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.price_eur_per_litre < 4 AND p.fuel_type='95'
+        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.fuel_type='95'
 
         ORDER BY observed_at DESC LIMIT 1) p95 ON TRUE
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
-        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.price_eur_per_litre < 4 AND p.fuel_type='98'
+        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.fuel_type='98'
 
         ORDER BY observed_at DESC LIMIT 1) p98 ON TRUE
       LEFT JOIN LATERAL (SELECT price_eur_per_litre, observed_at FROM ziiply_fuel_price_observations p
-        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.price_eur_per_litre < 4 AND p.fuel_type='diesel'
+        WHERE p.source_station_id=s.source_station_id AND p.source <> 'tankkaus.com' AND p.fuel_type='diesel'
 
         ORDER BY observed_at DESC LIMIT 1) pd ON TRUE
       WHERE lower(coalesce(s.chain, '')) NOT LIKE '%teboil%'
