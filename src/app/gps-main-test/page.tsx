@@ -12,7 +12,9 @@ export default function GpsMainTest(){
  const [status,setStatus]=useState("Valmistelee GPS-simulaatiota");
  const [debug,setDebug]=useState<string[]>([]);
  const [watchCount,setWatchCount]=useState(0);
+ const [exportedAt,setExportedAt]=useState<string|null>(null);
  const [decision,setDecision]=useState("ei GPS-näytettä");
+ const downloadDebug=()=>{const payload={type:"ziiply-gps-main-test-debug",exportedAt:new Date().toISOString(),branch:"test/gps-arrival-screen-20261026",simulatedStore:"Sale Monninkylä",simulatedNear:near,gpsUpdates:updates,gpsWatchers:watchCount,lastArrivalDecision:decision,events:[...debug].reverse()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="ziiply-gps-debug-"+new Date().toISOString().replace(/[:.]/g,"-")+".json";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);setExportedAt(new Date().toLocaleTimeString("fi-FI"));};
  const log=(message:string)=>setDebug(previous=>[new Date().toLocaleTimeString("fi-FI")+" "+message,...previous].slice(0,100));
  useEffect(()=>{
   const geo=navigator.geolocation;
@@ -49,6 +51,7 @@ export default function GpsMainTest(){
  <strong>GPS MASTER / PÄÄKOODIN INTEGRAATIOTESTI</strong><div>{status}</div><div>GPS-päivitykset: {updates} | oikea pääsivu: {ready?"ladattu":"ei ladattu"}</div>
  <button style={{padding:10,margin:5,background:"#60d394",border:0,borderRadius:7}} onClick={()=>{setNear(true);window.dispatchEvent(new Event("ziiply-test-near"))}}>Siirry kauppaan</button>
  <button style={{padding:10,margin:5,background:"#f6d77a",border:0,borderRadius:7}} onClick={()=>{setNear(false);window.dispatchEvent(new Event("ziiply-test-far"))}}>Poistu kaupasta</button>
+ <button style={{padding:10,margin:5,background:"#b9dcff",color:"#071b14",border:0,borderRadius:7,fontWeight:700}} onClick={downloadDebug}>Tallenna debug JSON</button>{exportedAt?<span> Tallennettu {exportedAt}</span>:null}
  <div style={{fontWeight:700,marginTop:6}}>{decision}</div><div>Moottorin tulos on diagnostiikkaa; varsinainen pääsivu saa saman GPS-syötteen erikseen.</div><div>GPS-kuuntelijoita: {watchCount}. Jos 0, pääkoodi ei ole rekisteröinyt watchPosition-kuuntelijaa.</div><div>Simuloitu paikka: {near?"Sale Monninkylä":"kaupan ulkopuolella"}. Nopeutta tai ajohistoriaa ei simuloida.</div><div style={{marginTop:8,maxHeight:180,overflow:"auto",background:"#071b14",padding:8,font:"11px monospace",whiteSpace:"pre-wrap"}}>{debug.join("\n")||"Ei tapahtumia"}</div></div>
  {ready?<MainZiiply/>:<main style={{padding:20}}>GPS-simulaation käynnistys...</main>}</>;
 }
