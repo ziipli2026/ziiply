@@ -4,6 +4,8 @@
  * Never changes a store selection or a cart price by itself.
  */
 export const ZIIPLY_STORE_RADIUS_METERS = 50;
+// Compatibility export: no arrival delay is applied.
+export const ZIIPLY_PARKED_SAMPLE_MS = 0;
 
 export type ZiiplyArrivalSample = {
   at: number;
@@ -68,7 +70,7 @@ export function evaluateZiiplyArrival(
   if(inStore)state.arrivalStoreId=store.id;
   const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
   return {
-    state,status:!valid||ambiguous?'uncertain':inStore?'in-store':store?'near-store':moving?'moving':'checking',
+    state,status:!valid||ambiguous?'uncertain':inStore?'in-store':store?'near-store':'checking',
     store,isSelectedStore,askStoreChange:!!inStore&&!isSelectedStore&&showArrivalMessage,
     showArrivalMessage,radar:inStore?'green':'white',
   };
