@@ -1,0 +1,31 @@
+name: Ziiply OFF missing EAN lookup
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Maximum missing EANs to query per run'
+        required: true
+        default: '1000'
+        type: choice
+        options: ['100','500','1000','3000']
+  schedule:
+    - cron: '20 1 * * *'
+concurrency:
+  group: ziiply-off-missing-eans
+  cancel-in-progress: false
+jobs:
+  lookup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'psycopg[binary]>=3.2,<4' 'certifi>=2025.1.31'
+      - run: python -m py_compile scripts/import-off-missing-eans.py
+      - name: Fetch missing EANs from OFF
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+          OFF_LOOKUP_LIMIT: ${{ inputs.limit || '1000' }}
+        run: python -u scripts/import-off-missing-eans.py
