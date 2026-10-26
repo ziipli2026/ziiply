@@ -25360,7 +25360,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           onOffers={() => {
             const decision = liveArrivalDecisionRefV864.current;
             arrivalNotice.dismiss();
-            if (!decision?.isSelectedStore || decision.status !== "in-store" || !decision.store) { openShopsPanel(); return; }
+            if (!decision?.store || !["near-store", "in-store"].includes(decision.status)) { openShopsPanel(); return; }
             const name = normalize(decision.store.name);
             const chain = selectedChains.s && normalize(String(activeStores.sStoreName || "")) === name ? "S"
               : selectedChains.k && normalize(String(activeStores.kStoreName || "")) === name ? "K"
