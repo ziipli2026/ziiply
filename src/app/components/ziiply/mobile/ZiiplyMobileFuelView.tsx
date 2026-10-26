@@ -222,7 +222,7 @@ export default function ZiiplyMobileFuelView({
             >
               <FuelStationBackdrop chain={g.key === "Gulf / Ritoil / Muu" ? "Muut" : g.key as "Neste" | "ABC" | "St1" | "SEO"} />
               <div
-                className="relative grid h-full w-full grid-rows-[minmax(0,1fr)_14px] gap-y-0 pb-[30px] text-center"
+                className="relative grid h-full w-full grid-rows-[minmax(28px,1fr)_14px] gap-y-0 pb-[30px] text-center"
               >
                 <span className="absolute left-0 top-0 flex h-[22px] w-[30px] items-center justify-center overflow-hidden rounded-[0.45rem] border border-[#b89552] bg-[#fffef9] p-px">
                   {g.logo ? (
@@ -251,8 +251,8 @@ export default function ZiiplyMobileFuelView({
                 >
                   ✓
                 </button>
-                <span className="col-start-1 row-start-1 flex min-h-0 min-w-0 items-start justify-center overflow-hidden pl-[32px] pr-[25px] pt-0.5 text-[clamp(9px,2.6vw,12px)] font-black leading-[1.05] text-[#050505]">
-                  <span className="line-clamp-2 break-words [overflow-wrap:anywhere]">
+                <span className="col-start-1 row-start-1 flex min-h-0 min-w-0 items-center justify-center overflow-hidden pl-[32px] pr-[25px] text-[clamp(9px,2.6vw,12px)] font-black leading-[1.12] text-[#050505]">
+                  <span className="block max-h-full overflow-hidden break-words [overflow-wrap:anywhere] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
                   {station?.name ?? (loading ? "Haetaan…" : !coords ? "Sijainti puuttuu" : "Ei lähiasemaa")}
                   </span>
                 </span>
