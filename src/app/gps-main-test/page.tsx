@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 import dynamic from "next/dynamic";
+import {evaluateZiiplyArrival,initialZiiplyArrivalState,ziiplyDistanceMeters,type ZiiplyArrivalState} from "../components/ziiply/location/ziiplyArrivalSequence";
 const MainZiiply=dynamic(()=>import("../page"),{ssr:false});
 const SHOP={latitude:60.49385,longitude:25.54130};
 type Watch={success:PositionCallback,error?:PositionErrorCallback|null};
@@ -11,6 +12,7 @@ export default function GpsMainTest(){
  const [status,setStatus]=useState("Valmistelee GPS-simulaatiota");
  const [debug,setDebug]=useState<string[]>([]);
  const [watchCount,setWatchCount]=useState(0);
+ const [decision,setDecision]=useState("ei GPS-näytettä");
  const log=(message:string)=>setDebug(previous=>[new Date().toLocaleTimeString("fi-FI")+" "+message,...previous].slice(0,100));
  useEffect(()=>{
   const geo=navigator.geolocation;
@@ -18,11 +20,13 @@ export default function GpsMainTest(){
   const oldGet=geo.getCurrentPosition.bind(geo),oldWatch=geo.watchPosition.bind(geo),oldClear=geo.clearWatch.bind(geo);
   const watches=new Map<number,Watch>();let nextId=900000;
   let simulatedNear=false;
+  let arrivalState:ZiiplyArrivalState=initialZiiplyArrivalState();
+  const store={id:"gps-test-sale-monninkyla",name:"Sale Monninkylä",...SHOP};
   function position():GeolocationPosition{
    const p=simulatedNear?SHOP:{latitude:60.491,longitude:25.538};
    return {coords:{latitude:p.latitude,longitude:p.longitude,accuracy:5,altitude:null,altitudeAccuracy:null,heading:null,speed:0},timestamp:Date.now(),toJSON(){return {coords:this.coords,timestamp:this.timestamp}}} as GeolocationPosition;
   }
-  function broadcast(){const p=position();log("GPS broadcast: "+p.coords.latitude+","+p.coords.longitude+"; watch-listeners="+watches.size);watches.forEach(w=>{try{w.success(p)}catch(e){console.error("GPS test callback failed",e)}});setUpdates(n=>n+1);}
+  function broadcast(){const p=position();const distance=Math.round(ziiplyDistanceMeters(p.coords,SHOP));const result=evaluateZiiplyArrival(arrivalState,{at:p.timestamp,latitude:p.coords.latitude,longitude:p.coords.longitude,accuracyMeters:p.coords.accuracy,speedKmh:null},[store],[store.id]);arrivalState=result.state;const summary="GPS "+distance+" m | MASTER-engine: "+result.status+" | saapumisilmoitus: "+result.showArrivalMessage+" | skannerin tutka: "+result.radar+" | pääkoodin GPS-kuuntelijat: "+watches.size;setDecision(summary);log(summary);watches.forEach(w=>{try{w.success(p)}catch(e){console.error("GPS test callback failed",e)}});setUpdates(n=>n+1);}
   const mockGet:typeof geo.getCurrentPosition=(success)=>{log("getCurrentPosition called");queueMicrotask(()=>success(position()));};
   const mockWatch:typeof geo.watchPosition=(success,error)=>{const id=nextId++;watches.set(id,{success,error});setWatchCount(watches.size);log("watchPosition registered id="+id);queueMicrotask(()=>success(position()));return id;};
   const mockClear:typeof geo.clearWatch=(id)=>{watches.delete(id);setWatchCount(watches.size);log("clearWatch id="+id);};
@@ -32,8 +36,8 @@ export default function GpsMainTest(){
    Object.defineProperty(geo,"clearWatch",{configurable:true,value:mockClear});
   }catch(e){setStatus("GPS-rajapinnan korvaaminen epäonnistui: "+String(e));return;}
   const interval=setInterval(broadcast,5000);
-  const nearHandler=()=>{simulatedNear=true;log("BUTTON: Siirry kauppaan");broadcast();setStatus("SIMULOITU: Sale Monninkylä, noin 0 m, GPS-tarkkuus 5 m");};
-  const farHandler=()=>{simulatedNear=false;log("BUTTON: Poistu kaupasta");broadcast();setStatus("SIMULOITU: kaupan ulkopuolella");};
+  const nearHandler=()=>{arrivalState=initialZiiplyArrivalState();simulatedNear=true;log("BUTTON: Siirry kauppaan");broadcast();setStatus("SIMULOITU: Sale Monninkylä, noin 0 m, GPS-tarkkuus 5 m");};
+  const farHandler=()=>{arrivalState=initialZiiplyArrivalState();simulatedNear=false;log("BUTTON: Poistu kaupasta");broadcast();setStatus("SIMULOITU: kaupan ulkopuolella");};
   window.addEventListener("ziiply-test-near",nearHandler);window.addEventListener("ziiply-test-far",farHandler);
   setReady(true);log("Mock GPS installed");setStatus("GPS korvattu. Paina Siirry kauppaan.");
   return ()=>{clearInterval(interval);window.removeEventListener("ziiply-test-near",nearHandler);window.removeEventListener("ziiply-test-far",farHandler);
@@ -45,6 +49,6 @@ export default function GpsMainTest(){
  <strong>GPS MASTER / PÄÄKOODIN INTEGRAATIOTESTI</strong><div>{status}</div><div>GPS-päivitykset: {updates} | oikea pääsivu: {ready?"ladattu":"ei ladattu"}</div>
  <button style={{padding:10,margin:5,background:"#60d394",border:0,borderRadius:7}} onClick={()=>{setNear(true);window.dispatchEvent(new Event("ziiply-test-near"))}}>Siirry kauppaan</button>
  <button style={{padding:10,margin:5,background:"#f6d77a",border:0,borderRadius:7}} onClick={()=>{setNear(false);window.dispatchEvent(new Event("ziiply-test-far"))}}>Poistu kaupasta</button>
- <div>GPS-kuuntelijoita: {watchCount}. Jos 0, pääkoodi ei ole rekisteröinyt watchPosition-kuuntelijaa.</div><div>Simuloitu paikka: {near?"Sale Monninkylä":"kaupan ulkopuolella"}. Jos ilmoitusta ei näy, tuotannon pääkoodin kytkentä epäonnistuu tällä syötteellä.</div><div style={{marginTop:8,maxHeight:180,overflow:"auto",background:"#071b14",padding:8,font:"11px monospace",whiteSpace:"pre-wrap"}}>{debug.join("\n")||"Ei tapahtumia"}</div></div>
+ <div style={{fontWeight:700,marginTop:6}}>{decision}</div><div>Moottorin tulos on diagnostiikkaa; varsinainen pääsivu saa saman GPS-syötteen erikseen.</div><div>GPS-kuuntelijoita: {watchCount}. Jos 0, pääkoodi ei ole rekisteröinyt watchPosition-kuuntelijaa.</div><div>Simuloitu paikka: {near?"Sale Monninkylä":"kaupan ulkopuolella"}. Nopeutta tai ajohistoriaa ei simuloida.</div><div style={{marginTop:8,maxHeight:180,overflow:"auto",background:"#071b14",padding:8,font:"11px monospace",whiteSpace:"pre-wrap"}}>{debug.join("\n")||"Ei tapahtumia"}</div></div>
  {ready?<MainZiiply/>:<main style={{padding:20}}>GPS-simulaation käynnistys...</main>}</>;
 }
