@@ -6,6 +6,13 @@ const MainZiiply=dynamic(()=>import("../page"),{ssr:false});
 const SHOP={latitude:60.49385,longitude:25.54130};
 type Watch={success:PositionCallback,error?:PositionErrorCallback|null};
 export default function GpsMainTest(){
+ const [phoneFrame,setPhoneFrame]=useState<boolean|null>(null);
+ useEffect(()=>{setPhoneFrame(window.innerWidth>=640&&!new URLSearchParams(window.location.search).has("mobile"));},[]);
+ if(phoneFrame===null)return <main>Avataan GPS-testiä...</main>;
+ if(phoneFrame)return <main style={{minHeight:"100dvh",background:"#dce9df",display:"flex",justifyContent:"center"}}><iframe title="Ziiplyn alkuperäinen mobiilipääsivu ja GPS-testi" src="/gps-main-test?mobile=1" style={{width:390,maxWidth:"100%",height:"100dvh",border:0}} /></main>;
+ return <GpsSimulator/>;
+}
+function GpsSimulator(){
  const [ready,setReady]=useState(false);
  const [debugOpen,setDebugOpen]=useState(false);
  const [near,setNear]=useState(false);
