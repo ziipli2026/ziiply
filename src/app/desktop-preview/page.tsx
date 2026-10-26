@@ -8,6 +8,8 @@ import ArvoSettingsPanel from "../components/ziiply/ArvoSettingsPanel";
 import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferences } from "../components/ziiply/ArvoSettingsPanel";
 
 import { useEffect, useRef, useState } from "react";
+import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "../components/ziiply/location/ZiiplyArrivalNotice";
+import { evaluateZiiplyArrival, initialZiiplyArrivalState, type ZiiplyArrivalDecision } from "../components/ziiply/location/ziiplyArrivalSequence";
 import { getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
@@ -2009,12 +2011,80 @@ export default function DesktopPreviewPage() {
     catch{if(request===offerRequestId.current){setGostaOffers([]);setGostaLoadError("Tarjoushaku epäonnistui. Yritä uudelleen.")}}
     finally{if(request===offerRequestId.current)setGostaLoading(false)}
   }
-  async function runDesktopScannerEanSearch(code:string,physicalScan=false) {
-    if(physicalScan && desktopInStoreConfirmedRef.current===null){
-      const selectedName=String((Object.values(selectedStores) as any[])[0]?.name||"valitussa kaupassa");
-      desktopInStoreConfirmedRef.current=window.confirm(`Oletko nyt kaupassa ${selectedName}?\n\nOK = Kyllä, Peruuta = Ei`);
+
+  const desktopArrivalNotice = useZiiplyArrivalNotice(gpsOn);
+  const desktopArrivalState = useRef(initialZiiplyArrivalState());
+  const desktopArrivalDecision = useRef<ZiiplyArrivalDecision | null>(null);
+  const desktopArrivalFixAt = useRef(0);
+  const desktopArrivalHandler = useRef<(position: GeolocationPosition | null) => void>(() => {});
+  const desktopArrivalStoreId = (store:any) => String(store?.name || "").trim().toLocaleLowerCase("fi");
+  desktopArrivalHandler.current = position => {
+    const at=Date.now();
+    if(!position || at-position.timestamp>10000 || position.timestamp>at+1000 ||
+      !Number.isFinite(position.coords.accuracy) || position.coords.accuracy<=0 || position.coords.accuracy>50) {
+      if(at-desktopArrivalFixAt.current>30000){
+        desktopInStoreConfirmedRef.current=false;
+        desktopArrivalDecision.current=null;
+        desktopArrivalNotice.update(evaluateZiiplyArrival(desktopArrivalState.current,{at,latitude:NaN,longitude:NaN,accuracyMeters:Infinity,speedKmh:null},[],[]),at);
+      }
+      return;
     }
-    const collect=physicalScan && desktopInStoreConfirmedRef.current===true;
+    if(position.timestamp<=desktopArrivalFixAt.current)return;
+    desktopArrivalFixAt.current=position.timestamp;
+    const chosen=(Object.values(selectedStores) as any[]).filter(Boolean);
+    const unique=new Map<string,{id:string;name:string;latitude:number;longitude:number}>();
+    for(const store of [...stores,...lidlStores,...sparStores,...chosen]){
+      const id=desktopArrivalStoreId(store);
+      const lat=store?.latitude??store?.lat??store?.location?.lat??store?.coordinates?.latitude;
+      const lon=store?.longitude??store?.lon??store?.lng??store?.location?.lng??store?.coordinates?.longitude;
+      if(!id||lat==null||lon==null||!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon)))continue;
+      if(!unique.has(id))unique.set(id,{id,name:String(store.name),latitude:Number(lat),longitude:Number(lon)});
+    }
+    const decision=evaluateZiiplyArrival(desktopArrivalState.current,{
+      at:position.timestamp,latitude:position.coords.latitude,longitude:position.coords.longitude,
+      accuracyMeters:position.coords.accuracy,speedKmh:position.coords.speed==null?null:position.coords.speed*3.6
+    },[...unique.values()],chosen.map(desktopArrivalStoreId));
+    desktopArrivalState.current=decision.state;
+    desktopArrivalDecision.current=decision;
+    desktopInStoreConfirmedRef.current=decision.status==="in-store"&&decision.isSelectedStore;
+    setGpsCoords({latitude:position.coords.latitude,longitude:position.coords.longitude});
+    desktopArrivalNotice.update(decision,position.timestamp);
+  };
+  useEffect(()=>{
+    if(!gpsOn || !navigator.geolocation){desktopInStoreConfirmedRef.current=false;desktopArrivalDecision.current=null;return;}
+    let active=true;
+    let pending=false;
+    const accept=(position:GeolocationPosition)=>{pending=false;if(active)desktopArrivalHandler.current(position);};
+    const fail=()=>{pending=false;if(active)desktopArrivalHandler.current(null);};
+    const sample=()=>{
+      if(!active||pending||document.hidden)return;
+      pending=true;
+      navigator.geolocation.getCurrentPosition(accept,fail,{enableHighAccuracy:true,maximumAge:0,timeout:4500});
+    };
+    const watch=navigator.geolocation.watchPosition(accept,fail,{enableHighAccuracy:true,maximumAge:0,timeout:10000});
+    const timer=window.setInterval(sample,5000);
+    const resume=()=>{if(!document.hidden)sample();};
+    sample();document.addEventListener("visibilitychange",resume);
+    return()=>{active=false;navigator.geolocation.clearWatch(watch);window.clearInterval(timer);document.removeEventListener("visibilitychange",resume);};
+  },[gpsOn]);
+  async function confirmDesktopArrivalForScan(){
+    if(!gpsOn||!navigator.geolocation)return false;
+    if(Date.now()-desktopArrivalFixAt.current>10000){
+      const fresh=await new Promise<GeolocationPosition|null>(resolve=>{
+        const timeout=window.setTimeout(()=>resolve(null),4500);
+        navigator.geolocation.getCurrentPosition(p=>{window.clearTimeout(timeout);resolve(p)},()=>{window.clearTimeout(timeout);resolve(null)},{enableHighAccuracy:true,maximumAge:0,timeout:4000});
+      });
+      desktopArrivalHandler.current(fresh);
+      if(!fresh)return false;
+    }
+    const decision=desktopArrivalDecision.current;
+    const selected=(Object.values(selectedStores) as any[]).some(store=>desktopArrivalStoreId(store)===decision?.store?.id);
+    return !!decision&&decision.status==="in-store"&&selected&&Date.now()-desktopArrivalFixAt.current<=10000;
+  }
+
+  async function runDesktopScannerEanSearch(code:string,physicalScan=false) {
+    const collect=physicalScan && await confirmDesktopArrivalForScan();
+    desktopInStoreConfirmedRef.current=collect;
     desktopPhysicalCollectionRef.current=collect;
     const weightLabel=resolvePriceWeightLabel(code);
     const kWeightLabel=resolveKWeightLabel(code);
@@ -2834,6 +2904,22 @@ export default function DesktopPreviewPage() {
 
           </div>
         </section>
+
+
+      <ZiiplyArrivalNotice notice={desktopArrivalNotice.notice}
+        onDismiss={desktopArrivalNotice.dismiss} onSkip={desktopArrivalNotice.skip}
+        onList={()=>{desktopArrivalNotice.dismiss();setNotebookRecipePicker(false);setNotebookOpen(true);}}
+        onRecipe={()=>{desktopArrivalNotice.dismiss();setNotebookRecipePicker(true);setNotebookOpen(true);}}
+        onOffers={()=>{
+          desktopArrivalNotice.dismiss();
+          const decision=desktopArrivalDecision.current;
+          if(!decision?.store||!["near-store","in-store"].includes(decision.status))return;
+          const store=(Object.values(selectedStores) as any[]).find(s=>desktopArrivalStoreId(s)===decision.store?.id);
+          if(!store){setChooseStoresNoticeFor("gosta");return;}
+          const kind=storeKind(store);
+          const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store.chain||"")+" "+String(store.name||""))?"EUROSPAR":"TOKMANNI";
+          void openDesktopGostaChain(chain,store);
+        }} />
 
         <footer className="relative z-10 flex shrink-0 items-center justify-between border-t border-[#64745f]/15 bg-[#e4e9df] px-2 py-1 text-[12px] font-bold text-[#747d6e]">
           <span>Ziiply Oy</span>

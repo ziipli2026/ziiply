@@ -3,12 +3,10 @@
  * Pure logic: the caller owns geolocation permission, polling, UI and persistence.
  * Never changes a store selection or a cart price by itself.
  */
-export const ZIIPLY_TRIP_SPEED_KMH = 20;
-export const ZIIPLY_TRIP_CONFIRM_MS = 60_000;
 export const ZIIPLY_STORE_RADIUS_METERS = 50;
-export const ZIIPLY_PARKED_SPEED_KMH = 5;
-export const ZIIPLY_PARKED_CONFIRM_MS = 10_000;
-export const ZIIPLY_PARKED_SAMPLE_MS = 5_000;
+export const ZIIPLY_APPROACH_RADIUS_METERS = 200;
+// Compatibility export: no arrival delay is applied.
+export const ZIIPLY_PARKED_SAMPLE_MS = 0;
 
 export type ZiiplyArrivalSample = {
   at: number;
@@ -60,48 +58,21 @@ export function evaluateZiiplyArrival(
   const valid=Number.isFinite(sample.latitude)&&Number.isFinite(sample.longitude)
     &&Number.isFinite(sample.accuracyMeters)&&sample.accuracyMeters>0
     &&sample.accuracyMeters<=50;
-  const speed=sample.speedKmh;
-  const moving=valid&&speed!==null&&Number.isFinite(speed)&&speed>ZIIPLY_TRIP_SPEED_KMH;
-  if(moving){
-    state.tripStartedAt ??= sample.at;
-    if(sample.at-state.tripStartedAt>=ZIIPLY_TRIP_CONFIRM_MS)state.tripConfirmed=true;
-    state.stoppedAt=null;state.lastStationarySampleAt=null;state.lastStationaryPosition=null;
-    // Keep a confirmed session until departure is independently established.
-  }else if(valid && ((speed!==null && Number.isFinite(speed) && speed>=0 && speed<=ZIIPLY_PARKED_SPEED_KMH)
-    // Safari may supply null speed even at rest. Require repeated stable fixes.
-    || (speed===null && (!state.lastStationaryPosition
-      || ziiplyDistanceMeters(state.lastStationaryPosition,sample)<=25)))){
-    state.tripStartedAt=null;
-    if(state.lastStationarySampleAt===null || sample.at-state.lastStationarySampleAt>=ZIIPLY_PARKED_SAMPLE_MS){
-      const drift=state.lastStationaryPosition?ziiplyDistanceMeters(state.lastStationaryPosition,sample):0;
-      if(drift>25)state.stoppedAt=sample.at;
-      else state.stoppedAt ??= sample.at;
-      state.lastStationaryPosition={latitude:sample.latitude,longitude:sample.longitude};
-      state.lastStationarySampleAt=sample.at;
-    }
-  }else{
-    state.tripStartedAt=null;state.stoppedAt=null;
-    state.lastStationarySampleAt=null;state.lastStationaryPosition=null;
-  }
   const candidates=valid?stores.map(store=>({store,distance:ziiplyDistanceMeters(sample,store)}))
-    .filter(x=>x.distance<=ZIIPLY_STORE_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
+    .filter(x=>x.distance<=ZIIPLY_APPROACH_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
   // GPS uncertainty: if two shops are indistinguishable within the accuracy radius,
   // do not claim a particular store.
   const ambiguous=candidates.length>1&&candidates[1].distance-candidates[0].distance<=sample.accuracyMeters;
   const store=ambiguous?null:candidates[0]?.store??null;
-  // Arrival is mode-independent: walking and opening the app at a shop work too.
-  // Multiple nearby reliable fixes confirm presence without a driving history.
-  const parked=state.stoppedAt!==null&&sample.at-state.stoppedAt>=ZIIPLY_PARKED_CONFIRM_MS;
-  const slowApproach=valid&&speed!==null&&speed>=0&&speed<=12;
-  const nearbyStable=!!store&&state.lastStationarySampleAt!==null&&state.stoppedAt!==null
-    &&sample.at-state.stoppedAt>=ZIIPLY_PARKED_CONFIRM_MS;
-  const arrivalConfirmed=parked||(slowApproach&&nearbyStable);
+  // GPS location alone determines store presence. No speed, travel history or time delays.
+  const arrivalConfirmed=!!store&&valid&&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS;
   const inStore=!!store&&arrivalConfirmed&&valid;
   const showArrivalMessage=!!inStore&&state.arrivalStoreId!==store?.id;
   if(inStore)state.arrivalStoreId=store.id;
+  else if(valid&&!ambiguous&&!store)state.arrivalStoreId=null;
   const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
   return {
-    state,status:!valid||ambiguous?'uncertain':inStore?'in-store':store?'near-store':moving?'moving':'checking',
+    state,status:!valid||ambiguous?'uncertain':inStore?'in-store':store?'near-store':'checking',
     store,isSelectedStore,askStoreChange:!!inStore&&!isSelectedStore&&showArrivalMessage,
     showArrivalMessage,radar:inStore?'green':'white',
   };
