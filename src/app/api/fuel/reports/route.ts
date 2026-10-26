@@ -48,6 +48,28 @@ export async function POST(req:NextRequest){
       if(prices[key]!=null && date>(latestByFuel.get(fuel)??-Infinity))currentPrices[key]=prices[key];
     }
     if(!Object.keys(currentPrices).length)return NextResponse.json({ok:true,stale:true,published:[],message:"Uudemmat hintatiedot ovat jo rekisterissä.",environment:database.production?"production":"test"});
+    // Compare only against existing non-placeholder observations; questionable prices await review.
+    const baselines=await sql`SELECT fuel_type,price_eur_per_litre FROM ziiply_fuel_price_observations
+      WHERE source_station_id=${stationId} AND source <> 'tankkaus.com'
+      AND id NOT IN (1840,1841,1845,1846,1847)
+      ORDER BY observed_at DESC LIMIT 100`;
+    const previous=new Map<string,number>();
+    for(const row of baselines){const fuel=String(row.fuel_type);if(!previous.has(fuel))previous.set(fuel,Number(row.price_eur_per_litre));}
+    const population=await sql`SELECT fuel_type, percentile_cont(0.5) WITHIN GROUP (ORDER BY price_eur_per_litre) AS median
+      FROM ziiply_fuel_price_observations WHERE source <> 'tankkaus.com'
+      AND id NOT IN (1840,1841,1845,1846,1847)
+      AND observed_at > NOW() - INTERVAL '14 days'
+      GROUP BY fuel_type`;
+    const national=new Map(population.map(row=>[String(row.fuel_type),Number(row.median)]));
+    const pending:string[]=[];
+    for(const [key,fuel] of [["price95","95"],["price98","98"],["diesel","diesel"]] as const){
+      const price=currentPrices[key];if(price==null)continue;
+      const prior=previous.get(fuel), median=national.get(fuel);
+      if((prior!=null && (Math.abs(price-prior)>1 || Math.abs(price-prior)/prior>0.15))
+         ||(median!=null && Math.abs(price-median)/median>0.20)){
+        pending.push(fuel);delete currentPrices[key];
+      }
+    }
     const verifiedGps=manual?null:evidence.photoGps||evidence.deviceGps;
     const rows=await sql`INSERT INTO ziiply_user_fuel_reports(id,source_station_id,observed_at,prices,photo_data_url,gps_latitude,gps_longitude,gps_accuracy_m,metadata)
       VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(currentPrices)}::jsonb,${body.photo},${verifiedGps?.lat??null},${verifiedGps?.lon??null},${verifiedGps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
@@ -76,13 +98,13 @@ export async function POST(req:NextRequest){
     // The report review state must reflect validation, not just public price insertion.
     // An older valid report is accepted as history even if a newer price is displayed.
     const gasolineConflict=prices.price95!=null && prices.price98!=null && prices.price95>prices.price98;
-    const accepted=Object.keys(prices).some(key=>key==="diesel" || !gasolineConflict);
+    const accepted=pending.length===0 && Object.keys(prices).some(key=>key==="diesel" || !gasolineConflict);
     if(rows.length){
-      await sql`UPDATE ziiply_user_fuel_reports SET status=${accepted?"accepted":"rejected"} WHERE id=${body.id}::uuid AND status='pending_review'`;
+      await sql`UPDATE ziiply_user_fuel_reports SET status=${pending.length?"pending_review":accepted?"accepted":"rejected"} WHERE id=${body.id}::uuid AND status='pending_review'`;
     }
     if(typeof body.learningToken==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.learningToken)){
       try{const saved=await sql`SELECT prices FROM ziiply_user_fuel_reports WHERE id=${body.id}::uuid`;await recordFuelPhotoCorrection(body.id,body.learningToken,saved[0].prices,body.id);}catch(e){console.error('fuel-photo-learning feedback',e instanceof Error?e.message:'failed');}
     }
-    return NextResponse.json({ok:true,id:body.id,status:accepted?"accepted":"rejected",published,duplicate:rows.length===0,environment:database.production?"production":"test"});
+    return NextResponse.json({ok:true,id:body.id,status:pending.length?"pending_review":accepted?"accepted":"rejected",pending,published,duplicate:rows.length===0,environment:database.production?"production":"test"});
   }catch{return NextResponse.json({error:"Ilmoituksen tallennus epäonnistui. Yritä uudelleen."},{status:503});}
 }
