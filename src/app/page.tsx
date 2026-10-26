@@ -10961,9 +10961,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // ketjuja, Yksi/Monta-tilaa, Lähikaupat/Tavaratalot-tilaa, scopea tai näkymää.
       // Myös hetkellinen 0-kaupan GPS-vastaus jätetään valintojen osalta huomiotta.
       if (source === "gps" && silentStatusV137) {
+        const latestCoords = coordsOverride || gpsCoordsV320;
         setUsingOwnLocation(true);
-        setGpsCoordsV320(coordsOverride || gpsCoordsV320);
+        setGpsCoordsV320(latestCoords);
         setLocationInput("");
+        // Keep explicit store choices, but refresh automatic S/K defaults when GPS
+        // moves. Previously only foundStores changed, leaving stale cards in activeArea.
+        if (latestCoords && storesWithDistanceV97.length > 0) {
+          const nextAutomatic = buildDynamicArea(query, storesWithDistanceV97, storeMode, latestCoords);
+          setActiveArea((current) => ({
+            ...current,
+            label: nextAutomatic.label,
+            ...(getManualStoreOverrideV786("S", "local") ? {} : {
+              sLocalStoreId: nextAutomatic.sLocalStoreId,
+              sLocalStoreName: nextAutomatic.sLocalStoreName,
+            }),
+            ...(getManualStoreOverrideV786("K", "local") ? {} : {
+              kLocalStoreId: nextAutomatic.kLocalStoreId,
+              kLocalStoreName: nextAutomatic.kLocalStoreName,
+            }),
+            ...(getManualStoreOverrideV786("S", "hyper") ? {} : {
+              sStoreId: nextAutomatic.sStoreId,
+              sStoreName: nextAutomatic.sStoreName,
+            }),
+            ...(getManualStoreOverrideV786("K", "hyper") ? {} : {
+              kStoreId: nextAutomatic.kStoreId,
+              kStoreName: nextAutomatic.kStoreName,
+            }),
+          }));
+        }
         return;
       }
 
