@@ -265,9 +265,9 @@ export function resolveZiiplyPageStoreSelection(options: {
     return { debug: { apiLocalCount: 0, apiHyperCount: 0, areaLocalCount: 0 } };
   }
 
-  const maxLocalDistanceKm = options.maxLocalDistanceKm ?? 35;
+  const maxLocalDistanceKm = options.maxLocalDistanceKm ?? 10;
   const maxHyperDistanceKm = options.maxHyperDistanceKm ?? 90;
-  const maxAreaLocalDistanceKm = options.maxAreaLocalDistanceKm ?? 35;
+  const maxAreaLocalDistanceKm = options.maxAreaLocalDistanceKm ?? 10;
 
   const apiCandidates = uniqueByChainLevelName(
     (options.stores || [])
