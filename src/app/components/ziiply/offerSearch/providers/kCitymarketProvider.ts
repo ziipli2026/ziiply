@@ -677,7 +677,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-approved-42av-v159-owned-cards-20261012"],
+  ["ziiply-kcitymarket-printed-transactions-v160-20261026"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
@@ -792,7 +792,7 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
   const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
-  return storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:start,
+  // A corrected parser writes a new immutable snapshot; the active reader picks\n  // the latest snapshot for the validity period. Existing approved prices stay archived.\n  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v160",validFrom:start,
     validUntil:until,parsedAt:new Date().toISOString(),offers:enriched});
 }
 

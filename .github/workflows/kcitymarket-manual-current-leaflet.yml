@@ -1,17 +1,50 @@
-
 name: K-Citymarket manual parser
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/kcitymarket-manual-current-leaflet.yml"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketPrintedTransactionProof.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
 
 permissions:
   contents: read
+  statuses: read
+
+concurrency:
+  group: kcitymarket-parser-after-deploy
+  cancel-in-progress: false
 
 jobs:
   parse:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
+      - name: Wait for the matching production deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVISION: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            state=$(curl --fail --silent --show-error \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$REPOSITORY/commits/$REVISION/status" \
+              | jq -r '[.statuses[] | select(.context == "Vercel – ziiply")][0].state // "pending"')
+            if [ "$state" = success ]; then exit 0; fi
+            if [ "$state" = failure ] || [ "$state" = error ]; then
+              echo "Production deployment failed; existing publication retained"
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "Production deployment did not become ready"
+          exit 1
       - name: Run current Citymarket parser
         env:
           KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
@@ -21,4 +54,3 @@ jobs:
           curl --fail-with-body --show-error --max-time 150 \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
             https://ziiply.vercel.app/api/cron/kcitymarket-cache
-
