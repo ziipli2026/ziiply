@@ -4786,6 +4786,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
   const liveArrivalDecisionRefV864 = useRef<ReturnType<typeof evaluateZiiplyArrival> | null>(null);
   const [gpsArrivalNoticeV865, setGpsArrivalNoticeV865] = useState<string | null>(null);
+  const [gpsArrivalStepV866, setGpsArrivalStepV866] = useState<"approach"|"confirm"|"list"|"offers"|null>(null);
+  const gpsArrivalVisitRefV866 = useRef<string | null>(null);
+  const gpsArrivalApproachRefV866 = useRef<string | null>(null);
+  useEffect(() => {
+    if (gpsArrivalStepV866 !== "approach") return;
+    const timer = window.setTimeout(() => setGpsArrivalStepV866("confirm"), 4000);
+    return () => window.clearTimeout(timer);
+  }, [gpsArrivalStepV866]);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
@@ -14960,8 +14968,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, [...unique.values()], names.map(name => normalize(name)));
     liveArrivalStateRefV864.current = decision.state;
     liveArrivalDecisionRefV864.current = decision;
-    if (decision.showArrivalMessage && decision.store) setGpsArrivalNoticeV865(decision.store.name);
-    if (decision.status !== "in-store") setGpsArrivalNoticeV865(null);
+    if (decision.store && decision.showArrivalMessage && gpsArrivalVisitRefV866.current !== decision.store.id) {
+      gpsArrivalVisitRefV866.current = decision.store.id;
+      setGpsArrivalNoticeV865(decision.store.name);
+      setGpsArrivalStepV866("approach");
+    }
+    if (decision.status === "checking" && !decision.state.arrivalStoreId) {
+      gpsArrivalVisitRefV866.current = null;
+      gpsArrivalApproachRefV866.current = null;
+    }
     // Publish fixes before the expensive store search's 60/120-second throttle.
     const coords = {latitude:position.coords.latitude,longitude:position.coords.longitude};
     gpsCoordsLatestRefV137.current = coords;
@@ -25331,11 +25346,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        {gpsArrivalNoticeV865 && (
-          <div role="status" aria-live="polite" style={{position:"fixed",zIndex:100001,top:"max(12px, env(safe-area-inset-top))",left:12,right:12,maxWidth:440,margin:"0 auto",padding:16,borderRadius:16,background:"#e4f8e8",color:"#103b25",boxShadow:"0 6px 28px #0005",border:"2px solid #3a9a65"}}>
-            <div style={{display:"flex",alignItems:"start",justifyContent:"space-between",gap:12}}>
-              <div><strong>Olet saapunut kauppaan</strong><div>{gpsArrivalNoticeV865}</div></div>
-              <button type="button" aria-label="Sulje saapumisilmoitus" onClick={()=>setGpsArrivalNoticeV865(null)} style={{fontSize:24,lineHeight:1,padding:4}}>×</button>
+        {gpsArrivalNoticeV865 && gpsArrivalStepV866 && (
+          <div role="dialog" aria-modal="true" aria-label="Kauppaan saapuminen" style={{position:"fixed",inset:0,zIndex:100001,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.48)",padding:20}}>
+            <div style={{width:"100%",maxWidth:410,background:"#e4f8e8",color:"#103b25",borderRadius:20,padding:24,boxShadow:"0 12px 36px #0006",textAlign:"center"}}>
+              <div style={{fontWeight:800,fontSize:21,marginBottom:16}}>
+                {gpsArrivalStepV866==="approach"?"Olet saapumassa "+gpsArrivalNoticeV865:gpsArrivalStepV866==="confirm"?"Onko "+gpsArrivalNoticeV865+" valittu kaupaksi?":gpsArrivalStepV866==="list"?"Lisätäänkö ostoslista tai resepti?":"Katso tarjoukset?"}
+              </div>
+              {gpsArrivalStepV866!=="approach" && (
+                <div style={{display:"flex",gap:12,justifyContent:"center"}}>
+                  <button type="button" onClick={()=>setGpsArrivalStepV866(gpsArrivalStepV866==="confirm"?"list":gpsArrivalStepV866==="list"?"offers":null)} style={{background:"#d5e3d9",color:"#103b25",borderRadius:12,padding:"10px 24px",fontWeight:700}}>Ei</button>
+                  <button type="button" onClick={()=>setGpsArrivalStepV866(gpsArrivalStepV866==="confirm"?"list":gpsArrivalStepV866==="list"?"offers":null)} style={{background:"#15834b",color:"white",borderRadius:12,padding:"10px 24px",fontWeight:700}}>Kyllä</button>
+                </div>
+              )}
             </div>
           </div>
         )}
