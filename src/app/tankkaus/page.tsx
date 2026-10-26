@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import DesktopFuelPhotoReport from "../components/ziiply/desktop/DesktopFuelPhotoReport";
 
-type Station = { id:string; name:string; chain?:string; address?:string; distanceKm:number; diesel:number|null; price95:number|null; price98:number|null; observedDiesel?:string|null; observed95?:string|null; observed98?:string|null };
+type Station = { latitude:number; longitude:number; id:string; name:string; chain?:string; address?:string; distanceKm:number; diesel:number|null; price95:number|null; price98:number|null; observedDiesel?:string|null; observed95?:string|null; observed98?:string|null };
 type Coords = {lat:number;lon:number};
 const fmt=(n:number|null)=>n==null||!Number.isFinite(n)?"–":n.toLocaleString("fi-FI",{minimumFractionDigits:3,maximumFractionDigits:3});
 export default function TankkausPage(){
@@ -25,6 +25,7 @@ export default function TankkausPage(){
  const [place,setPlace]=useState("");
  const [locationDenied,setLocationDenied]=useState(false);
  const [manualSearch,setManualSearch]=useState(false);
+ const [searchBounds,setSearchBounds]=useState<number[]|null>(null);
  const requestId=useRef(0);
  const [stations,setStations]=useState<Station[]>([]);
  const [status,setStatus]=useState("Sijaintia ei ole vielä haettu.");
@@ -32,17 +33,17 @@ export default function TankkausPage(){
  const [fuel,setFuel]=useState<"diesel"|"price95"|"price98">("price95");
  const radius=100;
  const fetchStations=async(point:Coords,label:string,id:number)=>{if(id!==requestId.current)return;setCoords(point);setLoading(true);setStatus("Haetaan hintoja…");try{const response=await fetch(`/api/fuel/stations?lat=${point.lat}&lon=${point.lon}`,{cache:"no-store"});if(!response.ok)throw Error("Asemien haku epäonnistui.");const data=await response.json();if(!data.ok||!Array.isArray(data.stations))throw Error("Hintatietoja ei saatu.");if(id!==requestId.current)return;setStations(data.stations);setStatus(`Hinnat järjestetty: ${label}.`);}catch(e){if(id===requestId.current)setStatus(e instanceof Error?e.message:"Haku epäonnistui.");}finally{if(id===requestId.current)setLoading(false);}};
- const searchPlace=async()=>{const query=place.trim();if(query.length<2){setStatus("Kirjoita paikkakunta tai osoite.");return;}const id=++requestId.current;setManualSearch(true);setCoords(null);setStations([]);setLoading(true);setStatus("Etsitään paikkaa…");try{const response=await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=fi&limit=5&q=${encodeURIComponent(query)}`,{headers:{"Accept":"application/json"}});if(!response.ok)throw Error("Paikkahaku ei onnistunut.");const results=await response.json();if(id!==requestId.current)return;if(!Array.isArray(results)||!results.length){setStatus("Paikkaa ei löytynyt. Tarkista kirjoitusasu.");return;}const best=results[0];await fetchStations({lat:Number(best.lat),lon:Number(best.lon)},best.display_name,id);}catch(e){if(id===requestId.current)setStatus(e instanceof Error?e.message:"Paikkahaku epäonnistui.");}finally{if(id===requestId.current)setLoading(false);}};
+ const searchPlace=async()=>{const query=place.trim();if(query.length<2){setStatus("Kirjoita paikkakunta tai osoite.");return;}const id=++requestId.current;setManualSearch(true);setCoords(null);setStations([]);setLoading(true);setStatus("Etsitään paikkaa…");try{const response=await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=fi&limit=5&q=${encodeURIComponent(query)}`,{headers:{"Accept":"application/json"}});if(!response.ok)throw Error("Paikkahaku ei onnistunut.");const results=await response.json();if(id!==requestId.current)return;if(!Array.isArray(results)||!results.length){setStatus("Paikkaa ei löytynyt. Tarkista kirjoitusasu.");return;}const best=results[0];const bounds=Array.isArray(best.boundingbox)?best.boundingbox.map(Number):null;setSearchBounds(bounds&&bounds.length===4&&bounds.every(Number.isFinite)?bounds:null);await fetchStations({lat:Number(best.lat),lon:Number(best.lon)},best.display_name,id);}catch(e){if(id===requestId.current)setStatus(e instanceof Error?e.message:"Paikkahaku epäonnistui.");}finally{if(id===requestId.current)setLoading(false);}};
  const load=()=>{
   if(!navigator.geolocation){setLocationDenied(true);setStatus("Sijaintia ei voi käyttää. Hae paikkakunta kirjoittamalla.");return;}
-  const id=++requestId.current;setManualSearch(false);setLoading(true);setStatus("Haetaan sijaintia…");
+  const id=++requestId.current;setManualSearch(false);setSearchBounds(null);setPlace("");setCoords(null);setStations([]);setLoading(true);setStatus("Haetaan sijaintia…");
   navigator.geolocation.getCurrentPosition(async pos=>{
    await fetchStations({lat:pos.coords.latitude,lon:pos.coords.longitude},"oma sijainti",id);
   },e=>{if(id!==requestId.current)return;setLocationDenied(true);setStatus(e.code===1?"Sijaintilupa on estetty. Kirjoita paikkakunta tai osoite ja paina Hae hinnat.":"Sijaintia ei saatu. Hae paikkakunta tai osoite kirjoittamalla.");setLoading(false);},{enableHighAccuracy:false,timeout:12000,maximumAge:60000});
  };
 
  useEffect(()=>{if(mode==="prices"&&!coords&&!locationDenied)load();},[mode]);
- const visible=stations.filter(s=>(manualSearch||s.distanceKm<=radius)&&s[fuel]!=null).sort((a,b)=>(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
+ const visible=stations.filter(s=>s[fuel]!=null&&(manualSearch?(searchBounds?Number(s.latitude)>=searchBounds[0]&&Number(s.latitude)<=searchBounds[1]&&Number(s.longitude)>=searchBounds[2]&&Number(s.longitude)<=searchBounds[3]:s.distanceKm<=15):s.distanceKm<=radius)).sort((a,b)=>(a[fuel]??99)-(b[fuel]??99)||a.distanceKm-b.distanceKm);
  return <main className={embedded ? "h-dvh overflow-hidden bg-transparent p-0 text-[#174c35]" : "min-h-screen bg-[#fff4cf] px-4 py-8 text-[#174c35]"}>
   <div className={embedded ? "mx-auto h-full max-w-[720px]" : "mx-auto max-w-5xl"}>
    {!embedded&&<header className="mb-7 text-center"><a href="/" className="text-sm font-bold underline">Ziiply.fi</a><h1 className="mt-3 text-4xl font-black">Tankataan yhdessä halvemmalla!</h1><p className="mt-2 text-lg font-bold">Yksi kuva. Kaikkien hyöty.</p><p className="mt-2">Auta muita autoilijoita ilmoittamalla polttoainehintoja. Hintojen katselu on aina ilmaista.</p></header>}
@@ -58,9 +59,10 @@ export default function TankkausPage(){
     <h2 className="sm:hidden text-center font-serif italic font-black text-[#20523d] py-1">Göstan polttoainevertailu</h2>
     <div className="mt-0 flex min-h-0 flex-1 flex-col rounded-[24px] border-[3px] border-[#c59a53] bg-[#fff4cf] p-3 sm:p-5">
       <div className="flex flex-wrap items-center justify-center gap-3 text-sm">
-       <span className="font-semibold">Kaikki ketjut · Edullisin ensin · {manualSearch?"Koko asemarekisteri":"100 km säteellä"}</span>
+       <span className="font-semibold">Kaikki ketjut · Edullisin ensin · {manualSearch?"Haettu alue":"100 km säteellä"}</span>
 
       </div>
+      {manualSearch&&<button type="button" onClick={load} disabled={loading} className="mx-auto mt-2 rounded-lg bg-[#17573c] px-3 py-1.5 text-sm font-bold text-white disabled:opacity-50">GPS päälle · 100 km</button>}
       <form onSubmit={e=>{e.preventDefault();void searchPlace();}} className="mt-2 flex items-center justify-center gap-2"><input aria-label="Paikkakunta tai osoite" placeholder="Kirjoita paikkakunta tai osoite" value={place} onChange={e=>{setPlace(e.target.value);if(!manualSearch){requestId.current++;setManualSearch(true);setCoords(null);setStations([]);setStatus("Hae hinnat kirjoittamastasi paikasta.");}}} className="w-[30%] min-w-0 rounded-lg border-2 border-[#c59a53] bg-white px-3 py-2 text-sm" /><button type="submit" disabled={loading} className="shrink-0 rounded-lg bg-[#17573c] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">Hae hinnat</button></form>
       <p role="status" className="my-2 text-center text-xs text-[#685b46]">{status}</p>
       <div className="min-h-0 flex-1 overflow-y-auto">
