@@ -1,3 +1,4 @@
+import {verifyPrintedTransaction} from './kCitymarketPrintedTransactionProof.js';
 import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
@@ -382,9 +383,9 @@ export function productish(s){
  if(/\b(?:ja|tai)$/i.test(s.trim())&&!/\d/.test(s))return false;
 
  if(s.length<5||s.length>=180||!/[A-ZÅÄÖ]{3}/.test(s))return false;
- if(/KENGÄ|KENKÄ|NILKKUR|SAAPPA|MAIHAR|ULKOILUVAAT|VAATTEET|PÄÄHINE|HUIVI|NEULELANG|SÄILYTYSLAAT|TAKKI|HOUSU|PAITA|MEKKO|LAUKKU|PAISTOAST|KEITTOAST|KEITTIÖTYÖVÄLINE|PUSSILAKANA|(?<!PUHDISTUS)PYYHE|LAUTANEN|MUKI|KULHO|VEDENKEITIN|KUULOKE|KAIUTIN|TELEVIS|PUHELIN|TYÖKALU|LELU|SUKAT|ALUSHOUS|SÄHKÖHAMMASHARJA|VAIHTOHARJAT|HALLOWEEN|HÄMÄHÄKINVERKKO|PAPERILYHTY|KURPITSA-ASU|KORISTE|RANNEKE/i.test(exclusionTitle))return false;
+ if(/KENGÄ|KENKÄ|NILKKUR|SAAPPA|MAIHAR|ULKOILUVAAT|VAATTEET|PÄÄHINE|HUIVI|NEULELANG|SÄILYTYSLAAT|TAKKI|HOUSU|PAITA|MEKKO|LAUKKU|PAISTOAST|KEITTOAST|KEITTIÖTYÖVÄLINE|PUSSILAKANA|(?<!PUHDISTUS)PYYHE|LAUTANEN|MUKI|KULHO|VEDENKEITIN|KUULOKE|KAIUTIN|TELEVIS|PUHELIN|TYÖKALU|LELU|SUKAT|ALUSHOUS|SÄHKÖHAMMASHARJA|VAIHTOHARJAT|HALLOWEEN|HÄMÄHÄKINVERKKO|PAPERILYHTY|KURPITSA-ASU|KORISTE|RANNEKE/i.test(exclusionTitle)&&!/MAKEISPUSSI/i.test(exclusionTitle))return false;
  if(/AKTIVOI|VIIKON|RESEPT|CITTARI|HOITAA|Osallistu|Delta|HEVI-haaste|HEHKUVAAN|^LAKTOOSITON$|^UUTUUS$|^SHAKE UP$/.test(s))return false;
- return !!pkg(s)||/\b\d+\s+kpl\b.*\/kpl\)/i.test(s)||/NAKKI|PIHVI|VARTAAT|JUOMAT|JUUST|JOGUR|KEFIR|LEIP|PITA|PEKON|PYYKINPESU|WC-PAPERI|NENÄLIINA|KÄSINE|LOHI|ULKOFILEE|LATZ|KURPITSA|VÄLIPALAT|IHONHOITO|PESULAPPU|RUOKALAPPU|VUODESUOJA|SHAMPOO|DEODOR|SÄVYTTEET|HIUSVÄRITUOTTEET|MEIKKIVOIDE|PUUTERIT|KULMATUOTTEET/.test(s);
+ return !!pkg(s)||/\b\d+\s+kpl\b.*\/kpl\)/i.test(s)||/KIIVI|BATAATTI|TOMAATTI|BURGER|MAKEISPUSSI|SILMÄMUNA|NAKKI|PIHVI|VARTAAT|JUOMAT|JUUST|JOGUR|KEFIR|LEIP|PITA|PEKON|PYYKINPESU|WC-PAPERI|NENÄLIINA|KÄSINE|LOHI|ULKOFILEE|LATZ|KURPITSA|VÄLIPALAT|IHONHOITO|PESULAPPU|RUOKALAPPU|VUODESUOJA|SHAMPOO|DEODOR|SÄVYTTEET|HIUSVÄRITUOTTEET|MEIKKIVOIDE|PUUTERIT|KULMATUOTTEET/.test(s);
 }
 
 function parseWordBoxes(js){
@@ -413,8 +414,10 @@ if(!Number.isInteger(publishedPageCount)||publishedPageCount<1||publishedPageCou
 }
 out.pageCount=publishedPageCount;
 out.validityText="";
+const publicationWordBoxes=new Map();
 for(let p=1;p<=publishedPageCount;p++){
  const posUrl=new URL("files/search/text_position["+p+"].js",l.url).href; let wordBoxes=[]; try{const pr=await ft(posUrl);wordBoxes=parseWordBoxes(pr.text)}catch(e){}
+publicationWordBoxes.set(p,wordBoxes);
 const u=p===1?basic:new URL("page"+p+".html",basic).href,lines=reattachDetachedPackage(codeLines((await ft(u)).text),wordBoxes),pageText=lines.map(x=>x.text).join(" | "),frags=priceFragments(lines);out.validityText+=" | "+lines.filter(x=>/HINNAT VOIMASSA|Sivun hinnat voimassa/i.test(x.text)).map(x=>x.text).join(" | ");for(let i=0;i<lines.length;i++){let title=lines[i].text;const nextTitle=lines.slice(i,i+5).map(x=>x.text);if(/^[A-ZÅÄÖ][a-zåäö]+$/.test(title)&&/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{5,}$/.test(nextTitle[1]||"")&&/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{4,}$/.test(nextTitle[2]||"")&&pkg(nextTitle[3]||""))title=[title,nextTitle[1].replace(/-$/,""),nextTitle[2],nextTitle[3]].join(" ");if(!productish(title))continue;const recipeImmediate=lines[i+1]&&/^Katso\s+resepti\s*»?/i.test(String(lines[i+1].text||"").trim());if(recipeImmediate)continue;const before=lines.slice(Math.max(0,i-10),i),after=lines.slice(i+1,Math.min(lines.length,i+16)),around=[...before,lines[i],...after],joined=around.map(x=>x.text).join(" | "),pk=pkg(title),promoStop=after.findIndex(x=>/Ilman Plussa-korttia/i.test(x.text)),promoAfter=after.slice(0,Math.max(0,promoStop<0?after.length:promoStop)),titleUr=unitRange(title),promoUr=unitRange(promoAfter.slice(0,4).map(x=>x.text).join(" | "));let ur=titleUr||promoUr;if(pk&&ur){const pu=String(pk.raw||"").match(/(kg|g|ml|cl|dl|l)\b/i)?.[1]?.toLowerCase()||"",ru=String(ur.raw||"").match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()||"",pkKind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml"||pu==="cl"||pu==="dl")?"l":"";if(pkKind&&ru&&pkKind!==ru)ur=null;}let nr=normal(after.slice(0,8).filter(x=>/Ilman Plussa-korttia/i.test(x.text)&&!/^[A-ZÅÄÖ][A-ZÅÄÖ\s-]{4,}(?:\s+\d|$)/.test(String(x.text||"").trim())).map(x=>x.text).join(" | "));if(pk&&nr){const pu=String(pk.raw||"").match(/(kg|g|ml|cl|dl|l)\b/i)?.[1]?.toLowerCase()||"";const pkKind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml"||pu==="cl"||pu==="dl")?"l":"";const normalText=after.slice(0,8).filter(x=>/Ilman Plussa-korttia/i.test(x.text)).map(x=>x.text).join(" ");const rateKind=(normalText.match(/\/(kg|l)\b/i)||[])[1]?.toLowerCase()||"";if(pkKind&&rateKind&&pkKind!==rateKind)nr=null;}let ex=around.flatMap(x=>explicit(x.text));let expected=null;if(pk&&ur)expected=((pk.min+pk.max)/2)*((ur.min+ur.max)/2);const expectedAtStart=expected;const recipeContextNoPrice=!pk&&!ur&&expected==null&&/Viikon\s+resepti\s*:/i.test(around.map(x=>String(x.text||"")).join(" "));if(recipeContextNoPrice)continue;let cand=ex.sort((a,b)=>Math.abs((a.line??i)-i)-Math.abs((b.line??i)-i))[0]||null;const direct=directPrices(around).sort((a,b)=>Math.abs(a.line-lines[i].i)-Math.abs(b.line-lines[i].i));if(!cand&&direct.length)cand=direct[0];const split=splitAround(around,Math.max(0,around.findIndex(z=>z.i===lines[i].i)));if(!cand&&split.length){const plausible=split.filter(x=>!nr||x.price<=(nr.max*(nr.unit?3:1)+.01));if(plausible.length)cand=plausible.sort((a,b)=>a.distance-b.distance)[0]}if(!cand&&expected){const localIdx=Math.max(0,around.findIndex(z=>z.i===lines[i].i));const q=nearbyQty(around,localIdx)[0];const local=priceFragments(around).filter(x=>x.price!=null&&Math.abs(x.line-i)<=10);if(!cand&&local.length)cand=local.map(x=>({...x,d:Math.abs(x.price-expected)})).sort((a,b)=>a.d-b.d)[0];if((!cand||cand.d>.12)){const suf=priceFragments(around).filter(x=>x.suffix!=null);if(suf.length){const z=suf.map(x=>({...x,...nearestSuffix(x.suffix,expected)})).sort((a,b)=>a.d-b.d)[0];if(!cand||z.d<cand.d)cand=z}}}
 let packageRowAnchor=null;
 const packageTokenForAnchor=String(title).match(/\b(\d+(?:[,.]\d+)?)\s*(g|kg|ml|cl|l|kpl|pkt|ps|prk|tlk|pl)\b/i);
@@ -1638,6 +1641,7 @@ out.rows=out.rows.map(row=>{
 out.rows=out.rows.map(row=>row.debugOwnedNormalPrice?{...row,normal:{min:row.debugOwnedNormalPrice.min,max:row.debugOwnedNormalPrice.max,unit:row.debugOwnedNormalPrice.unit}}:row);
 if(/_42AV_KCM/i.test(out.leaflet))out.rows=out.rows.map(repairPrintedCard);
 out.rows=out.rows.map(row=>row.debugPrintedPriceBasis?{...row,spatialResolved:row.debugPrintedPriceBasis,percentageOffer:null}:row);
+out.rows=out.rows.map(row=>verifyPrintedTransaction(row,publicationWordBoxes.get(row.page)));
 return out;
 }
 

@@ -1,0 +1,293 @@
+{
+  "scope": "PDF-verified monetary price and purchase count only; headings and other metadata are not approved by this fixture",
+  "pdfSha256": "56ca2b178712f297d77f4de8bedd20700105941414f45f20880e7ac27095f52e",
+  "offers": [
+    {
+      "page": 1,
+      "title": "KANANPOJAN ILEESUIKALEET 700–800 g",
+      "value": 5.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 1,
+      "title": "ULKOFILEEPALAT",
+      "value": 8.95,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 1,
+      "title": "CREAMY JÄÄTELÖT 750–850 ml",
+      "value": 10.0,
+      "quantity": 3,
+      "percent": false
+    },
+    {
+      "page": 2,
+      "title": "129 K-Menu 099 PUNAJUURI 2 kg",
+      "value": 0.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 3,
+      "title": "SALAME NAPOLI ILMAKUIVATTU KESTOMAKKARA 70 g (35,57/kg)",
+      "value": 2.49,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 3,
+      "title": "LEIKKELEET 120 g",
+      "value": 4.39,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 3,
+      "title": "VIILU KANALASTUT 180 g",
+      "value": 2.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 3,
+      "title": "ERÄNKÄVIJÄ JUUSTOPALAT 300 g (16,63/kg)",
+      "value": 4.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 3,
+      "title": "VOIRINKELI 7 kpl/350 g",
+      "value": 3.59,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 3,
+      "title": "PROTEIINIRAHKAT 175 g",
+      "value": 4.0,
+      "quantity": 4,
+      "percent": false
+    },
+    {
+      "page": 4,
+      "title": "AITO NAKKI 360 g",
+      "value": 3.79,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 4,
+      "title": "P3ATONGIT 230–245 g (16,29–17,35/kg) Baguetter 99",
+      "value": 3.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 4,
+      "title": "HÄRKIS HÄRKÄPAPU- MURSKAT 250 g (13,96/kg) Bondbönekross",
+      "value": 3.49,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 4,
+      "title": "NOPEAT KANANUGETIT tai KANAPUIKOT DIPILLÄ 218 g (13,72/kg)",
+      "value": 2.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 5,
+      "title": "UFILEET 340 g",
+      "value": 9.0,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 5,
+      "title": "PORSAAN MINUUTTI- SUIKALEET 300 g",
+      "value": 7.0,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 5,
+      "title": "HUNAJAMARINOITU KANASUIKALE 450 g",
+      "value": 8.0,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 5,
+      "title": "OHUKAISET 400 g",
+      "value": 4.0,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 5,
+      "title": "KIISSELIT 365 g",
+      "value": 5.0,
+      "quantity": 3,
+      "percent": false
+    },
+    {
+      "page": 5,
+      "title": "RUOKAKERMA 10 % 2 dl",
+      "value": 2.0,
+      "quantity": 3,
+      "percent": false
+    },
+    {
+      "page": 6,
+      "title": "MINI SUKLAAPATUKAT 301 g (16,58/kg)",
+      "value": 4.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 6,
+      "title": "VAMPYRER MAKEISPUSSIT 375 g (7,97/kg)",
+      "value": 2.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 6,
+      "title": "MINI FRIENDS BISCUIT 122 g",
+      "value": 3.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 6,
+      "title": "KÄÄREELLISET KONVEHDIT 250–320 g",
+      "value": 5.89,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 7,
+      "title": "ENERGIAJUOMAT 0,5 l/tlk",
+      "value": 4.0,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 7,
+      "title": "ENERGIAJUOMAT 0,33–0,355 l/tlk (6,15–6,62/l)",
+      "value": 7.0,
+      "quantity": 3,
+      "percent": false
+    },
+    {
+      "page": 7,
+      "title": "URHEILUJUOMAT 0,70 l/pl",
+      "value": 5.0,
+      "quantity": 3,
+      "percent": false
+    },
+    {
+      "page": 7,
+      "title": "VITAMIINIJ-UOMAT 0,5 l/pl",
+      "value": 5.0,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 7,
+      "title": "ISOTONIC URHEILUJUOMAT",
+      "value": 4.6,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 7,
+      "title": "VITAMIINIVEDET 1,5 l/pl",
+      "value": 3.7,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 8,
+      "title": "HAMMASTAHNAT 75 ml",
+      "value": 2.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 8,
+      "title": "WC-PAPERI 16 rl VALKOINEN",
+      "value": 7.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 11,
+      "title": "KAHVINKEITTIMEN PUHDISTUSAINE 250 ml Rengöringsmedel till kaffebryggare",
+      "value": 11.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 14,
+      "title": "Soft Embo 7 WC-PAPERI 16 rl",
+      "value": 7.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 15,
+      "title": "KLEENEX NENÄLIINAT ja KASVOPAPERIT",
+      "value": 15.0,
+      "quantity": null,
+      "percent": true
+    },
+    {
+      "page": 1,
+      "title": "TOMAATTI 3.",
+      "value": 3,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 2,
+      "title": "KELTAINEN SUNGOLD KIIVI",
+      "value": 5.99,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 2,
+      "title": "BATAATTI",
+      "value": 1.29,
+      "quantity": 1,
+      "percent": false
+    },
+    {
+      "page": 4,
+      "title": "ISOT BURGERIT 220–- 3",
+      "value": 10,
+      "quantity": 3,
+      "percent": false
+    },
+    {
+      "page": 6,
+      "title": "HALLOWEEN MAKEISPUSSILAJITELMAT 175–200 g",
+      "value": 4.5,
+      "quantity": 2,
+      "percent": false
+    },
+    {
+      "page": 6,
+      "title": "SILMÄMUNA-",
+      "value": 4,
+      "quantity": 2,
+      "percent": false
+    }
+  ]
+}
