@@ -222,7 +222,7 @@ export default function ZiiplyMobileFuelView({
             >
               <FuelStationBackdrop chain={g.key === "Gulf / Ritoil / Muu" ? "Muut" : g.key as "Neste" | "ABC" | "St1" | "SEO"} />
               <div
-                className="relative grid h-full w-full grid-rows-[minmax(0,1fr)_14px] gap-y-0 pb-[30px] text-center"
+                className="relative grid h-full w-full grid-rows-[minmax(0,1fr)] pb-[30px] text-center"
               >
                 <span className="absolute left-0 top-0 flex h-[22px] w-[30px] items-center justify-center overflow-hidden rounded-[0.45rem] border border-[#b89552] bg-[#fffef9] p-px">
                   {g.logo ? (
@@ -242,6 +242,13 @@ export default function ZiiplyMobileFuelView({
                     </span>
                   )}
                 </span>
+                <span className="pointer-events-none absolute left-0 top-[23px] z-20 w-[30px] whitespace-nowrap bg-transparent p-0 text-center text-[9px] font-black leading-[11px] text-black">
+                  {station
+                    ? coords
+                      ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
+                      : "Sijainti puuttuu"
+                    : "–"}
+                </span>
                 <button
                   type="button"
                   onClick={() => toggleGroup(g.key)}
@@ -256,13 +263,7 @@ export default function ZiiplyMobileFuelView({
                     {station?.name ?? (loading ? "Haetaan…" : !coords ? "Sijainti puuttuu" : "Ei lähiasemaa")}
                   </span>
                 </div>
-                <span className="col-start-1 row-start-2 relative z-20 block min-w-0 justify-self-center whitespace-nowrap rounded bg-[#fff9e6] px-1 text-[10px] font-black leading-[14px] text-black">
-                  {station
-                    ? coords
-                      ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
-                      : "Sijainti puuttuu"
-                    : "–"}
-                </span>
+
               </div>
               <div className="pointer-events-none absolute inset-x-1 bottom-1 z-10 grid h-[25px] grid-cols-3 items-end gap-0.5 rounded bg-[#fff9e6]/85 text-center font-black leading-[1.05] text-[#213224]">
                 <span className="min-w-0"><span className="block text-[10px]">D</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.diesel ?? null)}</span></span>
