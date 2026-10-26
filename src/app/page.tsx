@@ -4784,6 +4784,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerLocationStatusV855, setScannerLocationStatusV855] = useState<{name:string;verified:boolean;checking?:boolean}|null>(null);
   const scannerLocationSessionV856 = useRef(0);
   const arrivalNotice = useZiiplyArrivalNotice(usingOwnLocation);
+  const [arrivalOfferChain, setArrivalOfferChain] = useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
   const liveArrivalStateRefV864 = useRef(initialZiiplyArrivalState());
   const liveArrivalLastFixAtRefV864 = useRef(0);
   const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
@@ -19173,6 +19174,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleGostaOfferSearch() {
+    setArrivalOfferChain(null);
     if (gostaSearchDisabled) return;
 
     trackZiiplyEvent("gosta_offer_search_clicked", {
@@ -19197,6 +19199,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleMainOfferSearch() {
+    setArrivalOfferChain(null);
     // V110: Gösta saa avautua myös tyhjällä tekstikentällä.
     // Tyhjä haku käsitellään searchOffers()-funktiossa "kaikki alueen tarjoukset" -tilana.
     if (loadingOffers) return;
@@ -24617,6 +24620,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
           <ZiiplyMobileOfferSearchCardLoose
+            initialOfferChain={arrivalOfferChain}
             open={true}
             title="Tarjous- ja kampanjahaku"
             query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
@@ -25342,16 +25346,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           onList={() => {
             arrivalNotice.dismiss();
             setArrivalNotebookPage("lists");
+            setShopsPanelOpen(false);
             setSearchPanelOpen(false); setCartModalOpen(false); setActiveResult("none");
             setNotebookOpen(true);
           }}
           onRecipe={() => {
             arrivalNotice.dismiss();
             setArrivalNotebookPage("recipes");
+            setShopsPanelOpen(false);
             setSearchPanelOpen(false); setCartModalOpen(false); setActiveResult("none");
             setNotebookOpen(true);
           }}
-          onOffers={() => { arrivalNotice.dismiss(); handleMainOfferSearch(); }}
+          onOffers={() => {
+            const decision = liveArrivalDecisionRefV864.current;
+            arrivalNotice.dismiss();
+            if (!decision?.isSelectedStore || decision.status !== "in-store" || !decision.store) { openShopsPanel(); return; }
+            const name = normalize(decision.store.name);
+            const chain = selectedChains.s && normalize(String(activeStores.sStoreName || "")) === name ? "S"
+              : selectedChains.k && normalize(String(activeStores.kStoreName || "")) === name ? "K"
+              : selectedChains.lidl && normalize(String(selectedLidlStoreV750?.name || "")) === name ? "LIDL"
+              : selectedChains.tokmanni && normalize(String(selectedTokmanniStoreV756?.name || "")) === name ? "TOKMANNI"
+              : selectedChains.tokmanni && normalize(String(selectedEurosparStoreV751?.name || "")) === name ? "EUROSPAR" : null;
+            if (!chain) { openShopsPanel(); return; }
+            gostaSelectedOfferChainRefV547.current = chain;
+            setArrivalOfferChain(chain);
+            setGostaContentTabV1("offers");
+            setOfferCardFilterV106("");
+            setOfferSearchQuerySnapshot("");
+            void searchOffers("");
+          }}
           onStoreChange={() => { arrivalNotice.dismiss(); openShopsPanel(); }}
         />
         {/* V506 GPS debug panel removed */}

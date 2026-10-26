@@ -318,6 +318,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   onFilterChange?: (value: string) => void;
   onSearch?: (value: string) => void;
   onSelectOfferChain?: (chain: "S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI") => void;
+  initialOfferChain?: "S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null;
   showSChain?: boolean;
   showKChain?: boolean;
   showLidlChain?: boolean;
@@ -851,6 +852,7 @@ export default function ZiiplyMobileOfferSearchCard({
   onFilterChange,
   onSearch,
   onSelectOfferChain,
+  initialOfferChain = null,
   showSChain = true,
   showKChain = true,
   showLidlChain = true,
@@ -863,7 +865,7 @@ export default function ZiiplyMobileOfferSearchCard({
   className = "",
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
-  const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
+  const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(initialOfferChain);
   const [debugOpenV52, setDebugOpenV52] = React.useState(false);
   const [expandedOfferB, setExpandedOfferB] = React.useState<ZiiplyMobileOfferSearchItem | null>(null);
 

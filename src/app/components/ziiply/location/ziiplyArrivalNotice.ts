@@ -38,6 +38,7 @@ export function arrivalNoticeReducer(state: ArrivalNotice | null, event: Arrival
       return event.at < next.approachUntil ? { ...next, phase: 'approach', deadline: next.approachUntil } : choices(next, event.at);
     }
     if (next.phase === 'store-change' && next.selected) return choices(next, event.at);
+    if (next.confirmed && !next.selected && ['list', 'offers'].includes(next.phase)) return choices(next, event.at);
     return next;
   }
   if (!state || (event.type === 'tick' && (state.deadline === null || event.at < state.deadline))) return state;
