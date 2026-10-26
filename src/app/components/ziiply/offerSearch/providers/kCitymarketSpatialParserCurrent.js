@@ -223,8 +223,19 @@ function resolveCards(rows,rawBoxes){
    const normalText=reference.map(g=>repairText(g.text)).join(' ');
    const n=normalText.match(/(\d+[,.]\d{2})(?:[–-](\d+[,.]\d{2}))?\/(KPL|PKT|PS|RS|TLK|PL|PRK)\b/i);
    card.row.normal=n?{min:Number(n[1].replace(',','.')),max:Number((n[2]||n[1]).replace(',','.')),unit:n[3].toUpperCase()}:null;
-   const rates=local.filter(g=>!reference.includes(g)).map(g=>repairText(g.text)).join(' ');
-   const rate=rates.match(/(?:\(|\b)(\d+[,.]\d{2})(?:[–-](\d+[,.]\d{2}))?\/(kg|l)\b/i);
+   const rateGroups=local.filter(g=>!reference.includes(g));
+   const ratePattern=/(?:\(|\b)(\d+[,.]\d{2})(?:[–-](\d+[,.]\d{2}))?\/(kg|l)\b/i;
+   const originalRate=rateGroups.map(g=>repairText(g.text)).join(' ').match(ratePattern);
+   // Parenthesized publisher fragments, e.g. "57/kg)", also contain
+   // individual glyphs. Keeping the embedded "5" would turn 4,57 into 5,57.
+   const rates=rateGroups.map(g=>repairText(g.boxes.filter(b=>!/^\d+$/.test(b.text)||!g.boxes.some(c=>c!==b&&
+     /^\(?\d[\d,./()–A-Za-z-]*$/.test(c.text)&&c.width>b.width+.001&&
+     Math.abs(c.top-b.top)<.002&&Math.abs(c.height-b.height)<.002&&
+     c.left<=b.left+.001&&c.left+c.width>=b.left+b.width-.001))
+     .map(b=>b.text).join(' '))).join(' ');
+   let rate=rates.match(ratePattern);
+   // Retain the original evidence spelling when its numeric rate agrees.
+   if(rate&&originalRate&&rate[1]===originalRate[1]&&(rate[2]||rate[1])===(originalRate[2]||originalRate[1])&&rate[3]===originalRate[3])rate=originalRate;
    card.row.ownedUnitRate=!!rate;
    if(rate)card.row.unitPrice={min:Number(rate[1].replace(',','.')),max:Number((rate[2]||rate[1]).replace(',','.')),raw:rate[0]};
   }
