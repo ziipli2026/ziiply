@@ -1,4 +1,4 @@
-import { parseRecipeIngredient, type RecipeIngredient } from "./recipeCore";
+import { parseRecipeIngredient, prepareRecipeSearch, type RecipeIngredient } from "./recipeCore";
 
 /** Keep the displayed ingredient and the item sent to Justiina on the same parser. */
 export function onlineRecipeIngredients(content:string): RecipeIngredient[] {
@@ -42,4 +42,10 @@ export function onlineRecipeTitleMatches(title:string,query:string):boolean {
   const words=(value:string)=>value.toLocaleLowerCase("fi").normalize("NFKC").replace(/^keittokirja\//,"").match(/[\p{L}\p{N}]+/gu)||[];
   const wanted=words(query), actual=words(title);
   return wanted.length>0&&wanted.every(word=>actual.some(name=>name===word||(word.length>=5&&name.endsWith(word))));
+}
+
+/** Use the same plan as the editor, including protein requirements and tap-water exclusion. */
+export function onlineRecipeSearchPlan(content:string,title:string){
+ const method=content.split(/\n(?:Valmistus|Valmistaminen|Ohje|Valmistusohje)\s*:?\s*\n/i);
+ return prepareRecipeSearch(onlineRecipeIngredients(content),method.length>1?method.slice(1).join("\n"):"",title);
 }

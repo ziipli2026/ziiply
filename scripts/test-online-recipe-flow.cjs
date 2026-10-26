@@ -1,6 +1,6 @@
 require('./recipe-audit-runtime.cjs');
 const assert=require('node:assert/strict');
-const {onlineRecipeIngredients,onlineRecipeDisplayIngredients,onlineRecipeTitleMatches}=require('../src/app/components/ziiply/justiina/onlineRecipe.ts');
+const {onlineRecipeIngredients,onlineRecipeSearchPlan,onlineRecipeDisplayIngredients,onlineRecipeTitleMatches}=require('../src/app/components/ziiply/justiina/onlineRecipe.ts');
 const core=require('../src/app/components/ziiply/justiina/recipeCore.ts');
 const fixtures=require('./fixtures/recipe-audit-20.json');
 let count=0;
@@ -42,3 +42,13 @@ for(const recipe of wikiRecipes){
  assert.ok(!plan.terms.some(term=>/^(vesi|vettä|litraa vettä)$/.test(term)),recipe.title+' shopping for tap water');
 }
 console.log(`PASS: ${wikiRecipes.length} freshly retrieved wiki recipes; section boundaries; ingredients retained; water excluded`);
+
+const directPlan=onlineRecipeSearchPlan(wiki,'Makaronilaatikko');
+assert.ok(!directPlan.items.some(i=>i.name==='vettä'));
+assert.equal(directPlan.items.find(i=>i.name==='maitoa').amount,500);
+assert.equal(directPlan.items.find(i=>i.name==='maitoa').unit,'ml');
+assert.equal(directPlan.items.find(i=>/jauhelih/.test(i.name)).proteinRequirement.species,'jauheliha');
+assert.equal(onlineRecipeSearchPlan('Ainekset\n1 l vettä\nValmistus','Vesi').items.length,0);
+const page=require('fs').readFileSync(require('path').join(__dirname,'../src/app/desktop-preview/page.tsx'),'utf8');
+assert.ok(page.includes('const ingredients=onlineRecipeSearchPlan(recipe.content,recipe.title).items;'));
+console.log('PASS: actual desktop online entry uses editor plan; quantities and protein requirements preserved; water-only plan empty');

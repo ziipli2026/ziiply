@@ -1,5 +1,5 @@
 "use client";
-import { onlineRecipeIngredients, onlineRecipeDisplayIngredients, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
+import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
 import { citymarketFailureNotice } from "../components/ziiply/offerSearch/citymarketAvailability";
 import { recipeCoverageQueries, mergeRecipeSearchResponses } from "../components/ziiply/justiina/recipeSearchCoverage";
@@ -257,8 +257,8 @@ export default function DesktopPreviewPage() {
     }catch{setJustiinaRecipeMessage("Reseptin tallennus epäonnistui")}
   }
   function searchOnlineRecipeIngredients(recipe:{title:string;content:string}){
-    const ingredients=onlineRecipeIngredients(recipe.content);
-    if(!ingredients.length){setJustiinaRecipeMessage("Reseptistä ei löytynyt ainesosia");return}
+    const ingredients=onlineRecipeSearchPlan(recipe.content,recipe.title).items;
+    if(!ingredients.length){setJustiinaRecipeMessage("Reseptistä ei löytynyt haettavia ainesosia");return}
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:ingredients}))}catch{}
     setJustiinaRecipeSearchOpen(false);
     setWorkspace("justiina");
