@@ -3,7 +3,7 @@ import {useEffect,useState} from "react";
 import dynamic from "next/dynamic";
 const MainZiiply=dynamic(()=>import("../page"),{ssr:false});
 const SHOP={latitude:60.49385,longitude:25.54130};
-type Watch={success:PositionCallback,error?:PositionErrorCallback};
+type Watch={success:PositionCallback,error?:PositionErrorCallback|null};
 export default function GpsMainTest(){
  const [ready,setReady]=useState(false);
  const [near,setNear]=useState(false);
