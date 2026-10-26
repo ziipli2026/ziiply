@@ -777,7 +777,9 @@ export async function persistKCitymarketOfferPublication(now=new Date()){
   }));
   const start=active.startDate;
   const until=shiftIsoDate(start,active.kind==="AV"?2:3);
-  // A corrected parser writes a new immutable snapshot; the active reader picks\n  // the latest snapshot for the validity period. Existing approved prices stay archived.\n  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v160",validFrom:start,
+  // A corrected parser writes a new immutable snapshot; the active reader picks
+  // the latest snapshot for the validity period. Existing approved prices stay archived.
+  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v160",validFrom:start,
     validUntil:until,parsedAt:new Date().toISOString(),offers});
 }
 
