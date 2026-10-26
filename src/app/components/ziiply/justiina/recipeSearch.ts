@@ -218,7 +218,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  if(term==="peruna"){
    const rawPotato=/(?:^|[\s-])(?:peruna|perunat|ruokaperuna|puikulaperuna|siikliperuna)(?=$|[\s-])/i.test(name);
    const processed=/pyörykk|gnocch|salaat|sekoit|muus|lastu|sips|ranskan|keitto|laatik|gratiin|pihv|paistet|lohkoperun|uuniperun|valmisruok|peruna-(?:sipuli|kikherne|pekoni)|sämpyl|leipä|snack|linssi|pasta/i.test(name);
-   return rawPotato&&!processed?null:"ingredient_product_type_mismatch";
+   if(!rawPotato||processed)return "ingredient_product_type_mismatch";
  }
  // A generic ring-sausage ingredient may admit oven sausage, but not smoked sausage.
  // Explicit alternatives are handled above before this product-type check.
@@ -229,7 +229,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const protein=categoryIntent?null:context?.proteinRequirement||inferRecipeProtein(input);
  if(protein)return proteinProductRejection(protein,product);
  const kind=kinds.find(x=>x.term===term);
- if(kind&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
+ if(kind&&term!=="peruna"&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
  if(!categoryIntent&&!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
  if(term==="sokeri"){
    const sugarName=/(?:^|[\s-])(?:sokeri|taloussokeri|hienosokeri|kidesokeri|ruokosokeri|fariinisokeri|palasokeri|raesokeri|siro)(?=$|[\s\d-])/i.test(name);

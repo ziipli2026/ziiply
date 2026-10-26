@@ -27,3 +27,12 @@ global.fetch=async()=>({ok:true,status:200,json:async()=>({items:fixture.items})
   console.log(`PASS: actual K route retains categories for ${body.items.length} live rows; ${good.length} compatible carrot products; baby food, bread and pet food rejected`);
  }finally{global.fetch=fetchOriginal;}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+for(const [name,category]of [
+ ['Valio Onni peruna-porkkanavelli 210g','lapset/lastenruoat'],
+ ['Piltti Peruna-lihavuoka lastenateria','lapset/lastenruoat'],
+ ['Apetit Kotimainen Peruna & uunijuurekset pakaste','pakasteet/vihannes--ja-juurespakasteet/kasvis--ja-vihannessekoitukset'],
+ ['Kokkikartano kirjolohifilepala ja paahdetut perunat','valmisruoka/ateriat']
+])assert.equal(recipeProductCompatible('perunoita',{name,category}),false,name);
+for(const name of ['Peruna kiinteä Suomi','Pirkka suomalainen pesty Siikli ruokaperuna 1kg'])assert.ok(recipeProductCompatible('perunoita',{name,category:'hedelmat-ja-vihannekset/juurekset/perunat'}),name);
+console.log('PASS: potato fallback uses shared category gates while retaining raw-potato matches');

@@ -21,7 +21,7 @@ Generic search normalization also recognizes inflected egg names and trailing cu
 
 These are local source and recorded-product tests, not a deployed browser-to-live-store end-to-end pass. The newly retrieved wiki recipes have been checked through ingredient interpretation and search planning, not live product availability or actual browser cart interactions. Full app build was not run: npm ci rejects the repository's pre-existing package/lockfile mismatch. Shared module strict TypeScript checking and desktop TSX syntax checking passed.
 
-Some wiki entries are ambiguous source material: "rasvaa", "mausteita", "nokare", or unspecified fillings. Unknown amounts are retained as null and marked for review. These should not be represented as verified automatic product matches. No release was performed in this test-only step.
+Some wiki entries are ambiguous source material: "rasvaa", "mausteita", "nokare", or unspecified fillings. Unknown amounts are retained as null and marked for review. These should not be represented as verified automatic product matches. The initial test-only step was followed by the preview release and browser verification below.
 
 Wikibooks test fixtures include source URLs and CC BY-SA attribution.
 
@@ -33,4 +33,15 @@ Qualified ingredients now generate qualifier-preserving provider queries before 
 
 Fresh K-store requests for `villiriisi`, `villi riisi`, and `wild rice` returned no products. Broader `villi` and `wild` requests likewise contained no rice items. No substitute is automatically represented as wild-rice blend. A product unavailable from the tested provider/store remains missing.
 
-Validation: test-recipe-qualified-search.cjs replays the new full provider responses and confirms the five exact ingredient steps plus adversarial rejections. This does not replace a deployed browser/cart end-to-end test. Changes remain local.
+Validation: test-recipe-qualified-search.cjs replays the new full provider responses and confirms the five exact ingredient steps plus adversarial rejections. This does not replace a deployed browser/cart end-to-end test. The changes were subsequently released to the desktop preview branch.
+
+
+## Browser verification on the preview URL
+
+The current preview was exercised through its visible UI using K-Citymarket Hyvinkää. Wiki search returned the Makkarakeitto recipe, displayed eight source ingredients, and transferred seven purchasable ingredients to Justiina. Tap water remained in the displayed recipe and was skipped during product search. Carrot, swede, celeriac, onion, salt, potatoes, and ring sausage were selected in sequence. The cart contained all seven ingredient rows. The 400 g sausage requirement correctly generated two 250 g packages. Total in this test cart was 24.71 euros. Proof: wiki-recipe-cart-2026-10-26.jpg.
+
+The browser test also exposed two failures not covered by the sampled ingredient tests: K route mapping removed product category metadata, and the potato fallback returned success before shared category rejection. K category metadata is now retained; the potato fallback rejects non-potatoes early but valid raw potatoes continue through shared category checks. Vegetable-mixture category metadata also participates in the existing single-vegetable requirement.
+
+The actual K route regression uses 80 live carrot response rows. Thirteen appropriate carrot products remain; child food, breads, pet food, and vegetable mixtures are rejected. Potato regression covers baby meals, vegetable mixtures and prepared fish/potato meals while retaining raw potatoes and Siikli food potatoes.
+
+This is one completed browser recipe flow, supported by the broader offline source/product tests; it is not a claim that every wiki recipe has been exercised in a browser.
