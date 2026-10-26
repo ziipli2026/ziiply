@@ -25375,7 +25375,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setOfferSearchQuerySnapshot("");
             void searchOffers("");
           }}
-          onStoreChange={() => { arrivalNotice.dismiss(); openShopsPanel(); }}
         />
         {/* V506 GPS debug panel removed */}
 

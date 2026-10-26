@@ -36,9 +36,9 @@ export function useZiiplyArrivalNotice(enabled: boolean) {
     skip: () => dispatch({ type: 'skip', at: Date.now() }) };
 }
 
-export default function ZiiplyArrivalNotice({ notice, onDismiss, onSkip, onList, onRecipe, onOffers, onStoreChange }: {
+export default function ZiiplyArrivalNotice({ notice, onDismiss, onSkip, onList, onRecipe, onOffers }: {
   notice: ArrivalNotice | null; onDismiss: () => void; onSkip: () => void;
-  onList: () => void; onRecipe: () => void; onOffers: () => void; onStoreChange: () => void;
+  onList: () => void; onRecipe: () => void; onOffers: () => void;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const visible = !!notice && !['waiting', 'done'].includes(notice.phase);
@@ -61,9 +61,9 @@ export default function ZiiplyArrivalNotice({ notice, onDismiss, onSkip, onList,
         else if (!e.shiftKey && (document.activeElement === last || document.activeElement === panel.current)) { e.preventDefault(); first.focus(); }
       }
     }} style={{ width: '100%', maxWidth: 410, maxHeight: '80dvh', overflowY: 'auto', borderRadius: 20, padding: 24, color: '#103b25', background: '#e4f8e8', boxShadow: '0 12px 36px #0006', textAlign: 'center' }}>
-      <div className="mb-4 text-xl font-extrabold" aria-live="polite">{notice.phase === 'approach' ? `Olet saapumassa ${notice.name}` : notice.phase === 'store-change' ? `Olet kaupassa ${notice.name}. Vaihdetaanko kauppavalinta?` : notice.phase === 'list' ? 'Lisätäänkö ostoslista tai resepti?' : 'Katso tarjoukset?'}</div>
+      <div className="mb-4 text-xl font-extrabold" aria-live="polite">{notice.phase === 'approach' ? `Olet saapumassa ${notice.name}` : notice.phase === 'list' ? 'Lisätäänkö ostoslista tai resepti?' : 'Katso tarjoukset?'}</div>
       {notice.phase !== 'approach' && <div className="flex flex-wrap justify-center gap-3">
-        {notice.phase === 'list' ? <><button type="button" className={button} onClick={onList}>Ostoslista</button><button type="button" className={button} onClick={onRecipe}>Resepti</button><button type="button" className={button} onClick={onSkip}>Ei nyt</button></> : notice.phase === 'offers' ? <><button type="button" className={button} onClick={onOffers}>Katso tarjoukset</button><button type="button" className={button} onClick={onDismiss}>Ei nyt</button></> : <><button type="button" className={button} onClick={onStoreChange}>Valitse kauppa</button><button type="button" className={button} onClick={onDismiss}>Ei nyt</button></>}
+        {notice.phase === 'list' ? <><button type="button" className={button} onClick={onList}>Ostoslista</button><button type="button" className={button} onClick={onRecipe}>Resepti</button><button type="button" className={button} onClick={onSkip}>Ei nyt</button></> : <><button type="button" className={button} onClick={onOffers}>Katso tarjoukset</button><button type="button" className={button} onClick={onDismiss}>Ei nyt</button></>}
       </div>}
     </div>
   </div>;

@@ -2,7 +2,7 @@ import type { ZiiplyArrivalDecision } from './ziiplyArrivalSequence';
 
 export const APPROACH_NOTICE_MS = 4000;
 export const ARRIVAL_CHOICE_MS = 5000;
-export type ArrivalPhase = 'approach' | 'waiting' | 'store-change' | 'list' | 'offers' | 'done';
+export type ArrivalPhase = 'approach' | 'waiting' | 'list' | 'offers' | 'done';
 export type ArrivalNotice = {
   id: string; name: string; phase: ArrivalPhase; deadline: number | null;
   approachUntil: number; confirmed: boolean; selected: boolean;
@@ -14,8 +14,7 @@ export type ArrivalNoticeEvent =
   | { type: 'reset' };
 
 function choices(state: ArrivalNotice, at: number): ArrivalNotice {
-  if (!state.confirmed) return { ...state, phase: 'waiting', deadline: null };
-  return { ...state, phase: state.selected ? 'list' : 'store-change', deadline: at + ARRIVAL_CHOICE_MS };
+  return { ...state, phase: 'list', deadline: at + ARRIVAL_CHOICE_MS };
 }
 
 // One visit, one sequence. Repeated GPS samples never restart a UI deadline.
@@ -33,18 +32,13 @@ export function arrivalNoticeReducer(state: ArrivalNotice | null, event: Arrival
         approachUntil: event.at + APPROACH_NOTICE_MS, confirmed: d.status === 'in-store', selected: d.isSelectedStore };
     }
     const next = { ...state, confirmed: d.status === 'in-store', selected: d.isSelectedStore };
-    if (!next.confirmed && ['list', 'offers', 'store-change'].includes(next.phase)) return { ...next, phase: 'waiting', deadline: null };
-    if (next.phase === 'waiting' && next.confirmed) {
+    if (next.phase === 'waiting') {
       return event.at < next.approachUntil ? { ...next, phase: 'approach', deadline: next.approachUntil } : choices(next, event.at);
     }
-    if (next.phase === 'store-change' && next.selected) return choices(next, event.at);
-    if (next.confirmed && !next.selected && ['list', 'offers'].includes(next.phase)) return choices(next, event.at);
     return next;
   }
   if (!state || (event.type === 'tick' && (state.deadline === null || event.at < state.deadline))) return state;
   if (state.phase === 'approach') return choices(state, event.at);
-  if (state.phase === 'list') return state.confirmed && state.selected
-    ? { ...state, phase: 'offers', deadline: event.at + ARRIVAL_CHOICE_MS }
-    : { ...state, phase: 'waiting', deadline: null };
+  if (state.phase === 'list') return { ...state, phase: 'offers', deadline: event.at + ARRIVAL_CHOICE_MS };
   return { ...state, phase: 'done', deadline: null };
 }
