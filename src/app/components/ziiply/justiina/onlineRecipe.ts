@@ -56,3 +56,8 @@ export function onlineRecipeSearchPlan(content:string,title:string){
  const method=content.split(/\n(?:Valmistus|Valmistaminen|Ohje|Valmistusohje)\s*:?\s*\n/i);
  return prepareRecipeSearch(onlineRecipeIngredients(content),method.length>1?method.slice(1).join("\n"):"",title);
 }
+
+/** Query changes must not leave a prior dish visible during debounce/network work. */
+export function onlineRecipeMatchingResults<T extends {title:string}>(results:T[],query:string):T[]{
+ return results.filter(recipe=>onlineRecipeTitleMatches(recipe.title,query));
+}

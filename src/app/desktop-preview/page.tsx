@@ -1,5 +1,5 @@
 "use client";
-import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
+import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
 import { citymarketFailureNotice } from "../components/ziiply/offerSearch/citymarketAvailability";
 import { recipeCoverageQueries, mergeRecipeSearchResponses } from "../components/ziiply/justiina/recipeSearchCoverage";
@@ -310,7 +310,7 @@ export default function DesktopPreviewPage() {
           }catch(error){detailLogs.push({title:p.title,error:String(error)});return null}
         }))).filter((p):p is {title:string;url:string;source:string;content:string}=>p!==null);
         if(controller.signal.aborted)return;
-        const relevantResults=results.filter(r=>onlineRecipeTitleMatches(r.title,query));
+        const relevantResults=onlineRecipeMatchingResults(results,query);
         trace.results=relevantResults.length;
         trace.filteredOut=results.filter(r=>!relevantResults.includes(r)).map(r=>r.title);
         trace.status="valmis";
@@ -2638,17 +2638,17 @@ export default function DesktopPreviewPage() {
                 <h2 className="text-center font-serif text-[24px] font-black text-[#174c35]">Justiinan reseptihaku</h2>
               </header>
               <div className="mx-auto mt-4 flex w-full max-w-[680px] items-center justify-center">
-                <input autoFocus type="search" aria-label="Hae reseptejä" placeholder="Kirjoita resepti tai raaka-aine..." value={justiinaRecipeQuery} onChange={e=>setJustiinaRecipeQuery(e.target.value)} className="h-[56px] w-full rounded-[18px] border-[3px] border-[#b58a45] bg-[#fffdf5] px-5 text-lg text-[#174c35] outline-offset-2" />
+                <input autoFocus type="search" aria-label="Hae reseptejä" placeholder="Kirjoita resepti tai raaka-aine..." value={justiinaRecipeQuery} onChange={e=>{const value=e.target.value;setJustiinaRecipeQuery(value);setJustiinaRecipeResults([]);setJustiinaRecipeLoading(Boolean(value.trim()));setJustiinaRecipeMessage(value.trim()?"Haetaan reseptejä…":"Kirjoita hakusana.")}} className="h-[56px] w-full rounded-[18px] border-[3px] border-[#b58a45] bg-[#fffdf5] px-5 text-lg text-[#174c35] outline-offset-2" />
               </div>
               <div className="mx-auto mt-2 flex w-full max-w-[680px] items-center gap-3">
                 <button type="button" onClick={()=>setJustiinaDebugOpen(v=>!v)} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-1 text-sm font-bold text-[#17573c]">Debug {justiinaDebugOpen?"piilota":"näytä"}</button>
-                <button type="button" onClick={()=>{const data={...justiinaRecipeDebug,visibleResults:justiinaRecipeResults.map(r=>({title:r.title,source:r.source,url:r.url,characters:r.content.length,originalRecipeText:r.content,interpretedIngredients:parseRecipeIngredients(r.content),ingredientsNeedingReview:parseRecipeIngredients(r.content).filter(item=>!item.complete),hasIdentifiedIngredients:parseRecipeIngredients(r.content).length>0}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="ziiply-reseptihaku-debug.json";link.click();URL.revokeObjectURL(url)}} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-1 text-sm font-bold text-[#17573c]">Lataa debug JSON</button>
+                <button type="button" onClick={()=>{const data={...justiinaRecipeDebug,visibleResults:onlineRecipeMatchingResults(justiinaRecipeResults,justiinaRecipeQuery).map(r=>({title:r.title,source:r.source,url:r.url,characters:r.content.length,originalRecipeText:r.content,interpretedIngredients:parseRecipeIngredients(r.content),ingredientsNeedingReview:parseRecipeIngredients(r.content).filter(item=>!item.complete),hasIdentifiedIngredients:parseRecipeIngredients(r.content).length>0}))};const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="ziiply-reseptihaku-debug.json";link.click();URL.revokeObjectURL(url)}} className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-1 text-sm font-bold text-[#17573c]">Lataa debug JSON</button>
               </div>
               {justiinaDebugOpen && <pre className="mx-auto mt-2 max-h-44 w-full max-w-[680px] overflow-auto rounded-lg bg-[#fffdf5] p-3 text-xs text-[#354a35]">{JSON.stringify(justiinaRecipeDebug,null,2)}</pre>}
               <section className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[28px] border-2 border-[#c69b54] bg-[#fff4cf] p-4">
                 <p role="status" className="mb-3 text-sm font-bold text-[#50664d]">{justiinaRecipeLoading?"Haetaan reseptejä…":justiinaRecipeMessage}</p>
                 <div className="min-h-0 flex-1 space-y-3 overflow-y-auto">
-                  {justiinaRecipeResults.map((recipe,i)=><article key={recipe.url+i} className="rounded-xl border-2 border-[#c69b54] bg-[#f4dda4] px-4 py-3">
+                  {onlineRecipeMatchingResults(justiinaRecipeResults,justiinaRecipeQuery).map((recipe,i)=><article key={recipe.url+i} className="rounded-xl border-2 border-[#c69b54] bg-[#f4dda4] px-4 py-3">
                     <div className="mb-2 flex items-center gap-3"><h3 className="min-w-0 flex-1 font-bold text-[#17573c]">{recipe.title} – {recipe.source}</h3><button type="button" onClick={()=>saveOnlineRecipe(recipe)} title="Tallenna resepti" aria-label="Tallenna resepti" className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-2 font-bold text-[#17573c]">💾 {savedOnlineRecipes.includes(recipe.url)?"Tallennettu":"Tallenna"}</button><button type="button" onClick={()=>searchOnlineRecipeIngredients(recipe)} title="Hae reseptin tuotteet" aria-label="Hae reseptin tuotteet" className="rounded-lg border border-[#986b36] bg-[#fff8e7] px-3 py-2 font-bold text-[#17573c]">🛒 Hae tuotteet</button></div>
                     {(()=>{const ingredients=parseRecipeIngredients(recipe.content);return <div className="mb-3 rounded-lg bg-[#fff8e7] p-3 text-sm text-[#354a35]"><strong>Ainekset ja määrät</strong>{ingredients.length?<ul className="mt-2 list-disc pl-5">{ingredients.map((item,j)=><li key={j}>{item.amount} {item.name}{!item.complete?" (tarkista)":""}</li>)}</ul>:<p className="mt-1">Määrällisiä aineksia ei tunnistettu. Tarkista alkuperäinen ohje ennen ostoslistaa.</p>}</div>})()}
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#354a35]">{recipe.content}</p>

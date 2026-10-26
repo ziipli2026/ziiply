@@ -1,6 +1,6 @@
 require('./recipe-audit-runtime.cjs');
 const assert=require('node:assert/strict');
-const {onlineRecipeIngredients,onlineRecipeDisplayIngredients,onlineRecipeSearchPlan}=require('../src/app/components/ziiply/justiina/onlineRecipe.ts');
+const {onlineRecipeIngredients,onlineRecipeDisplayIngredients,onlineRecipeSearchPlan,onlineRecipeMatchingResults}=require('../src/app/components/ziiply/justiina/onlineRecipe.ts');
 const {parseRecipeIngredient,prepareRecipeSearch,recipeProductCompatible,recipeProductSearchTerm}=require('../src/app/components/ziiply/justiina/recipeCore.ts');
 const {recipeCoverageQueries}=require('../src/app/components/ziiply/justiina/recipeSearchCoverage.ts');
 const {getNormalSearchQueries}=require('../src/app/components/ziiply/ziiplyCore.ts');
@@ -66,3 +66,9 @@ for(const [ingredient,product]of [
  ['spagettia',{name:'Spagetti mitta 1kpl',category:'koti-ja-keittio/keittiotarvikkeet'}]
 ])assert.equal(recipeProductCompatible(ingredient,product),false,product.name);
 console.log('PASS: accessory categories cannot qualify as food ingredients');
+
+const oldResults=[{title:'Amerikkalainen pannukakku'},{title:'Valkosipulipasta'}];
+assert.deepEqual(onlineRecipeMatchingResults(oldResults,'valkosipulipasta').map(r=>r.title),['Valkosipulipasta']);
+assert.deepEqual(onlineRecipeMatchingResults(oldResults,'lihakeitto'),[]);
+assert.deepEqual(onlineRecipeMatchingResults(oldResults,''),[]);
+console.log('PASS: changing recipe query immediately excludes stale unrelated dishes');
