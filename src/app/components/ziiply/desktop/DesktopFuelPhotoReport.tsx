@@ -293,9 +293,8 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       exifInstant.current=null;
       const validDate=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(exifDate)&&Number.isFinite(new Date(exifDate).getTime());
       if(validDate && /^[+-]\d{2}:\d{2}$/.test(meta?.OffsetTimeOriginal||"")){const instant=new Date(exifDate+meta!.OffsetTimeOriginal);if(Number.isFinite(instant.getTime()))exifInstant.current=instant.toISOString();}
-      // An uploaded older photo starts with the current report time, not its EXIF capture time.
-      if(source==="offline")exifInstant.current=null;
-      setObserved(source==="offline"?localDateTime():validDate?exifDate:onlineCapture.current?.time||localDateTime());setTimeSource(source==="offline"?"manual":validDate?"photo_exif":"capture_session");
+      // Preserve the original observation time of an older photo when EXIF is available.
+      setObserved(validDate?exifDate:source==="online"?onlineCapture.current?.time||"":"");setTimeSource(validDate?"photo_exif":source==="online"?"capture_session":"manual");
       let photoGps:{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null=null;
       if(typeof meta?.latitude==="number"&&typeof meta.longitude==="number"&&Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude)&&Math.abs(meta.latitude)<=90&&Math.abs(meta.longitude)<=180)photoGps={lat:meta.latitude,lon:meta.longitude,accuracy:0,speedKmh:typeof meta.GPSSpeed==='number'&&Number.isFinite(meta.GPSSpeed)&&meta.GPSSpeed>=0?meta.GPSSpeed*(meta.GPSSpeedRef==='M'?1.609344:meta.GPSSpeedRef==='N'?1.852:meta.GPSSpeedRef==='K'?1:NaN):null};
       const deviceGps=source==="online"&&onlineCapture.current?await onlineCapture.current.gps:null;
