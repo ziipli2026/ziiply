@@ -7,6 +7,7 @@ const SHOP={latitude:60.49385,longitude:25.54130};
 type Watch={success:PositionCallback,error?:PositionErrorCallback|null};
 export default function GpsMainTest(){
  const [ready,setReady]=useState(false);
+ const [debugOpen,setDebugOpen]=useState(false);
  const [near,setNear]=useState(false);
  const [updates,setUpdates]=useState(0);
  const [status,setStatus]=useState("Valmistelee GPS-simulaatiota");
@@ -47,11 +48,11 @@ export default function GpsMainTest(){
    Object.defineProperty(geo,"watchPosition",{configurable:true,value:oldWatch});
    Object.defineProperty(geo,"clearWatch",{configurable:true,value:oldClear});};
  },[]);
- return <><div style={{position:"fixed",zIndex:2147483647,bottom:10,left:10,right:10,background:"#102e25",color:"white",padding:12,borderRadius:12,boxShadow:"0 3px 20px #0008",font:"14px system-ui"}}>
+ return <><div style={{position:"fixed",zIndex:2147483647,bottom:10,left:10,right:10,background:"#102e25",color:"white",padding:debugOpen?12:6,borderRadius:12,boxShadow:"0 3px 20px #0008",font:"14px system-ui",maxHeight:debugOpen?"55dvh":"auto",overflowY:"auto"}}><button onClick={()=>setDebugOpen(v=>!v)} style={{padding:8,background:"#60d394",color:"#061811",border:0,borderRadius:8,fontWeight:700,width:"100%"}}>{debugOpen?"Sulje debug ▲":"Avaa GPS-debug ▼"}</button>{debugOpen?<div>
  <strong>GPS MASTER / PÄÄKOODIN INTEGRAATIOTESTI</strong><div>{status}</div><div>GPS-päivitykset: {updates} | oikea pääsivu: {ready?"ladattu":"ei ladattu"}</div>
  <button style={{padding:10,margin:5,background:"#60d394",border:0,borderRadius:7}} onClick={()=>{setNear(true);window.dispatchEvent(new Event("ziiply-test-near"))}}>Siirry kauppaan</button>
  <button style={{padding:10,margin:5,background:"#f6d77a",border:0,borderRadius:7}} onClick={()=>{setNear(false);window.dispatchEvent(new Event("ziiply-test-far"))}}>Poistu kaupasta</button>
  <button style={{padding:10,margin:5,background:"#b9dcff",color:"#071b14",border:0,borderRadius:7,fontWeight:700}} onClick={downloadDebug}>Tallenna debug JSON</button>{exportedAt?<span> Tallennettu {exportedAt}</span>:null}
- <div style={{fontWeight:700,marginTop:6}}>{decision}</div><div>Moottorin tulos on diagnostiikkaa; varsinainen pääsivu saa saman GPS-syötteen erikseen.</div><div>GPS-kuuntelijoita: {watchCount}. Jos 0, pääkoodi ei ole rekisteröinyt watchPosition-kuuntelijaa.</div><div>Simuloitu paikka: {near?"Sale Monninkylä":"kaupan ulkopuolella"}. Nopeutta tai ajohistoriaa ei simuloida.</div><div style={{marginTop:8,maxHeight:180,overflow:"auto",background:"#071b14",padding:8,font:"11px monospace",whiteSpace:"pre-wrap"}}>{debug.join("\n")||"Ei tapahtumia"}</div></div>
+ <div style={{fontWeight:700,marginTop:6}}>{decision}</div><div>Moottorin tulos on diagnostiikkaa; varsinainen pääsivu saa saman GPS-syötteen erikseen.</div><div>GPS-kuuntelijoita: {watchCount}. Jos 0, pääkoodi ei ole rekisteröinyt watchPosition-kuuntelijaa.</div><div>Simuloitu paikka: {near?"Sale Monninkylä":"kaupan ulkopuolella"}. Nopeutta tai ajohistoriaa ei simuloida.</div><div style={{marginTop:8,maxHeight:180,overflow:"auto",background:"#071b14",padding:8,font:"11px monospace",whiteSpace:"pre-wrap"}}>{debug.join("\n")||"Ei tapahtumia"}</div></div>:null}</div>
  {ready?<MainZiiply/>:<main style={{padding:20}}>GPS-simulaation käynnistys...</main>}</>;
 }
