@@ -15,7 +15,9 @@ URL = "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.g
 BATCH_SIZE = 250
 MAX_MATCHES = int(os.environ.get("OFF_MAX_MATCHES", "0"))
 csv.field_size_limit(sys.maxsize if sys.maxsize < 2**31 else 2**31 - 1)
-conninfo = os.environ["DATABASE_URL"].replace("sslmode=require", "sslmode=verify-full")
+conninfo = os.environ["DATABASE_URL"]
+# libpq needs an explicit system trust store for verify-full on GitHub runners.
+# Force IPv4 because hosted runners often have no IPv6 route.
 inserted = 0
 scanned = 0
 matched = 0
@@ -38,7 +40,7 @@ def flush(conn):
     print("OFF_DUMP_PROGRESS", json.dumps({"scanned":scanned,"saved_or_updated":inserted,"matched":matched}), flush=True)
     batch.clear()
 
-with psycopg.connect(conninfo, connect_timeout=20) as conn:
+with psycopg.connect(conninfo, connect_timeout=20, sslmode='verify-full', sslrootcert='system', hostaddr=None) as conn:
     with conn.cursor() as cur:
         cur.execute("""CREATE TABLE IF NOT EXISTS public.ziiply_off_catalogue_staging (
             ean text PRIMARY KEY, product_name text, brands text, categories text,
