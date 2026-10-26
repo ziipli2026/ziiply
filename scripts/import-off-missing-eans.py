@@ -2,7 +2,7 @@
 import json, os, time, urllib.request, urllib.error
 import psycopg, certifi
 LIMIT = int(os.getenv("OFF_LOOKUP_LIMIT", "1000"))
-DELAY = float(os.getenv("OFF_LOOKUP_DELAY", "5"))
+DELAY = float(os.getenv("OFF_LOOKUP_DELAY", "2.5"))
 MAX_RETRIES = int(os.getenv("OFF_LOOKUP_RETRIES", "4"))
 with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootcert=certifi.where()) as conn:
     with conn.cursor() as cur:
@@ -16,6 +16,7 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootc
         codes = [r[0] for r in cur.fetchall()]
     conn.commit()
     totals = {"found":0,"not_found":0,"errors":0}
+    consecutive_limits = 0
     for i,ean in enumerate(codes,1):
         url = "https://world.openfoodfacts.org/api/v2/product/"+ean+".json?fields=code,product_name,brands,categories,nutriments"
         try:
@@ -36,6 +37,7 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootc
                         pause=max(15.0,min(180.0,float(retry_after))) if retry_after else min(180.0,20.0*(attempt+1))
                     except ValueError:
                         pause=min(180.0,20.0*(attempt+1))
+                    consecutive_limits += 1
                     print("OFF_RATE_LIMIT_RETRY",ean,attempt+1,pause,flush=True)
                     time.sleep(pause)
             product=data.get("product") or {}
@@ -62,12 +64,17 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootc
                    VALUES (%s,%s) ON CONFLICT(ean) DO UPDATE SET status=excluded.status,checked_at=now()""",(ean,status))
             conn.commit()
             totals[status]+=1
+            consecutive_limits = 0
         except (urllib.error.URLError,TimeoutError,ValueError,OSError) as exc:
             conn.rollback()
             totals["errors"]+=1
             print("OFF_LOOKUP_ERROR",ean,str(exc)[:160],flush=True)
         if i%100==0: print("OFF_LOOKUP_PROGRESS",i,totals,flush=True)
         time.sleep(DELAY)
+        if consecutive_limits >= 3:
+            print("OFF_RATE_LIMIT_COOLDOWN",flush=True)
+            time.sleep(120)
+            consecutive_limits = 0
     if totals["errors"]:
         raise RuntimeError("OFF lookup had %s transient failures; retry them on the next run" % totals["errors"])
     print("OFF_LOOKUP_REPORT",json.dumps({"attempted":len(codes),**totals}),flush=True)
