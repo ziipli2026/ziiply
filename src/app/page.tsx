@@ -4791,7 +4791,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const gpsArrivalApproachRefV866 = useRef<string | null>(null);
   useEffect(() => {
     if (gpsArrivalStepV866 !== "approach") return;
-    const timer = window.setTimeout(() => setGpsArrivalStepV866("confirm"), 4000);
+    const timer = window.setTimeout(() => setGpsArrivalStepV866(current => current === "approach" ? (liveArrivalDecisionRefV864.current?.status === "in-store" ? "confirm" : null) : current), 4000);
     return () => window.clearTimeout(timer);
   }, [gpsArrivalStepV866]);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
@@ -14966,12 +14966,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       speedKmh:typeof position.coords.speed === "number" && Number.isFinite(position.coords.speed) && position.coords.speed >= 0
         ? position.coords.speed * 3.6 : null,
     }, [...unique.values()], names.map(name => normalize(name)));
+    const nearestApproachV866 = [...unique.values()].map(store => ({store,distance:Math.round(12742000*Math.asin(Math.min(1,Math.sqrt(Math.sin((store.latitude-position.coords.latitude)*Math.PI/360)**2+Math.cos(position.coords.latitude*Math.PI/180)*Math.cos(store.latitude*Math.PI/180)*Math.sin((store.longitude-position.coords.longitude)*Math.PI/360)**2))))})).sort((a,b)=>a.distance-b.distance)[0];
+    if (nearestApproachV866 && nearestApproachV866.distance > 50 && nearestApproachV866.distance <= 200 && gpsArrivalApproachRefV866.current !== nearestApproachV866.store.id && !gpsArrivalVisitRefV866.current) {
+      gpsArrivalApproachRefV866.current = nearestApproachV866.store.id;
+      setGpsArrivalNoticeV865(nearestApproachV866.store.name);
+      setGpsArrivalStepV866("approach");
+    }
     liveArrivalStateRefV864.current = decision.state;
     liveArrivalDecisionRefV864.current = decision;
     if (decision.store && decision.showArrivalMessage && gpsArrivalVisitRefV866.current !== decision.store.id) {
       gpsArrivalVisitRefV866.current = decision.store.id;
       setGpsArrivalNoticeV865(decision.store.name);
-      setGpsArrivalStepV866("approach");
+      setGpsArrivalStepV866(gpsArrivalApproachRefV866.current === decision.store.id ? "confirm" : "approach");
     }
     if (decision.status === "checking" && !decision.state.arrivalStoreId) {
       gpsArrivalVisitRefV866.current = null;
