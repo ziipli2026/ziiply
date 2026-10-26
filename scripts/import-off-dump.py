@@ -50,7 +50,7 @@ with psycopg.connect(conninfo, connect_timeout=20) as conn:
     with urllib.request.urlopen(request, timeout=120) as response:
         with gzip.GzipFile(fileobj=response) as compressed:
             with io.TextIOWrapper(compressed, encoding="utf-8", errors="replace", newline="") as stream:
-                reader = csv.DictReader(stream, delimiter="\\t")
+                reader = csv.DictReader(stream, delimiter="\t")
                 if not reader.fieldnames or "code" not in reader.fieldnames:
                     raise RuntimeError("OFF dump format changed: missing code column")
                 nutrition = ["energy-kcal_100g","fat_100g","saturated-fat_100g","carbohydrates_100g","sugars_100g","fiber_100g","proteins_100g","salt_100g","sodium_100g"]
