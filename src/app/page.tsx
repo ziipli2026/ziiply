@@ -4785,15 +4785,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const liveArrivalLastFixAtRefV864 = useRef(0);
   const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
   const liveArrivalDecisionRefV864 = useRef<ReturnType<typeof evaluateZiiplyArrival> | null>(null);
-  const [gpsArrivalNoticeV865, setGpsArrivalNoticeV865] = useState<string | null>(null);
-  const [gpsArrivalStepV866, setGpsArrivalStepV866] = useState<"approach"|"confirm"|"list"|"offers"|null>(null);
-  const gpsArrivalVisitRefV866 = useRef<string | null>(null);
-  const gpsArrivalApproachRefV866 = useRef<string | null>(null);
-  useEffect(() => {
-    if (gpsArrivalStepV866 !== "approach") return;
-    const timer = window.setTimeout(() => setGpsArrivalStepV866(current => current === "approach" ? (liveArrivalDecisionRefV864.current?.status === "in-store" ? (liveArrivalDecisionRefV864.current?.isSelectedStore ? "list" : "confirm") : null) : current), 4000);
-    return () => window.clearTimeout(timer);
-  }, [gpsArrivalStepV866]);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
@@ -14966,23 +14957,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       speedKmh:typeof position.coords.speed === "number" && Number.isFinite(position.coords.speed) && position.coords.speed >= 0
         ? position.coords.speed * 3.6 : null,
     }, [...unique.values()], names.map(name => normalize(name)));
-    const nearestApproachV866 = [...unique.values()].map(store => ({store,distance:Math.round(12742000*Math.asin(Math.min(1,Math.sqrt(Math.sin((store.latitude-position.coords.latitude)*Math.PI/360)**2+Math.cos(position.coords.latitude*Math.PI/180)*Math.cos(store.latitude*Math.PI/180)*Math.sin((store.longitude-position.coords.longitude)*Math.PI/360)**2))))})).sort((a,b)=>a.distance-b.distance)[0];
-    if (nearestApproachV866 && nearestApproachV866.distance > 50 && nearestApproachV866.distance <= 200 && gpsArrivalApproachRefV866.current !== nearestApproachV866.store.id && !gpsArrivalVisitRefV866.current) {
-      gpsArrivalApproachRefV866.current = nearestApproachV866.store.id;
-      setGpsArrivalNoticeV865(nearestApproachV866.store.name);
-      setGpsArrivalStepV866("approach");
-    }
     liveArrivalStateRefV864.current = decision.state;
     liveArrivalDecisionRefV864.current = decision;
-    if (decision.store && decision.showArrivalMessage && gpsArrivalVisitRefV866.current !== decision.store.id) {
-      gpsArrivalVisitRefV866.current = decision.store.id;
-      setGpsArrivalNoticeV865(decision.store.name);
-      setGpsArrivalStepV866(gpsArrivalApproachRefV866.current === decision.store.id ? (decision.isSelectedStore ? "list" : "confirm") : "approach");
-    }
-    if (decision.status === "checking" && !decision.state.arrivalStoreId) {
-      gpsArrivalVisitRefV866.current = null;
-      gpsArrivalApproachRefV866.current = null;
-    }
     // Publish fixes before the expensive store search's 60/120-second throttle.
     const coords = {latitude:position.coords.latitude,longitude:position.coords.longitude};
     gpsCoordsLatestRefV137.current = coords;
@@ -25352,21 +25328,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        {gpsArrivalNoticeV865 && gpsArrivalStepV866 && (
-          <div role="dialog" aria-modal="true" aria-label="Kauppaan saapuminen" style={{position:"fixed",inset:0,zIndex:100001,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.48)",padding:20}}>
-            <div style={{width:"100%",maxWidth:410,background:"#e4f8e8",color:"#103b25",borderRadius:20,padding:24,boxShadow:"0 12px 36px #0006",textAlign:"center"}}>
-              <div style={{fontWeight:800,fontSize:21,marginBottom:16}}>
-                {gpsArrivalStepV866==="approach"?"Olet saapumassa "+gpsArrivalNoticeV865:gpsArrivalStepV866==="confirm"?"Onko "+gpsArrivalNoticeV865+" valittu kaupaksi?":gpsArrivalStepV866==="list"?"Lisätäänkö ostoslista tai resepti?":"Katso tarjoukset?"}
-              </div>
-              {gpsArrivalStepV866!=="approach" && (
-                <div style={{display:"flex",gap:12,justifyContent:"center"}}>
-                  <button type="button" onClick={()=>setGpsArrivalStepV866(gpsArrivalStepV866==="confirm"?"list":gpsArrivalStepV866==="list"?"offers":null)} style={{background:"#d5e3d9",color:"#103b25",borderRadius:12,padding:"10px 24px",fontWeight:700}}>Ei</button>
-                  <button type="button" onClick={()=>setGpsArrivalStepV866(gpsArrivalStepV866==="confirm"?"list":gpsArrivalStepV866==="list"?"offers":null)} style={{background:"#15834b",color:"white",borderRadius:12,padding:"10px 24px",fontWeight:700}}>Kyllä</button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
         {/* V506 GPS debug panel removed */}
 
 
