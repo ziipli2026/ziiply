@@ -32,16 +32,24 @@ export async function POST(req:NextRequest){
     if(!station.length)return NextResponse.json({error:"Asemaa ei löytynyt."},{status:400});
     const stationLocation=validateFuelStationLocation(body.mode,evidence,station[0] as {latitude:number;longitude:number});
     if(!stationLocation.ok)return NextResponse.json({error:stationLocation.error,distanceM:stationLocation.distanceM,maxDistanceM:fuelPhotoStationDistanceLimit(evidence.photoGps || (body.mode==="online"?evidence.deviceGps:null))},{status:409});
+    // Retain only the newest price per station and fuel type. Ignore stale submissions.
+    const newest=await sql`SELECT fuel_type,MAX(observed_at) AS latest FROM ziiply_fuel_price_observations WHERE source_station_id=${stationId} GROUP BY fuel_type`;
+    const latestByFuel=new Map(newest.map(row=>[String(row.fuel_type),new Date(String(row.latest)).getTime()]));
+    const currentPrices:Record<string,number>={};
+    for(const [key,fuel] of [["price95","95"],["price98","98"],["diesel","diesel"]] as const){
+      if(prices[key]!=null && date>(latestByFuel.get(fuel)??-Infinity))currentPrices[key]=prices[key];
+    }
+    if(!Object.keys(currentPrices).length)return NextResponse.json({ok:true,stale:true,published:[],message:"Uudemmat hintatiedot ovat jo rekisterissä.",environment:database.production?"production":"test"});
     const verifiedGps=manual?null:evidence.photoGps||evidence.deviceGps;
     const rows=await sql`INSERT INTO ziiply_user_fuel_reports(id,source_station_id,observed_at,prices,photo_data_url,gps_latitude,gps_longitude,gps_accuracy_m,metadata)
-      VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(prices)}::jsonb,${body.photo},${verifiedGps?.lat??null},${verifiedGps?.lon??null},${verifiedGps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
+      VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(currentPrices)}::jsonb,${body.photo},${verifiedGps?.lat??null},${verifiedGps?.lon??null},${verifiedGps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
       ON CONFLICT(id) DO NOTHING RETURNING id`;
     // Publish independently validated fuel types immediately. Keep the report for audit.
     // Do not overwrite a newer observation for the same station and fuel.
     const published:string[]=[];
     if(rows.length){
       for(const [key,fuelType] of [["price95","95"],["price98","98"],["diesel","diesel"]] as const){
-        const price=prices[key];
+        const price=currentPrices[key];
         if(price==null)continue;
         // A lower octane gasoline must not be more expensive than 98 in the same report.
         if(key==="price95" && prices.price98!=null && price>prices.price98)continue;
@@ -54,7 +62,7 @@ export async function POST(req:NextRequest){
             WHERE source_station_id=${stationId} AND fuel_type=${fuelType}
               AND source <> 'tankkaus.com' AND observed_at >= ${new Date(date).toISOString()}::timestamptz
           ) RETURNING id`;
-        if(inserted.length)published.push(fuelType);
+        if(inserted.length){published.push(fuelType);await sql`DELETE FROM ziiply_fuel_price_observations WHERE source_station_id=${stationId} AND fuel_type=${fuelType} AND observed_at < ${new Date(date).toISOString()}::timestamptz`; }
       }
     }
     // The report review state must reflect validation, not just public price insertion.
