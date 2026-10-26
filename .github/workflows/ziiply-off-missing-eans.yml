@@ -1,5 +1,9 @@
 name: Ziiply OFF missing EAN lookup
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ziiply-off-missing-eans.yml'
   workflow_dispatch:
     inputs:
       limit:
