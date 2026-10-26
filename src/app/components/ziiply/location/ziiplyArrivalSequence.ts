@@ -95,7 +95,8 @@ export function evaluateZiiplyArrival(
   const slowApproach=valid&&speed!==null&&speed>=0&&speed<=12;
   const nearbyStable=!!store&&state.lastStationarySampleAt!==null&&state.stoppedAt!==null
     &&sample.at-state.stoppedAt>=ZIIPLY_PARKED_CONFIRM_MS;
-  const arrivalConfirmed=parked||(slowApproach&&nearbyStable);
+  // Store presence depends on reliable GPS inside the radius, not travel mode, speed or elapsed stationary time.
+  const arrivalConfirmed=!!store&&valid;
   const inStore=!!store&&arrivalConfirmed&&valid;
   const showArrivalMessage=!!inStore&&state.arrivalStoreId!==store?.id;
   if(inStore)state.arrivalStoreId=store.id;
