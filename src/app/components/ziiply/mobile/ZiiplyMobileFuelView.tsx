@@ -222,7 +222,7 @@ export default function ZiiplyMobileFuelView({
             >
               <FuelStationBackdrop chain={g.key === "Gulf / Ritoil / Muu" ? "Muut" : g.key as "Neste" | "ABC" | "St1" | "SEO"} />
               <div
-                className="relative grid h-full w-full grid-rows-[minmax(28px,1fr)_14px] gap-y-0 pb-[30px] text-center"
+                className="relative grid h-full w-full grid-rows-[minmax(0,1fr)_14px] gap-y-0 pb-[30px] text-center"
               >
                 <span className="absolute left-0 top-0 flex h-[22px] w-[30px] items-center justify-center overflow-hidden rounded-[0.45rem] border border-[#b89552] bg-[#fffef9] p-px">
                   {g.logo ? (
@@ -251,12 +251,12 @@ export default function ZiiplyMobileFuelView({
                 >
                   ✓
                 </button>
-                <span className="col-start-1 row-start-1 flex min-h-0 min-w-0 items-center justify-center overflow-hidden pl-[32px] pr-[25px] text-[clamp(9px,2.6vw,12px)] font-black leading-[1.12] text-[#050505]">
-                  <span className="block max-h-full overflow-hidden break-words [overflow-wrap:anywhere] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
-                  {station?.name ?? (loading ? "Haetaan…" : !coords ? "Sijainti puuttuu" : "Ei lähiasemaa")}
+                <div className="col-start-1 row-start-1 flex min-h-0 min-w-0 flex-col items-center justify-center overflow-hidden pl-[32px] pr-[25px] text-[#050505]">
+                  <span className="block w-full overflow-hidden break-words text-[clamp(9px,2.6vw,12px)] font-black leading-[1.1] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+                    {station?.name ?? (loading ? "Haetaan…" : !coords ? "Sijainti puuttuu" : "Ei lähiasemaa")}
                   </span>
-                </span>
-                <span className={`col-start-1 row-start-2 block min-w-0 justify-self-center whitespace-nowrap text-[10px] font-black leading-[14px] text-black`}>
+                </div>
+                <span className="col-start-1 row-start-2 relative z-20 block min-w-0 justify-self-center whitespace-nowrap rounded bg-[#fff9e6] px-1 text-[10px] font-black leading-[14px] text-black">
                   {station
                     ? coords
                       ? `${station.distanceKm.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
@@ -264,7 +264,7 @@ export default function ZiiplyMobileFuelView({
                     : "–"}
                 </span>
               </div>
-              <div className="pointer-events-none absolute inset-x-1 bottom-1 z-10 grid min-h-[25px] grid-cols-3 items-end gap-0.5 rounded bg-[#fff9e6]/85 text-center font-black leading-[1.05] text-[#213224]">
+              <div className="pointer-events-none absolute inset-x-1 bottom-1 z-10 grid h-[25px] grid-cols-3 items-end gap-0.5 rounded bg-[#fff9e6]/85 text-center font-black leading-[1.05] text-[#213224]">
                 <span className="min-w-0"><span className="block text-[10px]">D</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.diesel ?? null)}</span></span>
                 <span className="min-w-0"><span className="block text-[10px]">95 E</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.price95 ?? null)}</span></span>
                 <span className="min-w-0"><span className="block text-[10px]">98 E</span><span className="block whitespace-nowrap text-[clamp(10px,2.7vw,13px)]">{price(station?.price98 ?? null)}</span></span>
