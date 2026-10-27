@@ -61,6 +61,9 @@ with psycopg.connect(os.environ["DATABASE_URL"],
         # Approved records are explicitly excluded.
         setters = [col + "=COALESCE(n." + col + "," + expr + ")"
                    for col, expr in zip(cols, exprs)]
+        # Update only if at least one missing field can actually be filled.
+        fillable = " OR ".join("(n." + col + " IS NULL AND (" + expr + ") IS NOT NULL)"
+                               for col, expr in zip(cols, exprs))
         update_sql = ("""UPDATE public.ziiply_off_nutrition n SET """
                       + ",".join(setters) + """
             FROM public.ziiply_off_catalogue_staging s
@@ -68,15 +71,20 @@ with psycopg.connect(os.environ["DATABASE_URL"],
               AND n.source ILIKE '%open food facts%'
               AND n.dietary->>'import_review_status' IS DISTINCT FROM 'approved'
               AND s.nutriments IS NOT NULL
-              AND (""" + " OR ".join("n." + col + " IS NULL" for col in cols)
+              AND (""" + fillable
                       + """) RETURNING n.ean""")
         if APPLY:
             cur.execute(insert_sql)
             inserted = len(cur.fetchall())
             cur.execute(update_sql)
             updated = len(cur.fetchall())
+            cur.execute("""SELECT count(*) FROM public.ziiply_off_catalogue_staging s
+                LEFT JOIN public.ziiply_off_nutrition n ON n.ean=s.ean
+                WHERE n.ean IS NULL""")
+            remaining = cur.fetchone()[0]
             print("NUTRITION_BACKFILL_REPORT",
-                  json.dumps(dict(inserted=inserted, updated=updated)), flush=True)
+                  json.dumps(dict(inserted=inserted, updated=updated,
+                                  remaining_without_nutrition=remaining)), flush=True)
         else:
             print("NUTRITION_DRY_RUN", "No rows modified", flush=True)
     conn.commit()
