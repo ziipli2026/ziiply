@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: OFF Fineli missing-value diagnosis
+run-name: OFF Fineli anomaly review and safe backfill
 on:
   push:
     branches: [main]
