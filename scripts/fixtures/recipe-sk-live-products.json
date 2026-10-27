@@ -1,0 +1,5938 @@
+{
+  "fetchedAt": "2026-10-27",
+  "boundary": "Sampled from 42 live deployed S/K API calls; source and price units retained per response",
+  "stores": {
+    "s": 292,
+    "k": 3221
+  },
+  "responses": [
+    {
+      "query": "makaroni",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Xtra makaroni 500 g",
+          "category": "CAABGAGAAAAAA",
+          "price": 49,
+          "comparisonPrice": 98,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191186590"
+        },
+        {
+          "name": "Torino makaroni 400 g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/makaronit",
+          "price": 39,
+          "comparisonPrice": 98,
+          "comparisonPriceUnit": "kg",
+          "ean": "6416597115609"
+        },
+        {
+          "name": "Myllyn Paras Makaroni 1kg",
+          "category": "CAABGAGAAAAAA",
+          "price": 209,
+          "comparisonPrice": 209,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700051722"
+        },
+        {
+          "name": "Myllyn Paras Makaroni 400g",
+          "category": "CAABGAGAAAAAA",
+          "price": 55,
+          "comparisonPrice": 138,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700050725"
+        },
+        {
+          "name": "Torino tumma makaroni 400 g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/makaronit",
+          "price": 105,
+          "comparisonPrice": 263,
+          "comparisonPriceUnit": "kg",
+          "ean": "6416597870102"
+        },
+        {
+          "name": "Myllyn Paras Tumma Makaroni 1 kg",
+          "category": "CAABGAGAAAAAC",
+          "price": 225,
+          "comparisonPrice": 225,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700050787"
+        },
+        {
+          "name": "Myllyn Paras Tumma Makaroni 400 g",
+          "category": "CAABGAGAAAAAC",
+          "price": 75,
+          "comparisonPrice": 188,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700050749"
+        },
+        {
+          "name": "Myllyn Paras Täysjyvä Fusilli Makaroni 500 g",
+          "category": "CAABGAGAAAIAG",
+          "price": 135,
+          "comparisonPrice": 270,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700051944"
+        },
+        {
+          "name": "Rummo Elbows No160 Makaroni 400 g gluteeniton pasta",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/gluteenittomat-pastat",
+          "price": 349,
+          "comparisonPrice": 873,
+          "comparisonPriceUnit": "kg",
+          "ean": "8008343881609"
+        },
+        {
+          "name": "Coop makaroni maissista ja riisistä gluteeniton 500 g",
+          "category": "CAABGAGAAAAAK",
+          "price": 245,
+          "comparisonPrice": 490,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191111578"
+        },
+        {
+          "name": "Schär Maccheroni kuitupitoinen makaroni gluteeniton 450g",
+          "category": "CAABGAGAAAAAA",
+          "price": 395,
+          "comparisonPrice": 878,
+          "comparisonPriceUnit": "kg",
+          "ean": "8008698048498"
+        }
+      ]
+    },
+    {
+      "query": "makaroni",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Torino makaroni 400 g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/makaronit",
+          "price": 75,
+          "comparisonPrice": 188,
+          "comparisonPriceUnit": "kg",
+          "ean": "6416597115609"
+        },
+        {
+          "name": "Myllyn Paras Makaroni 400g",
+          "category": "CAABGAGAAAAAA",
+          "price": 49,
+          "comparisonPrice": 123,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700050725"
+        },
+        {
+          "name": "Torino tumma makaroni 400 g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/makaronit",
+          "price": 109,
+          "comparisonPrice": 273,
+          "comparisonPriceUnit": "kg",
+          "ean": "6416597870102"
+        },
+        {
+          "name": "Torino täysjyvä makaroni 400g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/makaronit",
+          "price": 129,
+          "comparisonPrice": 323,
+          "comparisonPriceUnit": "kg",
+          "ean": "6411200109723"
+        },
+        {
+          "name": "Pirkka gluteeniton makaroni 400g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/gluteenittomat-pastat",
+          "price": 185,
+          "comparisonPrice": 463,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405228529"
+        },
+        {
+          "name": "Myllyn Paras Tumma Makaroni 1 kg",
+          "category": "CAABGAGAAAAAC",
+          "price": 225,
+          "comparisonPrice": 225,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700050787"
+        },
+        {
+          "name": "Myllyn Paras Tumma Makaroni 400 g",
+          "category": "CAABGAGAAAAAC",
+          "price": 79,
+          "comparisonPrice": 198,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700050749"
+        },
+        {
+          "name": "Pirkka suomalainen tumma makaroni 400 g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/makaronit",
+          "price": 65,
+          "comparisonPrice": 163,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405107039"
+        },
+        {
+          "name": "Schär Maccheroni makaroni gluteeniton 500g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/gluteenittomat-pastat",
+          "price": 425,
+          "comparisonPrice": 850,
+          "comparisonPriceUnit": "kg",
+          "ean": "8008698048399"
+        },
+        {
+          "name": "Rummo Elbows No160 Makaroni 400 g gluteeniton pasta",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/gluteenittomat-pastat",
+          "price": 355,
+          "comparisonPrice": 888,
+          "comparisonPriceUnit": "kg",
+          "ean": "8008343881609"
+        },
+        {
+          "name": "Schär Maccheroni kuitupitoinen makaroni gluteeniton 450g",
+          "category": "CAABGAGAAAAAA",
+          "price": 425,
+          "comparisonPrice": 944,
+          "comparisonPriceUnit": "kg",
+          "ean": "8008698048498"
+        },
+        {
+          "name": "SamMills Pasta D'oro makaroni luontaisesti gluteeniton pasta 500g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/pastat/gluteenittomat-pastat",
+          "price": 295,
+          "comparisonPrice": 590,
+          "comparisonPriceUnit": "kg",
+          "ean": "7330968050056"
+        }
+      ]
+    },
+    {
+      "query": "jauheliha",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Saarioinen jauheliha-salamipizza 300g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
+          "price": 359,
+          "comparisonPrice": 1197,
+          "comparisonPriceUnit": "kg",
+          "ean": "6412000034772"
+        },
+        {
+          "name": "Saarioinen jauheliha-pekoni lätkäpizza 200g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
+          "price": 165,
+          "comparisonPrice": 825,
+          "comparisonPriceUnit": "kg",
+          "ean": "6412000085859"
+        },
+        {
+          "name": "Atria Nauta Jauheliha 15% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 769,
+          "comparisonPrice": 1923,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407840043435"
+        },
+        {
+          "name": "Xtra sika-nauta jauheliha 23% 300g",
+          "category": "CAAACAAAAAGAA",
+          "price": 219,
+          "comparisonPrice": 730,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574629862"
+        },
+        {
+          "name": "HK Viljaporsaan jauheliha 10% 400g",
+          "category": "CAAACAAAAAIAA",
+          "price": 399,
+          "comparisonPrice": 998,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409100037192"
+        },
+        {
+          "name": "Atria Nauta-Kana Jauheliha 10% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 499,
+          "comparisonPrice": 1248,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407800017070"
+        },
+        {
+          "name": "Kotimaista kanan jauheliha 4% 400 g",
+          "category": "CAAACAAAAAMAA",
+          "price": 325,
+          "comparisonPrice": 813,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414891801488"
+        },
+        {
+          "name": "Atria Nauta-Viljapossu Jauheliha 1kg",
+          "category": "CAAACAAAAAEAA",
+          "price": 1099,
+          "comparisonPrice": 1099,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407830032371"
+        },
+        {
+          "name": "Naapurin Maalaiskanan jauheliha 800g",
+          "category": "CAAACAAAAAMAA",
+          "price": 725,
+          "comparisonPrice": 906,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405857308608"
+        },
+        {
+          "name": "Kariniemen Kalkkunan jauheliha 400 g",
+          "category": "CAAACAAAAAMAA",
+          "price": 549,
+          "comparisonPrice": 1373,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407720022451"
+        },
+        {
+          "name": "Atria Luomu Nauta Jauheliha 12% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 865,
+          "comparisonPrice": 2163,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407840044067"
+        },
+        {
+          "name": "Atria Nauta-Viljapossu Jauheliha 250g",
+          "category": "CAAACAAAAAEAA",
+          "price": 315,
+          "comparisonPrice": 1260,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407830032463"
+        },
+        {
+          "name": "Naapurin Maalaiskanan jauheliha 300 g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/broilerin-ja-kalkkunan-jauheliha",
+          "price": 289,
+          "comparisonPrice": 963,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405857335505"
+        },
+        {
+          "name": "Kariniemen Kananpojan jauheliha 400 g",
+          "category": "CAAACAAAAAMAA",
+          "price": 329,
+          "comparisonPrice": 823,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407720023335"
+        },
+        {
+          "name": "Atria Nauta-Viljapossu Jauheliha 400g",
+          "category": "CAAACAAAAAEAA",
+          "price": 499,
+          "comparisonPrice": 1248,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407830033279"
+        },
+        {
+          "name": "Kotimaista naudan jauheliha 17 % 700 g",
+          "category": "CAAACAAAAACAA",
+          "price": 1089,
+          "comparisonPrice": 1556,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414893500167"
+        },
+        {
+          "name": "Kotimaista naudan jauheliha 17 % 400 g",
+          "category": "CAAACAAAAACAA",
+          "price": 625,
+          "comparisonPrice": 1563,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414893500044"
+        },
+        {
+          "name": "Atria Parempi Nauta Jauheliha 10% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 629,
+          "comparisonPrice": 1573,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407840041172"
+        },
+        {
+          "name": "Kotimaista porsaan jauheliha 12 % 400 g",
+          "category": "CAAACAAAAAIAA",
+          "price": 395,
+          "comparisonPrice": 988,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438348001214"
+        },
+        {
+          "name": "HK Viljaporsas- Nauta jauheliha 22% 1 kg",
+          "category": "CAAACAAAAAGAA",
+          "price": 879,
+          "comparisonPrice": 879,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409100037611"
+        },
+        {
+          "name": "Tamminen luomukaritsan jauheliha 15% 300g",
+          "category": "CAAACAAAAAKAA",
+          "price": 679,
+          "comparisonPrice": 2263,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405691736001"
+        },
+        {
+          "name": "Snellman Kunnon naudan jauheliha 10% 700g",
+          "category": "CAAACAAAAACAA",
+          "price": 1149,
+          "comparisonPrice": 1641,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620012372"
+        },
+        {
+          "name": "Snellman 400g Kunnon sika-nauta jauheliha",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 445,
+          "comparisonPrice": 1113,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620011665"
+        },
+        {
+          "name": "Snellman Kunnon naudan jauheliha 10% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 699,
+          "comparisonPrice": 1747,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620011702"
+        },
+        {
+          "name": "Kotimaista sika-nauta jauheliha 23 % 400 g",
+          "category": "CAAACAAAAAGAA",
+          "price": 365,
+          "comparisonPrice": 913,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414893500075"
+        },
+        {
+          "name": "Kotimaista nauta-sika jauheliha 20 % 700 g",
+          "category": "CAAACAAAAAEAA",
+          "price": 865,
+          "comparisonPrice": 1236,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414893500228"
+        },
+        {
+          "name": "Atria Rotukarjan Naudan jauheliha 12% 300g",
+          "category": "CAAACAAAAACAA",
+          "price": 629,
+          "comparisonPrice": 2097,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407840044265"
+        },
+        {
+          "name": "Kotimaista sika-nauta jauheliha 23 % 700 g",
+          "category": "CAAACAAAAAGAA",
+          "price": 549,
+          "comparisonPrice": 784,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414893502482"
+        },
+        {
+          "name": "Atria Kevyt Nauta-Possu Jauheliha 9,5% 400g",
+          "category": "CAAACAAAAAEAA",
+          "price": 495,
+          "comparisonPrice": 1238,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407830032586"
+        },
+        {
+          "name": "Herkku rotukarjan naudan jauheliha 15% 300g",
+          "category": "CAAACAAAAACAA",
+          "price": 599,
+          "comparisonPrice": 1997,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574136407"
+        },
+        {
+          "name": "Kotimaista naudan jauheliha luomu 17 % 400 g",
+          "category": "CAAACAAAAACAA",
+          "price": 769,
+          "comparisonPrice": 1923,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414891801082"
+        },
+        {
+          "name": "Snellman Kunnon sika-nauta jauheliha 23% 700g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 735,
+          "comparisonPrice": 1050,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620012389"
+        },
+        {
+          "name": "Rönkä Meri-Lapin Karitsa jauheliha 400g pakaste",
+          "category": "CAAACAEAGAKAA",
+          "price": 765,
+          "comparisonPrice": 1913,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406091510000"
+        },
+        {
+          "name": "HK Jauhelihapihvit 330 g",
+          "category": "CAAAGAAAAAAAA",
+          "price": 209,
+          "comparisonPrice": 633,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409100070052"
+        },
+        {
+          "name": "Xtra jauhelihamauste 95 g",
+          "category": "CAABGBAAKAKAE",
+          "price": 83,
+          "comparisonPrice": 874,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191154933"
+        },
+        {
+          "name": "Meira Jauhelihamauste 100g",
+          "category": "CAABGBAAKAKAE",
+          "price": 139,
+          "comparisonPrice": 1390,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201001331"
+        },
+        {
+          "name": "Chef X Jauhelihapihvit 300g",
+          "category": "CAAAGAAAAAAAA",
+          "price": 750,
+          "comparisonPrice": 2500,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078470674"
+        },
+        {
+          "name": "HK mummon jauhelihapihvit 280g",
+          "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+          "price": 275,
+          "comparisonPrice": 982,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409100071813"
+        },
+        {
+          "name": "Santa Maria 80G Jauhelihamauste",
+          "category": "CAABGBAAKAKAE",
+          "price": 155,
+          "comparisonPrice": 1938,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311005015"
+        },
+        {
+          "name": "Santa Maria jauhelihamauste 30g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 73,
+          "comparisonPrice": 2433,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004704"
+        },
+        {
+          "name": "Golden Star 590g Jauhelihamauste",
+          "category": "CAABGBAAKAKAE",
+          "price": 535,
+          "comparisonPrice": 907,
+          "comparisonPriceUnit": "kg",
+          "ean": "6434800005653"
+        },
+        {
+          "name": "Tamminen jauhelihapihvi 6kpl 450g",
+          "category": "CAAACAAAAAQAA",
+          "price": 525,
+          "comparisonPrice": 1167,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405244829006"
+        },
+        {
+          "name": "Meira jauhelihamauste 35g suolaton",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 83,
+          "comparisonPrice": 2371,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201001348"
+        },
+        {
+          "name": "Kokkikartano Jauhelihakiusaus 700g",
+          "category": "CAAAGAAAGAEAA",
+          "price": 665,
+          "comparisonPrice": 950,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405304002387"
+        },
+        {
+          "name": "Snellman kunnon jauhelihapihvit 300g",
+          "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+          "price": 309,
+          "comparisonPrice": 1030,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620014680"
+        },
+        {
+          "name": "Kivikylän Palvarin Jauhelihapihvi 250g",
+          "category": "CAAAGAAAAAAAA",
+          "price": 299,
+          "comparisonPrice": 1196,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406300015395"
+        },
+        {
+          "name": "Meira jauhelihamauste 40g suolaton mausteseos",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 155,
+          "comparisonPrice": 3875,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201101192"
+        },
+        {
+          "name": "Atria Kunnon Arki jauhelihapihvit muusilla 300g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+          "price": 249,
+          "comparisonPrice": 830,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407860060245"
+        },
+        {
+          "name": "Santa Maria jauhelihamauste ei lisättyä suolaa 38g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 194,
+          "comparisonPrice": 5105,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311025549"
+        },
+        {
+          "name": "Kivikylän Palvarin jauhelihapihvit 250g gluteeniton",
+          "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+          "price": 299,
+          "comparisonPrice": 1196,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406300015340"
+        },
+        {
+          "name": "DIBO poro raakapakastettu jauhelihapihvi 800g pakaste",
+          "category": "lemmikit/koiranruoat/koiran-pakasteruoat",
+          "price": 895,
+          "comparisonPrice": 1119,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410180005155"
+        },
+        {
+          "name": "DIBO lammas raakapakastettu jauhelihapihvi 800g pakaste",
+          "category": "lemmikit/koiranruoat/koiran-pakasteruoat",
+          "price": 685,
+          "comparisonPrice": 856,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410180005124"
+        },
+        {
+          "name": "Findus Dagens Jauhelihapihvit maustevoilla 340g pakaste",
+          "category": "pakasteet/pakasteateriat/mikrovalmiit-ateriat",
+          "price": 470,
+          "comparisonPrice": 1382,
+          "comparisonPriceUnit": "kg",
+          "ean": "7310500187532"
+        },
+        {
+          "name": "Meira Kreikkalainen jauhelihamauste ei lisättyä suolaa 25g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 99,
+          "comparisonPrice": 3960,
+          "comparisonPriceUnit": "kg",
+          "ean": "6420101885216"
+        },
+        {
+          "name": "Chef X Jauhelihapihvit paistetulla sipulilla ja paistetut perunat 400g",
+          "category": "CAAAGAAAGACAA",
+          "price": 995,
+          "comparisonPrice": 2487,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078470223"
+        },
+        {
+          "name": "Chef X Jauhelihapihvit pekoni-kantarellikastikkeella ja juustoperunoilla 400g",
+          "category": "CAAAGAAAGACAA",
+          "price": 995,
+          "comparisonPrice": 2487,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078470117"
+        },
+        {
+          "name": "Chef X Jauhelihapihvit sinappisella pippurikastikkeella ja juustoperunat 400g",
+          "category": "CAAAGAAAGACAA",
+          "price": 985,
+          "comparisonPrice": 2462,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078470094"
+        },
+        {
+          "name": "Saarioinen Juustotasku kypsentämätön jauhelihapihvi juustotäytteellä sulatettu 4kpl 350g",
+          "category": "CAAACAAAAAQAA",
+          "price": 525,
+          "comparisonPrice": 1500,
+          "comparisonPriceUnit": "kg",
+          "ean": "6412000074655"
+        }
+      ]
+    },
+    {
+      "query": "jauheliha",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Saarioinen jauheliha-salamipizza 300g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
+          "price": 369,
+          "comparisonPrice": 1230,
+          "comparisonPriceUnit": "kg",
+          "ean": "6412000034772"
+        },
+        {
+          "name": "Sallinen Jauheliha-ja yleismauste 500g",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 865,
+          "comparisonPrice": 1730,
+          "comparisonPriceUnit": "kg",
+          "ean": "6436501005499"
+        },
+        {
+          "name": "Saarioinen jauheliha-pekoni lätkäpizza 200g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/pizzat",
+          "price": 175,
+          "comparisonPrice": 875,
+          "comparisonPriceUnit": "kg",
+          "ean": "6412000085859"
+        },
+        {
+          "name": "Kruunu Herkku täytetty ohukainen jauheliha-kaura 2kpl/400g",
+          "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/ohukaiset",
+          "price": 655,
+          "comparisonPrice": 1638,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078913027"
+        },
+        {
+          "name": "Naudan jauheliha ",
+          "category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+          "price": 2095,
+          "comparisonPrice": 2095,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000191000009"
+        },
+        {
+          "name": "Atria Kanan Jauheliha 400g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/broilerin-ja-kalkkunan-jauheliha",
+          "price": 379,
+          "comparisonPrice": 948,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407810013475"
+        },
+        {
+          "name": "Atria Kanan jauheliha 800 g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/broilerin-ja-kalkkunan-jauheliha",
+          "price": 799,
+          "comparisonPrice": 999,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407800021374"
+        },
+        {
+          "name": "Naudan Burger Jauheliha Suomi",
+          "category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+          "price": 2095,
+          "comparisonPrice": 2095,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000190800006"
+        },
+        {
+          "name": "Tammiston nauta-sika jauheliha",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 1695,
+          "comparisonPrice": 1695,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000191600001"
+        },
+        {
+          "name": "Atria Nauta Jauheliha 15% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 859,
+          "comparisonPrice": 2148,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407840043435"
+        },
+        {
+          "name": "K-Menu sika-nauta jauheliha 300g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 239,
+          "comparisonPrice": 797,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405316707"
+        },
+        {
+          "name": "Atria Nauta-Kana Jauheliha 10% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 585,
+          "comparisonPrice": 1463,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407800017070"
+        },
+        {
+          "name": "Kariniemen Kalkkunan jauheliha 400 g",
+          "category": "CAAACAAAAAMAA",
+          "price": 595,
+          "comparisonPrice": 1488,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407720022451"
+        },
+        {
+          "name": "Atria Luomu Nauta Jauheliha 12% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 955,
+          "comparisonPrice": 2388,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407840044067"
+        },
+        {
+          "name": "Naapurin Maalaiskanan jauheliha 800g",
+          "category": "CAAACAAAAAMAA",
+          "price": 851,
+          "comparisonPrice": 1064,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405857308608"
+        },
+        {
+          "name": "Pirkka kana-nauta jauheliha 10% 400g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 439,
+          "comparisonPrice": 1098,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405357861"
+        },
+        {
+          "name": "Atria Nauta-Viljapossu Jauheliha 1kg",
+          "category": "CAAACAAAAAEAA",
+          "price": 1169,
+          "comparisonPrice": 1169,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407830032371"
+        },
+        {
+          "name": "Pirkka sika-nauta jauheliha 23% 400g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 379,
+          "comparisonPrice": 948,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405272447"
+        },
+        {
+          "name": "Naapurin Maalaiskanan jauheliha 300 g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/broilerin-ja-kalkkunan-jauheliha",
+          "price": 329,
+          "comparisonPrice": 1097,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405857335505"
+        },
+        {
+          "name": "Kariniemen Kananpojan jauheliha 400 g",
+          "category": "CAAACAAAAAMAA",
+          "price": 529,
+          "comparisonPrice": 1323,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407720023335"
+        },
+        {
+          "name": "Atria Nauta-Viljapossu Jauheliha 250g",
+          "category": "CAAACAAAAAEAA",
+          "price": 329,
+          "comparisonPrice": 1316,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407830032463"
+        },
+        {
+          "name": "Atria Parempi Nauta Jauheliha 10% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 739,
+          "comparisonPrice": 1848,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407840041172"
+        },
+        {
+          "name": "Atria nauta-viljapossu jauheliha 700 g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 955,
+          "comparisonPrice": 1364,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407830032197"
+        },
+        {
+          "name": "Pirkka suomalainen kanan jauheliha 400g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/broilerin-ja-kalkkunan-jauheliha",
+          "price": 325,
+          "comparisonPrice": 813,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405284075"
+        },
+        {
+          "name": "Snellman Kunnon naudan jauheliha 10% 700g",
+          "category": "CAAACAAAAACAA",
+          "price": 1299,
+          "comparisonPrice": 1856,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620012372"
+        },
+        {
+          "name": "Snellman Kunnon naudan jauheliha 10% 400g",
+          "category": "CAAACAAAAACAA",
+          "price": 819,
+          "comparisonPrice": 2048,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620011702"
+        },
+        {
+          "name": "Snellman 400g Kunnon sika-nauta jauheliha",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 439,
+          "comparisonPrice": 1098,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620011665"
+        },
+        {
+          "name": "Atria Kevyt Nauta-Sika Jauheliha 9,5% 300g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 425,
+          "comparisonPrice": 1417,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407800008450"
+        },
+        {
+          "name": "Atria Kevyt Nauta-Sika Jauheliha 9,5% 600g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 799,
+          "comparisonPrice": 1332,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407800012778"
+        },
+        {
+          "name": "Snellman Maatiaispossun jauheliha 5 % 300 g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/porsaan-jauheliha",
+          "price": 375,
+          "comparisonPrice": 1250,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620017414"
+        },
+        {
+          "name": "Snellman 400 g Kunnon naudan jauheliha 20 %",
+          "category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+          "price": 739,
+          "comparisonPrice": 1848,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620011856"
+        },
+        {
+          "name": "Pirkka suomalainen nauta-sika jauheliha 300g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 359,
+          "comparisonPrice": 1197,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405338174"
+        },
+        {
+          "name": "Pirkka suomalainen naudan jauheliha 17% 400g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+          "price": 629,
+          "comparisonPrice": 1573,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405338204"
+        },
+        {
+          "name": "Pirkka suomalainen naudan jauheliha 10% 400g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+          "price": 639,
+          "comparisonPrice": 1598,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405290175"
+        },
+        {
+          "name": "Pirkka suomalainen naudan jauheliha 10% 600g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+          "price": 1099,
+          "comparisonPrice": 1832,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405184290"
+        },
+        {
+          "name": "Pirkka suomalainen porsaan jauheliha 12% 400g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/porsaan-jauheliha",
+          "price": 429,
+          "comparisonPrice": 1073,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405086532"
+        },
+        {
+          "name": "Snellman Kunnon sika-nauta jauheliha 23% 700g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 755,
+          "comparisonPrice": 1079,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620012389"
+        },
+        {
+          "name": "Pirkka suomalainen naudan jauheliha 17 % 600 g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha",
+          "price": 999,
+          "comparisonPrice": 1665,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405365613"
+        },
+        {
+          "name": "Lihakulttuuri Salsiccia jauheliha fenkoli 400g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/porsaan-jauheliha",
+          "price": 650,
+          "comparisonPrice": 1625,
+          "comparisonPriceUnit": "kg",
+          "ean": "7392055052626"
+        },
+        {
+          "name": "Rönkä Meri-Lapin Karitsa jauheliha 400g pakaste",
+          "category": "CAAACAEAGAKAA",
+          "price": 799,
+          "comparisonPrice": 1998,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406091510000"
+        },
+        {
+          "name": "Pirkka suomalainen kanan jauheliha 600g maustamaton",
+          "category": "liha-ja-kasviproteiinit/jauheliha/broilerin-ja-kalkkunan-jauheliha",
+          "price": 499,
+          "comparisonPrice": 832,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405284105"
+        },
+        {
+          "name": "HK Jauhelihapihvit 330 g",
+          "category": "CAAAGAAAAAAAA",
+          "price": 215,
+          "comparisonPrice": 652,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409100070052"
+        },
+        {
+          "name": "Meira Jauhelihamauste 100g",
+          "category": "CAABGBAAKAKAE",
+          "price": 138,
+          "comparisonPrice": 1380,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201001331"
+        },
+        {
+          "name": "K-Menu jauhelihamauste 300g",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 289,
+          "comparisonPrice": 963,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405243799"
+        },
+        {
+          "name": "Santa Maria 30G Jauhelihamauste",
+          "category": "CAABGBAAKAKAE",
+          "price": 69,
+          "comparisonPrice": 2300,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004704"
+        },
+        {
+          "name": "Santa Maria jauhelihamauste 95g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 339,
+          "comparisonPrice": 3568,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311016547"
+        },
+        {
+          "name": "Santa Maria 80G Jauhelihamauste",
+          "category": "CAABGBAAKAKAE",
+          "price": 149,
+          "comparisonPrice": 1863,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311005015"
+        },
+        {
+          "name": "Golden Star 590g Jauhelihamauste",
+          "category": "CAABGBAAKAKAE",
+          "price": 493,
+          "comparisonPrice": 836,
+          "comparisonPriceUnit": "kg",
+          "ean": "6434800005653"
+        },
+        {
+          "name": "Kokkikartano Jauhelihakiusaus 700g",
+          "category": "CAAAGAAAGAEAA",
+          "price": 665,
+          "comparisonPrice": 950,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405304002387"
+        },
+        {
+          "name": "Snellman kunnon jauhelihapihvit 300g",
+          "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+          "price": 309,
+          "comparisonPrice": 1030,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409620014680"
+        },
+        {
+          "name": "Pirkka Jauhelihamauste 28g mausteseos",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 65,
+          "comparisonPrice": 2321,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405240408"
+        },
+        {
+          "name": "Kivikylän Palvarin Jauhelihapihvi 250g",
+          "category": "CAAAGAAAAAAAA",
+          "price": 325,
+          "comparisonPrice": 1300,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406300015395"
+        },
+        {
+          "name": "Meira Jauhelihamauste ei lisättyä suolaa 40g",
+          "category": "CAABGBAAKAKAE",
+          "price": 165,
+          "comparisonPrice": 4125,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201101192"
+        },
+        {
+          "name": "Meira Jauhelihamauste ei lisättyä suolaa 35g",
+          "category": "CAABGBAAKAKAE",
+          "price": 79,
+          "comparisonPrice": 2257,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201001348"
+        },
+        {
+          "name": "Tamminen jauhelihapihvi paneroitu 4 kpl 330 g",
+          "category": "liha-ja-kasviproteiinit/jauheliha/sekoite--ja-muu-jauheliha",
+          "price": 459,
+          "comparisonPrice": 1391,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405244854008"
+        },
+        {
+          "name": "Atria Kunnon Arki jauhelihapihvit muusilla 300g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+          "price": 275,
+          "comparisonPrice": 917,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407860060245"
+        },
+        {
+          "name": "Santa Maria jauhelihamauste ei lisättyä suolaa 38g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 219,
+          "comparisonPrice": 5763,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311025549"
+        },
+        {
+          "name": "Kivikylän Palvarin jauhelihapihvit 250g gluteeniton",
+          "category": "valmisruoka/pyorykat-pihvit-ja-ohukaiset/pyorykat-pihvit-ja-puikot",
+          "price": 325,
+          "comparisonPrice": 1300,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406300015340"
+        },
+        {
+          "name": "DIBO poro raakapakastettu jauhelihapihvi 800g pakaste",
+          "category": "lemmikit/koiranruoat/koiran-pakasteruoat",
+          "price": 935,
+          "comparisonPrice": 1169,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410180005155"
+        },
+        {
+          "name": "Meira Jauhelihamauste 470g suolaton PET-tölkki mausteseos",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1599,
+          "comparisonPrice": 3402,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201707059"
+        },
+        {
+          "name": "Meira Kreikkalainen jauhelihamauste ei lisättyä suolaa 25g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 99,
+          "comparisonPrice": 3960,
+          "comparisonPriceUnit": "kg",
+          "ean": "6420101885216"
+        },
+        {
+          "name": "Chef X Jauhelihapihvit tattimuhennoksella ja juustoperunoilla",
+          "category": "CAAAGAAAGACAA",
+          "price": 495,
+          "comparisonPrice": 495,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000612100004"
+        }
+      ]
+    },
+    {
+      "query": "suola",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Kantolan Suola Cracker suolakeksi 150g",
+          "category": "CAABGAIAAAEAA",
+          "price": 148,
+          "comparisonPrice": 987,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410380032791"
+        },
+        {
+          "name": "Oikia Fiini Lady Claire suola-viinietikka perunalastut 100g",
+          "category": "CAABGAUAAAAAA",
+          "price": 145,
+          "comparisonPrice": 1450,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430013258183"
+        },
+        {
+          "name": "Jozo hieno suola 600g",
+          "category": "mausteet-ja-maustaminen/suola/tavallinen-suola",
+          "price": 159,
+          "comparisonPrice": 265,
+          "comparisonPriceUnit": "kg",
+          "ean": "8715800002339"
+        },
+        {
+          "name": "Taffel Popcorn 100g suola",
+          "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/popcornit",
+          "price": 299,
+          "comparisonPrice": 2990,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410380044916"
+        },
+        {
+          "name": "JOZO 1kg Hieno suola jodioitu",
+          "category": "CAABGBAAIAAAA",
+          "price": 149,
+          "comparisonPrice": 149,
+          "comparisonPriceUnit": "kg",
+          "ean": "5701027004129"
+        },
+        {
+          "name": "Krit Finitas Cracker suola 150g",
+          "category": "CAABGAIAAAEAA",
+          "price": 249,
+          "comparisonPrice": 1660,
+          "comparisonPriceUnit": "kg",
+          "ean": "8434165651579"
+        },
+        {
+          "name": "Jozo 500g hieno Himalajan suola",
+          "category": "CAABGBAAIAGAA",
+          "price": 375,
+          "comparisonPrice": 750,
+          "comparisonPriceUnit": "kg",
+          "ean": "5701027004488"
+        },
+        {
+          "name": "JOZO jodioitu suola 600g sirotin",
+          "category": "CAABGBAAIAAAA",
+          "price": 169,
+          "comparisonPrice": 282,
+          "comparisonPriceUnit": "kg",
+          "ean": "8715800002278"
+        },
+        {
+          "name": "House suola- ja pippurimylly 2 kpl",
+          "category": "CACAGACAEAEAA",
+          "price": 1990,
+          "comparisonPrice": 995,
+          "comparisonPriceUnit": "kpl",
+          "ean": "6438574124732"
+        },
+        {
+          "name": "Jozo 450g hieno suola 70% vähemmän natriumia sirotin",
+          "category": "CAABGBAAIACAA",
+          "price": 349,
+          "comparisonPrice": 776,
+          "comparisonPriceUnit": "kg",
+          "ean": "8715800001073"
+        },
+        {
+          "name": "RAXI Crackers suolakeksi CHEESE 72g",
+          "category": "CAABGAIAAAEAA",
+          "price": 79,
+          "comparisonPrice": 1097,
+          "comparisonPriceUnit": "kg",
+          "ean": "4770179995198"
+        },
+        {
+          "name": "RAXI Crackers SALTY suolakeksit 70g",
+          "category": "CAABGAIAAAEAA",
+          "price": 79,
+          "comparisonPrice": 1129,
+          "comparisonPriceUnit": "kg",
+          "ean": "4770179995211"
+        },
+        {
+          "name": "Coop Salt Crackers suolakeksi 300 g",
+          "category": "CAABGAIAAAEAA",
+          "price": 128,
+          "comparisonPrice": 427,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191104419"
+        },
+        {
+          "name": "Gullón Suolakeksi Crackers 200g Gluten free",
+          "category": "CAABGAIAAAAAA",
+          "price": 224,
+          "comparisonPrice": 1120,
+          "comparisonPriceUnit": "kg",
+          "ean": "8410376045017"
+        },
+        {
+          "name": "Meira Jauhelihamauste ei lisättyä suolaa 40g",
+          "category": "CAABGBAAKAKAE",
+          "price": 155,
+          "comparisonPrice": 3875,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201101192"
+        },
+        {
+          "name": "Meira Jauhelihamauste ei lisättyä suolaa 35g",
+          "category": "CAABGBAAKAKAE",
+          "price": 83,
+          "comparisonPrice": 2371,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201001348"
+        },
+        {
+          "name": "RAXI Crackers suolakeksit SOUR CREAM AND ONION 72g",
+          "category": "CAABGAIAAAEAA",
+          "price": 79,
+          "comparisonPrice": 1097,
+          "comparisonPriceUnit": "kg",
+          "ean": "4770179995174"
+        },
+        {
+          "name": "Santa Maria jauhelihamauste ei lisättyä suolaa 38g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 194,
+          "comparisonPrice": 5105,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311025549"
+        },
+        {
+          "name": "Meira Kreikkalainen jauhelihamauste ei lisättyä suolaa 25g",
+          "category": "CAABGBAAKAKAE",
+          "price": 99,
+          "comparisonPrice": 3960,
+          "comparisonPriceUnit": "kg",
+          "ean": "6420101885216"
+        }
+      ]
+    },
+    {
+      "query": "suola",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Kantolan Suola Cracker suolakeksi 150g",
+          "category": "CAABGAIAAAEAA",
+          "price": 179,
+          "comparisonPrice": 1193,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410380032791"
+        },
+        {
+          "name": "Nutisal kuivapaahdetut maapähkinät 175g suola-pippuri",
+          "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/snacks-pahkinat",
+          "price": 355,
+          "comparisonPrice": 2029,
+          "comparisonPriceUnit": "kg",
+          "ean": "4740085315076"
+        },
+        {
+          "name": "Jozo hieno suola 600g",
+          "category": "mausteet-ja-maustaminen/suola/tavallinen-suola",
+          "price": 159,
+          "comparisonPrice": 265,
+          "comparisonPriceUnit": "kg",
+          "ean": "8715800002339"
+        },
+        {
+          "name": "Taffel Popcorn 100g suola",
+          "category": "makeiset-ja-naposteltavat/sipsit-ja-snacksit/popcornit",
+          "price": 325,
+          "comparisonPrice": 3250,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410380044916"
+        },
+        {
+          "name": "JOZO 1kg Hieno suola jodioitu",
+          "category": "CAABGBAAIAAAA",
+          "price": 149,
+          "comparisonPrice": 149,
+          "comparisonPriceUnit": "kg",
+          "ean": "5701027004129"
+        },
+        {
+          "name": "Jozo 500g hieno Himalajan suola",
+          "category": "CAABGBAAIAGAA",
+          "price": 379,
+          "comparisonPrice": 758,
+          "comparisonPriceUnit": "kg",
+          "ean": "5701027004488"
+        },
+        {
+          "name": "JOZO jodioitu suola 600g sirotin",
+          "category": "CAABGBAAIAAAA",
+          "price": 185,
+          "comparisonPrice": 308,
+          "comparisonPriceUnit": "kg",
+          "ean": "8715800002278"
+        },
+        {
+          "name": "Pirkka Parhaat Himalajan suola 500g",
+          "category": "mausteet-ja-maustaminen/suola/muu-suola",
+          "price": 265,
+          "comparisonPrice": 530,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405222534"
+        },
+        {
+          "name": "Jozo Himalajan suola 90g karkea mylly",
+          "category": "mausteet-ja-maustaminen/suola/muu-suola",
+          "price": 635,
+          "comparisonPrice": 7056,
+          "comparisonPriceUnit": "kg",
+          "ean": "8715800984420"
+        },
+        {
+          "name": "Jozo 450g hieno suola 70% vähemmän natriumia sirotin",
+          "category": "CAABGBAAIACAA",
+          "price": 369,
+          "comparisonPrice": 820,
+          "comparisonPriceUnit": "kg",
+          "ean": "8715800001073"
+        },
+        {
+          "name": "Spices Chef Kala Namak-suola jauhe 150g, BPA-vapaassa biomuovi maustepurkissa.",
+          "category": "mausteet-ja-maustaminen/suola/muu-suola",
+          "price": 423,
+          "comparisonPrice": 2820,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430063145303"
+        },
+        {
+          "name": "Gullón Suolakeksi Crackers 200g Gluten free",
+          "category": "CAABGAIAAAAAA",
+          "price": 298,
+          "comparisonPrice": 1490,
+          "comparisonPriceUnit": "kpl",
+          "ean": "8410376045017"
+        },
+        {
+          "name": "Meira Jauhelihamauste ei lisättyä suolaa 40g",
+          "category": "CAABGBAAKAKAE",
+          "price": 165,
+          "comparisonPrice": 4125,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201101192"
+        },
+        {
+          "name": "Meira Jauhelihamauste ei lisättyä suolaa 35g",
+          "category": "CAABGBAAKAKAE",
+          "price": 79,
+          "comparisonPrice": 2257,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201001348"
+        },
+        {
+          "name": "Santa Maria jauhelihamauste ei lisättyä suolaa 38g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 219,
+          "comparisonPrice": 5763,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311025549"
+        },
+        {
+          "name": "Meira Jauhelihamauste 470g suolaton PET-tölkki mausteseos",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1599,
+          "comparisonPrice": 3402,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201707059"
+        },
+        {
+          "name": "Meira Kreikkalainen jauhelihamauste ei lisättyä suolaa 25g",
+          "category": "CAABGBAAKAKAE",
+          "price": 99,
+          "comparisonPrice": 3960,
+          "comparisonPriceUnit": "kg",
+          "ean": "6420101885216"
+        }
+      ]
+    },
+    {
+      "query": "juustoraaste",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Coop 4-Mix juustoraaste 150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 187,
+          "comparisonPrice": 1247,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191149793"
+        },
+        {
+          "name": "Coop texmex juustoraaste 150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 228,
+          "comparisonPrice": 1520,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191149861"
+        },
+        {
+          "name": "Valio pizza juustoraaste e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 285,
+          "comparisonPrice": 1900,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430033904"
+        },
+        {
+          "name": "Valio pizza juustoraaste e400 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 569,
+          "comparisonPrice": 1423,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430034055"
+        },
+        {
+          "name": "Coop cheddar juustoraaste 150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 167,
+          "comparisonPrice": 1113,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191149373"
+        },
+        {
+          "name": "Coop juustoraaste pizzaan 150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 165,
+          "comparisonPrice": 1100,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191149847"
+        },
+        {
+          "name": "Coop emmental juustoraaste 150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 117,
+          "comparisonPrice": 780,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191149878"
+        },
+        {
+          "name": "Xtra 500g juustoraaste 23% rasvaa",
+          "category": "CAAAOAGACAGAA",
+          "price": 415,
+          "comparisonPrice": 830,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340011300021"
+        },
+        {
+          "name": "Xtra juustoraaste 15% rasvaa 500g",
+          "category": "CAAAOAGACAGAA",
+          "price": 475,
+          "comparisonPrice": 950,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340011300106"
+        },
+        {
+          "name": "Västerbottensost 150g juustoraaste",
+          "category": "CAAAOAGACAGAA",
+          "price": 415,
+          "comparisonPrice": 2767,
+          "comparisonPriceUnit": "kg",
+          "ean": "7310861081487"
+        },
+        {
+          "name": "Coop mozzarella juustoraaste 150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 129,
+          "comparisonPrice": 860,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191149779"
+        },
+        {
+          "name": "Coop Grana Padano juustoraaste 70 g",
+          "category": "CAAAOAGACAAAA",
+          "price": 161,
+          "comparisonPrice": 2300,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191157033"
+        },
+        {
+          "name": "Valio mozzarella juustoraaste e400 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 569,
+          "comparisonPrice": 1423,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430348237"
+        },
+        {
+          "name": "Valio mozzarella juustoraaste e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 285,
+          "comparisonPrice": 1900,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430341931"
+        },
+        {
+          "name": "Coop Pecorino Romano juustoraaste 50 g",
+          "category": "CAAAOAGACAAAA",
+          "price": 184,
+          "comparisonPrice": 3680,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191157088"
+        },
+        {
+          "name": "Coop italialainen juustoraaste 9kk 100g",
+          "category": "CAAAOAGACAAAA",
+          "price": 199,
+          "comparisonPrice": 1990,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191182400"
+        },
+        {
+          "name": "Valio kolmen juuston juustoraaste e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 285,
+          "comparisonPrice": 1900,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430348060"
+        },
+        {
+          "name": "Ahvenanmaan Port salut juustoraaste 150g",
+          "category": "CAAAOAGACAGAA",
+          "price": 235,
+          "comparisonPrice": 1567,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407204003075"
+        },
+        {
+          "name": "Valio cheddar juustoraaste 150g laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 285,
+          "comparisonPrice": 1900,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430340125"
+        },
+        {
+          "name": "Valio Punaleima emmental juustoraaste e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 285,
+          "comparisonPrice": 1900,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430031542"
+        },
+        {
+          "name": "Valio Punaleima emmental juustoraaste e400 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 569,
+          "comparisonPrice": 1423,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430034031"
+        },
+        {
+          "name": "Kuusamon Juusto Eränkävijä juustoraaste 140 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 249,
+          "comparisonPrice": 1779,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405020031746"
+        },
+        {
+          "name": "Valio kevyempi pizza 17 % juustoraaste e400 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 569,
+          "comparisonPrice": 1423,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430336708"
+        },
+        {
+          "name": "Valio kevyempi pizza juustoraaste 17 % e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 285,
+          "comparisonPrice": 1900,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430342716"
+        },
+        {
+          "name": "Valio Mustaleima™ emmental juustoraaste e130 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 285,
+          "comparisonPrice": 2192,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430339235"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® juustoraaste e170 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 209,
+          "comparisonPrice": 1229,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430341917"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® juustoraaste e700 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 735,
+          "comparisonPrice": 1050,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430340262"
+        },
+        {
+          "name": "Coop Parmigiano Reggiano juustoraaste 12kk 70g SAN",
+          "category": "CAAAOAGACAAAA",
+          "price": 235,
+          "comparisonPrice": 3357,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191181908"
+        }
+      ]
+    },
+    {
+      "query": "juustoraaste",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Grozette juustoraaste 175g prk",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 469,
+          "comparisonPrice": 2680,
+          "comparisonPriceUnit": "kg",
+          "ean": "8710551710472"
+        },
+        {
+          "name": "Valio pizza juustoraaste e400 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 569,
+          "comparisonPrice": 1423,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430034055"
+        },
+        {
+          "name": "Valio pizza juustoraaste e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 299,
+          "comparisonPrice": 1993,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430033904"
+        },
+        {
+          "name": "Västerbottensost 150g juustoraaste",
+          "category": "CAAAOAGACAGAA",
+          "price": 465,
+          "comparisonPrice": 3100,
+          "comparisonPriceUnit": "kg",
+          "ean": "7310861081487"
+        },
+        {
+          "name": "Maatilan Parhaat 120g juustoraaste",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 209,
+          "comparisonPrice": 1742,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430055271157"
+        },
+        {
+          "name": "Valio mozzarella juustoraaste e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 299,
+          "comparisonPrice": 1993,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430341931"
+        },
+        {
+          "name": "Valio mozzarella juustoraaste e400 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 569,
+          "comparisonPrice": 1423,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430348237"
+        },
+        {
+          "name": "Parrano Robusto juustoraaste 60g hien",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/parmesan",
+          "price": 145,
+          "comparisonPrice": 2417,
+          "comparisonPriceUnit": "kg",
+          "ean": "8710912058434"
+        },
+        {
+          "name": "Jokilaakson NachoTaco juustoraaste 200g",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 429,
+          "comparisonPrice": 2145,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016342643"
+        },
+        {
+          "name": "Ahvenanmaan Port salut juustoraaste 150g",
+          "category": "CAAAOAGACAGAA",
+          "price": 149,
+          "comparisonPrice": 993,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407204003075"
+        },
+        {
+          "name": "Valio kolmen juuston juustoraaste e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 299,
+          "comparisonPrice": 1993,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430348060"
+        },
+        {
+          "name": "Chalupa juustoraaste mix 150g laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 269,
+          "comparisonPrice": 1793,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405318503"
+        },
+        {
+          "name": "Maatilan Parhaat 120g Emmental juustoraaste",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 209,
+          "comparisonPrice": 1742,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430055271195"
+        },
+        {
+          "name": "Valio cheddar juustoraaste 150g laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 299,
+          "comparisonPrice": 1993,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430340125"
+        },
+        {
+          "name": "Valio Punaleima emmental juustoraaste e400 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 569,
+          "comparisonPrice": 1423,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430034031"
+        },
+        {
+          "name": "Valio Punaleima emmental juustoraaste e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 299,
+          "comparisonPrice": 1993,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430031542"
+        },
+        {
+          "name": "Kuusamon Juusto Eränkävijä juustoraaste 140 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 259,
+          "comparisonPrice": 1850,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405020031746"
+        },
+        {
+          "name": "Valio kevyempi pizza juustoraaste 17 % e150 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 299,
+          "comparisonPrice": 1993,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430342716"
+        },
+        {
+          "name": "Valio kevyempi pizza 17 % juustoraaste e400 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 569,
+          "comparisonPrice": 1423,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430336708"
+        },
+        {
+          "name": "Chalupa juustoraaste chipotle 150g laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 269,
+          "comparisonPrice": 1793,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405318534"
+        },
+        {
+          "name": "Valio Mustaleima™ emmental juustoraaste e130 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 299,
+          "comparisonPrice": 2300,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430339235"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® juustoraaste e170 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 219,
+          "comparisonPrice": 1288,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430341917"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® juustoraaste e700 g",
+          "category": "CAAAOAGACAGAA",
+          "price": 769,
+          "comparisonPrice": 1099,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430340262"
+        },
+        {
+          "name": "Pirkka Grana Padano juustoraaste 100g laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/parmesan",
+          "price": 269,
+          "comparisonPrice": 2690,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405124272"
+        },
+        {
+          "name": "Pirkka Parhaat Parmigiano Reggiano juustoraaste 80g",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/parmesan",
+          "price": 329,
+          "comparisonPrice": 4113,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405242488"
+        },
+        {
+          "name": "QuattroColli 50g Pecorino Romano D.O.P juustoraaste",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/vuohen--ja-lampaanmaitojuustot",
+          "price": 265,
+          "comparisonPrice": 5300,
+          "comparisonPriceUnit": "kg",
+          "ean": "0000080390831"
+        },
+        {
+          "name": "Pirkka Parhaat provolone-mozzarella juustoraaste 150g",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 289,
+          "comparisonPrice": 1927,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405261427"
+        },
+        {
+          "name": "Sheese maidoton mozzarella -tyyppinen juustoraaste 200g",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/tofu-ja-kasviperaiset",
+          "price": 549,
+          "comparisonPrice": 2745,
+          "comparisonPriceUnit": "kg",
+          "ean": "5034795001091"
+        },
+        {
+          "name": "Pirkka emmental-mozzarella juustoraaste 150g vähälaktoosinen",
+          "category": "maito-juusto-munat-ja-rasvat/ruoka--ja-herkuttelujuustot/juustoraasteet",
+          "price": 175,
+          "comparisonPrice": 1167,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405048561"
+        }
+      ]
+    },
+    {
+      "query": "voi",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Flora & voi 500g",
+          "category": "CAAASACAAAAAA",
+          "price": 299,
+          "comparisonPrice": 598,
+          "comparisonPriceUnit": "kg",
+          "ean": "8719200296015"
+        },
+        {
+          "name": "Flora & Voi Leivonta 500g",
+          "category": "maito-juusto-munat-ja-rasvat/rasvat/rasvat-leivontaan-ja-ruoanlaittoon",
+          "price": 339,
+          "comparisonPrice": 678,
+          "comparisonPriceUnit": "kg",
+          "ean": "8719200306929"
+        },
+        {
+          "name": "Flora & voi Merisuola 500g",
+          "category": "CAAASACAAAAAA",
+          "price": 299,
+          "comparisonPrice": 598,
+          "comparisonPriceUnit": "kg",
+          "ean": "8719200295537"
+        },
+        {
+          "name": "Valio voi voimakassuolainen 500 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 489,
+          "comparisonPrice": 978,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030019"
+        },
+        {
+          "name": "Valio Luomu™ voi 200 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 259,
+          "comparisonPrice": 1295,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430310630"
+        },
+        {
+          "name": "Valio voi suolaamaton 500 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 595,
+          "comparisonPrice": 1190,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030026"
+        },
+        {
+          "name": "Sundlings popcornmauste voi 26g",
+          "category": "CAABGAUAIAAAA",
+          "price": 109,
+          "comparisonPrice": 4192,
+          "comparisonPriceUnit": "kg",
+          "ean": "7331755012059"
+        },
+        {
+          "name": "Valio voi normaalisuolainen 200 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 259,
+          "comparisonPrice": 1295,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430310678"
+        },
+        {
+          "name": "Valio Eila® voi laktoositon 200 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 259,
+          "comparisonPrice": 1295,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030101"
+        },
+        {
+          "name": "Vapaa Normaalisuolainen voi 500 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 399,
+          "comparisonPrice": 798,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430042024940"
+        },
+        {
+          "name": "Valio voi normaalisuolainen 500 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 385,
+          "comparisonPrice": 770,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030002"
+        },
+        {
+          "name": "Kotimaista voi normaalisuolainen 500g",
+          "category": "CAAASAGAAAAAA",
+          "price": 365,
+          "comparisonPrice": 730,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438460913020"
+        },
+        {
+          "name": "Kotimaista normaalisuolainen voi 500g",
+          "category": "CAAASAGAAAAAA",
+          "price": 369,
+          "comparisonPrice": 738,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574493821"
+        },
+        {
+          "name": "Kotimaista normaalisuolainen voi 200 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 245,
+          "comparisonPrice": 1225,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574408498"
+        },
+        {
+          "name": "Jokilaakson Juusto Kirkastettu voi 200g",
+          "category": "CAAASAEAEAAAA",
+          "price": 379,
+          "comparisonPrice": 1895,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016340090"
+        },
+        {
+          "name": "Momma ohuet piparkakut paahdettu voi 150g",
+          "category": "CAABGAIAGAAAA",
+          "price": 215,
+          "comparisonPrice": 1433,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410580429575"
+        },
+        {
+          "name": "Président Gourmet voi jossa merisuola 250g",
+          "category": "CAAASAGAEAAAA",
+          "price": 439,
+          "comparisonPrice": 1756,
+          "comparisonPriceUnit": "kg",
+          "ean": "3155251210283"
+        },
+        {
+          "name": "Valio voi normaalisuolainen pöytärasia 400 g",
+          "category": "CAAASAGAEAAAA",
+          "price": 479,
+          "comparisonPrice": 1198,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030170"
+        },
+        {
+          "name": "Myllyn Paras Täyteläinen Annospuuro Makuna Paahdettu Voi & Chia 5x45g",
+          "category": "CAABGAAAAAEAA",
+          "price": 215,
+          "comparisonPrice": 956,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700291012"
+        },
+        {
+          "name": "Carr's 200g Cream Cracker voileipäkeksi",
+          "category": "CAABGAIAAAAAA",
+          "price": 134,
+          "comparisonPrice": 670,
+          "comparisonPriceUnit": "kg",
+          "ean": "5000396036640"
+        },
+        {
+          "name": "Kantolan Ruis Cracker voileipäkeksi 225g",
+          "category": "CAABGAIAAAAAA",
+          "price": 168,
+          "comparisonPrice": 747,
+          "comparisonPriceUnit": "kg",
+          "ean": "7310520011510"
+        },
+        {
+          "name": "Kantolan Cream Cracker voileipäkeksi 200g",
+          "category": "CAABGAIAAAAAA",
+          "price": 165,
+          "comparisonPrice": 825,
+          "comparisonPriceUnit": "kg",
+          "ean": "7310520011480"
+        },
+        {
+          "name": "Schär 210g Crackers voileipäkeksi gluteeniton",
+          "category": "CAABGAIAAAAAA",
+          "price": 447,
+          "comparisonPrice": 2129,
+          "comparisonPriceUnit": "kg",
+          "ean": "8008698003503"
+        }
+      ]
+    },
+    {
+      "query": "voi",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Flora & voi 500g",
+          "category": "CAAASACAAAAAA",
+          "price": 339,
+          "comparisonPrice": 678,
+          "comparisonPriceUnit": "kg",
+          "ean": "8719200296015"
+        },
+        {
+          "name": "Flora & voi Merisuola 500g",
+          "category": "CAAASACAAAAAA",
+          "price": 355,
+          "comparisonPrice": 710,
+          "comparisonPriceUnit": "kg",
+          "ean": "8719200295537"
+        },
+        {
+          "name": "Valio voi voimakassuolainen 500 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 515,
+          "comparisonPrice": 1030,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030019"
+        },
+        {
+          "name": "Atria grilliperunat voi-tilli 500g",
+          "category": "valmisruoka/laatikot-pastat-ja-lasagnet/peruna--ja-kasvilisakkeet",
+          "price": 429,
+          "comparisonPrice": 858,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407850058603"
+        },
+        {
+          "name": "Valio Luomu™ voi 200 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 265,
+          "comparisonPrice": 1325,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430310630"
+        },
+        {
+          "name": "Valio voi suolaamaton 500 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 619,
+          "comparisonPrice": 1238,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030026"
+        },
+        {
+          "name": "Pirkka suomalainen voi 500g",
+          "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+          "price": 425,
+          "comparisonPrice": 850,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405235442"
+        },
+        {
+          "name": "Valio Eila voi laktoositon 500g",
+          "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+          "price": 539,
+          "comparisonPrice": 1078,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430310654"
+        },
+        {
+          "name": "Sundlings popcornmauste voi 26g",
+          "category": "CAABGAUAIAAAA",
+          "price": 119,
+          "comparisonPrice": 4577,
+          "comparisonPriceUnit": "kg",
+          "ean": "7331755012059"
+        },
+        {
+          "name": "Valio voi normaalisuolainen 200 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 265,
+          "comparisonPrice": 1325,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430310678"
+        },
+        {
+          "name": "Vapaa Normaalisuolainen voi 500 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 545,
+          "comparisonPrice": 1090,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430042024940"
+        },
+        {
+          "name": "Valio Eila® voi laktoositon 200 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 295,
+          "comparisonPrice": 1475,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030101"
+        },
+        {
+          "name": "Valio voi normaalisuolainen 500 g",
+          "category": "CAAASAGAAAAAA",
+          "price": 425,
+          "comparisonPrice": 850,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030002"
+        },
+        {
+          "name": "Maitomaa VAPAA laktoositon voi 500 g",
+          "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+          "price": 599,
+          "comparisonPrice": 1198,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430042024971"
+        },
+        {
+          "name": "Jokilaakson Juusto ruskistettu Voi 200g",
+          "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+          "price": 525,
+          "comparisonPrice": 2625,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016340403"
+        },
+        {
+          "name": "Jokilaakson Juusto Kirkastettu voi 200g",
+          "category": "CAAASAEAEAAAA",
+          "price": 445,
+          "comparisonPrice": 2225,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016340090"
+        },
+        {
+          "name": "Momma ohuet piparkakut paahdettu voi 150g",
+          "category": "CAABGAIAGAAAA",
+          "price": 245,
+          "comparisonPrice": 1633,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410580429575"
+        },
+        {
+          "name": "Président Gourmet voi jossa merisuola 250g",
+          "category": "CAAASAGAEAAAA",
+          "price": 465,
+          "comparisonPrice": 1860,
+          "comparisonPriceUnit": "kg",
+          "ean": "3155251210283"
+        },
+        {
+          "name": "Valio voi normaalisuolainen pöytärasia 400 g",
+          "category": "CAAASAGAEAAAA",
+          "price": 495,
+          "comparisonPrice": 1238,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430030170"
+        },
+        {
+          "name": "Myllyn Paras Täyteläinen Annospuuro Makuna Paahdettu Voi & Chia 5x45g",
+          "category": "CAABGAAAAAEAA",
+          "price": 215,
+          "comparisonPrice": 956,
+          "comparisonPriceUnit": "kg",
+          "ean": "6417700291012"
+        },
+        {
+          "name": "Kantolan Ruis Cracker voileipäkeksi 225g",
+          "category": "CAABGAIAAAAAA",
+          "price": 178,
+          "comparisonPrice": 791,
+          "comparisonPriceUnit": "kg",
+          "ean": "7310520011510"
+        },
+        {
+          "name": "Kantolan Cream Cracker voileipäkeksi 200g",
+          "category": "CAABGAIAAAAAA",
+          "price": 178,
+          "comparisonPrice": 890,
+          "comparisonPriceUnit": "kg",
+          "ean": "7310520011480"
+        },
+        {
+          "name": "Schär 210g Crackers voileipäkeksi gluteeniton",
+          "category": "CAABGAIAAAAAA",
+          "price": 465,
+          "comparisonPrice": 2214,
+          "comparisonPriceUnit": "kg",
+          "ean": "8008698003503"
+        }
+      ]
+    },
+    {
+      "query": "kananmuna",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Farmimuna 348g M6 Vapaa kananmuna",
+          "category": "CAAAUAAACAAAA",
+          "price": 165,
+          "comparisonPrice": 474,
+          "comparisonPriceUnit": "kg",
+          "ean": "6419742348600"
+        },
+        {
+          "name": "Kultamuna vapaa kananmuna XL6 468g",
+          "category": "CAAAUAAACAAAA",
+          "price": 229,
+          "comparisonPrice": 489,
+          "comparisonPriceUnit": "kg",
+          "ean": "6431005064683"
+        },
+        {
+          "name": "Kultamuna luomu kananmuna S/M6 318g",
+          "category": "CAAAUAAAEAAAA",
+          "price": 265,
+          "comparisonPrice": 833,
+          "comparisonPriceUnit": "kg",
+          "ean": "6431000000495"
+        },
+        {
+          "name": "Kultamuna vapaa kananmuna M/L15 945g",
+          "category": "CAAAUAAACAAAA",
+          "price": 429,
+          "comparisonPrice": 454,
+          "comparisonPriceUnit": "kg",
+          "ean": "6431003159459"
+        },
+        {
+          "name": "Kultamuna luomu kananmuna M/L10 630g",
+          "category": "CAAAUAAAEAAAA",
+          "price": 495,
+          "comparisonPrice": 786,
+          "comparisonPriceUnit": "kg",
+          "ean": "6431000000525"
+        },
+        {
+          "name": "Kultamuna vapaa kananmuna S/M10 530g",
+          "category": "CAAAUAAACAAAA",
+          "price": 255,
+          "comparisonPrice": 481,
+          "comparisonPriceUnit": "kg",
+          "ean": "6431003105302"
+        },
+        {
+          "name": "Xtra kananmunat M15 855 g",
+          "category": "CAAAUAAAAAAAA",
+          "price": 289,
+          "comparisonPrice": 338,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414891802478"
+        },
+        {
+          "name": "Khoisan Gourmet Kananmunankorvike Luomu",
+          "category": "CAABGBAAOAAAK",
+          "price": 729,
+          "comparisonPrice": 4166,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340123700894"
+        },
+        {
+          "name": "WhitePRO vapaa kananmunan valkuainen 230g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/muut-munat-ja-munavalmisteet",
+          "price": 279,
+          "comparisonPrice": 1213,
+          "comparisonPriceUnit": "kg",
+          "ean": "5701607585987"
+        },
+        {
+          "name": "Coop Lasagne pasta, sisältää kananmunaa 500 g",
+          "category": "CAABGAGAAAEAA",
+          "price": 225,
+          "comparisonPrice": 450,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191144866"
+        },
+        {
+          "name": "DAVA whitePRO vapaa kananmunan valkuainen 1 kg",
+          "category": "CAAAUACAAAAAA",
+          "price": 899,
+          "comparisonPrice": 899,
+          "comparisonPriceUnit": "kg",
+          "ean": "5701607585789"
+        },
+        {
+          "name": "Chef X Pyttipannu paistetulla kananmunalla 400g",
+          "category": "CAAAGAAAGACAA",
+          "price": 925,
+          "comparisonPrice": 2313,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078470261"
+        }
+      ]
+    },
+    {
+      "query": "kananmuna",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Nikulan vapaa kananmuna M10 580g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 225,
+          "comparisonPrice": 388,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016974110"
+        },
+        {
+          "name": "Pirkka vapaa iso kananmuna L15 1020g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 459,
+          "comparisonPrice": 450,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405319661"
+        },
+        {
+          "name": "Kultamuna luomu kananmuna M/L10 630g",
+          "category": "CAAAUAAAEAAAA",
+          "price": 495,
+          "comparisonPrice": 786,
+          "comparisonPriceUnit": "kg",
+          "ean": "6431000000525"
+        },
+        {
+          "name": "Kultamuna vapaa kananmuna S/M18 954g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 469,
+          "comparisonPrice": 492,
+          "comparisonPriceUnit": "kg",
+          "ean": "6431000000808"
+        },
+        {
+          "name": "Munatukku Nikulan Virike kananmuna M10 580g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 279,
+          "comparisonPrice": 481,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016975025"
+        },
+        {
+          "name": "Munatukku Nikulan Virike kananmuna L15 1020g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 479,
+          "comparisonPrice": 470,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016975032"
+        },
+        {
+          "name": "Pirkka vapaan kanan ruskea kananmuna 6 kpl/348g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 189,
+          "comparisonPrice": 543,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405281807"
+        },
+        {
+          "name": "Munatukku Nikulan vapaa kananmuna plastattu M24",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 399,
+          "comparisonPrice": 287,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016978071"
+        },
+        {
+          "name": "Munatukku Nikula Vapaa kananmuna ruskea M10 580g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 289,
+          "comparisonPrice": 498,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430016979450"
+        },
+        {
+          "name": "Pirkka Parhaat vapaan kanan omega -kananmuna 6kpl/348g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/kananmunat",
+          "price": 209,
+          "comparisonPrice": 601,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405074751"
+        },
+        {
+          "name": "WhitePRO vapaa kananmunan valkuainen 230g",
+          "category": "maito-juusto-munat-ja-rasvat/munat/muut-munat-ja-munavalmisteet",
+          "price": 279,
+          "comparisonPrice": 1213,
+          "comparisonPriceUnit": "kg",
+          "ean": "5701607585987"
+        },
+        {
+          "name": "DAVA whitePRO vapaa kananmunan valkuainen 1 kg",
+          "category": "CAAAUACAAAAAA",
+          "price": 899,
+          "comparisonPrice": 899,
+          "comparisonPriceUnit": "kg",
+          "ean": "5701607585789"
+        }
+      ]
+    },
+    {
+      "query": "maito",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Xtra pikacappuccino maito-kahvijauhe 250 g",
+          "category": "CAABIAAAGAGAA",
+          "price": 235,
+          "comparisonPrice": 940,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340011476856"
+        },
+        {
+          "name": "Arla 1% maito 1 L Suomesta",
+          "category": "CAAAMAAAAACAA",
+          "price": 129,
+          "comparisonPrice": 129,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300102017"
+        },
+        {
+          "name": "Kotimaista rasvaton maito 1l",
+          "category": "CAAAMAAAAAAAA",
+          "price": 85,
+          "comparisonPrice": 85,
+          "comparisonPriceUnit": "l",
+          "ean": "6415712506032"
+        },
+        {
+          "name": "Valio Plus™ rasvaton maito 1 l",
+          "category": "CAAAMAAAIAAAA",
+          "price": 209,
+          "comparisonPrice": 209,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000289"
+        },
+        {
+          "name": "Valio Luomu™ rasvaton maito 1 l",
+          "category": "CAAAMAAACAAAA",
+          "price": 109,
+          "comparisonPrice": 109,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000173"
+        },
+        {
+          "name": "Arla 1,5 L rasvaton maito Suomesta",
+          "category": "CAAAMAAAAAAAA",
+          "price": 145,
+          "comparisonPrice": 97,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300101713"
+        },
+        {
+          "name": "Arla Café maito 1 L UHT laktoositon",
+          "category": "CAAAMACAKAAAA",
+          "price": 205,
+          "comparisonPrice": 205,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300015515"
+        },
+        {
+          "name": "Arla Cafè maito 0,5 L UHT laktoositon",
+          "category": "CAAAMACAKAAAA",
+          "price": 155,
+          "comparisonPrice": 310,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026627"
+        },
+        {
+          "name": "Valio vapaan lehmän rasvaton maito 1 l",
+          "category": "CAAAMAAAAAAAA",
+          "price": 125,
+          "comparisonPrice": 125,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000104"
+        },
+        {
+          "name": "Valio rasvaton maito 1l laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+          "price": 205,
+          "comparisonPrice": 205,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430011650"
+        },
+        {
+          "name": "Valio Luomu™ D-vitaminoitu rasvaton maito 1 l",
+          "category": "CAAAMAAACAAAA",
+          "price": 109,
+          "comparisonPrice": 109,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000616"
+        },
+        {
+          "name": "Kotimaista rasvaton maito 1 l laktoositon UHT",
+          "category": "CAAAMACAGAAAA",
+          "price": 195,
+          "comparisonPrice": 195,
+          "comparisonPriceUnit": "l",
+          "ean": "6438574709670"
+        },
+        {
+          "name": "Juustoportti Vapaan lehmän rasvaton maito 1 l",
+          "category": "CAAAMAAAAAAAA",
+          "price": 159,
+          "comparisonPrice": 159,
+          "comparisonPriceUnit": "l",
+          "ean": "6408653125608"
+        },
+        {
+          "name": "Valio Luomu™ D-vitaminoitu rasvaton maito 1,75 l",
+          "category": "CAAAMAAACAAAA",
+          "price": 190,
+          "comparisonPrice": 109,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000654"
+        },
+        {
+          "name": "Kotimaista iskukuumennettu vähälaktoosinen rasvaton maito 1L",
+          "category": "maito-munat-ja-rasvat/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot",
+          "price": 185,
+          "comparisonPrice": 185,
+          "comparisonPriceUnit": "l",
+          "ean": "6414893385245"
+        },
+        {
+          "name": "Kinder Happy Hippo Maito- ja kaakaokreemillä täytetty rapea vohvelipatukka\n 20,7g",
+          "category": "CAABGAQAIACAC",
+          "price": 65,
+          "comparisonPrice": 3095,
+          "comparisonPriceUnit": "kg",
+          "ean": "8000500423585"
+        },
+        {
+          "name": "Kotimaista laktoositon 1 L rasvaton maitojuoma",
+          "category": "CAAAMAAAGAAAA",
+          "price": 139,
+          "comparisonPrice": 139,
+          "comparisonPriceUnit": "l",
+          "ean": "6414893385658"
+        },
+        {
+          "name": "Valio Eila® rasvaton maitojuoma 1 l laktoositon",
+          "category": "CAAAMAAAGAAAA",
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000241"
+        },
+        {
+          "name": "Arla Laktoositon rasvaton maitojuoma 1 L Suomi ESL",
+          "category": "CAAAMAAAGAAAA",
+          "price": 205,
+          "comparisonPrice": 205,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300011524"
+        },
+        {
+          "name": "Valio Eila® rasvaton maitojuoma 1,75 l laktoositon",
+          "category": "CAAAMAAAGAAAA",
+          "price": 285,
+          "comparisonPrice": 163,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000517"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® rasvaton maitojuoma 1 l",
+          "category": "CAAAMAAAAAIAA",
+          "price": 85,
+          "comparisonPrice": 85,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000432"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® rasvaton maitojuoma 1,75 l",
+          "category": "CAAAMAAAAAIAA",
+          "price": 142,
+          "comparisonPrice": 81,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000623"
+        },
+        {
+          "name": "Valio Tuuti® 1 maitopohjainen äidinmaidonkorvike 1 l UHT",
+          "category": "CAABGAOAAACAA",
+          "price": 265,
+          "comparisonPrice": 265,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430492305"
+        },
+        {
+          "name": "Valio Tuuti® 1 maitopohjainen äidinmaidonkorvikejauhe 800 g",
+          "category": "CAABGAOAAAAAA",
+          "price": 1095,
+          "comparisonPrice": 1369,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430840892"
+        }
+      ]
+    },
+    {
+      "query": "maito",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Koivulan Tilan maito 1 ltr",
+          "category": "CAAAMACAKAIAA",
+          "price": 339,
+          "comparisonPrice": 339,
+          "comparisonPriceUnit": "l",
+          "ean": "6405344000046"
+        },
+        {
+          "name": "Arla rasvaton maito 1l luomu",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+          "price": 115,
+          "comparisonPrice": 115,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300015058"
+        },
+        {
+          "name": "Valio Plus™ rasvaton maito 1 l",
+          "category": "CAAAMAAAIAAAA",
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000289"
+        },
+        {
+          "name": "Valio Luomu™ rasvaton maito 1 l",
+          "category": "CAAAMAAACAAAA",
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000173"
+        },
+        {
+          "name": "Arla Café maito 1 L UHT laktoositon",
+          "category": "CAAAMACAKAAAA",
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300015515"
+        },
+        {
+          "name": "Pirkka suomalainen rasvaton maito 1l",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+          "price": 95,
+          "comparisonPrice": 95,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405082626"
+        },
+        {
+          "name": "Arla Cafè maito 0,5 L UHT laktoositon",
+          "category": "CAAAMACAKAAAA",
+          "price": 159,
+          "comparisonPrice": 318,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026627"
+        },
+        {
+          "name": "Valio vapaan lehmän rasvaton maito 1 l",
+          "category": "CAAAMAAAAAAAA",
+          "price": 129,
+          "comparisonPrice": 129,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000104"
+        },
+        {
+          "name": "Valio rasvaton maito 1l laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+          "price": 239,
+          "comparisonPrice": 239,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430011650"
+        },
+        {
+          "name": "Valio vapaan lehmän rasvaton maito 1,75l",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+          "price": 199,
+          "comparisonPrice": 114,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000531"
+        },
+        {
+          "name": "Pirkka Luomu suomalainen rasvaton maito 1l",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405113177"
+        },
+        {
+          "name": "Juustoportti Vapaan lehmän rasvaton maito 1 l",
+          "category": "CAAAMAAAAAAAA",
+          "price": 169,
+          "comparisonPrice": 169,
+          "comparisonPriceUnit": "l",
+          "ean": "6408653125608"
+        },
+        {
+          "name": "Kinder Happy Hippo Maito- ja kaakaokreemillä täytetty rapea vohvelipatukka\n 20,7g",
+          "category": "CAABGAQAIACAC",
+          "price": 70,
+          "comparisonPrice": 3500,
+          "comparisonPriceUnit": "kg",
+          "ean": "8000500423585"
+        },
+        {
+          "name": "Valio täysmaito suomalaiselta maitotilalta 1l",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+          "price": 159,
+          "comparisonPrice": 159,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000135"
+        },
+        {
+          "name": "Pirkka rasvaton maitojuoma 1l laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+          "price": 195,
+          "comparisonPrice": 195,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405317728"
+        },
+        {
+          "name": "Valio Eila® rasvaton maitojuoma 1 l laktoositon",
+          "category": "CAAAMAAAGAAAA",
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000241"
+        },
+        {
+          "name": "Valio Eila® rasvaton maitojuoma 1,75 l laktoositon",
+          "category": "CAAAMAAAGAAAA",
+          "price": 285,
+          "comparisonPrice": 163,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000517"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® rasvaton maitojuoma 1 l",
+          "category": "CAAAMAAAAAIAA",
+          "price": 85,
+          "comparisonPrice": 85,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000432"
+        },
+        {
+          "name": "Pirkka suomalainen laktoositon rasvaton maitojuoma 1l",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+          "price": 145,
+          "comparisonPrice": 145,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405234483"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® rasvaton maitojuoma 1,75 l",
+          "category": "CAAAMAAAAAIAA",
+          "price": 155,
+          "comparisonPrice": 89,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000623"
+        },
+        {
+          "name": "Valio Tuuti® 1 maitopohjainen äidinmaidonkorvike 1 l UHT",
+          "category": "CAABGAOAAACAA",
+          "price": 275,
+          "comparisonPrice": 275,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430492305"
+        },
+        {
+          "name": "Valio Tuuti® 1 maitopohjainen äidinmaidonkorvikejauhe 800 g",
+          "category": "CAABGAOAAAAAA",
+          "price": 1099,
+          "comparisonPrice": 1374,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408430840892"
+        },
+        {
+          "name": "Juustoportti Vapaan lehmän laktoositon rasvaton maitojuoma 1l",
+          "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "l",
+          "ean": "6408653125738"
+        },
+        {
+          "name": "Nestlé Nan 200ml HA 1 maitopohjainen käyttövalmis äidinmaidonkorvike",
+          "category": "CAABGAOAAACAA",
+          "price": 95,
+          "comparisonPrice": 475,
+          "comparisonPriceUnit": "l",
+          "ean": "7613033507427"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki® Eila® rasvaton maitojuoma 1 l laktoositon",
+          "category": "CAAAMAAAGAAAA",
+          "price": 145,
+          "comparisonPrice": 145,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430000494"
+        }
+      ]
+    },
+    {
+      "query": "sokeri",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Dansukker Siro Erikoishieno Sokeri 1kg",
+          "category": "CAABGASAAAAAA",
+          "price": 169,
+          "comparisonPrice": 169,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414000020021"
+        },
+        {
+          "name": "Tutti Frutti Ravitseva sokeri vartalonkuorinta Mango ja sitruunaruoho 300 g",
+          "category": "CAABSACAKACAA",
+          "price": 565,
+          "comparisonPrice": 1883,
+          "comparisonPriceUnit": "kg",
+          "ean": "5900117976265"
+        },
+        {
+          "name": "Tutti Frutti kiinteyttävä sokeri vartalokuorinta päärynä ja inkivääri 300 g",
+          "category": "kosmetiikka-ja-hygienia/vartalonhoito/vartalonkuorinta",
+          "price": 565,
+          "comparisonPrice": 1883,
+          "comparisonPriceUnit": "kg",
+          "ean": "5900117976289"
+        },
+        {
+          "name": "Apetit Wok Sokeriherne-paprika pakaste 400g",
+          "category": "CAABQAGAAACAA",
+          "price": 245,
+          "comparisonPrice": 613,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430104926663"
+        }
+      ]
+    },
+    {
+      "query": "sokeri",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "K-Menu sokeri 1kg",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/sokerit",
+          "price": 89,
+          "comparisonPrice": 89,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405285508"
+        },
+        {
+          "name": "Pirkka sokeri 1kg",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/sokerit",
+          "price": 109,
+          "comparisonPrice": 109,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405040817"
+        },
+        {
+          "name": "Dansukker Siro Erikoishieno Sokeri 1kg",
+          "category": "CAABGASAAAAAA",
+          "price": 179,
+          "comparisonPrice": 179,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414000020021"
+        },
+        {
+          "name": "Apetit Wok Sokeriherne-paprika pakaste 400g",
+          "category": "CAABQAGAAACAA",
+          "price": 255,
+          "comparisonPrice": 638,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430104926663"
+        },
+        {
+          "name": "Hermesetas Baking sokerin korvike leivontaan 250g",
+          "category": "kuivat-elintarvikkeet-ja-leivonta/sokerit-hunajat-siirapit-ja-makeutus/makeutusaineet",
+          "price": 665,
+          "comparisonPrice": 2660,
+          "comparisonPriceUnit": "kg",
+          "ean": "7610211088303"
+        }
+      ]
+    },
+    {
+      "query": "valkopippuri",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Meira Valkopippuri jauhettu 31g",
+          "category": "CAABGBAAKAIAM",
+          "price": 185,
+          "comparisonPrice": 5968,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414200137017"
+        },
+        {
+          "name": "Meira Valkopippuri jauhettu 38g",
+          "category": "CAABGBAAKAIAM",
+          "price": 349,
+          "comparisonPrice": 9184,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201104902"
+        },
+        {
+          "name": "Pirkka valkopippuri 20g jauhettu",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 89,
+          "comparisonPrice": 4450,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405240729"
+        },
+        {
+          "name": "Meira Valkopippuri kokonainen 34g",
+          "category": "CAABGBAAKAIAM",
+          "price": 228,
+          "comparisonPrice": 6706,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414200127001"
+        },
+        {
+          "name": "Pirkka valkopippuri 24g kokonainen",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 119,
+          "comparisonPrice": 4958,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405240743"
+        },
+        {
+          "name": "Salliselta Valkopippuri 380g jauhettu",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1769,
+          "comparisonPrice": 4655,
+          "comparisonPriceUnit": "kg",
+          "ean": "6436501005383"
+        },
+        {
+          "name": "Sallinen valkopippuri 480g kokonainen",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1849,
+          "comparisonPrice": 3852,
+          "comparisonPriceUnit": "kg",
+          "ean": "6436501005376"
+        },
+        {
+          "name": "Santa Maria Valkopippuri Jauhettu 35 g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 325,
+          "comparisonPrice": 9286,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311015700"
+        },
+        {
+          "name": "Pirkka Luomu valkopippuri 40g jauhettu",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 359,
+          "comparisonPrice": 8975,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405233509"
+        },
+        {
+          "name": "Santa Maria Valkopippuri jauhettu, pussi 22g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 215,
+          "comparisonPrice": 9773,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004506"
+        },
+        {
+          "name": "Santa Maria Valkopippuri kokonainen, pussi 24g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 215,
+          "comparisonPrice": 8958,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004490"
+        },
+        {
+          "name": "Santa Maria Valkopippurimylly 73g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 665,
+          "comparisonPrice": 9110,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311310026684"
+        }
+      ]
+    },
+    {
+      "query": "valkopippuri",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Meira Valkopippuri jauhettu 31g",
+          "category": "CAABGBAAKAIAM",
+          "price": 185,
+          "comparisonPrice": 5968,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414200137017"
+        },
+        {
+          "name": "Meira Valkopippuri jauhettu 38g",
+          "category": "CAABGBAAKAIAM",
+          "price": 335,
+          "comparisonPrice": 8816,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201104902"
+        },
+        {
+          "name": "Meira Valkopippuri kokonainen 34g",
+          "category": "CAABGBAAKAIAM",
+          "price": 235,
+          "comparisonPrice": 7833,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414200127001"
+        },
+        {
+          "name": "Santa Maria Valkopippuri jauhettu Luomu, purkki 35g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 335,
+          "comparisonPrice": 9571,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311015434"
+        }
+      ]
+    },
+    {
+      "query": "bataatti",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Apetit Bataatti-kermaperunat pakaste 700g",
+          "category": "CAABQAKAEACAA",
+          "price": 329,
+          "comparisonPrice": 470,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430104966294"
+        },
+        {
+          "name": "Jalostaja Bataatti-kurpitsasosekeitto 550ml",
+          "category": "CAABGAYACAAAC",
+          "price": 377,
+          "comparisonPrice": 685,
+          "comparisonPriceUnit": "l",
+          "ean": "6409536651344"
+        },
+        {
+          "name": "Happy Soup Bataatti-kurpitsasosekeitto 425g",
+          "category": "CAABGAYACAAAC",
+          "price": 357,
+          "comparisonPrice": 840,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430074539177"
+        },
+        {
+          "name": "Green Planet Astronauts Luomu Veggie-ateria Bataatti-kvinoakulho 100g 6kk+",
+          "category": "lapset/lastenruoat/lastenruoat-5-kk",
+          "price": 145,
+          "comparisonPrice": 1450,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430074547158"
+        },
+        {
+          "name": "Bataatti",
+          "category": "CAAAAACAQAAAA",
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000626100007"
+        },
+        {
+          "name": "Bataatti 500g Luomu",
+          "category": "CAAAAACAQAAAA",
+          "price": 399,
+          "comparisonPrice": 798,
+          "comparisonPriceUnit": "kg",
+          "ean": "8713037005079"
+        },
+        {
+          "name": "Bataattikurpitsa",
+          "category": "CAAAAAEAQAAAA",
+          "price": 329,
+          "comparisonPrice": 329,
+          "comparisonPriceUnit": "kg",
+          "ean": "2006151300004"
+        },
+        {
+          "name": "Coop Bataattilankut 300 g",
+          "category": "CAAAAAEBOAAAA",
+          "price": 248,
+          "comparisonPrice": 827,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574410040"
+        }
+      ]
+    },
+    {
+      "query": "bataatti",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Pirkka bataatti-chilikeitto 300g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+          "price": 229,
+          "comparisonPrice": 763,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405258342"
+        },
+        {
+          "name": "Pirkka bataatti-linssikeitto 390g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/keitot-ja-keittoainekset/tetra--ja-pussikeitot",
+          "price": 245,
+          "comparisonPrice": 628,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405345431"
+        },
+        {
+          "name": "Apetit Bataatti-kermaperunat pakaste 700g",
+          "category": "CAABQAKAEACAA",
+          "price": 365,
+          "comparisonPrice": 521,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430104966294"
+        },
+        {
+          "name": "Jalostaja Bataatti-kurpitsasosekeitto 550ml",
+          "category": "CAABGAYACAAAC",
+          "price": 415,
+          "comparisonPrice": 755,
+          "comparisonPriceUnit": "l",
+          "ean": "6409536651344"
+        },
+        {
+          "name": "Bataatti",
+          "category": "hedelmat-ja-vihannekset/vihannekset/muut-vihannekset",
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000600100009"
+        },
+        {
+          "name": "Bataatti purppura",
+          "category": "hedelmat-ja-vihannekset/vihannekset/muut-vihannekset",
+          "price": 596,
+          "comparisonPrice": 596,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000797900000"
+        },
+        {
+          "name": "Pirkka bataattisose 400g",
+          "category": "hedelmat-ja-vihannekset/juurekset/jalostetut-juurekset",
+          "price": 299,
+          "comparisonPrice": 748,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405304728"
+        }
+      ]
+    },
+    {
+      "query": "porkkana",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Vaasan Muhku Porkkana sämpylä 360 g 6 kpl porkkana-vehnäsämpylä",
+          "category": "CAAAWACAEAIAA",
+          "price": 255,
+          "comparisonPrice": 708,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408180738128"
+        },
+        {
+          "name": "Rosten porkkana-peruna maalaisleipä 400g",
+          "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+          "price": 269,
+          "comparisonPrice": 673,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409770014202"
+        },
+        {
+          "name": "Naapurin kypsä porkkana-halloumtikku 200g",
+          "category": "CAACCAAAAAGAA",
+          "price": 299,
+          "comparisonPrice": 1495,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405857341704"
+        },
+        {
+          "name": "Pirkka porkkana-kvinoapihvi 4kpl/240g pakaste",
+          "category": "pakasteet/liha--kala--ja-kasvispakasteet/kasvispihvit--pyorykat-ja--nakit",
+          "price": 295,
+          "comparisonPrice": 1229,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405194091"
+        },
+        {
+          "name": "Porkkana pesty",
+          "category": "CAAAAACAEAAAA",
+          "price": 179,
+          "comparisonPrice": 179,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000610500004"
+        },
+        {
+          "name": "Muumi porkkana 600g",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 209,
+          "comparisonPrice": 348,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430035370979"
+        },
+        {
+          "name": "Porkkana multa Suomi",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 139,
+          "comparisonPrice": 139,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000606200000"
+        },
+        {
+          "name": "Porkkana pesty Suomi 2lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 118,
+          "comparisonPrice": 118,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000644700005"
+        },
+        {
+          "name": "Porkkana 500g luomu Suomi 1lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 169,
+          "comparisonPrice": 338,
+          "comparisonPriceUnit": "kg",
+          "ean": "6415350000718"
+        },
+        {
+          "name": "Porkkana violetti 1kg Suomi 1lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 325,
+          "comparisonPrice": 325,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408643134542"
+        },
+        {
+          "name": "Porkkana keltainen 1kg Suomi 1lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 325,
+          "comparisonPrice": 325,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408643137550"
+        },
+        {
+          "name": "K-Menu suomalainen pesty porkkana 2kg",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 179,
+          "comparisonPrice": 90,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405152305"
+        },
+        {
+          "name": "Pirkka suomalainen pesty porkkana 1kg 1lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410402008896"
+        },
+        {
+          "name": "Pirkka suomalainen pesty porkkana 500g 1lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 95,
+          "comparisonPrice": 190,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410402008919"
+        },
+        {
+          "name": "Pirkka Luomu pesty uuden sadon porkkana 750g 1lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 289,
+          "comparisonPrice": 385,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405109736"
+        },
+        {
+          "name": "Yli-Karkelan tila porkkana 1 kg/pss pesty I suomi",
+          "category": "CAAAAACAEACAA",
+          "price": 179,
+          "comparisonPrice": 179,
+          "comparisonPriceUnit": "kg",
+          "ean": "6429990001479"
+        },
+        {
+          "name": "Pirkka Luomu suomalainen pesty porkkana 1 kg 1 lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 219,
+          "comparisonPrice": 219,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410402027521"
+        },
+        {
+          "name": "Pirkka Parhaat suomalainen snack porkkana 200g 1lk",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 129,
+          "comparisonPrice": 645,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405195746"
+        }
+      ]
+    },
+    {
+      "query": "porkkana",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Fazer Lemppari Paahtosämpylä Porkkana-kaura 6kpl 330g, porkkana-moniviljasämpylä",
+          "category": "CAAAWACAEAKAA",
+          "price": 285,
+          "comparisonPrice": 864,
+          "comparisonPriceUnit": "kg",
+          "ean": "6413467515408"
+        },
+        {
+          "name": "Vaasan Muhku Porkkana sämpylä 360 g 6 kpl porkkana-vehnäsämpylä",
+          "category": "CAAAWACAEAIAA",
+          "price": 245,
+          "comparisonPrice": 681,
+          "comparisonPriceUnit": "kg",
+          "ean": "6408180738128"
+        },
+        {
+          "name": "Rosten porkkana-peruna maalaisleipä 400g",
+          "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+          "price": 299,
+          "comparisonPrice": 748,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409770014202"
+        },
+        {
+          "name": "Naapurin kypsä porkkana-halloumtikku 200g",
+          "category": "CAACCAAAAAGAA",
+          "price": 259,
+          "comparisonPrice": 1295,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405857341704"
+        },
+        {
+          "name": "Coop porkkana 1 kg",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 199,
+          "comparisonPrice": 199,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574538331"
+        },
+        {
+          "name": "Porkkana 750g luomu",
+          "category": "hedelmat-ja-vihannekset/juurekset/porkkanat",
+          "price": 239,
+          "comparisonPrice": 319,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414890234560"
+        },
+        {
+          "name": "Kotimaista porkkana 2 kg",
+          "category": "CAAAAACAEACAA",
+          "price": 179,
+          "comparisonPrice": 90,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414894502351"
+        },
+        {
+          "name": "Kotimaista porkkana 1 kg",
+          "category": "CAAAAACAEACAA",
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414894501231"
+        },
+        {
+          "name": "Kotimaista porkkana 500 g",
+          "category": "CAAAAACAEACAA",
+          "price": 95,
+          "comparisonPrice": 190,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414894502238"
+        },
+        {
+          "name": "H&H Tuominen porkkana pesty",
+          "category": "CAAAAACAEAAAA",
+          "price": 115,
+          "comparisonPrice": 115,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000567200002"
+        },
+        {
+          "name": "Kotimaista baby-porkkana 250g",
+          "category": "CAAAAACAEAEAA",
+          "price": 139,
+          "comparisonPrice": 556,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414894500005"
+        },
+        {
+          "name": "Kotimaista porkkana 1 kg luomu",
+          "category": "CAAAAACAEACAA",
+          "price": 219,
+          "comparisonPrice": 219,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574114092"
+        },
+        {
+          "name": "Kotimaista porkkana luomu 500 g",
+          "category": "CAAAAACAEACAA",
+          "price": 139,
+          "comparisonPrice": 278,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574114108"
+        }
+      ]
+    },
+    {
+      "query": "peruna",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Baba Pyörykkä peruna-kikherne 200g",
+          "category": "CAAAGAAAAACAA",
+          "price": 299,
+          "comparisonPrice": 1495,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430056262628"
+        },
+        {
+          "name": "Atria 700g XL Peruna-pekonisalaatti",
+          "category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+          "price": 565,
+          "comparisonPrice": 807,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407860063017"
+        },
+        {
+          "name": "Rana 500g peruna-gnocchit tuorepasta",
+          "category": "CAAAGAAAAAQAA",
+          "price": 399,
+          "comparisonPrice": 798,
+          "comparisonPriceUnit": "kg",
+          "ean": "8001665722131"
+        },
+        {
+          "name": "Kotimaista Peruna-sipulisekoitus pakaste 1kg",
+          "category": "CAABQAKACAAAA",
+          "price": 149,
+          "comparisonPrice": 149,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414893138186"
+        },
+        {
+          "name": "Peruna Van Gogh 1kg",
+          "category": "CAAAAACACAIAA",
+          "price": 99,
+          "comparisonPrice": 99,
+          "comparisonPriceUnit": "kg",
+          "ean": "6415350020372"
+        },
+        {
+          "name": "Peruna kiinteä pesty",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 75,
+          "comparisonPrice": 75,
+          "comparisonPriceUnit": "kg",
+          "ean": "2006803900002"
+        },
+        {
+          "name": "Peruna jauhoinen pesty",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 75,
+          "comparisonPrice": 75,
+          "comparisonPriceUnit": "kg",
+          "ean": "2004884900003"
+        },
+        {
+          "name": "Lapin Puikula peruna 2kg",
+          "category": "CAAAAACACAEAA",
+          "price": 549,
+          "comparisonPrice": 275,
+          "comparisonPriceUnit": "kg",
+          "ean": "6415350702537"
+        },
+        {
+          "name": "Aromäen Tila Siikli peruna",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 189,
+          "comparisonPrice": 189,
+          "comparisonPriceUnit": "kg",
+          "ean": "2006059600008"
+        },
+        {
+          "name": "Peruna uusi sato 1 kg luomu",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 219,
+          "comparisonPrice": 219,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414893387966"
+        },
+        {
+          "name": "Kotimaista peruna luomu 2 kg",
+          "category": "CAAAAACACAIAA",
+          "price": 359,
+          "comparisonPrice": 180,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574114061"
+        },
+        {
+          "name": "Kotimaista peruna luomu 1 kg",
+          "category": "CAAAAACACAIAA",
+          "price": 219,
+          "comparisonPrice": 219,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574114054"
+        },
+        {
+          "name": "Kotimaista peruna Siikli 1 kg",
+          "category": "CAAAAACACACAA",
+          "price": 129,
+          "comparisonPrice": 129,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414893388116"
+        },
+        {
+          "name": "Kotimaista peruna Colomba 1kg",
+          "category": "CAAAAACACAIAA",
+          "price": 99,
+          "comparisonPrice": 99,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438460111693"
+        },
+        {
+          "name": "Kotimaista  kiinteä peruna 2 kg",
+          "category": "CAAAAACACACAA",
+          "price": 159,
+          "comparisonPrice": 80,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414894501224"
+        },
+        {
+          "name": "Kotimaista peruna Annabelle 1kg",
+          "category": "CAAAAACACAIAA",
+          "price": 109,
+          "comparisonPrice": 109,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438460111662"
+        },
+        {
+          "name": "Kotimaista jauhoinen peruna 2 kg",
+          "category": "CAAAAACACAAAA",
+          "price": 159,
+          "comparisonPrice": 80,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414894501248"
+        },
+        {
+          "name": "Aromäen Tila Annabelle harjattu peruna",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 75,
+          "comparisonPrice": 75,
+          "comparisonPriceUnit": "kg",
+          "ean": "2007595900003"
+        },
+        {
+          "name": "Apetit Kotimainen Peruna & uunijuurekset pakaste 750g",
+          "category": "CAABQAGAAAEAA",
+          "price": 229,
+          "comparisonPrice": 305,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430104923884"
+        },
+        {
+          "name": "Chef X Jauhelihapihvit paistetulla sipulilla ja paistetut perunat 400g",
+          "category": "CAAAGAAAGACAA",
+          "price": 995,
+          "comparisonPrice": 2487,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078470223"
+        }
+      ]
+    },
+    {
+      "query": "kasvisliemikuutio",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Reformi Luomu Kasvisliemikuutio 88g 8kpl",
+          "category": "CAABGBAAGAEAE",
+          "price": 215,
+          "comparisonPrice": 2443,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409944200370"
+        },
+        {
+          "name": "Herbamare® Kasvisliemikuutio 8x9,5g vähäsuolainen",
+          "category": "CAABGBAAGAEAE",
+          "price": 349,
+          "comparisonPrice": 4592,
+          "comparisonPriceUnit": "kg",
+          "ean": "7610313423026"
+        },
+        {
+          "name": "Bong kasvisliemikuutiot 12-pack 120g",
+          "category": "CAABGBAAGAEAE",
+          "price": 199,
+          "comparisonPrice": 1658,
+          "comparisonPriceUnit": "kg",
+          "ean": "7322550049609"
+        }
+      ]
+    },
+    {
+      "query": "peruna",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Baba Pyörykkä peruna-kikherne 200g",
+          "category": "CAAAGAAAAACAA",
+          "price": 294,
+          "comparisonPrice": 1470,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430056262628"
+        },
+        {
+          "name": "Rana 500g peruna-gnocchit tuorepasta",
+          "category": "CAAAGAAAAAQAA",
+          "price": 467,
+          "comparisonPrice": 934,
+          "comparisonPriceUnit": "kg",
+          "ean": "8001665722131"
+        },
+        {
+          "name": "Atria grillisalaatti peruna-pekoni 350g",
+          "category": "valmisruoka/lisakesalaatit-ja-tuorepasta/majoneesisalaatit",
+          "price": 265,
+          "comparisonPrice": 757,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407860063222"
+        },
+        {
+          "name": "Pirkka peruna-sipulisekoitus 1kg pakaste",
+          "category": "pakasteet/perunapakasteet/perunasuikaleet-ja-lohkoperunat",
+          "price": 165,
+          "comparisonPrice": 165,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405234087"
+        },
+        {
+          "name": "Peruna uudensadon",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 369,
+          "comparisonPrice": 369,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000638000005"
+        },
+        {
+          "name": "Kiinteä peruna 2 kg",
+          "category": "CAAAAACACACAA",
+          "price": 159,
+          "comparisonPrice": 80,
+          "comparisonPriceUnit": "kg",
+          "ean": "6415350002750"
+        },
+        {
+          "name": "Peruna kiinteä Suomi",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000608300005"
+        },
+        {
+          "name": "Muumi kiinteä peruna 1kg",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 110,
+          "comparisonPrice": 110,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430064460368"
+        },
+        {
+          "name": "Peruna kiinteä pesty Suomi",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000610000009"
+        },
+        {
+          "name": "Lapinpuikula peruna 2kg Suomi",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 595,
+          "comparisonPrice": 298,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405628331019"
+        },
+        {
+          "name": "Uuden sadon peruna ulkomainen",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 249,
+          "comparisonPrice": 249,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000617100009"
+        },
+        {
+          "name": "Peruna sopiv kiinteä pesty Suomi",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 89,
+          "comparisonPrice": 89,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000616700002"
+        },
+        {
+          "name": "Peruna Annabelle 1kg pesty Suomi",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 140,
+          "comparisonPrice": 140,
+          "comparisonPriceUnit": "kg",
+          "ean": "6415350017327"
+        },
+        {
+          "name": "Peruna sopivasti kiinteä harjattu",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 65,
+          "comparisonPrice": 65,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000681000007"
+        },
+        {
+          "name": "Peruna kiinteä pesty/mullattu Suomi",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 295,
+          "comparisonPrice": 295,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000680700007"
+        },
+        {
+          "name": "Pirkka suomalainen kiinteä peruna 1kg",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 99,
+          "comparisonPrice": 99,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405195005"
+        },
+        {
+          "name": "Pirkka suomalainen kiinteä peruna 2 kg",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 198,
+          "comparisonPrice": 99,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410402008797"
+        },
+        {
+          "name": "Pirkka suomalainen Annabelle peruna 1kg",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 109,
+          "comparisonPrice": 109,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405318183"
+        },
+        {
+          "name": "Pirkka suomalainen jauhoinen peruna 1kg",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 99,
+          "comparisonPrice": 99,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405195029"
+        },
+        {
+          "name": "Pirkka suomalainen jauhoinen peruna 2kg",
+          "category": "hedelmat-ja-vihannekset/juurekset/perunat",
+          "price": 198,
+          "comparisonPrice": 99,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410402008636"
+        },
+        {
+          "name": "Apetit Kotimainen Peruna & uunijuurekset pakaste 750g",
+          "category": "CAABQAGAAAEAA",
+          "price": 229,
+          "comparisonPrice": 305,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430104923884"
+        }
+      ]
+    },
+    {
+      "query": "ruokakerma",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Maitokolmio Laktoositon ruokakerma 5dl",
+          "category": "CAAAMAIAAAIAA",
+          "price": 149,
+          "comparisonPrice": 298,
+          "comparisonPriceUnit": "l",
+          "ean": "6417777011605"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 3dl 22% laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 185,
+          "comparisonPrice": 617,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026115"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl chili laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 155,
+          "comparisonPrice": 775,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026023"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl juusto laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 155,
+          "comparisonPrice": 775,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026443"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl tomaatti laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 155,
+          "comparisonPrice": 775,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026849"
+        },
+        {
+          "name": "Kotimaista Ruokakerma 15% UHT laktoositon 2 dl",
+          "category": "CAAAMAIAAAIAA",
+          "price": 53,
+          "comparisonPrice": 265,
+          "comparisonPriceUnit": "l",
+          "ean": "6414893385498"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl sitruuna laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 155,
+          "comparisonPrice": 775,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026009"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma 10% 3,3 dl laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 255,
+          "comparisonPrice": 773,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014415"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma 15 % UHT laktoositon 2 dl",
+          "category": "CAAAMAIAAAIAA",
+          "price": 99,
+          "comparisonPrice": 495,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014729"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki ruokakerma 10 % 2dl  HYLA UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 59,
+          "comparisonPrice": 295,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430015481"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma sweet chili UHT laktoositon 2,5 dl",
+          "category": "CAAAMAIAAAKAA",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430141289"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma 2,5dl kolme juustoa laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014798"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma 2,5dl kolme sipulia laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014828"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma Kippari® savujuusto UHT laktoositon 2,5 dl",
+          "category": "CAAAMAIAAAKAA",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014811"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma karamellisoitu sipuli UHT laktoositon 2,5 dl",
+          "category": "CAAAMAIAAAKAA",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430142873"
+        },
+        {
+          "name": "Valio Keittiön maustettu ruokakerma 2,5dl punainen pesto laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 189,
+          "comparisonPrice": 756,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430142675"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma Pippuripekka pippurijuusto UHT laktoositon 2,5 dl",
+          "category": "CAAAMAIAAAKAA",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014804"
+        },
+        {
+          "name": "Valio Keittiön maustettu ruokakerma 2,5 dl sitruuna&pippuri laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430015573"
+        }
+      ]
+    },
+    {
+      "query": "ruokakerma",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Pirkka ruokakerma 15% 2dl laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 59,
+          "comparisonPrice": 295,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405375759"
+        },
+        {
+          "name": "Pirkka ruokakerma 10% 2dl laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 75,
+          "comparisonPrice": 375,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405319005"
+        },
+        {
+          "name": "Maitokolmio Laktoositon ruokakerma 5dl",
+          "category": "CAAAMAIAAAIAA",
+          "price": 159,
+          "comparisonPrice": 318,
+          "comparisonPriceUnit": "l",
+          "ean": "6417777011605"
+        },
+        {
+          "name": "Pirkka laktoositon ruokakerma 15% 2 dl",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 59,
+          "comparisonPrice": 295,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405318060"
+        },
+        {
+          "name": "Menu laktoositon ruokakerma 15% 1l UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 499,
+          "comparisonPrice": 499,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405304773"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 3dl 15% laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 175,
+          "comparisonPrice": 583,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026108"
+        },
+        {
+          "name": "Valio ruokakerma 15 % UHT laktoositon 1 l",
+          "category": "CAAAMAIAAAIAA",
+          "price": 599,
+          "comparisonPrice": 599,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014958"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 3dl 22% laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 175,
+          "comparisonPrice": 583,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026115"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl chili laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 149,
+          "comparisonPrice": 745,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026023"
+        },
+        {
+          "name": "Pirkka laktoositon juusto ruokakerma 15% 2dl",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 149,
+          "comparisonPrice": 745,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405320926"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl juusto laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 149,
+          "comparisonPrice": 745,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026443"
+        },
+        {
+          "name": "Juustoportti ruokakerma 10% 3,3dl laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 603,
+          "comparisonPriceUnit": "l",
+          "ean": "6408653127374"
+        },
+        {
+          "name": "Pirkka laktoositon pippuri ruokakerma 15% 2dl",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 149,
+          "comparisonPrice": 745,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405320957"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl sitruuna laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 149,
+          "comparisonPrice": 745,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026009"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl tomaatti laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 149,
+          "comparisonPrice": 745,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300026849"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma 10% 3,3 dl laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 269,
+          "comparisonPrice": 815,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014415"
+        },
+        {
+          "name": "Arla Lempi ruokakerma 2dl valkosipuli laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 149,
+          "comparisonPrice": 745,
+          "comparisonPriceUnit": "l",
+          "ean": "6413300025996"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma 15 % UHT laktoositon 2 dl",
+          "category": "CAAAMAIAAAIAA",
+          "price": 139,
+          "comparisonPrice": 695,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014729"
+        },
+        {
+          "name": "Juustoportti ruokakerma 10% 3,3dl sipuli laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 603,
+          "comparisonPriceUnit": "l",
+          "ean": "6408653128814"
+        },
+        {
+          "name": "Juustoportti ruokakerma 10% 3,3dl pippuri laktoositon",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 603,
+          "comparisonPriceUnit": "l",
+          "ean": "6408653128784"
+        },
+        {
+          "name": "Valio Keittiön paksumpi ruokakerma 15% laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 198,
+          "comparisonPrice": 990,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014750"
+        },
+        {
+          "name": "Valio Hyvä suomalainen Arki ruokakerma 10 % 2dl  HYLA UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 59,
+          "comparisonPrice": 295,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430015481"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma sweet chili UHT laktoositon 2,5 dl",
+          "category": "CAAAMAIAAAKAA",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430141289"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma 2,5dl kolme juustoa laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014798"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma 2,5dl kolme sipulia laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014828"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma Kippari® savujuusto UHT laktoositon 2,5 dl",
+          "category": "CAAAMAIAAAKAA",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014811"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma karamellisoitu sipuli UHT laktoositon 2,5 dl",
+          "category": "CAAAMAIAAAKAA",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430142873"
+        },
+        {
+          "name": "Valio Keittiön maustettu ruokakerma 2,5dl punainen pesto laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 194,
+          "comparisonPrice": 776,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430142675"
+        },
+        {
+          "name": "Valio Keittiön maustettu ruokakerma 2,5 dl sitruuna&pippuri laktoositon UHT",
+          "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430015573"
+        },
+        {
+          "name": "Valio Keittiön ruokakerma Pippuripekka pippurijuusto UHT laktoositon 2,5 dl",
+          "category": "CAAAMAIAAAKAA",
+          "price": 199,
+          "comparisonPrice": 796,
+          "comparisonPriceUnit": "l",
+          "ean": "6408430014804"
+        }
+      ]
+    },
+    {
+      "query": "kasvisliemikuutio",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Reformi Luomu Kasvisliemikuutio 88g 8kpl",
+          "category": "CAABGBAAGAEAE",
+          "price": 209,
+          "comparisonPrice": 2177,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409944200370"
+        },
+        {
+          "name": "Herbamare® Kasvisliemikuutio 8x9,5g vähäsuolainen",
+          "category": "CAABGBAAGAEAE",
+          "price": 345,
+          "comparisonPrice": 4313,
+          "comparisonPriceUnit": "kg",
+          "ean": "7610313423026"
+        },
+        {
+          "name": "Coop kasvisliemikuutiot 120 g 12 kpl",
+          "category": "CAABGBAAGAEAE",
+          "price": 83,
+          "comparisonPrice": 692,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191152212"
+        },
+        {
+          "name": "Bong kasvisliemikuutiot 12-pack 120g",
+          "category": "CAABGBAAGAEAE",
+          "price": 199,
+          "comparisonPrice": 1658,
+          "comparisonPriceUnit": "kg",
+          "ean": "7322550049609"
+        }
+      ]
+    },
+    {
+      "query": "mustapippuri",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Meira Mustapippuri mylly 49g",
+          "category": "CAABGBAAKAIAE",
+          "price": 475,
+          "comparisonPrice": 9694,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201105862"
+        },
+        {
+          "name": "Golden Star Mustapippuri 400g",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1005,
+          "comparisonPrice": 2513,
+          "comparisonPriceUnit": "kg",
+          "ean": "6434800005691"
+        },
+        {
+          "name": "Meira Mustapippuri rouhittu 27g",
+          "category": "CAABGBAAKAIAC",
+          "price": 119,
+          "comparisonPrice": 4407,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201003021"
+        },
+        {
+          "name": "Meira Mustapippuri jauhettu 32g",
+          "category": "CAABGBAAKAIAC",
+          "price": 269,
+          "comparisonPrice": 8406,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201102298"
+        },
+        {
+          "name": "Meira Mustapippuri rouhittu 65g",
+          "category": "CAABGBAAKAIAC",
+          "price": 275,
+          "comparisonPrice": 4231,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201003106"
+        },
+        {
+          "name": "Meira Mustapippuri jauhettu 25g",
+          "category": "CAABGBAAKAIAC",
+          "price": 125,
+          "comparisonPrice": 5000,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201002895"
+        },
+        {
+          "name": "Meira Mustapippuri rouhittu 35g",
+          "category": "CAABGBAAKAIAC",
+          "price": 249,
+          "comparisonPrice": 7114,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201102403"
+        },
+        {
+          "name": "Felix mustapippuri ketsuppi 500g",
+          "category": "CAABGBAAAAGAC",
+          "price": 298,
+          "comparisonPrice": 596,
+          "comparisonPriceUnit": "kg",
+          "ean": "7310240606485"
+        },
+        {
+          "name": "Meira Mustapippuri kokonainen 60g",
+          "category": "CAABGBAAKAIAC",
+          "price": 259,
+          "comparisonPrice": 4317,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201002925"
+        },
+        {
+          "name": "Meira Mustapippuri kokonainen 27g",
+          "category": "CAABGBAAKAIAC",
+          "price": 125,
+          "comparisonPrice": 4630,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201002901"
+        },
+        {
+          "name": "Xtra mustapippuri kokonainen 100 g",
+          "category": "CAABGBAAKAIAC",
+          "price": 169,
+          "comparisonPrice": 1690,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340011425731"
+        },
+        {
+          "name": "Atria Wilhelm Feta-mustapippuri 350g",
+          "category": "CAAAEAAAGAAAA",
+          "price": 299,
+          "comparisonPrice": 854,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407870078827"
+        },
+        {
+          "name": "Inter Cheese Gouda Mustapippuri n4kg",
+          "category": "CAAAOAIAKAAAA",
+          "price": 2390,
+          "comparisonPrice": 2390,
+          "comparisonPriceUnit": "kg",
+          "ean": "2004904000003"
+        },
+        {
+          "name": "Santa Maria mustapippuri rouhittu 18g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 145,
+          "comparisonPrice": 8056,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004612"
+        },
+        {
+          "name": "Santa Maria 217g Mustapippuri rouhittu",
+          "category": "CAABGBAAKAIAC",
+          "price": 1039,
+          "comparisonPrice": 4788,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311015731"
+        },
+        {
+          "name": "Atria Vuolu mustapippuri kanafilee 200g",
+          "category": "CAAAEAAACAGAA",
+          "price": 395,
+          "comparisonPrice": 1975,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407810018258"
+        },
+        {
+          "name": "URTEKRAM Luomu Kokonainen Mustapippuri 60g",
+          "category": "CAABGBAAKAIAC",
+          "price": 499,
+          "comparisonPrice": 8317,
+          "comparisonPriceUnit": "kg",
+          "ean": "5765228771310"
+        },
+        {
+          "name": "Coop Mustapippuri mylly 120 g Black Pepper",
+          "category": "CAABGBAAKAIAE",
+          "price": 419,
+          "comparisonPrice": 3492,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574489886"
+        },
+        {
+          "name": "Santa Maria Rouhittu Mustapippuri, pussi 65g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 285,
+          "comparisonPrice": 4385,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311005022"
+        },
+        {
+          "name": "Santa Maria kokonainen Mustapippuri,  pussi 22g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 129,
+          "comparisonPrice": 5864,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004445"
+        },
+        {
+          "name": "Meira Luomu mustapippuri rouhittu Reilu kauppa 35g",
+          "category": "CAABGBAAKAIAC",
+          "price": 365,
+          "comparisonPrice": 10429,
+          "comparisonPriceUnit": "kg",
+          "ean": "6420101884332"
+        },
+        {
+          "name": "Santa Maria Mustapippuri Jauhettu Luomu, purkki 33g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 419,
+          "comparisonPrice": 12697,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311015458"
+        },
+        {
+          "name": "Coop maalaisperunalastut mustapippuri & ruohosipuli 175 g",
+          "category": "CAABGAUAAAAAA",
+          "price": 165,
+          "comparisonPrice": 943,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191150690"
+        },
+        {
+          "name": "Oolannin kuorelliset lohkoperunat merisuola ja mustapippuri 400g",
+          "category": "CAABQAKAEAAAA",
+          "price": 289,
+          "comparisonPrice": 723,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410380097936"
+        },
+        {
+          "name": "Castello 5 x 20 g MiniMix  2 kpl sinihome à 20g, , ananas-, manteli 20g,  mustapippuri 20g, lime-kookos 20g juustolajitelma",
+          "category": "CAAAOAIAIAAAA",
+          "price": 325,
+          "comparisonPrice": 3250,
+          "comparisonPriceUnit": "kg",
+          "ean": "5711953188824"
+        },
+        {
+          "name": "Coop mustapippurirouhe 70g",
+          "category": "CAABGBAAKAIAC",
+          "price": 150,
+          "comparisonPrice": 2143,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191158726"
+        },
+        {
+          "name": "Xtra mustapippurirouhe 80 g",
+          "category": "CAABGBAAKAIAC",
+          "price": 171,
+          "comparisonPrice": 2138,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191154902"
+        },
+        {
+          "name": "Golden Star 370g Mustapippurirouhe",
+          "category": "CAABGBAAKAIAC",
+          "price": 1025,
+          "comparisonPrice": 2770,
+          "comparisonPriceUnit": "kg",
+          "ean": "6434800005561"
+        },
+        {
+          "name": "John West Tonnikalaa lime-mustapippurikastikkeessa 85g",
+          "category": "CAABGBCAMAAAE",
+          "price": 265,
+          "comparisonPrice": 3118,
+          "comparisonPriceUnit": "kg",
+          "ean": "5000171034014"
+        },
+        {
+          "name": "Santa Maria Tellicherry Black Pepper Mustapippurimylly 70 g",
+          "category": "CAABGBAAKAIAE",
+          "price": 685,
+          "comparisonPrice": 9786,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311310026806"
+        }
+      ]
+    },
+    {
+      "query": "mustapippuri",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Meira Mustapippuri mylly 49g",
+          "category": "CAABGBAAKAIAE",
+          "price": 515,
+          "comparisonPrice": 10510,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201105862"
+        },
+        {
+          "name": "Meira Mustapippuri rouhittu 65g",
+          "category": "CAABGBAAKAIAC",
+          "price": 275,
+          "comparisonPrice": 4231,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201003106"
+        },
+        {
+          "name": "Meira Mustapippuri jauhettu 25g",
+          "category": "CAABGBAAKAIAC",
+          "price": 124,
+          "comparisonPrice": 4960,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201002895"
+        },
+        {
+          "name": "Meira Mustapippuri jauhettu 32g",
+          "category": "CAABGBAAKAIAC",
+          "price": 285,
+          "comparisonPrice": 8906,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201102298"
+        },
+        {
+          "name": "Meira Mustapippuri rouhittu 27g",
+          "category": "CAABGBAAKAIAC",
+          "price": 128,
+          "comparisonPrice": 4741,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201003021"
+        },
+        {
+          "name": "Meira Mustapippuri rouhittu 35g",
+          "category": "CAABGBAAKAIAC",
+          "price": 259,
+          "comparisonPrice": 7400,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201102403"
+        },
+        {
+          "name": "Meira Mustapippuri kokonainen 60g",
+          "category": "CAABGBAAKAIAC",
+          "price": 254,
+          "comparisonPrice": 4233,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201002925"
+        },
+        {
+          "name": "Pirkka mustapippuri 15 g rouhittu",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 89,
+          "comparisonPrice": 5933,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405240507"
+        },
+        {
+          "name": "Meira Mustapippuri kokonainen 27g",
+          "category": "CAABGBAAKAIAC",
+          "price": 124,
+          "comparisonPrice": 4593,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201002901"
+        },
+        {
+          "name": "Pirkka mustapippuri 21g kokonainen",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 85,
+          "comparisonPrice": 4048,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405240521"
+        },
+        {
+          "name": "Pirkka mustapippuri 75g kokonainen",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 199,
+          "comparisonPrice": 2653,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405066831"
+        },
+        {
+          "name": "Atria Wilhelm Feta-mustapippuri 350g",
+          "category": "CAAAEAAAGAAAA",
+          "price": 299,
+          "comparisonPrice": 854,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407870078827"
+        },
+        {
+          "name": "Santa Maria mustapippuri rouhittu 18g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 129,
+          "comparisonPrice": 7167,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004612"
+        },
+        {
+          "name": "Salliselta Mustapippuri rouhittu 340g",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1049,
+          "comparisonPrice": 3085,
+          "comparisonPriceUnit": "kg",
+          "ean": "6436501005253"
+        },
+        {
+          "name": "Salliselta Mustapippuri jauhettu 440g",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1190,
+          "comparisonPrice": 2705,
+          "comparisonPriceUnit": "kg",
+          "ean": "6436501005246"
+        },
+        {
+          "name": "Santa Maria mustapippuri jauhettu 31g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 209,
+          "comparisonPrice": 6742,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311015670"
+        },
+        {
+          "name": "Santa Maria mustapippuri jauhettu 20g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 145,
+          "comparisonPrice": 7250,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004452"
+        },
+        {
+          "name": "Santa Maria 217g Mustapippuri rouhittu",
+          "category": "CAABGBAAKAIAC",
+          "price": 1029,
+          "comparisonPrice": 4742,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311015731"
+        },
+        {
+          "name": "Pirkka Luomu mustapippuri 34g rouhittu",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 319,
+          "comparisonPrice": 9382,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405233523"
+        },
+        {
+          "name": "Salliselta Mustapippuri 360g kokonainen",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1049,
+          "comparisonPrice": 2914,
+          "comparisonPriceUnit": "kg",
+          "ean": "6436501005239"
+        },
+        {
+          "name": "Santa Maria Mustapippuri kokonainen 70g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 415,
+          "comparisonPrice": 5929,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004865"
+        },
+        {
+          "name": "Atria Vuolu mustapippuri kanafilee 200g",
+          "category": "CAAAEAAACAGAA",
+          "price": 395,
+          "comparisonPrice": 1975,
+          "comparisonPriceUnit": "kg",
+          "ean": "6407810018258"
+        },
+        {
+          "name": "Golden Star Mustapippuri 100g maustemylly",
+          "category": "CAABGBAAKAKAK",
+          "price": 477,
+          "comparisonPrice": 4770,
+          "comparisonPriceUnit": "kg",
+          "ean": "6434800008685"
+        },
+        {
+          "name": "Santa Maria Rouhittu Mustapippuri, pussi 65g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 295,
+          "comparisonPrice": 4538,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311005022"
+        },
+        {
+          "name": "Santa Maria Mustapippuri rouhittu, purkki 59g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 439,
+          "comparisonPrice": 7441,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311014055"
+        },
+        {
+          "name": "Santa Maria Mustapippuri rouhittu, purkki 34g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 289,
+          "comparisonPrice": 8500,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311014185"
+        },
+        {
+          "name": "Santa Maria kokonainen Mustapippuri,  pussi 22g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 135,
+          "comparisonPrice": 6136,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311004445"
+        },
+        {
+          "name": "Santa Maria Mustapippuri kokonainen, purkki 35g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 315,
+          "comparisonPrice": 9000,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311015663"
+        },
+        {
+          "name": "Meira Luomu mustapippuri rouhittu Reilu kauppa 35g",
+          "category": "CAABGBAAKAIAC",
+          "price": 375,
+          "comparisonPrice": 10714,
+          "comparisonPriceUnit": "kg",
+          "ean": "6420101884332"
+        },
+        {
+          "name": "Santa Maria Mustapippuri Jauhettu Luomu, purkki 33g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 439,
+          "comparisonPrice": 13303,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311015458"
+        },
+        {
+          "name": "Salliselta Tellicherry mustapippuri kokonainen 360g",
+          "category": "mausteet-ja-maustaminen/mausteet/suurpakkaukset",
+          "price": 1688,
+          "comparisonPrice": 4689,
+          "comparisonPriceUnit": "kg",
+          "ean": "6436501065752"
+        },
+        {
+          "name": "Oolannin kuorelliset lohkoperunat merisuola ja mustapippuri 400g",
+          "category": "CAABQAKAEAAAA",
+          "price": 295,
+          "comparisonPrice": 738,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410380097936"
+        },
+        {
+          "name": "Castello 5 x 20 g MiniMix  2 kpl sinihome à 20g, , ananas-, manteli 20g,  mustapippuri 20g, lime-kookos 20g juustolajitelma",
+          "category": "CAAAOAIAIAAAA",
+          "price": 335,
+          "comparisonPrice": 3350,
+          "comparisonPriceUnit": "kg",
+          "ean": "5711953188824"
+        },
+        {
+          "name": "Pirkka mustapippurimylly 120g",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 329,
+          "comparisonPrice": 2742,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405063298"
+        },
+        {
+          "name": "John West Tonnikalaa lime-mustapippurikastikkeessa 85g",
+          "category": "CAABGBCAMAAAE",
+          "price": 279,
+          "comparisonPrice": 3282,
+          "comparisonPriceUnit": "kg",
+          "ean": "5000171034014"
+        },
+        {
+          "name": "Santa Maria Tellicherry Black Pepper Mustapippurimylly 70 g",
+          "category": "CAABGBAAKAIAE",
+          "price": 719,
+          "comparisonPrice": 10271,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311310026806"
+        }
+      ]
+    },
+    {
+      "query": "ruokaöljy",
+      "chain": "s",
+      "source": "s-kaupat-normal-v220",
+      "status": 200,
+      "items": [
+        {
+          "name": "Virgino 0,5l kylmäpuristettu luomurypsiöljy",
+          "price": 4.17,
+          "comparisonPrice": 8.34,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6417894000124"
+        },
+        {
+          "name": "Terra Delyssa Ekstra-neitsytoliiviöljy 500ml",
+          "price": 6.75,
+          "comparisonPrice": 13.5,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6191509900688"
+        },
+        {
+          "name": "Bertolli Hot Cooking oliiviöljyspray 200ml",
+          "price": 5.25,
+          "comparisonPrice": 26.25,
+          "comparisonPriceUnit": "LTR",
+          "ean": "8002470030695"
+        },
+        {
+          "name": "Filos 500ml original koroneiki ekstra-neitsytoliiviöljy",
+          "price": 7.36,
+          "comparisonPrice": 14.72,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6416710030116"
+        },
+        {
+          "name": "Filos luomu ekstra-neitsytoliiviöljy 500ml",
+          "price": 8.91,
+          "comparisonPrice": 17.82,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6416710030208"
+        },
+        {
+          "name": "Terra Delyssa Ekstra-neitsytoliiviöljy 1000ml",
+          "price": 13.45,
+          "comparisonPrice": 13.45,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6191509900664"
+        },
+        {
+          "name": "Terra Delyssa Ekstra-neitsytoliiviöljy 750ml",
+          "price": 10.15,
+          "comparisonPrice": 13.53,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6191509900671"
+        },
+        {
+          "name": "Terra Delyssa Ekstra-neitsytoliiviöljy 750ml refill",
+          "price": 9.22,
+          "comparisonPrice": 12.29,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6191509910700"
+        },
+        {
+          "name": "Terra Delyssa Ekstra-neitsytoliiviöljy luomu 500ml",
+          "price": 8.38,
+          "comparisonPrice": 16.76,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6191509900862"
+        },
+        {
+          "name": "Terra Delyssa Ekstra-neitsytoliiviöljy 250ml",
+          "price": 4.48,
+          "comparisonPrice": 17.92,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6191509900701"
+        },
+        {
+          "name": "Filos 500ml ladolia ekstra-neitsytoliiviöljy",
+          "price": 8.89,
+          "comparisonPrice": 17.78,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6416710030192"
+        },
+        {
+          "name": "Bertolli Hot cooking oliiviöljy 460ml",
+          "price": 7.59,
+          "comparisonPrice": 16.5,
+          "comparisonPriceUnit": "LTR",
+          "ean": "8002470033610"
+        },
+        {
+          "name": "Filos 500ml deluxe 0.3 ekstra-neitsytoliiviöljy",
+          "price": 9.11,
+          "comparisonPrice": 18.22,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6416710030383"
+        },
+        {
+          "name": "Filos 500ml koroneiki ekstra-neitsytoliiviöljy",
+          "price": 8.69,
+          "comparisonPrice": 17.38,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6416710030178"
+        },
+        {
+          "name": "Moresh Ekstra-neitsytoliiviöljy 250ml",
+          "price": 4.85,
+          "comparisonPrice": 19.4,
+          "comparisonPriceUnit": "LTR",
+          "ean": "6111263870423"
+        }
+      ]
+    },
+    {
+      "query": "ruokaöljy",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": []
+    },
+    {
+      "query": "sipuli",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Kotimaista sipuli-tillisilakka 280g/156g MSC",
+          "category": "CAAAKAAAUACAA",
+          "price": 590,
+          "comparisonPrice": 3782,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574559992"
+        },
+        {
+          "name": "Raguletto Sipuli-tomaatti pastakastike 400 ml",
+          "category": "CAABGAYAEACAA",
+          "price": 288,
+          "comparisonPrice": 720,
+          "comparisonPriceUnit": "l",
+          "ean": "7322550032984"
+        },
+        {
+          "name": "Abba MSC Brantevikin sipuli-tillisilli 245/105g",
+          "category": "CAAAKAAAWAGAA",
+          "price": 369,
+          "comparisonPrice": 3514,
+          "comparisonPriceUnit": "kg",
+          "ean": "7316110004658"
+        },
+        {
+          "name": "Abba Brantevikin sipuli-tillisilli 245/105g kausimaku",
+          "category": "kala-ja-merenelavat/muut-kalatuotteet/sillit-ja-anjovikset",
+          "price": 369,
+          "comparisonPrice": 3514,
+          "comparisonPriceUnit": "kg",
+          "ean": "7350126082415"
+        },
+        {
+          "name": "Sipuli irto",
+          "category": "hedelmat-ja-vihannekset/vihannekset/sipulit",
+          "price": 119,
+          "comparisonPrice": 119,
+          "comparisonPriceUnit": "kg",
+          "ean": "2008654200003"
+        },
+        {
+          "name": "Sipuli 500g Luomu",
+          "category": "CAAAAAEBGAGAA",
+          "price": 139,
+          "comparisonPrice": 278,
+          "comparisonPriceUnit": "kg",
+          "ean": "8712924002566"
+        },
+        {
+          "name": "Sipuli 50-70mm Suomi",
+          "category": "CAAAAAEBGAGAA",
+          "price": 129,
+          "comparisonPrice": 129,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000597500004"
+        },
+        {
+          "name": "Kotimaista sipuli 1kg",
+          "category": "CAAAAAEBGAGAA",
+          "price": 149,
+          "comparisonPrice": 149,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414894500029"
+        },
+        {
+          "name": "Kotimaista sipuli 500 g",
+          "category": "CAAAAAEBGAGAA",
+          "price": 79,
+          "comparisonPrice": 158,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414894502306"
+        },
+        {
+          "name": "Kotimaista sipuli luomu 500 g",
+          "category": "CAAAAAEBGAGAA",
+          "price": 189,
+          "comparisonPrice": 378,
+          "comparisonPriceUnit": "kg",
+          "ean": "6438574114085"
+        },
+        {
+          "name": "Chef X Jauhelihapihvit paistetulla sipulilla ja paistetut perunat 400g",
+          "category": "CAAAGAAAGACAA",
+          "price": 995,
+          "comparisonPrice": 2487,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078470223"
+        }
+      ]
+    },
+    {
+      "query": "sipuli",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Raguletto Sipuli-tomaatti pastakastike 400 ml",
+          "category": "CAABGAYAEACAA",
+          "price": 295,
+          "comparisonPrice": 738,
+          "comparisonPriceUnit": "l",
+          "ean": "7322550032984"
+        },
+        {
+          "name": "Sipuli",
+          "category": "hedelmat-ja-vihannekset/sipulit/sipulit",
+          "price": 89,
+          "comparisonPrice": 89,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000613700005"
+        },
+        {
+          "name": "Sipuli Suomi",
+          "category": "hedelmat-ja-vihannekset/sipulit/sipulit",
+          "price": 188,
+          "comparisonPrice": 188,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000639200008"
+        },
+        {
+          "name": "Sipuli Suomi",
+          "category": "hedelmat-ja-vihannekset/sipulit/sipulit",
+          "price": 189,
+          "comparisonPrice": 189,
+          "comparisonPriceUnit": "kg",
+          "ean": "2000645500000"
+        },
+        {
+          "name": "Sipuli 500g Suomi 2lk",
+          "category": "hedelmat-ja-vihannekset/sipulit/sipulit",
+          "price": 129,
+          "comparisonPrice": 258,
+          "comparisonPriceUnit": "kg",
+          "ean": "6415350000374"
+        },
+        {
+          "name": "Sipuli makea 800g 2 lk",
+          "category": "hedelmat-ja-vihannekset/sipulit/muut-sipulit",
+          "price": 319,
+          "comparisonPrice": 399,
+          "comparisonPriceUnit": "kg",
+          "ean": "8712924185429"
+        },
+        {
+          "name": "K-Menu sipuli 500g 2lk Suomi",
+          "category": "hedelmat-ja-vihannekset/sipulit/sipulit",
+          "price": 79,
+          "comparisonPrice": 158,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405322036"
+        },
+        {
+          "name": "Sipuli ulkomainen luomu 500 g",
+          "category": "CAAAAAEBGAGAA",
+          "price": 219,
+          "comparisonPrice": 438,
+          "comparisonPriceUnit": "kg",
+          "ean": "8712924010516"
+        },
+        {
+          "name": "Pirkka makea sipuli 350 g 2 lk",
+          "category": "hedelmat-ja-vihannekset/sipulit/muut-sipulit",
+          "price": 199,
+          "comparisonPrice": 569,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405057617"
+        },
+        {
+          "name": "Rosanna pinkki sipuli 350g Suomi 2lk",
+          "category": "hedelmat-ja-vihannekset/sipulit/punasipulit",
+          "price": 129,
+          "comparisonPrice": 369,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430035370344"
+        }
+      ]
+    },
+    {
+      "query": "tomaattimurska",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Coop tomaattimurska 390 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 76,
+          "comparisonPrice": 195,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191135635"
+        },
+        {
+          "name": "Coop tomaattimurska 400 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 85,
+          "comparisonPrice": 213,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340011476054"
+        },
+        {
+          "name": "Xtra tomaattimurska 400 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 32,
+          "comparisonPrice": 80,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191171480"
+        },
+        {
+          "name": "Coop tomaattimurska 390 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 77,
+          "comparisonPrice": 197,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191170414"
+        },
+        {
+          "name": "Mutti tomaattimurska 400g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 105,
+          "comparisonPrice": 263,
+          "comparisonPriceUnit": "kg",
+          "ean": "0000080042556"
+        },
+        {
+          "name": "Xtra Luomu Tomaattimurska 400 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 93,
+          "comparisonPrice": 233,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191171244"
+        },
+        {
+          "name": "Mutti luomu tomaattimurska 400g",
+          "category": "CAABGBCAEAAAC",
+          "price": 175,
+          "comparisonPrice": 438,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110413520"
+        },
+        {
+          "name": "Coop tomaattimurska chili 390 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 105,
+          "comparisonPrice": 269,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191170438"
+        },
+        {
+          "name": "Coop tomaattimurska yrteillä 390 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 109,
+          "comparisonPrice": 279,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191170452"
+        },
+        {
+          "name": "Coop Eko tomaattimurska luomu 390 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 99,
+          "comparisonPrice": 254,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191178670"
+        },
+        {
+          "name": "Coop tomaattimurska Polpa fine 400 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 95,
+          "comparisonPrice": 237,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191182578"
+        },
+        {
+          "name": "Coop tomaattimurska valkosipuli 390 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 109,
+          "comparisonPrice": 279,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191170445"
+        },
+        {
+          "name": "Mutti Polpa hieno tomaattimurska 2x210g",
+          "category": "CAABGBCAEAAAC",
+          "price": 159,
+          "comparisonPrice": 379,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110170324"
+        },
+        {
+          "name": "Mutti Tomaattimurska valkosipulilla 400g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 165,
+          "comparisonPrice": 412,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110170461"
+        },
+        {
+          "name": "Coop Eko tomaattimurska yrtit luomu 390 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 115,
+          "comparisonPrice": 295,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191178656"
+        },
+        {
+          "name": "Xtra tomaattimurska oregano ja basilika 400 g",
+          "category": "CAABGBCAEAAAC",
+          "price": 105,
+          "comparisonPrice": 263,
+          "comparisonPriceUnit": "kg",
+          "ean": "7340191171930"
+        },
+        {
+          "name": "Mutti Polpa basilika hieno tomaattimurska 400g",
+          "category": "CAABGBCAEAAAC",
+          "price": 165,
+          "comparisonPrice": 412,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110170423"
+        },
+        {
+          "name": "Mutti Datterini tomaattimurska tomaattimehulla 300g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 145,
+          "comparisonPrice": 483,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110000454"
+        }
+      ]
+    },
+    {
+      "query": "tomaattimurska",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Mutti tomaattimurska 400g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 104,
+          "comparisonPrice": 260,
+          "comparisonPriceUnit": "kg",
+          "ean": "0000080042556"
+        },
+        {
+          "name": "Cirio tomaattimurska 400g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 109,
+          "comparisonPrice": 273,
+          "comparisonPriceUnit": "kg",
+          "ean": "8000320010118"
+        },
+        {
+          "name": "K-Menu tomaattimurska 400g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 33,
+          "comparisonPrice": 83,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405313195"
+        },
+        {
+          "name": "Pirkka tomaattimurska 500 g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 99,
+          "comparisonPrice": 198,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410402011865"
+        },
+        {
+          "name": "Mutti luomu tomaattimurska 400g",
+          "category": "CAABGBCAEAAAC",
+          "price": 185,
+          "comparisonPrice": 463,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110413520"
+        },
+        {
+          "name": "Pirkka Luomu tomaattimurska 500g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 154,
+          "comparisonPrice": 308,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410402018161"
+        },
+        {
+          "name": "K-Menu yrtti-tomaattimurska 400g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 105,
+          "comparisonPrice": 263,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405342096"
+        },
+        {
+          "name": "Mutti tomaattimurska 3x400g 3-pack",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 315,
+          "comparisonPrice": 263,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110170300"
+        },
+        {
+          "name": "Mutti Polpa hieno tomaattimurska 2x210g",
+          "category": "CAABGBCAEAAAC",
+          "price": 169,
+          "comparisonPrice": 402,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110170324"
+        },
+        {
+          "name": "Mutti Tomaattimurska valkosipulilla 400g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 169,
+          "comparisonPrice": 423,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110170461"
+        },
+        {
+          "name": "Mutti Polpa basilika hieno tomaattimurska 400g",
+          "category": "CAABGBCAEAAAC",
+          "price": 169,
+          "comparisonPrice": 423,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110170423"
+        },
+        {
+          "name": "Mutti Datterini tomaattimurska tomaattimehulla 300g",
+          "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/tomaattisailykkeet",
+          "price": 149,
+          "comparisonPrice": 497,
+          "comparisonPriceUnit": "kg",
+          "ean": "8005110000454"
+        }
+      ]
+    },
+    {
+      "query": "katkarapu",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Sushi Take Rapea Katkarapu-dragon",
+          "category": "valmisruoka/palvelutiskin-herkut/kaupan-oma-sushi",
+          "price": 995,
+          "comparisonPrice": 3727,
+          "comparisonPriceUnit": "kg",
+          "ean": "8435821600498"
+        },
+        {
+          "name": "Dennis katkarapu-carbonara spaghetti 350g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+          "price": 515,
+          "comparisonPrice": 1471,
+          "comparisonPriceUnit": "kg",
+          "ean": "4740376000063"
+        },
+        {
+          "name": "Hetki Bistro katkarapu-caesarsalaatti 300g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/salaattiateriat",
+          "price": 596,
+          "comparisonPrice": 1987,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406510703389"
+        },
+        {
+          "name": "Monge 80g tonnikala katkarapu",
+          "category": "lemmikit/kissanruoat/kissan-annosruoat",
+          "price": 209,
+          "comparisonPrice": 2613,
+          "comparisonPriceUnit": "kg",
+          "ean": "8009470006903"
+        },
+        {
+          "name": "Kavli sulatejuusto 330g katkarapu",
+          "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+          "price": 539,
+          "comparisonPrice": 1633,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311441210457"
+        },
+        {
+          "name": "Vatkis vegaaninen katkarapu 90g/180g, 210 ml",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/ayriaiset",
+          "price": 377,
+          "comparisonPrice": 4189,
+          "comparisonPriceUnit": "kg",
+          "ean": "6409410832258"
+        },
+        {
+          "name": "Wok Wok: Thai chili katkarapu riisinuudeliwokki",
+          "category": "CAAAGAAAGACAA",
+          "price": 575,
+          "comparisonPrice": 1438,
+          "comparisonPriceUnit": "kg",
+          "ean": "6429810285010"
+        },
+        {
+          "name": "Almo Nature HFC Natural kissa tonnikala-katkarapu 70g",
+          "category": "CAABOAAACACAA",
+          "price": 155,
+          "comparisonPrice": 2214,
+          "comparisonPriceUnit": "kg",
+          "ean": "8001154004120"
+        },
+        {
+          "name": "Äyriäistukku Kuorittu Jumbo Katkarapu 200g/180g pakaste",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/katkaravut",
+          "price": 695,
+          "comparisonPrice": 3861,
+          "comparisonPriceUnit": "kg",
+          "ean": "6423600032679"
+        },
+        {
+          "name": "Pirkka katkarapu 125-175 kpl 4x100g MSC ketjupakkaus pakaste",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/katkaravut",
+          "price": 1399,
+          "comparisonPrice": 3498,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405269560"
+        },
+        {
+          "name": "OMA Katkarapuherkku",
+          "category": "valmisruoka/lisakesalaatit-ja-tuorepasta/kalamajoneesisalaatit",
+          "price": 2995,
+          "comparisonPrice": 2995,
+          "comparisonPriceUnit": "kg",
+          "ean": "2001105400007"
+        },
+        {
+          "name": "Hetki katkarapupatonki 240g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+          "price": 399,
+          "comparisonPrice": 1663,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406510703716"
+        },
+        {
+          "name": "Nongshim katkarapusnacks 75g",
+          "category": "texmex-ja-maailman-maut/maailman-maut/muut-maailman-maut",
+          "price": 229,
+          "comparisonPrice": 3053,
+          "comparisonPriceUnit": "kg",
+          "ean": "8801043216128"
+        },
+        {
+          "name": "Helsingin katkarapuskagen 400g",
+          "category": "valmisruoka/lisakesalaatit-ja-tuorepasta/kalamajoneesisalaatit",
+          "price": 949,
+          "comparisonPrice": 2373,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405366000543"
+        },
+        {
+          "name": "Helsingin Katkarapuskagen 200g",
+          "category": "CAAAKAAAQAAAA",
+          "price": 513,
+          "comparisonPrice": 2565,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405366004190"
+        },
+        {
+          "name": "Pirkka Parhaat katkarapuleipä 260g MSC",
+          "category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+          "price": 499,
+          "comparisonPrice": 1919,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405287427"
+        },
+        {
+          "name": "Pirkka katkarapuja liemessä 330g/170g MSC",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/ravut",
+          "price": 499,
+          "comparisonPrice": 2935,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410402026043"
+        },
+        {
+          "name": "Äyriäistukku kuorittuja katkarapuja 200g/180g",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/katkaravut",
+          "price": 646,
+          "comparisonPrice": 3589,
+          "comparisonPriceUnit": "kg",
+          "ean": "6423600032181"
+        },
+        {
+          "name": "Nongshim katkarapusnacks 75g tulinen ja mausteinen",
+          "category": "texmex-ja-maailman-maut/maailman-maut/muut-maailman-maut",
+          "price": 235,
+          "comparisonPrice": 3133,
+          "comparisonPriceUnit": "kg",
+          "ean": "8801043001786"
+        },
+        {
+          "name": "Royal Greenland kuorellisia katkarapuja 70/90 500g MSC pakaste",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/katkaravut",
+          "price": 955,
+          "comparisonPrice": 1910,
+          "comparisonPriceUnit": "kg",
+          "ean": "5740300914328"
+        },
+        {
+          "name": "Äyriäistukku Kokonaisia Katkarapuja (90-120KPL/LBS) 500g/400g pakaste",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/katkaravut",
+          "price": 895,
+          "comparisonPrice": 2238,
+          "comparisonPriceUnit": "kg",
+          "ean": "6423600032136"
+        },
+        {
+          "name": "Royal Greenland Grönlantilaisia kuorellisia katkarapuja 90/120 1000g pakaste",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/katkaravut",
+          "price": 1539,
+          "comparisonPrice": 1539,
+          "comparisonPriceUnit": "kg",
+          "ean": "5740300900253"
+        },
+        {
+          "name": "Rapumestarin keitettyjä käsinkuorittuja XXL katkarapuja suolaliemessä 300/150g MSC",
+          "category": "kala-ja-merenelavat/ravut-simpukat-ja-ayriaiset/ravut",
+          "price": 919,
+          "comparisonPrice": 6127,
+          "comparisonPriceUnit": "kg",
+          "ean": "4740173003618"
+        }
+      ]
+    },
+    {
+      "query": "yrttiseos",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Meira Yrttiseos Välimeren 9g",
+          "category": "CAABGBAAKAOAG",
+          "price": 89,
+          "comparisonPrice": 9889,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201005209"
+        },
+        {
+          "name": "Meira Provencale yrttiseos ei lisättyä suolaa 8g",
+          "category": "CAABGBAAKAOAG",
+          "price": 83,
+          "comparisonPrice": 10375,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201003922"
+        },
+        {
+          "name": "Meira Provencale yrttiseos ei lisättyä suolaa 11g",
+          "category": "CAABGBAAKAOAG",
+          "price": 139,
+          "comparisonPrice": 12636,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201103356"
+        },
+        {
+          "name": "Santa Maria Välimeren Yrttiseos 24g  Ei Lisättyä Suolaa",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 194,
+          "comparisonPrice": 8083,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311025471"
+        }
+      ]
+    },
+    {
+      "query": "katkarapu",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Chef X Katkarapu-caesarsalaatti 250g",
+          "category": "CAAAGAAAIAYAA",
+          "price": 745,
+          "comparisonPrice": 2980,
+          "comparisonPriceUnit": "kg",
+          "ean": "6430078470490"
+        },
+        {
+          "name": "Sheba Kanafile, katkarapu & merikala 60g",
+          "category": "lemmikit/kissanruoat/kissan-annosruoat",
+          "price": 195,
+          "comparisonPrice": 3250,
+          "comparisonPriceUnit": "kg",
+          "ean": "4008429134753"
+        },
+        {
+          "name": "Filos Deluxe marinoitu katkarapu 100/60g",
+          "category": "CAAAKAAAYAAAA",
+          "price": 490,
+          "comparisonPrice": 8167,
+          "comparisonPriceUnit": "kg",
+          "ean": "6416710250026"
+        },
+        {
+          "name": "Almo Nature HFC Natural kissa tonnikala-katkarapu 70g",
+          "category": "CAABOAAACACAA",
+          "price": 139,
+          "comparisonPrice": 1986,
+          "comparisonPriceUnit": "kg",
+          "ean": "8001154004120"
+        },
+        {
+          "name": "Hetki katkarapupatonki 240g",
+          "category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+          "price": 469,
+          "comparisonPrice": 1954,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406510703716"
+        },
+        {
+          "name": "Leroy katkarapuleipä MSC 260 g",
+          "category": "CAAAGAAAIAUAA",
+          "price": 635,
+          "comparisonPrice": 2442,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406170037046"
+        },
+        {
+          "name": "Helsingin Katkarapuskagen 200g",
+          "category": "CAAAKAAAQAAAA",
+          "price": 469,
+          "comparisonPrice": 2345,
+          "comparisonPriceUnit": "kg",
+          "ean": "6405366004190"
+        },
+        {
+          "name": "Kavli  katkarapusulatejuusto 175g",
+          "category": "maito-juusto-munat-ja-rasvat/juustot-leivan-paalle/levitettavat-juustot",
+          "price": 379,
+          "comparisonPrice": 2166,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311446011417"
+        },
+        {
+          "name": "Hyvä Apaja skagenröra katkarapuherkku 140g",
+          "category": "valmisruoka/lisakesalaatit-ja-tuorepasta/kalamajoneesisalaatit",
+          "price": 389,
+          "comparisonPrice": 2779,
+          "comparisonPriceUnit": "kg",
+          "ean": "6406600109350"
+        },
+        {
+          "name": "Royal Greenland Grönlantilaisia Kuorellisia kylmänveden katkarapuja 90/120 MSC pakaste 500g",
+          "category": "CAABQAIAEAAAA",
+          "price": 670,
+          "comparisonPrice": 1340,
+          "comparisonPriceUnit": "kg",
+          "ean": "5740301016120"
+        }
+      ]
+    },
+    {
+      "query": "yrttiseos",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Meira Yrttiseos Välimeren 9g",
+          "category": "CAABGBAAKAOAG",
+          "price": 89,
+          "comparisonPrice": 9889,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201005209"
+        },
+        {
+          "name": "Pirkka tomaatti-yrttiseos 12g",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 79,
+          "comparisonPrice": 6583,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405256140"
+        },
+        {
+          "name": "Pirkka provencale 9g yrttiseos",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 69,
+          "comparisonPrice": 7667,
+          "comparisonPriceUnit": "kg",
+          "ean": "6410405240606"
+        },
+        {
+          "name": "Pirkka Välimeren yrttiseos 9g mausteseos",
+          "category": "mausteet-ja-maustaminen/mausteet/pussit",
+          "price": 79,
+          "comparisonPrice": 8778,
+          "comparisonPriceUnit": "kpl",
+          "ean": "6410405256263"
+        },
+        {
+          "name": "Meira Provencale yrttiseos ei lisättyä suolaa 8g",
+          "category": "CAABGBAAKAOAG",
+          "price": 85,
+          "comparisonPrice": 10625,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201003922"
+        },
+        {
+          "name": "Meira Provencale yrttiseos ei lisättyä suolaa 11g",
+          "category": "CAABGBAAKAOAG",
+          "price": 139,
+          "comparisonPrice": 12636,
+          "comparisonPriceUnit": "kg",
+          "ean": "6414201103356"
+        },
+        {
+          "name": "Santa Maria Välimeren Yrttiseos 24g  Ei Lisättyä Suolaa",
+          "category": "mausteet-ja-maustaminen/mausteet/purkit",
+          "price": 215,
+          "comparisonPrice": 8958,
+          "comparisonPriceUnit": "kg",
+          "ean": "7311311025471"
+        }
+      ]
+    },
+    {
+      "query": "sitruunamehu",
+      "chain": "s",
+      "source": "ruoanhinta-s",
+      "status": 200,
+      "items": [
+        {
+          "name": "Xtra sitruunamehu 200 ml",
+          "category": "CAABAAAAOAAAA",
+          "price": 67,
+          "comparisonPrice": 335,
+          "comparisonPriceUnit": "l",
+          "ean": "7340191116641"
+        }
+      ]
+    },
+    {
+      "query": "sitruunamehu",
+      "chain": "k",
+      "source": "ruoanhinta-k",
+      "status": 200,
+      "items": [
+        {
+          "name": "Limmi sitruunamehu 200ml",
+          "category": "juomat/mehut/mehut-lampimasta",
+          "price": 229,
+          "comparisonPrice": 1145,
+          "comparisonPriceUnit": "l",
+          "ean": "8020542111110"
+        },
+        {
+          "name": "Pirkka Virkeä rypäle-mustikka-sitruunamehu B6 + B12 +C-vitamiinit 1l",
+          "category": "juomat/mehut/mehut-lampimasta",
+          "price": 229,
+          "comparisonPrice": 229,
+          "comparisonPriceUnit": "l",
+          "ean": "6410405347879"
+        }
+      ]
+    }
+  ]
+}

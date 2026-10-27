@@ -5,6 +5,7 @@ type RecipeContext={sourceLine?:string;proteinRequirement?:RecipeProteinRequirem
 export type RecipeFoodGroup = { ingredient: string; mainGroup: string; subGroup: string; searchTerm: string };
 type Kind = { term: string; pattern: RegExp; product: RegExp; group: string; exclude?: RegExp };
 const kinds: Kind[] = [
+ {term:"katkarapu",pattern:/katkarapu/,product:/katkarapu/,exclude:/salaatti|kastike|keitto|pasta|ateria|pizza|levite|sips/,group:"Äyriäiset"},
  {term:"valkosipulijauhe",pattern:/valkosipulijauh/,product:/valkosipulijauhe|valkosipuli.*jauhettu/,exclude:/suola|kastike|voi|levite|leipä|sips/,group:"Mausteet"},
  {term:"sipulijauhe",pattern:/(?<!valko)sipulijauh/,product:/(?<!valko)sipulijauhe|^sipuli.*jauhettu/,exclude:/valkosipuli|suola|kastike|voi|levite|leipä|sips/,group:"Mausteet"},
  {term:"parsakaali",pattern:/(?<!varsi)parsakaal/,product:/\bparsakaali\b|broccoli/,exclude:/varsiparsakaali|keitto|sose|ateria|pihvi|gratiini|pasta/,group:"Kasvikset"},
@@ -156,7 +157,7 @@ const kinds: Kind[] = [
 function cleanName(input: string): string {
  return input.toLocaleLowerCase("fi").replace(/[™®]/g,"").replace(/^[•*–-]+\s*/,"")
  .replace(/\([^)]*\)/g," ").replace(/,\s*(?:esim\.|msc-sertifioitu).*$/,"").replace(/,\s*/g," ")
- .replace(/^(?:(?:valio|pirkka|parhaat|k-menu|snellman|kunnon|vikkelät|keittiön|luomu|eila|kreikkalaista|tuoretta|keitettyä|keitettyjä|hienonnettua|kuivattua|kokonaista|jauhettua|iso|pieni|pala|cm)\s+)+/g,"")
+ .replace(/^(?:(?:valio|pirkka|parhaat|k-menu|snellman|kunnon|vikkelät|keittiön|luomu|eila|kreikkalaista|tuoretta|keitettyä|keitettyjä|hienonnettua|kuivattua|kokonaista|jauhettua|iso|pieni|pala|nokare|cm)\s+)+/g,"")
  .replace(/\s+\d+(?:[,.]\d+)?\s*%/g,"").replace(/\s+\d+(?:[,.]\d+)?\s*(?:kg|g|ml|dl|l)\b/g,"")
  .replace(/\s+(?:(?:vuoan|vuoan ja pellin|pellin)\s+)?(?:voiteluun|paistamiseen|tarjoiluun)$/g,"")
  .replace(/\s+(?:maun mukaan|tarvittaessa)$/g,"")
@@ -224,6 +225,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const term=recipeProductSearchTerm(input);if(!term)return "not_purchasable_ingredient";
  const requirement=input.toLocaleLowerCase("fi");
  const name=String(product.name||"").toLocaleLowerCase("fi");const category=String(product.category||"").toLocaleLowerCase("fi");
+ if(/^cac[a-z]+$/.test(category))return "non_food_product";
  if(/pullotutti|maitotutti|tuttipullo/.test(name)||/lastenhoitotarvik|vauvanhoitotarvik|tuttipullo|keittiotarvik|ruoanvalmistusvaline|leivontavaline|(?:^|\/)astiat|ruokailuvaline/.test(category))return "non_food_product";
  if(/nelson garden|kosmeti|hygienia|siivous|pesuaine|vartalo|karvanpoisto|ihonhoito|tuuheuttava|hiussuihke|merisuolasuihke|lemmik|kissan|kissoille|koiran|koirille|täysravinto|eläinruoka/.test(name+" "+category))return "non_food_product";
  // Raw potato ingredients must not fall through to the unknown-literal gate.
@@ -242,6 +244,8 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const protein=categoryIntent?null:context?.proteinRequirement||inferRecipeProtein(input);
  if(protein)return proteinProductRejection(protein,product);
  const kind=kinds.find(x=>x.term===term);
+ if(kind?.group==="Kananmunat"&&/korvike|valkuai|keltuai|pasta|lasagne|tagliatelle|pyttipannu|munakas|jauhe/.test(name))return "whole_egg_required";
+ if(term==="katkarapu"&&/kuoritt/.test(requirement)&&/kuorimaton|kuorimattom|kuorell/.test(name))return "peeled_shellfish_required";
  if(kind&&["Pastat","Riisit","Jauhot","Pähkinät"].includes(kind.group)&&/valmisruo|ateria|pata-ainek|mausteseos|lasten|lapset|lemmik/.test(category))return "basic_pantry_ingredient_required";
  if(kind&&["Pastat","Riisit","Jauhot","Pähkinät"].includes(kind.group)&&/maito|juusto|jogur|leivat|makeis|jaatelo|juomat|lihat/.test(category))return "basic_pantry_ingredient_required";
  if(kind?.group==="Pähkinät"&&/cheddar|gouda|brie|camembert|cheese|emmental|sinihome/.test(name))return "nut_ingredient_required";
@@ -269,6 +273,11 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  if(["ruokaöljy","rypsiöljy","oliiviöljy"].includes(term)&&/basilika|chili|valkosipuli|sitruuna|yrtti|tryffeli/.test(name)&&!/basilika|chili|valkosipuli|sitruuna|yrtti|tryffeli/.test(requirement))return "plain_oil_required";
  if(term==="voi"&&(/sips|chips|peruna|mun[aa]|levite|flora|rasvaseos/.test(name)||category.includes("/")&&!/\/voit$/.test(category)))return "butter_product_required";
  const spiceTerms=["valkosipulijauhe","sipulijauhe","suola","merisuola","maustepippuri","mustapippuri","valkopippuri","laakerinlehti","curry","juustokumina","kardemumma","kaneli","oregano","paprikajauhe","basilika","timjami","korianteri","persilja","chilihiutale","pizzamauste","välimeren yrttiseos","sormisuola"];
+ if(spiceTerms.includes(term)&&/lohkoperun|tonnikal|juustolajitelma|sinihome/.test(name))return "spice_category_required";
+ if(["mustapippuri","valkopippuri","maustepippuri"].includes(term)&&/mausteseos|barbeque/.test(name))return "plain_spice_required";
+ // Imported product names may describe crackers/snacks in English while
+ // including the requested seasoning only as a flavour.
+ if(spiceTerms.includes(term)&&/cracker|crispbread|breadstick|pretzel|\bcrisps?\b|\bchips\b|\bpopcorn\b/.test(name))return "spice_category_required";
  if(spiceTerms.includes(term)&&(/liha|broileri|snack|sips|leip|keksi|riisikak|maissikak|suklaa|jaatel|jäätel|rasvalev|ranskanker|valmisruoka|juoma/.test(category)||/riisikak|maissikak|keksi|sips|chips|suklaa|pretzel|korppu|näkk|leipä|flatbread|levite|\bjuusto\b|tuorejuusto|hillo|puuro|murska|öljy|pesto|sinappi|etikka|kastike|maissitikku|couscous|uunifeta|broiler|\bkana\b|kanan|pähkin|oliivi|jäätel|ateria|keitto/.test(name)))return "spice_category_required";
  if(["sokeri","fariinisokeri","ruokosokeri","vaniljasokeri","tomusokeri"].includes(term)&&/liha|broileri|snack|sips|leip|keksi|riisikak|maissikak|suklaa|jaatel|jäätel|rasvalev|ranskanker|valmisruoka|juoma|jogur/.test(category))return "sugar_category_required";
  if(["suola","merisuola"].includes(term)){
@@ -288,7 +297,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  // Multi-vegetable packs may list their contents without saying "mix".
  // Match complete vegetable names so garlic/red onion remain single ingredients.
  if(produceTerms.includes(term)){
-   const vegetables=Array.from(new Set(name.match(/(?<!\p{L})(?:valkosipuli|punasipuli|kevätsipuli|kirsikkatomaatti|parsakaali|kukkakaali|porkkana|peruna|sipuli|bataatti|pinaatti|herne|maissi|tomaatti|kurkku|paprika|purjo|fenkoli)(?!\p{L})/gu)||[]));
+   const vegetables=Array.from(new Set(name.match(/(?<!\p{L})(?:valkosipuli|punasipuli|kevätsipuli|kirsikkatomaatti|parsakaali|kukkakaali|porkkana|peruna|sipuli|bataatti|pinaatti|herne|maissi|tomaatti|kurkku|paprika|purjo|fenkoli|uunijuurekset|juurekset|vihannekset|kasvikset)(?!\p{L})/gu)||[]));
    if(vegetables.length>1&&vegetables.some(vegetable=>!requirement.includes(vegetable)))return "single_vegetable_required";
  }
  if(["basilika","timjami","korianteri","persilja","tilli","oregano","inkivääri"].includes(term)){
