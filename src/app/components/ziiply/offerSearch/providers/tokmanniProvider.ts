@@ -343,11 +343,32 @@ export async function fetchTokmanniOffers() {
 
   tokmanniOffersInFlight = fetchTokmanniOffersFresh()
     .then((items) => {
+      // Never replace a known-good nonempty result with a suspicious empty scrape.
+      if (items.length === 0 && tokmanniOffersCache?.items.length) {
+        throw new Error("Tokmanni returned zero offers after a previously nonempty result");
+      }
       tokmanniOffersCache = {
         items,
         expiresAt: Date.now() + TOKMANNI_CACHE_TTL_MS,
       };
       return items;
+    })
+    .catch((error) => {
+      // Keep a last-known-good result on transient upstream failures, but never
+      // silently treat an expired weekly listing as current offers.
+      const cached = tokmanniOffersCache?.items ?? [];
+      const todayFi = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit",
+      }).format(new Date());
+      const stillValid = cached.length > 0 && cached.every((item) =>
+        String(item.validFrom || "") <= todayFi && String(item.validTo || "") >= todayFi,
+      );
+      console.error("[Ziiply Tokmanni] upstream offer refresh failed", error);
+      if (stillValid) {
+        console.warn("[Ziiply Tokmanni] serving last-known-good offers; refresh remains failed");
+        return cached;
+      }
+      throw error;
     })
     .finally(() => {
       tokmanniOffersInFlight = null;
