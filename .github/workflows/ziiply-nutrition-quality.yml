@@ -1,4 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
+run-name: OFF Fineli missing-value refinement
 on:
   push:
     branches: [main]
