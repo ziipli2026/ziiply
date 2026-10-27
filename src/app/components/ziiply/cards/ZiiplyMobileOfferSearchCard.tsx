@@ -1310,7 +1310,28 @@ export default function ZiiplyMobileOfferSearchCard({
     } finally {
       window.clearTimeout(timeout);
     }
-    return JSON.stringify({ ...debugPayloadV52, tokmanniLiveApiDiagnosticV1: diagnostic }, null, 2);
+    // A separate small diagnostic response isolates server processing from
+    // large JSON download failures. Never expose raw offers in this probe.
+    const stageDiagnostic: Record<string, unknown> = { startedAt: new Date().toISOString() };
+    const stageStarted = Date.now();
+    const stageController = new AbortController();
+    const stageTimeout = window.setTimeout(() => stageController.abort(), 30000);
+    try {
+      const stageParams = new URLSearchParams({ provider: "tokmanni", q: "", tokmanniStoreName: selectedStoreNameV41 || "Tokmanni", tokmanniDiag: "1", _: String(Date.now()) });
+      const stageResponse = await fetch(`/api/offers/search?${stageParams.toString()}`, { cache: "no-store", signal: stageController.signal });
+      stageDiagnostic.httpStatus = stageResponse.status;
+      stageDiagnostic.headersMs = Date.now() - stageStarted;
+      const stagePayload = await stageResponse.json();
+      stageDiagnostic.bodyMs = Date.now() - stageStarted;
+      stageDiagnostic.apiOk = stagePayload?.ok ?? null;
+      stageDiagnostic.server = stagePayload?.diagnostic ?? null;
+    } catch (error) {
+      stageDiagnostic.error = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      stageDiagnostic.durationMs = Date.now() - stageStarted;
+    } finally {
+      window.clearTimeout(stageTimeout);
+    }
+    return JSON.stringify({ ...debugPayloadV52, tokmanniLiveApiDiagnosticV1: diagnostic, tokmanniStageDiagnosticV2: stageDiagnostic }, null, 2);
   };
 
   const copyDebugV52 = async () => {
