@@ -28,5 +28,5 @@ jobs:
       - name: Audit and optionally complete existing OFF fields
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-          NUTRITION_APPLY: ${{ inputs.apply || 'false' }}
+          NUTRITION_APPLY: ${{ github.event_name == 'push' && 'true' || (inputs.apply && 'true' || 'false') }}
         run: python -u scripts/audit-off-fineli-nutrition.py
