@@ -1115,7 +1115,7 @@ export default function DesktopPreviewPage() {
       setDesktopCompareLoading(true);
       try{
         const updates=await Promise.all(cartItems.map(async item=>{
-          if((isS&&String(item.source||"").toLowerCase()==="offer")||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return null;
+          if(isDesktopMemoItem(item)||item?.__recipeWeightNeedsReview||(isS&&String(item.source||"").toLowerCase()==="offer")||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return null;
           const name=String(item.name||item.title||"").trim();if(!name)return null;
           const ean=String(item.ean||item.product?.ean||"").trim();
           try{
@@ -1158,7 +1158,7 @@ export default function DesktopPreviewPage() {
         // leaving old prices visible under the newly selected store.
         if(eligibleCount>0&&pricedCount===0){flashCartNotice("Valitusta kaupasta ei löytynyt vahvistettuja hintoja.");}
         setCartItems(current=>current.map((item,i)=>{
-          if((isS&&String(item.source||"").toLowerCase()==="offer")||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
+          if(isDesktopMemoItem(item)||item?.__recipeWeightNeedsReview||(isS&&String(item.source||"").toLowerCase()==="offer")||item?.product?.ziiplyWeightLabel||Boolean(resolvePriceWeightLabel(String(item.ean||item.product?.ean||""))))return item;
           return {...item,price:updates[i]?.price??null,priceCheckedAt:Date.now(),storeName:String(store.name||""),priceNeedsRefresh:updates[i]?.price==null};
         }));
         setDesktopCartPricesChecked(true);
@@ -1193,6 +1193,7 @@ export default function DesktopPreviewPage() {
         const rows=await Promise.all(eligible.map(async item=>{
           const name=String(item.name||item.title||"").trim();
           const ean=String(item.ean||item.product?.ean||"").trim();
+          if(isDesktopMemoItem(item)||item.__recipeWeightNeedsReview)return {cartItemId:String(item.id||""),name,ean,quantity:Number(item.quantity||1),price:null,match:"none" as const};
           try{
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
             const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
