@@ -9,9 +9,9 @@ on:
       limit:
         description: 'Maximum missing EANs to query per run'
         required: true
-        default: '3000'
+        default: '2000'
         type: choice
-        options: ['100','500','1000','3000']
+        options: ['100','500','1000','1500','2000']
   schedule:
     - cron: '20 1 * * *'
 concurrency:
@@ -31,5 +31,5 @@ jobs:
       - name: Fetch missing EANs from OFF
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
-          OFF_LOOKUP_LIMIT: ${{ inputs.limit || '3000' }}
+          OFF_LOOKUP_LIMIT: ${{ inputs.limit || '2000' }}
         run: python -u scripts/import-off-missing-eans.py
