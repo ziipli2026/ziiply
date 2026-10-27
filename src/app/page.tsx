@@ -12121,7 +12121,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       // Reopening the same store must not fetch its master again, even after
       // the chain-selection screen temporarily cleared the visible results.
-      if (cachedMasterV802 && !hasExplicitOverride && !refreshLocalCitymarketV804) {
+      if (cachedMasterV802 && cachedMasterV802.length > 0 && !hasExplicitOverride && !refreshLocalCitymarketV804) {
         setOfferSearchResults(cachedMasterV802);
         setGostaMasterOfferResultsV528(cachedMasterV802);
         setLoadingOffers(false);
@@ -12245,7 +12245,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       if (offerSearchCoreResult.searchAllAreaOffers) {
-        gostaMasterByContextRefV802.current.set(gostaOfferSearchContextKeyV532, offerSearchCoreResult.results);
+        if (offerSearchCoreResult.results.length > 0) gostaMasterByContextRefV802.current.set(gostaOfferSearchContextKeyV532, offerSearchCoreResult.results);
+        else gostaMasterByContextRefV802.current.delete(gostaOfferSearchContextKeyV532);
         setGostaMasterOfferResultsV528(offerSearchCoreResult.results);
       }
 
