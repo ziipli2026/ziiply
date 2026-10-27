@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
 import {neon} from "@neondatabase/serverless";
-import {comparePhotoEvidence,fuelPhotoStationDistanceLimit,validPhotoLocation,validateFuelStationLocation,validateFuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {fuelPhotoEvidenceLocation,comparePhotoEvidence,fuelPhotoStationDistanceLimit,validPhotoLocation,validateFuelStationLocation,validateFuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
 import {fuelDatabaseConfig} from "../../../../lib/fuelDatabase";
 import {recordFuelPhotoCorrection} from "../../../../lib/fuelPhotoLearning";
 export const dynamic="force-dynamic";
@@ -25,7 +25,7 @@ export async function POST(req:NextRequest){
       return NextResponse.json({error:"Hinta 3,000 €/l vaatii tarkistuksen eikä sitä julkaista automaattisesti.",rejected:true},{status:422});
     }
     const gps=body.gps;
-    if(gps && (typeof gps.lat!=="number"||typeof gps.lon!=="number"||typeof gps.accuracy!=="number"||!Number.isFinite(gps.lat)||!Number.isFinite(gps.lon)||!Number.isFinite(gps.accuracy)||Math.abs(gps.lat)>90||Math.abs(gps.lon)>180||gps.accuracy<0))return NextResponse.json({error:"Virheellinen kuvan sijainti."},{status:400});
+    if(gps && !validPhotoLocation(gps))return NextResponse.json({error:"Virheellinen kuvan sijainti."},{status:400});
     if(body.mode==="offline" && (body.locationSource==="capture_session"||body.timeSource==="capture_session"))return NextResponse.json({error:"Vanhan kuvan tietoja ei saa korvata lähetyshetken tiedoilla."},{status:400});
     const evidence=(body.evidence||{photoGps:null,deviceGps:null,photoTime:null,captureTime:null}) as PhotoEvidence;
     if((evidence.photoGps&&!validPhotoLocation(evidence.photoGps))||(evidence.deviceGps&&!validPhotoLocation(evidence.deviceGps))||(evidence.photoTime&&!Number.isFinite(Date.parse(evidence.photoTime)))||(evidence.captureTime&&!Number.isFinite(Date.parse(evidence.captureTime))))return NextResponse.json({error:"Virheelliset kuvan vertailutiedot."},{status:400});
@@ -38,8 +38,8 @@ export async function POST(req:NextRequest){
     if(branch[0]?.id!==database.expectedBranch)return NextResponse.json({error:"Tankkauskannan varmistus epäonnistui."},{status:503});
     const station=await sql`SELECT source, source_station_id,latitude,longitude FROM ziiply_fuel_stations WHERE source_station_id=${stationId} AND lower(coalesce(name,'')||' '||coalesce(chain,'')) NOT LIKE '%teboil%' LIMIT 1`;
     if(!station.length)return NextResponse.json({error:"Asemaa ei löytynyt."},{status:400});
-    const stationLocation=validateFuelStationLocation(body.mode,evidence,station[0] as {latitude:number;longitude:number});
-    if(!stationLocation.ok)return NextResponse.json({error:stationLocation.error,distanceM:stationLocation.distanceM,maxDistanceM:fuelPhotoStationDistanceLimit(evidence.photoGps || (body.mode==="online"?evidence.deviceGps:null))},{status:409});
+    const stationLocation=validateFuelStationLocation(body.mode,evidence,station[0] as {latitude:number;longitude:number},body.stationSelectedManually===true);
+    if(!stationLocation.ok)return NextResponse.json({error:stationLocation.error,distanceM:stationLocation.distanceM,maxDistanceM:fuelPhotoStationDistanceLimit(fuelPhotoEvidenceLocation(body.mode,evidence))},{status:409});
     // Retain only the newest price per station and fuel type. Ignore stale submissions.
     const newest=await sql`SELECT fuel_type,MAX(observed_at) AS latest FROM ziiply_fuel_price_observations WHERE source_station_id=${stationId} GROUP BY fuel_type`;
     const latestByFuel=new Map(newest.map(row=>[String(row.fuel_type),new Date(String(row.latest)).getTime()]));
@@ -70,9 +70,9 @@ export async function POST(req:NextRequest){
         pending.push(fuel);delete currentPrices[key];
       }
     }
-    const verifiedGps=manual?null:evidence.photoGps||evidence.deviceGps;
+    const verifiedGps=manual?null:fuelPhotoEvidenceLocation(body.mode,evidence);
     const rows=await sql`INSERT INTO ziiply_user_fuel_reports(id,source_station_id,observed_at,prices,photo_data_url,gps_latitude,gps_longitude,gps_accuracy_m,metadata)
-      VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(prices)}::jsonb,${body.photo},${verifiedGps?.lat??null},${verifiedGps?.lon??null},${verifiedGps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
+      VALUES(${body.id}::uuid,${stationId},${new Date(date).toISOString()}::timestamptz,${JSON.stringify(prices)}::jsonb,${body.photo},${verifiedGps?.lat??null},${verifiedGps?.lon??null},${verifiedGps?.accuracy??null},${JSON.stringify({mode:body.mode,timeSource:body.timeSource,locationSource:body.locationSource,evidence,comparison,stationSelectedManually:body.stationSelectedManually===true,conflictConfirmed:body.conflictConfirmed===true})}::jsonb)
       ON CONFLICT(id) DO NOTHING RETURNING id`;
     // Publish independently validated fuel types immediately. Keep the report for audit.
     // Do not overwrite a newer observation for the same station and fuel.

@@ -32,33 +32,44 @@ export function validateFuelPrices(value:unknown): Record<string,number> | null 
   return Object.keys(result).length?result:null;
 }
 
-export type PhotoLocation={lat:number;lon:number;accuracy:number;speedKmh?:number|null};
+export type PhotoLocation={lat:number;lon:number;accuracy:number|null;speedKmh?:number|null};
 export type PhotoEvidence={photoGps:PhotoLocation|null;deviceGps:PhotoLocation|null;photoTime:string|null;captureTime:string|null};
+
+/** Missing/zero EXIF uncertainty is unknown, never a perfect position fix. */
+export function hasFuelLocationAccuracy(location:PhotoLocation|null|undefined):location is PhotoLocation & {accuracy:number}{
+ return typeof location?.accuracy==="number"&&Number.isFinite(location.accuracy)&&location.accuracy>0;
+}
+export function fuelPhotoEvidenceLocation(mode:string,evidence:PhotoEvidence):PhotoLocation|null{
+ if(mode==="online"&&!hasFuelLocationAccuracy(evidence.photoGps)&&validPhotoLocation(evidence.deviceGps)&&hasFuelLocationAccuracy(evidence.deviceGps))return evidence.deviceGps;
+ return evidence.photoGps||(mode==="online"?evidence.deviceGps:null);
+}
+
 export const FUEL_PHOTO_STATION_MAX_DISTANCE_M=250;
 export function fuelPhotoStationDistanceLimit(location:PhotoLocation|null|undefined){return typeof location?.speedKmh==='number' && Number.isFinite(location.speedKmh) && location.speedKmh>20?1000:250;}
 /** Hard server-side limit: uncertainty or a confirmation checkbox never increases it. */
-export function validateFuelStationLocation(mode:string,evidence:PhotoEvidence,station:{latitude:number;longitude:number}){
+export function validateFuelStationLocation(mode:string,evidence:PhotoEvidence,station:{latitude:number;longitude:number},stationSelectedManually=false){
  if(mode==='manual')return {ok:true,distanceM:null,error:''};
  const anchors=[evidence.photoGps,...(mode==='online'?[evidence.deviceGps]:[])].filter(validPhotoLocation);
  if(!anchors.length)return {ok:false,distanceM:null,error:'Kuvan sijaintia ei voitu varmistaa. Kuvailmoitusta ei voi tallentaa ilman kuvauspaikan GPS-tietoa.'};
- if(anchors.some(p=>p.accuracy>200))return {ok:false,distanceM:null,error:'Kuvauspaikan GPS-tarkkuus ei riitä aseman varmistamiseen. Ota uusi kuva tarkemmalla sijainnilla.'};
+ if(mode==='offline'&&validPhotoLocation(evidence.photoGps)&&!hasFuelLocationAccuracy(evidence.photoGps)&&!stationSelectedManually)return {ok:false,distanceM:null,error:'Kuvan sijaintitarkkuus ei ole tiedossa. Valitse kuvassa oleva asema itse.'};
+ if(anchors.some(p=>hasFuelLocationAccuracy(p)&&p.accuracy>200))return {ok:false,distanceM:null,error:'Kuvauspaikan GPS-tarkkuus ei riitä aseman varmistamiseen. Ota uusi kuva tarkemmalla sijainnilla.'};
  const distanceM=Math.max(...anchors.map(p=>fuelDistanceKm(p.lat,p.lon,Number(station.latitude),Number(station.longitude))*1000));
- const limitM=fuelPhotoStationDistanceLimit(evidence.photoGps || (mode==='online'?evidence.deviceGps:null));
+ const limitM=fuelPhotoStationDistanceLimit(fuelPhotoEvidenceLocation(mode,evidence));
  if(!Number.isFinite(distanceM)||distanceM>limitM)return {ok:false,distanceM,error:`Valittu asema on yli ${limitM} metrin päässä kuvauspaikasta. Valitse kuvan oikea asema. Tätä rajaa ei voi ohittaa vahvistuksella.`};
  return {ok:true,distanceM,error:''};
 }
 export function validPhotoLocation(value:unknown):value is PhotoLocation{
   if(!value || typeof value!=="object")return false;
   const p=value as PhotoLocation;
-  return typeof p.lat==="number"&&typeof p.lon==="number"&&typeof p.accuracy==="number"&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Number.isFinite(p.accuracy)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180&&p.accuracy>=0;
+  return typeof p.lat==="number"&&typeof p.lon==="number"&&(p.accuracy===null||(typeof p.accuracy==="number"&&Number.isFinite(p.accuracy)&&p.accuracy>=0))&&Number.isFinite(p.lat)&&Number.isFinite(p.lon)&&Math.abs(p.lat)<=90&&Math.abs(p.lon)<=180;
 }
 export function comparePhotoEvidence(mode:string,evidence:PhotoEvidence){
   const reasons:string[]=[];let distanceM:number|null=null;let timeDifferenceMinutes:number|null=null;
   if(mode!=="online")return {reasons,distanceM,timeDifferenceMinutes};
   if(validPhotoLocation(evidence.photoGps)&&validPhotoLocation(evidence.deviceGps)){
     distanceM=fuelDistanceKm(evidence.photoGps.lat,evidence.photoGps.lon,evidence.deviceGps.lat,evidence.deviceGps.lon)*1000;
-    // EXIF commonly omits accuracy. Use a 100 m floor, plus both reported uncertainties.
-    if(distanceM>100+evidence.photoGps.accuracy+evidence.deviceGps.accuracy)reasons.push("location");
+    // Compare uncertainty bounds only when both are known; station distance limits still apply independently.
+    if(hasFuelLocationAccuracy(evidence.photoGps)&&hasFuelLocationAccuracy(evidence.deviceGps)&&distanceM>100+evidence.photoGps.accuracy+evidence.deviceGps.accuracy)reasons.push("location");
   }
   const photoTime=Date.parse(evidence.photoTime||""),captureTime=Date.parse(evidence.captureTime||"");
   if(Number.isFinite(photoTime)&&Number.isFinite(captureTime)){
@@ -76,7 +87,7 @@ export function fuelPhotoBrand(text:string):string|null {
   return found.length===1?found[0]:null;
 }
 export function identifyFuelPhotoStation<T extends {id:string;name:string;chain?:string;latitude:number;longitude:number}>(stations:T[],location:PhotoLocation|null,text:string,conflicted:boolean):string {
-  if(!location || conflicted || location.accuracy>200)return "";
+  if(!location || conflicted || !hasFuelLocationAccuracy(location) || location.accuracy>200)return "";
   const brand=fuelPhotoBrand(text);
   // A photo is commonly taken across the road from the station map pin.
   // Exact EXIF coordinates do not imply the camera is at the pump coordinate.

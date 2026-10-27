@@ -3,7 +3,7 @@ import {useEffect,useRef,useState} from "react";
 import {createPortal} from "react-dom";
 import {readFuelPhoto} from "../../../../lib/fuelPhotoOcr";
 import {findFuelLedRows,selectFuelBurstRows} from "../../../../lib/fuelPhotoLed";
-import {comparePhotoEvidence,validateFuelStationLocation,identifyFuelPhotoStation,fuelDistanceKm,validateFuelPrices,type FuelPrices,type PhotoEvidence} from "../../../../lib/fuelPhoto";
+import {fuelPhotoEvidenceLocation,hasFuelLocationAccuracy,comparePhotoEvidence,validateFuelStationLocation,identifyFuelPhotoStation,fuelDistanceKm,validateFuelPrices,type FuelPrices,type PhotoEvidence,type PhotoLocation} from "../../../../lib/fuelPhoto";
 
 type Station={id:string;name:string;chain?:string;address?:string;latitude:number;longitude:number};
 type Worker={setParameters:(parameters:Record<string,string>)=>Promise<unknown>;recognize:(image:string)=>Promise<{data:{text:string}}>;terminate:()=>Promise<unknown>};
@@ -22,7 +22,7 @@ function loadOcr():Promise<Ocr>{
   }).catch(error=>{ocrPromise=null;throw error;});
   return ocrPromise;
 }
-type PhotoMeta={latitude?:number;longitude?:number;DateTimeOriginal?:string;OffsetTimeOriginal?:string;GPSSpeed?:number;GPSSpeedRef?:string};
+type PhotoMeta={latitude?:number;longitude?:number;DateTimeOriginal?:string;OffsetTimeOriginal?:string;GPSSpeed?:number;GPSSpeedRef?:string;GPSHPositioningError?:number};
 let metaPromise:Promise<{parse:(file:File,options:Record<string,unknown>)=>Promise<PhotoMeta|undefined>}>|null=null;
 function loadMetadata(){
   if(metaPromise)return metaPromise;
@@ -147,18 +147,19 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
   const [priceReview,setPriceReview]=useState(false);
   const [evidence,setEvidence]=useState<PhotoEvidence>({photoGps:null,deviceGps:null,photoTime:null,captureTime:null});const [conflictConfirmed,setConflictConfirmed]=useState(false);const [photo,setPhoto]=useState("");const [prices,setPrices]=useState<FuelPrices>({diesel:"",price95:"",price98:""});
   const [rawText,setRawText]=useState("");const [busy,setBusy]=useState(false);const [status,setStatus]=useState("");const [error,setError]=useState("");
-  const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
-  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [captureCountdown,setCaptureCountdown]=useState<number|null>(null);const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const fuelGuideRef=useRef<HTMLDivElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
+  const [gps,setGps]=useState<{lat:number;lon:number;accuracy:number|null;speedKmh?:number|null}|null>(null);const [stations,setStations]=useState<Station[]>([]);const [stationId,setStationId]=useState("");
+  const autoTime=useRef(false);const [observed,setObserved]=useState("");const [mode,setMode]=useState<"online"|"offline"|"manual">("offline");const [timeSource,setTimeSource]=useState("manual");const [locationSource,setLocationSource]=useState("manual");const [metadataInfo,setMetadataInfo]=useState("");const [cameraOpen,setCameraOpen]=useState(false);const [cameraReady,setCameraReady]=useState(false);const [captureCountdown,setCaptureCountdown]=useState<number|null>(null);const countdownTimer=useRef<ReturnType<typeof setInterval>|null>(null);const [guideOrientation,setGuideOrientation]=useState<"portrait"|"landscape">("portrait");const videoRef=useRef<HTMLVideoElement>(null);const fuelGuideRef=useRef<HTMLDivElement>(null);const streamRef=useRef<MediaStream|null>(null);const offlineInput=useRef<HTMLInputElement>(null);const onlineCapture=useRef<{time:string;gps:Promise<{lat:number;lon:number;accuracy:number|null;speedKmh?:number|null}|null>}|null>(null);const [editing,setEditing]=useState(false);const [sent,setSent]=useState(false);const [locating,setLocating]=useState(false);
   const conflict=comparePhotoEvidence(mode,evidence);
   const exifInstant=useRef<string|null>(null);const workerRef=useRef<Worker|null>(null);const alive=useRef(true);const gpsRequest=useRef(0);const requestId=useRef("");const closeRef=useRef<HTMLButtonElement>(null);const dialogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{
-    if(!photoBrand||!gps||!stations.length||mode==='manual'||stationChoiceEdited.current)return;
-    const identified=identifyFuelPhotoStation(stations,gps,photoBrand,comparePhotoEvidence(mode,evidence).reasons.length>0);
+    const photoLocation=fuelPhotoEvidenceLocation(mode,evidence);
+    if(!photoBrand||!photoLocation||!stations.length||mode==='manual'||stationChoiceEdited.current)return;
+    const identified=identifyFuelPhotoStation(stations,photoLocation,photoBrand,comparePhotoEvidence(mode,evidence).reasons.length>0);
     if(identified)setStationId(identified);
   },[photoBrand,gps?.lat,gps?.lon,gps?.accuracy,stations,mode,evidence]);
   useEffect(()=>{alive.current=true;const previous=document.activeElement as HTMLElement|null;/* Do not autofocus the close button; Safari otherwise draws a permanent blue focus ring. */return()=>{alive.current=false;gpsRequest.current++;void workerRef.current?.terminate();previous?.focus();};},[]);
   useEffect(()=>{const timer=setInterval(()=>{if(autoTime.current)setObserved(localDateTime());},1000);return()=>clearInterval(timer);},[]);
-  useEffect(()=>{let cancelled=false;void requestCaptureLocation().then(location=>{if(cancelled||!alive.current)return;setGps(location);logDebug("report-open-location",{location});});return()=>{cancelled=true;};},[]);
+  useEffect(()=>{let cancelled=false;const report=requestId.current;void requestCaptureLocation().then(location=>{if(cancelled||!alive.current||requestId.current!==report)return;setGps(location);logDebug("report-open-location",{location});});return()=>{cancelled=true;};},[]);
   function stopCamera(){if(countdownTimer.current){clearInterval(countdownTimer.current);countdownTimer.current=null;}setCaptureCountdown(null);streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;setCameraOpen(false);setCameraReady(false);}
   useEffect(()=>{
     if(!cameraOpen)return;
@@ -180,7 +181,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     void open();
     return()=>{cancelled=true;stream?.getTracks().forEach(track=>track.stop());if(streamRef.current===stream)streamRef.current=null;};
   },[cameraOpen]);
-  async function findStations(location:{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null){
+  async function findStations(location:{lat:number;lon:number;accuracy:number|null;speedKmh?:number|null}|null){
     const id=++gpsRequest.current;setLocating(true);setStations([]);setStationId("");
     try{
       const response=await fetch(`/api/fuel/stations?lat=${location?.lat??64}&lon=${location?.lon??26}${location?"&maxDistanceKm=10&limit=30":""}`,{cache:"no-store"});const data=await response.json();
@@ -210,7 +211,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     },1000);
   }
   function requestCaptureLocation(){
-    return new Promise<{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null>(resolve=>{
+    return new Promise<{lat:number;lon:number;accuracy:number|null;speedKmh?:number|null}|null>(resolve=>{
       if(!navigator.geolocation){logDebug("gps-unavailable",{});resolve(null);return;}
       logDebug("gps-request",{enableHighAccuracy:true,timeout:20000,maximumAge:0});
       navigator.geolocation.getCurrentPosition(position=>{
@@ -295,16 +296,16 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
       if(validDate && /^[+-]\d{2}:\d{2}$/.test(meta?.OffsetTimeOriginal||"")){const instant=new Date(exifDate+meta!.OffsetTimeOriginal);if(Number.isFinite(instant.getTime()))exifInstant.current=instant.toISOString();}
       // Preserve the original observation time of an older photo when EXIF is available.
       setObserved(validDate?exifDate:source==="online"?onlineCapture.current?.time||"":"");setTimeSource(validDate?"photo_exif":source==="online"?"capture_session":"manual");
-      let photoGps:{lat:number;lon:number;accuracy:number;speedKmh?:number|null}|null=null;
-      if(typeof meta?.latitude==="number"&&typeof meta.longitude==="number"&&Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude)&&Math.abs(meta.latitude)<=90&&Math.abs(meta.longitude)<=180)photoGps={lat:meta.latitude,lon:meta.longitude,accuracy:0,speedKmh:typeof meta.GPSSpeed==='number'&&Number.isFinite(meta.GPSSpeed)&&meta.GPSSpeed>=0?meta.GPSSpeed*(meta.GPSSpeedRef==='M'?1.609344:meta.GPSSpeedRef==='N'?1.852:meta.GPSSpeedRef==='K'?1:NaN):null};
+      let photoGps:{lat:number;lon:number;accuracy:number|null;speedKmh?:number|null}|null=null;
+      if(typeof meta?.latitude==="number"&&typeof meta.longitude==="number"&&Number.isFinite(meta.latitude)&&Number.isFinite(meta.longitude)&&Math.abs(meta.latitude)<=90&&Math.abs(meta.longitude)<=180)photoGps={lat:meta.latitude,lon:meta.longitude,accuracy:typeof meta.GPSHPositioningError==="number"&&Number.isFinite(meta.GPSHPositioningError)&&meta.GPSHPositioningError>0?meta.GPSHPositioningError:null,speedKmh:typeof meta.GPSSpeed==='number'&&Number.isFinite(meta.GPSSpeed)&&meta.GPSSpeed>=0?meta.GPSSpeed*(meta.GPSSpeedRef==='M'?1.609344:meta.GPSSpeedRef==='N'?1.852:meta.GPSSpeedRef==='K'?1:NaN):null};
       const deviceGps=source==="online"&&onlineCapture.current?await onlineCapture.current.gps:null;
       if(!alive.current)return;
       const photoTime=validDate?(exifInstant.current||new Date(exifDate).toISOString()):null;
       const captureTime=source==="online"&&onlineCapture.current?new Date(onlineCapture.current.time).toISOString():null;
       const checkedEvidence={photoGps,deviceGps,photoTime,captureTime};logDebug("photo-evidence",checkedEvidence);setEvidence(checkedEvidence);
       const checked=comparePhotoEvidence(source,checkedEvidence);
-      const location=photoGps||deviceGps;
-      setLocationSource(photoGps?"photo_exif":deviceGps?"capture_session":"manual");
+      const location=fuelPhotoEvidenceLocation(source,checkedEvidence);
+      setLocationSource(location===deviceGps&&deviceGps?"capture_session":photoGps?"photo_exif":"manual");
       setGps(location);const stationSearch=findStations(location);
       // Identify the station as soon as the GPS lookup finishes, independently of OCR.
       void stationSearch.then(candidates=>{
@@ -313,7 +314,7 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
         if(!stationChoiceEdited.current)setStationId(identified);
         logDebug("station-identification-early",{identified,location});
       });
-      setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?"Sijainti luettu kuvasta.":metadataFailed?"Kuvan sijaintitietojen lukeminen epäonnistui: valitse asema itse.":"Kuvasta ei löytynyt sijaintitietoja: valitse asema itse."}`:deviceGps?"Kuvaushetken sijainti haettu. Tarkista asema ja kuvausaika.":"Kuvaushetken sijaintia ei saatu. Tarkista selaimen sijaintilupa ja valitse asema itse.");
+      setMetadataInfo(source==="offline"?`${validDate?"Kuvausaika luettu kuvasta.":"Kuvasta puuttuu kuvausaika: täydennä se."} ${location?hasFuelLocationAccuracy(location)?"Sijainti luettu kuvasta.":"Sijainti luettu kuvasta, mutta tarkkuus ei ole tiedossa. Valitse kuvassa oleva asema itse.":metadataFailed?"Kuvan sijaintitietojen lukeminen epäonnistui: valitse asema itse.":"Kuvasta ei löytynyt sijaintitietoja: valitse asema itse."}`:deviceGps?"Kuvaushetken sijainti haettu. Tarkista asema ja kuvausaika.":"Kuvaushetken sijaintia ei saatu. Tarkista selaimen sijaintilupa ja valitse asema itse.");
       logDebug("photo-prepare-start",{});const data=await preparePhoto(file);logDebug("photo-prepare-complete",{dataLength:data.length});recoveryData=data;if(!alive.current)return;setPhoto(data);
       // Start independent server-side vision immediately, in parallel with local OCR.
       // Do not wait for the 15–20-second Tesseract pass before queuing recovery.
@@ -334,14 +335,14 @@ export default function DesktopFuelPhotoReport({onClose,embedded=false}:{onClose
     const date=new Date(exifInstant.current||observed);if(!observed || !Number.isFinite(date.getTime()) || date.getTime()>Date.now()+60000){setError("Havaintoaika ei saa olla tulevaisuudessa.");return;}
     setBusy(true);setError("");setStatus("Lähetetään hintailmoitusta…");
     try{
-      const response=await fetch("/api/fuel/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:requestId.current,stationId,prices,photo,observedAt:date.toISOString(),gps,mode,timeSource,locationSource,evidence,conflictConfirmed,confirmed:true,learningToken:learningToken.current||undefined})});
+      const response=await fetch("/api/fuel/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:requestId.current,stationId,prices,photo,observedAt:date.toISOString(),gps,mode,timeSource,locationSource,evidence,conflictConfirmed,stationSelectedManually:stationChoiceEdited.current,confirmed:true,learningToken:learningToken.current||undefined})});
       const data=await response.json();if(!response.ok)throw new Error(data.error||"Ilmoituksen lähettäminen epäonnistui.");
       if(alive.current){setSent(true);setStatus(data.environment==="production"?"Kiitos! Hintailmoitus tallennettiin tarkistettavaksi.":"Kiitos! Hintailmoitus tallennettiin testikantaan tarkistettavaksi.");}
     }catch(e){if(alive.current)setError(e instanceof Error?e.message:"Lähetys epäonnistui.");}finally{if(alive.current)setBusy(false);}
   }
   const input="w-full rounded-xl border border-[#baa46a] bg-[#fffaf0] px-3 py-1.5 text-[#174c35]";
   const selectedStation=stations.find(s=>s.id===stationId);
-  const stationLocation=selectedStation?validateFuelStationLocation(mode,evidence,selectedStation):null;
+  const stationLocation=selectedStation?validateFuelStationLocation(mode,evidence,selectedStation,stationChoiceEdited.current):null;
   const stationLocationError=stationLocation&&!stationLocation.ok?stationLocation.error:'';
   const observedInstant=Date.parse(exifInstant.current||observed);
   const validObserved=Boolean(observed)&&Number.isFinite(observedInstant)&&observedInstant<=Date.now()+60000;
