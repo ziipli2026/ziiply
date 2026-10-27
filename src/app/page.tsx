@@ -12162,9 +12162,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         console.info("[Ziiply Gosta context v532 selected stores]", gostaOfferSearchContextV172);
       }
 
+      // Tokmanni's landing view must request the full offer master. Normal
+      // product-search input/terms can remain populated from an earlier search;
+      // passing them here silently turns the category landing into a text query.
+      const tokmanniLandingV826 =
+        gostaSelectedOfferChainRefV547.current === "TOKMANNI" && !hasExplicitOverride;
       const gostaOfferSearchOptionsV171 = {
-        query: hasExplicitOverride ? cleanedOverride : input.trim(),
-        terms: useTerms,
+        query: tokmanniLandingV826 ? "" : hasExplicitOverride ? cleanedOverride : input.trim(),
+        terms: tokmanniLandingV826 ? [] : useTerms,
         context: gostaOfferSearchContextV172,
       } as any;
 
