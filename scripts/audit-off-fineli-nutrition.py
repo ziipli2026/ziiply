@@ -119,4 +119,27 @@ with psycopg.connect(os.environ["DATABASE_URL"],
         print("NUTRITION_FIELD_QUALITY", json.dumps(dict(zip(
             ["total", "missing_kcal", "missing_protein", "missing_salt",
              "missing_fat", "missing_carbs", "implausible"], stats))), flush=True)
+        # Flag implausible existing values for review, without silently overwriting.
+        cur.execute("""SELECT ean, product_name, source, kcal_100g, fat_100g,
+            proteins_100g, salt_100g FROM public.ziiply_off_nutrition
+            WHERE kcal_100g < 0 OR kcal_100g > 1000
+               OR fat_100g < 0 OR fat_100g > 100
+               OR proteins_100g < 0 OR proteins_100g > 100
+               OR salt_100g < 0 OR salt_100g > 100
+            ORDER BY ean""")
+        for row in cur.fetchall():
+            print("NUTRITION_ANOMALY", json.dumps({
+                "ean":row[0],"product_name":row[1],"source":row[2],
+                "kcal":str(row[3]) if row[3] is not None else None,
+                "fat":str(row[4]) if row[4] is not None else None,
+                "protein":str(row[5]) if row[5] is not None else None,
+                "salt":str(row[6]) if row[6] is not None else None},
+                ensure_ascii=False),flush=True)
+        # Count OFF fields that are still empty and have no valid staging replacement.
+        cur.execute("""SELECT count(*) FROM public.ziiply_off_nutrition n
+            JOIN public.ziiply_off_catalogue_staging s ON s.ean=n.ean
+            WHERE n.source ILIKE '%open food facts%'
+              AND (n.salt_100g IS NULL OR n.proteins_100g IS NULL)
+              AND s.nutriments IS NOT NULL""")
+        print("NUTRITION_REVIEW_CANDIDATES",cur.fetchone()[0],flush=True)
     conn.commit()
