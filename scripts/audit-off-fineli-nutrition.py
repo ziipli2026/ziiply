@@ -1,53 +1,82 @@
-"""Audit OFF/Fineli nutrition and safely fill missing OFF fields. No inferred Fineli-to-EAN values."""
-import json, os
-import psycopg, certifi
+"""Conservative OFF nutrition backfill; Fineli matches remain separate."""
+import json
+import os
+import psycopg
+import certifi
 
 APPLY = os.getenv("NUTRITION_APPLY", "false").lower() == "true"
 FIELDS = {
- "energy-kcal_100g":"kcal_100g", "energy-kj_100g":"kj_100g",
- "fat_100g":"fat_100g", "saturated-fat_100g":"saturated_fat_100g",
- "carbohydrates_100g":"carbohydrates_100g", "sugars_100g":"sugars_100g",
- "fiber_100g":"fiber_100g", "proteins_100g":"proteins_100g", "salt_100g":"salt_100g"
+    "energy-kcal_100g": ("kcal_100g", 1000),
+    "energy-kj_100g": ("kj_100g", 4000),
+    "fat_100g": ("fat_100g", 100),
+    "saturated-fat_100g": ("saturated_fat_100g", 100),
+    "carbohydrates_100g": ("carbohydrates_100g", 100),
+    "sugars_100g": ("sugars_100g", 100),
+    "fiber_100g": ("fiber_100g", 100),
+    "proteins_100g": ("proteins_100g", 100),
+    "salt_100g": ("salt_100g", 100),
 }
-with psycopg.connect(os.environ["DATABASE_URL"],sslmode="verify-full",sslrootcert=certifi.where()) as conn:
- with conn.cursor() as cur:
-  cur.execute("""SELECT count(*) FROM public.ziiply_off_catalogue_staging""")
-  staging=cur.fetchone()[0]
-  cur.execute("""SELECT count(*) FROM public.ziiply_off_nutrition""")
-  nutrition=cur.fetchone()[0]
-  cur.execute("""SELECT count(*) FROM public.ziiply_fineli_foods""")
-  fineli=cur.fetchone()[0]
-  cur.execute("""SELECT count(*),count(*) FILTER (WHERE approved IS TRUE)
-   FROM public.ziiply_ean_fineli_matches""")
-  fineli_links,approved=cur.fetchone()
-  cur.execute("""SELECT count(*) FROM public.ziiply_off_catalogue_staging s
-   LEFT JOIN public.ziiply_off_nutrition n ON n.ean=s.ean WHERE n.ean IS NULL""")
-  missing=cur.fetchone()[0]
-  cur.execute("""SELECT count(*) FROM public.ziiply_off_catalogue_staging s
-   JOIN public.ziiply_off_nutrition n ON n.ean=s.ean
-   WHERE n.source ILIKE '%open food facts%'""")
-  existing_off=cur.fetchone()[0]
-  print("NUTRITION_AUDIT",json.dumps(dict(staging=staging,nutrition=nutrition,fineli_foods=fineli,
-   fineli_links=fineli_links,approved_fineli_links=approved,staging_without_nutrition=missing,
-   existing_off_rows=existing_off)),flush=True)
-  # Only update missing numeric values on already-existing OFF-sourced rows.
-  # Do not touch Fineli-sourced, manually reviewed, or other nutrition rows.
-  # Staging is unverified; every accepted number is checked for physical plausibility.
-  expr=[]
-  for key,col in FIELDS.items():
-   raw="s.nutriments->>'"+key+"'"
-   valid="("+raw+" ~ '^[0-9]+(\\.[0-9]+)?$' AND "+raw+"::numeric BETWEEN 0 AND "+("1000" if col=="kcal_100g" else "4000" if col=="kj_100g" else "100")+")"
-   expr.append(col+" = COALESCE(n."+col+", CASE WHEN "+valid+" THEN "+raw+"::numeric END)")
-  sql="""UPDATE public.ziiply_off_nutrition n SET """+", ".join(expr)+"""
-   FROM public.ziiply_off_catalogue_staging s
-   WHERE n.ean=s.ean AND n.source ILIKE '%open food facts%'
-   AND (n.dietary->>'import_review_status' IS DISTINCT FROM 'approved')
-   AND s.nutriments IS NOT NULL
-   AND ("""+ " OR ".join("n."+col+" IS NULL" for col in FIELDS.values()) +""")
-   RETURNING n.ean"""
-  if APPLY:
-   cur.execute(sql)
-   print("NUTRITION_UPDATED_ROWS",len(cur.fetchall()),flush=True)
-  else:
-   print("NUTRITION_DRY_RUN","No database rows changed; set NUTRITION_APPLY=true to fill only NULL OFF fields",flush=True)
- conn.commit()
+
+def numeric_expr(key, maximum):
+    value = "s.nutriments->>'" + key + "'"
+    # PostgreSQL CASE prevents unsafe casts for nonnumeric / huge values.
+    return ("CASE WHEN length(" + value + ") <= 20 AND " + value
+            + " ~ '^[0-9]{1,4}(\\.[0-9]{1,8})?$' THEN "
+            + "CASE WHEN (" + value + ")::numeric BETWEEN 0 AND "
+            + str(maximum) + " THEN (" + value + ")::numeric END END")
+
+with psycopg.connect(os.environ["DATABASE_URL"],
+                     sslmode="verify-full", sslrootcert=certifi.where()) as conn:
+    with conn.cursor() as cur:
+        cur.execute("SELECT count(*) FROM public.ziiply_off_catalogue_staging")
+        staging = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM public.ziiply_off_nutrition")
+        nutrition = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM public.ziiply_fineli_foods")
+        fineli = cur.fetchone()[0]
+        cur.execute("SELECT count(*),count(*) FILTER (WHERE approved IS TRUE) FROM public.ziiply_ean_fineli_matches")
+        links, approved = cur.fetchone()
+        cur.execute("""SELECT count(*) FROM public.ziiply_off_catalogue_staging s
+            LEFT JOIN public.ziiply_off_nutrition n ON n.ean=s.ean
+            WHERE n.ean IS NULL""")
+        missing = cur.fetchone()[0]
+        print("NUTRITION_AUDIT", json.dumps(dict(staging=staging,
+              nutrition=nutrition, fineli_foods=fineli,
+              fineli_links=links, approved_fineli_links=approved,
+              staging_without_nutrition=missing)), flush=True)
+
+        cols = [column for column, _ in FIELDS.values()]
+        exprs = [numeric_expr(key, maximum) for key, (_, maximum) in FIELDS.items()]
+        available = " OR ".join("(" + expression + ") IS NOT NULL" for expression in exprs)
+        # Inserts ONLY new OFF-sourced rows, marked unverified.
+        insert_sql = ("""INSERT INTO public.ziiply_off_nutrition
+            (ean,product_name,""" + ",".join(cols) + """,dietary,source,source_url)
+            SELECT s.ean,s.product_name,""" + ",".join(exprs) +
+            """, '{"import_review_status":"unverified"}'::jsonb,
+            'Open Food Facts (ODbL) - unverified',s.source_url
+            FROM public.ziiply_off_catalogue_staging s
+            WHERE s.nutriments IS NOT NULL AND (""" + available + """)
+            ON CONFLICT (ean) DO NOTHING RETURNING ean""")
+        # Existing OFF records: only fill NULL numeric columns; never overwrite.
+        # Approved records are explicitly excluded.
+        setters = [col + "=COALESCE(n." + col + "," + expr + ")"
+                   for col, expr in zip(cols, exprs)]
+        update_sql = ("""UPDATE public.ziiply_off_nutrition n SET """
+                      + ",".join(setters) + """
+            FROM public.ziiply_off_catalogue_staging s
+            WHERE n.ean=s.ean
+              AND n.source ILIKE '%open food facts%'
+              AND n.dietary->>'import_review_status' IS DISTINCT FROM 'approved'
+              AND s.nutriments IS NOT NULL
+              AND (""" + " OR ".join("n." + col + " IS NULL" for col in cols)
+                      + """) RETURNING n.ean""")
+        if APPLY:
+            cur.execute(insert_sql)
+            inserted = len(cur.fetchall())
+            cur.execute(update_sql)
+            updated = len(cur.fetchall())
+            print("NUTRITION_BACKFILL_REPORT",
+                  json.dumps(dict(inserted=inserted, updated=updated)), flush=True)
+        else:
+            print("NUTRITION_DRY_RUN", "No rows modified", flush=True)
+    conn.commit()
