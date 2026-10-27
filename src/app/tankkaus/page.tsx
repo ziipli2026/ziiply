@@ -44,7 +44,7 @@ export default function TankkausPage(){
  };
 
  useEffect(()=>{if(mode==="prices"&&!coords&&!locationDenied)load();},[mode]);
- const nearby=stations.filter(s=>(manualSearch?(searchBounds?Number(s.latitude)>=searchBounds[0]&&Number(s.latitude)<=searchBounds[1]&&Number(s.longitude)>=searchBounds[2]&&Number(s.longitude)<=searchBounds[3]:s.distanceKm<=15):s.distanceKm<=radius));
+ const nearby=stations.filter(s=>(s.diesel!=null||s.price95!=null||s.price98!=null)&&(manualSearch?(searchBounds?Number(s.latitude)>=searchBounds[0]&&Number(s.latitude)<=searchBounds[1]&&Number(s.longitude)>=searchBounds[2]&&Number(s.longitude)<=searchBounds[3]:s.distanceKm<=15):s.distanceKm<=radius));
  const candidates=fuel?nearby.filter(s=>s[fuel]!=null).sort((a,b)=>(a[fuel]??Infinity)-(b[fuel]??Infinity)||a.distanceKm-b.distanceKm):nearby.sort((a,b)=>a.distanceKm-b.distanceKm);
  const visible=fuel?candidates.slice(0,1):candidates;
  return <main className={embedded ? "h-dvh overflow-hidden bg-transparent p-0 text-[#174c35]" : "min-h-screen bg-[#fff4cf] px-4 py-8 text-[#174c35]"}>
