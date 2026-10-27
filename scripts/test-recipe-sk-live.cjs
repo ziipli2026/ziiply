@@ -77,4 +77,16 @@ async function testMissing(){
  assert.equal(opened,true);assert.equal(cart.length,1);assert.equal(cart[0].isMemo,true);assert.equal(cart[0].price,null);assert.equal(cart[0].name,'Puuttuva aines: 25 g tuntematon aines');
  console.log('PASS: unknown loose weight is not priced as one kg; missing ingredient waits and persists in cart');
 }
-testMissing().catch(error=>{console.error(error);process.exitCode=1});
+async function testNoMatchPanel(){
+ const start=page.indexOf('  async function runDesktopJustiinaSearch(');
+ const fn=page.slice(start,page.indexOf('\n  }',page.indexOf('}finally{setJustiinaLoading(false)}',start))+5);
+ let panelOpen=false;
+ const ingredient={id:'wild',name:'villiriisiä',amount:25,unit:'g'};
+ const noop=()=>{};
+ const env={classifyRecipeIngredient:()=>null,justiinaQuery:'villiriisiä',recipeSearchItemsRef:{current:[ingredient]},recipeSearchStepRef:{current:0},selectedStores:{s:{id:292,name:'Prisma'}},storeKind:()=> 'sHyper',setJustiinaDebug:noop,appendDesktopRecipeDebug:noop,setJustiinaResults:noop,setJustiinaResultsOpen:v=>{panelOpen=v},setJustiinaLoading:noop,setJustiinaMessage:noop,recipeCoverageQueries:()=>[],getNormalSearchQueries:q=>[q],desktopVoiceRunRef:{current:1},fetch:async()=>({ok:true,status:200,json:async()=>({items:[]})}),URLSearchParams,rankNormalSearchResults:()=>[],rankProductResultsByRelevanceAndPrice:()=>[],prioritizeRecipeFishProducts:()=>[],justiinaLastSearchedRef:{current:''},justiinaUserEditedRef:{current:false},justiinaAddedDuringSelectionRef:{current:false},recipeProductCompatible};
+ vm.createContext(env);vm.runInContext(ts.transpileModule(fn,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,env);
+ assert.equal(await env.runDesktopJustiinaSearch('villiriisiä',1),false);
+ assert.equal(panelOpen,true,'No-match recipe step must retain the visible skip panel');
+ console.log('PASS: empty provider response retains recipe selection panel and skip control');
+}
+Promise.all([testMissing(),testNoMatchPanel()]).catch(error=>{console.error(error);process.exitCode=1});
