@@ -847,15 +847,37 @@ export async function GET(request: Request) {
 
     if (provider === "tokmanni") {
       const storeName = getParam(searchParams, "tokmanniStoreName") || "Tokmanni";
-      const fetched = await fetchTokmanniOffers();
-      const results = (fetched as unknown as UnknownRecord[])
-        .map((offer) => ({ ...offer, storeName, storeLabel: storeName, shopName: storeName, availabilityScope: "chain-wide-online-offer", storeAvailabilityVerified: false }))
-        .filter((offer) => offerMatchesQuery(q, offer));
-      const enrichedResults = await enrichOfferCategoriesFromNeon(results);
-      return NextResponse.json(
-        { ok: true, query: q, provider: "tokmanni", storeName, results: enrichedResults },
-        { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
-      );
+      const diagnosticMode = getParam(searchParams, "tokmanniDiag") === "1";
+      const requestId = `tok-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const startedAt = Date.now();
+      const stages: Record<string, number> = {};
+      let stage = "provider-start";
+      try {
+        stage = "fetch-parser-ean";
+        const fetched = await fetchTokmanniOffers();
+        stages.fetchParserEanMs = Date.now() - startedAt;
+        stage = "filter";
+        const results = (fetched as unknown as UnknownRecord[])
+          .map((offer) => ({ ...offer, storeName, storeLabel: storeName, shopName: storeName, availabilityScope: "chain-wide-online-offer", storeAvailabilityVerified: false }))
+          .filter((offer) => offerMatchesQuery(q, offer));
+        stages.filterMs = Date.now() - startedAt - stages.fetchParserEanMs;
+        stage = "neon-enrichment";
+        const neonStart = Date.now();
+        const enrichedResults = await enrichOfferCategoriesFromNeon(results);
+        stages.neonMs = Date.now() - neonStart;
+        const diagnostic = { requestId, stage: "complete", stages, totalMs: Date.now() - startedAt, fetchedCount: fetched.length, filteredCount: results.length, enrichedCount: enrichedResults.length };
+        console.info("[Ziiply Tokmanni diagnostic]", JSON.stringify(diagnostic));
+        if (diagnosticMode) return NextResponse.json({ ok: true, provider: "tokmanni", diagnostic }, { headers: { "Cache-Control": "no-store" } });
+        return NextResponse.json(
+          { ok: true, query: q, provider: "tokmanni", storeName, results: enrichedResults },
+          { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate", "X-Ziiply-Tokmanni-Request": requestId } },
+        );
+      } catch (error) {
+        const diagnostic = { requestId, stage, stages, totalMs: Date.now() - startedAt, error: error instanceof Error ? `${error.name}: ${error.message}` : String(error) };
+        console.error("[Ziiply Tokmanni diagnostic]", JSON.stringify(diagnostic));
+        if (diagnosticMode) return NextResponse.json({ ok: false, provider: "tokmanni", diagnostic }, { status: 200, headers: { "Cache-Control": "no-store" } });
+        throw error;
+      }
     }
 
     const rawSStoreId = getParam(searchParams, "sStoreId");
