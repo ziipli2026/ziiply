@@ -87,4 +87,36 @@ with psycopg.connect(os.environ["DATABASE_URL"],
                                   remaining_without_nutrition=remaining)), flush=True)
         else:
             print("NUTRITION_DRY_RUN", "No rows modified", flush=True)
+        # Diagnose every remaining missing row without inventing nutrition values.
+        cur.execute("""SELECT s.ean, s.product_name,
+            CASE WHEN s.nutriments IS NULL THEN 'no_nutriments'
+                 WHEN s.nutriments = '{}'::jsonb THEN 'empty_nutriments'
+                 ELSE 'no_usable_numeric_fields' END AS reason
+            FROM public.ziiply_off_catalogue_staging s
+            LEFT JOIN public.ziiply_off_nutrition n ON n.ean=s.ean
+            WHERE n.ean IS NULL ORDER BY s.ean""")
+        missing_rows = [dict(ean=row[0], product_name=row[1], reason=row[2])
+                        for row in cur.fetchall()]
+        summary = {}
+        for row in missing_rows:
+            summary[row["reason"]] = summary.get(row["reason"], 0) + 1
+        print("NUTRITION_MISSING_DIAGNOSIS", json.dumps(summary), flush=True)
+        for row in missing_rows:
+            print("NUTRITION_MISSING_ITEM", json.dumps(row, ensure_ascii=False), flush=True)
+        cur.execute("""SELECT
+            count(*) AS total,
+            count(*) FILTER (WHERE kcal_100g IS NULL) AS missing_kcal,
+            count(*) FILTER (WHERE proteins_100g IS NULL) AS missing_protein,
+            count(*) FILTER (WHERE salt_100g IS NULL) AS missing_salt,
+            count(*) FILTER (WHERE fat_100g IS NULL) AS missing_fat,
+            count(*) FILTER (WHERE carbohydrates_100g IS NULL) AS missing_carbs,
+            count(*) FILTER (WHERE kcal_100g < 0 OR kcal_100g > 1000
+                OR fat_100g < 0 OR fat_100g > 100
+                OR proteins_100g < 0 OR proteins_100g > 100
+                OR salt_100g < 0 OR salt_100g > 100) AS implausible
+            FROM public.ziiply_off_nutrition""")
+        stats = cur.fetchone()
+        print("NUTRITION_FIELD_QUALITY", json.dumps(dict(zip(
+            ["total", "missing_kcal", "missing_protein", "missing_salt",
+             "missing_fat", "missing_carbs", "implausible"], stats))), flush=True)
     conn.commit()
