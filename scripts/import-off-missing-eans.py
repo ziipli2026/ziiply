@@ -1,10 +1,14 @@
 """Targeted OFF lookup for Ziiply EANs absent from the imported OFF catalogue."""
 import json, os, time, urllib.request, urllib.error
 import psycopg, certifi
+from contextlib import contextmanager
 LIMIT = int(os.getenv("OFF_LOOKUP_LIMIT", "1000"))
 DELAY = float(os.getenv("OFF_LOOKUP_DELAY", "2.5"))
 MAX_RETRIES = int(os.getenv("OFF_LOOKUP_RETRIES", "4"))
-with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootcert=certifi.where()) as conn:
+def connect_db():
+    return psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootcert=certifi.where(), connect_timeout=20)
+
+with connect_db() as conn:
     with conn.cursor() as cur:
         cur.execute("""CREATE TABLE IF NOT EXISTS public.ziiply_off_ean_lookup_log (
           ean text PRIMARY KEY, status text NOT NULL, checked_at timestamptz NOT NULL DEFAULT now())""")
@@ -62,11 +66,22 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootc
             with conn.cursor() as cur:
                 cur.execute("""INSERT INTO public.ziiply_off_ean_lookup_log(ean,status)
                    VALUES (%s,%s) ON CONFLICT(ean) DO UPDATE SET status=excluded.status,checked_at=now()""",(ean,status))
-            conn.commit()
+            try:
+                conn.commit()
+            except psycopg.OperationalError:
+                print("OFF_DB_RECONNECT", ean, flush=True)
+                conn = connect_db()
+                with conn.cursor() as cur:
+                    cur.execute("""INSERT INTO public.ziiply_off_ean_lookup_log(ean,status)
+                       VALUES (%s,%s) ON CONFLICT(ean) DO UPDATE SET status=excluded.status,checked_at=now()""",(ean,status))
+                conn.commit()
             totals[status]+=1
             consecutive_limits = 0
-        except (urllib.error.URLError,TimeoutError,ValueError,OSError) as exc:
-            conn.rollback()
+        except (urllib.error.URLError,TimeoutError,ValueError,OSError,psycopg.OperationalError) as exc:
+            try:
+                conn.rollback()
+            except psycopg.OperationalError:
+                conn = connect_db()
             totals["errors"]+=1
             print("OFF_LOOKUP_ERROR",ean,str(exc)[:160],flush=True)
         if i%100==0: print("OFF_LOOKUP_PROGRESS",i,totals,flush=True)
@@ -76,5 +91,5 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full", sslrootc
             time.sleep(120)
             consecutive_limits = 0
     if totals["errors"]:
-        raise RuntimeError("OFF lookup had %s transient failures; retry them on the next run" % totals["errors"])
+        print("OFF_LOOKUP_RETRY_PENDING", totals["errors"], flush=True)
     print("OFF_LOOKUP_REPORT",json.dumps({"attempted":len(codes),**totals}),flush=True)
