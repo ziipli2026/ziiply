@@ -1276,12 +1276,49 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const debugTextV52 = JSON.stringify(debugPayloadV52, null, 2);
 
+  // Tokmanni-only live diagnostic: test the actual API when the user exports debug.
+  // Does not change the displayed offers, store selection or other providers.
+  const buildDebugTextV52 = async () => {
+    if (selectedOfferChainV39 !== "TOKMANNI") return debugTextV52;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 20000);
+    const started = Date.now();
+    const params = new URLSearchParams({ provider: "tokmanni", q: "", tokmanniStoreName: selectedStoreNameV41 || "Tokmanni", _: String(Date.now()) });
+    const diagnostic: Record<string, unknown> = { requestedUrl: `/api/offers/search?${params.toString()}`, startedAt: new Date().toISOString() };
+    try {
+      const response = await fetch(diagnostic.requestedUrl as string, { cache: "no-store", signal: controller.signal });
+      diagnostic.httpStatus = response.status;
+      diagnostic.httpOk = response.ok;
+      diagnostic.contentType = response.headers.get("content-type");
+      diagnostic.durationMs = Date.now() - started;
+      const body = await response.text();
+      diagnostic.responseBytes = body.length;
+      try {
+        const payload = JSON.parse(body);
+        diagnostic.apiOk = payload?.ok ?? null;
+        diagnostic.provider = payload?.provider ?? null;
+        diagnostic.error = payload?.error ?? payload?.message ?? null;
+        diagnostic.resultCount = Array.isArray(payload?.results) ? payload.results.length : null;
+        diagnostic.sampleResults = Array.isArray(payload?.results) ? payload.results.slice(0, 3).map((item: any) => ({ title: item?.title ?? item?.name, price: item?.price, source: item?.source, category: item?.category })) : [];
+        diagnostic.responseKeys = payload && typeof payload === "object" ? Object.keys(payload) : [];
+      } catch {
+        diagnostic.responsePreview = body.slice(0, 400);
+      }
+    } catch (error) {
+      diagnostic.error = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      diagnostic.durationMs = Date.now() - started;
+    } finally {
+      window.clearTimeout(timeout);
+    }
+    return JSON.stringify({ ...debugPayloadV52, tokmanniLiveApiDiagnosticV1: diagnostic }, null, 2);
+  };
+
   const copyDebugV52 = async () => {
     try {
-      await navigator.clipboard.writeText(debugTextV52);
+      await navigator.clipboard.writeText(await buildDebugTextV52());
     } catch {
       const textarea = document.createElement("textarea");
-      textarea.value = debugTextV52;
+      textarea.value = await buildDebugTextV52();
       textarea.style.position = "fixed";
       textarea.style.opacity = "0";
       document.body.appendChild(textarea);
@@ -1292,12 +1329,12 @@ export default function ZiiplyMobileOfferSearchCard({
     }
   };
 
-  const saveDebugV233 = () => {
+  const saveDebugV233 = async () => {
     const safeStore = String(selectedStoreNameV41 || "kauppa")
       .normalize("NFKD").replace(/[^a-zA-Z0-9-]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "kauppa";
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `ziiply-tarjousdebug-${safeStore}-${timestamp}.json`;
-    const blob = new Blob([debugTextV52], { type: "application/json;charset=utf-8" });
+    const blob = new Blob([await buildDebugTextV52()], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
