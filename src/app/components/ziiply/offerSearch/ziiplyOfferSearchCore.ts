@@ -1,3 +1,4 @@
+import { classifyTokmanniOfferCategory } from "./tokmanniOfferCategory";
 import type { CitymarketAvailabilityNotice } from "./citymarketAvailability";
 // ============================================================================
 // ZIIPLY_OFFER_SEARCH_CORE_V178_KCITYMARKET_BRANCH
@@ -295,6 +296,19 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // branch. Otherwise a stale top-level category such as "Muut" wins before
   // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  // Tokmanni: use the same product identity rules as the weekly-offer parser.
+  // Run before legacy title rules and stale EAN labels, including cached rows.
+  const tokmanniSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
+  if (tokmanniSource === "tokmanni-viikkotarjoukset" || tokmanniSource === "tokmanni viikkotarjoukset") {
+    const productCategory = classifyTokmanniOfferCategory(String(
+      sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
+      anyItem?.title || anyItem?.name || anyItem?.productName || "",
+    ));
+    if (productCategory !== "Muut") return productCategory;
+    const fallbackCategory = String(sourceItem?.neonDisplayCategory || sourceItem?.category || "").trim();
+    return GOSTA_CATEGORY_LABELS_V136.includes(fallbackCategory) ? fallbackCategory : "Muut";
+  }
+
   const storeType = normalizeGostaCoreText(sourceItem?.storeType || anyItem?.storeType || "");
   const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
   // Prisma CMS and cached campaign rows use the same taxonomy rules as offers.
