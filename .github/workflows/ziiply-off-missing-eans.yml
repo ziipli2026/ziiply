@@ -1,4 +1,5 @@
 name: Ziiply OFF missing EAN lookup
+run-name: OFF EAN batch – up to 2000 missing products
 on:
   push:
     branches: [main]
