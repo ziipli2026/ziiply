@@ -41,7 +41,7 @@ export async function POST(req:NextRequest){
     const stationLocation=validateFuelStationLocation(body.mode,evidence,station[0] as {latitude:number;longitude:number},body.stationSelectedManually===true);
     if(!stationLocation.ok)return NextResponse.json({error:stationLocation.error,distanceM:stationLocation.distanceM,maxDistanceM:fuelPhotoStationDistanceLimit(fuelPhotoEvidenceLocation(body.mode,evidence))},{status:409});
     // Retain only the newest price per station and fuel type. Ignore stale submissions.
-    const newest=await sql`SELECT fuel_type,MAX(observed_at) AS latest FROM ziiply_fuel_price_observations WHERE source_station_id=${stationId} GROUP BY fuel_type`;
+    const newest=await sql`SELECT fuel_type,MAX(observed_at) AS latest FROM ziiply_fuel_price_observations WHERE source_station_id=${stationId} AND source <> 'tankkaus.com' AND id NOT IN (1840,1841,1845,1846,1847) GROUP BY fuel_type`;
     const latestByFuel=new Map(newest.map(row=>[String(row.fuel_type),new Date(String(row.latest)).getTime()]));
     const currentPrices:Record<string,number>={};
     for(const [key,fuel] of [["price95","95"],["price98","98"],["diesel","diesel"]] as const){
@@ -61,12 +61,32 @@ export async function POST(req:NextRequest){
       AND observed_at > NOW() - INTERVAL '14 days'
       GROUP BY fuel_type`;
     const national=new Map(population.map(row=>[String(row.fuel_type),Number(row.median)]));
+    // Regional baseline: recent independent station prices within approximately 50 km.
+    const regionalRows=await sql`SELECT p.fuel_type,
+      percentile_cont(0.5) WITHIN GROUP (ORDER BY p.price_eur_per_litre) AS median,
+      COUNT(DISTINCT p.source_station_id)::int AS station_count
+      FROM ziiply_fuel_price_observations p
+      JOIN ziiply_fuel_stations s ON s.source_station_id=p.source_station_id AND s.source=p.source
+      WHERE p.source <> 'tankkaus.com' AND p.id NOT IN (1840,1841,1845,1846,1847)
+      AND p.observed_at > NOW() - INTERVAL '14 days'
+      AND s.latitude BETWEEN ${Number(station[0].latitude)-0.45} AND ${Number(station[0].latitude)+0.45}
+      AND s.longitude BETWEEN ${Number(station[0].longitude)-0.9} AND ${Number(station[0].longitude)+0.9}
+      GROUP BY p.fuel_type`;
+    const regional=new Map(regionalRows.filter(row=>Number(row.station_count)>=5).map(row=>[String(row.fuel_type),Number(row.median)]));
     const pending:string[]=[];
+    const rejected:string[]=[];
     for(const [key,fuel] of [["price95","95"],["price98","98"],["diesel","diesel"]] as const){
       const price=currentPrices[key];if(price==null)continue;
-      const prior=previous.get(fuel), median=national.get(fuel);
-      if((prior!=null && (Math.abs(price-prior)>1 || Math.abs(price-prior)/prior>0.15))
-         ||(median!=null && Math.abs(price-median)/median>0.20)){
+      const prior=previous.get(fuel), median=national.get(fuel), local=regional.get(fuel);
+      const relativeToPrior=prior!=null && prior>0 ? Math.abs(price-prior)/prior : 0;
+      const relativeToNational=median!=null && median>0 ? Math.abs(price-median)/median : 0;
+      const relativeToRegional=local!=null && local>0 ? Math.abs(price-local)/local : 0;
+      // Clearly malicious outliers are rejected automatically; less extreme changes await independent review.
+      if((prior!=null && Math.abs(price-prior)>1 && relativeToPrior>0.40)
+         || relativeToNational>0.80 || relativeToRegional>0.80){
+        rejected.push(fuel);delete currentPrices[key];
+      }else if(relativeToPrior>0.15 || (prior!=null && Math.abs(price-prior)>1)
+         ||relativeToRegional>0.20 ||relativeToNational>0.20){
         pending.push(fuel);delete currentPrices[key];
       }
     }
@@ -92,7 +112,7 @@ export async function POST(req:NextRequest){
             WHERE source_station_id=${stationId} AND fuel_type=${fuelType}
               AND source <> 'tankkaus.com' AND observed_at >= ${new Date(date).toISOString()}::timestamptz
           ) RETURNING id`;
-        if(inserted.length){published.push(fuelType);await sql`DELETE FROM ziiply_fuel_price_observations WHERE source_station_id=${stationId} AND fuel_type=${fuelType} AND observed_at < ${new Date(date).toISOString()}::timestamptz`; }
+        if(inserted.length){published.push(fuelType); }
       }
     }
     // The report review state must reflect validation, not just public price insertion.
@@ -100,11 +120,11 @@ export async function POST(req:NextRequest){
     const gasolineConflict=prices.price95!=null && prices.price98!=null && prices.price95>prices.price98;
     const accepted=pending.length===0 && Object.keys(prices).some(key=>key==="diesel" || !gasolineConflict);
     if(rows.length){
-      await sql`UPDATE ziiply_user_fuel_reports SET status=${pending.length?"pending_review":accepted?"accepted":"rejected"} WHERE id=${body.id}::uuid AND status='pending_review'`;
+      await sql`UPDATE ziiply_user_fuel_reports SET status=${pending.length?"pending_review":rejected.length?"rejected":accepted?"accepted":"rejected"} WHERE id=${body.id}::uuid AND status='pending_review'`;
     }
     if(typeof body.learningToken==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.learningToken)){
       try{const saved=await sql`SELECT prices FROM ziiply_user_fuel_reports WHERE id=${body.id}::uuid`;await recordFuelPhotoCorrection(body.id,body.learningToken,saved[0].prices,body.id);}catch(e){console.error('fuel-photo-learning feedback',e instanceof Error?e.message:'failed');}
     }
-    return NextResponse.json({ok:true,id:body.id,status:pending.length?"pending_review":accepted?"accepted":"rejected",pending,published,duplicate:rows.length===0,environment:database.production?"production":"test"});
+    return NextResponse.json({ok:true,id:body.id,status:pending.length?"pending_review":rejected.length?"rejected":accepted?"accepted":"rejected",pending,rejected,published,duplicate:rows.length===0,environment:database.production?"production":"test"});
   }catch{return NextResponse.json({error:"Ilmoituksen tallennus epäonnistui. Yritä uudelleen."},{status:503});}
 }
