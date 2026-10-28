@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: OFF Fineli new-EAN nutrition backfill 28 Oct
+run-name: OFF Fineli repeat nutrition backfill 28 Oct
 on:
   push:
     branches: [main]
