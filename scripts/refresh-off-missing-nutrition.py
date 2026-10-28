@@ -18,7 +18,7 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
             LEFT JOIN public.ziiply_off_nutrition n ON n.ean=s.ean
             LEFT JOIN public.ziiply_off_nutrition_refresh_log l ON l.ean=s.ean
             WHERE (n.ean IS NULL OR
-                   (n.source ILIKE '%open food facts%' AND
+                   (n.source ILIKE '%%open food facts%%' AND
                     n.dietary->>'import_review_status' IS DISTINCT FROM 'approved'
                     AND (n.kcal_100g IS NULL OR n.proteins_100g IS NULL
                          OR n.salt_100g IS NULL)))
