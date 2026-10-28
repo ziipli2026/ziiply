@@ -6,13 +6,13 @@ const empty: Snapshot = { rows: [], stages: {}, events: [], done: false };
 export default function SimulationPage() {
   const [scenario, setScenario] = useState<Scenario>(scenarios[0]);
   const [mode, setMode] = useState('S + K');
-  const [query, setQuery] = useState('olut');
+  const [query, setQuery] = useState('maito');
   const [liveNeon, setLiveNeon] = useState(true);
   const [state, setState] = useState<Snapshot>(empty);
   const [running, setRunning] = useState(false);
   const [lastRun, setLastRun] = useState<{ scenario: Scenario; mode: string } | null>(null);
   const active = useRef<AbortController | null>(null);
-  useEffect(() => () => active.current?.abort(), []);
+  useEffect(() => { const term = new URLSearchParams(window.location.search).get('q'); if (term?.trim()) setQuery(term.trim()); return () => active.current?.abort(); }, []);
   async function start() {
     active.current?.abort();
     const controller = new AbortController(); active.current = controller;
