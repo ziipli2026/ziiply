@@ -7,9 +7,11 @@ on:
       - .github/workflows/kcitymarket-upcoming-source-archive.yml
       - scripts/citymarket/capture-preflight.mjs
   schedule:
+    # Publication days: 15:20 and 15:50 Helsinki (UTC 12/13 across DST).
     - cron: '20,50 12,13 * * 0,3'
-    # Retry after the publication day as well; a Wednesday 403 must not remain red until Sunday.
-    - cron: '20 3,9,15,21 * * *'
+    # Retry only after release: 18:20 and 00:20 Helsinki, plus next-day 12:20.
+    - cron: '20 15,16,21,22 * * 0,3'
+    - cron: '20 9,10 * * 1,4'
 permissions:
   contents: write
 concurrency:
@@ -37,6 +39,16 @@ jobs:
           set -euo pipefail
           DAY=$(TZ=Europe/Helsinki date +%u)
           HOUR=$(TZ=Europe/Helsinki date +%H)
+          MINUTE=$(TZ=Europe/Helsinki date +%M)
+          EVENT="${{ github.event_name }}"
+          # Scheduled runs are allowed only in the intended Helsinki local windows.
+          # Prevent early/duplicate UTC slots across daylight-saving changes.
+          if [ "$EVENT" = schedule ]; then
+            case "$DAY:$HOUR:$MINUTE" in
+              3:15:20|3:15:50|7:15:20|7:15:50|3:18:20|7:18:20|1:0:20|4:0:20|1:12:20|4:12:20) ;;
+              *) echo "Outside publication/retry window; skip"; exit 0 ;;
+            esac
+          fi
           # Choose the latest released Sunday/Wednesday 15:00 Helsinki issue.
           # Mon/Tue retry Sunday's AV; Thu/Fri/Sat retry Wednesday's LV.
           if [ "$DAY" -eq 3 ] && [ "$HOUR" -ge 15 ] || [ "$DAY" -ge 4 ] && [ "$DAY" -le 6 ]; then
