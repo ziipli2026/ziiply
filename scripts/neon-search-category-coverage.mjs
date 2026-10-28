@@ -17,7 +17,7 @@ for(const row of categories){
 const report=[];
 const LIMIT=100;
 const singularCandidates=word=>[word,word.replace(/t$/u,''),word.replace(/at$/u,'a'),word.replace(/ät$/u,'ä'),word.replace(/it$/u,'i')].filter(Boolean);
-const normalizedLeaf=category=>normalize(category.split('/').at(-1)).replace(/[^\\p{L}\\p{N}]+/gu,' ');
+const normalizedLeaf=category=>normalize(category.split('/').at(-1)).replace(/[^\p{L}\p{N}]+/gu,' ');
 const queryVariants=word=>[...new Set(singularCandidates(word))];
 const categoryNames=new Set(categories.map(r=>r.category));
 const normalize=s=>String(s||'').normalize('NFKC').toLocaleLowerCase('fi-FI');
