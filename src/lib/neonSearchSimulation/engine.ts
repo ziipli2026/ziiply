@@ -5,7 +5,7 @@ export type Source = { id: string; search: (query: string, signal: AbortSignal) 
 const validEan = (ean?: string) => /^\d{8,14}$/.test(ean || '') ? ean : undefined;
 
 // Simulation only: no database writes, price lookups, recipe rules or UI dependencies.
-export async function runSimulation(query: string, bank: Source, shops: Source[], signal: AbortSignal, publish: (state: Snapshot) => void, now = () => performance.now()) {
+export async function runSimulation(query: string, bank: Source, shops: Source[], signal: AbortSignal, publish: (state: Snapshot) => void, now = () => performance.now(), timeouts = { bankMs: 800, shopMs: 5000 }) {
   const started = now();
   let state: Snapshot = { rows: [], stages: {}, events: [], done: false };
   const current = () => !signal.aborted;
@@ -19,13 +19,16 @@ export async function runSimulation(query: string, bank: Source, shops: Source[]
     products.forEach((product, index) => {
       const ean = validEan(product.ean);
       // Name similarity must never merge distinct packages or unrelated products.
-      const key = ean ? `ean:${ean}` : `${source}:${product.id || index}`;
+      const key = ean ? `ean:${ean}` : `${source}:${product.id ? `id:${product.id}` : `row:${index}`}`;
       const old = rows.get(key);
       const row: Row = old || { key, ean, name: product.name, imageUrl: null, sources: [], prices: {} };
       if (!row.name && product.name) row.name = product.name;
       if (!row.imageUrl && product.imageUrl) row.imageUrl = product.imageUrl;
       if (!row.sources.includes(source)) row.sources.push(source);
-      if (!isBank) row.prices[source] = Number.isFinite(product.price) && Number(product.price) > 0 ? Number(product.price) : null;
+      if (!isBank) {
+        const price = Number.isFinite(product.price) && Number(product.price) > 0 ? Number(product.price) : null;
+        if (price !== null || row.prices[source] == null) row.prices[source] = price;
+      }
       rows.set(key, row);
     });
     state.rows = [...rows.values()];
@@ -33,14 +36,25 @@ export async function runSimulation(query: string, bank: Source, shops: Source[]
   const load = async (source: Source, isBank: boolean) => {
     if (!current()) return;
     event(source.id, 'loading'); emit();
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let timedOut = false;
+    let onAbort = () => {};
     try {
-      const products = await source.search(query, signal);
+      const stop = new Promise<never>((_resolve, reject) => {
+        onAbort = () => { controller.abort(); reject(new Error('Aborted')); };
+        signal.addEventListener('abort', onAbort, { once: true });
+        timer = setTimeout(() => { timedOut = true; controller.abort(); reject(new Error('Timeout')); }, isBank ? timeouts.bankMs : timeouts.shopMs);
+      });
+      const products = await Promise.race([source.search(query, controller.signal), stop]);
       if (!current()) return;
       merge(source.id, products, isBank);
       event(source.id, products.length ? 'ready' : 'empty', products.length); emit();
     } catch {
       if (!current()) return;
-      event(source.id, 'error'); emit();
+      event(source.id, timedOut ? 'timeout' : 'error'); emit();
+    } finally {
+      clearTimeout(timer); signal.removeEventListener('abort', onAbort);
     }
   };
   // Bank first. Every selected shop still runs even if the bank has matches or fails.
