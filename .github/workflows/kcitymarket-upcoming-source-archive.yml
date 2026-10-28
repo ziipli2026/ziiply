@@ -7,11 +7,10 @@ on:
       - .github/workflows/kcitymarket-upcoming-source-archive.yml
       - scripts/citymarket/capture-preflight.mjs
   schedule:
-    # Publication days: 15:20 and 15:50 Helsinki (UTC 12/13 across DST).
-    - cron: '20,50 12,13 * * 0,3'
-    # Retry only after release: 18:20 and 00:20 Helsinki, plus next-day 12:20.
-    - cron: '20 15,16,21,22 * * 0,3'
-    - cron: '20 9,10 * * 1,4'
+    # One scheduled collection on each release day. Follow-up retries are manual
+    # after an actual failure; do not run empty checks every day.
+    # UTC 12:20 (summer 15:20) / UTC 13:20 (winter 15:20).
+    - cron: '20 12,13 * * 0,3'
 permissions:
   contents: write
 concurrency:
@@ -45,7 +44,7 @@ jobs:
           # Prevent early/duplicate UTC slots across daylight-saving changes.
           if [ "$EVENT" = schedule ]; then
             case "$DAY:$HOUR:$MINUTE" in
-              3:15:20|3:15:50|7:15:20|7:15:50|3:18:20|7:18:20|1:0:20|4:0:20|1:12:20|4:12:20) ;;
+              3:15:20|7:15:20) ;;
               *) echo "Outside publication/retry window; skip"; exit 0 ;;
             esac
           fi
@@ -78,6 +77,8 @@ jobs:
           RESULT=$?
           set -e
           echo "audit_exit=$RESULT" >> "$GITHUB_OUTPUT"
+          # Audit failure is NOT a collection failure: preserve the source and
+          # report review-needed rather than re-downloading an archived issue.
           node --input-type=module -e '
             import fs from "node:fs";
             const report=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
@@ -113,6 +114,9 @@ jobs:
           name: citymarket-preflight-${{ github.run_id }}
           path: /tmp/kcm-archive/
           if-no-files-found: warn
-      - name: Enforce automatic audit result
+      - name: Report parser audit result
         if: always() && steps.capture.outputs.audit_exit != ''
-        run: test "${{ steps.capture.outputs.audit_exit }}" = 0
+        run: |
+          if [ "${{ steps.capture.outputs.audit_exit }}" != 0 ]; then
+            echo "::warning::Source archived but parser audit needs review. Inspect preflight-report.json; do not repeat the successful source download."
+          fi
