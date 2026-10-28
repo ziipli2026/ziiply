@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       && Boolean(result.next) && !result.active
       && result.errors.length === 1
       && result.errors[0].startsWith("active ")
-      && result.errors[0].includes("_LV_KCM/index.html")
+      && /_[0-9]+LV_KCM\/index\.html/.test(result.errors[0])
       && result.errors[0].includes("does not match requested");
     const storedActiveOk = !("error" in activeImages) && activeImages.total > 0;
     const activeOk = Boolean(result.active) || Boolean(oldAvRolledForward && storedActiveOk);
