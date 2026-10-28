@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: Live OFF refresh and safe nutrition backfill
+run-name: Live OFF refresh and safe nutrition backfill - SQL fix
 on:
   push:
     branches: [main]
