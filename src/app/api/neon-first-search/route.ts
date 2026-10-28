@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
 
   const isEan = /^\d{8,14}$/.test(q);
   // Only verified category synonym. Do not infer categories from arbitrary names.
-  const categoryPath = /^olut|oluet$/i.test(q) ? "%/oluet/%" : null;
+  const categoryPath = /^(olut|oluet)$/i.test(q) ? "%/oluet/%" : /^maito$/i.test(q) ? "%/maidot-ja-piimat/maidot" : null;
+  const milkSearch = /^maito$/i.test(q);
   const contains = "%" + q.replace(/[\\%_]/g, "\\$&") + "%";
   const prefix = q.replace(/[\\%_]/g, "\\$&") + "%";
   const words = q.toLocaleLowerCase("fi-FI").split(" ").filter(Boolean);
@@ -24,14 +25,15 @@ export async function GET(request: NextRequest) {
         SELECT ean, name, brand, quantity, image_url, category, source, aliases, last_seen_at,
           CASE
             WHEN ${isEan} AND ean = ${q} THEN 0
-            WHEN lower(name) = lower(${q}) THEN 1
-            WHEN name ILIKE ${prefix} THEN 2
-            WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE lower(a) = lower(${q})) THEN 3
-            WHEN name ILIKE ${contains} THEN 4
-            WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${contains}) THEN 5
-            WHEN brand ILIKE ${prefix} THEN 6
-            WHEN ${categoryPath}::text IS NOT NULL AND category ILIKE ${categoryPath} THEN 7
-            ELSE 8
+            WHEN ${milkSearch} AND category ILIKE ${categoryPath} THEN 1
+            WHEN lower(name) = lower(${q}) THEN 2
+            WHEN name ILIKE ${prefix} THEN 3
+            WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE lower(a) = lower(${q})) THEN 4
+            WHEN name ILIKE ${contains} THEN 5
+            WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${contains}) THEN 6
+            WHEN brand ILIKE ${prefix} THEN 7
+            WHEN ${categoryPath}::text IS NOT NULL AND category ILIKE ${categoryPath} THEN 8
+            ELSE 9
           END AS relevance
         FROM ziiply_ean_products
         WHERE (${isEan} AND ean = ${q})
@@ -49,7 +51,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
       elapsedMs: Date.now() - started, searchVersion: "neon-relevance-v2",
-      categoryExpansion: categoryPath ? "verified-beer-category" : null,
+      categoryExpansion: categoryPath ? (milkSearch ? "verified-milk-category" : "verified-beer-category") : null,
       truncated: rows.length === 100
     });
   } catch (error) {
