@@ -16,6 +16,13 @@ export async function GET(request: NextRequest) {
   const normalizedQuery = q.toLocaleLowerCase("fi-FI");
   const tokens = normalizedQuery.split(" ").filter(Boolean);
   const isSingleWord = tokens.length === 1;
+  const variants = new Set([normalizedQuery]);
+  if (isSingleWord && /^[a-zåäö]{5,}$/u.test(normalizedQuery)) {
+    if (/[aä]t$/u.test(normalizedQuery)) variants.add(normalizedQuery.slice(0, -2) + normalizedQuery.at(-2));
+    else if (normalizedQuery.endsWith("t")) variants.add(normalizedQuery.slice(0, -1));
+  }
+  const categoryTermPattern = "(^| )(" + [...variants].join("|") + ")( |$)";
+  const variantNamePatterns = [...variants].filter(v => v !== normalizedQuery).map(v => "%" + v + "%");
   const potatoIntent = /^(peruna|perunat)$/i.test(q);
   const potatoLeaf = "%/juurekset/perunat";
   const milkIntent = /^(maito|maidot)$/i.test(q);
@@ -36,7 +43,8 @@ export async function GET(request: NextRequest) {
            OR name ILIKE ${contains}
            OR brand ILIKE ${contains}
            OR EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${contains})
-           OR (${isSingleWord} AND lower(regexp_replace(coalesce(category, ''), '[^[:alnum:]]+', ' ', 'g')) ~ ('(^| )' || ${normalizedQuery} || '( |$)'))
+           OR (${isSingleWord} AND lower(regexp_replace(coalesce(category, ''), '[^[:alnum:]]+', ' ', 'g')) ~ ${categoryTermPattern})
+           OR (${isSingleWord} AND EXISTS (SELECT 1 FROM unnest(${variantNamePatterns}::text[]) pattern WHERE name ILIKE pattern))
       ), ranked AS (
         SELECT *, CASE
           WHEN ${isEan} AND ean = ${q} THEN 0
@@ -48,12 +56,13 @@ export async function GET(request: NextRequest) {
           WHEN ${potatoIntent} AND category ILIKE ${potatoLeaf} THEN 1
           WHEN ${potatoIntent} AND (name_words ~ '(^| )peruna( |$)' OR name_words ~ '(^| )perunat( |$)') AND (category IS NULL OR category NOT ILIKE 'lemmikit/%') THEN 3
           WHEN ${potatoIntent} THEN 20
-          WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 1
+          WHEN ${isSingleWord} AND category_words ~ ${categoryTermPattern} THEN 1
           WHEN name_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 2
           WHEN lower(name) = ${normalizedQuery} THEN 3
           WHEN name ILIKE ${prefix} THEN 4
           WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE lower(a) = ${normalizedQuery}) THEN 5
           WHEN name ILIKE ${contains} THEN 6
+          WHEN ${isSingleWord} AND EXISTS (SELECT 1 FROM unnest(${variantNamePatterns}::text[]) pattern WHERE name ILIKE pattern) THEN 7
           WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${contains}) THEN 7
           WHEN brand ILIKE ${contains} THEN 8
           ELSE 9 END AS relevance
@@ -67,8 +76,8 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v5",
-      categoryExpansion: "generic-category-token",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v6",
+      categoryExpansion: "generic-category-token-and-conservative-plural",
       truncated: rows.length === 100
     });
   } catch (error) {
