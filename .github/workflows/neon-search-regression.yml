@@ -6,21 +6,32 @@ on:
     paths:
       - 'src/app/api/neon-first-search/**'
       - 'scripts/neon-search-regression.mjs'
+      - 'scripts/resolve-neon-test-deployment.mjs'
       - '.github/workflows/neon-search-regression.yml'
+permissions:
+  contents: read
+concurrency:
+  group: neon-search-relevance
+  cancel-in-progress: true
 jobs:
   relevance:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Wait for preview deployment
-        run: sleep 90
-      - name: Run read-only API relevance checks
+      - name: Resolve only matching READY deployment in ziiply project
         env:
-          SEARCH_BASE_URL: ${{ vars.NEON_SEARCH_TEST_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          EXPECTED_SHA: ${{ github.sha }}
+          GITHUB_ENV_FILE: ${{ github.env }}
+        run: node scripts/resolve-neon-test-deployment.mjs
+      - name: Run read-only relevance checks against verified commit
         run: node scripts/neon-search-regression.mjs
-      - name: Upload complete results even on failure
+      - name: Upload results even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: neon-search-regression
           path: artifacts/neon-search-regression.json
+          if-no-files-found: ignore
