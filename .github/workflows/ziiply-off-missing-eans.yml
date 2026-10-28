@@ -1,5 +1,5 @@
 name: Ziiply OFF missing EAN lookup
-run-name: OFF EAN recheck 2000 - forced first retry
+run-name: OFF EAN recheck 2000 corrected retry
 on:
   push:
     branches: [main]
