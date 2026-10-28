@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Read-only live regression checks. Exit nonzero on relevance regressions.
 const base = process.env.SEARCH_BASE_URL;
-if (!base || !/^https:\/\/ziiply-[a-z0-9]+-ziipli2026s-projects\.vercel\.app$/.test(base)) throw Error('Missing verified immutable ziiply deployment URL');
+if (base !== 'http://127.0.0.1:3099') throw Error('Refusing external deployment: test must run against checked-out local code');
 const cases = [
   {q:'maito', positive:/\b(maito|kevytmaito|täysmaito|maitojuoma)\b/i, negative:/juusto|margariini|maitohappobakteeri|koiranruoka/i},
   {q:'peruna', positive:/\bperuna\b|\bperunat\b/i, negative:/koiranruoka|perunavuoka|perunamuusi|kermaperuna|peruna-sipulisekoitus/i},
