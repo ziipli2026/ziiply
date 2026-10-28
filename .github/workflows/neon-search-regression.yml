@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/app/api/neon-first-search/**'
       - 'scripts/neon-search-regression.mjs'
+      - 'scripts/neon-search-category-coverage.mjs'
       - 'scripts/verify-neon-search-db.mjs'
       - '.github/workflows/neon-search-regression.yml'
 permissions:
@@ -58,6 +59,12 @@ jobs:
         env:
           SEARCH_BASE_URL: http://127.0.0.1:3099
         run: node scripts/neon-search-regression.mjs
+      - name: Audit every Neon product category (diagnostic report)
+        continue-on-error: true
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+          SEARCH_BASE_URL: http://127.0.0.1:3099
+        run: node scripts/neon-search-category-coverage.mjs
       - name: Verify test branch unchanged
         if: always()
         env:
@@ -73,5 +80,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: neon-search-regression
-          path: artifacts/neon-search-regression.json
+          path: |
+            artifacts/neon-search-regression.json
+            artifacts/neon-search-category-coverage.json
           if-no-files-found: ignore
