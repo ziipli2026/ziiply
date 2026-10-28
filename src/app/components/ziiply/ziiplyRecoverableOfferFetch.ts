@@ -13,7 +13,10 @@ export async function fetchZiiplyRecoverableOfferSearch(url: string): Promise<Re
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
+  // Tokmanni leaflet parsing can take 25–27 seconds on a cold serverless instance.
+  // Keep the existing 20 s limit for other providers.
+  const timeoutMs = /[?&]provider=tokmanni(?:&|$)/i.test(url) ? 45_000 : 20_000;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const id = `ziiply-offer-${++nextRequestId}`;
   const unregister = registerZiiplyRecoverableRequest(id, {
     kind: 'offer-search',
