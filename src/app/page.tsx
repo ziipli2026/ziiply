@@ -12277,6 +12277,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  // V827: The effect also depends on S/K GPS updates. Those updates must not
+  // restart a Tokmanni request for the exact same selected store.
+  const tokmanniAutoSearchKeyRefV827 = useRef("");
   // V825: if the selected offer store changes while Gösta is already open,
   // immediately issue a fresh request for the now-visible store. This applies
   // to independent chains too: warmup fills the core cache but does not publish
@@ -12292,6 +12295,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (selectedChain === "TOKMANNI" && !selectedTokmanniStoreV756) return;
     if (selectedChain === "EUROSPAR" && !selectedEurosparStoreV751) return;
 
+    if (selectedChain === "TOKMANNI") {
+      const storeKey = String(selectedTokmanniStoreV756?.id || selectedTokmanniStoreV756?.name || "").trim();
+      if (tokmanniAutoSearchKeyRefV827.current === storeKey) return;
+      tokmanniAutoSearchKeyRefV827.current = storeKey;
+    } else {
+      tokmanniAutoSearchKeyRefV827.current = "";
+    }
     void searchOffers();
   }, [
     activeResult,
