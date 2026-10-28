@@ -15,6 +15,8 @@ for(const row of categories){
  tests.push({category:row.category,query:tokens.at(-1),items:row.items});
 }
 const report=[];
+const verifyLimit=Number(process.env.VERIFY_TRUNCATED_LIMIT||25);
+let verifiedTruncated=0;
 const LIMIT=100;
 const singularCandidates=word=>[word,word.replace(/t$/u,''),word.replace(/at$/u,'a'),word.replace(/ät$/u,'ä'),word.replace(/it$/u,'i')].filter(Boolean);
 const normalizedLeaf=category=>normalize(category.split('/').at(-1)).replace(/[^\p{L}\p{N}]+/gu,' ');
@@ -45,17 +47,27 @@ for(const test of tests){
   if(entry.count&&!entry.topCategoryMatch)entry.failures.push('category-absent-top5');
   entry.classification=!response.ok||!data.ok?'api-error':!entry.count?'no-results':entry.topCategoryMatch?'top5-exact':entry.anyCategoryMatch?'ranking-after-top5':entry.relatedCategoryMatch?'child-category-only':entry.ambiguousQuery?'ambiguous-shared-term':entry.truncated?'not-in-first-100-unverified':'missing-category-in-results';
  }catch(error){entry.failures.push(String(error));entry.classification='request-error'}
+ if(entry.classification==='not-in-first-100-unverified' && verifiedTruncated<verifyLimit){
+  verifiedTruncated++;
+  try{
+   const matches=await sql`SELECT count(*)::int AS n FROM ziiply_ean_products WHERE category = ${test.category} AND (name ILIKE ${'%'+test.query+'%'} OR brand ILIKE ${'%'+test.query+'%'} OR EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${'%'+test.query+'%'}))`;
+   entry.databaseCandidateCount=matches[0]?.n||0;
+   entry.classification=entry.databaseCandidateCount>0?'matching-products-outside-top100':'category-label-only-no-text-match';
+  }catch(e){entry.databaseVerificationError=String(e);entry.classification='verification-error'}
+ }
  report.push(entry);
 }
 const failed=report.filter(r=>r.failures.length);
 const breakdown=Object.fromEntries([...new Set(report.map(r=>r.classification))].sort().map(k=>[k,report.filter(r=>r.classification===k).length]));
 const genuineCandidates=report.filter(r=>['api-error','no-results','request-error','missing-category-in-results'].includes(r.classification));
 const truncationUnknown=report.filter(r=>r.classification==='not-in-first-100-unverified');
+const outsideTop100=report.filter(r=>r.classification==='matching-products-outside-top100');
 mkdirSync('artifacts',{recursive:true});
-writeFileSync('artifacts/neon-search-category-coverage.json',JSON.stringify({at:new Date().toISOString(),categories:categories.length,tests:tests.length,failures:failed.length,breakdown,genuineCandidates:genuineCandidates.length,truncationUnknown:truncationUnknown.length,report},null,2));
+writeFileSync('artifacts/neon-search-category-coverage.json',JSON.stringify({at:new Date().toISOString(),categories:categories.length,tests:tests.length,failures:failed.length,breakdown,genuineCandidates:genuineCandidates.length,truncationUnknown:truncationUnknown.length,outsideTop100:outsideTop100.length,report},null,2));
 console.log('CATEGORY COVERAGE:',tests.length,'tested,',failed.length,'flagged');
 console.log('CLASSIFICATION:',JSON.stringify(breakdown));
 console.log('POTENTIAL REAL ISSUES:',genuineCandidates.length);
 console.log('TRUNCATED UNVERIFIED:',truncationUnknown.length);
+console.log('MATCHING PRODUCTS OUTSIDE TOP100:',outsideTop100.length);
 for(const r of failed.slice(0,40))console.log('REVIEW',r.category,r.query,r.failures.join(','));
 console.log('Full report: artifacts/neon-search-category-coverage.json');
