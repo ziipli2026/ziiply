@@ -677,7 +677,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-printed-transactions-v160-20261026"],
+  ["ziiply-kcitymarket-printed-transactions-v161-20261028-reviewed"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
@@ -794,7 +794,7 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
-  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v160",validFrom:start,
+  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v161",validFrom:start,
     validUntil:until,parsedAt:new Date().toISOString(),offers:enriched});
 }
 
