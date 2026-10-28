@@ -1,0 +1,42 @@
+{
+  "id": "44LV",
+  "pdfSha256": "4e0a05ae4635f2cb7ddb9b70819f24da619d04d1a17e384d1b12139b071a4a99",
+  "reviewedOffers": [
+    {
+      "page": 2,
+      "title": "CREAMY JÄÄTELÖT 750–850 ml",
+      "price": 10,
+      "quantity": 3,
+      "unit": "rs",
+      "kind": "mobile-benefit"
+    },
+    {
+      "page": 6,
+      "title": "KIDS COOKIES 100 g 5-pack",
+      "price": 6,
+      "quantity": 2,
+      "unit": "5-pack"
+    },
+    {
+      "page": 9,
+      "title": "OLUT 4,2 % 0,33 l/pl",
+      "price": 2.29,
+      "quantity": 1,
+      "unit": "pl"
+    },
+    {
+      "page": 13,
+      "title": "KIERRÄTYSASTIA 3,2 l",
+      "price": 4.79,
+      "quantity": 1,
+      "unit": "kpl"
+    },
+    {
+      "page": 13,
+      "title": "KIERRÄTYSASTIA 6 l",
+      "price": 5.99,
+      "quantity": 1,
+      "unit": "kpl"
+    }
+  ]
+}
