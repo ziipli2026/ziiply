@@ -31,34 +31,32 @@ export function verifyPrintedTransaction(row,rawBoxes){
    boxes.some(b=>/^[-–.]$/.test(b.text)&&b.height>=card.anchor.height*.8&&
     Math.abs(b.left-card.anchor.left-card.anchor.width)<.025&&Math.abs(b.top-card.anchor.top)<.02))
   proof={value:card.value,quantity:card.quantity,unit:card.unit};
- // A same-column large printed whole-euro amount with an adjacent purchase
- // count is a complete offer, even when the count is printed as a tiny
- // overprint on the dash. Require the amount to be above its own title.
- if(card?.parts?.length===1&&/^\\d{1,2}$/.test(card.parts[0].text)&&
+ // Resolve large printed prices using the card's own horizontal column.
+ // PDF layout may put the price either above or below the title.
+ if(card?.parts?.length===1&&/^\d{1,2}$/.test(card.parts[0].text)&&
     card.anchor?.height>=.09&&Math.abs(card.anchor.left-anchor.left)<.025&&
-    card.anchor.top<anchor.top&&anchor.top-card.anchor.top<.16){
+    Math.abs(card.anchor.top-anchor.top)<.16){
    const countLabels=boxes.filter(b=>
     /^(?:[2-9](?:RS|PKT|KPL|TLK|PL|PRK|PS)|[2-9]x[2-9]{1,2})$/i.test(String(b.text||''))&&
     b.left>card.anchor.left&&b.left<card.anchor.left+.16&&
     b.top>=card.anchor.top&&b.top<card.anchor.top+card.anchor.height+.04);
-   const counts=[...new Set(countLabels.map(b=>Number(String(b.text).match(/^\\d+/)?.[0])))];
+   const counts=[...new Set(countLabels.map(b=>Number(String(b.text).match(/^\d+/)?.[0])))];
    if(counts.length===1){
     const label=String(countLabels[0].text).toUpperCase();
-    const pack=String(row.title||'').match(/\\b(\\d{1,2})-pack\\b/i);
-    const valid=!label.includes('X')||pack&&Number(label.split('X')[1])===Number(pack[1]);
+    const pack=String(row.title||'').match(/\b(\d{1,2})-pack\b/i);
+    const valid=!label.includes('X')||(pack&&Number(label.split('X')[1])===Number(pack[1]));
     if(valid)proof={value:card.value,quantity:counts[0],
-      unit:label.includes('X')?pack[1]+'-pack':label.replace(/^\\d+/,'')};
+      unit:label.includes('X')?pack[1]+'-pack':label.replace(/^\d+/,'')};
    }
  }
- // The closest complete euro/cents pair in the same title column is owned
- // by this card. A different column's slightly higher-scoring candidate
- // must not overwrite the visibly printed price.
+ // The price's euro/cents pair is horizontally aligned with its own title.
+ // This is stronger evidence than a candidate borrowed from another column.
  if(card?.parts?.length===2&&card.anchor&&
     Math.abs(card.anchor.left-anchor.left)<.025&&
     card.anchor.top>=anchor.top&&card.anchor.top-anchor.top<.09&&
     current&&Math.abs(current.value-card.value)>.005){
    const [euros,cents]=card.parts;
-   if(/^\\d{1,2}$/.test(euros.text)&&/^\\d{2}$/.test(cents.text)&&
+   if(/^\d{1,2}$/.test(euros.text)&&/^\d{2}$/.test(cents.text)&&
       cents.left>=euros.left&&cents.left<euros.left+.10&&
       Math.abs(cents.top-euros.top)<.04)
      proof={value:card.value,quantity:null,unit:card.unit||null};
