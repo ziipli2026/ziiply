@@ -227,6 +227,56 @@ export default function ZiiplyMobileTopBar({
   const [autoWeatherText, setAutoWeatherText] = useState(areaLabel);
   const [autoElectricityValue, setAutoElectricityValue] = useState("—");
   const [autoElectricityText, setAutoElectricityText] = useState("haetaan");
+  // The top bar deliberately selects the nearest station WITH at least one price.
+  // Unlike the full station comparison, unpriced stations are not candidates here.
+  const [nearestPricedFuel, setNearestPricedFuel] = useState<{ value: string; detail: string } | null>(null);
+
+  useEffect(() => {
+    if (hidden || typeof navigator === "undefined" || !navigator.geolocation) return;
+    let cancelled = false;
+    let request: AbortController | null = null;
+    const refresh = () => {
+      navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+        request?.abort();
+        request = new AbortController();
+        try {
+          // No maxDistanceKm: the API searches the entire Finnish station registry.
+          const response = await fetch(
+            `/api/fuel/stations?lat=${encodeURIComponent(coords.latitude)}&lon=${encodeURIComponent(coords.longitude)}`,
+            { cache: "no-store", signal: request.signal },
+          );
+          if (!response.ok) return;
+          const data = await response.json();
+          if (cancelled || !Array.isArray(data?.stations)) return;
+          const valid = (value: unknown): value is number =>
+            typeof value === "number" && Number.isFinite(value) && value > 0;
+          const station = data.stations
+            .filter((item: any) => valid(item.diesel) || valid(item.price95) || valid(item.price98))
+            .sort((a: any, b: any) => a.distanceKm - b.distanceKm)[0];
+          if (!station) {
+            setNearestPricedFuel(null);
+            return;
+          }
+          const format = (value: unknown) =>
+            valid(value) ? value.toLocaleString("fi-FI", { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : "—";
+          const distance = Number(station.distanceKm);
+          const distanceText = Number.isFinite(distance)
+            ? `${distance.toLocaleString("fi-FI", { maximumFractionDigits: 1 })} km`
+            : "";
+          setNearestPricedFuel({
+            value: `DI ${format(station.diesel)} · 95 ${format(station.price95)} · 98 ${format(station.price98)}`,
+            detail: [station.chain || station.name, distanceText].filter(Boolean).join(" · "),
+          });
+        } catch {
+          // Keep the last successfully loaded prices on transient failures.
+        }
+      }, () => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+    };
+    refresh();
+    const interval = window.setInterval(refresh, 60_000);
+    return () => { cancelled = true; request?.abort(); window.clearInterval(interval); };
+  }, [hidden]);
+
 
   useEffect(() => {
     if (hidden || typeof window === "undefined" || !navigator.geolocation) return;
@@ -517,9 +567,9 @@ export default function ZiiplyMobileTopBar({
     {
       id: "fuel",
       title: "AJOAINE",
-      value: fuelValue,
-      unit: fuelValue === "—" ? undefined : "€/l",
-      detail: fuelText,
+      value: nearestPricedFuel?.value ?? fuelValue,
+      unit: undefined,
+      detail: nearestPricedFuel?.detail ?? fuelText,
       graphic: <FuelGraphic />,
       onClick: toggleFuel,
     },
