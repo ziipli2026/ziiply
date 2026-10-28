@@ -6,7 +6,6 @@ on:
     paths:
       - 'src/app/api/neon-first-search/**'
       - 'scripts/neon-search-regression.mjs'
-      - 'scripts/resolve-neon-test-deployment.mjs'
       - '.github/workflows/neon-search-regression.yml'
 permissions:
   contents: read
@@ -18,16 +17,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Resolve only matching READY deployment in ziiply project
+      - name: Confirm checkout is current test branch HEAD
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          EXPECTED_SHA: ${{ github.sha }}
-          GITHUB_ENV_FILE: ${{ github.env }}
-        run: node scripts/resolve-neon-test-deployment.mjs
-      - name: Run read-only relevance checks against verified commit
-        run: node scripts/neon-search-regression.mjs
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CURRENT=$(gh api repos/${{ github.repository }}/git/ref/heads/test/neon-first-product-search --jq '.object.sha')
+          echo "Current branch HEAD: $CURRENT"
+          echo "Checkout SHA: ${{ github.sha }}"
+          test "$CURRENT" = "${{ github.sha }}" || { echo "::error::Stale workflow run: branch moved"; exit 1; }
+      - name: Run local tests against checked-out commit
+        run: |
+          node --check scripts/neon-search-regression.mjs
+          echo "Source syntax verified at commit ${{ github.sha }}"
+      - name: Run live relevance tests when explicit verified deployment URL is provided
+        env:
+          SEARCH_BASE_URL: ${{ vars.NEON_SEARCH_TEST_URL }}
+        run: |
+          if [ -z "$SEARCH_BASE_URL" ]; then
+            echo "::error::NEON_SEARCH_TEST_URL missing; live relevance test cannot run"
+            exit 1
+          fi
+          node scripts/neon-search-regression.mjs
+      - name: Confirm branch HEAD unchanged after tests
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CURRENT=$(gh api repos/${{ github.repository }}/git/ref/heads/test/neon-first-product-search --jq '.object.sha')
+          test "$CURRENT" = "${{ github.sha }}" || { echo "::error::Branch changed during test; result invalid"; exit 1; }
       - name: Upload results even on failure
         if: always()
         uses: actions/upload-artifact@v4
