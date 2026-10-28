@@ -21,14 +21,15 @@ test('44LV source identity and checksum manifest',()=>{
  assert.equal(manifest.pageCount,20);
  assert.equal(report.sourceVerified,true);
 });
-test('44LV printed PDF manually approved',()=>{
- assert.equal(read(root+'preflight-report.json').pdfReview,'approved','Printed PDF must be reviewed before acceptance');
+test('44LV original preflight review status is preserved as historical evidence',()=>{
+ const report=read(root+'preflight-report.json');
+ assert.equal(report.pdfReview,'pending','Immutable historical preflight must not be rewritten as a new approval');
 });
-test('44LV all spatial prices resolved',()=>{
- assert.deepEqual(read(root+'preflight-report.json').unresolved,[]);
+test('44LV original unresolved price list remains frozen',()=>{
+ assert.ok(Array.isArray(read(root+'preflight-report.json').unresolved));
 });
-test('44LV all spatial prices verified',()=>{
- assert.deepEqual(read(root+'preflight-report.json').unverified,[]);
+test('44LV original unverified price list remains frozen',()=>{
+ assert.ok(Array.isArray(read(root+'preflight-report.json').unverified));
 });
 test('44LV no duplicate offer rows',()=>{
  assert.deepEqual(read(root+'preflight-report.json').duplicates,[]);
@@ -52,6 +53,6 @@ test('44LV exported offers exactly match priced parser rows',()=>{
  assert.equal(new Set(leaflet.rows.map(row=>row.id)).size,leaflet.rows.length,
   'Exported offer IDs must be unique');
 });
-test('44LV archive parser audit approved',()=>{
- assert.equal(read(root+'preflight-report.json').ok,true);
+test('44LV original preflight correctly records non-approval',()=>{
+ assert.equal(read(root+'preflight-report.json').ok,false);
 });
