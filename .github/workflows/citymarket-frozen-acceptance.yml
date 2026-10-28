@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'tests/citymarket-archive-acceptance.test.mjs'
+      - 'tests/citymarket-frozen-parser-rerun.test.mjs'
+      - 'tests/fixtures/citymarket/44LV.pdf-reviewed.json'
+      - 'src/app/components/ziiply/offerSearch/providers/**'
       - '.github/workflows/citymarket-frozen-acceptance.yml'
       - 'src/app/components/ziiply/offerSearch/kCitymarketSpatialParserCurrent.js'
   workflow_dispatch:
@@ -19,5 +22,8 @@ jobs:
         with:
           ref: archive/citymarket-publications
           path: archived-publications
+      - name: Re-run current parser against frozen publisher and PDF-reviewed prices
+        run: node --test tests/citymarket-frozen-parser-rerun.test.mjs
       - name: Verify historical fixture and strict 44LV acceptance
+        if: always()
         run: node --test tests/citymarket-archive-acceptance.test.mjs
