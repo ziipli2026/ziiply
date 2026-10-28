@@ -29,6 +29,14 @@ for(const expected of fixture.reviewedOffers){
    (norm(r.title).includes(norm(expected.title))||norm(expected.title).includes(norm(r.title))&&norm(r.title).length>=12));
   assert.equal(matches.length,1,`Expected exactly one matching parser row; found ${matches.length}: ${result.rows.filter(r=>r.page===expected.page).map(r=>r.title).join(' | ')}`);
   const row=matches[0];
+  if(!row.spatialResolved||Number(row.spatialResolved.value)!==expected.price){
+   console.log('44LV_DIAGNOSTIC',JSON.stringify({
+    page:row.page,title:row.title,price:row.spatialResolved,
+    card:row.debugCardPrice,candidates:row.spatialCandidates,
+    anchor:row.debugCardAnchor,nearby:row.nearby,
+    boxes:row.debugNearbyBoxes,package:row.package,unitPrice:row.unitPrice
+   }).slice(0,12000));
+  }
   assert.ok(row.spatialResolved,`Missing resolved price for ${row.title}`);
   assert.equal(Number(row.spatialResolved.value),expected.price,`Wrong printed total for ${row.title}`);
   assert.equal(Number(row.spatialResolved.quantity||1),expected.quantity,`Wrong printed quantity for ${row.title}`);
