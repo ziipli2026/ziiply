@@ -27,9 +27,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies for isolated regression runner
+        run: npm install --no-save --package-lock=false --no-audit --no-fund
       - name: Start exactly checked-out Next.js search API locally
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
