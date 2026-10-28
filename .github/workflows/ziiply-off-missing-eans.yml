@@ -1,5 +1,5 @@
 name: Ziiply OFF missing EAN lookup
-run-name: manual next mass EAN batch 28 Oct
+run-name: OFF EAN final remaining mass batch
 on:
   push:
     branches: [main]
