@@ -2658,7 +2658,6 @@ export default function DesktopPreviewPage() {
 
           </div>
         </header>
-            <DesktopSearchDebug query={justiinaActiveTerm || justiinaQuery} snapshot={{workspace,searchMode:desktopSearchMode,recipeIngredient:recipeSearchItemsRef.current[recipeSearchStepRef.current]??null,loading:justiinaLoading,resultsOpen:justiinaResultsOpen,resultCount:justiinaResults.length,lastSearch:justiinaDebug}} runSearch={(query,observe,signal)=>runDesktopNormalSearch(query,{observe,signal})} />
 
         
 
