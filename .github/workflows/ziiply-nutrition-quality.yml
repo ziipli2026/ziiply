@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: OFF Fineli repeat nutrition backfill 28 Oct
+run-name: Live OFF refresh and safe nutrition backfill
 on:
   push:
     branches: [main]
@@ -18,14 +18,19 @@ concurrency:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: python -m pip install 'psycopg[binary]>=3.2,<4' 'certifi>=2025.1.31'
-      - run: python -m py_compile scripts/audit-off-fineli-nutrition.py
+      - run: python -m py_compile scripts/audit-off-fineli-nutrition.py scripts/refresh-off-missing-nutrition.py
+      - name: Refresh missing nutrition from live OFF
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+          OFF_NUTRITION_REFRESH_LIMIT: '180'
+        run: python -u scripts/refresh-off-missing-nutrition.py
       - name: Audit and optionally complete existing OFF fields
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
