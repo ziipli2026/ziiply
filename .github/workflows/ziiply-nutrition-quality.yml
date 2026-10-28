@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: OFF nutrition refresh next 180 - 28 Oct batch 7
+run-name: OFF nutrition refresh next 180 - batch 8
 on:
   push:
     branches: [main]
