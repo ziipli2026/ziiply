@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: manual next live nutrition refresh 28 Oct
+run-name: Live OFF nutrition refresh - next 180 products
 on:
   push:
     branches: [main]
