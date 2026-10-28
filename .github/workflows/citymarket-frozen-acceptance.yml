@@ -1,0 +1,23 @@
+name: Citymarket frozen leaflet acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/citymarket-archive-acceptance.test.mjs'
+      - '.github/workflows/citymarket-frozen-acceptance.yml'
+      - 'src/app/components/ziiply/offerSearch/kCitymarketSpatialParserCurrent.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen-acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout immutable leaflet archive
+        uses: actions/checkout@v4
+        with:
+          ref: archive/citymarket-publications
+          path: archived-publications
+      - name: Verify historical fixture and strict 44LV acceptance
+        run: node --test tests/citymarket-archive-acceptance.test.mjs
