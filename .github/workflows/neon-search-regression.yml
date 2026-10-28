@@ -17,35 +17,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Confirm checkout is current test branch HEAD
+      - name: Confirm exact current test-branch commit
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           CURRENT=$(gh api repos/${{ github.repository }}/git/ref/heads/test/neon-first-product-search --jq '.object.sha')
           echo "Current branch HEAD: $CURRENT"
-          echo "Checkout SHA: ${{ github.sha }}"
-          test "$CURRENT" = "${{ github.sha }}" || { echo "::error::Stale workflow run: branch moved"; exit 1; }
-      - name: Run local tests against checked-out commit
-        run: |
-          node --check scripts/neon-search-regression.mjs
-          echo "Source syntax verified at commit ${{ github.sha }}"
-      - name: Run live relevance tests when explicit verified deployment URL is provided
+          test "$CURRENT" = "${{ github.sha }}" || { echo "::error::Stale checkout"; exit 1; }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Start exactly checked-out Next.js search API locally
         env:
-          SEARCH_BASE_URL: ${{ vars.NEON_SEARCH_TEST_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_TELEMETRY_DISABLED: 1
         run: |
-          if [ -z "$SEARCH_BASE_URL" ]; then
-            echo "::error::NEON_SEARCH_TEST_URL missing; live relevance test cannot run"
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL GitHub secret missing; cannot run live Neon queries"
             exit 1
           fi
-          node scripts/neon-search-regression.mjs
-      - name: Confirm branch HEAD unchanged after tests
+          npm run dev -- --hostname 127.0.0.1 --port 3099 > /tmp/neon-search-next.log 2>&1 &
+          echo $! > /tmp/neon-search-next.pid
+          for i in $(seq 1 60); do
+            if curl -fsS 'http://127.0.0.1:3099/api/neon-first-search?q=6413300102017' -o /tmp/neon-search-health.json; then
+              node -e "const r=require('/tmp/neon-search-health.json');if(!r.ok)process.exit(1)" && break
+            fi
+            sleep 3
+          done
+          node -e "const r=require('/tmp/neon-search-health.json');if(!r.ok)process.exit(1)"
+      - name: Run live search relevance tests against same commit, no Vercel
+        env:
+          SEARCH_BASE_URL: http://127.0.0.1:3099
+        run: node scripts/neon-search-regression.mjs
+      - name: Verify test branch unchanged
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           CURRENT=$(gh api repos/${{ github.repository }}/git/ref/heads/test/neon-first-product-search --jq '.object.sha')
-          test "$CURRENT" = "${{ github.sha }}" || { echo "::error::Branch changed during test; result invalid"; exit 1; }
-      - name: Upload results even on failure
+          test "$CURRENT" = "${{ github.sha }}" || { echo "::error::Branch moved during tests"; exit 1; }
+      - name: Show local server log on failure
+        if: failure()
+        run: tail -120 /tmp/neon-search-next.log || true
+      - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
