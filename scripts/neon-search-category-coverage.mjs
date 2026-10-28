@@ -15,6 +15,10 @@ for(const row of categories){
  tests.push({category:row.category,query:tokens.at(-1),items:row.items});
 }
 const report=[];
+const LIMIT=100;
+const singularCandidates=word=>[word,word.replace(/t$/u,''),word.replace(/at$/u,'a'),word.replace(/ät$/u,'ä'),word.replace(/it$/u,'i')].filter(Boolean);
+const normalizedLeaf=category=>normalize(category.split('/').at(-1)).replace(/[^\\p{L}\\p{N}]+/gu,' ');
+const queryVariants=word=>[...new Set(singularCandidates(word))];
 const categoryNames=new Set(categories.map(r=>r.category));
 const normalize=s=>String(s||'').normalize('NFKC').toLocaleLowerCase('fi-FI');
 const categoriesByQuery=new Map();
@@ -32,20 +36,26 @@ for(const test of tests){
   entry.anyCategoryMatch=(data.products||[]).some(p=>p.category===test.category);
   entry.relatedCategoryMatch=(data.products||[]).some(p=>normalize(p.category).startsWith(normalize(test.category)+'/'));
   entry.queryInCategory=normalize(test.category).includes(normalize(test.query));
+  entry.queryVariants=queryVariants(test.query);
+  entry.categoryLeaf=normalizedLeaf(test.category);
+  entry.truncated=Boolean(data.truncated);
+  entry.topRankDistribution=Object.fromEntries([...new Set(entry.top.map(p=>String(p.rank)))].map(k=>[k,entry.top.filter(p=>String(p.rank)===k).length]));
   if(!response.ok||!data.ok)entry.failures.push('api-error');
   if(!entry.count)entry.failures.push('empty');
   if(entry.count&&!entry.topCategoryMatch)entry.failures.push('category-absent-top5');
-  entry.classification=!response.ok||!data.ok?'api-error':!entry.count?'no-results':entry.topCategoryMatch?'top5-exact':entry.anyCategoryMatch?'ranking-after-top5':entry.relatedCategoryMatch?'child-category-only':entry.ambiguousQuery?'ambiguous-shared-term':'missing-category-in-results';
+  entry.classification=!response.ok||!data.ok?'api-error':!entry.count?'no-results':entry.topCategoryMatch?'top5-exact':entry.anyCategoryMatch?'ranking-after-top5':entry.relatedCategoryMatch?'child-category-only':entry.ambiguousQuery?'ambiguous-shared-term':entry.truncated?'not-in-first-100-unverified':'missing-category-in-results';
  }catch(error){entry.failures.push(String(error));entry.classification='request-error'}
  report.push(entry);
 }
 const failed=report.filter(r=>r.failures.length);
 const breakdown=Object.fromEntries([...new Set(report.map(r=>r.classification))].sort().map(k=>[k,report.filter(r=>r.classification===k).length]));
 const genuineCandidates=report.filter(r=>['api-error','no-results','request-error','missing-category-in-results'].includes(r.classification));
+const truncationUnknown=report.filter(r=>r.classification==='not-in-first-100-unverified');
 mkdirSync('artifacts',{recursive:true});
-writeFileSync('artifacts/neon-search-category-coverage.json',JSON.stringify({at:new Date().toISOString(),categories:categories.length,tests:tests.length,failures:failed.length,breakdown,genuineCandidates:genuineCandidates.length,report},null,2));
+writeFileSync('artifacts/neon-search-category-coverage.json',JSON.stringify({at:new Date().toISOString(),categories:categories.length,tests:tests.length,failures:failed.length,breakdown,genuineCandidates:genuineCandidates.length,truncationUnknown:truncationUnknown.length,report},null,2));
 console.log('CATEGORY COVERAGE:',tests.length,'tested,',failed.length,'flagged');
 console.log('CLASSIFICATION:',JSON.stringify(breakdown));
 console.log('POTENTIAL REAL ISSUES:',genuineCandidates.length);
+console.log('TRUNCATED UNVERIFIED:',truncationUnknown.length);
 for(const r of failed.slice(0,40))console.log('REVIEW',r.category,r.query,r.failures.join(','));
 console.log('Full report: artifacts/neon-search-category-coverage.json');
