@@ -37,7 +37,7 @@ test('44LV exported offers exactly match priced parser rows',()=>{
  const evidence=read(root+'parser-evidence.json');
  const leaflet=read(root+'leaflet.json');
  const report=read(root+'preflight-report.json');
- const clean=s=>String(s??'').replace(/\\u00a0/g,' ').replace(/[ \\t]+/g,' ').trim();
+ const clean=s=>String(s??'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim();
  const expected=evidence.rows.flatMap(row=>{
   const title=clean(row.title),resolved=row.spatialResolved;
   const percent=Number(row.percentageOffer?.percent);
