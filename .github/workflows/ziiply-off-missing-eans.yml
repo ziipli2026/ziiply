@@ -1,5 +1,5 @@
 name: Ziiply OFF missing EAN lookup
-run-name: OFF EAN recheck corrected duplicate code
+run-name: OFF EAN filtered retry errors first
 on:
   push:
     branches: [main]
@@ -33,6 +33,6 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
           OFF_LOOKUP_LIMIT: ${{ inputs.limit || '2000' }}
-          OFF_LOOKUP_RECHECK_HOURS: '72'
-          OFF_LOOKUP_FORCE_RECHECK: ${{ github.event_name == 'push' && 'true' || 'false' }}
+          OFF_LOOKUP_RECHECK_HOURS: '720'
+          OFF_LOOKUP_FORCE_RECHECK: 'false'
         run: python -u scripts/import-off-missing-eans.py
