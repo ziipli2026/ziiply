@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
   const normalizedQuery = q.toLocaleLowerCase("fi-FI");
   const tokens = normalizedQuery.split(" ").filter(Boolean);
   const isSingleWord = tokens.length === 1;
+  const potatoIntent = /^(peruna|perunat)$/i.test(q);
+  const potatoLeaf = "%/juurekset/perunat";
   const milkIntent = /^(maito|maidot)$/i.test(q);
   const milkLeaf = "%/maidot-ja-piimat/maidot";
   const milkSpecial = "%/maidot-ja-piimat/erikoismaidot";
@@ -43,6 +45,9 @@ export async function GET(request: NextRequest) {
           WHEN ${milkIntent} AND name_words ~ '(^| )maito( |$)' THEN 3
           WHEN ${milkIntent} AND (name ILIKE '%maitojuoma%' OR name ILIKE '%kevytmaito%' OR name ILIKE '%täysmaito%' OR name ILIKE '%rasvaton maito%') THEN 4
           WHEN ${milkIntent} THEN 20
+          WHEN ${potatoIntent} AND category ILIKE ${potatoLeaf} THEN 1
+          WHEN ${potatoIntent} AND (name_words ~ '(^| )peruna( |$)' OR name_words ~ '(^| )perunat( |$)') AND (category IS NULL OR category NOT ILIKE 'lemmikit/%') THEN 3
+          WHEN ${potatoIntent} THEN 20
           WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 1
           WHEN name_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 2
           WHEN lower(name) = ${normalizedQuery} THEN 3
@@ -62,7 +67,7 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v4",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v5",
       categoryExpansion: "generic-category-token",
       truncated: rows.length === 100
     });
