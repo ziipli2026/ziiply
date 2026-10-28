@@ -32,15 +32,15 @@ jobs:
         run: npm install --no-save --package-lock=false --no-audit --no-fund
       - name: Verify Neon target before starting server
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
         run: node scripts/verify-neon-search-db.mjs
       - name: Start exactly checked-out Next.js search API locally
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
           NEXT_TELEMETRY_DISABLED: 1
         run: |
           if [ -z "$DATABASE_URL" ]; then
-            echo "::error::DATABASE_URL GitHub secret missing; cannot run live Neon queries"
+            echo "::error::ZIIPLY_DATABASE_URL GitHub secret missing; cannot run live Neon queries"
             exit 1
           fi
           npm run dev -- --hostname 127.0.0.1 --port 3099 > /tmp/neon-search-next.log 2>&1 &
