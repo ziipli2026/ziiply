@@ -49,10 +49,26 @@ export async function GET(request: Request) {
     const activeImages = await readActivePublicationOffers<{imageUrl?:string}>("K-Citymarket",startedAt).then(rows=>({total:rows.length,withImage:rows.filter(row=>Boolean(row.imageUrl)).length,missingImage:rows.filter(row=>!row.imageUrl).length})).catch(error=>({error:String(error)}));
     // A successful active leaflet must not mask a failed next-period warm-up.
     // warmKCitymarketOfferCache records failures for both attempted periods.
-    const activeOk = Boolean(result.active);
+    // The publisher's AV landing page may already redirect to Thursday LV on
+    // Wednesday afternoon. Keep the approved AV snapshot in use until midnight;
+    // its missing historical source must not block a verified upcoming LV.
+    const helsinki = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Europe/Helsinki", weekday: "short", hour: "numeric", hourCycle: "h23",
+    }).formatToParts(startedAt);
+    const weekday = helsinki.find(part => part.type === "weekday")?.value;
+    const hour = Number(helsinki.find(part => part.type === "hour")?.value);
+    const oldAvRolledForward = weekday === "Wed" && hour >= 15
+      && Boolean(result.next) && !result.active
+      && result.errors.length === 1
+      && result.errors[0].startsWith("active ")
+      && result.errors[0].includes("_LV_KCM/index.html")
+      && result.errors[0].includes("does not match requested");
+    const storedActiveOk = !("error" in activeImages) && activeImages.total > 0;
+    const activeOk = Boolean(result.active) || Boolean(oldAvRolledForward && storedActiveOk);
     const nextAttempted = result.next !== null || result.errors.some((error) => error.startsWith("next "));
     const nextOk = !nextAttempted || Boolean(result.next);
-    const ok = activeOk && nextOk && result.errors.length === 0 && preflight?.ok !== false;
+    const blockingErrors = oldAvRolledForward ? [] : result.errors;
+    const ok = activeOk && nextOk && blockingErrors.length === 0 && preflight?.ok !== false;
     // Audit selected-store campaigns independently of the national leaflet.
     // The leaflet's success must not turn the local-campaign status green.
     if (process.env.DATABASE_URL) {
