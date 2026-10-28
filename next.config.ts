@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
+      { source: "/desktop-preview", headers: [{ key: "Cache-Control", value: "private, no-store, max-age=0, must-revalidate" }] },
       {
         // V746_STATIC_UI_ASSET_CACHE:
         // Ziiplyn omat public/-grafiikat ovat käyttöliittymäassetteja. Selain saa
