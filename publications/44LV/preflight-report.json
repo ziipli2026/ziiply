@@ -1,0 +1,26 @@
+{
+  "ok": false,
+  "outcome": "source-archive-review-needed",
+  "period": "2026-10-29-W44-LV",
+  "issue": "44LV",
+  "pdfReview": "pending",
+  "runUrl": "https://github.com/ziipli2026/ziiply/actions/runs/40696470800",
+  "firstParserAt": "2026-10-28 13:11:12.540735+00",
+  "firstParserOk": true,
+  "sourceVerified": true,
+  "publisherUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/88z1i6v_tarjouslehti_44LV_KCM/index.html",
+  "pdfSha256": "4e0a05ae4635f2cb7ddb9b70819f24da619d04d1a17e384d1b12139b071a4a99",
+  "pages": 20,
+  "count": 52,
+  "parserRows": 55,
+  "unresolved": [
+    "2|CREAMY JÄÄTELÖT 750–850 ml",
+    "6|KIDS COOKIES 100 g 5-pack",
+    "9|OLUT 4,2 % 0,33 l/pl"
+  ],
+  "unverified": [
+    "13|KIERRÄTYSASTIA 3,2 l"
+  ],
+  "duplicates": [],
+  "auditScope": "Frozen source and automatic parser checks; full printed PDF comparison pending"
+}
