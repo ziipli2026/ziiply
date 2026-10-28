@@ -38,15 +38,16 @@ jobs:
           set -euo pipefail
           DAY=$(TZ=Europe/Helsinki date +%u)
           HOUR=$(TZ=Europe/Helsinki date +%H)
-          MINUTE=$(TZ=Europe/Helsinki date +%M)
           EVENT="${{ github.event_name }}"
-          # Scheduled runs are allowed only in the intended Helsinki local windows.
-          # Prevent early/duplicate UTC slots across daylight-saving changes.
+          # GitHub may start cron jobs late: never require the exact minute.
+          # UTC 12:20 is valid only in Finnish summer time; UTC 13:20 in winter.
+          # The other UTC slot is skipped without downloading anything.
           if [ "$EVENT" = schedule ]; then
-            case "$DAY:$HOUR:$MINUTE" in
-              3:15:20|7:15:20) ;;
-              *) echo "Outside publication/retry window; skip"; exit 0 ;;
-            esac
+            UTC_HOUR=$(date -u +%H)
+            if [ "$HOUR" != 15 ] || { [ "$UTC_HOUR" != 12 ] && [ "$UTC_HOUR" != 13 ]; }; then
+              echo "Outside Helsinki 15:00 release hour; skip"
+              exit 0
+            fi
           fi
           # Choose the latest released Sunday/Wednesday 15:00 Helsinki issue.
           # Mon/Tue retry Sunday's AV; Thu/Fri/Sat retry Wednesday's LV.
@@ -72,6 +73,12 @@ jobs:
           fi
           ID="${WEEK}${KIND}"
           PERIOD="${START}-W$((10#$WEEK))-${KIND}"
+          # Idempotency: skip the network/database capture if this issue is archived.
+          git fetch --quiet origin archive/citymarket-publications
+          if git cat-file -e "origin/archive/citymarket-publications:publications/$ID/archive-manifest.json" 2>/dev/null; then
+            echo "Issue $ID already archived; no redundant capture"
+            exit 0
+          fi
           set +e
           node scripts/citymarket/capture-preflight.mjs "$PERIOD" "/tmp/kcm-archive/$ID"
           RESULT=$?
