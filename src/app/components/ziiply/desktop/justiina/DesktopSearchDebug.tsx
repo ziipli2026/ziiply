@@ -1,15 +1,19 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type SearchDebugObserver = (stage: string, data?: Record<string, unknown>) => void;
 type DebugEvent = { at: string; stage: string; data: Record<string, unknown> };
 type Report = { version: string; startedAt: string; query: string; status: string; events: DebugEvent[] };
 
-export default function DesktopSearchDebug({query,snapshot,runSearch}: {
+export default function DesktopSearchDebug({query,snapshot,runSearch,top}: {
+  top: number;
   query: string;
   snapshot: Record<string,unknown>;
   runSearch: (query:string,observe:SearchDebugObserver,signal:AbortSignal)=>Promise<unknown>;
 }) {
+  const [mounted,setMounted]=useState(false);
+  useEffect(()=>{setMounted(true)},[]);
   const [open,setOpen]=useState(false);
   const [input,setInput]=useState("");
   const [report,setReport]=useState<Report|null>(null);
@@ -23,7 +27,7 @@ export default function DesktopSearchDebug({query,snapshot,runSearch}: {
     if(timer.current)clearTimeout(timer.current);
     const controller=new AbortController();active.current=controller;
     const term=(input||query).trim();
-    publish({version:"desktop-search-debug-v1",startedAt:new Date().toISOString(),query:term,status:"Haetaan",events:[]});
+    publish({version:"desktop-search-debug-v2",startedAt:new Date().toISOString(),query:term,status:"Haetaan",events:[]});
     const observe:SearchDebugObserver=(stage,data={})=>{
       if(active.current!==controller||controller.signal.aborted)return;
       const current=reportRef.current!;
@@ -40,13 +44,15 @@ export default function DesktopSearchDebug({query,snapshot,runSearch}: {
     finally{if(active.current===controller&&timer.current){clearTimeout(timer.current);timer.current=null}}
   }
   function save(){
-    const payload={...(reportRef.current??{version:"desktop-search-debug-v1",status:"Ei debug-hakua vielä",events:[]}),exportedAt:new Date().toISOString(),page:{origin:location.origin,path:location.pathname,userAgent:navigator.userAgent,online:navigator.onLine},ui:snapshot};
+    const payload={...(reportRef.current??{version:"desktop-search-debug-v2",status:"Ei debug-hakua vielä",events:[]}),exportedAt:new Date().toISOString(),page:{origin:location.origin,path:location.pathname,userAgent:navigator.userAgent,online:navigator.onLine},ui:snapshot};
     const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
     const link=document.createElement("a");link.href=url;link.download=`ziiply-haku-debug-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
     document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
   const button="rounded-lg border-2 border-[#17573c] bg-[#fff8df] px-3 py-2 text-sm font-bold text-[#17573c]";
-  return <aside aria-label="Desktop-haun debug" className="fixed bottom-3 right-3 z-[250] max-w-[calc(100vw-24px)] rounded-xl border-2 border-[#986b36] bg-[#f7e7bd] p-2 shadow-xl">
+  if(!mounted)return null;
+  return createPortal(<aside aria-label="Normaalin tuotehaun debug" style={{position:"fixed",top:top+12,right:40,zIndex:2147483000,maxWidth:"calc(100vw - 80px)",maxHeight:`calc(100dvh - ${top+36}px)`,overflow:"auto"}} className="rounded-xl border-2 border-[#986b36] bg-[#f7e7bd] p-2 shadow-xl">
+    <div className="mb-1 text-xs font-black text-[#17573c]">TUOTEHAKU · DEBUG v2</div>
     <div className="flex flex-wrap gap-2">
       <button type="button" className={button} onClick={()=>{setOpen(true);void start()}}>Debug-haku</button>
       <button type="button" className={button} onClick={save}>Tallenna JSON</button>
@@ -58,5 +64,5 @@ export default function DesktopSearchDebug({query,snapshot,runSearch}: {
       <p className="text-xs">Sama tuotehaku ja valitut S-/K-kaupat. Uusi painallus aloittaa uuden debug-haun. Aikaraja 30 s.</p>
       <pre className="mt-2 max-h-[40vh] overflow-auto whitespace-pre-wrap break-all rounded bg-white p-2 text-xs text-black">{JSON.stringify(report??{ui:snapshot},null,2)}</pre>
     </div>}
-  </aside>;
+  </aside>,document.body);
 }
