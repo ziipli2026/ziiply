@@ -5,7 +5,7 @@ export type Source = { id: string; search: (query: string, signal: AbortSignal) 
 const validEan = (ean?: string) => /^\d{8,14}$/.test(ean || '') ? ean : undefined;
 
 // Simulation only: no database writes, price lookups, recipe rules or UI dependencies.
-export async function runSimulation(query: string, bank: Source, shops: Source[], signal: AbortSignal, publish: (state: Snapshot) => void, now = () => performance.now(), timeouts = { bankMs: 800, shopMs: 5000 }) {
+export async function runSimulation(query: string, bank: Source, shops: Source[], signal: AbortSignal, publish: (state: Snapshot) => void, now = () => performance.now(), timeouts = { bankMs: 5000, shopMs: 5000 }) {
   const started = now();
   let state: Snapshot = { rows: [], stages: {}, events: [], done: false };
   const current = () => !signal.aborted;
