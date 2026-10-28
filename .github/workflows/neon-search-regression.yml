@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/app/api/neon-first-search/**'
       - 'scripts/neon-search-regression.mjs'
+      - 'scripts/verify-neon-search-db.mjs'
       - '.github/workflows/neon-search-regression.yml'
 permissions:
   contents: read
@@ -29,6 +30,10 @@ jobs:
           node-version: '22'
       - name: Install dependencies for isolated regression runner
         run: npm install --no-save --package-lock=false --no-audit --no-fund
+      - name: Verify Neon target before starting server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: node scripts/verify-neon-search-db.mjs
       - name: Start exactly checked-out Next.js search API locally
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -40,13 +45,15 @@ jobs:
           fi
           npm run dev -- --hostname 127.0.0.1 --port 3099 > /tmp/neon-search-next.log 2>&1 &
           echo $! > /tmp/neon-search-next.pid
-          for i in $(seq 1 60); do
-            if curl -fsS 'http://127.0.0.1:3099/api/neon-first-search?q=6413300102017' -o /tmp/neon-search-health.json; then
-              node -e "const r=require('/tmp/neon-search-health.json');if(!r.ok)process.exit(1)" && break
+          for i in $(seq 1 25); do
+            if curl -fsS --silent 'http://127.0.0.1:3099/api/neon-first-search?q=6413300102017' -o /tmp/neon-search-health.json; then
+              node -e "const r=require('/tmp/neon-search-health.json');if(!r.ok)process.exit(1)" && exit 0
             fi
             sleep 3
           done
-          node -e "const r=require('/tmp/neon-search-health.json');if(!r.ok)process.exit(1)"
+          echo '::error::Local search API failed readiness checks; inspect server log below'
+          tail -100 /tmp/neon-search-next.log || true
+          exit 1
       - name: Run live search relevance tests against same commit, no Vercel
         env:
           SEARCH_BASE_URL: http://127.0.0.1:3099
