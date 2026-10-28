@@ -56,7 +56,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (/vitamiin|ravintolis|kivennaisain|omega|proteiinivalmiste|proteiinijauhe|urheiluravinte|urheiluvalmiste|elektrolyyt|terveysvalmiste/.test(path)) return "Vitamiinit & ravinteet";
   if (/valipalakeks|valipalapatuk|keks|pikkuleiv/.test(leaf)) return "Makeiset & keksit";
   if (/lastenruoat/.test(path)) return "Lastenruoat";
-  if (/sips|snacks|naposteltav|popcorn|nacho/.test(path)) return "Kuivatuotteet";
+  // Existing confectionery subgroups take precedence over the broad "naposteltavat" parent.\n  // Chips/snacks remain Kuivatuotteet under the shared taxonomy.\n  if (/^makeiset-ja-naposteltavat\//.test(path) &&\n      /^(suklaat|karkkipussit|purukumit|muut-makeiset|pastillit)$/.test(parts[1] || "")) return "Makeiset & keksit";\n  if (/sips|snacks|naposteltav|popcorn|nacho/.test(path)) return "Kuivatuotteet";
   if (/jaatelo|pakaste/.test(path)) return "Pakasteet";
   if (/juomat\/kahvi/.test(path)) return "Kahvi & tee";
   if (/juomat/.test(parent)) return "Juomat";
