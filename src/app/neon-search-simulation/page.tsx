@@ -6,6 +6,8 @@ const empty: Snapshot = { rows: [], stages: {}, events: [], done: false };
 export default function SimulationPage() {
   const [scenario, setScenario] = useState<Scenario>(scenarios[0]);
   const [mode, setMode] = useState('S + K');
+  const [query, setQuery] = useState('olut');
+  const [liveNeon, setLiveNeon] = useState(true);
   const [state, setState] = useState<Snapshot>(empty);
   const [running, setRunning] = useState(false);
   const [lastRun, setLastRun] = useState<{ scenario: Scenario; mode: string } | null>(null);
@@ -15,6 +17,15 @@ export default function SimulationPage() {
     active.current?.abort();
     const controller = new AbortController(); active.current = controller;
     setState(empty); setRunning(true); setLastRun({ scenario, mode });
+    const neonSource: Source = { id: 'Neon', search: async (term, signal) => {
+      const response = await fetch('/api/neon-first-search?q=' + encodeURIComponent(term), { signal, cache: 'no-store' });
+      if (!response.ok) throw new Error('Neon HTTP ' + response.status);
+      const data = await response.json();
+      if (!data.ok || !Array.isArray(data.products)) throw new Error('Invalid Neon response');
+      return data.products.map((item: { ean?: string; name?: string; imageUrl?: string | null }) => ({
+        ean: item.ean, name: item.name || '', imageUrl: item.imageUrl || null
+      }));
+    }};
     const source = (id: string, delay: number): Source => ({ id, search: async (_query, signal) => {
       await new Promise<void>((resolve, reject) => {
         const abort = () => { clearTimeout(timer); reject(new Error('Keskeytetty')); };
@@ -24,19 +35,19 @@ export default function SimulationPage() {
       });
       return fixture(scenario, id);
     }});
-    await runSimulation('olut', source('Neon', 200), (mode === 'S + K' ? ['S', 'K'] : [mode]).map(id => source(id, id === 'S' ? 1800 : 3000)), controller.signal, next => { if(active.current === controller) setState(next); });
+    await runSimulation(query, liveNeon ? neonSource : source('Neon', 200), (mode === 'S + K' ? ['S', 'K'] : [mode]).map(id => source(id, id === 'S' ? 1800 : 3000)), controller.signal, next => { if(active.current === controller) setState(next); });
     if(active.current === controller) setRunning(false);
   }
   function save() {
-    const blob = new Blob([JSON.stringify({ simulation: true, realPrices: false, ...lastRun, ...state }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ simulation: true, liveNeon, query, realPrices: false, ...lastRun, ...state }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'neon-first-simulation.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const button = 'rounded-lg border border-emerald-900 px-4 py-2 font-bold disabled:opacity-40';
   return <main className="min-h-screen bg-[#f6f2e8] p-6 text-[#143c2e]"><div className="mx-auto max-w-5xl space-y-5">
     <p className="font-bold uppercase tracking-widest">Ziiply · erillinen testihaara</p>
     <h1 className="text-3xl font-black">Neon ensin – haun simulaatio</h1>
-    <p className="rounded-xl border-2 border-amber-600 bg-amber-100 p-4"><strong>Kaikki tuotteet, hinnat ja viiveet ovat testidataa.</strong> Tämä sivu ei käytä oikeaa Neonia tai kauppapalveluita eikä tallenna tuotetietoja.</p>
-    <div className="flex flex-wrap items-end gap-3"><label className="grid gap-1">Testitapaus<select className="rounded border p-2" disabled={running} value={scenario} onChange={e => setScenario(e.target.value as Scenario)}>{scenarios.map(item => <option key={item}>{item}</option>)}</select></label><label className="grid gap-1">Taustalla haettavat kaupat<select className="rounded border p-2" disabled={running} value={mode} onChange={e => setMode(e.target.value)}>{['S + K', 'S', 'K'].map(item => <option key={item}>{item}</option>)}</select></label><button className={button} onClick={() => void start()}>{running ? 'Aloita uusi haku' : 'Käynnistä olut-testihaku'}</button><button className={button} disabled={!running} onClick={() => { active.current?.abort(); setRunning(false); }}>Keskeytä</button><button className={button} onClick={save}>Tallenna JSON</button></div>
+    <p className="rounded-xl border-2 border-amber-600 bg-amber-100 p-4"><strong>Neon voidaan hakea oikeasta tietokannasta. Kauppojen tuotteet, hinnat ja viiveet ovat edelleen testidataa.</strong> Tämä sivu ei käytä oikeita kauppahakuja eikä tallenna tuotetietoja.</p>
+    <div className="flex flex-wrap items-end gap-3"><label className="grid gap-1">Hakusana<input className="rounded border p-2" value={query} onChange={e => setQuery(e.target.value)} /></label><label className="flex gap-2 items-center"><input type="checkbox" checked={liveNeon} onChange={e => setLiveNeon(e.target.checked)} />Oikea Neon (vain luku)</label><label className="grid gap-1">Testitapaus<select className="rounded border p-2" disabled={running} value={scenario} onChange={e => setScenario(e.target.value as Scenario)}>{scenarios.map(item => <option key={item}>{item}</option>)}</select></label><label className="grid gap-1">Taustalla haettavat kaupat<select className="rounded border p-2" disabled={running} value={mode} onChange={e => setMode(e.target.value)}>{['S + K', 'S', 'K'].map(item => <option key={item}>{item}</option>)}</select></label><button className={button} onClick={() => void start()}>{running ? 'Aloita uusi haku' : 'Käynnistä testihaku'}</button><button className={button} disabled={!running} onClick={() => { active.current?.abort(); setRunning(false); }}>Keskeytä</button><button className={button} onClick={save}>Tallenna JSON</button></div>
     <p role="status" className="font-bold">{running ? 'Haku käynnissä' : state.done ? 'Testihaku valmis' : 'Valmis aloittamaan'} · {state.rows.length} tuotetta</p>
     <div className="flex gap-4">{Object.entries(state.stages).map(([key, value]) => <span key={key}>{key}: {value}</span>)}</div>
     <div className="grid gap-3 md:grid-cols-2">{state.rows.map(row => <article key={row.key} className="rounded-xl border border-emerald-900/30 bg-white p-4"><div className="flex gap-3"><div className="grid h-16 w-16 shrink-0 place-items-center rounded bg-stone-100">{row.imageUrl ? <img src={row.imageUrl} alt="Testikuvan paikkamerkki" className="h-12 w-12 object-contain" /> : <span className="text-xs">Ei kuvaa</span>}</div><div><h2 className="font-bold">{row.name}</h2><p className="text-sm">EAN: {row.ean || 'puuttuu'}</p><p className="text-xs">Lähteet: {row.sources.join(', ')}</p></div></div><div className="mt-3 flex gap-4">{((lastRun?.mode || mode) === 'S + K' ? ['S', 'K'] : [lastRun?.mode || mode]).map(shop => <p key={shop}><strong>{shop}: </strong>{row.prices[shop] != null ? row.prices[shop]!.toFixed(2).replace('.', ',') + ' € (testi)' : state.stages[shop] === 'loading' || !state.stages[shop] ? 'Haetaan hintaa…' : ['error', 'timeout'].includes(state.stages[shop]) ? 'Hintahaku epäonnistui' : 'Ei vahvistettua hintaa'}</p>)}</div></article>)}</div>
