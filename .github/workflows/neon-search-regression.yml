@@ -1,0 +1,26 @@
+name: Neon-first search relevance regression
+on:
+  workflow_dispatch:
+  push:
+    branches: [test/neon-first-product-search]
+    paths:
+      - 'src/app/api/neon-first-search/**'
+      - 'scripts/neon-search-regression.mjs'
+      - '.github/workflows/neon-search-regression.yml'
+jobs:
+  relevance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for preview deployment
+        run: sleep 90
+      - name: Run read-only API relevance checks
+        env:
+          SEARCH_BASE_URL: ${{ vars.NEON_SEARCH_TEST_URL }}
+        run: node scripts/neon-search-regression.mjs
+      - name: Upload complete results even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: neon-search-regression
+          path: artifacts/neon-search-regression.json
