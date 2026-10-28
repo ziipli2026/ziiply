@@ -30,6 +30,14 @@ for(const expected of fixture.reviewedOffers){
   assert.equal(matches.length,1,`Expected exactly one matching parser row; found ${matches.length}: ${result.rows.filter(r=>r.page===expected.page).map(r=>r.title).join(' | ')}`);
   const row=matches[0];
   if(!row.spatialResolved||Number(row.spatialResolved.value)!==expected.price){
+   if(row.page===9){
+    const samePage=result.rows.filter(r=>r.page===row.page);
+    console.log('44LV_PAGE9_PRICE_EVIDENCE',JSON.stringify(samePage.map(r=>({
+     title:r.title,anchor:r.debugCardAnchor,price:r.spatialResolved,
+     card:r.debugCardPrice,
+     glyphs:(r.debugNearbyBoxes||[]).filter(b=>/^(?:2|29|229|2[,.]29|SOL)$/i.test(String(b.text).trim()))
+    }))).slice(0,24000));
+   }
    console.log('44LV_DIAGNOSTIC',JSON.stringify({
     page:row.page,title:row.title,price:row.spatialResolved,
     card:row.debugCardPrice,candidates:row.spatialCandidates,
