@@ -1,0 +1,19 @@
+name: Fineli salt estimate contract
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/app/api/ean-bank/route.ts'
+      - 'tests/fineli-salt-estimate-contract.test.mjs'
+      - '.github/workflows/fineli-salt-estimate-contract.yml'
+  workflow_dispatch:
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Fineli salt fallback invariants
+        run: node --test tests/fineli-salt-estimate-contract.test.mjs
