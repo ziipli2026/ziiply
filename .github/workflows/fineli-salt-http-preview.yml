@@ -44,6 +44,7 @@ jobs:
                   raise SystemExit('No unique approved EAN found; supply one manually')
           PY
       - name: Check live preview EAN without writes
+        if: \${{ github.event_name == 'workflow_dispatch' }}
         env:
           FINELI_PREVIEW_URL: https://ziiply-3zgbkvz85-ziipli2026s-projects.vercel.app
           MANUAL_EAN: ${{ inputs.ean }}
