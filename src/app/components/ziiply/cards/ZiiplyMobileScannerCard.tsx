@@ -86,6 +86,9 @@ export type ZiiplyMobileScannerCardProps = {
   onClose?: () => void | Promise<void>;
   className?: string;
   fullscreen?: boolean;
+  hideHeaderTitle?: boolean;
+  headerTitle?: React.ReactNode;
+  footerLeft?: React.ReactNode;
 };
 
 export default function ZiiplyMobileScannerCard({
@@ -109,6 +112,9 @@ export default function ZiiplyMobileScannerCard({
   onClose,
   className = "",
   fullscreen = false,
+  hideHeaderTitle = false,
+  headerTitle,
+  footerLeft,
 }: ZiiplyMobileScannerCardProps) {
   const flashClass = useMemo(() => {
     if (flashState === "success") {
@@ -453,13 +459,13 @@ export default function ZiiplyMobileScannerCard({
           <span className="h-[3px] rounded-full bg-[#2c5b38]" />
         </div>
 
-        <div className="min-w-0 flex-1 rounded-[0.95rem] border-[2.5px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.74)]">
-          <div
+        <div className={hideHeaderTitle ? "min-w-0 flex-1" : "min-w-0 flex-1 rounded-[0.95rem] border-[2.5px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.74)]"}>
+          {headerTitle || (!hideHeaderTitle && <div
             className="truncate text-[22px] font-black uppercase leading-none tracking-[0.075em] text-[#163d32]"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
           >
             Skanneri
-          </div>
+          </div>)}
         </div>
 
         <button
@@ -478,7 +484,7 @@ export default function ZiiplyMobileScannerCard({
           aria-label={torchOn ? "Sammuta valo" : "Sytytä valo"}
           title={torchOn ? "Sammuta valo" : "Sytytä valo"}
         >
-          ✦
+          {headerTitle ? <span aria-hidden="true" className="text-[26px] leading-none">🔦</span> : <span aria-hidden="true">✦</span>}
         </button>
       </header>
 
@@ -649,7 +655,7 @@ export default function ZiiplyMobileScannerCard({
 
       {/* Alatoiminnot */}
       <footer className="relative z-10 grid shrink-0 grid-cols-[1fr_82px_1fr] items-center gap-2 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2">
-        <button
+        {footerLeft || <button
           type="button"
           onClick={onToggleManualInput}
           className={[
@@ -660,7 +666,7 @@ export default function ZiiplyMobileScannerCard({
           ].join(" ")}
         >
           Liitä EAN
-        </button>
+        </button>}
 
         <button
           type="button"
