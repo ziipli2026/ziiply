@@ -1,5 +1,5 @@
 name: Ziiply OFF missing EAN lookup
-run-name: OFF EAN SQL verified in Neon
+run-name: OFF EAN empty queue regression test
 on:
   push:
     branches: [main]
