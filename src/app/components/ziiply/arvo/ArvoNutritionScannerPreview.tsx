@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ZiiplyMobileScannerCard from "../cards/ZiiplyMobileScannerCard";
 import posthog from "posthog-js";
-import {ARVO_MEALS_KEY, arvoNutrientValues, readArvoMeals} from "./arvoStatistics";
+import {arvoNutrientValues, saveArvoMeal} from "./arvoStatistics";
 
 /**
  * Arvon ravintoskannerin ensimmäinen käyttöliittymäversio.
@@ -125,9 +125,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
   const saveMeal = () => {
     if (!ean || !productName || !nutrition || grams <= 0) return;
     try {
-      const list = readArvoMeals(window.localStorage);
-      list.push({id:crypto.randomUUID(),timestamp:new Date().toISOString(),ean,name:productName,grams,nutrition:arvoNutrientValues(nutrition,grams)});
-      window.localStorage.setItem(ARVO_MEALS_KEY,JSON.stringify(list));
+      saveArvoMeal(window.localStorage,{id:crypto.randomUUID(),timestamp:new Date().toISOString(),ean,name:productName,grams,nutrition:arvoNutrientValues(nutrition,grams)});
       window.dispatchEvent(new Event("ziiply-arvo-meals-updated"));
       trackEvent("arvo_meal_saved");
       setMealSaved(true);

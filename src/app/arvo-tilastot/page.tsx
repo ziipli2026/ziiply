@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
-import {ARVO_MEALS_KEY,arvoDailyStatistics,arvoNutritionTotals,readArvoMeals,type ArvoMeal} from "../components/ziiply/arvo/arvoStatistics";
+import {deleteArvoMeal,arvoDailyStatistics,arvoNutritionTotals,readArvoMeals,type ArvoMeal} from "../components/ziiply/arvo/arvoStatistics";
 
 const metrics = [{key:"kcal",label:"Energia",unit:"kcal"},{key:"protein",label:"Proteiini",unit:"g"},{key:"carbs",label:"Hiilihydraatit",unit:"g"},{key:"fat",label:"Rasva",unit:"g"}] as const;
 const format = (value:number)=>value.toLocaleString("fi-FI",{maximumFractionDigits:1});
@@ -26,8 +26,7 @@ export default function ArvoStatisticsPage() {
   const removeMeal=(id:string)=>{
     if(!window.confirm("Poistetaanko ateriamerkintä?"))return;
     try {
-      const next=readArvoMeals(window.localStorage).filter(meal=>meal.id!==id);
-      window.localStorage.setItem(ARVO_MEALS_KEY,JSON.stringify(next));
+      deleteArvoMeal(window.localStorage,id);
       window.dispatchEvent(new Event("ziiply-arvo-meals-updated"));
     } catch { window.alert("Aterian poistaminen epäonnistui."); }
   };
