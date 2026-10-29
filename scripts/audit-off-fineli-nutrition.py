@@ -151,6 +151,19 @@ with psycopg.connect(os.environ["DATABASE_URL"],
         missing_fineli = cur.fetchone()
         print("NUTRITION_MISSING_FINELI_COVERAGE", json.dumps(dict(zip(
             ["missing_total", "approved_fineli", "pending_fineli"], missing_fineli))), flush=True)
+        # Separate missing OFF records present in the EAN master from unrelated
+        # catalogue records; only master records can benefit the EAN scanner.
+        cur.execute("""SELECT
+            count(*) AS missing_off,
+            count(*) FILTER (WHERE e.ean IS NOT NULL) AS in_ean_master,
+            count(*) FILTER (WHERE e.ean IS NULL) AS outside_ean_master
+            FROM public.ziiply_off_catalogue_staging s
+            LEFT JOIN public.ziiply_off_nutrition n ON n.ean=s.ean
+            LEFT JOIN public.ziiply_ean_products e ON e.ean=s.ean
+            WHERE n.ean IS NULL""")
+        master_coverage = cur.fetchone()
+        print("NUTRITION_MISSING_MASTER_COVERAGE", json.dumps(dict(zip(
+            ["missing_off", "in_ean_master", "outside_ean_master"], master_coverage))), flush=True)
         # Count OFF fields that are still empty and have no valid staging replacement.
         cur.execute("""SELECT count(*) FROM public.ziiply_off_nutrition n
             JOIN public.ziiply_off_catalogue_staging s ON s.ean=n.ean
