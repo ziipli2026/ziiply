@@ -16,6 +16,8 @@ export function validateDailyHealthSummary(input) {
   if(Object.keys(input).some(key=>!fields.includes(key))) return false;
   if(!HEALTH_PROVIDERS.includes(input.provider) || !/^\d{4}-\d{2}-\d{2}$/.test(input.localDate||"") || !validDate(input.localDate)) return false;
   if(typeof input.timezone!=="string" || input.timezone.length>64 || !/^[A-Za-z_]+\/[A-Za-z_+-]+(?:\/[A-Za-z_+-]+)?$/.test(input.timezone)) return false;
+  if(input.provider==="apple_health" && input.hrvRmssdMs!==undefined)return false;
+  if(input.provider==="health_connect" && input.hrvSdnnMs!==undefined)return false;
   for(const key of fields.slice(3)) {
     const v=input[key];
     if(key==="sleepSessionsAvailable"){if(v!==undefined && typeof v!=="boolean")return false;continue;}
