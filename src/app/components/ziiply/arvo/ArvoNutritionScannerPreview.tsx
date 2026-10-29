@@ -106,6 +106,8 @@ export default function ArvoNutritionScannerPreview() {
         regionId="arvo-nutrition-scanner-camera"
         fullscreen
         hideHeaderTitle
+        headerTitle={<div className="flex items-center justify-center gap-2"><img src="/assistants/arvo.png" alt="" className="h-9 w-9 rounded-full object-cover"/><span className="text-lg font-black text-[#163d32]">Arvo</span></div>}
+        footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" disabled title="Aterialle lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🍽️</span><span>Aterialle</span></button><button type="button" disabled title="Ostoskoriin lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🛒</span><span>Ostoskoriin</span></button></div>}
         onClose={() => { setOpen(false); setTab("scan"); }}
         onToggleTorch={() => {
           const track = cameraRef.current?.getVideoTracks()[0];
@@ -132,9 +134,8 @@ export default function ArvoNutritionScannerPreview() {
               <div className="mt-2 grid grid-cols-4 gap-1">
                 {([["kcal",["kcal_100g","energy-kcal_100g","ENERC"]],["Prot.",["proteins_100g","protein_100g","PROCNT"]],["HH",["carbohydrates_100g","CHOCDF"]],["Rasva",["fat_100g","FAT"]]] as [string,string[]][]).map(([label,keys])=><div key={label} className="rounded-lg bg-white px-1 py-2 text-center"><div className="text-[10px] font-bold">{label}</div><div className="text-base font-black">{nutrient(keys)}</div></div>)}
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <button type="button" disabled className="rounded-xl border border-[#b99d62] bg-white p-2 text-xs font-bold opacity-50">Lisää aterialle</button>
-                <button type="button" onClick={()=>{setEan("");setProductName("");setNutrition(null);setStatus("");lastEanRef.current="";setTab("scan");}} className="rounded-xl bg-[#24573e] p-2 text-xs font-bold text-white">Skannaa seuraava</button>
+              <div className="mt-2">
+                <button type="button" onClick={()=>{setEan("");setProductName("");setNutrition(null);setStatus("");lastEanRef.current="";setTab("scan");}} className="w-full rounded-xl bg-[#24573e] p-3 text-sm font-bold text-white">Skannaa seuraava</button>
               </div>
             </section>
           </div>
