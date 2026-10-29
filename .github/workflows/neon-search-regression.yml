@@ -82,6 +82,7 @@ jobs:
           name: neon-search-regression
           path: |
             artifacts/neon-search-regression.json
+            artifacts/neon-search-intent-diagnostics.json
             artifacts/neon-search-category-coverage.json
             artifacts/neon-search-ranking-diagnostics.json
             artifacts/neon-search-unique-category-analysis.json
