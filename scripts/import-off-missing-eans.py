@@ -18,10 +18,14 @@ with connect_db() as conn:
           LEFT JOIN public.ziiply_off_catalogue_staging s ON s.ean=e.ean
           LEFT JOIN public.ziiply_off_ean_lookup_log l ON l.ean=e.ean
           WHERE s.ean IS NULL
-          AND e.ean ~ '^[0-9]{8,14}          AND (l.ean IS NULL OR l.status = 'error' OR (l.status = 'not_found'
-            AND l.checked_at < now() - (%s * interval '1 hour')))
+            AND e.ean ~ '^[0-9]{8,14}$'
+            AND NOT (length(e.ean) = 13 AND e.ean ~ '^2[0-9]')
+            AND (l.ean IS NULL OR l.status = 'error'
+                 OR (l.status = 'not_found'
+                     AND l.checked_at < now() - (%s * interval '1 hour')))
           ORDER BY CASE WHEN l.ean IS NULL THEN 0 WHEN l.status = 'error' THEN 1 ELSE 2 END,
-            l.checked_at ASC NULLS FIRST, e.ean LIMIT %s""", (RECHECK_HOURS, LIMIT))
+                   l.checked_at ASC NULLS FIRST, e.ean
+          LIMIT %s""", (RECHECK_HOURS, LIMIT))
         codes = [r[0] for r in cur.fetchall()]
     conn.commit()
     totals = {"found":0,"not_found":0,"errors":0}
