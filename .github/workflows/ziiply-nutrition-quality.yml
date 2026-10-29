@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: OFF nutrition and missing Fineli coverage audit
+run-name: OFF nutrition EAN master coverage and next refresh
 on:
   push:
     branches: [main]
