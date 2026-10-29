@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
   const sausageFoodIntent = /^(makkara|makkarat)$/i.test(q);
   const sausagePetIntent = /^(koiranmakkara|koiran makkara)$/i.test(q);
   const petCategoryPattern = "^(lemmikit|lemmikkielaimet)(/| |$)|(^|/)(koiran|kissan)(-|/| |$)";
+  // Whitespace in an intent query must not prevent retrieving compound product names.
+  const compactPetSausage = sausagePetIntent ? "%koiranmakkara%" : "";
   const started = Date.now();
 
   try {
@@ -46,6 +48,7 @@ export async function GET(request: NextRequest) {
         FROM ziiply_ean_products
         WHERE (${isEan} AND ean = ${q})
            OR name ILIKE ${contains}
+           OR (${sausagePetIntent} AND name ILIKE ${compactPetSausage})
            OR brand ILIKE ${contains}
            OR EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${contains})
            OR (${isSingleWord} AND lower(regexp_replace(coalesce(category, ''), '[^[:alnum:]]+', ' ', 'g')) ~ ${categoryTermPattern})
@@ -90,7 +93,7 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v9-sausage-intent-test",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v9-sausage-spaced-intent-test",
       categoryExpansion: "combined-name-and-leaf-category-relevance",
       truncated: rows.length === 100
     });
