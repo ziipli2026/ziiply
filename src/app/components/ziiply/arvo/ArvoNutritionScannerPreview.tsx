@@ -105,6 +105,7 @@ export default function ArvoNutritionScannerPreview() {
       <ZiiplyMobileScannerCard
         regionId="arvo-nutrition-scanner-camera"
         fullscreen
+        hideHeaderTitle
         onClose={() => { setOpen(false); setTab("scan"); }}
         onToggleTorch={() => {
           const track = cameraRef.current?.getVideoTracks()[0];
