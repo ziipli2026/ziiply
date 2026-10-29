@@ -53,6 +53,30 @@ export default function ZiiplyMobileAssistantPanel({
   locationLabel,
   onOpenStoreSettings,
 }: ZiiplyMobileAssistantPanelProps) {
+  const [watchQuery, setWatchQuery] = React.useState("");
+  const [savedWatches, setSavedWatches] = React.useState<string[]>([]);
+  const [watchNotice, setWatchNotice] = React.useState("");
+  React.useEffect(() => {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1") || "[]");
+      setSavedWatches(Array.isArray(saved) ? saved.filter((value: unknown): value is string => typeof value === "string").slice(0, 30) : []);
+    } catch { setSavedWatches([]); }
+  }, [activeAssistant]);
+  function saveWatch() {
+    const query = watchQuery.trim();
+    if (!query) return;
+    const next = [query, ...savedWatches.filter(item => item.toLocaleLowerCase("fi") !== query.toLocaleLowerCase("fi"))].slice(0, 30);
+    try { window.localStorage.setItem("ziiply-gosta-offer-watches-v1", JSON.stringify(next)); } catch {}
+    setSavedWatches(next);
+    setWatchQuery("");
+    setWatchNotice("Tarjousvahti tallennettu vihkoon: " + query);
+  }
+  function removeWatch(query: string) {
+    const next = savedWatches.filter(item => item !== query);
+    try { window.localStorage.setItem("ziiply-gosta-offer-watches-v1", JSON.stringify(next)); } catch {}
+    setSavedWatches(next);
+    setWatchNotice("Tarjousvahti poistettu: " + query);
+  }
   const [recipeCameraOpen,setRecipeCameraOpen]=React.useState(false);
   React.useEffect(()=>{setRecipeCameraOpen(false)},[activeAssistant]);
   const headerRef=React.useRef<HTMLDivElement|null>(null);
@@ -103,7 +127,29 @@ export default function ZiiplyMobileAssistantPanel({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151]">
-          {activeAssistant === "justiina" ? <JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} onCameraOpenChange={setRecipeCameraOpen} /> : activeAssistant === "arvo" ? <ArvoSettingsPanel onClose={onClose} />  : content.body}
+          {activeAssistant === "justiina" ? <JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} onCameraOpenChange={setRecipeCameraOpen} /> : activeAssistant === "arvo" ? <ArvoSettingsPanel onClose={onClose} /> : (
+            <div className="space-y-4">
+              <h2 className="text-xl font-black text-[#244a28]">Tarjousvahti</h2>
+              <p>Tallenna tuotteet tai hakusanat, joiden tarjouksia haluat seurata.</p>
+              <form onSubmit={(event) => { event.preventDefault(); saveWatch(); }} className="flex gap-2">
+                <input value={watchQuery} onChange={event => { setWatchQuery(event.target.value); setWatchNotice(""); }} placeholder="Tuote tai hakusana" aria-label="Tarjousvahdin hakusana" className="min-w-0 flex-1 rounded-xl border border-[#8bb56d] bg-white px-3 py-3 text-base" />
+                <button type="submit" disabled={!watchQuery.trim()} className="rounded-xl bg-[#17573c] px-4 py-3 font-black text-white disabled:opacity-50">Tallenna</button>
+              </form>
+              {watchNotice && <p role="status" className="text-[#17573c]">{watchNotice}</p>}
+              <h3 className="font-black">Tallennetut tarjousvahdit ({savedWatches.length})</h3>
+              {savedWatches.length === 0 ? <p>Ei vielä tallennettuja tarjousvahteja.</p> : (
+                <ul className="space-y-2">
+                  {savedWatches.map(query => (
+                    <li key={query} className="flex items-center justify-between gap-2 rounded-xl bg-white/80 p-3">
+                      <span className="min-w-0 break-words">{query}</span>
+                      <button type="button" onClick={() => removeWatch(query)} aria-label={`Poista tarjousvahti: ${query}`} className="shrink-0 rounded-lg border border-[#b99d62] px-3 py-2">Poista</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-xs font-normal text-[#687285]">Tarjousvahdit tallennetaan tähän selaimeen. Automaattiset tarjousilmoitukset eivät ole vielä käytössä.</p>
+            </div>
+          )}
         </div>
       </section>
     </div>
