@@ -146,6 +146,23 @@ with psycopg.connect(os.environ["DATABASE_URL"],
               AND s.nutriments IS NOT NULL""")
         print("NUTRITION_STAGING_REMAINING_FIELD_GAPS", json.dumps(dict(zip(
             ["missing_salt", "missing_protein", "missing_kcal"], cur.fetchone()))), flush=True)
+        # Count safe source-backed salt opportunities, separating raw source gaps
+        # from approved Fineli matches. Diagnostic only: no automatic mapping.
+        salt_expr = numeric_expr("salt_100g", 100)
+        cur.execute("""SELECT
+            count(*) FILTER (WHERE s.ean IS NOT NULL) AS with_staging,
+            count(*) FILTER (WHERE s.ean IS NULL) AS without_staging,
+            count(*) FILTER (WHERE s.ean IS NOT NULL AND (""" + salt_expr + """) IS NOT NULL) AS valid_off_salt,
+            count(*) FILTER (WHERE EXISTS (
+                SELECT 1 FROM public.ziiply_ean_fineli_matches m
+                WHERE m.ean=n.ean AND m.approved IS TRUE)) AS approved_fineli_match
+            FROM public.ziiply_off_nutrition n
+            JOIN public.ziiply_ean_products e ON e.ean=n.ean
+            LEFT JOIN public.ziiply_off_catalogue_staging s ON s.ean=n.ean
+            WHERE n.salt_100g IS NULL""")
+        print("NUTRITION_EAN_SALT_SOURCE_COVERAGE", json.dumps(dict(zip(
+            ["with_staging", "without_staging", "valid_off_salt",
+             "approved_fineli_match"], cur.fetchone()))), flush=True)
         # Flag implausible existing values for review, without silently overwriting.
         cur.execute("""SELECT ean, product_name, source, kcal_100g, fat_100g,
             proteins_100g, salt_100g FROM public.ziiply_off_nutrition
