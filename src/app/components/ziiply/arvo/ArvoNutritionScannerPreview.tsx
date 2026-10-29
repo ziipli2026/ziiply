@@ -14,8 +14,6 @@ export default function ArvoNutritionScannerPreview() {
   const [productName, setProductName] = useState("");
   const [nutrition, setNutrition] = useState<Record<string, unknown> | null>(null);
   const [status, setStatus] = useState("");
-  const [manual, setManual] = useState(false);
-  const [manualEan, setManualEan] = useState("");
   const [torch, setTorch] = useState(false);
   const cameraRef = useRef<MediaStream | null>(null);
   const lastEanRef = useRef("");
@@ -29,7 +27,6 @@ export default function ArvoNutritionScannerPreview() {
       if (!/^\d{8,14}$/.test(code) || code === lastEanRef.current || disposed) return;
       lastEanRef.current = code;
       setEan(code);
-      setOpen(false);
       setTab("nutrition");
     };
     async function start() {
@@ -104,62 +101,46 @@ export default function ArvoNutritionScannerPreview() {
   const [grams, setGrams] = useState(100);
   const [tab, setTab] = useState<"scan" | "nutrition">("scan");
   return (
-    <div className="min-h-dvh bg-[#f8f5ed] px-3 pb-8 pt-[max(12px,env(safe-area-inset-top))] text-[#173b2b]">
-      <main className="mx-auto max-w-[480px]">
-        <header className="mb-3 flex items-center gap-3">
-          <img src="/assistants/arvo.png" alt="Arvo" className="h-12 w-12 rounded-full border border-[#b99d62] object-cover" />
-          <div className="min-w-0 flex-1"><h1 className="text-xl font-black leading-tight">Arvon ravintoskanneri</h1><p className="text-xs text-[#68756a]">Tuotteen ravintoarvot annoksen mukaan</p></div>
-          <button type="button" onClick={() => {setTab("scan");setOpen(true);}} className="rounded-xl bg-[#24573e] px-3 py-2.5 text-sm font-bold text-white">Skannaa</button>
-        </header>
-        <form className="mb-3 flex gap-2" onSubmit={event => {event.preventDefault();const value=manualEan.replace(/\D/g,"");if (!/^\d{8,14}$/.test(value)) {setStatus("EAN-koodissa pitää olla 8–14 numeroa.");return;}setEan(value);setTab("nutrition");}}>
-          <input aria-label="EAN-koodi" inputMode="numeric" value={manualEan} onChange={event=>setManualEan(event.target.value)} placeholder="EAN-koodi tai liitä tähän" className="min-w-0 flex-1 rounded-xl border border-[#c9b88e] bg-white px-3 py-2.5 text-sm" />
-          <button type="submit" className="rounded-xl border border-[#24573e] bg-white px-4 text-sm font-bold text-[#24573e]">Hae</button>
-        </form>
-        {tab === "scan" && !ean ? (
-          <section className="rounded-2xl border border-[#c9b88e] bg-white p-5 text-center">
-            <p className="mb-3 text-sm text-[#68756a]">Skannaa pakkauksen viivakoodi tai syötä EAN yllä.</p>
-            <button type="button" onClick={() => setOpen(true)} className="w-full rounded-xl bg-[#24573e] px-4 py-3 font-bold text-white">Avaa kamera</button>
-            {status && <p role="status" className="mt-3 text-sm">{status}</p>}
-          </section>
-        ) : (
-          <section className="rounded-2xl border border-[#c9b88e] bg-white p-4 shadow-sm">
-            <div className="mb-3">
-              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#816a3c]">Tunnistettu tuote</p>
-              <h2 className="text-lg font-black leading-snug">{productName || "Tuotetta haetaan…"}</h2>
-              <p className="mt-1 text-xs text-[#68756a]">{ean ? "EAN " + ean + " · " : ""}{status}</p>
-            </div>
-            <div className="rounded-xl bg-[#f8f5ed] p-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <label htmlFor="arvo-grams" className="text-sm font-bold">Syötävä määrä</label>
-                <div className="flex items-center gap-1"><input aria-label="Grammamäärä" type="number" min="0" max="5000" step="5" value={grams} onChange={e => setGrams(Math.max(0,Math.min(5000,Number(e.target.value)||0)))} className="w-20 rounded-lg border border-[#c9b88e] bg-white px-2 py-1 text-right font-black" /><span className="font-bold">g</span></div>
+    <div className="fixed inset-0 overflow-hidden bg-[#f8f5ed] text-[#173b2b]">
+      <ZiiplyMobileScannerCard
+        regionId="arvo-nutrition-scanner-camera"
+        fullscreen
+        onClose={() => { setOpen(false); setTab("scan"); }}
+        onToggleTorch={() => {
+          const track = cameraRef.current?.getVideoTracks()[0];
+          if (track) void track.applyConstraints({advanced:[{torch:!torch} as any]}).then(() => setTorch(!torch)).catch(() => setStatus("Valoa ei tueta tällä laitteella"));
+        }}
+        torchOn={torch}
+        scannerMessage={tab === "scan" ? status : ""}
+        cameraOverlay={tab === "nutrition" && ean ? (
+          <div className="absolute inset-0 z-30 flex flex-col justify-end bg-[#07100b]/65 p-3 pb-[max(16px,env(safe-area-inset-bottom))]">
+            <section className="w-full rounded-2xl border-2 border-[#b99d62] bg-[#fff7e6] p-3 shadow-2xl">
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-[#816a3c]">Arvo · Ravintoarvot</p>
+                  <h2 className="truncate text-base font-black">{productName || "Haetaan tuotetta…"}</h2>
+                  <p className="text-[11px] text-[#536456]">EAN {ean} · {status}</p>
+                </div>
+                <button type="button" aria-label="Sulje tuotetiedot" onClick={() => {setEan("");setTab("scan");lastEanRef.current="";}} className="rounded-full bg-white px-3 py-1 text-xl font-bold">×</button>
               </div>
-              <input id="arvo-grams" aria-label="Syötävä määrä liukusäätimellä" type="range" min="0" max="500" step="5" value={Math.min(grams,500)} onChange={e => setGrams(Number(e.target.value))} className="w-full accent-[#24573e]" />
-              <div className="mt-1 flex justify-between text-[11px] text-[#68756a]"><span>0 g</span><span>500 g</span></div>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {[["Energia", "kcal", ["kcal_100g","energy-kcal_100g","ENERC"]], ["Proteiini", "g", ["proteins_100g","protein_100g","PROCNT"]], ["Hiilihydraatit", "g", ["carbohydrates_100g","CHOCDF"]], ["Rasva", "g", ["fat_100g","FAT"]]].map(([label, unit, keys]) => <div key={String(label)} className="rounded-xl bg-[#f3f0e7] px-3 py-3"><div className="text-xs font-semibold text-[#536456]">{String(label)}</div><div className="mt-1 text-2xl font-black leading-none">{nutrient(keys as string[])} <span className="text-xs font-semibold">{String(unit)}</span></div></div>)}
-            </div>
-            <div className="mt-3 flex gap-2">
-              <button type="button" onClick={() => {setTab("scan");setOpen(true);}} className="flex-1 rounded-xl bg-[#24573e] px-3 py-3 text-sm font-bold text-white">Skannaa seuraava</button>
-              <button type="button" disabled title="Ateriapäiväkirja toteutetaan seuraavaksi" className="flex-1 rounded-xl border border-[#b99d62] px-3 py-3 text-sm font-bold text-[#82948a]">Lisää aterialle</button>
-            </div>
-          </section>
-        )}
-      </main>
-      {open && <div className="fixed inset-0 z-[100] bg-[#f8f5ed]">
-        <ZiiplyMobileScannerCard
-          regionId="arvo-nutrition-scanner-camera"
-          fullscreen
-          onClose={() => setOpen(false)}
-          onToggleManualInput={() => setManual(value => !value)}
-          manualInputOpen={manual}
-          onToggleTorch={() => { const track = cameraRef.current?.getVideoTracks()[0]; if (track) { void track.applyConstraints({advanced:[{torch:!torch} as any]}).then(() => setTorch(!torch)).catch(() => setStatus("Valoa ei tueta tällä laitteella")); } }}
-          torchOn={torch}
-          scannerMessage={status}
-        />
-        {manual && <form className="absolute bottom-28 left-4 right-4 z-[120] flex gap-2 rounded-xl bg-[#fff0c8] p-3" onSubmit={event => {event.preventDefault(); const value = String(new FormData(event.currentTarget).get("ean") || "").replace(/\D/g,""); if (/^\d{8,14}$/.test(value)) {setEan(value);setOpen(false);setTab("nutrition");setManual(false);} }}><input name="ean" inputMode="numeric" placeholder="EAN-koodi" className="min-w-0 flex-1 rounded-lg border p-2" required/><button className="rounded-lg bg-[#24573e] px-3 font-bold text-white">Hae</button></form>}
-        <div className="pointer-events-none absolute left-1/2 top-[calc(env(safe-area-inset-top)+14px)] z-[110] -translate-x-1/2 rounded-full border border-[#b99d62] bg-[#fff0c8]/95 px-4 py-1 text-xs font-black text-[#24573e] shadow">ARVO · RAVINTO</div>
-      </div>}
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="arvo-grams" className="text-sm font-bold">Määrä</label>
+                <div className="flex items-center gap-1"><input aria-label="Grammamäärä" type="number" min="0" max="5000" value={grams} onChange={e=>setGrams(Math.max(0,Math.min(5000,Number(e.target.value)||0)))} className="w-20 rounded-lg border border-[#b99d62] bg-white px-2 py-1 text-right font-black"/><span className="text-sm font-bold">g</span></div>
+              </div>
+              <input id="arvo-grams" type="range" min="0" max="500" step="5" value={Math.min(grams,500)} onChange={e=>setGrams(Number(e.target.value))} className="mt-1 w-full accent-[#24573e]"/>
+              <div className="mt-2 grid grid-cols-4 gap-1">
+                {([["kcal",["kcal_100g","energy-kcal_100g","ENERC"]],["Prot.",["proteins_100g","protein_100g","PROCNT"]],["HH",["carbohydrates_100g","CHOCDF"]],["Rasva",["fat_100g","FAT"]]] as [string,string[]][]).map(([label,keys])=><div key={label} className="rounded-lg bg-white px-1 py-2 text-center"><div className="text-[10px] font-bold">{label}</div><div className="text-base font-black">{nutrient(keys)}</div></div>)}
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button type="button" disabled className="rounded-xl border border-[#b99d62] bg-white p-2 text-xs font-bold opacity-50">Lisää aterialle</button>
+                <button type="button" onClick={()=>{setEan("");setProductName("");setNutrition(null);setStatus("");lastEanRef.current="";setTab("scan");}} className="rounded-xl bg-[#24573e] p-2 text-xs font-bold text-white">Skannaa seuraava</button>
+              </div>
+            </section>
+          </div>
+        ) : undefined}
+      />
+      {!open && <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#f8f5ed] p-5"><button type="button" onClick={()=>{setOpen(true);setTab("scan");}} className="rounded-2xl bg-[#24573e] px-8 py-4 text-lg font-bold text-white">Avaa Arvon skanneri</button></div>}
+      {open && <div className="pointer-events-none absolute left-1/2 top-[max(10px,env(safe-area-inset-top))] z-40 -translate-x-1/2 rounded-full border border-[#b99d62] bg-[#fff0c8] px-3 py-1 text-xs font-black">ARVO · RAVINTO</div>}
     </div>
   );
 }
