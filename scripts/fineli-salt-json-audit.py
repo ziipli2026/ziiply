@@ -132,4 +132,28 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                     "confidence":confidence,"estimated_salt_g_100g":str(salt)}
                    for ean,product,fineli,confidence,salt in candidates]
         }, ensure_ascii=False), flush=True)
+        cur.execute("""
+          SELECT count(*) AS total,
+                 count(*) FILTER (WHERE (f.nutrients->'NACL'->>'value')::numeric=0) AS zeros,
+                 count(*) FILTER (WHERE (f.nutrients->'NACL'->>'value')::numeric>500) AS over_half_gram,
+                 count(*) FILTER (WHERE (f.nutrients->'NACL'->>'value')::numeric>1000) AS over_one_gram,
+                 count(*) FILTER (WHERE m.confidence='verified') AS verified,
+                 count(*) FILTER (WHERE m.confidence='high') AS high_confidence
+          FROM public.ziiply_ean_fineli_matches m
+          JOIN public.ziiply_off_nutrition n ON n.ean=m.ean
+          JOIN public.ziiply_ean_products e ON e.ean=m.ean
+          JOIN public.ziiply_fineli_foods f ON f.fineli_id=m.fineli_id
+          WHERE m.approved IS TRUE AND n.salt_100g IS NULL
+            AND m.match_method='manual_verified'
+            AND m.confidence IN ('verified','high')
+            AND f.nutrients->'NACL'->>'unit'='MG'
+            AND jsonb_typeof(f.nutrients->'NACL'->'value')='number'
+            AND (f.nutrients->'NACL'->>'value')::numeric BETWEEN 0 AND 100000
+        """)
+        total,zeros,half,one,verified,high=cur.fetchone()
+        print("FINELI_MANUAL_SALT_RISK_BUCKETS", json.dumps({
+          "total":total,"zero_values":zeros,"above_0_5g":half,
+          "above_1g":one,"verified":verified,"high_confidence":high,
+          "source_type":"generic_estimate","database_writes":0
+        }), flush=True)
     conn.rollback()
