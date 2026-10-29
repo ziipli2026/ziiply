@@ -48,4 +48,27 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
           {"type":kind, "count":count, "example":example}
           for kind,count,example in cur.fetchall()
         ], ensure_ascii=False), flush=True)
+        cur.execute("""
+          SELECT upper(f.nutrients->'NACL'->>'unit') AS unit,
+                 count(*) AS items,
+                 count(*) FILTER (WHERE jsonb_typeof(f.nutrients->'NACL'->'value')='number') AS numeric_values,
+                 min(CASE WHEN jsonb_typeof(f.nutrients->'NACL'->'value')='number'
+                          THEN (f.nutrients->'NACL'->>'value')::numeric END) AS min_value,
+                 max(CASE WHEN jsonb_typeof(f.nutrients->'NACL'->'value')='number'
+                          THEN (f.nutrients->'NACL'->>'value')::numeric END) AS max_value
+          FROM public.ziiply_ean_fineli_matches m
+          JOIN public.ziiply_off_nutrition n ON n.ean=m.ean
+          JOIN public.ziiply_ean_products e ON e.ean=m.ean
+          JOIN public.ziiply_fineli_foods f ON f.fineli_id=m.fineli_id
+          WHERE m.approved IS TRUE AND n.salt_100g IS NULL
+            AND jsonb_typeof(f.nutrients->'NACL')='object'
+          GROUP BY upper(f.nutrients->'NACL'->>'unit')
+          ORDER BY items DESC
+        """)
+        print("FINELI_SALT_UNIT_AUDIT", json.dumps([
+          {"unit":unit,"items":items,"numeric_values":numeric,
+           "min_value":str(low) if low is not None else None,
+           "max_value":str(high) if high is not None else None}
+          for unit,items,numeric,low,high in cur.fetchall()
+        ]), flush=True)
     conn.rollback()
