@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { runSimulation, type Snapshot, type Source } from '@/lib/neonSearchSimulation/engine';
 import { fixture, scenarios, type Scenario } from '@/lib/neonSearchSimulation/fixtures';
-const empty: Snapshot = { rows: [], stages: {}, events: [], done: false };
+const empty: Snapshot = { rows: [], pricedRows: [], unpricedRows: [], stages: {}, events: [], done: false };
 export default function SimulationPage() {
   const [scenario, setScenario] = useState<Scenario>(scenarios[0]);
   const [mode, setMode] = useState('S + K');
