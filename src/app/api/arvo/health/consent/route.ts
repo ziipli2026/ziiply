@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
-
-// Fail-closed until server-verified authentication, CSRF protection,
-// versioned privacy notice and audited Neon consent writes are implemented.
-// Never accept user_id or consent state from request JSON as proof.
+import { requireArvoHealthUser } from "../../../../../lib/arvoHealthAuth";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function disabled() {
-  return NextResponse.json(
-    { enabled: false, connected: false, consent: "not_available", error: "Terveystietoyhteys ei ole vielä käytössä." },
-    { status: 503, headers: { "Cache-Control": "no-store" } }
-  );
+async function unavailable() {
+  const auth = await requireArvoHealthUser();
+  if (!auth.ok) return auth.response;
+  return NextResponse.json({ ok: false, error: "Consent operations not enabled" }, { status: 503, headers: { "Cache-Control": "no-store" } });
 }
-
-export async function GET() { return disabled(); }
-export async function POST() { return disabled(); }
-export async function DELETE() { return disabled(); }
+export async function GET() { return unavailable(); }
+export async function POST() { return unavailable(); }
+export async function DELETE() { return unavailable(); }
