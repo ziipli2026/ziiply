@@ -7,6 +7,7 @@ import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 type Props = {
   activeAssistant: ZiiplyAssistantKey | null;
   onSelectAssistant: (assistant: ZiiplyAssistantKey) => void;
+  onUpperAction?: (assistant: ZiiplyAssistantKey) => void;
 };
 
 /**
@@ -14,7 +15,7 @@ type Props = {
  * The parent owns the utility strip and bottom navigation; this panel only
  * distributes the available space between the brand header and assistant cards.
  */
-export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant }: Props) {
+export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant, onUpperAction }: Props) {
   return (
     <main
       className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 max-[389px]:overflow-y-auto max-[389px]:pb-[calc(env(safe-area-inset-bottom)+120px)] sm:hidden"
@@ -52,7 +53,8 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
             subtitle="Hinnat ja tarjoukset"
             imageSrc="/assistants/gosta.png"
             active={activeAssistant === "gosta"}
-            onClick={() => onSelectAssistant("gosta")}
+            onClick={() => (onUpperAction || onSelectAssistant)("gosta")}
+            onLowerClick={() => onSelectAssistant("gosta")}
           />
           <ZiiplyMobileAssistantButton
             assistant="justiina"
@@ -62,7 +64,8 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
             imageSrc="/assistants/justiina.png"
             featured
             active={activeAssistant === "justiina"}
-            onClick={() => onSelectAssistant("justiina")}
+            onClick={() => (onUpperAction || onSelectAssistant)("justiina")}
+            onLowerClick={() => onSelectAssistant("justiina")}
           />
           <ZiiplyMobileAssistantButton
             assistant="arvo"
@@ -71,7 +74,8 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
             subtitle="Omat valinnat"
             imageSrc="/assistants/arvo.png"
             active={activeAssistant === "arvo"}
-            onClick={() => onSelectAssistant("arvo")}
+            onClick={() => (onUpperAction || onSelectAssistant)("arvo")}
+            onLowerClick={() => onSelectAssistant("arvo")}
           />
         </section>
       </div>
