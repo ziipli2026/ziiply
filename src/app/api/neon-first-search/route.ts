@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
       WITH candidates AS (
         SELECT ean, name, brand, quantity, image_url, category, source, aliases, last_seen_at,
           lower(regexp_replace(coalesce(category, ''), '[^[:alnum:]]+', ' ', 'g')) AS category_words,
-          lower(regexp_replace(coalesce(name, ''), '[^[:alnum:]]+', ' ', 'g')) AS name_words
+          lower(regexp_replace(coalesce(name, ''), '[^[:alnum:]]+', ' ', 'g')) AS name_words,
+          lower(regexp_replace(split_part(coalesce(category, ''), '/', array_length(string_to_array(coalesce(category, ''), '/'), 1)), '[^[:alnum:]]+', ' ', 'g')) AS category_leaf_words
         FROM ziiply_ean_products
         WHERE (${isEan} AND ean = ${q})
            OR name ILIKE ${contains}
@@ -59,6 +60,7 @@ export async function GET(request: NextRequest) {
           ELSE (
             20
             - CASE WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 8 ELSE 0 END
+            - CASE WHEN ${isSingleWord} AND category_leaf_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 3 ELSE 0 END
             - CASE WHEN ${isSingleWord} AND category_words ~ ${categoryTermPattern}
                      AND category_words !~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 2 ELSE 0 END
             - CASE WHEN name_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 6 ELSE 0 END
@@ -81,8 +83,8 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v8",
-      categoryExpansion: "combined-category-name-relevance",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v9",
+      categoryExpansion: "combined-name-and-leaf-category-relevance",
       truncated: rows.length === 100
     });
   } catch (error) {
