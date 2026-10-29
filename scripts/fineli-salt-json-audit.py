@@ -110,4 +110,26 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
            "valid_mg":valid,"missing_nacl":missing}
           for method,confidence,matched,valid,missing in cur.fetchall()
         ], ensure_ascii=False), flush=True)
+        cur.execute("""
+          SELECT m.ean, e.name, f.name_fi, m.confidence,
+                 round((f.nutrients->'NACL'->>'value')::numeric / 1000, 4)
+          FROM public.ziiply_ean_fineli_matches m
+          JOIN public.ziiply_off_nutrition n ON n.ean=m.ean
+          JOIN public.ziiply_ean_products e ON e.ean=m.ean
+          JOIN public.ziiply_fineli_foods f ON f.fineli_id=m.fineli_id
+          WHERE m.approved IS TRUE AND n.salt_100g IS NULL
+            AND m.match_method='manual_verified'
+            AND m.confidence IN ('verified','high')
+            AND f.nutrients->'NACL'->>'unit'='MG'
+            AND jsonb_typeof(f.nutrients->'NACL'->'value')='number'
+            AND (f.nutrients->'NACL'->>'value')::numeric BETWEEN 0 AND 100000
+          ORDER BY m.ean
+        """)
+        candidates = cur.fetchall()
+        print("FINELI_MANUAL_SALT_PREVIEW", json.dumps({
+          "count":len(candidates),
+          "items":[{"ean":ean,"product":product,"fineli":fineli,
+                    "confidence":confidence,"estimated_salt_g_100g":str(salt)}
+                   for ean,product,fineli,confidence,salt in candidates]
+        }, ensure_ascii=False), flush=True)
     conn.rollback()
