@@ -7,7 +7,7 @@ const validEan = (ean?: string) => /^\d{8,14}$/.test(ean || '') ? ean : undefine
 
 // Generic token-aware relevance. A query term must match a whole word or a
 // plausible Finnish compound prefix, not a substring inside another word.
-const words = (value: string) => value.toLocaleLowerCase('fi-FI').normalize('NFKC').match(/[a-zåäö0-9]+/gu) || [];
+const words = (value: string): string[] => value.toLocaleLowerCase('fi-FI').normalize('NFKC').match(/[a-zåäö0-9]+/gu) || [];
 export function relevanceForQuery(query: string, row: Row): number {
   const tokens = words(query);
   const nameWords = words(row.name);
