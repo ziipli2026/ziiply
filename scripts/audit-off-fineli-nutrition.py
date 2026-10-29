@@ -118,6 +118,34 @@ with psycopg.connect(os.environ["DATABASE_URL"],
         print("NUTRITION_FIELD_QUALITY", json.dumps(dict(zip(
             ["total", "missing_kcal", "missing_protein", "missing_salt",
              "missing_fat", "missing_carbs", "implausible"], stats))), flush=True)
+        # Prioritize missing nutrients for products actually present in Ziiply's EAN master.
+        # This is a read-only diagnostic; never invent or zero-fill absent values.
+        cur.execute("""SELECT
+            count(*) AS linked_rows,
+            count(*) FILTER (WHERE n.kcal_100g IS NULL) AS missing_kcal,
+            count(*) FILTER (WHERE n.proteins_100g IS NULL) AS missing_protein,
+            count(*) FILTER (WHERE n.salt_100g IS NULL) AS missing_salt,
+            count(*) FILTER (WHERE n.fat_100g IS NULL) AS missing_fat,
+            count(*) FILTER (WHERE n.carbohydrates_100g IS NULL) AS missing_carbs,
+            count(*) FILTER (WHERE n.kcal_100g IS NULL
+                OR n.proteins_100g IS NULL OR n.salt_100g IS NULL
+                OR n.fat_100g IS NULL OR n.carbohydrates_100g IS NULL)
+                AS any_missing
+            FROM public.ziiply_off_nutrition n
+            JOIN public.ziiply_ean_products e ON e.ean=n.ean""")
+        print("NUTRITION_EAN_MASTER_FIELD_GAPS", json.dumps(dict(zip(
+            ["linked_rows", "missing_kcal", "missing_protein", "missing_salt",
+             "missing_fat", "missing_carbs", "any_missing"], cur.fetchone()))), flush=True)
+        cur.execute("""SELECT
+            count(*) FILTER (WHERE n.salt_100g IS NULL) AS missing_salt,
+            count(*) FILTER (WHERE n.proteins_100g IS NULL) AS missing_protein,
+            count(*) FILTER (WHERE n.kcal_100g IS NULL) AS missing_kcal
+            FROM public.ziiply_off_nutrition n
+            JOIN public.ziiply_off_catalogue_staging s ON s.ean=n.ean
+            WHERE n.source ILIKE '%open food facts%'
+              AND s.nutriments IS NOT NULL""")
+        print("NUTRITION_STAGING_REMAINING_FIELD_GAPS", json.dumps(dict(zip(
+            ["missing_salt", "missing_protein", "missing_kcal"], cur.fetchone()))), flush=True)
         # Flag implausible existing values for review, without silently overwriting.
         cur.execute("""SELECT ean, product_name, source, kcal_100g, fat_100g,
             proteins_100g, salt_100g FROM public.ziiply_off_nutrition
