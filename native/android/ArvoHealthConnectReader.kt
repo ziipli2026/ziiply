@@ -4,50 +4,100 @@ import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
+import androidx.health.connect.client.records.RestingHeartRateRecord
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.request.AggregateRequest
+import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.health.connect.client.aggregate.AggregationMetric
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.Instant
 
 /**
- * Native Android Health Connect reader.
- * Host Activity must obtain explicit in-app consent and OS permissions
- * using PermissionController.createRequestPermissionResultContract().
- * No network or persistent storage operations are performed here.
+ * Local-only Android Health Connect reader.
+ * The host must show a versioned privacy notice, record explicit in-app consent,
+ * and request the returned OS permissions before calling readDay.
+ * Does not send data over the network or persist it.
  */
 class ArvoHealthConnectReader(context: Context) {
     private val client = HealthConnectClient.getOrCreate(context)
+    private val supported = setOf("steps", "active_energy", "resting_heart_rate", "hrv", "sleep_stages")
+    private var approvedCategories: Set<String> = emptySet()
+
     fun requestedPermissions(categories: Set<String>): Set<String> {
-        require(categories.isNotEmpty() && categories.all { it in setOf("steps", "active_energy") })
+        require(categories.isNotEmpty() && categories.all { it in supported })
         return buildSet {
             if ("steps" in categories) add(HealthPermission.getReadPermission(StepsRecord::class))
             if ("active_energy" in categories) add(HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class))
+            if ("resting_heart_rate" in categories) add(HealthPermission.getReadPermission(RestingHeartRateRecord::class))
+            if ("hrv" in categories) add(HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class))
+            if ("sleep_stages" in categories) add(HealthPermission.getReadPermission(SleepSessionRecord::class))
         }
     }
-    private var approvedCategories: Set<String> = emptySet()
+
     fun setLocalConsent(categories: Set<String>) {
-        require(categories.isNotEmpty() && categories.all { it in setOf("steps", "active_energy") })
+        require(categories.isNotEmpty() && categories.all { it in supported })
         approvedCategories = categories.toSet()
     }
     fun revokeLocalConsent() { approvedCategories = emptySet() }
+
+    private suspend inline fun <reified T : androidx.health.connect.client.records.Record> readAll(
+        start: Instant, end: Instant
+    ): List<T> {
+        val records = mutableListOf<T>()
+        var token: String? = null
+        do {
+            val page = client.readRecords(ReadRecordsRequest(
+                recordType = T::class,
+                timeRangeFilter = TimeRangeFilter.between(start, end),
+                pageToken = token
+            ))
+            records.addAll(page.records)
+            token = page.pageToken
+        } while (token != null)
+        return records
+    }
+
     suspend fun readDay(date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): Map<String, Any> {
-        check(approvedCategories.isNotEmpty()) { "In-app health consent required" }
+        check(approvedCategories.isNotEmpty()) { "Explicit in-app health consent required" }
         val granted = client.permissionController.getGrantedPermissions()
         val start = date.atStartOfDay(zone).toInstant()
         val end = date.plusDays(1).atStartOfDay(zone).toInstant()
-        val metrics = mutableSetOf<AggregationMetric<*>>()
-        if ("steps" in approvedCategories && HealthPermission.getReadPermission(StepsRecord::class) in granted) metrics += StepsRecord.COUNT_TOTAL
-        if ("active_energy" in approvedCategories && HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class) in granted) metrics += ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL
-        val result = if (metrics.isNotEmpty()) client.aggregate(AggregateRequest(metrics, TimeRangeFilter.between(start,end))) else null
-        val output = mutableMapOf<String,Any>(
-            "provider" to "health_connect", "localDate" to date.toString(), "timezone" to zone.id
+        val output = mutableMapOf<String, Any>(
+            "provider" to "health_connect",
+            "localDate" to date.toString(),
+            "timezone" to zone.id
         )
-        result?.get(StepsRecord.COUNT_TOTAL)?.let { output["steps"] = it.toInt() }
-        result?.get(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)?.let { output["activeEnergyKcal"] = it.inKilocalories }
-        // Resting HR, HRV and sleep stages require separate native record queries
-        // and must not be fabricated when the device has no measurements.
+        val aggregateMetrics = buildSet {
+            if ("steps" in approvedCategories && HealthPermission.getReadPermission(StepsRecord::class) in granted)
+                add(StepsRecord.COUNT_TOTAL)
+            if ("active_energy" in approvedCategories && HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class) in granted)
+                add(ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL)
+        }
+        if (aggregateMetrics.isNotEmpty()) {
+            val totals = client.aggregate(AggregateRequest(aggregateMetrics, TimeRangeFilter.between(start, end)))
+            if (StepsRecord.COUNT_TOTAL in aggregateMetrics) totals[StepsRecord.COUNT_TOTAL]?.let { output["steps"] = it.toInt() }
+            if (ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL in aggregateMetrics)
+                totals[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.let { output["activeEnergyKcal"] = it.inKilocalories }
+        }
+        if ("resting_heart_rate" in approvedCategories && HealthPermission.getReadPermission(RestingHeartRateRecord::class) in granted) {
+            val samples = readAll<RestingHeartRateRecord>(start, end)
+            if (samples.isNotEmpty()) output["restingHeartRateBpm"] = samples.map { it.beatsPerMinute.toDouble() }.average()
+        }
+        if ("hrv" in approvedCategories && HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class) in granted) {
+            val samples = readAll<HeartRateVariabilityRmssdRecord>(start, end)
+            // Health Connect RMSSD and Apple Health SDNN are different HRV metrics.
+            // Do not mislabel RMSSD as SDNN or combine them into one chart.
+            if (samples.isNotEmpty()) output["hrvRmssdMs"] = samples.map { it.heartRateVariabilityMillis }.average()
+        }
+        if ("sleep_stages" in approvedCategories && HealthPermission.getReadPermission(SleepSessionRecord::class) in granted) {
+            val sessions = readAll<SleepSessionRecord>(start, end)
+            // Avoid summing overlapping sleep stages across multiple device sources.
+            // Normalize stages per source before enabling numeric stage totals.
+            if (sessions.isNotEmpty()) output["sleepSessionsAvailable"] = true
+        }
         return output
     }
 }
