@@ -43,6 +43,19 @@ class ArvoHealthConnectReader(context: Context) {
     }
     fun revokeLocalConsent() { approvedCategories = emptySet() }
 
+    /** Returns only the permissions needed for the currently approved categories. */
+    fun approvedPermissions(): Set<String> = if (approvedCategories.isEmpty()) emptySet() else requestedPermissions(approvedCategories)
+
+    /** Revoke immediately when Android permissions are withdrawn. */
+    suspend fun reconcileSystemPermissions(): Set<String> {
+        val granted = client.permissionController.getGrantedPermissions()
+        val retained = approvedCategories.filter { category ->
+            requestedPermissions(setOf(category)).all { it in granted }
+        }.toSet()
+        approvedCategories = retained
+        return retained
+    }
+
     private suspend inline fun <reified T : androidx.health.connect.client.records.Record> readAll(
         start: Instant, end: Instant
     ): List<T> {
