@@ -1,5 +1,5 @@
 name: Ziiply OFF missing EAN lookup
-run-name: OFF EAN filtered retry errors first
+run-name: OFF EAN retry clean 100-line script
 on:
   push:
     branches: [main]
