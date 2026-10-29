@@ -15,3 +15,11 @@ test("health payload rejects arbitrary identifiers, invalid values and providers
  assert.equal(validateDailyHealthSummary({...valid,provider:"other"}),false);
  assert.equal(validateDailyHealthSummary({...valid,steps:1.5}),false);
 });
+
+test("HRV metric is tied to its native provider",()=>{
+ const base={localDate:"2026-10-29",timezone:"Europe/Helsinki"};
+ assert.equal(validateDailyHealthSummary({...base,provider:"health_connect",hrvRmssdMs:34}),true);
+ assert.equal(validateDailyHealthSummary({...base,provider:"health_connect",hrvSdnnMs:34}),false);
+ assert.equal(validateDailyHealthSummary({...base,provider:"apple_health",hrvSdnnMs:21}),true);
+ assert.equal(validateDailyHealthSummary({...base,provider:"apple_health",hrvRmssdMs:21}),false);
+});
