@@ -21,57 +21,57 @@ export default function ArvoNutritionScannerPreview() {
   const regionId = "arvo-nutrition-scanner-camera";
   useEffect(() => {
     if (!open) return;
-    let cancelled = false;
-    let raf = 0;
-    let stream: MediaStream | null = null;
-    const region = document.getElementById(regionId);
-    if (!region) return;
-    const video = document.createElement("video");
-    video.setAttribute("playsinline", "true");
-    video.muted = true;
-    video.autoplay = true;
-    video.style.cssText = "width:100%;height:100%;object-fit:cover";
-    region.appendChild(video);
+    let disposed = false;
+    let scanner: any = null;
+    const onDecoded = (raw: string) => {
+      const code = String(raw || "").replace(/\\D/g, "");
+      if (!/^\\d{8,14}$/.test(code) || code === lastEanRef.current || disposed) return;
+      lastEanRef.current = code;
+      setEan(code);
+      setOpen(false);
+      setTab("nutrition");
+    };
     async function start() {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
-        if (cancelled) { stream.getTracks().forEach(track => track.stop()); return; }
-        cameraRef.current = stream;
-        video.srcObject = stream;
-        await video.play();
-        const Detector = (window as any).BarcodeDetector;
-        if (!Detector) { setStatus("Kamera toimii. Viivakoodin tunnistus ei ole käytettävissä tässä selaimessa; käytä Liitä EAN."); return; }
-        const detector = new Detector({formats:["ean_13","ean_8","upc_a","upc_e","code_128"]});
-        let busy = false;
-        const scan = async () => {
-          if (cancelled) return;
-          if (!busy && video.readyState >= 2) {
-            busy = true;
-            try {
-              const codes = await detector.detect(video);
-              const code = String(codes?.[0]?.rawValue || "").replace(/\\D/g,"");
-              if (/^\\d{8,14}$/.test(code) && code !== lastEanRef.current) {
-                lastEanRef.current = code;
-                setEan(code);
-                setOpen(false);
-                setTab("nutrition");
-              }
-            } catch { /* keep scanning */ }
-            busy = false;
-          }
-          raf = requestAnimationFrame(scan);
-        };
-        raf = requestAnimationFrame(scan);
-      } catch { if (!cancelled) setStatus("Kameraa ei voitu avata. Tarkista kameran käyttöoikeus."); }
+        // Reuse the exact html5-qrcode library used by Ziiply's ordinary scanner.
+        const { HTML5_QRCODE_SCRIPT_URL } = await import("../ziiplyCore");
+        if (!(window as any).Html5Qrcode) {
+          await new Promise<void>((resolve, reject) => {
+            const existing = document.querySelector('script[data-ziiply-html5qr="true"]') as HTMLScriptElement | null;
+            const script = existing || document.createElement("script");
+            if (!existing) {
+              script.src = HTML5_QRCODE_SCRIPT_URL;
+              script.dataset.ziiplyHtml5qr = "true";
+              script.onload = () => resolve();
+              script.onerror = () => reject(new Error("scanner-script"));
+              document.head.appendChild(script);
+            } else if ((window as any).Html5Qrcode) resolve();
+            else {
+              script.addEventListener("load", () => resolve(), {once:true});
+              script.addEventListener("error", () => reject(new Error("scanner-script")), {once:true});
+            }
+          });
+        }
+        if (disposed) return;
+        const Reader = (window as any).Html5Qrcode;
+        if (!Reader) throw new Error("scanner-unavailable");
+        scanner = new Reader(regionId, {verbose:false});
+        await scanner.start({facingMode:"environment"}, {fps:12, qrbox: {width:270,height:155}, aspectRatio:1.7778}, onDecoded, () => undefined);
+        if (disposed) { await scanner.stop().catch(() => undefined); return; }
+        const video = document.querySelector("#" + regionId + " video") as HTMLVideoElement | null;
+        cameraRef.current = video?.srcObject as MediaStream | null;
+        setStatus("Kohdista EAN-viivakoodi kameran keskelle.");
+      } catch (error) {
+        if (!disposed) setStatus("Skannerin käynnistys epäonnistui. Tarkista kameran käyttöoikeus.");
+      }
     }
     void start();
     return () => {
-      cancelled = true;
-      cancelAnimationFrame(raf);
-      stream?.getTracks().forEach(track => track.stop());
+      disposed = true;
       cameraRef.current = null;
-      video.srcObject = null;
-      video.remove();
+      if (scanner) {
+        void Promise.resolve(scanner.stop()).catch(() => undefined).then(() => scanner.clear()).catch(() => undefined);
+      }
     };
   }, [open]);
   useEffect(() => {
@@ -115,7 +115,7 @@ export default function ArvoNutritionScannerPreview() {
         </div>
         {tab === "scan" ? (
           <div className="rounded-2xl border-2 border-[#b99d62] bg-white p-3">
-            <p className="mb-3 text-sm">Sama kameranäkymä kuin tavallisessa skannerissa. Kameratunnistus toimii selaimen tukemilla laitteilla.</p>
+            <p className="mb-3 text-sm">Sama kameranäkymä kuin tavallisessa skannerissa. EAN-luku käyttää nyt Ziiplyn tavallisen skannerin html5-qrcode-lukijaa.</p>
             <button onClick={() => setOpen(true)} className="w-full rounded-xl bg-[#24573e] px-4 py-3 font-black text-white">Näytä Arvon skanneri</button>
           </div>
         ) : (
