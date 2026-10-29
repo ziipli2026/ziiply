@@ -13,6 +13,8 @@ on:
       - 'scripts/neon-ean-upstream-diagnostics.mjs'
       - 'tests/neon-first-simulation.test.cjs'
       - 'tests/neon-ean-price-enrichment.test.mjs'
+      - 'tests/neon-ruoanhinta-price-lookup.test.mjs'
+      - 'src/lib/neonSearchSimulation/ruoanhintaPriceLookup.mjs'
       - 'src/lib/neonSearchSimulation/enrichPrices.mjs'
       - 'src/lib/neonSearchSimulation/**'
       - 'scripts/neon-search-category-coverage.mjs'
@@ -74,6 +76,8 @@ jobs:
         run: node --test tests/neon-first-simulation.test.cjs
       - name: Test optional exact-EAN price enrichment helper
         run: node --test tests/neon-ean-price-enrichment.test.mjs
+      - name: Test Ruoanhinta EAN verified store price adapter
+        run: node --test tests/neon-ruoanhinta-price-lookup.test.mjs
       - name: Read-only live S/K upstream EAN and price coverage smoke test
         continue-on-error: true
         env:
