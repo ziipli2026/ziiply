@@ -23351,6 +23351,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   <ZiiplyMobileHomeView
                     activeAssistant={activeAssistant}
                     onSelectAssistant={setActiveAssistant}
+                    onUpperAction={(assistant) => {
+                      setActiveAssistant(null);
+                      if (assistant === "gosta") {
+                        handleGostaOfferSearch();
+                      } else if (assistant === "justiina") {
+                        openSearchPanel();
+                      } else {
+                        setActiveAssistant("arvo");
+                      }
+                    }}
                   />
                 </div>
 
