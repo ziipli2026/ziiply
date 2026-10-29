@@ -5,7 +5,7 @@ const base = process.env.FINELI_PREVIEW_URL;
 const ean = process.env.FINELI_TEST_EAN;
 const ready = Boolean(base && /^\d{8,14}$/.test(ean || ''));
 
-test('Fineli preview returns a separately labeled estimate without replacing OFF salt', { skip: !ready && 'Provide FINELI_PREVIEW_URL and FINELI_TEST_EAN' }, async () => {
+test('Fineli preview returns a separately labeled estimate without replacing OFF salt', {}, async () => {
   const url = new URL('/api/ean-bank', base);
   url.searchParams.set('ean', ean);
   const response = await fetch(url, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(20000) });
