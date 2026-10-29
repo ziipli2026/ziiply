@@ -87,6 +87,8 @@ export type ZiiplyMobileScannerCardProps = {
   className?: string;
   fullscreen?: boolean;
   hideHeaderTitle?: boolean;
+  headerTitle?: React.ReactNode;
+  footerLeft?: React.ReactNode;
 };
 
 export default function ZiiplyMobileScannerCard({
@@ -111,6 +113,8 @@ export default function ZiiplyMobileScannerCard({
   className = "",
   fullscreen = false,
   hideHeaderTitle = false,
+  headerTitle,
+  footerLeft,
 }: ZiiplyMobileScannerCardProps) {
   const flashClass = useMemo(() => {
     if (flashState === "success") {
@@ -456,12 +460,12 @@ export default function ZiiplyMobileScannerCard({
         </div>
 
         <div className={hideHeaderTitle ? "min-w-0 flex-1" : "min-w-0 flex-1 rounded-[0.95rem] border-[2.5px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.74)]"}>
-          {!hideHeaderTitle && <div
+          {headerTitle || (!hideHeaderTitle && <div
             className="truncate text-[22px] font-black uppercase leading-none tracking-[0.075em] text-[#163d32]"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
           >
             Skanneri
-          </div>}
+          </div>)}
         </div>
 
         <button
@@ -651,7 +655,7 @@ export default function ZiiplyMobileScannerCard({
 
       {/* Alatoiminnot */}
       <footer className="relative z-10 grid shrink-0 grid-cols-[1fr_82px_1fr] items-center gap-2 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2">
-        <button
+        {footerLeft || <button
           type="button"
           onClick={onToggleManualInput}
           className={[
@@ -662,7 +666,7 @@ export default function ZiiplyMobileScannerCard({
           ].join(" ")}
         >
           Liitä EAN
-        </button>
+        </button>}
 
         <button
           type="button"
