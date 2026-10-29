@@ -8,7 +8,7 @@ import ZiiplyMobileScannerCard from "../cards/ZiiplyMobileScannerCard";
  * Käyttää samaa kameranäkymäkomponenttia kuin tavallinen skanneri.
  * EAN-tunnistus, ravintohaku ja päiväkirjaan tallennus kytketään myöhemmin.
  */
-export default function ArvoNutritionScannerPreview() {
+export default function ArvoNutritionScannerPreview({ onClose }: { onClose?: () => void } = {}) {
   const [open, setOpen] = useState(true);
   const [ean, setEan] = useState("");
   const [productName, setProductName] = useState("");
@@ -115,6 +115,16 @@ export default function ArvoNutritionScannerPreview() {
     } catch { setStatus("Aterian tallennus epäonnistui"); }
   };
   const [tab, setTab] = useState<"scan" | "nutrition">("scan");
+  const closeScanner = () => {
+    setOpen(false);
+    setTab("scan");
+    if (onClose) { onClose(); return; }
+    if (typeof window !== "undefined") {
+      const referrer = document.referrer;
+      if (referrer && new URL(referrer).origin === window.location.origin && window.history.length > 1) window.history.back();
+      else window.location.assign("/");
+    }
+  };
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#f8f5ed] text-[#173b2b]">
       <ZiiplyMobileScannerCard
@@ -123,7 +133,7 @@ export default function ArvoNutritionScannerPreview() {
         hideHeaderTitle
         headerTitle={<div className="flex items-center justify-center gap-2"><img src="/assistants/arvo.png" alt="Arvo" className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"/><div className="min-w-0 text-left leading-tight text-[#163d32]"><div className="text-[16px] font-black">Arvon ravintoskanneri</div><div className="text-[10px] font-semibold">EAN- ja ravintoarvohaku</div></div></div>}
         footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" onClick={saveMeal} disabled={!ean || !nutrition || !productName || grams <= 0 || mealSaved} title={mealSaved ? "Tallennettu aterialle" : "Tallenna tuote aterialle"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🍽️</span><span>{mealSaved ? "Tallennettu" : "Aterialle"}</span></button><button type="button" disabled title="Ostoskoriin lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🛒</span><span>Ostoskoriin</span></button></div>}
-        onClose={() => { setOpen(false); setTab("scan"); }}
+        onClose={closeScanner}
         onToggleTorch={() => {
           const track = cameraRef.current?.getVideoTracks()[0];
           if (track) void track.applyConstraints({advanced:[{torch:!torch} as any]}).then(() => setTorch(!torch)).catch(() => setStatus("Valoa ei tueta tällä laitteella"));
@@ -156,7 +166,7 @@ export default function ArvoNutritionScannerPreview() {
           </div>
         ) : undefined}
       />
-      {!open && <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#f8f5ed] p-5"><button type="button" onClick={()=>{setOpen(true);setTab("scan");}} className="rounded-2xl bg-[#24573e] px-8 py-4 text-lg font-bold text-white">Avaa kamera uudelleen</button></div>}
+
     </div>
   );
 }
