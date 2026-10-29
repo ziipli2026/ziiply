@@ -1,5 +1,5 @@
 require('../scripts/recipe-audit-runtime.cjs');
-const { runSimulation } = require('../src/lib/neonSearchSimulation/engine.ts');
+const { runSimulation, projectResults } = require('../src/lib/neonSearchSimulation/engine.ts');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const ean = '6410000000001';
@@ -217,4 +217,23 @@ test('aborted optional enrichment cannot publish late prices', async () => {
   wait.resolve([{ ean, store: 'K', price: 3 }]);
   await pending;
   assert.equal(states.length, before);
+});
+
+test('browser projection always sorts priced products cheapest selected-store price first', () => {
+  const row = (key, S, K) => ({key,name:key,ean:key,imageUrl:null,sources:[],prices:{S,K}});
+  const rows=[row('expensive',4.99,5.10),row('cheap-k',3.49,3.29),row('cheap-s',2.99,4.20),row('unknown',null,null)];
+  const sk=projectResults('maito',rows,['S','K']);
+  assert.deepEqual(sk.pricedRows.map(r=>r.key),['cheap-s','cheap-k','expensive']);
+  assert.deepEqual(sk.unpricedRows.map(r=>r.key),['unknown']);
+  const onlyK=projectResults('maito',rows,['K']);
+  assert.deepEqual(onlyK.pricedRows.map(r=>r.key),['cheap-k','expensive','cheap-s']);
+  assert.deepEqual(onlyK.unpricedRows.map(r=>r.key),['unknown']);
+});
+test('browser ordering re-sorts immediately when a verified background price arrives', async () => {
+  const rows=[{key:'a',ean:'6410000000001',name:'A',imageUrl:null,sources:[],prices:{S:4.5,K:null}},{key:'b',ean:'6410000000002',name:'B',imageUrl:null,sources:[],prices:{S:3.5,K:null}}];
+  const updates=[];
+  await runSimulation('maito',source('Neon',rows.map(r=>({ean:r.ean,name:r.name}))),[source('S',rows.map(r=>({ean:r.ean,name:r.name,price:r.prices.S})))],new AbortController().signal,s=>updates.push(s),undefined,undefined,async p=>[{ean:p.ean,store:'K',price:p.ean.endsWith('1')?2.5:5.5}]);
+  const enriched=updates.at(-1);
+  assert.deepEqual(enriched.pricedRows.map(r=>r.key),['ean:6410000000001','ean:6410000000002']);
+  assert.deepEqual(enriched.pricedRows.map(r=>Math.min(...Object.values(r.prices).filter(v=>typeof v==='number'&&v>0))),[2.5,3.5]);
 });
