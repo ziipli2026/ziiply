@@ -178,6 +178,10 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
                 </div>
                 <button type="button" aria-label="Sulje tuotetiedot" onClick={() => {setEan("");setTab("scan");lastEanRef.current="";}} className="rounded-full bg-white px-3 py-1 text-xl font-bold">×</button>
               </div>
+              <form className="mb-2 flex gap-2" onSubmit={event => {event.preventDefault(); const input = event.currentTarget.elements.namedItem("manualEan") as HTMLInputElement | null; const code = input?.value.trim() || ""; if (/^\\d{8,14}$/.test(code)) {lastEanRef.current = code;setEan(code);setMealSaved(false);setCartSaved(false);setTab("nutrition");} else setStatus("Syötä 8–14 numeron EAN-koodi.");}}>
+                <input name="manualEan" aria-label="EAN-koodi" inputMode="numeric" pattern="[0-9]{8,14}" maxLength={14} defaultValue={ean} key={ean} placeholder="Syötä EAN" className="min-w-0 flex-1 rounded-lg border border-[#b99d62] bg-white px-2 py-2 text-sm" />
+                <button type="submit" className="rounded-lg bg-[#24573e] px-3 py-2 text-xs font-bold text-white">Hae EAN</button>
+              </form>
               <div className="flex items-center justify-between gap-2">
                 <label htmlFor="arvo-grams" className="text-sm font-bold">Määrä</label>
                 <div className="flex items-center gap-1"><input aria-label="Grammamäärä" type="number" min="0" max="5000" value={grams} onChange={e=>setGrams(Math.max(0,Math.min(5000,Number(e.target.value)||0)))} className="w-20 rounded-lg border border-[#b99d62] bg-white px-2 py-1 text-right font-black"/><span className="text-sm font-bold">g</span></div>
