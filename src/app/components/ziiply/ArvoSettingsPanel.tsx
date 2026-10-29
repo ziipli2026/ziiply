@@ -175,9 +175,19 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
         {p.dietEnabled&&(energy?<p className="mt-2 rounded-lg bg-[#e5eedf] p-2 text-xs">Arvio: perusaineenvaihdunta <b>{energy.bmr}</b>, kulutus <b>{energy.tdee}</b>, tavoite <b>{energy.target} kcal/vrk</b>. Ei mittaustulos.</p>:<p className="mt-2 text-xs">Energia-arvio edellyttää tarvittavia tietoja. Erityistilanteissa tavallista laskentaa ei käytetä.</p>)}
       </section>}
 
-      {activeSection==="health"&&(<>
-    <section className="mb-5 rounded-xl bg-white/75 p-4"><h3 className="text-xl font-bold">Terveystiedot</h3><p className="text-sm">Salli terveystietojen käyttö mobiilistasi — ei vielä käytettävissä selainversiossa. Apple Health / Health Connect -yhteys ja oikeuksien peruminen toteutetaan vasta toimivalla integraatiolla. Terveystietoja ei haeta.</p></section>
-      </>)}
+      {activeSection==="health"&&<section className="h-full overflow-y-auto rounded-xl bg-white/75 p-3 text-sm">
+        <h3 className="text-lg font-bold">Terveystietojen yhdistäminen</h3>
+        <p className="mt-2 rounded-lg border border-amber-300 bg-amber-50 p-2 font-semibold">Yhteys ei ole vielä käytössä. Tällä sivulla ei pyydetä suostumusta eikä lueta tai tallenneta terveystietoja.</p>
+        <p className="mt-3">Suunnitellut lähteet: Apple Health (iPhone / Apple Watch) ja Android Health Connect.</p>
+        <h4 className="mt-3 font-bold">Mitä tietoja Arvo voisi käyttää?</h4>
+        <ul className="list-inside list-disc"><li>Askeleet ja liikunta</li><li>Aktiivinen energiankulutus</li><li>Paino ja painon kehitys</li><li>Uni ja syke vain erikseen valittaessa</li></ul>
+        <h4 className="mt-3 font-bold">Mihin tietoja käytettäisiin?</h4>
+        <p>Arvon henkilökohtaiseen ravinto- ja hyvinvointistatistiikkaan, energiatasapainon arviointiin ja käyttäjän omiin tavoitteisiin. Tietoja ei käytetä mainonnan kohdentamiseen.</p>
+        <h4 className="mt-3 font-bold">Tietosuoja ja valinnanvapaus</h4>
+        <p>Terveystiedot ovat arkaluonteisia henkilötietoja. Niiden käsittely vaatii erillisen nimenomaisen suostumuksen. Kun yhteys valmistuu, näytämme ennen lupapyyntöä täydellisen tietosuojaselosteen, yksilöidyt tietoryhmät ja kaksi oletuksena tyhjää hyväksyntävalintaa. Myös puhelin pyytää oman käyttöoikeuslupansa. Suostumuksen voi peruuttaa, ja tallennetut terveystiedot voi pyytää poistamaan. Kieltäytyminen ei estä muita Arvon toimintoja.</p>
+        <p className="mt-3 text-xs text-[#6d6a5c]">Tietosuojaselosteen lopullinen versio, kirjautumiseen sidottu suostumusloki ja turvallinen palvelinrajapinta toteutetaan ennen yhdistämispainikkeen aktivointia.</p>
+        <button type="button" disabled aria-disabled="true" className="mt-3 w-full cursor-not-allowed rounded-lg bg-gray-200 px-3 py-2 font-bold text-gray-600">Yhdistä terveystiedot – tulossa myöhemmin</button>
+      </section>}
       {activeSection==="purchases"&&<section className="h-full rounded-xl bg-white/75 p-3 text-sm">
         <label className="flex items-center gap-2 font-semibold"><input type="checkbox" checked={p.purchaseTracking} onChange={e=>update("purchaseTracking",e.target.checked)}/> Käytä vahvistettuja ostoksia täydennysarvioihin</label>
         <p className="mt-1 text-xs text-[#6d6a5c]">Ostoskorin tuotteita ei merkitä automaattisesti ostetuiksi.</p>
