@@ -1,4 +1,4 @@
-export type EnrichmentRow = { ean?: string; name: string; prices: Record<string, number | null>; [key: string]: unknown };
+export type EnrichmentRow = { ean?: string; name: string; prices: Record<string, number | null> };
 export type VerifiedStorePrice = { ean: string; store: string; price: number };
 export function enrichNeonRows<T extends EnrichmentRow>(
   rows: T[],
