@@ -117,20 +117,21 @@ export async function GET(request: NextRequest) {
           const specific = matched.find((item) => item.source === "open-food-facts");
           const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
           if (selected) {
-            nutrition = { ...selected.data, source: selected.source };
+            const safeNutrition: Record<string, unknown> = { ...selected.data, source: selected.source };
             // Do not expose physically impossible OFF values to the scanner.
             // Keep other valid nutrients; never change the stored source record.
             if (selected.source === "open-food-facts") {
               const invalidFields: string[] = [];
               for (const [field, maximum] of [["kcal_100g", 1000], ["fat_100g", 100], ["proteins_100g", 100], ["salt_100g", 100]] as const) {
-                const value = nutrition[field];
+                const value = safeNutrition[field];
                 if (value !== null && value !== undefined && (!Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > maximum)) {
-                  nutrition[field] = null;
+                  safeNutrition[field] = null;
                   invalidFields.push(field);
                 }
               }
-              if (invalidFields.length) nutrition.invalidNutritionFields = invalidFields;
+              if (invalidFields.length) safeNutrition.invalidNutritionFields = invalidFields;
             }
+            nutrition = safeNutrition;
           }
         } catch (error) {
           // EAN scanning must remain available even if nutrition tables are unavailable.
