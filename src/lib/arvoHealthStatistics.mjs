@@ -1,6 +1,6 @@
 // Local-only health statistics aggregation. Does not read from storage or send data.
 import {validateDailyHealthSummary} from "./arvoHealthContract.mjs";
-export const HEALTH_METRICS=Object.freeze(["steps","activeEnergyKcal","restingHeartRateBpm","hrvSdnnMs","sleepMinutes","remMinutes","coreMinutes","deepMinutes","awakeMinutes"]);
+export const HEALTH_METRICS=Object.freeze(["steps","activeEnergyKcal","restingHeartRateBpm","hrvSdnnMs","hrvRmssdMs","sleepMinutes","remMinutes","coreMinutes","deepMinutes","awakeMinutes"]);
 const SUM_METRICS=new Set(["steps","activeEnergyKcal","sleepMinutes","remMinutes","coreMinutes","deepMinutes","awakeMinutes"]);
 const pad=n=>String(n).padStart(2,"0");
 function isoWeekStart(date){const d=new Date(date+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10);}
