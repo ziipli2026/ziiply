@@ -169,3 +169,30 @@ test('live Neon and real S/K upstream first pages merge by EAN with cent-to-euro
   assert.ok(initial,'Bank results must publish before shops');
   console.log('LIVE NEON + REAL S/K MERGE: PASS',JSON.stringify({query,bankRows:bank.products.length,shopRows:fetched.map(s=>({store:s.id,count:s.products.length})),exact,storeOnly,mergedRows:final.rows.length}));
 });
+
+
+test('priced shop products appear before unpriced Neon products in separate projection', async () => {
+ let last;
+ await runSimulation('maito',source('Neon',[{ean:'6410000000001',name:'Maito A'},{ean:'6410000000002',name:'Maito B'}]),[source('S',[{ean:'6410000000002',name:'Maito B',price:1.39}])],new AbortController().signal,s=>last=s);
+ assert.deepEqual(last.pricedRows.map(p=>p.ean),['6410000000002']);
+ assert.deepEqual(last.unpricedRows.map(p=>p.ean),['6410000000001']);
+ assert.equal(last.rows.length,2);
+});
+test('laktoositon maito ranks milk before milk chocolate within priced results',async()=>{
+ let last;
+ await runSimulation('laktoositon maito',source('Neon',[
+  {ean:'6410000000001',name:'Laktoositon maitosuklaa'},
+  {ean:'6410000000002',name:'Laktoositon maito 1 l'},
+  {ean:'6410000000003',name:'Laktoositon maitovalmiste'}
+ ]),[source('S',[
+  {ean:'6410000000001',name:'Laktoositon maitosuklaa',price:2},
+  {ean:'6410000000002',name:'Laktoositon maito 1 l',price:1},
+  {ean:'6410000000003',name:'Laktoositon maitovalmiste',price:3}
+ ])],new AbortController().signal,s=>last=s);
+ assert.equal(last.pricedRows[0].ean,'6410000000002');
+});
+test('missing or zero price never promotes Neon result into priced group',async()=>{
+ let last;
+ await runSimulation('maito',source('Neon',[{ean:'6410000000001',name:'Maito'}]),[source('S',[{ean:'6410000000001',name:'Maito',price:0}])],new AbortController().signal,s=>last=s);
+ assert.equal(last.pricedRows.length,0);assert.equal(last.unpricedRows.length,1);
+});
