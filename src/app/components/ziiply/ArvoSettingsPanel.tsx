@@ -152,7 +152,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
           </a>
           {[
             ["reminders","Ruokailuajat ja muistutukset",p.mealRemindersEnabled?"Muistutustoive tallennettu":"Ruokailuajat ja muistutusasetukset"],
-            ["health","Terveystiedot","Apple Health / Android Health Connect"],
+            ["health","Terveystiedot","Yhteyden tila ja käyttöluvat"],
             ["purchases","Ostohistoria ja kulutus",purchases.length+" vahvistettua ostoa"]
           ].map(([id,title,summary])=><button key={id} type="button" className="flex min-h-[68px] w-full items-center justify-between gap-3 rounded-2xl border border-[#d9cfb9] bg-white/90 px-3 py-3 text-left shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#24573e]" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection(id)}}>
             <span className="min-w-0"><strong className="block">{title}</strong><span className="text-xs font-normal text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true" className="text-xl">›</span>
