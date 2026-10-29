@@ -30,6 +30,6 @@ test('Fineli is a separately labeled estimate, not a replacement for OFF salt', 
   assert.match(block, /source:\s*"fineli-generic"/);
   assert.match(block, /estimated:\s*true/);
   assert.match(block, /label:\s*"Fineli – arvio"/);
-  assert.doesNotMatch(block, /safeNutrition\.salt_100g\s*=/);
+  assert.doesNotMatch(block, /safeNutrition\.salt_100g\s*(?:=(?!=)|\+=(?!=)|-=(?!=)|\*=(?!=)|\/=(?!=)|\?\?=)/);
   assert.doesNotMatch(block, /\b(?:INSERT|UPDATE|DELETE)\b/i);
 });
