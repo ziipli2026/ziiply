@@ -2,7 +2,7 @@
 // Call after initial results are published; do not block first paint.
 export async function enrichNeonRows(rows, lookup, publish, signal, maxProducts=25) {
   const result=rows.map(row=>({...row,prices:{...row.prices}}));
-  const candidates=result.filter(row=>/^\d{8,14}$/.test(String(row.ean||''))&&!Object.values(row.prices).some(v=>Number.isFinite(v)&&v>0)).slice(0,maxProducts);
+  const candidates=result.filter(row=>/^\d{8,14}$/.test(String(row.ean||''))&&['S','K'].some(store=>!Number.isFinite(row.prices[store])||row.prices[store]<=0)).slice(0,maxProducts);
   let next=0;
   async function worker(){
     while(next<candidates.length&&!signal.aborted){
