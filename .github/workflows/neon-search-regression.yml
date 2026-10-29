@@ -42,6 +42,8 @@ jobs:
           node-version: '22'
       - name: Install dependencies for isolated regression runner
         run: npm install --no-save --package-lock=false --no-audit --no-fund
+      - name: Validate Next.js TypeScript compilation before integration tests
+        run: npx tsc --noEmit --incremental false
       - name: Verify Neon target before starting server
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
