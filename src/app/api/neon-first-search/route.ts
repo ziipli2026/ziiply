@@ -61,8 +61,6 @@ export async function GET(request: NextRequest) {
             20
             - CASE WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 8 ELSE 0 END
             - CASE WHEN ${isSingleWord} AND category_leaf_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 3 ELSE 0 END
-            - CASE WHEN ${isSingleWord} AND category_leaf_words = ${normalizedQuery} THEN 4 ELSE 0 END
-            - CASE WHEN ${isSingleWord} AND lower(trim(coalesce(category, ''))) = ${normalizedQuery} THEN 3 ELSE 0 END
             - CASE WHEN ${isSingleWord} AND category_words ~ ${categoryTermPattern}
                      AND category_words !~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 2 ELSE 0 END
             - CASE WHEN name_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 6 ELSE 0 END
@@ -85,8 +83,8 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v10",
-      categoryExpansion: "exact-leaf-and-name-category-relevance",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v9",
+      categoryExpansion: "combined-name-and-leaf-category-relevance",
       truncated: rows.length === 100
     });
   } catch (error) {
