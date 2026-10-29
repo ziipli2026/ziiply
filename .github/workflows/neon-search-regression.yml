@@ -17,6 +17,8 @@ on:
       - 'src/lib/neonSearchSimulation/ruoanhintaPriceLookup.mjs'
       - 'src/lib/neonSearchSimulation/enrichPrices.mjs'
       - 'src/lib/neonSearchSimulation/**'
+      - 'src/app/neon-search-simulation/page.tsx'
+      - 'tests/neon-first-simulation.test.cjs'
       - 'scripts/neon-search-category-coverage.mjs'
       - 'scripts/verify-neon-search-db.mjs'
       - '.github/workflows/neon-search-regression.yml'
@@ -30,13 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Confirm exact current test-branch commit
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          CURRENT=$(gh api repos/${{ github.repository }}/git/ref/heads/test/neon-first-product-search --jq '.object.sha')
-          echo "Current branch HEAD: $CURRENT"
-          test "$CURRENT" = "${{ github.sha }}" || { echo "::error::Stale checkout"; exit 1; }
+      - name: Record immutable commit under test
+        run: echo "Testing commit $GITHUB_SHA (GitHub Actions checkout is pinned to this commit)"
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -108,13 +105,15 @@ jobs:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
           SEARCH_BASE_URL: http://127.0.0.1:3099
         run: node scripts/neon-search-category-coverage.mjs
-      - name: Verify test branch unchanged
+      - name: Report branch movement without failing a valid pinned-commit test
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           CURRENT=$(gh api repos/${{ github.repository }}/git/ref/heads/test/neon-first-product-search --jq '.object.sha')
-          test "$CURRENT" = "${{ github.sha }}" || { echo "::error::Branch moved during tests"; exit 1; }
+          echo "Tested commit: $GITHUB_SHA"
+          echo "Current branch HEAD: $CURRENT"
+          if [ "$CURRENT" != "$GITHUB_SHA" ]; then echo "::notice::Branch advanced; this run still tests its immutable commit. New commits trigger their own run."; fi
       - name: Show local server log on failure
         if: failure()
         run: tail -120 /tmp/neon-search-next.log || true
