@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {parseKCitymarketSpatialLeaflet} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js';
+import {restoreSplitPublisherCard} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketSplitPublisherCard.js';
 
 const root='archived-publications/publications/44LV/';
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
@@ -63,4 +64,22 @@ test('44LV page 3 cheese titles are complete and belong to their own printed off
  }
  assert.equal(page.filter(r=>/JUUSTOPA-|FETAJUUST-/.test(r.title)).length,0,
   'Do not publish truncated cheese names');
+});
+
+test('44LV card recovery rejects missing visual proof and never borrows an adjacent offer',()=>{
+ const positionUrl=new URL('files/search/text_position[3].js',manifest.publisherUrl).href;
+ const body=responses[positionUrl]?.body||'';
+ assert.ok(body.length>0,'Archived page 3 position layer missing');
+ const boxes=[...body.matchAll(/\{word:"([^"]+)",left:([\d.]+),top:([\d.]+),width:([\d.]+),height:([\d.]+)\}/g)]
+  .map(m=>({text:m[1],left:Number(m[2]),top:Number(m[3]),width:Number(m[4]),height:Number(m[5])}));
+ for(const [title,remove] of [
+  ['JUUSTOPA-',b=>b.text==='LA'],
+  ['FETAJUUST-',b=>b.text==='2'],
+  ['JUUSTOPA-',b=>b.text==='170']
+ ]){
+  const original={title,spatialResolved:{value:3.5}};
+  const updated=restoreSplitPublisherCard(original,boxes.filter(b=>!remove(b)));
+  assert.equal(updated.title,title,'Unproven split name must remain unchanged');
+  assert.equal(updated.spatialResolved.value,3.5,'Neighbor price must not be overwritten without proof');
+ }
 });
