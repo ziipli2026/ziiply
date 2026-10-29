@@ -1,0 +1,36 @@
+name: Arvo Fineli browser preview
+on:
+  push:
+    branches: [test/fineli-salt-live-preview]
+    paths:
+      - 'tests/arvo-fineli-browser.spec.cjs'
+      - '.github/workflows/arvo-fineli-browser-preview.yml'
+      - 'src/app/components/ziiply/arvo/ArvoNutritionScannerPreview.tsx'
+  workflow_dispatch:
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save @playwright/test
+      - run: npx playwright install --with-deps chromium
+      - name: Run browser test against local Next.js preview
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          ZIIPLY_FINELI_SALT_ESTIMATE_PREVIEW: '1'
+        run: |
+          npm run dev -- --hostname 127.0.0.1 > /tmp/ziiply-next.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/arvo-scanner-preview -o /dev/null; then break; fi
+            sleep 2
+          done
+          PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 npx playwright test tests/arvo-fineli-browser.spec.cjs --browser=chromium --workers=1 --reporter=line
+      - name: Print Next logs on failure
+        if: failure()
+        run: tail -100 /tmp/ziiply-next.log || true
