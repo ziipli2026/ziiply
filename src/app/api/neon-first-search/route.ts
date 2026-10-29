@@ -56,7 +56,8 @@ export async function GET(request: NextRequest) {
           WHEN ${potatoIntent} AND category ILIKE ${potatoLeaf} THEN 1
           WHEN ${potatoIntent} AND (name_words ~ '(^| )peruna( |$)' OR name_words ~ '(^| )perunat( |$)') AND (category IS NULL OR category NOT ILIKE 'lemmikit/%') THEN 3
           WHEN ${potatoIntent} THEN 20
-          WHEN ${isSingleWord} AND category_words ~ ${categoryTermPattern} THEN 1
+          WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 1
+          WHEN ${isSingleWord} AND category_words ~ ${categoryTermPattern} THEN 5
           WHEN name_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 2
           WHEN lower(name) = ${normalizedQuery} THEN 3
           WHEN name ILIKE ${prefix} THEN 4
@@ -76,8 +77,8 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v6",
-      categoryExpansion: "generic-category-token-and-conservative-plural",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v7",
+      categoryExpansion: "exact-category-first-fallback-plural",
       truncated: rows.length === 100
     });
   } catch (error) {
