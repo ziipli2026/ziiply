@@ -51,8 +51,26 @@ for (const test of cases) {
     report.push({query:test.q,ms:Date.now()-t,total:products.length,top:top.map(x=>({name:x.name,category:x.category,rank:x.rank})),failures});
   } catch(e) {report.push({query:test.q,failures:[String(e)]});}
 }
+// Additional observational tests: do not gate baseline until expected ordering is validated.
+const intentQueries=['makkarat','makkara','koiranmakkara','koiran makkara','koiranruoka','kissanruoka'];
+const intentReport=[];
+for(const q of intentQueries){
+ try{
+  const t=Date.now();
+  const response=await fetch(base+'/api/neon-first-search?q='+encodeURIComponent(q),{signal:AbortSignal.timeout(15000)});
+  const data=await response.json();
+  const top=(data.products||[]).slice(0,10);
+  const petCategory=p=>/lemmikit|koiran|kissan|lemmikki/i.test(String(p.category||''));
+  intentReport.push({query:q,ok:response.ok&&data.ok,ms:Date.now()-t,
+   top10PetCategoryCount:top.filter(petCategory).length,
+   top5PetCategoryCount:top.slice(0,5).filter(petCategory).length,
+   top:top.map(p=>({name:p.name,category:p.category,rank:p.rank,petCategory:petCategory(p)}))});
+ }catch(error){intentReport.push({query:q,error:String(error)})}
+}
 const fs=await import('node:fs');
 fs.mkdirSync('artifacts',{recursive:true});
+fs.writeFileSync('artifacts/neon-search-intent-diagnostics.json',JSON.stringify({at:new Date().toISOString(),note:'Observational only; no pass/fail relevance inference from category alone',queries:intentReport},null,2));
+console.log('INTENT DIAGNOSTICS:',JSON.stringify(intentReport.map(r=>({query:r.query,ok:r.ok,top5PetCategoryCount:r.top5PetCategoryCount,error:r.error}))));
 fs.writeFileSync('artifacts/neon-search-regression.json',JSON.stringify({base,at:new Date().toISOString(),report},null,2));
 for(const r of report) console.log((r.failures.length?'FAIL':'PASS')+' '+r.query+' '+r.ms+'ms '+r.failures.join(', '));
 if(report.some(x=>x.failures.length)) process.exitCode=1;
