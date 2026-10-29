@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/app/api/neon-first-search/**'
       - 'scripts/neon-search-regression.mjs'
+      - 'scripts/neon-real-sk-upstream-smoke.mjs'
       - 'tests/neon-first-simulation.test.cjs'
       - 'src/lib/neonSearchSimulation/**'
       - 'scripts/neon-search-category-coverage.mjs'
@@ -65,6 +66,11 @@ jobs:
         env:
           SEARCH_BASE_URL: http://127.0.0.1:3099
         run: node --test tests/neon-first-simulation.test.cjs
+      - name: Read-only live S/K upstream EAN and price coverage smoke test
+        continue-on-error: true
+        env:
+          SEARCH_BASE_URL: http://127.0.0.1:3099
+        run: node scripts/neon-real-sk-upstream-smoke.mjs
       - name: Audit every Neon product category (diagnostic report)
         continue-on-error: true
         env:
@@ -87,6 +93,7 @@ jobs:
         with:
           name: neon-search-regression
           path: |
+            artifacts/neon-real-sk-upstream-smoke.json
             artifacts/neon-search-regression.json
             artifacts/neon-search-contract-checks.json
             artifacts/neon-search-intent-diagnostics.json
