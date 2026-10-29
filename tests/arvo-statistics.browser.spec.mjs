@@ -21,8 +21,8 @@ test("Arvo: period selectors, calorie chart, unknown nutrient and delete",async 
     await expect(button).toHaveAttribute("aria-pressed","true");
     await expect(page.getByRole("img",{name:"Päivittäiset kilokalorit pylväinä"}).locator("> div")).toHaveCount(days);
   }
+  page.once("dialog",dialog=>dialog.accept());
   await page.getByRole("button",{name:"Poista ateria Testipuuro"}).click();
-  await page.once("dialog",dialog=>dialog.accept());
   await expect(page.getByText("Testipuuro")).toHaveCount(0);
   await expect(page.getByText("120",{exact:true})).toBeVisible();
   const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)||"[]"),key);
