@@ -44,7 +44,7 @@ jobs:
           PY
       - name: Check live preview EAN without writes
         env:
-          FINELI_PREVIEW_URL: https://ziiply-9tn7p1lyd-ziipli2026s-projects.vercel.app
+          FINELI_PREVIEW_URL: https://ziiply-3zgbkvz85-ziipli2026s-projects.vercel.app
           MANUAL_EAN: ${{ inputs.ean }}
         run: |
           if [ -n "$MANUAL_EAN" ]; then export FINELI_TEST_EAN="$MANUAL_EAN"; fi
