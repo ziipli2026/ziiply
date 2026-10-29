@@ -9,20 +9,12 @@ export default function ArvoStatisticsPage() {
   const [meals,setMeals] = useState<ArvoMeal[]>([]);
   const [period,setPeriod] = useState<"day"|"week"|"month">("week");
   const [now,setNow] = useState<Date|null>(null);
-  const [healthDays,setHealthDays] = useState<any[]>([]);
   const refresh=()=>{setMeals(readArvoMeals(window.localStorage));setNow(new Date());};
   useEffect(()=>{
     refresh();
-    // Health summaries are transient: never persist them in localStorage or transmit them.
-    const onHealth=(event:Event)=>{
-      const detail=(event as CustomEvent).detail;
-      if(detail?.verifiedNativeOrigin!==true || !Array.isArray(detail.days))return;
-      setHealthDays(detail.days);
-    };
-    window.addEventListener("ziiply:arvo-health-verified",onHealth);
     window.addEventListener("storage",refresh);
     window.addEventListener("ziiply-arvo-meals-updated",refresh);
-    return ()=>{window.removeEventListener("ziiply:arvo-health-verified",onHealth);window.removeEventListener("storage",refresh);window.removeEventListener("ziiply-arvo-meals-updated",refresh);};
+    return ()=>{window.removeEventListener("storage",refresh);window.removeEventListener("ziiply-arvo-meals-updated",refresh);};
   },[]);
   const selected=useMemo(()=>{
     if(!now)return [];
@@ -42,7 +34,7 @@ export default function ArvoStatisticsPage() {
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">{metrics.map(metric=><div key={metric.key} className="rounded-xl border border-[#d3c9ad] bg-white p-4"><p className="text-xs font-bold">{metric.label}</p><p className="mt-2 text-2xl font-black">{totals.known[metric.key]?format(totals[metric.key]):"—"}</p><p className="text-xs">{metric.unit} · {totals.known[metric.key]}/{totals.entries} merkintää</p></div>)}</div>
       <h2 className="mt-8 text-xl font-black">Päivittäinen seuranta</h2>
       {daily.length===0?<p className="mt-3 rounded-xl bg-white p-5">Ei vielä tallennettuja aterioita valitulla jaksolla. Skannaa tuote Arvolla ja paina Aterialle.</p>:<div className="mt-3 overflow-x-auto rounded-xl border border-[#d3c9ad] bg-white"><table className="w-full text-left text-sm"><thead><tr className="border-b bg-[#efe9da]"><th className="p-3">Päivä</th><th className="p-3">Ateriat</th>{metrics.map(metric=><th key={metric.key} className="p-3">{metric.label}</th>)}</tr></thead><tbody>{daily.map(([date,values])=><tr key={date} className="border-b last:border-0"><td className="p-3">{date}</td><td className="p-3">{values.entries}</td>{metrics.map(metric=><td key={metric.key} className="p-3">{values.known[metric.key]?format(values[metric.key]):"—"}</td>)}</tr>)}</tbody></table></div>}
-      <ArvoHealthCharts days={healthDays} />
+      <ArvoHealthCharts />
       <h2 className="mt-8 text-xl font-black">Ateriapäiväkirja</h2>
       <div className="mt-3 space-y-2">{selected.slice().sort((a,b)=>b.timestamp.localeCompare(a.timestamp)).map(meal=><article key={meal.id} className="rounded-xl border border-[#d3c9ad] bg-white p-4"><p className="font-bold">{meal.name}</p><p className="text-xs">{new Date(meal.timestamp).toLocaleString("fi-FI")} · {format(meal.grams)} g</p><p className="mt-2 text-sm">Energia {meal.nutrition.kcal===null?"—":format(meal.nutrition.kcal)} kcal · Proteiini {meal.nutrition.protein===null?"—":format(meal.nutrition.protein)} g · HH {meal.nutrition.carbs===null?"—":format(meal.nutrition.carbs)} g · Rasva {meal.nutrition.fat===null?"—":format(meal.nutrition.fat)} g</p></article>)}</div>
     </div>
