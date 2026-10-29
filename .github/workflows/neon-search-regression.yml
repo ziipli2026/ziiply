@@ -9,6 +9,7 @@ on:
       - 'scripts/neon-real-sk-upstream-smoke.mjs'
       - 'scripts/neon-search-latency-benchmark.mjs'
       - 'scripts/neon-vs-current-search-comparison.mjs'
+      - 'scripts/neon-ean-price-lookup-experiment.mjs'
       - 'tests/neon-first-simulation.test.cjs'
       - 'src/lib/neonSearchSimulation/**'
       - 'scripts/neon-search-category-coverage.mjs'
@@ -81,6 +82,11 @@ jobs:
         env:
           SEARCH_BASE_URL: http://127.0.0.1:3099
         run: node scripts/neon-vs-current-search-comparison.mjs
+      - name: Verify Neon-only EAN prices against selected stores after baseline (read-only sample)
+        env:
+          SEARCH_BASE_URL: http://127.0.0.1:3099
+          EAN_LOOKUP_LIMIT: 12
+        run: node scripts/neon-ean-price-lookup-experiment.mjs
       - name: Audit every Neon product category (diagnostic report)
         continue-on-error: true
         env:
@@ -103,6 +109,7 @@ jobs:
         with:
           name: neon-search-regression
           path: |
+            artifacts/neon-ean-price-lookup-experiment.json
             artifacts/neon-vs-current-search-comparison.json
             artifacts/neon-search-latency-benchmark.json
             artifacts/neon-real-sk-upstream-smoke.json
