@@ -1,0 +1,14 @@
+name: Fineli salt live preview guard
+on:
+  push:
+    branches: [test/fineli-salt-live-preview]
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/fineli-salt-estimate-runtime.test.mjs tests/fineli-salt-estimate-contract.test.mjs
