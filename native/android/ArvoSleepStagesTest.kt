@@ -26,6 +26,15 @@ class ArvoSleepStagesTest {
         assertEquals(30, summary["sleep"])
     }
 
+    @Test fun totalSleepRoundsFromRawDurations() {
+        val m = 60_000L
+        val summary = ArvoSleepStages.summarize(listOf(
+            ArvoSleepStages.Interval(0, 30_000, "rem", "watch"),
+            ArvoSleepStages.Interval(30_000, m, "deep", "watch")
+        ), 0, m)
+        assertEquals(1, summary["sleep"])
+    }
+
     @Test fun noSleepDoesNotBecomeFakeZeroReading() {
         val summary = ArvoSleepStages.summarize(emptyList(), 0, 60_000)
         assertEquals(0, summary["sleep"])
