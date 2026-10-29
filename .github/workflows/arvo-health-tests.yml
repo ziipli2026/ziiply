@@ -1,0 +1,23 @@
+name: Arvo Health pure logic tests
+on:
+  push:
+    branches:
+      - feature/arvo-health-consent-foundation
+    paths:
+      - 'src/lib/arvoHealth*.mjs'
+      - 'src/lib/arvoSleepNormalize.mjs'
+      - 'tests/arvo-*.test.mjs'
+      - '.github/workflows/arvo-health-tests.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Arvo Health pure Node tests
+        run: node --test tests/arvo-health-contract.test.mjs tests/arvo-health-statistics.test.mjs tests/arvo-health-native-bridge.test.mjs tests/arvo-sleep-normalize.test.mjs
