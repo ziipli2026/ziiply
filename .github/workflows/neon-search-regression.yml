@@ -10,6 +10,7 @@ on:
       - 'scripts/neon-search-latency-benchmark.mjs'
       - 'scripts/neon-vs-current-search-comparison.mjs'
       - 'scripts/neon-ean-price-lookup-experiment.mjs'
+      - 'scripts/neon-ean-upstream-diagnostics.mjs'
       - 'tests/neon-first-simulation.test.cjs'
       - 'src/lib/neonSearchSimulation/**'
       - 'scripts/neon-search-category-coverage.mjs'
@@ -87,6 +88,10 @@ jobs:
           SEARCH_BASE_URL: http://127.0.0.1:3099
           EAN_LOOKUP_LIMIT: 12
         run: node scripts/neon-ean-price-lookup-experiment.mjs
+      - name: Diagnose Ruoanhinta exact EAN response and S-kaupat direct GraphQL (read-only)
+        run: node scripts/neon-ean-upstream-diagnostics.mjs
+        env:
+          SEARCH_BASE_URL: http://127.0.0.1:3099
       - name: Audit every Neon product category (diagnostic report)
         continue-on-error: true
         env:
@@ -109,6 +114,7 @@ jobs:
         with:
           name: neon-search-regression
           path: |
+            artifacts/neon-ean-upstream-diagnostics.json
             artifacts/neon-ean-price-lookup-experiment.json
             artifacts/neon-vs-current-search-comparison.json
             artifacts/neon-search-latency-benchmark.json
