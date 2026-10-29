@@ -1678,6 +1678,7 @@ import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompa
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
+import ArvoNutritionScannerPreview, { type ArvoCartProduct } from "./components/ziiply/arvo/ArvoNutritionScannerPreview";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
 import ZiiplyRecipeSearchDebug, { appendRecipeDebug } from "./components/ziiply/mobile/ZiiplyRecipeSearchDebug";
 import { recipeProductCompatible, recipeRetailPackageCount, type RecipeIngredient } from "./components/ziiply/justiina/recipeCore";
@@ -3813,6 +3814,7 @@ export default function Page() {
 
   const [activeAssistant, setActiveAssistant] =
     useState<ZiiplyAssistantKey | null>(null);
+  const [arvoNutritionScannerOpen, setArvoNutritionScannerOpen] = useState(false);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
 
   const searchFullscreenOpenV621 = searchPanelOpen;
@@ -7610,6 +7612,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     gpsCoordsV320,
     usingOwnLocation,
   ]);
+
+  function addArvoNutritionProductToCart(item: ArvoCartProduct) {
+    const ean = String(item.ean || "").replace(/\D/g, "");
+    const name = String(item.name || "").trim();
+    if (!/^\d{8,14}$/.test(ean) || !name) throw new Error("invalid-arvo-product");
+    const current = cartRefV124.current;
+    const existing = current.findIndex((row) => row.ean === ean);
+    const next = existing >= 0
+      ? current.map((row, index) => index === existing ? {...row, quantity: row.quantity + 1} : row)
+      : [...current, {id: "arvo-ean-" + ean, name, ean, quantity: 1, source: "search" as const}];
+    if (next.length > MAX_ITEMS) throw new Error("cart-full");
+    cartRefV124.current = next;
+    setCart(next);
+    persistCartImmediately(next);
+  }
 
   function persistCartImmediately(nextCart: CartItem[]) {
     try {
@@ -23358,11 +23375,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       } else if (assistant === "justiina") {
                         openSearchPanel();
                       } else {
-                        setActiveAssistant("arvo");
+                        setArvoNutritionScannerOpen(true);
                       }
                     }}
                   />
                 </div>
+
+                {arvoNutritionScannerOpen && (
+                  <div className="fixed inset-0 z-[2147483600] sm:hidden">
+                    <ArvoNutritionScannerPreview
+                      onClose={() => setArvoNutritionScannerOpen(false)}
+                      onAddToCart={addArvoNutritionProductToCart}
+                    />
+                  </div>
+                )}
 
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
