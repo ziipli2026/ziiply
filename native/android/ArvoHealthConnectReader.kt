@@ -94,9 +94,35 @@ class ArvoHealthConnectReader(context: Context) {
         }
         if ("sleep_stages" in approvedCategories && HealthPermission.getReadPermission(SleepSessionRecord::class) in granted) {
             val sessions = readAll<SleepSessionRecord>(start, end)
-            // Avoid summing overlapping sleep stages across multiple device sources.
-            // Normalize stages per source before enabling numeric stage totals.
-            if (sessions.isNotEmpty()) output["sleepSessionsAvailable"] = true
+            if (sessions.isNotEmpty()) {
+                output["sleepSessionsAvailable"] = true
+                val intervals = sessions.flatMap { session ->
+                    session.stages.mapNotNull { stage ->
+                        val label = when (stage.stage) {
+                            SleepSessionRecord.STAGE_TYPE_REM -> "rem"
+                            SleepSessionRecord.STAGE_TYPE_LIGHT -> "core"
+                            SleepSessionRecord.STAGE_TYPE_DEEP -> "deep"
+                            SleepSessionRecord.STAGE_TYPE_AWAKE,
+                            SleepSessionRecord.STAGE_TYPE_AWAKE_IN_BED -> "awake"
+                            else -> null
+                        }
+                        label?.let {
+                            ArvoSleepStages.Interval(
+                                stage.startTime.toEpochMilli(), stage.endTime.toEpochMilli(),
+                                it, session.metadata.dataOrigin.packageName
+                            )
+                        }
+                    }
+                }
+                if (intervals.isNotEmpty()) {
+                    val totals = ArvoSleepStages.summarize(intervals, start.toEpochMilli(), end.toEpochMilli())
+                    output["remMinutes"] = totals.getValue("rem")
+                    output["coreMinutes"] = totals.getValue("core")
+                    output["deepMinutes"] = totals.getValue("deep")
+                    output["awakeMinutes"] = totals.getValue("awake")
+                    output["sleepMinutes"] = totals.getValue("sleep")
+                }
+            }
         }
         return output
     }
