@@ -82,9 +82,10 @@ const rankedQueries=[...byQuery].map(([query,entries])=>({
 const diagnostics={at:new Date().toISOString(),belowTop5Count:belowTop5.length,distinctQueries:rankedQueries.length,
  ambiguousCount:belowTop5.filter(r=>r.ambiguousQuery).length,
  repeatedLabels:rankedQueries.filter(r=>r.repeatedCategoryLabel).length,
+ unambiguousCases:belowTop5.filter(r=>!r.ambiguousQuery).map(r=>({query:r.query,category:r.category,items:r.items,top:r.top,count:r.count,truncated:r.truncated,queryVariants:r.queryVariants,categoryLeaf:r.categoryLeaf})),
  queries:rankedQueries};
 writeFileSync('artifacts/neon-search-ranking-diagnostics.json',JSON.stringify(diagnostics,null,2));
-console.log('RANKING DIAGNOSTICS:',JSON.stringify({belowTop5:diagnostics.belowTop5Count,distinctQueries:diagnostics.distinctQueries,ambiguous:diagnostics.ambiguousCount,repeatedLabels:diagnostics.repeatedLabels}));
+console.log('RANKING DIAGNOSTICS:',JSON.stringify({belowTop5:diagnostics.belowTop5Count,distinctQueries:diagnostics.distinctQueries,ambiguous:diagnostics.ambiguousCount,repeatedLabels:diagnostics.repeatedLabels,unambiguousCases:diagnostics.unambiguousCases.length}));
 console.log('CATEGORY COVERAGE:',tests.length,'tested,',failed.length,'flagged');
 console.log('CLASSIFICATION:',JSON.stringify(breakdown));
 console.log('POTENTIAL REAL ISSUES:',genuineCandidates.length);
