@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import ZiiplyMobileScannerCard from "../cards/ZiiplyMobileScannerCard";
+import posthog from "posthog-js";
+import {ARVO_MEALS_KEY, arvoNutrientValues, readArvoMeals} from "./arvoStatistics";
 
 /**
  * Arvon ravintoskannerin ensimmäinen käyttöliittymäversio.
@@ -20,6 +22,8 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
   const [cartSaving, setCartSaving] = useState(false);
   const [cartSaved, setCartSaved] = useState(false);
   const cameraRef = useRef<MediaStream | null>(null);
+  const trackEvent = (event: string) => { try { if (posthog.__loaded) posthog.capture(event); } catch {} };
+  useEffect(() => { trackEvent("arvo_scanner_opened"); }, []);
   const lastEanRef = useRef("");
   const regionId = "arvo-nutrition-scanner-camera";
   useEffect(() => {
@@ -31,6 +35,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
       if (!/^\d{8,14}$/.test(code) || code === lastEanRef.current || disposed) return;
       lastEanRef.current = code;
       setEan(code);
+      trackEvent("arvo_scan_success");
       setMealSaved(false);
       setCartSaved(false);
       setTab("nutrition");
@@ -87,12 +92,13 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     fetch("/api/ean-bank?ean=" + encodeURIComponent(ean), {signal:controller.signal})
       .then(response => response.json())
       .then(data => {
-        if (!data?.product) { setStatus("EAN-tuotetta ei löytynyt."); return; }
+        if (!data?.product) { trackEvent("arvo_product_not_found"); setStatus("EAN-tuotetta ei löytynyt."); return; }
+        trackEvent("arvo_product_found");
         setProductName(data.product.name || "Tuntematon tuotenimi");
         setNutrition(data.product.nutrition || null);
         setStatus(data.product.nutrition ? "Ravintotiedot löytyivät" : "Tuote löytyi, ravintoarvot puuttuvat");
       })
-      .catch(() => { if (!controller.signal.aborted) setStatus("Tuotteen hakeminen epäonnistui"); });
+      .catch(() => { if (!controller.signal.aborted) { trackEvent("arvo_scanner_error"); setStatus("Tuotteen hakeminen epäonnistui"); } });
     return () => controller.abort();
   }, [ean]);
   const nutrient = (keys: string[]) => {
@@ -111,6 +117,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     try {
       await onAddToCart({ean,name:productName,grams,nutrition});
       setCartSaved(true);
+      trackEvent("arvo_cart_added");
       setStatus("Lisätty ostoskoriin");
     } catch { setStatus("Ostoskoriin lisääminen epäonnistui"); }
     finally { setCartSaving(false); }
@@ -118,12 +125,11 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
   const saveMeal = () => {
     if (!ean || !productName || !nutrition || grams <= 0) return;
     try {
-      const key = "ziiply-arvo-meals-v1";
-      const old = JSON.parse(window.localStorage.getItem(key) || "[]");
-      const list = Array.isArray(old) ? old : [];
-      const values = {kcal:nutrient(["kcal_100g","energy-kcal_100g","ENERC"]), protein:nutrient(["proteins_100g","protein_100g","PROCNT"]), carbs:nutrient(["carbohydrates_100g","CHOCDF"]), fat:nutrient(["fat_100g","FAT"])};
-      list.push({id:crypto.randomUUID(),timestamp:new Date().toISOString(),ean,name:productName,grams,nutrition:values});
-      window.localStorage.setItem(key,JSON.stringify(list));
+      const list = readArvoMeals(window.localStorage);
+      list.push({id:crypto.randomUUID(),timestamp:new Date().toISOString(),ean,name:productName,grams,nutrition:arvoNutrientValues(nutrition,grams)});
+      window.localStorage.setItem(ARVO_MEALS_KEY,JSON.stringify(list));
+      window.dispatchEvent(new Event("ziiply-arvo-meals-updated"));
+      trackEvent("arvo_meal_saved");
       setMealSaved(true);
       setStatus("Lisätty aterialle");
     } catch { setStatus("Aterian tallennus epäonnistui"); }
