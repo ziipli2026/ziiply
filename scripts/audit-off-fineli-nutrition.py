@@ -134,6 +134,21 @@ with psycopg.connect(os.environ["DATABASE_URL"],
                 "protein":str(row[5]) if row[5] is not None else None,
                 "salt":str(row[6]) if row[6] is not None else None},
                 ensure_ascii=False),flush=True)
+        # Explicit machine-readable anomaly report; preserve source values.
+        cur.execute("""SELECT ean,
+            CASE WHEN kcal_100g < 0 OR kcal_100g > 1000 THEN 'kcal_100g' END,
+            CASE WHEN salt_100g < 0 OR salt_100g > 100 THEN 'salt_100g' END
+            FROM public.ziiply_off_nutrition
+            WHERE kcal_100g < 0 OR kcal_100g > 1000
+               OR salt_100g < 0 OR salt_100g > 100
+            ORDER BY ean""")
+        for ean, energy_issue, salt_issue in cur.fetchall():
+            print("NUTRITION_QUARANTINE_CANDIDATE", json.dumps({
+                "ean": ean,
+                "invalid_fields": [x for x in (energy_issue, salt_issue) if x],
+                "action": "exclude_invalid_field_from_display_until_verified",
+                "database_values_modified": False
+            }), flush=True)
         # Identify whether the 135 missing OFF records have a separately reviewed
         # Fineli fallback or only pending suggestions. Never auto-approve matches.
         cur.execute("""SELECT
