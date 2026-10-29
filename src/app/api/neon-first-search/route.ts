@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
   const lactoseMilkName = "(^| )(maito|kevytmaito|täysmaito|rasvaton maito|maitojuoma)( |$)";
   const lactoseChocolatePattern = "suklaa|konvehti|patukka|kaakao";
   const lactoseCondensedPattern = "kondensoitu|tiivistetty";
-  const lactoseSpecialPattern = "cafe|barista|uht|kahvimaito|erikoismaito";
+  const lactoseSpecialPattern = "(^| )(cafe|barista|kahvimaito|erikoismaito)( |$)";
+  const lactoseOrdinaryPattern = "(^| )(kevytmaito|täysmaito|rasvaton)( |$)";
   const milkLeaf = "%/maidot-ja-piimat/maidot";
   const milkSpecial = "%/maidot-ja-piimat/erikoismaidot";
   const milkLactose = "%/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot";
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
           WHEN ${isEan} AND ean = ${q} THEN 0
           WHEN ${lactoseFreeMilkIntent} AND name_words ~ ${lactoseChocolatePattern} THEN 90
           WHEN ${lactoseFreeMilkIntent} AND name_words ~ ${lactoseCondensedPattern} THEN 30
-          WHEN ${lactoseFreeMilkIntent} AND (name_words ~ ${lactoseMilkName} OR category ILIKE ${milkLactose} OR category ILIKE ${milkLeaf}) AND name_words !~ ${lactoseSpecialPattern} AND category NOT ILIKE ${milkSpecial} THEN 1
+          WHEN ${lactoseFreeMilkIntent} AND (name_words ~ ${lactoseMilkName} OR category ILIKE ${milkLactose} OR category ILIKE ${milkLeaf}) AND (name_words ~ ${lactoseOrdinaryPattern} OR (name_words !~ ${lactoseSpecialPattern} AND coalesce(category, '') NOT ILIKE ${milkSpecial})) THEN 1
           WHEN ${lactoseFreeMilkIntent} AND (name_words ~ ${lactoseMilkName} OR category ILIKE ${milkLactose} OR category ILIKE ${milkSpecial}) THEN 10
           WHEN ${lactoseFreeMilkIntent} THEN 40
           WHEN ${milkIntent} AND (category ILIKE ${milkLeaf} OR category ILIKE ${milkLactose}) THEN 1
