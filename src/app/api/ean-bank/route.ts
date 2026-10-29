@@ -1,3 +1,4 @@
+import { attachFineliSaltEstimate } from "./fineli-salt-estimate.mjs";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanProducts from "../../../../data/lidl/verified-ean-links.json";
@@ -150,18 +151,10 @@ export async function GET(request: NextRequest) {
                   AND (f.nutrients->'NACL'->>'value')::numeric BETWEEN 0 AND 100000
                 LIMIT 2
               `;
-              if (estimates.length === 1) {
-                safeNutrition.estimatedSalt = {
-                  value: Number(estimates[0].saltG100g),
-                  unit: "g/100g",
-                  source: "fineli-generic",
-                  estimated: true,
-                  label: "Fineli – arvio",
-                  fineliId: estimates[0].fineliId,
-                  foodName: estimates[0].foodName,
-                  confidence: estimates[0].confidence
-                };
-              }
+              Object.assign(safeNutrition, attachFineliSaltEstimate(
+                safeNutrition, selected.source, true, estimates
+              ));
+
             }
             nutrition = safeNutrition;
           }
