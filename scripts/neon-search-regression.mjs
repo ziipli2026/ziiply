@@ -74,10 +74,36 @@ for(const r of intentReport){
  if(['koiranmakkara','koiran makkara'].includes(r.query) && r.top5PetCategoryCount===0)intentFailures.push(r.query+':pet-products-missing');
 }
 console.log('INTENT ASSERTIONS:',intentFailures.length?'FAIL '+intentFailures.join(', '):'PASS');
+// Contract checks across representative queries; avoid hard-coded category relevance expectations.
+const contractQueries=['maito','makkarat','koiran makkara','Valio','6413300102017'];
+const contractReport=[];
+for(const q of contractQueries){
+ const failures=[];
+ try{
+  const response=await fetch(base+'/api/neon-first-search?q='+encodeURIComponent(q),{signal:AbortSignal.timeout(15000)});
+  const data=await response.json();
+  const products=data.products||[];
+  if(!response.ok||data.ok!==true)failures.push('api-error');
+  if(data.readOnly!==true)failures.push('not-read-only');
+  if(data.query!==q)failures.push('query-mismatch');
+  if(!Array.isArray(data.products))failures.push('missing-products-array');
+  if(data.count!==products.length)failures.push('count-mismatch');
+  if(products.length>100)failures.push('over-limit');
+  if(data.truncated!==(products.length===100))failures.push('truncated-contract-mismatch');
+  if(!String(data.searchVersion||'').includes('sausage'))failures.push('unexpected-version');
+  if(products.some(p=>!p.ean||!p.name||typeof p.rank!=='number'))failures.push('invalid-product');
+  if(products.some((p,i)=>i>0&&p.rank<products[i-1].rank))failures.push('rank-out-of-order');
+  if(new Set(products.map(p=>p.ean)).size!==products.length)failures.push('duplicate-ean');
+  if(products.some(p=>Object.hasOwn(p,'price')||Object.hasOwn(p,'priceEur')))failures.push('unexpected-price-field');
+  contractReport.push({query:q,count:products.length,version:data.searchVersion,failures});
+ }catch(error){failures.push(String(error));contractReport.push({query:q,failures})}
+}
+console.log('CONTRACT ASSERTIONS:',JSON.stringify(contractReport.map(r=>({query:r.query,count:r.count,failures:r.failures}))));
 const fs=await import('node:fs');
 fs.mkdirSync('artifacts',{recursive:true});
+fs.writeFileSync('artifacts/neon-search-contract-checks.json',JSON.stringify({at:new Date().toISOString(),checks:contractReport},null,2));
 fs.writeFileSync('artifacts/neon-search-intent-diagnostics.json',JSON.stringify({at:new Date().toISOString(),note:'Observational only; no pass/fail relevance inference from category alone',queries:intentReport},null,2));
 console.log('INTENT DIAGNOSTICS:',JSON.stringify(intentReport.map(r=>({query:r.query,ok:r.ok,top5PetCategoryCount:r.top5PetCategoryCount,error:r.error}))));
 fs.writeFileSync('artifacts/neon-search-regression.json',JSON.stringify({base,at:new Date().toISOString(),report},null,2));
 for(const r of report) console.log((r.failures.length?'FAIL':'PASS')+' '+r.query+' '+r.ms+'ms '+r.failures.join(', '));
-if(report.some(x=>x.failures.length)||intentFailures.length) process.exitCode=1;
+if(report.some(x=>x.failures.length)||intentFailures.length||contractReport.some(x=>x.failures.length)) process.exitCode=1;
