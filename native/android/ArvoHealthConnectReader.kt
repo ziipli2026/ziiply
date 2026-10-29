@@ -25,13 +25,20 @@ class ArvoHealthConnectReader(context: Context) {
         HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
         HealthPermission.getReadPermission(RestingHeartRateRecord::class)
     )
+    private var approvedCategories: Set<String> = emptySet()
+    fun setLocalConsent(categories: Set<String>) {
+        require(categories.isNotEmpty() && categories.all { it in setOf("steps", "active_energy", "resting_heart_rate", "hrv", "sleep_stages") })
+        approvedCategories = categories.toSet()
+    }
+    fun revokeLocalConsent() { approvedCategories = emptySet() }
     suspend fun readDay(date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): Map<String, Any> {
+        check(approvedCategories.isNotEmpty()) { "In-app health consent required" }
         val granted = client.permissionController.getGrantedPermissions()
         val start = date.atStartOfDay(zone).toInstant()
         val end = date.plusDays(1).atStartOfDay(zone).toInstant()
         val metrics = mutableSetOf<AggregationMetric<*>>()
-        if (HealthPermission.getReadPermission(StepsRecord::class) in granted) metrics += StepsRecord.COUNT_TOTAL
-        if (HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class) in granted) metrics += ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL
+        if ("steps" in approvedCategories && HealthPermission.getReadPermission(StepsRecord::class) in granted) metrics += StepsRecord.COUNT_TOTAL
+        if ("active_energy" in approvedCategories && HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class) in granted) metrics += ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL
         val result = if (metrics.isNotEmpty()) client.aggregate(AggregateRequest(metrics, TimeRangeFilter.between(start,end))) else null
         val output = mutableMapOf<String,Any>(
             "provider" to "health_connect", "localDate" to date.toString(), "timezone" to zone.id
