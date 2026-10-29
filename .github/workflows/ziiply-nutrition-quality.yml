@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: OFF nutrition precision fix validation 29 Oct
+run-name: OFF audit syntax repair validation 29 Oct
 on:
   push:
     branches: [main]
