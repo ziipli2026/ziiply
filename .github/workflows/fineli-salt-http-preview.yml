@@ -3,8 +3,8 @@ on:
   workflow_dispatch:
     inputs:
       ean:
-        description: 'Approved EAN with missing OFF salt'
-        required: true
+        description: 'Optional EAN; if blank select from existing read-only audit'
+        required: false
         type: string
 jobs:
   smoke:
@@ -14,8 +14,34 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-python@v5
+        if: ${{ inputs.ean == '' }}
+        with:
+          python-version: '3.12'
+      - name: Select EAN from existing read-only Fineli audit
+        if: ${{ inputs.ean == '' }}
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: |
+          python -m pip install 'psycopg[binary]>=3.2,<4' 'certifi>=2025.1.31'
+          python -u scripts/review-approved-fineli-salt.py > /tmp/fineli-review.log
+          python - <<'PY'
+          import json, os
+          with open('/tmp/fineli-review.log') as f:
+              for line in f:
+                  if line.startswith('FINELI_SALT_REVIEW_ITEM '):
+                      item=json.loads(line.split(' ',1)[1])
+                      if item.get('approved_matches') == 1:
+                          with open(os.environ['GITHUB_ENV'],'a') as out:
+                              out.write('FINELI_TEST_EAN='+item['ean']+'\n')
+                          break
+              else:
+                  raise SystemExit('No unique approved EAN found; supply one manually')
+          PY
       - name: Check live preview EAN without writes
         env:
           FINELI_PREVIEW_URL: https://ziiply-9tn7p1lyd-ziipli2026s-projects.vercel.app
-          FINELI_TEST_EAN: ${{ inputs.ean }}
-        run: node --test tests/fineli-salt-live-preview.test.mjs
+          MANUAL_EAN: ${{ inputs.ean }}
+        run: |
+          if [ -n "$MANUAL_EAN" ]; then export FINELI_TEST_EAN="$MANUAL_EAN"; fi
+          node --test tests/fineli-salt-live-preview.test.mjs
