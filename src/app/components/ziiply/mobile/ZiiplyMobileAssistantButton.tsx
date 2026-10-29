@@ -66,7 +66,7 @@ export default function ZiiplyMobileAssistantButton({
     >
       <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#7f6a3e_1px,transparent_1px)] [background-size:12px_12px]" />
 
-      <button type="button" onClick={onClick} aria-label={`${name}: ${assistant === "gosta" ? "Tarjoushaku" : assistant === "justiina" ? "Tuotehaku" : "Ruokavaliot ja skanneri"}`} className="relative z-10 flex w-full min-h-[92px] flex-1 flex-col items-center justify-center">
+      <button type="button" onClick={onClick} aria-label={`${name}: ${assistant === "gosta" ? "Tarjoushaku" : assistant === "justiina" ? "Tuotehaku" : "Ruokavaliot ja skanneri"}`} className="relative z-10 flex w-full shrink-0 flex-col items-center justify-center">
       <div
         className={[
           "relative z-10 mb-1 overflow-hidden rounded-full border-[3px] border-[#f7e7c4] bg-[#314633]",
@@ -97,7 +97,7 @@ export default function ZiiplyMobileAssistantButton({
       </div>
 
       </button>
-      <button type="button" onClick={onLowerClick || onClick} aria-label={`${name}: ${assistant === "gosta" ? "Tarjousvahti" : assistant === "justiina" ? "Reseptit" : "Muut asetukset"}`} className="relative z-10 flex w-full min-h-[64px] flex-1 flex-col items-center justify-center border-t border-[#735a34]/25 px-1 py-2">
+      <button type="button" onClick={onLowerClick || onClick} aria-label={`${name}: ${assistant === "gosta" ? "Tarjousvahti" : assistant === "justiina" ? "Reseptit" : "Muut asetukset"}`} className="relative z-10 mt-auto flex w-full shrink-0 flex-col items-center justify-center border-t border-[#735a34]/25 pt-1">
       <div className="relative z-10 mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#1e2f2a] max-[389px]:text-[9px] max-[389px]:tracking-normal">
         {title}
       </div>
