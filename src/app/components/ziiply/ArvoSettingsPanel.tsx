@@ -126,7 +126,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
   const mealLabels: { key: keyof ArvoPreferences["mealTimes"]; label: string }[] = [{key:"breakfast",label:"Aamiainen"},{key:"lunch",label:"Lounas"},{key:"dinner",label:"Päivällinen"},{key:"evening",label:"Iltapala"}];
   return <div className="flex h-full min-h-0 flex-col overflow-hidden px-1 py-1 text-[#173b2b]">
     <div className="relative mb-2 flex h-12 shrink-0 items-center"><h2 className="text-[26px] font-black text-[#14291f]">Arvo</h2><button type="button" className="absolute left-1/2 -translate-x-1/2 rounded-lg border border-[#173b2b] px-3 py-1 text-sm font-bold" onClick={()=>{if(activeSection==="reminders"&&reminderPage)setReminderPage(null);else if(activeSection==="energy"&&energyPage)setEnergyPage(null);else if(activeSection==="purchases"&&purchasePage)setPurchasePage(null);else if(activeSection)setActiveSection(null);else onClose?.()}}>← Takaisin</button></div>
-    <div className="relative min-h-0 flex-1 overflow-hidden">
+    <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
     {!activeSection&&<p className="mb-2 text-xs text-[#6d6a5c]">Asetukset tallentuvat tähän selaimeen.</p>}
     <div className="grid gap-1.5">
       <div className="flex items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-3 py-2 shadow-sm">
@@ -142,9 +142,9 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
     ].map(([id,title,summary])=><button key={id} type="button" className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-3 py-2 text-left shadow-sm hover:bg-white" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection(id)}}><span><strong className="block">{title}</strong><span className="text-xs text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true">›</span></button>)}</div>
     {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
       
-      <div className="min-h-0 flex-1 overflow-hidden p-1">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1 pb-6 [-webkit-overflow-scrolling:touch]">
 
-      {activeSection==="household"&&<section className="h-full rounded-xl bg-white/75 px-2 py-1">
+      {activeSection==="household"&&<section className="min-h-full rounded-xl bg-white/75 px-2 py-1">
         <div className="mb-2 flex items-center justify-between gap-2"><h3 className="font-bold">Ruokavaliot</h3><span className="text-xs text-[#6d6a5c]">Valitse tarvittaessa useita</span></div>
         <div className="grid grid-cols-2 gap-1.5">{ARVO_DIETS.map(([key,label,description])=><label key={key} title={description} className="flex min-h-8 items-center gap-2 rounded-lg border bg-white px-2 py-0.5 text-sm"><input type="checkbox" checked={p.diets.includes(key)} onChange={e=>update("diets",e.target.checked?[...p.diets,key]:p.diets.filter(d=>d!==key))}/><span className="font-semibold">{label}</span></label>)}</div>
         {p.diets.length>0&&<p className="mt-1 text-xs">Valitut: {effectiveArvoDiets(p.diets).map(key=>ARVO_DIETS.find(([id])=>id===key)?.[1]).join(", ")}</p>}
@@ -154,7 +154,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
         </div>
         <p className="mt-2 text-xs text-[#6d6a5c]">Tuotetietojen puutteiden vuoksi allergeeniturvallisuutta ei voida taata. Maidoton ei ole sama kuin laktoositon; viljaton ei takaa gluteenittomuutta.</p>
       </section>}
-      {activeSection==="energy"&&<section className="h-full rounded-xl bg-white/75 p-3 text-sm">
+      {activeSection==="energy"&&<section className="min-h-full rounded-xl bg-white/75 p-3 text-sm">
         <label className="flex items-center gap-2 font-bold"><input type="checkbox" checked={p.dietEnabled} onChange={e=>update("dietEnabled",e.target.checked)}/> Henkilökohtainen energiasuunnittelu käytössä</label>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
           <div className="col-span-2 text-xs font-bold text-[#49634f]">Omat tiedot ja aktiivisuus</div>
@@ -178,7 +178,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       {activeSection==="health"&&(<>
     <section className="mb-5 rounded-xl bg-white/75 p-4"><h3 className="text-xl font-bold">Terveystiedot</h3><p className="text-sm">Salli terveystietojen käyttö mobiilistasi — ei vielä käytettävissä selainversiossa. Apple Health / Health Connect -yhteys ja oikeuksien peruminen toteutetaan vasta toimivalla integraatiolla. Terveystietoja ei haeta.</p></section>
       </>)}
-      {activeSection==="purchases"&&<section className="h-full rounded-xl bg-white/75 p-3 text-sm">
+      {activeSection==="purchases"&&<section className="min-h-full rounded-xl bg-white/75 p-3 text-sm">
         <label className="flex items-center gap-2 font-semibold"><input type="checkbox" checked={p.purchaseTracking} onChange={e=>update("purchaseTracking",e.target.checked)}/> Käytä vahvistettuja ostoksia täydennysarvioihin</label>
         <p className="mt-1 text-xs text-[#6d6a5c]">Ostoskorin tuotteita ei merkitä automaattisesti ostetuiksi.</p>
         {!purchasePage&&<div className="mt-3 grid gap-2">
@@ -197,7 +197,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       </div>}
       </section>}
 
-      {activeSection==="reminders"&&<section className="h-full rounded-xl bg-white/75 p-3">
+      {activeSection==="reminders"&&<section className="min-h-full rounded-xl bg-white/75 p-3">
         {!reminderPage&&<div className="grid gap-2">
           <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setReminderPage("times")}><span><b className="block">Ruokailuajat ja hiljainen aika</b><small>Neljä ruokailuaikaa ja hiljainen aika</small></span>›</button>
           <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setReminderPage("suggestions")}><span><b className="block">Viikonloput, juhlat ja kalenteri</b><small>Valitse haluamasi ehdotukset</small></span>›</button>
