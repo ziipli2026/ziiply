@@ -104,37 +104,48 @@ export default function ArvoNutritionScannerPreview() {
   const [grams, setGrams] = useState(100);
   const [tab, setTab] = useState<"scan" | "nutrition">("scan");
   return (
-    <div className="min-h-dvh bg-[#f8f5ed] px-3 py-5 text-[#173b2b]">
-      <div className="mx-auto max-w-[480px]">
-        <header className="mb-4 flex items-center gap-3 rounded-2xl border-2 border-[#b99d62] bg-[#fff0c8] p-3">
-          <img src="/assistants/arvo.png" alt="Arvo" className="h-16 w-16 rounded-full object-cover" />
-          <div><h1 className="text-2xl font-black">Arvon ravintoskanneri</h1><p className="text-xs font-semibold">EAN- ja ravintoarvohaun testiversio</p></div>
+    <div className="min-h-dvh bg-[#f8f5ed] px-3 pb-8 pt-[max(12px,env(safe-area-inset-top))] text-[#173b2b]">
+      <main className="mx-auto max-w-[480px]">
+        <header className="mb-3 flex items-center gap-3">
+          <img src="/assistants/arvo.png" alt="Arvo" className="h-12 w-12 rounded-full border border-[#b99d62] object-cover" />
+          <div className="min-w-0 flex-1"><h1 className="text-xl font-black leading-tight">Arvon ravintoskanneri</h1><p className="text-xs text-[#68756a]">Tuotteen ravintoarvot annoksen mukaan</p></div>
+          <button type="button" onClick={() => {setTab("scan");setOpen(true);}} className="rounded-xl bg-[#24573e] px-3 py-2.5 text-sm font-bold text-white">Skannaa</button>
         </header>
-        <div className="mb-3 grid grid-cols-2 gap-2">
-          <button onClick={() => setTab("scan")} className={`rounded-xl border-2 px-3 py-3 font-bold ${tab === "scan" ? "border-[#386344] bg-[#d8ecd3]" : "border-[#c9b88e] bg-white"}`}>Skanneri</button>
-          <button onClick={() => setTab("nutrition")} className={`rounded-xl border-2 px-3 py-3 font-bold ${tab === "nutrition" ? "border-[#386344] bg-[#d8ecd3]" : "border-[#c9b88e] bg-white"}`}>Ravintoarvot</button>
-        </div>
-        {tab === "scan" ? (
-          <div className="rounded-2xl border-2 border-[#b99d62] bg-white p-3">
-            <p className="mb-3 text-sm">Sama kameranäkymä kuin tavallisessa skannerissa. EAN-luku käyttää nyt Ziiplyn tavallisen skannerin html5-qrcode-lukijaa.</p>
-            <form className="mb-3 flex gap-2" onSubmit={event => {event.preventDefault();const value=manualEan.replace(/\D/g,"");if (!/^\d{8,14}$/.test(value)) {setStatus("EAN-koodissa pitää olla 8–14 numeroa.");return;}setEan(value);setTab("nutrition");}}><input aria-label="EAN-koodi" inputMode="numeric" value={manualEan} onChange={event=>setManualEan(event.target.value)} placeholder="Syötä tai liitä EAN" className="min-w-0 flex-1 rounded-lg border-2 border-[#b99d62] p-3"/><button type="submit" className="rounded-lg bg-[#24573e] px-4 font-bold text-white">Hae EAN</button></form>
-            {status && <p role="status" className="mb-2 text-sm">{status}</p>}
-            <button onClick={() => setOpen(true)} className="w-full rounded-xl bg-[#24573e] px-4 py-3 font-black text-white">Näytä Arvon skanneri</button>
-          </div>
+        <form className="mb-3 flex gap-2" onSubmit={event => {event.preventDefault();const value=manualEan.replace(/\D/g,"");if (!/^\d{8,14}$/.test(value)) {setStatus("EAN-koodissa pitää olla 8–14 numeroa.");return;}setEan(value);setTab("nutrition");}}>
+          <input aria-label="EAN-koodi" inputMode="numeric" value={manualEan} onChange={event=>setManualEan(event.target.value)} placeholder="EAN-koodi tai liitä tähän" className="min-w-0 flex-1 rounded-xl border border-[#c9b88e] bg-white px-3 py-2.5 text-sm" />
+          <button type="submit" className="rounded-xl border border-[#24573e] bg-white px-4 text-sm font-bold text-[#24573e]">Hae</button>
+        </form>
+        {tab === "scan" && !ean ? (
+          <section className="rounded-2xl border border-[#c9b88e] bg-white p-5 text-center">
+            <p className="mb-3 text-sm text-[#68756a]">Skannaa pakkauksen viivakoodi tai syötä EAN yllä.</p>
+            <button type="button" onClick={() => setOpen(true)} className="w-full rounded-xl bg-[#24573e] px-4 py-3 font-bold text-white">Avaa kamera</button>
+            {status && <p role="status" className="mt-3 text-sm">{status}</p>}
+          </section>
         ) : (
-          <section className="rounded-2xl border-2 border-[#b99d62] bg-white p-4">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[#816a3c]">Tuotteen ravintotiedot</p>
-            <h2 className="text-lg font-black">{productName || "Tuote tunnistetaan skannauksen jälkeen"}</h2>
-            <p className="mt-1 text-xs text-[#68756a]">{ean ? "EAN: " + ean : "Skannaa EAN nähdäksesi ravintoarvot."} · {status}</p>
-            <div className="mt-5 flex items-center justify-between"><label htmlFor="arvo-grams" className="font-bold">Syötävä määrä</label><strong>{grams} g</strong></div>
-            <input id="arvo-grams" aria-label="Syötävä määrä grammoina" type="range" min="0" max="500" step="5" value={grams} onChange={e => setGrams(Number(e.target.value))} className="mt-3 w-full accent-[#24573e]" />
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              {[["Energia (kcal)", ["kcal_100g","energy-kcal_100g","ENERC"]], ["Proteiini (g)", ["proteins_100g","protein_100g","PROCNT"]], ["Hiilihydraatit (g)", ["carbohydrates_100g","CHOCDF"]], ["Rasva (g)", ["fat_100g","FAT"]]].map(([label, keys]) => <div key={String(label)} className="rounded-xl bg-[#f3f0e7] p-3"><div className="text-xs font-bold">{String(label)}</div><div className="mt-1 text-xl font-black">{nutrient(keys as string[])}</div></div>)}
+          <section className="rounded-2xl border border-[#c9b88e] bg-white p-4 shadow-sm">
+            <div className="mb-3">
+              <p className="mb-1 text-[11px] font-bold uppercase tracking-wider text-[#816a3c]">Tunnistettu tuote</p>
+              <h2 className="text-lg font-black leading-snug">{productName || "Tuotetta haetaan…"}</h2>
+              <p className="mt-1 text-xs text-[#68756a]">{ean ? "EAN " + ean + " · " : ""}{status}</p>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2"><button disabled className="rounded-xl bg-[#24573e] p-3 font-bold text-white opacity-50">Lisää aterialle</button><button disabled className="rounded-xl border-2 border-[#b99d62] p-3 font-bold opacity-50">Lisää ostoskoriin</button></div>
+            <div className="rounded-xl bg-[#f8f5ed] p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <label htmlFor="arvo-grams" className="text-sm font-bold">Syötävä määrä</label>
+                <div className="flex items-center gap-1"><input aria-label="Grammamäärä" type="number" min="0" max="5000" step="5" value={grams} onChange={e => setGrams(Math.max(0,Math.min(5000,Number(e.target.value)||0)))} className="w-20 rounded-lg border border-[#c9b88e] bg-white px-2 py-1 text-right font-black" /><span className="font-bold">g</span></div>
+              </div>
+              <input id="arvo-grams" aria-label="Syötävä määrä liukusäätimellä" type="range" min="0" max="500" step="5" value={Math.min(grams,500)} onChange={e => setGrams(Number(e.target.value))} className="w-full accent-[#24573e]" />
+              <div className="mt-1 flex justify-between text-[11px] text-[#68756a]"><span>0 g</span><span>500 g</span></div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[["Energia", "kcal", ["kcal_100g","energy-kcal_100g","ENERC"]], ["Proteiini", "g", ["proteins_100g","protein_100g","PROCNT"]], ["Hiilihydraatit", "g", ["carbohydrates_100g","CHOCDF"]], ["Rasva", "g", ["fat_100g","FAT"]]].map(([label, unit, keys]) => <div key={String(label)} className="rounded-xl bg-[#f3f0e7] px-3 py-3"><div className="text-xs font-semibold text-[#536456]">{String(label)}</div><div className="mt-1 text-2xl font-black leading-none">{nutrient(keys as string[])} <span className="text-xs font-semibold">{String(unit)}</span></div></div>)}
+            </div>
+            <div className="mt-3 flex gap-2">
+              <button type="button" onClick={() => {setTab("scan");setOpen(true);}} className="flex-1 rounded-xl bg-[#24573e] px-3 py-3 text-sm font-bold text-white">Skannaa seuraava</button>
+              <button type="button" disabled title="Ateriapäiväkirja toteutetaan seuraavaksi" className="flex-1 rounded-xl border border-[#b99d62] px-3 py-3 text-sm font-bold text-[#82948a]">Lisää aterialle</button>
+            </div>
           </section>
         )}
-      </div>
+      </main>
       {open && <div className="fixed inset-0 z-[100] bg-[#f8f5ed]">
         <ZiiplyMobileScannerCard
           regionId="arvo-nutrition-scanner-camera"
