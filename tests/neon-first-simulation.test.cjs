@@ -97,3 +97,31 @@ test('aborting a hung provider resolves the run and ignores late results', async
   const pending=runSimulation('old',{id:'Neon',search:()=>new Promise(()=>{})},[],controller.signal,v=>states.push(v));
   controller.abort();await pending;assert.equal(states.length,1);assert.equal(states[0].done,false);
 });
+
+test('live Neon API response shape merges with independent S/K prices without trusting bank prices', async () => {
+  const base=process.env.SEARCH_BASE_URL;
+  if(!base) return; // Offline test runs do not require a running Neon API.
+  const query='6413300102017';
+  const response=await fetch(base+'/api/neon-first-search?q='+query,{signal:AbortSignal.timeout(15000)});
+  assert.equal(response.ok,true);
+  const data=await response.json();
+  assert.equal(data.ok,true);
+  const bankProducts=data.products.map(p=>({ean:p.ean,name:p.name,imageUrl:p.imageUrl,price:999}));
+  assert.ok(bankProducts.length>0);
+  const match=bankProducts.find(p=>p.ean===query);
+  assert.ok(match);
+  const snapshots=[];
+  await runSimulation(query,source('Neon',bankProducts),[
+    source('S',[{ean:query,name:match.name,price:2.49,imageUrl:'/s.jpg'}]),
+    source('K',[{ean:query,name:match.name,price:2.79,imageUrl:'/k.jpg'}])
+  ],new AbortController().signal,s=>snapshots.push(s));
+  const first=snapshots.find(s=>s.rows.some(r=>r.ean===query)&&s.stages.S===undefined&&s.stages.K===undefined);
+  assert.ok(first,'Neon result should be visible before store responses');
+  assert.deepEqual(first.rows.find(r=>r.ean===query).prices,{});
+  const final=snapshots.at(-1);
+  assert.equal(final.done,true);
+  assert.equal(final.rows.filter(r=>r.ean===query).length,1);
+  assert.deepEqual(final.rows.find(r=>r.ean===query).prices,{S:2.49,K:2.79});
+  assert.equal(final.rows.find(r=>r.ean===query).imageUrl,match.imageUrl||'/s.jpg');
+  console.log('LIVE NEON + MOCK S/K: PASS',JSON.stringify({ean:query,bankRows:bankProducts.length,snapshots:snapshots.length}));
+});
