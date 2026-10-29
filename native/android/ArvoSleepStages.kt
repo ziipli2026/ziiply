@@ -25,7 +25,7 @@ object ArvoSleepStages {
         }
         // Round once per stage after merging intervals; avoid truncating every fragment.
         val result = durations.mapValues { (_, milliseconds) -> ((milliseconds + 30_000L) / 60_000L).toInt() }.toMutableMap()
-        result["sleep"] = result.getValue("rem") + result.getValue("core") + result.getValue("deep")
+        result["sleep"] = ((durations.getValue("rem") + durations.getValue("core") + durations.getValue("deep") + 30_000L) / 60_000L).toInt()
         return result
     }
 }
