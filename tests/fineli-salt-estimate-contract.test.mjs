@@ -6,6 +6,7 @@ import test from 'node:test';
 // These tests do not connect to Neon or alter production records.
 const route = readFileSync(new URL('../src/app/api/ean-bank/route.ts', import.meta.url), 'utf8');
 const block = route.split('// Optional, explicitly labeled Fineli salt estimate.')[1]?.split('nutrition = safeNutrition;')[0];
+const helper = readFileSync(new URL('../src/app/api/ean-bank/fineli-salt-estimate.mjs', import.meta.url), 'utf8');
 
 test('Fineli salt estimate is opt-in and requires an OFF record with missing salt', () => {
   assert.ok(block);
@@ -22,14 +23,14 @@ test('only approved, manually checked, numeric Fineli NACL values qualify', () =
   assert.match(block, /jsonb_typeof\(f\.nutrients->'NACL'->'value'\) = 'number'/);
   assert.match(block, /BETWEEN 0 AND 100000/);
   assert.match(block, /LIMIT 2/);
-  assert.match(block, /estimates\.length === 1/);
+  assert.match(helper, /estimates\.length !== 1/);
 });
 
 test('Fineli is a separately labeled estimate, not a replacement for OFF salt', () => {
-  assert.match(block, /safeNutrition\.estimatedSalt\s*=/);
-  assert.match(block, /source:\s*"fineli-generic"/);
-  assert.match(block, /estimated:\s*true/);
-  assert.match(block, /label:\s*"Fineli – arvio"/);
+  assert.match(helper, /output\.estimatedSalt\s*=/);
+  assert.match(helper, /source:\s*"fineli-generic"/);
+  assert.match(helper, /estimated:\s*true/);
+  assert.match(helper, /label:\s*"Fineli – arvio"/);
   assert.doesNotMatch(block, /safeNutrition\.salt_100g\s*(?:=(?!=)|\+=(?!=)|-=(?!=)|\*=(?!=)|\/=(?!=)|\?\?=)/);
   assert.doesNotMatch(block, /\b(?:INSERT|UPDATE|DELETE)\b/i);
 });
