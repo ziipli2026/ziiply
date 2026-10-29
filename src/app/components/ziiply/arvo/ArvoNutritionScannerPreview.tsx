@@ -136,9 +136,11 @@ export default function ArvoNutritionScannerPreview() {
         <ZiiplyMobileScannerCard
           regionId="arvo-nutrition-scanner-camera"
           fullscreen
-          scannerMessage=""
           onClose={() => setOpen(false)}
-          onToggleManualInput={() => setManual(value => !value)}\n          onToggleTorch={() => { const track = cameraRef.current?.getVideoTracks()[0]; if (track) { void track.applyConstraints({advanced:[{torch:!torch} as any]}).then(() => setTorch(!torch)).catch(() => setStatus("Valoa ei tueta tällä laitteella")); } }}\n          torchOn={torch}\n          scannerMessage={status}
+          onToggleManualInput={() => setManual(value => !value)}
+          onToggleTorch={() => { const track = cameraRef.current?.getVideoTracks()[0]; if (track) { void track.applyConstraints({advanced:[{torch:!torch} as any]}).then(() => setTorch(!torch)).catch(() => setStatus("Valoa ei tueta tällä laitteella")); } }}
+          torchOn={torch}
+          scannerMessage={status}
         />
         {manual && <form className="absolute bottom-28 left-4 right-4 z-[120] flex gap-2 rounded-xl bg-[#fff0c8] p-3" onSubmit={event => {event.preventDefault(); const value = String(new FormData(event.currentTarget).get("ean") || "").replace(/\\D/g,""); if (/^\\d{8,14}$/.test(value)) {setEan(value);setOpen(false);setTab("nutrition");setManual(false);} }}><input name="ean" inputMode="numeric" placeholder="EAN-koodi" className="min-w-0 flex-1 rounded-lg border p-2" required/><button className="rounded-lg bg-[#24573e] px-3 font-bold text-white">Hae</button></form>}
         <div className="pointer-events-none absolute left-1/2 top-[calc(env(safe-area-inset-top)+14px)] z-[110] -translate-x-1/2 rounded-full border border-[#b99d62] bg-[#fff0c8]/95 px-4 py-1 text-xs font-black text-[#24573e] shadow">ARVO · RAVINTO</div>
