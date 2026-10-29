@@ -15,6 +15,7 @@ export default function ArvoNutritionScannerPreview() {
   const [nutrition, setNutrition] = useState<Record<string, unknown> | null>(null);
   const [status, setStatus] = useState("");
   const [torch, setTorch] = useState(false);
+  const [mealSaved, setMealSaved] = useState(false);
   const cameraRef = useRef<MediaStream | null>(null);
   const lastEanRef = useRef("");
   const regionId = "arvo-nutrition-scanner-camera";
@@ -27,6 +28,7 @@ export default function ArvoNutritionScannerPreview() {
       if (!/^\d{8,14}$/.test(code) || code === lastEanRef.current || disposed) return;
       lastEanRef.current = code;
       setEan(code);
+      setMealSaved(false);
       setTab("nutrition");
     };
     async function start() {
@@ -99,6 +101,19 @@ export default function ArvoNutritionScannerPreview() {
     return Number.isFinite(number) && number >= 0 ? (number * grams / 100).toLocaleString("fi-FI",{maximumFractionDigits:1}) : "—";
   };
   const [grams, setGrams] = useState(100);
+  const saveMeal = () => {
+    if (!ean || !productName || !nutrition || grams <= 0) return;
+    try {
+      const key = "ziiply-arvo-meals-v1";
+      const old = JSON.parse(window.localStorage.getItem(key) || "[]");
+      const list = Array.isArray(old) ? old : [];
+      const values = {kcal:nutrient(["kcal_100g","energy-kcal_100g","ENERC"]), protein:nutrient(["proteins_100g","protein_100g","PROCNT"]), carbs:nutrient(["carbohydrates_100g","CHOCDF"]), fat:nutrient(["fat_100g","FAT"])};
+      list.push({id:crypto.randomUUID(),timestamp:new Date().toISOString(),ean,name:productName,grams,nutrition:values});
+      window.localStorage.setItem(key,JSON.stringify(list));
+      setMealSaved(true);
+      setStatus("Lisätty aterialle");
+    } catch { setStatus("Aterian tallennus epäonnistui"); }
+  };
   const [tab, setTab] = useState<"scan" | "nutrition">("scan");
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#f8f5ed] text-[#173b2b]">
@@ -107,7 +122,7 @@ export default function ArvoNutritionScannerPreview() {
         fullscreen
         hideHeaderTitle
         headerTitle={<div className="flex items-center justify-center gap-2"><img src="/assistants/arvo.png" alt="Arvo" className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"/><div className="min-w-0 text-left leading-tight text-[#163d32]"><div className="text-[16px] font-black">Arvon ravintoskanneri</div><div className="text-[10px] font-semibold">EAN- ja ravintoarvohaku</div></div></div>}
-        footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" disabled title="Aterialle lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🍽️</span><span>Aterialle</span></button><button type="button" disabled title="Ostoskoriin lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🛒</span><span>Ostoskoriin</span></button></div>}
+        footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" onClick={saveMeal} disabled={!ean || !nutrition || !productName || grams <= 0 || mealSaved} title={mealSaved ? "Tallennettu aterialle" : "Tallenna tuote aterialle"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🍽️</span><span>{mealSaved ? "Tallennettu" : "Aterialle"}</span></button><button type="button" disabled title="Ostoskoriin lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🛒</span><span>Ostoskoriin</span></button></div>}
         onClose={() => { setOpen(false); setTab("scan"); }}
         onToggleTorch={() => {
           const track = cameraRef.current?.getVideoTracks()[0];
@@ -135,7 +150,7 @@ export default function ArvoNutritionScannerPreview() {
                 {([["kcal",["kcal_100g","energy-kcal_100g","ENERC"]],["Prot.",["proteins_100g","protein_100g","PROCNT"]],["HH",["carbohydrates_100g","CHOCDF"]],["Rasva",["fat_100g","FAT"]]] as [string,string[]][]).map(([label,keys])=><div key={label} className="rounded-lg bg-white px-1 py-2 text-center"><div className="text-[10px] font-bold">{label}</div><div className="text-base font-black">{nutrient(keys)}</div></div>)}
               </div>
               <div className="mt-2">
-                <button type="button" onClick={()=>{setEan("");setProductName("");setNutrition(null);setStatus("");lastEanRef.current="";setTab("scan");}} className="w-full rounded-xl bg-[#24573e] p-3 text-sm font-bold text-white">Skannaa seuraava</button>
+                <button type="button" onClick={()=>{setEan("");setProductName("");setNutrition(null);setStatus("");setMealSaved(false);lastEanRef.current="";setTab("scan");}} className="w-full rounded-xl bg-[#24573e] p-3 text-sm font-bold text-white">Skannaa seuraava</button>
               </div>
             </section>
           </div>
