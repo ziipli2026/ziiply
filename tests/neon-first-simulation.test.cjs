@@ -125,3 +125,47 @@ test('live Neon API response shape merges with independent S/K prices without tr
   assert.equal(final.rows.find(r=>r.ean===query).imageUrl,match.imageUrl||'/s.jpg');
   console.log('LIVE NEON + MOCK S/K: PASS',JSON.stringify({ean:query,bankRows:bankProducts.length,snapshots:snapshots.length}));
 });
+
+test('live Neon and real S/K upstream first pages merge by EAN with cent-to-euro conversion', async () => {
+  const base=process.env.SEARCH_BASE_URL;
+  if(!base) return;
+  const query='makkara';
+  const bankResponse=await fetch(base+'/api/neon-first-search?q='+query,{signal:AbortSignal.timeout(15000)});
+  assert.equal(bankResponse.ok,true);
+  const bank=await bankResponse.json();
+  assert.equal(bank.ok,true);
+  const stores=[{id:'S',storeId:292},{id:'K',storeId:3221}];
+  const fetched=await Promise.all(stores.map(async store=>{
+    const url='https://api.ruoanhinta.fi/api/items?search='+query+'&storeIds='+store.storeId+'&skip=0&take=80';
+    const response=await fetch(url,{signal:AbortSignal.timeout(15000)});
+    assert.equal(response.ok,true,store.id+' upstream unavailable');
+    const data=await response.json();
+    assert.ok(Array.isArray(data.items));
+    return {id:store.id,products:data.items.map(p=>({
+      ean:/^\\d{8,14}$/.test(String(p.ean||''))?String(p.ean):undefined,
+      id:String(p.id),name:p.name,imageUrl:p.pictureUrl,
+      price:Number.isFinite(p.storeItems?.[0]?.price)&&p.storeItems[0].price>0?p.storeItems[0].price/100:null
+    }))};
+  }));
+  assert.ok(fetched.every(s=>s.products.length>0),'Both stores should have search results');
+  const snapshots=[];
+  await runSimulation(query,source('Neon',bank.products.map(p=>({ean:p.ean,name:p.name,imageUrl:p.imageUrl}))),fetched.map(s=>source(s.id,s.products)),new AbortController().signal,s=>snapshots.push(s));
+  const final=snapshots.at(-1);
+  assert.equal(final.done,true);
+  const byEan=new Map(final.rows.filter(r=>r.ean).map(r=>[r.ean,r]));
+  assert.equal(byEan.size,final.rows.filter(r=>r.ean).length,'EAN rows must not duplicate');
+  let exact=0,storeOnly=0;
+  const bankEans=new Set(bank.products.map(p=>p.ean));
+  for(const store of fetched)for(const p of store.products){
+    if(!p.ean)continue;
+    const row=byEan.get(p.ean);
+    assert.ok(row,'Store EAN must survive merge');
+    if(p.price!==null)assert.equal(row.prices[store.id],p.price,'Price must remain in correct store and euros');
+    if(bankEans.has(p.ean))exact++;else storeOnly++;
+  }
+  assert.ok(exact>0,'Expected at least one matching Neon EAN');
+  assert.ok(storeOnly>0,'Store-only EANs must not disappear');
+  const initial=snapshots.find(s=>s.rows.length>0&&s.stages.S===undefined&&s.stages.K===undefined);
+  assert.ok(initial,'Bank results must publish before shops');
+  console.log('LIVE NEON + REAL S/K MERGE: PASS',JSON.stringify({query,bankRows:bank.products.length,shopRows:fetched.map(s=>({store:s.id,count:s.products.length})),exact,storeOnly,mergedRows:final.rows.length}));
+});
