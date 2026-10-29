@@ -84,7 +84,7 @@ class ArvoHealthConnectReader(context: Context) {
             "localDate" to date.toString(),
             "timezone" to zone.id
         )
-        val aggregateMetrics = buildSet {
+        val aggregateMetrics = buildSet<androidx.health.connect.client.aggregate.AggregationMetric<*>> {
             if ("steps" in approvedCategories && HealthPermission.getReadPermission(StepsRecord::class) in granted)
                 add(StepsRecord.COUNT_TOTAL)
             if ("active_energy" in approvedCategories && HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class) in granted)
