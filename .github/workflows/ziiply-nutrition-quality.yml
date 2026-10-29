@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: OFF nutrition missing-fields refresh - next batch
+run-name: OFF nutrition missing-fields refresh - following batch 29 Oct
 on:
   push:
     branches: [main]
