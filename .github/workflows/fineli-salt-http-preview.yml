@@ -36,6 +36,7 @@ jobs:
                   if line.startswith('FINELI_SALT_REVIEW_ITEM '):
                       item=json.loads(line.split(' ',1)[1])
                       if item.get('approved_matches') == 1:
+                          print('Candidate EAN:', item['ean'], 'OFF name:', item.get('product_name'))
                           with open(os.environ['GITHUB_ENV'],'a') as out:
                               out.write('FINELI_TEST_EAN='+item['ean']+'\n')
                           break
