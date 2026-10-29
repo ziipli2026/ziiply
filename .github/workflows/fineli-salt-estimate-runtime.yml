@@ -1,0 +1,14 @@
+name: Fineli salt runtime test
+on:
+  push:
+    branches: [test/fineli-salt-estimate-runtime]
+  workflow_dispatch:
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/fineli-salt-estimate-runtime.test.mjs
