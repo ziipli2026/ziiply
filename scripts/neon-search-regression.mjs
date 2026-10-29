@@ -71,7 +71,7 @@ for(const q of intentQueries){
 for(const r of intentReport){
  if(!r.ok){intentFailures.push(r.query+':api-error');continue}
  if(['makkarat','makkara'].includes(r.query) && r.top5PetCategoryCount>0)intentFailures.push(r.query+':pet-products-in-top5');
- if(r.query==='koiranmakkara' && r.top5PetCategoryCount===0)intentFailures.push(r.query+':pet-products-missing');
+ if(['koiranmakkara','koiran makkara'].includes(r.query) && r.top5PetCategoryCount===0)intentFailures.push(r.query+':pet-products-missing');
 }
 console.log('INTENT ASSERTIONS:',intentFailures.length?'FAIL '+intentFailures.join(', '):'PASS');
 const fs=await import('node:fs');
