@@ -13,6 +13,7 @@ export type ZiiplyMobileAssistantButtonProps = {
   featured?: boolean;
   active?: boolean;
   onClick: () => void;
+  onLowerClick?: () => void;
 };
 
 const themeByAssistant: Record<
@@ -49,14 +50,12 @@ export default function ZiiplyMobileAssistantButton({
   featured = false,
   active = false,
   onClick,
+  onLowerClick,
 }: ZiiplyMobileAssistantButtonProps) {
   const theme = themeByAssistant[assistant];
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
+    <div
       className={[
         "group relative flex min-w-0 flex-col items-center overflow-hidden rounded-[1.45rem] border-[3px] p-2 max-[389px]:border-2 max-[389px]:p-1 text-center transition active:scale-[0.98]",
         featured ? "min-h-[168px] max-[389px]:min-h-[142px]" : "min-h-[152px] max-[389px]:min-h-[142px]",
@@ -67,6 +66,7 @@ export default function ZiiplyMobileAssistantButton({
     >
       <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#7f6a3e_1px,transparent_1px)] [background-size:12px_12px]" />
 
+      <button type="button" onClick={onClick} aria-label={`${name}: ${assistant === "gosta" ? "Tarjoushaku" : assistant === "justiina" ? "Tuotehaku" : "Ruokavaliot ja skanneri"}`} className="relative z-10 flex w-full flex-1 flex-col items-center justify-center">
       <div
         className={[
           "relative z-10 mb-1 overflow-hidden rounded-full border-[3px] border-[#f7e7c4] bg-[#314633]",
@@ -96,6 +96,8 @@ export default function ZiiplyMobileAssistantButton({
         {name}
       </div>
 
+      </button>
+      <button type="button" onClick={onLowerClick || onClick} aria-label={`${name}: ${assistant === "gosta" ? "Tarjousvahti" : assistant === "justiina" ? "Reseptit" : "Muut asetukset"}`} className="relative z-10 flex w-full flex-col items-center justify-center border-t border-[#735a34]/25 pt-1">
       <div className="relative z-10 mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#1e2f2a] max-[389px]:text-[9px] max-[389px]:tracking-normal">
         {title}
       </div>
@@ -103,7 +105,8 @@ export default function ZiiplyMobileAssistantButton({
       <div className="relative z-10 mt-1 line-clamp-2 text-[11px] max-[389px]:text-[10px] font-bold leading-tight text-[#687285]">
         {subtitle}
       </div>
-    </button>
+      </button>
+    </div>
   );
 }
 
