@@ -17,11 +17,13 @@ export function relevanceForQuery(query: string, row: Row): number {
   const exact = tokens.filter(token => nameWords.includes(token)).length;
   return exact * 10 + (nameWords.slice(0, tokens.length).join(' ') === tokens.join(' ') ? 5 : 0);
 }
-export function projectResults(query: string, rows: Row[]) {
-  const pricedRows = rows.filter(row => Object.values(row.prices).some(price => Number.isFinite(price) && Number(price) > 0));
-  const unpricedRows = rows.filter(row => !pricedRows.includes(row));
+export function projectResults(query: string, rows: Row[], selectedStores?: string[]) {
+  const stores = selectedStores?.length ? selectedStores : [...new Set(rows.flatMap(row => Object.keys(row.prices)))];
+  const priceFor = (row: Row) => stores.map(store => row.prices[store]).filter((price): price is number => typeof price === 'number' && Number.isFinite(price) && price > 0).reduce<number | null>((min, price) => min === null || price < min ? price : min, null);
+  const pricedRows = rows.filter(row => priceFor(row) !== null);
+  const unpricedRows = rows.filter(row => priceFor(row) === null);
   const byRelevance = (a: Row, b: Row) => relevanceForQuery(query,b) - relevanceForQuery(query,a);
-  pricedRows.sort(byRelevance);
+  pricedRows.sort((a,b) => (priceFor(a)! - priceFor(b)!) || byRelevance(a,b));
   unpricedRows.sort(byRelevance);
   return { pricedRows, unpricedRows };
 }
@@ -30,7 +32,8 @@ export async function runSimulation(query: string, bank: Source, shops: Source[]
   const started = now();
   let state: Snapshot = { rows: [], pricedRows: [], unpricedRows: [], stages: {}, events: [], done: false };
   const current = () => !signal.aborted;
-  const emit = () => { if (current()) { const projected = projectResults(query, state.rows); state.pricedRows = projected.pricedRows; state.unpricedRows = projected.unpricedRows; publish(structuredClone(state)); } };
+  const selectedStores = shops.map(shop => shop.id);
+  const emit = () => { if (current()) { const projected = projectResults(query, state.rows, selectedStores); state.pricedRows = projected.pricedRows; state.unpricedRows = projected.unpricedRows; publish(structuredClone(state)); } };
   const event = (source: string, status: string, count?: number) => {
     state.stages[source] = status;
     state.events.push({ source, status, elapsedMs: Math.round(now() - started), ...(count === undefined ? {} : { count }) });
