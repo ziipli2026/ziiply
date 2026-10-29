@@ -637,13 +637,17 @@ export async function fetchKruokaOffers(
       // offer index exposes their products when filtered by publicationIds.
       // Fetch campaigns from that index directly; retain the established
       // viewer route for regional/chain-wide leaflets.
-      const rows = campaignPublicationIds.has(publicationId)
-        ? dataArray(await fetchTjekData("offers", {
-            publicationIds: [publicationId],
-            sources: ["publication", "business_product"],
-            pagination: { limit: 1000, offset: 0 },
-            sort: ["score_desc"],
-          }, business.slug)).filter(row => String(row.publicationPublicId ?? "") === publicationId)
+      // Fetch the publication-scoped offer index first: local K-Market leaflets
+      // can contain offers without any viewer hotspots.
+      const indexedRows = dataArray(await fetchTjekData("offers", {
+        publicationIds: [publicationId],
+        sources: ["publication", "business_product"],
+        pagination: { limit: 1000, offset: 0 },
+        sort: ["score_desc"],
+      }, business.slug)).filter(row => String(row.publicationPublicId ?? "") === publicationId);
+      // Viewer hotspots are a fallback for regional leaflets not indexed by Tjek.
+      const rows = indexedRows.length > 0 || campaignPublicationIds.has(publicationId)
+        ? indexedRows
         : await fetchKSupermarketRegionalOffers(publicationId);
       publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0 });
       regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
