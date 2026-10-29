@@ -3,7 +3,8 @@ import test from 'node:test';
 
 const base = process.env.FINELI_PREVIEW_URL;
 const ean = process.env.FINELI_TEST_EAN;
-const ready = Boolean(base && /^\d{8,14}$/.test(ean || ''));
+assert.ok(base, 'FINELI_PREVIEW_URL is required');
+assert.match(ean || '', /^\d{8,14}$/, 'FINELI_TEST_EAN must be a valid EAN');
 
 test('Fineli preview returns a separately labeled estimate without replacing OFF salt', {}, async () => {
   const url = new URL('/api/ean-bank', base);
