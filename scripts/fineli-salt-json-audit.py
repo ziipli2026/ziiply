@@ -89,4 +89,25 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
            "confidence":confidence,"salt_g_100g":str(salt)}
           for ean,product,fineli,method,confidence,salt in cur.fetchall()
         ], ensure_ascii=False), flush=True)
+        cur.execute("""
+          SELECT m.match_method, m.confidence,
+                 count(*) AS matched,
+                 count(*) FILTER (WHERE f.nutrients->'NACL'->>'unit'='MG'
+                   AND jsonb_typeof(f.nutrients->'NACL'->'value')='number'
+                   AND (f.nutrients->'NACL'->>'value')::numeric BETWEEN 0 AND 100000)
+                   AS valid_mg,
+                 count(*) FILTER (WHERE f.nutrients->'NACL' IS NULL) AS missing_nacl
+          FROM public.ziiply_ean_fineli_matches m
+          JOIN public.ziiply_off_nutrition n ON n.ean=m.ean
+          JOIN public.ziiply_ean_products e ON e.ean=m.ean
+          JOIN public.ziiply_fineli_foods f ON f.fineli_id=m.fineli_id
+          WHERE m.approved IS TRUE AND n.salt_100g IS NULL
+          GROUP BY m.match_method, m.confidence
+          ORDER BY matched DESC
+        """)
+        print("FINELI_SALT_DRY_RUN", json.dumps([
+          {"match_method":method,"confidence":confidence,"matched":matched,
+           "valid_mg":valid,"missing_nacl":missing}
+          for method,confidence,matched,valid,missing in cur.fetchall()
+        ], ensure_ascii=False), flush=True)
     conn.rollback()
