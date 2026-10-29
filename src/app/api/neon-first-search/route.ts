@@ -29,6 +29,10 @@ export async function GET(request: NextRequest) {
   const milkLeaf = "%/maidot-ja-piimat/maidot";
   const milkSpecial = "%/maidot-ja-piimat/erikoismaidot";
   const milkLactose = "%/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot";
+  // Intent-specific ranking only for sausage searches; preserve all other v9 scores.
+  const sausageFoodIntent = /^(makkara|makkarat)$/i.test(q);
+  const sausagePetIntent = /^(koiranmakkara|koiran makkara)$/i.test(q);
+  const petCategoryPattern = "^(lemmikit|lemmikkielaimet)(/| |$)|(^|/)(koiran|kissan)(-|/| |$)";
   const started = Date.now();
 
   try {
@@ -57,6 +61,9 @@ export async function GET(request: NextRequest) {
           WHEN ${potatoIntent} AND category ILIKE ${potatoLeaf} THEN 1
           WHEN ${potatoIntent} AND (name_words ~ '(^| )peruna( |$)' OR name_words ~ '(^| )perunat( |$)') AND (category IS NULL OR category NOT ILIKE 'lemmikit/%') THEN 3
           WHEN ${potatoIntent} THEN 20
+          WHEN ${sausageFoodIntent} AND category ~* ${petCategoryPattern} THEN 40
+          WHEN ${sausageFoodIntent} AND (name ILIKE '%makkara%' OR category ILIKE '%makkara%') THEN 1
+          WHEN ${sausagePetIntent} AND category ~* ${petCategoryPattern} THEN 1
           ELSE (
             20
             - CASE WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 8 ELSE 0 END
@@ -83,7 +90,7 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v9",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v9-sausage-intent-test",
       categoryExpansion: "combined-name-and-leaf-category-relevance",
       truncated: rows.length === 100
     });
