@@ -112,8 +112,10 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     && estimatedSalt.value >= 0 && estimatedSalt.value <= 100
     ? estimatedSalt.value : null;
   const reportedSalt = nutrition?.salt_100g;
-  const reportedSaltValue = typeof reportedSalt === "number" && Number.isFinite(reportedSalt) && reportedSalt >= 0
-    ? reportedSalt : null;
+  const reportedSaltNumber = typeof reportedSalt === "number" ? reportedSalt
+    : typeof reportedSalt === "string" && reportedSalt.trim() !== "" ? Number(reportedSalt) : NaN;
+  const reportedSaltValue = Number.isFinite(reportedSaltNumber) && reportedSaltNumber >= 0 && reportedSaltNumber <= 100
+    ? reportedSaltNumber : null;
   const saltForAmount = (value: number) => (value * grams / 100).toLocaleString("fi-FI", {maximumFractionDigits: 4});
 
   const addToCart = async () => {
