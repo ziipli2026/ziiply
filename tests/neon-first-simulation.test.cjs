@@ -196,3 +196,25 @@ test('missing or zero price never promotes Neon result into priced group',async(
  await runSimulation('maito',source('Neon',[{ean:'6410000000001',name:'Maito'}]),[source('S',[{ean:'6410000000001',name:'Maito',price:0}])],new AbortController().signal,s=>last=s);
  assert.equal(last.pricedRows.length,0);assert.equal(last.unpricedRows.length,1);
 });
+
+
+test('optional price enrichment publishes after baseline and preserves store prices', async () => {
+  const states = [];
+  const pending = runSimulation('olut', source('Neon', [{ ean, name: 'Olut' }]), [source('S', [])], new AbortController().signal, state => states.push(state), undefined, undefined,
+    async ({ ean: requested }) => [{ ean: requested, store: 'K', price: 2.75 }, { ean: '00000000', store: 'S', price: 99 }]);
+  await pending;
+  assert.ok(states.some(s => s.done && s.rows[0].prices.K === undefined));
+  assert.equal(states.at(-1).rows[0].prices.K, 2.75);
+  assert.equal(states.at(-1).rows[0].prices.S, undefined);
+});
+test('aborted optional enrichment cannot publish late prices', async () => {
+  const wait = deferred(), controller = new AbortController(), states = [];
+  const pending = runSimulation('olut', source('Neon', [{ ean, name: 'Olut' }]), [source('S', [])], controller.signal, state => states.push(state), undefined, undefined,
+    async () => wait.promise);
+  await new Promise(resolve => setImmediate(resolve));
+  controller.abort();
+  const before = states.length;
+  wait.resolve([{ ean, store: 'K', price: 3 }]);
+  await pending;
+  assert.equal(states.length, before);
+});
