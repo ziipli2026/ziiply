@@ -1,0 +1,39 @@
+name: Arvo browser UI tests
+on:
+  pull_request:
+    paths:
+      - 'src/app/arvo-tilastot/**'
+      - 'src/app/components/ziiply/arvo/**'
+      - 'tests/arvo-statistics.browser.spec.mjs'
+      - '.github/workflows/arvo-browser-tests.yml'
+  workflow_dispatch:
+jobs:
+  arvo-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false @playwright/test wait-on
+      - run: npx playwright install --with-deps chromium
+      - name: Build Next.js
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+      - name: Start Next.js and run browser tests
+        run: |
+          npm run start -- --port 3000 > /tmp/arvo-next.log 2>&1 &
+          npx wait-on http://127.0.0.1:3000/arvo-tilastot
+          npx playwright test tests/arvo-statistics.browser.spec.mjs --browser chromium --reporter=line
+        env:
+          CI: '1'
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      - name: Show server logs on failure
+        if: failure()
+        run: cat /tmp/arvo-next.log || true
