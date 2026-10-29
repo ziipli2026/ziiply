@@ -9,7 +9,7 @@ import ZiiplyMobileScannerCard from "../cards/ZiiplyMobileScannerCard";
  * EAN-tunnistus, ravintohaku ja päiväkirjaan tallennus kytketään myöhemmin.
  */
 export default function ArvoNutritionScannerPreview() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [ean, setEan] = useState("");
   const [productName, setProductName] = useState("");
   const [nutrition, setNutrition] = useState<Record<string, unknown> | null>(null);
@@ -139,7 +139,7 @@ export default function ArvoNutritionScannerPreview() {
           </div>
         ) : undefined}
       />
-      {!open && <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#f8f5ed] p-5"><button type="button" onClick={()=>{setOpen(true);setTab("scan");}} className="rounded-2xl bg-[#24573e] px-8 py-4 text-lg font-bold text-white">Avaa Arvon skanneri</button></div>}
+      {!open && <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#f8f5ed] p-5"><button type="button" onClick={()=>{setOpen(true);setTab("scan");}} className="rounded-2xl bg-[#24573e] px-8 py-4 text-lg font-bold text-white">Avaa kamera uudelleen</button></div>}
     </div>
   );
 }
