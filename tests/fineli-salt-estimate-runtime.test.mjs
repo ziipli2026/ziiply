@@ -20,7 +20,7 @@ test('feature disabled returns OFF record unchanged', () => {
   assert.deepEqual(attachFineliSaltEstimate(off, 'open-food-facts', false, [row]), off);
 });
 test('ambiguous or invalid estimates are rejected', () => {
-  for (const rows of [[], [row,row], [{...row,saltG100g: -1}], [{...row,saltG100g: 101}], [{...row,saltG100g: 'oops'}]]) {
+  for (const rows of [[], [row,row], [{...row,saltG100g: -1}], [{...row,saltG100g: 101}], [{...row,saltG100g: 'oops'}], [{...row,saltG100g: null}], [{...row,saltG100g: ''}]]) {
     assert.deepEqual(attachFineliSaltEstimate(off, 'open-food-facts', true, rows), off);
   }
 });
