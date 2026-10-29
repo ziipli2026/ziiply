@@ -19,6 +19,6 @@ test('Fineli estimate is labeled and cannot override reported salt', () => {
 });
 test('estimated portion calculation is proportional to grams', () => {
   const value = 0.01055;
-  assert.equal(value * 100 / 100, 0.01055);
-  assert.equal(value * 400 / 100, 0.0422);
+  assert.ok(Math.abs(value * 100 / 100 - 0.01055) < 1e-10);
+  assert.ok(Math.abs(value * 400 / 100 - 0.0422) < 1e-10);
 });
