@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
-import {arvoDailyStatistics,arvoNutritionTotals,readArvoMeals,type ArvoMeal} from "../components/ziiply/arvo/arvoStatistics";
+import {ARVO_MEALS_KEY,arvoDailyStatistics,arvoNutritionTotals,readArvoMeals,type ArvoMeal} from "../components/ziiply/arvo/arvoStatistics";
 
 const metrics = [{key:"kcal",label:"Energia",unit:"kcal"},{key:"protein",label:"Proteiini",unit:"g"},{key:"carbs",label:"Hiilihydraatit",unit:"g"},{key:"fat",label:"Rasva",unit:"g"}] as const;
 const format = (value:number)=>value.toLocaleString("fi-FI",{maximumFractionDigits:1});
@@ -23,6 +23,14 @@ export default function ArvoStatisticsPage() {
     return meals.filter(meal=>new Date(meal.timestamp)>=start&&new Date(meal.timestamp)<=now);
   },[meals,period,now]);
   const totals=useMemo(()=>arvoNutritionTotals(selected),[selected]);
+  const removeMeal=(id:string)=>{
+    if(!window.confirm("Poistetaanko ateriamerkintä?"))return;
+    try {
+      const next=readArvoMeals(window.localStorage).filter(meal=>meal.id!==id);
+      window.localStorage.setItem(ARVO_MEALS_KEY,JSON.stringify(next));
+      window.dispatchEvent(new Event("ziiply-arvo-meals-updated"));
+    } catch { window.alert("Aterian poistaminen epäonnistui."); }
+  };
   const daily=useMemo(()=>Object.entries(arvoDailyStatistics(selected)).sort(([a],[b])=>b.localeCompare(a)),[selected]);
   return <main className="min-h-screen bg-[#f8f5ed] px-4 py-8 text-[#173b2b]">
     <div className="mx-auto max-w-3xl">
@@ -31,10 +39,16 @@ export default function ArvoStatisticsPage() {
       <p className="mt-5 rounded-xl border border-[#d3c9ad] bg-white p-3 text-sm">Tiedot ovat tällä hetkellä vain tämän selaimen muistissa. Ne eivät synkronoidu laitteiden välillä. Puuttuvia ravintoarvoja ei arvioida nollaksi. Health-tietoja ei käsitellä tässä näkymässä.</p>
       <div className="mt-5 flex gap-2" aria-label="Tilastojakso">{([["day","Tänään"],["week","7 päivää"],["month","30 päivää"]] as const).map(([key,label])=><button key={key} type="button" onClick={()=>setPeriod(key)} aria-pressed={period===key} className={`rounded-xl px-4 py-2 text-sm font-bold ${period===key?"bg-[#24573e] text-white":"border border-[#a9b7a7] bg-white"}`}>{label}</button>)}</div>
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">{metrics.map(metric=><div key={metric.key} className="rounded-xl border border-[#d3c9ad] bg-white p-4"><p className="text-xs font-bold">{metric.label}</p><p className="mt-2 text-2xl font-black">{totals.known[metric.key]?format(totals[metric.key]):"—"}</p><p className="text-xs">{metric.unit} · {totals.known[metric.key]}/{totals.entries} merkintää</p></div>)}</div>
+      <h2 className="mt-8 text-xl font-black">Energia päivittäin</h2>
+      <div className="mt-3 rounded-xl border border-[#d3c9ad] bg-white p-4">
+        {daily.length===0?<p className="text-sm">Ei vielä tietoja kuvaajaan.</p>:<div className="flex min-h-[170px] items-end gap-2 overflow-x-auto" role="img" aria-label="Päivittäiset kilokalorit pylväinä">
+          {daily.slice().reverse().map(([date,values])=>{const max=Math.max(1,...daily.map(([,day])=>day.kcal));return <div key={date} className="flex min-w-[48px] flex-1 flex-col items-center justify-end gap-1"><span className="text-[11px] font-bold">{values.known.kcal?format(values.kcal):"—"}</span><div className="w-full max-w-[60px] rounded-t-md bg-[#24573e]" style={{height:`${values.known.kcal?Math.max(4,Math.round(values.kcal/max*125)):2}px`}} title={date+": "+format(values.kcal)+" kcal"}/><span className="text-[10px]">{date.slice(5)}</span></div>;})}
+        </div>}
+      </div>
       <h2 className="mt-8 text-xl font-black">Päivittäinen seuranta</h2>
       {daily.length===0?<p className="mt-3 rounded-xl bg-white p-5">Ei vielä tallennettuja aterioita valitulla jaksolla. Skannaa tuote Arvolla ja paina Aterialle.</p>:<div className="mt-3 overflow-x-auto rounded-xl border border-[#d3c9ad] bg-white"><table className="w-full text-left text-sm"><thead><tr className="border-b bg-[#efe9da]"><th className="p-3">Päivä</th><th className="p-3">Ateriat</th>{metrics.map(metric=><th key={metric.key} className="p-3">{metric.label}</th>)}</tr></thead><tbody>{daily.map(([date,values])=><tr key={date} className="border-b last:border-0"><td className="p-3">{date}</td><td className="p-3">{values.entries}</td>{metrics.map(metric=><td key={metric.key} className="p-3">{values.known[metric.key]?format(values[metric.key]):"—"}</td>)}</tr>)}</tbody></table></div>}
       <h2 className="mt-8 text-xl font-black">Ateriapäiväkirja</h2>
-      <div className="mt-3 space-y-2">{selected.slice().sort((a,b)=>b.timestamp.localeCompare(a.timestamp)).map(meal=><article key={meal.id} className="rounded-xl border border-[#d3c9ad] bg-white p-4"><p className="font-bold">{meal.name}</p><p className="text-xs">{new Date(meal.timestamp).toLocaleString("fi-FI")} · {format(meal.grams)} g</p><p className="mt-2 text-sm">Energia {meal.nutrition.kcal===null?"—":format(meal.nutrition.kcal)} kcal · Proteiini {meal.nutrition.protein===null?"—":format(meal.nutrition.protein)} g · HH {meal.nutrition.carbs===null?"—":format(meal.nutrition.carbs)} g · Rasva {meal.nutrition.fat===null?"—":format(meal.nutrition.fat)} g</p></article>)}</div>
+      <div className="mt-3 space-y-2">{selected.slice().sort((a,b)=>b.timestamp.localeCompare(a.timestamp)).map(meal=><article key={meal.id} className="rounded-xl border border-[#d3c9ad] bg-white p-4"><div className="flex items-start justify-between gap-2"><p className="font-bold">{meal.name}</p><button type="button" onClick={()=>removeMeal(meal.id)} className="rounded-lg border border-[#d3c9ad] px-2 py-1 text-xs font-bold" aria-label={"Poista ateria "+meal.name}>Poista</button></div><p className="text-xs">{new Date(meal.timestamp).toLocaleString("fi-FI")} · {format(meal.grams)} g</p><p className="mt-2 text-sm">Energia {meal.nutrition.kcal===null?"—":format(meal.nutrition.kcal)} kcal · Proteiini {meal.nutrition.protein===null?"—":format(meal.nutrition.protein)} g · HH {meal.nutrition.carbs===null?"—":format(meal.nutrition.carbs)} g · Rasva {meal.nutrition.fat===null?"—":format(meal.nutrition.fat)} g</p></article>)}</div>
     </div>
   </main>;
 }

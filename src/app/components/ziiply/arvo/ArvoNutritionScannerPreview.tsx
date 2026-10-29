@@ -180,6 +180,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
                 {([["kcal",["kcal_100g","energy-kcal_100g","ENERC"]],["Prot.",["proteins_100g","protein_100g","PROCNT"]],["HH",["carbohydrates_100g","CHOCDF"]],["Rasva",["fat_100g","FAT"]]] as [string,string[]][]).map(([label,keys])=><div key={label} className="rounded-lg bg-white px-1 py-2 text-center"><div className="text-[10px] font-bold">{label}</div><div className="text-base font-black">{nutrient(keys)}</div></div>)}
               </div>
               <div className="mt-2">
+                <a href="/arvo-tilastot" className="mb-2 block rounded-xl border-2 border-[#24573e] bg-white p-2 text-center text-sm font-bold">📊 Katso ravintotilastot</a>
                 <button type="button" onClick={()=>{setEan("");setProductName("");setNutrition(null);setStatus("");setMealSaved(false);setCartSaved(false);lastEanRef.current="";setTab("scan");}} className="w-full rounded-xl bg-[#24573e] p-3 text-sm font-bold text-white">Skannaa seuraava</button>
               </div>
             </section>
