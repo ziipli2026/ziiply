@@ -12,6 +12,8 @@ on:
       - 'scripts/neon-ean-price-lookup-experiment.mjs'
       - 'scripts/neon-ean-upstream-diagnostics.mjs'
       - 'tests/neon-first-simulation.test.cjs'
+      - 'tests/neon-ean-price-enrichment.test.mjs'
+      - 'src/lib/neonSearchSimulation/enrichPrices.mjs'
       - 'src/lib/neonSearchSimulation/**'
       - 'scripts/neon-search-category-coverage.mjs'
       - 'scripts/verify-neon-search-db.mjs'
@@ -70,6 +72,8 @@ jobs:
         env:
           SEARCH_BASE_URL: http://127.0.0.1:3099
         run: node --test tests/neon-first-simulation.test.cjs
+      - name: Test optional exact-EAN price enrichment helper
+        run: node --test tests/neon-ean-price-enrichment.test.mjs
       - name: Read-only live S/K upstream EAN and price coverage smoke test
         continue-on-error: true
         env:
