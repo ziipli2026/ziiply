@@ -83,4 +83,5 @@ jobs:
           path: |
             artifacts/neon-search-regression.json
             artifacts/neon-search-category-coverage.json
+            artifacts/neon-search-ranking-diagnostics.json
           if-no-files-found: ignore
