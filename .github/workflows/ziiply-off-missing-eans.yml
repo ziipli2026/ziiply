@@ -1,5 +1,5 @@
 name: Ziiply OFF missing EAN lookup
-run-name: OFF EAN empty queue regression test
+run-name: OFF EAN automatic new-product detection
 on:
   push:
     branches: [main]
@@ -14,7 +14,7 @@ on:
         type: choice
         options: ['100','500','1000','1500','2000']
   schedule:
-    - cron: '20 1 * * *'
+    - cron: '20 */6 * * *'
 concurrency:
   group: ziiply-off-missing-eans
   cancel-in-progress: false
