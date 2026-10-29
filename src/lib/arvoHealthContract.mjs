@@ -6,11 +6,15 @@ const allowed = new Set(HEALTH_CATEGORIES);
 export function validateHealthCategories(input) {
   return Array.isArray(input) && input.length>0 && input.every(x=>typeof x==="string"&&allowed.has(x)) && new Set(input).size===input.length;
 }
+function validDate(value) {
+ const date=new Date(value+"T00:00:00Z");
+ return Number.isFinite(date.getTime()) && date.toISOString().slice(0,10)===value;
+}
 export function validateDailyHealthSummary(input) {
   if(!input || typeof input!=="object" || Array.isArray(input)) return false;
   const fields=["provider","localDate","timezone","steps","activeEnergyKcal","restingHeartRateBpm","hrvSdnnMs","hrvRmssdMs","sleepSessionsAvailable","sleepMinutes","remMinutes","coreMinutes","deepMinutes","awakeMinutes"];
   if(Object.keys(input).some(key=>!fields.includes(key))) return false;
-  if(!HEALTH_PROVIDERS.includes(input.provider) || !/^\d{4}-\d{2}-\d{2}$/.test(input.localDate||"") || !Number.isFinite(Date.parse(input.localDate+"T00:00:00Z"))) return false;
+  if(!HEALTH_PROVIDERS.includes(input.provider) || !/^\d{4}-\d{2}-\d{2}$/.test(input.localDate||"") || !validDate(input.localDate)) return false;
   if(typeof input.timezone!=="string" || input.timezone.length>64 || !/^[A-Za-z_]+\/[A-Za-z_+-]+(?:\/[A-Za-z_+-]+)?$/.test(input.timezone)) return false;
   for(const key of fields.slice(3)) {
     const v=input[key];
