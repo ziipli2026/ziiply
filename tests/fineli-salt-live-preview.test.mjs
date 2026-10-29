@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { hasConflictingOffProductName } from '../src/app/api/ean-bank/fineli-salt-estimate.mjs';
 
 const base = process.env.FINELI_PREVIEW_URL;
 const ean = process.env.FINELI_TEST_EAN;
@@ -16,6 +17,7 @@ test('Fineli preview returns a separately labeled estimate without replacing OFF
   assert.equal(data.product?.ean, ean);
   const nutrition = data.product?.nutrition;
   assert.equal(nutrition?.source, 'open-food-facts');
+  assert.equal(hasConflictingOffProductName(data.product?.name, nutrition?.product_name), false, 'Catalog and OFF product names must match');
   assert.equal(nutrition?.salt_100g, null);
   assert.equal(nutrition?.estimatedSalt?.estimated, true);
   assert.equal(nutrition?.estimatedSalt?.source, 'fineli-generic');
