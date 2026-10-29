@@ -5,7 +5,7 @@ export const BRIDGE_EVENT="ziiply:arvo-health-native-summary";
 export function acceptNativeHealthMessage(event,approvedCategories){
  if(!event || event.type!=="ARVO_HEALTH_DAILY_SUMMARIES" || event.version!==1 || !Array.isArray(event.days) || event.days.length>366)return {ok:false,error:"INVALID_MESSAGE"};
  if(!Array.isArray(approvedCategories)||approvedCategories.length===0)return {ok:false,error:"NO_CONSENT"};
- const keys={steps:["steps"],active_energy:["activeEnergyKcal"],resting_heart_rate:["restingHeartRateBpm"],hrv:["hrvSdnnMs","hrvRmssdMs"],sleep_stages:["sleepSessionsAvailable","sleepMinutes","coreMinutes","deepMinutes","awakeMinutes"]};
+ const keys={steps:["steps"],active_energy:["activeEnergyKcal"],resting_heart_rate:["restingHeartRateBpm"],hrv:["hrvSdnnMs","hrvRmssdMs"],sleep_stages:["sleepSessionsAvailable","sleepMinutes","remMinutes","coreMinutes","deepMinutes","awakeMinutes"]};
  const allowed=new Set(approvedCategories.flatMap(k=>keys[k]||[]));
  if(!allowed.size)return {ok:false,error:"NO_CONSENT"};
  const days=[];
