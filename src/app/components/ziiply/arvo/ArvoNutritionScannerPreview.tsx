@@ -15,6 +15,7 @@ export default function ArvoNutritionScannerPreview() {
   const [nutrition, setNutrition] = useState<Record<string, unknown> | null>(null);
   const [status, setStatus] = useState("");
   const [manual, setManual] = useState(false);
+  const [manualEan, setManualEan] = useState("");
   const [torch, setTorch] = useState(false);
   const cameraRef = useRef<MediaStream | null>(null);
   const lastEanRef = useRef("");
@@ -24,8 +25,8 @@ export default function ArvoNutritionScannerPreview() {
     let disposed = false;
     let scanner: any = null;
     const onDecoded = (raw: string) => {
-      const code = String(raw || "").replace(/\\D/g, "");
-      if (!/^\\d{8,14}$/.test(code) || code === lastEanRef.current || disposed) return;
+      const code = String(raw || "").replace(/\D/g, "");
+      if (!/^\d{8,14}$/.test(code) || code === lastEanRef.current || disposed) return;
       lastEanRef.current = code;
       setEan(code);
       setOpen(false);
@@ -116,6 +117,8 @@ export default function ArvoNutritionScannerPreview() {
         {tab === "scan" ? (
           <div className="rounded-2xl border-2 border-[#b99d62] bg-white p-3">
             <p className="mb-3 text-sm">Sama kameranäkymä kuin tavallisessa skannerissa. EAN-luku käyttää nyt Ziiplyn tavallisen skannerin html5-qrcode-lukijaa.</p>
+            <form className="mb-3 flex gap-2" onSubmit={event => {event.preventDefault();const value=manualEan.replace(/\D/g,"");if (!/^\d{8,14}$/.test(value)) {setStatus("EAN-koodissa pitää olla 8–14 numeroa.");return;}setEan(value);setTab("nutrition");}}><input aria-label="EAN-koodi" inputMode="numeric" value={manualEan} onChange={event=>setManualEan(event.target.value)} placeholder="Syötä tai liitä EAN" className="min-w-0 flex-1 rounded-lg border-2 border-[#b99d62] p-3"/><button type="submit" className="rounded-lg bg-[#24573e] px-4 font-bold text-white">Hae EAN</button></form>
+            {status && <p role="status" className="mb-2 text-sm">{status}</p>}
             <button onClick={() => setOpen(true)} className="w-full rounded-xl bg-[#24573e] px-4 py-3 font-black text-white">Näytä Arvon skanneri</button>
           </div>
         ) : (
@@ -138,11 +141,12 @@ export default function ArvoNutritionScannerPreview() {
           fullscreen
           onClose={() => setOpen(false)}
           onToggleManualInput={() => setManual(value => !value)}
+          manualInputOpen={manual}
           onToggleTorch={() => { const track = cameraRef.current?.getVideoTracks()[0]; if (track) { void track.applyConstraints({advanced:[{torch:!torch} as any]}).then(() => setTorch(!torch)).catch(() => setStatus("Valoa ei tueta tällä laitteella")); } }}
           torchOn={torch}
           scannerMessage={status}
         />
-        {manual && <form className="absolute bottom-28 left-4 right-4 z-[120] flex gap-2 rounded-xl bg-[#fff0c8] p-3" onSubmit={event => {event.preventDefault(); const value = String(new FormData(event.currentTarget).get("ean") || "").replace(/\\D/g,""); if (/^\\d{8,14}$/.test(value)) {setEan(value);setOpen(false);setTab("nutrition");setManual(false);} }}><input name="ean" inputMode="numeric" placeholder="EAN-koodi" className="min-w-0 flex-1 rounded-lg border p-2" required/><button className="rounded-lg bg-[#24573e] px-3 font-bold text-white">Hae</button></form>}
+        {manual && <form className="absolute bottom-28 left-4 right-4 z-[120] flex gap-2 rounded-xl bg-[#fff0c8] p-3" onSubmit={event => {event.preventDefault(); const value = String(new FormData(event.currentTarget).get("ean") || "").replace(/\D/g,""); if (/^\d{8,14}$/.test(value)) {setEan(value);setOpen(false);setTab("nutrition");setManual(false);} }}><input name="ean" inputMode="numeric" placeholder="EAN-koodi" className="min-w-0 flex-1 rounded-lg border p-2" required/><button className="rounded-lg bg-[#24573e] px-3 font-bold text-white">Hae</button></form>}
         <div className="pointer-events-none absolute left-1/2 top-[calc(env(safe-area-inset-top)+14px)] z-[110] -translate-x-1/2 rounded-full border border-[#b99d62] bg-[#fff0c8]/95 px-4 py-1 text-xs font-black text-[#24573e] shadow">ARVO · RAVINTO</div>
       </div>}
     </div>
