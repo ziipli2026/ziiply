@@ -21,7 +21,7 @@ def numeric_expr(key, maximum):
     value = "s.nutriments->>'" + key + "'"
     # PostgreSQL CASE prevents unsafe casts for nonnumeric / huge values.
     return ("CASE WHEN length(" + value + ") <= 32 AND " + value
-            + " ~ '^[0-9]{1,4}(\\.[0-9]{1,24})? THEN "
+            + " ~ '^[0-9]{1,4}(\\.[0-9]{1,24})?
             + "CASE WHEN (" + value + ")::numeric BETWEEN 0 AND "
             + str(maximum) + " THEN (" + value + ")::numeric END END")
 
