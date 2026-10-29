@@ -75,6 +75,7 @@ class ArvoHealthConnectReader(context: Context) {
 
     suspend fun readDay(date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): Map<String, Any> {
         check(approvedCategories.isNotEmpty()) { "Explicit in-app health consent required" }
+        check(reconcileSystemPermissions().isNotEmpty()) { "Health Connect permission required" }
         val granted = client.permissionController.getGrantedPermissions()
         val start = date.atStartOfDay(zone).toInstant()
         val end = date.plusDays(1).atStartOfDay(zone).toInstant()
