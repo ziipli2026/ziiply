@@ -71,4 +71,22 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
            "max_value":str(high) if high is not None else None}
           for unit,items,numeric,low,high in cur.fetchall()
         ]), flush=True)
+        cur.execute("""
+          SELECT m.ean, e.name, f.name_fi, m.match_method, m.confidence,
+                 (f.nutrients->'NACL'->>'value')::numeric / 1000 AS salt_g_100g
+          FROM public.ziiply_ean_fineli_matches m
+          JOIN public.ziiply_off_nutrition n ON n.ean=m.ean
+          JOIN public.ziiply_ean_products e ON e.ean=m.ean
+          JOIN public.ziiply_fineli_foods f ON f.fineli_id=m.fineli_id
+          WHERE m.approved IS TRUE AND n.salt_100g IS NULL
+            AND f.nutrients->'NACL'->>'unit' = 'MG'
+            AND jsonb_typeof(f.nutrients->'NACL'->'value')='number'
+          ORDER BY salt_g_100g DESC
+          LIMIT 20
+        """)
+        print("FINELI_SALT_REVIEW_TOP20", json.dumps([
+          {"ean":ean,"product":product,"fineli":fineli,"method":method,
+           "confidence":confidence,"salt_g_100g":str(salt)}
+          for ean,product,fineli,method,confidence,salt in cur.fetchall()
+        ], ensure_ascii=False), flush=True)
     conn.rollback()
