@@ -101,3 +101,18 @@ export function deleteArvoMeal(storage: Pick<Storage,"getItem"|"setItem">, id: s
   storage.setItem(ARVO_MEALS_KEY, JSON.stringify(next));
   return next;
 }
+
+/** Inclusive local calendar dates: today, last 7 days, or last 30 days. */
+export function arvoCalendarDays(now: Date, period: "day"|"week"|"month"): string[] {
+  const count = period === "day" ? 1 : period === "week" ? 7 : 30;
+  const start = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return Array.from({length:count},(_,index)=>{
+    const date = new Date(start);
+    date.setDate(start.getDate()-(count-1-index));
+    return [date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-");
+  });
+}
+export function arvoCalendarChart(meals: readonly ArvoMeal[], now: Date, period: "day"|"week"|"month", timeZone?: string) {
+  const daily = arvoDailyStatistics(meals,timeZone);
+  return arvoCalendarDays(now,period).map(date=>({date,values:daily[date]||empty()}));
+}
