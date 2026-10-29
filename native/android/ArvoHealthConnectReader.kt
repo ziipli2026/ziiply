@@ -5,7 +5,6 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.StepsRecord
-import androidx.health.connect.client.records.RestingHeartRateRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.aggregate.AggregationMetric
@@ -20,14 +19,16 @@ import java.time.ZoneId
  */
 class ArvoHealthConnectReader(context: Context) {
     private val client = HealthConnectClient.getOrCreate(context)
-    val permissions = setOf(
-        HealthPermission.getReadPermission(StepsRecord::class),
-        HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
-        HealthPermission.getReadPermission(RestingHeartRateRecord::class)
-    )
+    fun requestedPermissions(categories: Set<String>): Set<String> {
+        require(categories.isNotEmpty() && categories.all { it in setOf("steps", "active_energy") })
+        return buildSet {
+            if ("steps" in categories) add(HealthPermission.getReadPermission(StepsRecord::class))
+            if ("active_energy" in categories) add(HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class))
+        }
+    }
     private var approvedCategories: Set<String> = emptySet()
     fun setLocalConsent(categories: Set<String>) {
-        require(categories.isNotEmpty() && categories.all { it in setOf("steps", "active_energy", "resting_heart_rate", "hrv", "sleep_stages") })
+        require(categories.isNotEmpty() && categories.all { it in setOf("steps", "active_energy") })
         approvedCategories = categories.toSet()
     }
     fun revokeLocalConsent() { approvedCategories = emptySet() }
