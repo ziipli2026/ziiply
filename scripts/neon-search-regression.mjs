@@ -51,6 +51,17 @@ for (const test of cases) {
     report.push({query:test.q,ms:Date.now()-t,total:products.length,top:top.map(x=>({name:x.name,category:x.category,rank:x.rank})),failures});
   } catch(e) {report.push({query:test.q,failures:[String(e)]});}
 }
+// Live database intent guard: actual lactose-free milk must precede chocolate.
+const lactoseResponse=await fetch(base+'/api/neon-first-search?q='+encodeURIComponent('laktoositon maito'),{signal:AbortSignal.timeout(15000)});
+const lactoseData=await lactoseResponse.json();
+const lactoseTop=(lactoseData.products||[]).slice(0,10);
+const lactoseFailures=[];
+if(!lactoseResponse.ok||!lactoseData.ok)lactoseFailures.push('api-error');
+if(!lactoseTop.length)lactoseFailures.push('empty');
+if(lactoseTop[0] && /suklaa|konvehti|patukka/i.test(lactoseTop[0].name))lactoseFailures.push('chocolate-first');
+if(!lactoseTop.slice(0,5).some(p=>/laktoositon/i.test(p.name)&&/\\bmaito\\b|kevytmaito|täysmaito/i.test(p.name)&&!/suklaa|konvehti|patukka/i.test(p.name)))lactoseFailures.push('no-actual-milk-top5');
+console.log('LIVE LACTOSE INTENT:',JSON.stringify({failures:lactoseFailures,top5:lactoseTop.slice(0,5).map(p=>({name:p.name,category:p.category,rank:p.rank}))}));
+if(lactoseFailures.length)process.exitCode=1;
 // Additional observational tests: do not gate baseline until expected ordering is validated.
 const intentQueries=['makkarat','makkara','koiranmakkara','koiran makkara','koiranruoka','kissanruoka'];
 const intentReport=[];
