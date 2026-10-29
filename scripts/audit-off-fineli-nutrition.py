@@ -135,6 +135,22 @@ with psycopg.connect(os.environ["DATABASE_URL"],
                 "protein":str(row[5]) if row[5] is not None else None,
                 "salt":str(row[6]) if row[6] is not None else None},
                 ensure_ascii=False),flush=True)
+        # Identify whether the 135 missing OFF records have a separately reviewed
+        # Fineli fallback or only pending suggestions. Never auto-approve matches.
+        cur.execute("""SELECT
+            count(*) AS missing_total,
+            count(*) FILTER (WHERE EXISTS (
+                SELECT 1 FROM public.ziiply_ean_fineli_matches m
+                WHERE m.ean=s.ean AND m.approved IS TRUE)) AS approved_fineli,
+            count(*) FILTER (WHERE EXISTS (
+                SELECT 1 FROM public.ziiply_ean_fineli_candidates c
+                WHERE c.ean=s.ean AND c.status='pending')) AS pending_fineli
+            FROM public.ziiply_off_catalogue_staging s
+            LEFT JOIN public.ziiply_off_nutrition n ON n.ean=s.ean
+            WHERE n.ean IS NULL""")
+        missing_fineli = cur.fetchone()
+        print("NUTRITION_MISSING_FINELI_COVERAGE", json.dumps(dict(zip(
+            ["missing_total", "approved_fineli", "pending_fineli"], missing_fineli))), flush=True)
         # Count OFF fields that are still empty and have no valid staging replacement.
         cur.execute("""SELECT count(*) FROM public.ziiply_off_nutrition n
             JOIN public.ziiply_off_catalogue_staging s ON s.ean=n.ean
