@@ -31,12 +31,26 @@ jobs:
           python -u scripts/review-approved-fineli-salt.py > /tmp/fineli-review.log
           python - <<'PY'
           import json, os
+          import certifi, psycopg
+          from difflib import SequenceMatcher
+          def tokens(s):
+              import re
+              return set(x for x in re.findall(r'[^\\W_]+', (s or '').casefold()) if len(x) >= 3)
+          def compatible(a, b):
+              x, y = tokens(a), tokens(b)
+              return bool(x and y and (x & y or SequenceMatcher(None, (a or '').casefold(), (b or '').casefold()).ratio() >= 0.72))
+          db = psycopg.connect(os.environ['DATABASE_URL'], sslmode='verify-full', sslrootcert=certifi.where())
+          cur = db.cursor()
           with open('/tmp/fineli-review.log') as f:
               for line in f:
                   if line.startswith('FINELI_SALT_REVIEW_ITEM '):
                       item=json.loads(line.split(' ',1)[1])
                       if item.get('approved_matches') == 1:
-                          print('Candidate EAN:', item['ean'], 'OFF name:', item.get('product_name'))
+                          cur.execute('SELECT name FROM public.ziiply_ean_products WHERE ean = %s LIMIT 1', (item['ean'],))
+                          row = cur.fetchone()
+                          if not row or not compatible(row[0], item.get('product_name')):
+                              continue
+                          print('Matching candidate EAN:', item['ean'], 'catalog:', row[0], 'OFF:', item.get('product_name'))
                           with open(os.environ['GITHUB_ENV'],'a') as out:
                               out.write('FINELI_TEST_EAN='+item['ean']+'\n')
                           break
