@@ -484,7 +484,7 @@ export default function ZiiplyMobileScannerCard({
           aria-label={torchOn ? "Sammuta valo" : "Sytytä valo"}
           title={torchOn ? "Sammuta valo" : "Sytytä valo"}
         >
-          <span aria-hidden="true" className="text-[26px] leading-none">🔦</span>
+          {headerTitle ? <span aria-hidden="true" className="text-[26px] leading-none">🔦</span> : <span aria-hidden="true">✦</span>}
         </button>
       </header>
 
