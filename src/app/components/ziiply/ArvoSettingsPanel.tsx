@@ -128,24 +128,44 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
     <div className="relative mb-2 flex h-12 shrink-0 items-center"><h2 className="text-[26px] font-black text-[#14291f]">Arvo</h2><button type="button" className="absolute left-1/2 -translate-x-1/2 rounded-lg border border-[#173b2b] px-3 py-1 text-sm font-bold" onClick={()=>{if(activeSection==="reminders"&&reminderPage)setReminderPage(null);else if(activeSection==="energy"&&energyPage)setEnergyPage(null);else if(activeSection==="purchases"&&purchasePage)setPurchasePage(null);else if(activeSection)setActiveSection(null);else onClose?.()}}>← Takaisin</button></div>
     <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
     {!activeSection&&<p className="mb-2 text-xs text-[#6d6a5c]">Asetukset tallentuvat tähän selaimeen.</p>}
-    <div className="grid gap-1.5">
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-3 py-2 shadow-sm">
-        <button type="button" className="min-w-0 flex-1 text-left" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection("household")}}><strong className="block">Kotitalous ja reseptit</strong><span className="text-xs text-[#6d6a5c]">Ruokavaliot ja allergiat ›</span></button>
-        <label className="flex shrink-0 items-center gap-2 text-sm font-bold">Henkilöitä <input aria-label="Kotitalouden henkilömäärä suoraan Arvon päävalikossa" type="number" min={1} max={50} className="w-16 rounded-lg border p-2 text-center font-bold" value={p.householdSize} onChange={e=>update("householdSize",Math.min(50,Math.max(1,Number(e.target.value)||1)))}/></label>
-      </div>
-      {[
-
-      ["reminders","Ruokailuajat ja muistutukset",p.mealRemindersEnabled?"Muistutustoive tallennettu":"Muistutukset eivät käytössä"],
-      ["energy","Henkilökohtainen dieetti",p.dietEnabled?"Käytössä":"Ei käytössä"],
-      ["health","Terveystiedot","Yhteys ei vielä käytettävissä"],
-      ["purchases","Ostohistoria ja kulutus",purchases.length+" vahvistettua ostoa"]
-    ].map(([id,title,summary])=><button key={id} type="button" className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#d9cfb9] bg-white/80 px-3 py-2 text-left shadow-sm hover:bg-white" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection(id)}}><span><strong className="block">{title}</strong><span className="text-xs text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true">›</span></button>)}</div>
+    {!activeSection&&<div className="space-y-4 pb-3">
+      <section aria-labelledby="arvo-settings-personal">
+        <h3 id="arvo-settings-personal" className="mb-2 px-1 text-xs font-black uppercase tracking-wider text-[#746648]">Omat asetukset</h3>
+        <div className="grid gap-2">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#d9cfb9] bg-white/90 px-3 py-3 shadow-sm">
+            <div className="min-w-0 flex-1"><strong className="block">Kotitalous</strong><span className="text-xs font-normal text-[#6d6a5c]">Kotitalouden henkilömäärä</span></div>
+            <label className="flex shrink-0 items-center gap-2 text-sm font-bold"><span className="sr-only">Henkilöitä</span><input aria-label="Kotitalouden henkilömäärä" type="number" min={1} max={50} className="w-[4.5rem] rounded-xl border border-[#b9b19f] bg-[#fffdf7] p-2 text-center font-bold" value={p.householdSize} onChange={e=>update("householdSize",Math.min(50,Math.max(1,Number(e.target.value)||1)))}/><span className="text-xs font-semibold">hlö</span></label>
+          </div>
+          <button key="household" type="button" className="flex min-h-[68px] w-full items-center justify-between gap-3 rounded-2xl border border-[#d9cfb9] bg-white/90 px-3 py-3 text-left shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#24573e]" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection("household")}}>
+            <span className="min-w-0"><strong className="block">Ruokavaliot ja allergiat</strong><span className="text-xs font-normal text-[#6d6a5c]">{p.diets.length ? p.diets.length+" valintaa · allergiat ja vältettävät ainekset" : "Määritä ruokavaliot, allergiat ja vältettävät ainekset"}</span></span><span aria-hidden="true" className="text-xl">›</span>
+          </button>
+          <button type="button" className="flex min-h-[68px] w-full items-center justify-between gap-3 rounded-2xl border border-[#d9cfb9] bg-white/90 px-3 py-3 text-left shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#24573e]" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection("energy")}}>
+            <span className="min-w-0"><strong className="block">Henkilökohtaiset tiedot ja tavoitteet</strong><span className="text-xs font-normal text-[#6d6a5c]">{p.dietEnabled ? "Energiasuunnittelu käytössä" : "Paino, pituus, aktiivisuus ja energiatavoite"}</span></span><span aria-hidden="true" className="text-xl">›</span>
+          </button>
+        </div>
+      </section>
+      <section aria-labelledby="arvo-settings-tracking">
+        <h3 id="arvo-settings-tracking" className="mb-2 px-1 text-xs font-black uppercase tracking-wider text-[#746648]">Ravinto ja seuranta</h3>
+        <div className="grid gap-2">
+          <a href="/arvo-tilastot" className="flex min-h-[68px] items-center justify-between gap-3 rounded-2xl border border-[#b9cbb9] bg-[#f4f8ef] px-3 py-3 text-left shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#24573e]">
+            <span className="min-w-0"><strong className="block">Ravintopäiväkirja ja tilastot</strong><span className="text-xs font-normal text-[#586b58]">Ateriat, kalorit ja ravintoarvojen kehitys</span></span><span aria-hidden="true" className="text-xl">↗</span>
+          </a>
+          {[
+            ["reminders","Ruokailuajat ja muistutukset",p.mealRemindersEnabled?"Muistutustoive tallennettu":"Ruokailuajat ja muistutusasetukset"],
+            ["health","Terveystiedot","Apple Health / Android Health Connect"],
+            ["purchases","Ostohistoria ja kulutus",purchases.length+" vahvistettua ostoa"]
+          ].map(([id,title,summary])=><button key={id} type="button" className="flex min-h-[68px] w-full items-center justify-between gap-3 rounded-2xl border border-[#d9cfb9] bg-white/90 px-3 py-3 text-left shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#24573e]" onClick={()=>{setEnergyPage(null);setReminderPage(null);setPurchasePage(null);setActiveSection(id)}}>
+            <span className="min-w-0"><strong className="block">{title}</strong><span className="text-xs font-normal text-[#6d6a5c]">{summary}</span></span><span aria-hidden="true" className="text-xl">›</span>
+          </button>)}
+        </div>
+      </section>
+    </div>}
     {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
       
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1 pb-6 [-webkit-overflow-scrolling:touch]">
 
       {activeSection==="household"&&<section className="min-h-full rounded-xl bg-white/75 px-2 py-1">
-        <div className="mb-2 flex items-center justify-between gap-2"><h3 className="font-bold">Ruokavaliot</h3><span className="text-xs text-[#6d6a5c]">Valitse tarvittaessa useita</span></div>
+        <div className="mb-2 flex items-center justify-between gap-2"><h3 className="font-bold">Ruokavaliot ja allergiat</h3><span className="text-xs text-[#6d6a5c]">Valitse tarvittaessa useita</span></div>
         <div className="grid grid-cols-2 gap-1.5">{ARVO_DIETS.map(([key,label,description])=><label key={key} title={description} className="flex min-h-8 items-center gap-2 rounded-lg border bg-white px-2 py-0.5 text-sm"><input type="checkbox" checked={p.diets.includes(key)} onChange={e=>update("diets",e.target.checked?[...p.diets,key]:p.diets.filter(d=>d!==key))}/><span className="font-semibold">{label}</span></label>)}</div>
         {p.diets.length>0&&<p className="mt-1 text-xs">Valitut: {effectiveArvoDiets(p.diets).map(key=>ARVO_DIETS.find(([id])=>id===key)?.[1]).join(", ")}</p>}
         <div className="mt-2 grid grid-cols-2 gap-2">
