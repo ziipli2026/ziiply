@@ -79,6 +79,30 @@ const rankedQueries=[...byQuery].map(([query,entries])=>({
  repeatedCategoryLabel:entries.length>1,
  ambiguous:entries.some(e=>e.ambiguousQuery)
 })).sort((a,b)=>b.affectedCategories.length-a.affectedCategories.length||a.query.localeCompare(b.query,'fi'));
+// Analyze the eight unique-label cases without treating taxonomy synonyms as ranking failures.
+const uniqueLabelCases=belowTop5.filter(r=>!r.ambiguousQuery);
+const categoryTokens=s=>new Set(normalize(s).split(/[^\\p{L}\\p{N}]+/u).filter(Boolean));
+const uniqueLabelAnalysis=uniqueLabelCases.map(r=>{
+ const expected=categoryTokens(r.category);
+ const query=normalize(r.query);
+ const top=r.top.map(p=>{
+  const tokens=categoryTokens(p.category);
+  return {name:p.name,category:p.category,rank:p.rank,
+   categoryContainsQuery:tokens.has(query),
+   categorySharesExpectedToken:[...expected].some(t=>t.length>=5&&tokens.has(t)),
+   categoryHasMultipleLabels:String(p.category||'').includes(';;')};
+ });
+ return {query:r.query,expectedCategory:r.category,expectedItems:r.items,top,
+  top5CategoryContainsQuery:top.filter(p=>p.categoryContainsQuery).length,
+  top5SharesExpectedToken:top.filter(p=>p.categorySharesExpectedToken).length,
+  top5MultiLabelCategories:top.filter(p=>p.categoryHasMultipleLabels).length};
+});
+writeFileSync('artifacts/neon-search-unique-category-analysis.json',JSON.stringify({
+ at:new Date().toISOString(),note:'Diagnostic taxonomy comparison only; does not establish product relevance or true category equivalence.',
+ cases:uniqueLabelAnalysis},null,2));
+console.log('UNIQUE CATEGORY ANALYSIS:',JSON.stringify({cases:uniqueLabelAnalysis.length,
+ top5ContainingQuery:uniqueLabelAnalysis.filter(x=>x.top5CategoryContainsQuery>0).length,
+ top5MultiLabel:uniqueLabelAnalysis.filter(x=>x.top5MultiLabelCategories>0).length}));
 const diagnostics={at:new Date().toISOString(),belowTop5Count:belowTop5.length,distinctQueries:rankedQueries.length,
  ambiguousCount:belowTop5.filter(r=>r.ambiguousQuery).length,
  repeatedLabels:rankedQueries.filter(r=>r.repeatedCategoryLabel).length,
