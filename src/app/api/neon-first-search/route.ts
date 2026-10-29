@@ -26,6 +26,9 @@ export async function GET(request: NextRequest) {
   const potatoIntent = /^(peruna|perunat)$/i.test(q);
   const potatoLeaf = "%/juurekset/perunat";
   const milkIntent = /^(maito|maidot)$/i.test(q);
+  const lactoseFreeMilkIntent = /^(laktoositon maito|maito laktoositon)$/i.test(q);
+  const lactoseMilkName = "(^| )(maito|kevytmaito|täysmaito|rasvaton maito|maitojuoma)( |$)";
+  const lactoseChocolatePattern = "suklaa|konvehti|patukka|kaakao";
   const milkLeaf = "%/maidot-ja-piimat/maidot";
   const milkSpecial = "%/maidot-ja-piimat/erikoismaidot";
   const milkLactose = "%/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot";
@@ -48,6 +51,7 @@ export async function GET(request: NextRequest) {
         FROM ziiply_ean_products
         WHERE (${isEan} AND ean = ${q})
            OR name ILIKE ${contains}
+           OR (${lactoseFreeMilkIntent} AND lower(name) LIKE '%laktoositon%' AND (lower(name) ~ '(^|[^[:alnum:]])(maito|kevytmaito|täysmaito)([^[:alnum:]]|$)' OR category ILIKE ${milkLactose}))
            OR (${sausagePetIntent} AND name ILIKE ${compactPetSausage})
            OR brand ILIKE ${contains}
            OR EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${contains})
@@ -56,6 +60,10 @@ export async function GET(request: NextRequest) {
       ), ranked AS (
         SELECT *, CASE
           WHEN ${isEan} AND ean = ${q} THEN 0
+          WHEN ${lactoseFreeMilkIntent} AND (name_words ~ ${lactoseMilkName} OR category ILIKE ${milkLactose}) AND name_words !~ ${lactoseChocolatePattern} THEN 1
+          WHEN ${lactoseFreeMilkIntent} AND (category ILIKE ${milkLeaf} OR category ILIKE ${milkSpecial}) AND name_words !~ ${lactoseChocolatePattern} THEN 2
+          WHEN ${lactoseFreeMilkIntent} AND name_words ~ ${lactoseChocolatePattern} THEN 90
+          WHEN ${lactoseFreeMilkIntent} THEN 40
           WHEN ${milkIntent} AND (category ILIKE ${milkLeaf} OR category ILIKE ${milkLactose}) THEN 1
           WHEN ${milkIntent} AND category ILIKE ${milkSpecial} THEN 2
           WHEN ${milkIntent} AND name_words ~ '(^| )maito( |$)' THEN 3
@@ -93,7 +101,7 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v9-sausage-spaced-intent-test",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v10-sausage-lactose-intent-test",
       categoryExpansion: "combined-name-and-leaf-category-relevance",
       truncated: rows.length === 100
     });
