@@ -8,6 +8,7 @@ on:
       - 'scripts/neon-search-regression.mjs'
       - 'scripts/neon-real-sk-upstream-smoke.mjs'
       - 'scripts/neon-search-latency-benchmark.mjs'
+      - 'scripts/neon-vs-current-search-comparison.mjs'
       - 'tests/neon-first-simulation.test.cjs'
       - 'src/lib/neonSearchSimulation/**'
       - 'scripts/neon-search-category-coverage.mjs'
@@ -76,6 +77,10 @@ jobs:
         env:
           SEARCH_BASE_URL: http://127.0.0.1:3099
         run: node scripts/neon-search-latency-benchmark.mjs
+      - name: Compare current provider-first versus Neon-first latency and result parity (read-only)
+        env:
+          SEARCH_BASE_URL: http://127.0.0.1:3099
+        run: node scripts/neon-vs-current-search-comparison.mjs
       - name: Audit every Neon product category (diagnostic report)
         continue-on-error: true
         env:
@@ -98,6 +103,7 @@ jobs:
         with:
           name: neon-search-regression
           path: |
+            artifacts/neon-vs-current-search-comparison.json
             artifacts/neon-search-latency-benchmark.json
             artifacts/neon-real-sk-upstream-smoke.json
             artifacts/neon-search-regression.json
