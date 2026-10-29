@@ -5,14 +5,20 @@ import HealthKit
 @MainActor final class ArvoHealthKitReader {
     private let store = HKHealthStore()
     private func quantity(_ id: HKQuantityTypeIdentifier) -> HKQuantityType { HKObjectType.quantityType(forIdentifier: id)! }
-    func requestAccess() async throws {
+    private var approvedCategories = Set<String>()
+    func revokeLocalConsent() { approvedCategories.removeAll() }
+    func requestAccess(approved: Set<String>) async throws {
+        let allowed: Set<String> = ["steps", "active_energy", "resting_heart_rate", "hrv", "sleep_stages"]
+        guard !approved.isEmpty && approved.isSubset(of: allowed) else { throw NSError(domain:"ArvoHealth",code:2) }
         guard HKHealthStore.isHealthDataAvailable() else { throw NSError(domain:"ArvoHealth",code:1) }
-        let types: Set<HKObjectType> = [
-            quantity(.stepCount),quantity(.activeEnergyBurned),
-            quantity(.restingHeartRate),quantity(.heartRateVariabilitySDNN),
-            HKObjectType.categoryType(forIdentifier:.sleepAnalysis)!
-        ]
+        var types = Set<HKObjectType>()
+        if approved.contains("steps") { types.insert(quantity(.stepCount)) }
+        if approved.contains("active_energy") { types.insert(quantity(.activeEnergyBurned)) }
+        if approved.contains("resting_heart_rate") { types.insert(quantity(.restingHeartRate)) }
+        if approved.contains("hrv") { types.insert(quantity(.heartRateVariabilitySDNN)) }
+        if approved.contains("sleep_stages") { types.insert(HKObjectType.categoryType(forIdentifier:.sleepAnalysis)!) }
         try await store.requestAuthorization(toShare: [], read: types)
+        approvedCategories = approved
     }
     private func sum(_ type: HKQuantityType, unit: HKUnit, from start:Date, to end:Date) async throws -> Double? {
         try await withCheckedThrowingContinuation { continuation in
@@ -60,16 +66,17 @@ import HealthKit
     }
     /// Does not send to network. Calendar days use the device's local timezone.
     func readDay(_ date:Date) async throws -> [String:Any] {
+        guard !approvedCategories.isEmpty else { throw NSError(domain:"ArvoHealth",code:3) }
         let calendar=Calendar.current
         let start=calendar.startOfDay(for:date)
         let end=calendar.date(byAdding:.day,value:1,to:start)!
         let formatter=DateFormatter();formatter.calendar=calendar;formatter.dateFormat="yyyy-MM-dd"
         var output:[String:Any]=["provider":"apple_health","localDate":formatter.string(from:start),"timezone":TimeZone.current.identifier]
-        if let v=try await sum(quantity(.stepCount),unit:.count(),from:start,to:end) { output["steps"]=Int(v.rounded()) }
-        if let v=try await sum(quantity(.activeEnergyBurned),unit:.kilocalorie(),from:start,to:end) { output["activeEnergyKcal"]=v }
-        if let v=try await average(quantity(.restingHeartRate),unit:HKUnit.count().unitDivided(by:.minute()),from:start,to:end) { output["restingHeartRateBpm"]=v }
-        if let v=try await average(quantity(.heartRateVariabilitySDNN),unit:.secondUnit(with:.milli),from:start,to:end) { output["hrvSdnnMs"]=v }
-        for (key, value) in try await sleep(start, end) { output[key] = value }
+        if approvedCategories.contains("steps"), let v=try await sum(quantity(.stepCount),unit:.count(),from:start,to:end) { output["steps"]=Int(v.rounded()) }
+        if approvedCategories.contains("active_energy"), let v=try await sum(quantity(.activeEnergyBurned),unit:.kilocalorie(),from:start,to:end) { output["activeEnergyKcal"]=v }
+        if approvedCategories.contains("resting_heart_rate"), let v=try await average(quantity(.restingHeartRate),unit:HKUnit.count().unitDivided(by:.minute()),from:start,to:end) { output["restingHeartRateBpm"]=v }
+        if approvedCategories.contains("hrv"), let v=try await average(quantity(.heartRateVariabilitySDNN),unit:.secondUnit(with:.milli),from:start,to:end) { output["hrvSdnnMs"]=v }
+        if approvedCategories.contains("sleep_stages") { for (key, value) in try await sleep(start, end) { output[key] = value } }
         return output
     }
 }
