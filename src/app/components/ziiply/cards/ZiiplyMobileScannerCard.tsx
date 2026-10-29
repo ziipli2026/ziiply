@@ -86,6 +86,7 @@ export type ZiiplyMobileScannerCardProps = {
   onClose?: () => void | Promise<void>;
   className?: string;
   fullscreen?: boolean;
+  hideHeaderTitle?: boolean;
 };
 
 export default function ZiiplyMobileScannerCard({
@@ -109,6 +110,7 @@ export default function ZiiplyMobileScannerCard({
   onClose,
   className = "",
   fullscreen = false,
+  hideHeaderTitle = false,
 }: ZiiplyMobileScannerCardProps) {
   const flashClass = useMemo(() => {
     if (flashState === "success") {
@@ -453,13 +455,13 @@ export default function ZiiplyMobileScannerCard({
           <span className="h-[3px] rounded-full bg-[#2c5b38]" />
         </div>
 
-        <div className="min-w-0 flex-1 rounded-[0.95rem] border-[2.5px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.74)]">
-          <div
+        <div className={hideHeaderTitle ? "min-w-0 flex-1" : "min-w-0 flex-1 rounded-[0.95rem] border-[2.5px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.74)]"}>
+          {!hideHeaderTitle && <div
             className="truncate text-[22px] font-black uppercase leading-none tracking-[0.075em] text-[#163d32]"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
           >
             Skanneri
-          </div>
+          </div>}
         </div>
 
         <button
