@@ -137,24 +137,29 @@ export async function GET(request: NextRequest) {
             if (process.env.ZIIPLY_FINELI_SALT_ESTIMATE_PREVIEW === "1" &&
                 selected.source === "open-food-facts" &&
                 (safeNutrition.salt_100g === null || safeNutrition.salt_100g === undefined)) {
-              const estimates = await sql`
-                SELECT f.fineli_id AS "fineliId", f.name_fi AS "foodName",
-                       (f.nutrients->'NACL'->>'value')::numeric / 1000 AS "saltG100g",
-                       m.confidence AS "confidence"
-                FROM public.ziiply_ean_fineli_matches m
-                JOIN public.ziiply_fineli_foods f ON f.fineli_id = m.fineli_id
-                WHERE m.ean = ${ean} AND m.approved IS TRUE
-                  AND m.match_method = 'manual_verified'
-                  AND m.confidence IN ('verified', 'high')
-                  AND f.nutrients->'NACL'->>'unit' = 'MG'
-                  AND jsonb_typeof(f.nutrients->'NACL'->'value') = 'number'
-                  AND (f.nutrients->'NACL'->>'value')::numeric BETWEEN 0 AND 100000
-                LIMIT 2
-              `;
-              Object.assign(safeNutrition, attachFineliSaltEstimate(
-                safeNutrition, selected.source, true, estimates
-              ));
-
+              try {
+                const estimates = await sql`
+                  SELECT f.fineli_id AS "fineliId", f.name_fi AS "foodName",
+                         (f.nutrients->'NACL'->>'value')::numeric / 1000 AS "saltG100g",
+                         m.confidence AS "confidence"
+                  FROM public.ziiply_ean_fineli_matches m
+                  JOIN public.ziiply_fineli_foods f ON f.fineli_id = m.fineli_id
+                  WHERE m.ean = ${ean} AND m.approved IS TRUE
+                    AND m.match_method = 'manual_verified'
+                    AND m.confidence IN ('verified', 'high')
+                    AND f.nutrients->'NACL'->>'unit' = 'MG'
+                    AND jsonb_typeof(f.nutrients->'NACL'->'value') = 'number'
+                    AND (f.nutrients->'NACL'->>'value')::numeric BETWEEN 0 AND 100000
+                  LIMIT 2
+                `;
+                Object.assign(safeNutrition, attachFineliSaltEstimate(
+                  safeNutrition, selected.source, true, estimates
+                ));
+  
+              } catch (estimateError) {
+                // An optional Fineli lookup must never discard valid OFF nutrition.
+                console.warn("Optional Fineli salt estimate unavailable", estimateError instanceof Error ? estimateError.message : String(estimateError));
+              }
             }
             nutrition = safeNutrition;
           }

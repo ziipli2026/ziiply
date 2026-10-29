@@ -1,5 +1,5 @@
 export function buildFineliSaltEstimate(row) {
-  if (!row || !Number.isFinite(Number(row.saltG100g))) return null;
+  if (!row || row.saltG100g === null || row.saltG100g === undefined || row.saltG100g === '' || !Number.isFinite(Number(row.saltG100g))) return null;
   const value = Number(row.saltG100g);
   if (value < 0 || value > 100) return null;
   return {
