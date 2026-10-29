@@ -1,5 +1,9 @@
 name: Fineli salt HTTP preview smoke test
 on:
+  push:
+    branches: [test/fineli-salt-live-preview]
+    paths:
+      - '.github/workflows/fineli-salt-http-preview.yml'
   workflow_dispatch:
     inputs:
       ean:
