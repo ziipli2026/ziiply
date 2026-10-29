@@ -402,6 +402,25 @@ function spatialGroups(boxes){
 }
 function boxDistance(a,b){const ax=a.left+(a.width||0)/2,ay=a.top+(a.height||0)/2,bx=b.left+(b.width||0)/2,by=b.top+(b.height||0)/2;return Math.hypot(ax-bx,ay-by)}
 function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){const p=e+suffix/100,d=Math.abs(p-expected);if(!best||d<best.d)best={price:p,d}}return best}
+// Repair a clipped trailing product word only when the publisher's spatial
+// text layer supplies exactly one longer word close to the original title.
+// Never infer a completion from a dictionary or modify prices/quantities.
+function restoreUniquePublisherClippedTitle(row,boxes){
+ const m=String(row.title||'').match(/([A-ZÅÄÖ]{5,})-$/);
+ if(!m)return row;
+ const prefix=m[1],anchor=row.debugAnchor;
+ if(!anchor||!Number.isFinite(anchor.left)||!Number.isFinite(anchor.top))return row;
+ const matches=(boxes||[]).filter(b=>
+  String(b.text||'').toUpperCase().replace(/[^A-ZÅÄÖ]/g,'').startsWith(prefix)&&
+  String(b.text||'').replace(/[^A-Za-zÅÄÖåäö]/g,'').length>prefix.length&&
+  Math.abs(Number(b.left)-anchor.left)<.19&&Math.abs(Number(b.top)-anchor.top)<.09
+ );
+ if(matches.length!==1)return row;
+ const complete=String(matches[0].text).toUpperCase().replace(/[^A-ZÅÄÖ]/g,'');
+ return {...row,title:row.title.slice(0,-m[0].length)+complete,
+  debugRecoveredPublisherTitle:{from:row.title,to:complete}};
+}
+
 export async function parseKCitymarketSpatialLeaflet(ENTRY,fetchImpl=globalThis.fetch){
  const ft=u=>fetchText(u,fetchImpl);
 const directPublisher=/^https:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^/]+\/index\.html(?:\?.*)?$/i.test(String(ENTRY));
@@ -1672,6 +1691,7 @@ if(out.rows.some(r=>r.page===7&&/VITAMIINIVEDET 1,5 l\/pl/i.test(r.title||''))){
     sanity:'pass',confidence:'high'},percentageOffer:null};
  });
 }
+out.rows=out.rows.map(row=>restoreUniquePublisherClippedTitle(row,publicationWordBoxes.get(row.page)));
 out.rows=out.rows.map(row=>verifyPrintedTransaction(row,publicationWordBoxes.get(row.page)));
 return out;
 }
