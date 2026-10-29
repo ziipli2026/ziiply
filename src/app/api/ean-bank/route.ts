@@ -1,4 +1,4 @@
-import { attachFineliSaltEstimate } from "./fineli-salt-estimate.mjs";
+import { attachFineliSaltEstimate, hasConflictingOffProductName } from "./fineli-salt-estimate.mjs";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanProducts from "../../../../data/lidl/verified-ean-links.json";
@@ -136,6 +136,7 @@ export async function GET(request: NextRequest) {
             // Disabled by default until the consumer UI distinguishes estimates.
             if (process.env.ZIIPLY_FINELI_SALT_ESTIMATE_PREVIEW === "1" &&
                 selected.source === "open-food-facts" &&
+                !hasConflictingOffProductName(rows[0].name, safeNutrition.product_name) &&
                 (safeNutrition.salt_100g === null || safeNutrition.salt_100g === undefined)) {
               try {
                 const estimates = await sql`
