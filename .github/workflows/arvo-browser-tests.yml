@@ -20,6 +20,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - run: npm install --no-save --package-lock=false @playwright/test wait-on
       - run: npx playwright install --with-deps chromium
       - name: Build Next.js
         run: npm run build
