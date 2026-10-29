@@ -87,3 +87,17 @@ export function arvoNutrientValues(nutrition: Record<string,unknown> | null, gra
   }
   return result;
 }
+
+export function saveArvoMeal(storage: Pick<Storage,"getItem"|"setItem">, meal: ArvoMeal): ArvoMeal[] {
+  const normalized = normalizeArvoMeal(meal);
+  if (!normalized || !normalized.id) throw new Error("invalid-arvo-meal");
+  const next = [...readArvoMeals(storage), normalized];
+  storage.setItem(ARVO_MEALS_KEY, JSON.stringify(next));
+  return next;
+}
+export function deleteArvoMeal(storage: Pick<Storage,"getItem"|"setItem">, id: string): ArvoMeal[] {
+  if (!id) throw new Error("invalid-arvo-meal-id");
+  const next = readArvoMeals(storage).filter(meal => meal.id !== id);
+  storage.setItem(ARVO_MEALS_KEY, JSON.stringify(next));
+  return next;
+}
