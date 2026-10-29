@@ -86,7 +86,7 @@ jobs:
       - name: Verify Neon-only EAN prices against selected stores after baseline (read-only sample)
         env:
           SEARCH_BASE_URL: http://127.0.0.1:3099
-          EAN_LOOKUP_LIMIT: 12
+          EAN_LOOKUP_LIMIT: 3
         run: node scripts/neon-ean-price-lookup-experiment.mjs
       - name: Diagnose Ruoanhinta exact EAN response and S-kaupat direct GraphQL (read-only)
         run: node scripts/neon-ean-upstream-diagnostics.mjs
