@@ -1,5 +1,5 @@
 name: Ziiply OFF missing EAN lookup
-run-name: OFF EAN SQL repaired retry
+run-name: OFF EAN SQL verified in Neon
 on:
   push:
     branches: [main]
