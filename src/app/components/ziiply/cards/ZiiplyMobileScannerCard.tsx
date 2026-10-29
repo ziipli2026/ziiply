@@ -484,7 +484,7 @@ export default function ZiiplyMobileScannerCard({
           aria-label={torchOn ? "Sammuta valo" : "Sytytä valo"}
           title={torchOn ? "Sammuta valo" : "Sytytä valo"}
         >
-          ✦
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6"><path d="M9 18h6M10 22h4M8.5 14.5a6 6 0 1 1 7 0c-1 .8-1.5 1.6-1.5 3.5h-4c0-1.9-.5-2.7-1.5-3.5Z"/></svg>
         </button>
       </header>
 
