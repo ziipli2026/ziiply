@@ -41,3 +41,8 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
         run: python -u scripts/review-approved-fineli-salt.py
+
+      - name: Inspect approved Fineli nutrient keys (read only)
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: python -u scripts/fineli-salt-json-audit.py
