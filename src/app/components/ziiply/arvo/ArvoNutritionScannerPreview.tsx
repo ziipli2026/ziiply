@@ -106,7 +106,7 @@ export default function ArvoNutritionScannerPreview() {
         regionId="arvo-nutrition-scanner-camera"
         fullscreen
         hideHeaderTitle
-        headerTitle={<div className="flex items-center justify-center gap-2"><img src="/assistants/arvo.png" alt="" className="h-9 w-9 rounded-full object-cover"/><span className="text-lg font-black text-[#163d32]">Arvo</span></div>}
+        headerTitle={<div className="flex items-center justify-center gap-2"><img src="/assistants/arvo.png" alt="Arvo" className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"/><div className="min-w-0 text-left leading-tight text-[#163d32]"><div className="text-[16px] font-black">Arvon ravintoskanneri</div><div className="text-[10px] font-semibold">EAN- ja ravintoarvohaku</div></div></div>}
         footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" disabled title="Aterialle lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🍽️</span><span>Aterialle</span></button><button type="button" disabled title="Ostoskoriin lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🛒</span><span>Ostoskoriin</span></button></div>}
         onClose={() => { setOpen(false); setTab("scan"); }}
         onToggleTorch={() => {
