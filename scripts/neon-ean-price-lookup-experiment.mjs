@@ -6,8 +6,9 @@ const base=process.env.SEARCH_BASE_URL;
 if(base!=='http://127.0.0.1:3099')throw Error('Local test API required');
 const stores=[{id:'S',storeId:292},{id:'K',storeId:3221}];
 const queries=['maito','makkara','kahvi','peruna','laktoositon maito'];
-const limit=Number(process.env.EAN_LOOKUP_LIMIT||12);
+const limit=Number(process.env.EAN_LOOKUP_LIMIT||3);
 const concurrency=3;
+const nameQuery=p=>String(p.name||'').trim().split(/\s+/).filter(w=>w.length>=4).slice(0,2).join(' ');
 const reports=[];
 async function getJson(url){const r=await fetch(url,{signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('HTTP '+r.status);return r.json();}
 async function pool(items,worker){let cursor=0;const out=new Array(items.length);await Promise.all(Array.from({length:Math.min(concurrency,items.length)},async()=>{while(cursor<items.length){const i=cursor++;out[i]=await worker(items[i]);}}));return out;}
@@ -21,10 +22,12 @@ for(const query of queries){
  const checked=await pool(sampled,async p=>{
   const matches=await Promise.all(stores.map(async store=>{
    try{
-    const data=await getJson('https://api.ruoanhinta.fi/api/items?search='+encodeURIComponent(p.ean)+'&storeIds='+store.storeId+'&skip=0&take=80');
+    const term=nameQuery(p);
+    if(!term)return {store:store.id,exact:0,priced:0,reason:'no-safe-name-query'};
+    const data=await getJson('https://api.ruoanhinta.fi/api/items?search='+encodeURIComponent(term)+'&storeIds='+store.storeId+'&skip=0&take=80');
     const exact=(data.items||[]).filter(item=>String(item.ean||'')===String(p.ean));
     const priced=exact.filter(item=>Number.isFinite(item.storeItems?.[0]?.price)&&item.storeItems[0].price>0);
-    return {store:store.id,exact:exact.length,priced:priced.length,prices:priced.map(item=>item.storeItems[0].price)};
+    return {store:store.id,query:term,exact:exact.length,priced:priced.length,prices:priced.map(item=>item.storeItems[0].price)};
    }catch(error){return {store:store.id,error:String(error)};}
   }));
   return {ean:p.ean,name:p.name,matches,verifiedStores:matches.filter(m=>m.priced>0).map(m=>m.store)};
@@ -33,7 +36,7 @@ for(const query of queries){
 }
 const summary={queries:reports.length,totalNeonOnly:reports.reduce((n,r)=>n+r.neonOnly,0),sampled:reports.reduce((n,r)=>n+r.sampled,0),verified:reports.reduce((n,r)=>n+r.verified,0),errors:reports.reduce((n,r)=>n+r.errors,0)};
 fs.mkdirSync('artifacts',{recursive:true});
-fs.writeFileSync('artifacts/neon-ean-price-lookup-experiment.json',JSON.stringify({at:new Date().toISOString(),note:'Read-only limited sample. Exact EAN and positive selected-store price required to verify. No inference of absence from missing match. Baseline fetched before extra lookups; timing does not measure UI rendering.',summary,reports},null,2));
+fs.writeFileSync('artifacts/neon-ean-price-lookup-experiment.json',JSON.stringify({at:new Date().toISOString(),note:'Read-only limited sample. Name search followed by exact EAN and positive selected-store price required to verify. No inference of absence from missing match. Baseline fetched before extra lookups; timing does not measure UI rendering.',summary,reports},null,2));
 console.log('EAN EXTRA PRICE LOOKUP:',JSON.stringify(summary));
 console.log('EAN EXTRA PRICE CASES:',JSON.stringify(reports.map(({query,neonOnly,sampled,verified,errors,extraLookupMs})=>({query,neonOnly,sampled,verified,errors,extraLookupMs}))));
 if(summary.errors)process.exitCode=1;
