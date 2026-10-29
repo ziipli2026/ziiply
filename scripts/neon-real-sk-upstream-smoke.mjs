@@ -16,12 +16,14 @@ for(const query of queries){
   try{
    const data=await fetchJson(url);
    if(!Array.isArray(data.items))throw Error('Missing items array');
+   const sample=data.items[0]||{};
+   const structure={topLevelKeys:Object.keys(sample).sort(),nestedObjects:Object.fromEntries(Object.entries(sample).filter(([k,v])=>v&&typeof v==='object').map(([k,v])=>[k,Array.isArray(v)?{type:'array',firstItemKeys:v[0]&&typeof v[0]==='object'?Object.keys(v[0]).sort():[]}:Object.keys(v).sort()])),idExamples:data.items.slice(0,3).map(p=>({id:p.id,externalId:p.externalId,productId:p.productId,gtin:p.gtin,ean:p.ean}))};
    const rows=data.items.map(p=>({ean:[p.ean,p.gtin,p.eanCode,p.barcode,p.externalId].find(v=>/^\\d{8,14}$/.test(String(v||''))),name:p.name,price:p.storeItems?.[0]?.price,imageUrl:p.pictureUrl})); 
    const priced=rows.filter(p=>Number.isFinite(p.price)&&p.price>0);
    const exact=priced.filter(p=>p.ean&&bankByEan.has(String(p.ean)));
    const unpriced=rows.filter(p=>!Number.isFinite(p.price)||p.price<=0);
    const missingEan=priced.filter(p=>!p.ean);
-   report.push({query,store:store.id,storeId:store.storeId,upstreamRows:rows.length,priced:priced.length,missingPrice:unpriced.length,missingEan:missingEan.length,neonRows:bank.products.length,exactEanOverlap:exact.length,storeOnlyEan:priced.filter(p=>p.ean&&!bankByEan.has(String(p.ean))).length,elapsedMs:Date.now()-started,examples:exact.slice(0,3).map(p=>({ean:p.ean,name:p.name,price:p.price,neonImage:!!bankByEan.get(String(p.ean))?.imageUrl,shopImage:!!p.imageUrl}))});
+   report.push({query,store:store.id,storeId:store.storeId,upstreamRows:rows.length,structure,priced:priced.length,missingPrice:unpriced.length,missingEan:missingEan.length,neonRows:bank.products.length,exactEanOverlap:exact.length,storeOnlyEan:priced.filter(p=>p.ean&&!bankByEan.has(String(p.ean))).length,elapsedMs:Date.now()-started,examples:exact.slice(0,3).map(p=>({ean:p.ean,name:p.name,price:p.price,neonImage:!!bankByEan.get(String(p.ean))?.imageUrl,shopImage:!!p.imageUrl}))});
   }catch(error){report.push({query,store:store.id,storeId:store.storeId,error:String(error)});}
  }
 }
