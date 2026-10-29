@@ -140,7 +140,6 @@ export default function ArvoNutritionScannerPreview() {
         ) : undefined}
       />
       {!open && <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#f8f5ed] p-5"><button type="button" onClick={()=>{setOpen(true);setTab("scan");}} className="rounded-2xl bg-[#24573e] px-8 py-4 text-lg font-bold text-white">Avaa Arvon skanneri</button></div>}
-      {open && <div className="pointer-events-none absolute left-1/2 top-[max(10px,env(safe-area-inset-top))] z-40 -translate-x-1/2 rounded-full border border-[#b99d62] bg-[#fff0c8] px-3 py-1 text-xs font-black">ARVO · RAVINTO</div>}
     </div>
   );
 }
