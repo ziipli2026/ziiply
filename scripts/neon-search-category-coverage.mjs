@@ -64,6 +64,27 @@ const truncationUnknown=report.filter(r=>r.classification==='not-in-first-100-un
 const outsideTop100=report.filter(r=>r.classification==='matching-products-outside-top100');
 mkdirSync('artifacts',{recursive:true});
 writeFileSync('artifacts/neon-search-category-coverage.json',JSON.stringify({at:new Date().toISOString(),categories:categories.length,tests:tests.length,failures:failed.length,breakdown,genuineCandidates:genuineCandidates.length,truncationUnknown:truncationUnknown.length,outsideTop100:outsideTop100.length,report},null,2));
+// Diagnostic only: distinguish broad/ambiguous category labels from ranking defects.
+const belowTop5=report.filter(r=>r.classification==='ranking-after-top5');
+const byQuery=new Map();
+for(const r of belowTop5){
+ const key=r.query;
+ if(!byQuery.has(key))byQuery.set(key,[]);
+ byQuery.get(key).push(r);
+}
+const rankedQueries=[...byQuery].map(([query,entries])=>({
+ query,affectedCategories:entries.map(e=>e.category),
+ top:entries[0].top.map(p=>({name:p.name,category:p.category,rank:p.rank})),
+ returned:entries[0].count,truncated:entries[0].truncated,
+ repeatedCategoryLabel:entries.length>1,
+ ambiguous:entries.some(e=>e.ambiguousQuery)
+})).sort((a,b)=>b.affectedCategories.length-a.affectedCategories.length||a.query.localeCompare(b.query,'fi'));
+const diagnostics={at:new Date().toISOString(),belowTop5Count:belowTop5.length,distinctQueries:rankedQueries.length,
+ ambiguousCount:belowTop5.filter(r=>r.ambiguousQuery).length,
+ repeatedLabels:rankedQueries.filter(r=>r.repeatedCategoryLabel).length,
+ queries:rankedQueries};
+writeFileSync('artifacts/neon-search-ranking-diagnostics.json',JSON.stringify(diagnostics,null,2));
+console.log('RANKING DIAGNOSTICS:',JSON.stringify({belowTop5:diagnostics.belowTop5Count,distinctQueries:diagnostics.distinctQueries,ambiguous:diagnostics.ambiguousCount,repeatedLabels:diagnostics.repeatedLabels}));
 console.log('CATEGORY COVERAGE:',tests.length,'tested,',failed.length,'flagged');
 console.log('CLASSIFICATION:',JSON.stringify(breakdown));
 console.log('POTENTIAL REAL ISSUES:',genuineCandidates.length);
