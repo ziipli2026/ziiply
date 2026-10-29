@@ -50,3 +50,17 @@ for(const expected of fixture.reviewedOffers){
   assert.equal(Number(row.spatialResolved.quantity||1),expected.quantity,`Wrong printed quantity for ${row.title}`);
  });
 }
+
+test('44LV page 3 cheese titles are complete and belong to their own printed offers',()=>{
+ const page=result.rows.filter(r=>r.page===3);
+ const aura=page.filter(r=>/AURA\s+SINIHOMEJUUSTOPALA\s+170\s*g/i.test(r.title));
+ const feta=page.filter(r=>/FETAJUUSTO\s+150\s*g/i.test(r.title));
+ assert.equal(aura.length,1,'AURA 170 g must be recovered once');
+ assert.equal(feta.length,1,'FETA 150 g must be recovered once');
+ for(const [label,rows] of [['AURA',aura],['FETA',feta]]){
+  assert.equal(rows[0].spatialResolved?.value,5,label+' printed 2-for-5 total');
+  assert.equal(rows[0].spatialResolved?.quantity,2,label+' printed 2-pack quantity');
+ }
+ assert.equal(page.filter(r=>/JUUSTOPA-|FETAJUUST-/.test(r.title)).length,0,
+  'Do not publish truncated cheese names');
+});
