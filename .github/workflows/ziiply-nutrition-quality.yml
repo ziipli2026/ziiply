@@ -1,5 +1,5 @@
 name: Ziiply OFF Fineli nutrition quality
-run-name: Fineli NACL units and ranges audit 29 Oct
+run-name: Fineli salt product match review 29 Oct
 on:
   push:
     branches: [main]
