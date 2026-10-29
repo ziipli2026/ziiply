@@ -8,7 +8,8 @@ import ZiiplyMobileScannerCard from "../cards/ZiiplyMobileScannerCard";
  * Käyttää samaa kameranäkymäkomponenttia kuin tavallinen skanneri.
  * EAN-tunnistus, ravintohaku ja päiväkirjaan tallennus kytketään myöhemmin.
  */
-export default function ArvoNutritionScannerPreview({ onClose }: { onClose?: () => void } = {}) {
+export type ArvoCartProduct = { ean: string; name: string; grams: number; nutrition: Record<string, unknown> | null };
+export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { onClose?: () => void; onAddToCart?: (product: ArvoCartProduct) => void | Promise<void> } = {}) {
   const [open, setOpen] = useState(true);
   const [ean, setEan] = useState("");
   const [productName, setProductName] = useState("");
@@ -16,6 +17,8 @@ export default function ArvoNutritionScannerPreview({ onClose }: { onClose?: () 
   const [status, setStatus] = useState("");
   const [torch, setTorch] = useState(false);
   const [mealSaved, setMealSaved] = useState(false);
+  const [cartSaving, setCartSaving] = useState(false);
+  const [cartSaved, setCartSaved] = useState(false);
   const cameraRef = useRef<MediaStream | null>(null);
   const lastEanRef = useRef("");
   const regionId = "arvo-nutrition-scanner-camera";
@@ -29,6 +32,7 @@ export default function ArvoNutritionScannerPreview({ onClose }: { onClose?: () 
       lastEanRef.current = code;
       setEan(code);
       setMealSaved(false);
+      setCartSaved(false);
       setTab("nutrition");
     };
     async function start() {
@@ -101,6 +105,16 @@ export default function ArvoNutritionScannerPreview({ onClose }: { onClose?: () 
     return Number.isFinite(number) && number >= 0 ? (number * grams / 100).toLocaleString("fi-FI",{maximumFractionDigits:1}) : "—";
   };
   const [grams, setGrams] = useState(100);
+  const addToCart = async () => {
+    if (!onAddToCart || !ean || !productName || cartSaving || cartSaved) return;
+    setCartSaving(true);
+    try {
+      await onAddToCart({ean,name:productName,grams,nutrition});
+      setCartSaved(true);
+      setStatus("Lisätty ostoskoriin");
+    } catch { setStatus("Ostoskoriin lisääminen epäonnistui"); }
+    finally { setCartSaving(false); }
+  };
   const saveMeal = () => {
     if (!ean || !productName || !nutrition || grams <= 0) return;
     try {
@@ -132,7 +146,7 @@ export default function ArvoNutritionScannerPreview({ onClose }: { onClose?: () 
         fullscreen
         hideHeaderTitle
         headerTitle={<div className="flex items-center justify-center gap-2"><img src="/assistants/arvo.png" alt="Arvo" className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"/><div className="min-w-0 text-left leading-tight text-[#163d32]"><div className="text-[16px] font-black">Arvon ravintoskanneri</div><div className="text-[10px] font-semibold">EAN- ja ravintoarvohaku</div></div></div>}
-        footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" onClick={saveMeal} disabled={!ean || !nutrition || !productName || grams <= 0 || mealSaved} title={mealSaved ? "Tallennettu aterialle" : "Tallenna tuote aterialle"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🍽️</span><span>{mealSaved ? "Tallennettu" : "Aterialle"}</span></button><button type="button" disabled title="Ostoskoriin lisääminen toteutetaan seuraavaksi" className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] opacity-60"><span className="text-xl">🛒</span><span>Ostoskoriin</span></button></div>}
+        footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" onClick={saveMeal} disabled={!ean || !nutrition || !productName || grams <= 0 || mealSaved} title={mealSaved ? "Tallennettu aterialle" : "Tallenna tuote aterialle"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🍽️</span><span>{mealSaved ? "Tallennettu" : "Aterialle"}</span></button><button type="button" onClick={() => void addToCart()} disabled={!onAddToCart || !ean || !productName || cartSaving || cartSaved} title={!onAddToCart ? "Odottaa Ziiplyn ostoskorin kytkentää" : cartSaved ? "Lisätty ostoskoriin" : "Lisää ostoskoriin"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🛒</span><span>{cartSaved ? "Lisätty" : "Ostoskoriin"}</span></button></div>}
         onClose={closeScanner}
         onToggleTorch={() => {
           const track = cameraRef.current?.getVideoTracks()[0];
@@ -160,7 +174,7 @@ export default function ArvoNutritionScannerPreview({ onClose }: { onClose?: () 
                 {([["kcal",["kcal_100g","energy-kcal_100g","ENERC"]],["Prot.",["proteins_100g","protein_100g","PROCNT"]],["HH",["carbohydrates_100g","CHOCDF"]],["Rasva",["fat_100g","FAT"]]] as [string,string[]][]).map(([label,keys])=><div key={label} className="rounded-lg bg-white px-1 py-2 text-center"><div className="text-[10px] font-bold">{label}</div><div className="text-base font-black">{nutrient(keys)}</div></div>)}
               </div>
               <div className="mt-2">
-                <button type="button" onClick={()=>{setEan("");setProductName("");setNutrition(null);setStatus("");setMealSaved(false);lastEanRef.current="";setTab("scan");}} className="w-full rounded-xl bg-[#24573e] p-3 text-sm font-bold text-white">Skannaa seuraava</button>
+                <button type="button" onClick={()=>{setEan("");setProductName("");setNutrition(null);setStatus("");setMealSaved(false);setCartSaved(false);lastEanRef.current="";setTab("scan");}} className="w-full rounded-xl bg-[#24573e] p-3 text-sm font-bold text-white">Skannaa seuraava</button>
               </div>
             </section>
           </div>
