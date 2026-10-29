@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
-import {deleteArvoMeal,arvoDailyStatistics,arvoNutritionTotals,readArvoMeals,type ArvoMeal} from "../components/ziiply/arvo/arvoStatistics";
+import {deleteArvoMeal,arvoCalendarChart,arvoDailyStatistics,arvoNutritionTotals,readArvoMeals,type ArvoMeal} from "../components/ziiply/arvo/arvoStatistics";
 
 const metrics = [{key:"kcal",label:"Energia",unit:"kcal"},{key:"protein",label:"Proteiini",unit:"g"},{key:"carbs",label:"Hiilihydraatit",unit:"g"},{key:"fat",label:"Rasva",unit:"g"}] as const;
 const format = (value:number)=>value.toLocaleString("fi-FI",{maximumFractionDigits:1});
@@ -31,6 +31,7 @@ export default function ArvoStatisticsPage() {
     } catch { window.alert("Aterian poistaminen epäonnistui."); }
   };
   const daily=useMemo(()=>Object.entries(arvoDailyStatistics(selected)).sort(([a],[b])=>b.localeCompare(a)),[selected]);
+  const chart=useMemo(()=>now?arvoCalendarChart(selected,now,period):[],[selected,now,period]);
   return <main className="min-h-screen bg-[#f8f5ed] px-4 py-8 text-[#173b2b]">
     <div className="mx-auto max-w-3xl">
       <a href="/" className="text-sm font-semibold underline">← Ziiply</a>
@@ -41,7 +42,7 @@ export default function ArvoStatisticsPage() {
       <h2 className="mt-8 text-xl font-black">Energia päivittäin</h2>
       <div className="mt-3 rounded-xl border border-[#d3c9ad] bg-white p-4">
         {daily.length===0?<p className="text-sm">Ei vielä tietoja kuvaajaan.</p>:<div className="flex min-h-[170px] items-end gap-2 overflow-x-auto" role="img" aria-label="Päivittäiset kilokalorit pylväinä">
-          {daily.slice().reverse().map(([date,values])=>{const max=Math.max(1,...daily.map(([,day])=>day.kcal));return <div key={date} className="flex min-w-[48px] flex-1 flex-col items-center justify-end gap-1"><span className="text-[11px] font-bold">{values.known.kcal?format(values.kcal):"—"}</span><div className="w-full max-w-[60px] rounded-t-md bg-[#24573e]" style={{height:`${values.known.kcal?Math.max(4,Math.round(values.kcal/max*125)):2}px`}} title={date+": "+format(values.kcal)+" kcal"}/><span className="text-[10px]">{date.slice(5)}</span></div>;})}
+          {chart.map(({date,values})=>{const max=Math.max(1,...chart.map(day=>day.values.kcal));return <div key={date} className="flex min-w-[48px] flex-1 flex-col items-center justify-end gap-1"><span className="text-[11px] font-bold">{values.known.kcal?format(values.kcal):"—"}</span><div className="w-full max-w-[60px] rounded-t-md bg-[#24573e]" style={{height:`${values.known.kcal?Math.max(4,Math.round(values.kcal/max*125)):2}px`}} title={date+": "+(values.known.kcal?format(values.kcal)+" kcal":"ei kirjattua energia-arvoa")}/><span className="text-[10px]">{date.slice(5)}</span></div>;})}
         </div>}
       </div>
       <h2 className="mt-8 text-xl font-black">Päivittäinen seuranta</h2>

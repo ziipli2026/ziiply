@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {arvoDailyStatistics,arvoNutritionTotals,arvoNutrientValues,readArvoMeals,saveArvoMeal,deleteArvoMeal,ARVO_MEALS_KEY} from "../src/app/components/ziiply/arvo/arvoStatistics.ts";
+import {arvoCalendarChart,arvoCalendarDays,arvoPeriodStatistics,arvoDailyStatistics,arvoNutritionTotals,arvoNutrientValues,readArvoMeals,saveArvoMeal,deleteArvoMeal,ARVO_MEALS_KEY} from "../src/app/components/ziiply/arvo/arvoStatistics.ts";
 
 const meal=(id,timestamp,nutrition)=>({id,timestamp,ean:"6411234567890",name:"Testituote",grams:150,nutrition});
 
@@ -59,4 +59,43 @@ test("Arvo: failed storage write is surfaced and previous data stays intact",()=
  const storage={getItem:()=>JSON.stringify([a]),setItem:()=>{throw new Error("quota exceeded");}};
  assert.throws(()=>deleteArvoMeal(storage,"a"),/quota exceeded/);
  assert.equal(readArvoMeals(storage).length,1);
+});
+
+test("Arvo: 7-day chart contains all calendar dates, including no-meal days",()=>{
+ const now=new Date(2026,9,29,15,0,0);
+ const chart=arvoCalendarChart([meal("one",new Date(2026,9,27,12).toISOString(),{kcal:250,protein:null,carbs:null,fat:null})],now,"week");
+ assert.equal(chart.length,7);
+ assert.equal(chart[0].date,"2026-10-23");
+ assert.equal(chart.at(-1).date,"2026-10-29");
+ assert.equal(chart.find(day=>day.date==="2026-10-27").values.kcal,250);
+ assert.equal(chart.find(day=>day.date==="2026-10-28").values.entries,0);
+ assert.equal(chart.find(day=>day.date==="2026-10-28").values.known.kcal,0);
+});
+test("Arvo: 30-day chart covers month boundary",()=>{
+ const now=new Date(2026,10,2,12);
+ const dates=arvoCalendarDays(now,"month");
+ assert.equal(dates.length,30);
+ assert.equal(dates[0],"2026-10-04");
+ assert.equal(dates.at(-1),"2026-11-02");
+ assert.equal(new Set(dates).size,30);
+});
+test("Arvo: calendar dates remain continuous across daylight saving change",()=>{
+ const dates=arvoCalendarDays(new Date(2026,9,29,12),"week");
+ assert.deepEqual(dates,["2026-10-23","2026-10-24","2026-10-25","2026-10-26","2026-10-27","2026-10-28","2026-10-29"]);
+});
+test("Arvo: unknown nutrient does not dilute known totals",()=>{
+ const a=meal("a","2026-10-29T10:00:00.000Z",{kcal:200,protein:null,carbs:0,fat:null});
+ const b=meal("b","2026-10-29T11:00:00.000Z",{kcal:null,protein:12,carbs:null,fat:3});
+ const totals=arvoNutritionTotals([a,b]);
+ assert.equal(totals.entries,2);
+ assert.deepEqual(totals.known,{kcal:1,protein:1,carbs:1,fat:1});
+ assert.deepEqual({kcal:totals.kcal,protein:totals.protein,carbs:totals.carbs,fat:totals.fat},{kcal:200,protein:12,carbs:0,fat:3});
+});
+test("Arvo: period filter excludes future and older meals",()=>{
+ const start=new Date("2026-10-23T00:00:00.000Z"),end=new Date("2026-10-30T00:00:00.000Z");
+ const meals=[
+ meal("before","2026-10-22T23:59:59.000Z",{kcal:100,protein:null,carbs:null,fat:null}),
+ meal("inside","2026-10-23T00:00:00.000Z",{kcal:200,protein:null,carbs:null,fat:null}),
+ meal("future","2026-10-30T00:00:00.000Z",{kcal:300,protein:null,carbs:null,fat:null})];
+ assert.equal(arvoPeriodStatistics(meals,start,end).kcal,200);
 });
