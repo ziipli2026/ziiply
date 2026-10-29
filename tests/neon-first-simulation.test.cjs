@@ -142,7 +142,7 @@ test('live Neon and real S/K upstream first pages merge by EAN with cent-to-euro
     const data=await response.json();
     assert.ok(Array.isArray(data.items));
     return {id:store.id,products:data.items.map(p=>({
-      ean:/^\\d{8,14}$/.test(String(p.ean||''))?String(p.ean):undefined,
+      ean:/^\d{8,14}$/.test(String(p.ean||''))?String(p.ean):undefined,
       id:String(p.id),name:p.name,imageUrl:p.pictureUrl,
       price:Number.isFinite(p.storeItems?.[0]?.price)&&p.storeItems[0].price>0?p.storeItems[0].price/100:null
     }))};
