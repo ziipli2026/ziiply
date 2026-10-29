@@ -226,13 +226,13 @@ test('browser projection always sorts priced products cheapest selected-store pr
   assert.deepEqual(sk.pricedRows.map(r=>r.key),['cheap-s','cheap-k','expensive']);
   assert.deepEqual(sk.unpricedRows.map(r=>r.key),['unknown']);
   const onlyK=projectResults('maito',rows,['K']);
-  assert.deepEqual(onlyK.pricedRows.map(r=>r.key),['cheap-k','expensive','cheap-s']);
+  assert.deepEqual(onlyK.pricedRows.map(r=>r.key),['cheap-k','cheap-s','expensive']);
   assert.deepEqual(onlyK.unpricedRows.map(r=>r.key),['unknown']);
 });
 test('browser ordering re-sorts immediately when a verified background price arrives', async () => {
   const rows=[{key:'a',ean:'6410000000001',name:'A',imageUrl:null,sources:[],prices:{S:4.5,K:null}},{key:'b',ean:'6410000000002',name:'B',imageUrl:null,sources:[],prices:{S:3.5,K:null}}];
   const updates=[];
-  await runSimulation('maito',source('Neon',rows.map(r=>({ean:r.ean,name:r.name}))),[source('S',rows.map(r=>({ean:r.ean,name:r.name,price:r.prices.S})))],new AbortController().signal,s=>updates.push(s),undefined,undefined,async p=>[{ean:p.ean,store:'K',price:p.ean.endsWith('1')?2.5:5.5}]);
+  await runSimulation('maito',source('Neon',rows.map(r=>({ean:r.ean,name:r.name}))),[source('S',rows.map(r=>({ean:r.ean,name:r.name,price:r.prices.S}))),source('K',[])],new AbortController().signal,s=>updates.push(s),undefined,undefined,async p=>[{ean:p.ean,store:'K',price:p.ean.endsWith('1')?2.5:5.5}]);
   const enriched=updates.at(-1);
   assert.deepEqual(enriched.pricedRows.map(r=>r.key),['ean:6410000000001','ean:6410000000002']);
   assert.deepEqual(enriched.pricedRows.map(r=>Math.min(...Object.values(r.prices).filter(v=>typeof v==='number'&&v>0))),[2.5,3.5]);
