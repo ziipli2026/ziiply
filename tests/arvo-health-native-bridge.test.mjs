@@ -14,3 +14,12 @@ test("approved REM stage and Android RMSSD survive bridge without cross-contamin
  assert.equal(result.days[0].hrvRmssdMs,34);
  assert.equal(result.days[0].steps,undefined);
 });
+
+test("same provider and date cannot appear twice",()=>{
+ const duplicate={...message,days:[message.days[0],message.days[0]]};
+ assert.equal(acceptNativeHealthMessage(duplicate,["steps"]).error,"DUPLICATE_DAY");
+});
+test("invalid category selection cannot authorize health readings",()=>{
+ assert.equal(acceptNativeHealthMessage(message,["steps","steps"]).ok,false);
+ assert.equal(acceptNativeHealthMessage(message,["unknown"]).ok,false);
+});
