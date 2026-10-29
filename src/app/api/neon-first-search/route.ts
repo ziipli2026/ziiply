@@ -56,17 +56,21 @@ export async function GET(request: NextRequest) {
           WHEN ${potatoIntent} AND category ILIKE ${potatoLeaf} THEN 1
           WHEN ${potatoIntent} AND (name_words ~ '(^| )peruna( |$)' OR name_words ~ '(^| )perunat( |$)') AND (category IS NULL OR category NOT ILIKE 'lemmikit/%') THEN 3
           WHEN ${potatoIntent} THEN 20
-          WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 1
-          WHEN ${isSingleWord} AND category_words ~ ${categoryTermPattern} THEN 5
-          WHEN name_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 2
-          WHEN lower(name) = ${normalizedQuery} THEN 3
-          WHEN name ILIKE ${prefix} THEN 4
-          WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE lower(a) = ${normalizedQuery}) THEN 5
-          WHEN name ILIKE ${contains} THEN 6
-          WHEN ${isSingleWord} AND EXISTS (SELECT 1 FROM unnest(${variantNamePatterns}::text[]) pattern WHERE name ILIKE pattern) THEN 7
-          WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${contains}) THEN 7
-          WHEN brand ILIKE ${contains} THEN 8
-          ELSE 9 END AS relevance
+          ELSE (
+            20
+            - CASE WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 8 ELSE 0 END
+            - CASE WHEN ${isSingleWord} AND category_words ~ ${categoryTermPattern}
+                     AND category_words !~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 2 ELSE 0 END
+            - CASE WHEN name_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 6 ELSE 0 END
+            - CASE WHEN lower(name) = ${normalizedQuery} THEN 3 ELSE 0 END
+            - CASE WHEN name ILIKE ${prefix} THEN 2 ELSE 0 END
+            - CASE WHEN name ILIKE ${contains} THEN 1 ELSE 0 END
+            - CASE WHEN ${isSingleWord} AND EXISTS (SELECT 1 FROM unnest(${variantNamePatterns}::text[]) pattern WHERE name ILIKE pattern) THEN 1 ELSE 0 END
+            - CASE WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE lower(a) = ${normalizedQuery}) THEN 3 ELSE 0 END
+            - CASE WHEN EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${contains}) THEN 1 ELSE 0 END
+            - CASE WHEN brand ILIKE ${contains} THEN 1 ELSE 0 END
+          )
+ END AS relevance
         FROM candidates
       )
       SELECT ean, name, brand, quantity, image_url AS "imageUrl",
@@ -77,8 +81,8 @@ export async function GET(request: NextRequest) {
     `;
     return NextResponse.json({
       ok: true, query: q, products: rows, count: rows.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v7",
-      categoryExpansion: "exact-category-first-fallback-plural",
+      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v8",
+      categoryExpansion: "combined-category-name-relevance",
       truncated: rows.length === 100
     });
   } catch (error) {
