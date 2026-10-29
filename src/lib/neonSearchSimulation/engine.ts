@@ -1,3 +1,4 @@
+import { enrichNeonRows } from './enrichPrices.mjs';
 export type Product = { ean?: string; id?: string; name: string; imageUrl?: string | null; price?: number | null };
 export type Row = { key: string; ean?: string; name: string; imageUrl: string | null; sources: string[]; prices: Record<string, number | null> };
 export type Snapshot = { rows: Row[]; pricedRows: Row[]; unpricedRows: Row[]; stages: Record<string, string>; events: { source: string; status: string; elapsedMs: number; count?: number }[]; done: boolean };
@@ -25,7 +26,7 @@ export function projectResults(query: string, rows: Row[]) {
   return { pricedRows, unpricedRows };
 }
 // Simulation only: no database writes, price lookups, recipe rules or UI dependencies.
-export async function runSimulation(query: string, bank: Source, shops: Source[], signal: AbortSignal, publish: (state: Snapshot) => void, now = () => performance.now(), timeouts = { bankMs: 5000, shopMs: 5000 }) {
+export async function runSimulation(query: string, bank: Source, shops: Source[], signal: AbortSignal, publish: (state: Snapshot) => void, now = () => performance.now(), timeouts = { bankMs: 5000, shopMs: 5000 }, priceLookup?: (product: { ean: string; name: string }, signal: AbortSignal) => Promise<{ ean: string; store: string; price: number }[]>) {
   const started = now();
   let state: Snapshot = { rows: [], pricedRows: [], unpricedRows: [], stages: {}, events: [], done: false };
   const current = () => !signal.aborted;
@@ -83,4 +84,10 @@ export async function runSimulation(query: string, bank: Source, shops: Source[]
   await Promise.all(shops.map(source => load(source, false)));
   if (!current()) return;
   state = { ...state, done: true }; emit();
+  if (priceLookup && current()) {
+    const enriched = await enrichNeonRows(state.rows, priceLookup, rows => {
+      if (current()) { state = { ...state, rows }; emit(); }
+    }, signal);
+    if (current()) { state = { ...state, rows: enriched }; emit(); }
+  }
 }
