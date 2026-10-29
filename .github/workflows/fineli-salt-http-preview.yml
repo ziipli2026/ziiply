@@ -1,0 +1,21 @@
+name: Fineli salt HTTP preview smoke test
+on:
+  workflow_dispatch:
+    inputs:
+      ean:
+        description: 'Approved EAN with missing OFF salt'
+        required: true
+        type: string
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check live preview EAN without writes
+        env:
+          FINELI_PREVIEW_URL: https://ziiply-dlzg3hr1u-ziipli2026s-projects.vercel.app
+          FINELI_TEST_EAN: ${{ inputs.ean }}
+        run: node --test tests/fineli-salt-live-preview.test.mjs
