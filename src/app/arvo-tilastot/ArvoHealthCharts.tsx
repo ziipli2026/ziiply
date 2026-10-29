@@ -1,12 +1,12 @@
 "use client";
 import {useState} from "react";
-const METRICS=[["steps","Askeleet","askelta"],["activeEnergyKcal","Aktiivisuusenergia","kcal"],["restingHeartRateBpm","Leposyke","bpm"],["hrvSdnnMs","HRV","ms"],["sleepMinutes","Uni","min"],["remMinutes","REM-uni","min"],["coreMinutes","Kevyt uni","min"],["deepMinutes","Syvä uni","min"],["awakeMinutes","Valveilla","min"]] as const;
+const METRICS=[["steps","Askeleet","askelta"],["activeEnergyKcal","Aktiivisuusenergia","kcal"],["restingHeartRateBpm","Leposyke","bpm"],["hrvSdnnMs","HRV SDNN (Apple)","ms"],["hrvRmssdMs","HRV RMSSD (Android)","ms"],["sleepMinutes","Uni","min"],["remMinutes","REM-uni","min"],["coreMinutes","Kevyt uni","min"],["deepMinutes","Syvä uni","min"],["awakeMinutes","Valveilla","min"]] as const;
 type Metric=typeof METRICS[number][0];
 type Day={localDate:string;provider:"apple_health"|"health_connect";timezone:string}&Partial<Record<Metric,number|null>>;
 type Period="day"|"week"|"month";
 const isoWeek=(s:string)=>{const d=new Date(s+"T12:00:00Z");d.setUTCDate(d.getUTCDate()-(d.getUTCDay()+6)%7);return d.toISOString().slice(0,10)};
 const key=(d:string,p:Period)=>p==="day"?d:p==="week"?isoWeek(d):d.slice(0,7);
-const average=new Set<Metric>(["restingHeartRateBpm","hrvSdnnMs"]);
+const average=new Set<Metric>(["restingHeartRateBpm","hrvSdnnMs","hrvRmssdMs"]);
 function aggregate(data:Day[],period:Period,metric:Metric){
  const groups=new Map<string,{sum:number;count:number}>();
  for(const d of data){const v=d[metric];if(typeof v!=="number"||!Number.isFinite(v)||v<0)continue;const k=key(d.localDate,period),g=groups.get(k)||{sum:0,count:0};g.sum+=v;g.count++;groups.set(k,g)}
