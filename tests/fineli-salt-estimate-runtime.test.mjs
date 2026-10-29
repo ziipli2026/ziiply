@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { attachFineliSaltEstimate } from '../src/app/api/ean-bank/fineli-salt-estimate.mjs';
+import { hasConflictingOffProductName, attachFineliSaltEstimate } from '../src/app/api/ean-bank/fineli-salt-estimate.mjs';
 
 const row = { saltG100g: '0.1147', fineliId: 123, foodName: 'SEESAMINSIEMEN', confidence: 'verified' };
 const off = { salt_100g: null, proteins_100g: 18 };
@@ -26,4 +26,10 @@ test('ambiguous or invalid estimates are rejected', () => {
 });
 test('does not add Fineli salt to other sources', () => {
   assert.deepEqual(attachFineliSaltEstimate(off, 'fineli-generic', true, [row]), off);
+});
+
+test('obvious mismatched OFF product name blocks Fineli estimate', () => {
+  assert.equal(hasConflictingOffProductName('Omena gala', 'Chili Carolina Reaper 50g'), true);
+  assert.equal(hasConflictingOffProductName('Omena gala', 'Omena Gala 1kg'), false);
+  assert.equal(hasConflictingOffProductName('Omena gala', ''), false);
 });
