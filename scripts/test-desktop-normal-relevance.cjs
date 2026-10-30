@@ -118,3 +118,7 @@ for(const product of [
 assert.equal(dec('pepsi',{name:'Pepsi Max 0,5l',brand:'Pepsi Max'}).accepted,true);
 
 assert.equal(dec('cola',{name:'Pepsi Zero Sugar Cream Soda virvoitusjuoma',brand:'Pepsi'}).accepted,false);
+
+assert.equal(dec('mehu',{name:'Sun Lolly mehujää cola'}).accepted,false);
+assert.equal(dec('olut',{name:'Karhu olut 0,33l',category:'juomat/oluet'}).accepted,true);
+assert.equal(dec('olut',{name:'Olutlasi 0,5l'}).accepted,false);

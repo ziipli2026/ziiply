@@ -130,9 +130,10 @@ export function desktopSearchDecision(query: string, product: Row) {
     ['coffee', /cappuccino|latte|kahvijauhe|kahvi|kaakao/],
     ['drink', /virvoitusjuoma|limonadi|kivennais|lahdeves|vitaminoitu vesi|energiajuoma|smoothie|juoma|mehu|(?:^| )tee(?: |$)/],
   ];
-  const rawIngredientTerms=new Set(['piima','jogurtti','leipa','maito','juusto','kerma','rahka','voi','riisi','jauheliha','kana','broileri','kinkku','lohi','peruna','porkkana','tomaatti','kurkku','banaani','omena','appelsiini','sokeri','suola','oljy','jauho']);
+  const rawIngredientTerms=new Set(['mehu','vesi','tee','olut','pasta','murot','kaurahiutale','piima','jogurtti','leipa','maito','juusto','kerma','rahka','voi','riisi','jauheliha','kana','broileri','kinkku','lohi','peruna','porkkana','tomaatti','kurkku','banaani','omena','appelsiini','sokeri','suola','oljy','jauho']);
   const rawIntent=q.terms.some(t=>rawIngredientTerms.has(t));
   const requestedTypes=new Set(typeRules.filter(([,pattern])=>pattern.test(q.terms.join(' '))).map(([type])=>type));
+  if(q.terms.some(t=>['cola','limsa','vesi','tee','olut','mehu'].includes(t)))requestedTypes.add('drink');
   if(q.terms.some(t=>['kinkku','makkara','nakki','leikkele'].includes(t)))requestedTypes.add('processed_meat');
   if(rawIntent || ['kahvi','cola','limsa','vesi','tee'].some(t=>q.terms.includes(t))) {
     for(const [type,pattern] of typeRules) {
