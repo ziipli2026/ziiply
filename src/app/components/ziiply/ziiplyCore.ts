@@ -2976,7 +2976,7 @@ export function isBadNormalResult(product: Product, query: string) {
     if (/(?:kosmetiikka|hygienia|leipomo|leivonnaiset)/.test(category)) return true;
   }
   if (intentCategory === "meat" && /jauheliha/.test(normalizedQuery)) {
-    if (!/jauheliha/.test(normalizedName) || /(?:lastenateria|lastenruoka|piltti|kastike|perunasose|spagetti|lasagne|ateria|keitto)/.test(normalizedName)) return true;
+    if (!/jauheliha/.test(normalizedName) || /(?:lastenateria|lastenruoka|piltti|kastike|perunasose|spagetti|lasagne|ateria|keitto|pizza|pitsa|mauste)/.test(normalizedName)) return true;
   }
   if (intentCategory === "soft_drink") {
     if (!/(?:virvoitusjuoma|limsa|limu|cola|coca-cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes|mountain dew|dr pepper)/.test(normalizedName)) return true;
@@ -2985,6 +2985,7 @@ export function isBadNormalResult(product: Product, query: string) {
   }
 
   if (normalizedQuery.includes("jauheliha") && !productText.includes("jauheliha")) return true;
+  if ((normalizedQuery.includes("jogurtti") || normalizedQuery.includes("jogurt")) && /(?:kastike|kuorrute|myslipatukka|patukka)/.test(normalizedName)) return true;
 
   const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
   if (queryIsMilk) {
@@ -3037,6 +3038,8 @@ export function isBadNormalResult(product: Product, query: string) {
       "maito-kahvijauhe",
       "maitokahvijauhe",
       "maitojauhe",
+      "pullotutti",
+      "tutti",
       "cappuccino",
     ];
 
