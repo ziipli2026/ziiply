@@ -657,6 +657,22 @@ export async function fetchKruokaOffers(
     const resolvedPublications = await resolveKLocalPublicationIds(selected, business.businessId, business.slug);
     debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
     const campaignPublicationIds = new Set(resolvedPublications.campaignIds);
+    if (tjekStoreId === "986cCCi") {
+      const probes: Array<[string, UnknownRecord]> = [
+        ["publication-only", { publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
+        ["store-only", { localBusinessIds: [tjekStoreId], pagination: { limit: 100, offset: 0 } }],
+        ["business-and-publication", { businessIds: [business.businessId], publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
+        ["publication-standard", { publicationIds: ["bUGl9JyG"], sources: ["publication", "business_product"], pagination: { limit: 100, offset: 0 }, sort: ["score_desc"] }],
+      ];
+      for (const [variant, params] of probes) {
+        try {
+          const value = await fetchTjekData("offers", params, business.slug);
+          const rows = dataArray(value);
+          console.info("[Ziiply Wiljami offers probe]", JSON.stringify({ variant, count: rows.length, publicationIds: [...new Set(rows.slice(0, 20).map(row => String(row.publicationPublicId ?? "")))], keys: value && typeof value === "object" ? Object.keys(value) : [] }));
+        } catch (error) { console.info("[Ziiply Wiljami offers probe error]", JSON.stringify({ variant, error: String(error) })); }
+      }
+    }
+
     // Both K-Market and K-Supermarket can have selected-store publications whose
     // label contains no campaign keyword. Fetch every store-scoped active publication;
     // retain the source's campaign classification rather than inventing one.
