@@ -27,6 +27,7 @@ const no=[
  ['cola 1.5l','Coca-Cola 0.5l'],['maito 1 l','Maito 1kg'],['xyzbrand','Muu tuote'],
  ['kana','Porkkana 1kg'],['kana','Americana pizza'],
  ['voi','Voileipä'],['kana','Kananmuna 10kpl'],
+ ['cola','Nocco Focus cola energiajuoma 0,33l'],
  ['kahvi','XZ shampoo 250ml kahvi korjaava'],['kahvi','XZ hoitoaine 200ml kahvi'],
  ['kahvi','Mad-Croc energiajuoma kahvi'],['cola','Jaloviina Cola 5% 0,33l'],
  ['kahvi','Arla jogurtti 1kg kahvi'],['kahvi','Jaloviina Kahvi 5% 0,33l'],

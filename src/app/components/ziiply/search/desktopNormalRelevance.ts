@@ -81,6 +81,8 @@ export function desktopSearchDecision(query: string, product: Row) {
   const nonfood=['shampoo','hoitoaine','tuoksusuihke','saippua','suihkugeeli','kosmetiikka','pesuaine','huulivoide','vartalovoide','hiusnaamio'];
   if(intent.intent!=='unknown' && nonfood.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'non_food_product'};
+  if(q.terms.some(t=>['cola','limsa'].includes(t)) && nameText.includes('energiajuoma') && !q.terms.some(t=>t.includes('energiajuoma')))
+    return {accepted:false,score:-10000,reason:'energy_drink_other_group'};
   const alcohol=['alkoholi','jaloviina','vodka','likoori','rommi','whisky','lonkero'];
   if(q.terms.some(t=>['cola','limsa','kahvi'].includes(t)) && alcohol.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'alcoholic_other_product'};
