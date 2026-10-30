@@ -1,3 +1,4 @@
+import { desktopSearchQuery, desktopSearchQueries, searchWords, rankDesktopNormalRows } from "../../components/ziiply/search/desktopNormalRelevance";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -5,7 +6,9 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const q = (request.nextUrl.searchParams.get("q") || "").normalize("NFKC").trim().replace(/\s+/g, " ").slice(0, 160);
+  const desktop = request.nextUrl.searchParams.get("desktop") === "1";
+  const rawQuery = (request.nextUrl.searchParams.get("q") || "").normalize("NFKC").trim().replace(/\s+/g, " ").slice(0, 160);
+  const q = desktop ? desktopSearchQuery(rawQuery) : rawQuery;
   if (q.length < 2) return NextResponse.json({ ok: false, error: "Query too short" }, { status: 400 });
   if (!process.env.DATABASE_URL) return NextResponse.json({ ok: false, error: "Database unavailable" }, { status: 503 });
 
@@ -43,7 +46,9 @@ export async function GET(request: NextRequest) {
     if (/[aä]t$/u.test(normalizedQuery)) variants.add(normalizedQuery.slice(0, -2) + normalizedQuery.at(-2));
     else if (normalizedQuery.endsWith("t")) variants.add(normalizedQuery.slice(0, -1));
   }
-  const categoryTermPattern = "(^| )(" + [...variants].join("|") + ")( |$)";
+  const escapeRegex = (value:string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const desktopPatterns = desktop ? desktopSearchQueries(q).map(value => searchWords(value).filter(word => !/^\d/.test(word) && !["kg","g","l","dl","cl","ml","kpl"].includes(word)).map(word => "%" + word.replace(/[\\%_]/g,"\\$&") + "%")) : [];
+  const categoryTermPattern = "(^| )(" + [...variants].map(escapeRegex).join("|") + ")( |$)";
   const variantNamePatterns = [...variants].filter(v => v !== normalizedQuery).map(v => "%" + v + "%");
   const potatoIntent = /^(peruna|perunat)$/i.test(q);
   const potatoLeaf = "%/juurekset/perunat";
@@ -63,6 +68,7 @@ export async function GET(request: NextRequest) {
   const petCategoryPattern = "^(lemmikit|lemmikkielaimet)(/| |$)|(^|/)(koiran|kissan)(-|/| |$)";
   // Whitespace in an intent query must not prevent retrieving compound product names.
   const compactPetSausage = sausagePetIntent ? "%koiranmakkara%" : "";
+  const queryRegex = escapeRegex(normalizedQuery);
   const started = Date.now();
 
   try {
@@ -75,6 +81,15 @@ export async function GET(request: NextRequest) {
           lower(regexp_replace(split_part(coalesce(category, ''), '/', array_length(string_to_array(coalesce(category, ''), '/'), 1)), '[^[:alnum:]]+', ' ', 'g')) AS category_leaf_words
         FROM ziiply_ean_products
         WHERE (${isEan} AND ean = ${q})
+           OR (${desktop} AND EXISTS (
+             SELECT 1 FROM jsonb_array_elements(${JSON.stringify(desktopPatterns)}::jsonb) terms
+             WHERE NOT EXISTS (
+               SELECT 1 FROM jsonb_array_elements_text(terms) term
+               WHERE coalesce(name, '') NOT ILIKE term
+                 AND coalesce(brand, '') NOT ILIKE term
+                 AND NOT EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE term)
+             )
+           ))
            OR name ILIKE ${contains}
            OR (${lactoseFreeMilkIntent} AND lower(name) LIKE '%laktoositon%' AND (lower(name) ~ '(^|[^[:alnum:]])(maito|kevytmaito|täysmaito)([^[:alnum:]]|$)' OR category ILIKE ${milkLactose}))
            OR (${sausagePetIntent} AND name ILIKE ${compactPetSausage})
@@ -103,11 +118,11 @@ export async function GET(request: NextRequest) {
           WHEN ${sausagePetIntent} AND category ~* ${petCategoryPattern} THEN 1
           ELSE (
             20
-            - CASE WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 8 ELSE 0 END
-            - CASE WHEN ${isSingleWord} AND category_leaf_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 3 ELSE 0 END
+            - CASE WHEN ${isSingleWord} AND category_words ~ ('(^| )' || ${queryRegex} || '( |$)') THEN 8 ELSE 0 END
+            - CASE WHEN ${isSingleWord} AND category_leaf_words ~ ('(^| )' || ${queryRegex} || '( |$)') THEN 3 ELSE 0 END
             - CASE WHEN ${isSingleWord} AND category_words ~ ${categoryTermPattern}
-                     AND category_words !~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 2 ELSE 0 END
-            - CASE WHEN name_words ~ ('(^| )' || ${normalizedQuery} || '( |$)') THEN 6 ELSE 0 END
+                     AND category_words !~ ('(^| )' || ${queryRegex} || '( |$)') THEN 2 ELSE 0 END
+            - CASE WHEN name_words ~ ('(^| )' || ${queryRegex} || '( |$)') THEN 6 ELSE 0 END
             - CASE WHEN lower(name) = ${normalizedQuery} THEN 3 ELSE 0 END
             - CASE WHEN name ILIKE ${prefix} THEN 2 ELSE 0 END
             - CASE WHEN name ILIKE ${contains} THEN 1 ELSE 0 END
@@ -125,8 +140,9 @@ export async function GET(request: NextRequest) {
       ORDER BY relevance, (image_url IS NULL), name, ean
       LIMIT 100
     `;
+    const products = desktop ? rankDesktopNormalRows(q, rows) : rows;
     return NextResponse.json({
-      ok: true, query: q, products: rows, count: rows.length, readOnly: true,
+      ok: true, query: q, products, count: products.length, readOnly: true,
       elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v10-sausage-lactose-intent-test",
       categoryExpansion: "combined-name-and-leaf-category-relevance",
       truncated: rows.length === 100

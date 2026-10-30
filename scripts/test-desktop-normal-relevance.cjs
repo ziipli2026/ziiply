@@ -1,0 +1,38 @@
+require('./recipe-audit-runtime.cjs');
+const assert=require('node:assert/strict');
+const {desktopSearchDecision:dec,rankDesktopNormalRows:rank,desktopSearchQueries:queries}=require('../src/app/components/ziiply/search/desktopNormalRelevance.ts');
+const yes=[
+ ['cola','Coca-Cola Zero 1,5 l'],['cola','Pepsi Max 1.5l'],['COLA','Coca‑Cola 330 ml'],
+ ['maitoa','Arla kevytmaito 1 l'],['maidon','Valio rasvaton maito 1l'],
+ ['rasvaton maito','Valio maito rasvaton 1l'],['laktoositon maito','Valio laktoositon kevytmaito 1l'],
+ ['kahvia','Paulig suodatinkahvi 500g'],['juhla moka','Juhla Mokka 500 g'],
+ ['ruisleivät','Vaasan ruisleipä 500g'],['kaurahiutaleet','Kotimaista kaurahiutale 1kg'],
+ ['tomaatteja','Tomaatti irto'],['kurkun','Kurkku Suomi'],['perunoita','Peruna 1kg'],
+ ['juustoa','Oltermanni kermajuusto 500g'],['broileri','Broilerin filee'],
+ ['jogurtti','Valio jogurtti 1kg'],['sipsit','Taffel perunalastut 250g'],
+ ['maito 1 l','Valio maito 1000ml'],['cola 0,33 l','Coca-Cola 330ml'],
+ ['voi 0.5kg','Valio voi 500 g'],['Pirkka maitoa','Pirkka kevytmaito 1 l'],
+ ['xyzbrand','XYZBrand erikoistuote'],['piimä','Arla AB-piimä 1l'],
+];
+const no=[
+ ['cola','Chocolate patukka'],['cola','Nicolas suklaa'],['cola','Cola makeinen'],
+ ['maito','Maitosuklaa 200g'],['kahvi','Kahvinsuodatin 100kpl'],
+ ['juusto','Juustonaksu'],['jauheliha','Jauhelihamauste'],
+ ['rasvaton maito','Kevytmaito 1l'],['laktoositon maito','Valio maito 1l'],
+ ['pepsi max','Coca-Cola Zero 1l'],['coca cola','Pepsi Max 1l'],
+ ['cola 1.5l','Coca-Cola 0.5l'],['maito 1 l','Maito 1kg'],['xyzbrand','Muu tuote'],
+ ['voi','Voileipä'],['kana','Kananmuna 10kpl'],
+ ['makkara','Koiranmakkara'],['maito','Kissan maito'],
+ ['kahvi','Kahvijäätelö'],['piimä','Piimälimppu'],
+ ['cola zero','Cola Original'],['luomu tomaatti','Tomaatti'],
+];
+for(const [q,name] of yes)assert.equal(dec(q,{name}).accepted,true,`missing ${q}: ${name} ${JSON.stringify(dec(q,{name}))}`);
+for(const [q,name] of no)assert.equal(dec(q,{name}).accepted,false,`noise ${q}: ${name}`);
+assert.equal(dec('cola',{name:'Vesi',brand:'Cola Company',category:'Cola'}).accepted,false);
+const rows=[{name:'Cola',__price:null},{name:'Pepsi Max',__price:2},{name:'Cola',__price:1},{name:'Cola',__price:NaN},{name:'Cola',__price:0}];
+assert.deepEqual(rank('cola',rows).slice(0,2).map(x=>x.__price),[1,2]);
+assert.deepEqual(queries('juusto'),['juusto']);
+assert.ok(!queries('kana').some(q=>q.includes('suikale')));
+assert.equal(dec('6410400000001',{name:'Unknown',ean:'6410400000001'}).accepted,true);
+assert.equal(dec('6410400000001',{name:'6410400000001',ean:'6410400000002'}).accepted,false);
+console.log(`PASS ${yes.length+no.length+7} desktop normal relevance cases`);

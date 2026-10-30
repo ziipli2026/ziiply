@@ -1,4 +1,5 @@
 "use client";
+import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, rankDesktopNormalRows } from "../components/ziiply/search/desktopNormalRelevance";
 import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
 import { citymarketFailureNotice } from "../components/ziiply/offerSearch/citymarketAvailability";
@@ -2249,7 +2250,7 @@ export default function DesktopPreviewPage() {
     const generation=desktopVoiceRunRef.current;
     const started=performance.now();
     const report:SearchDebugObserver=(stage,data={})=>diagnostic?.observe(stage,{elapsedMs:Math.round(performance.now()-started),...data});
-    const query=String(raw||"").trim(); if(!query){report("validation_error",{error:"Hakusana puuttuu"});return;}
+    const query=desktopSearchQuery(String(raw||"")); if(!query){report("validation_error",{error:"Hakusana puuttuu"});return;}
     report("start",{query,searchMode:"normal",recipeRulesApplied:false,handler:"desktop-normal-v3"});
     if(!diagnostic)traceNormal("search_start",{query,generation,searchMode:"normal"});
     const selected=Object.values(selectedStores) as any[];
@@ -2269,8 +2270,10 @@ export default function DesktopPreviewPage() {
     // The typing debounce is applied in the effect below; never delay a started search again.
     try{
       async function fetchSearchData(url: string) {
-        const queries = [...new Set(getNormalSearchQueries(query))].slice(0,6);
+        const queries = desktopSearchQueries(query);
         let lastData: any = null;
+        const collected:any[]=[];
+        const requestErrors:string[]=[];
         for (const searchQuery of queries.length ? queries : [query]) {
           if(diagnostic?.signal.aborted)throw new Error("Debug-haun aikaraja tai uusi haku keskeytti pyynnön.");
           const params = new URLSearchParams(url.split("?")[1]);
@@ -2288,16 +2291,17 @@ export default function DesktopPreviewPage() {
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
           if(!diagnostic)traceNormal("provider_response",{requestUrl,source:data?.source,status:data?.status,error:data?.error,count:items.length,products:items.slice(0,120)});
           report("response",{requestUrl,rawCount:items.length,source:data?.source,apiStatus:data?.status,error:data?.error});
-          const usable=rankNormalSearchResults(query, items).some((product:any)=>!isBadNormalResult(product,query));
-          if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:rankNormalSearchResults(query,items).filter((product:any)=>!isBadNormalResult(product,query)).length});
-          if(usable)return data;
-          } catch(error) { throw error; }
+          const usable=items.some((product:any)=>desktopSearchDecision(query,product).accepted);
+          if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:items.filter((product:any)=>desktopSearchDecision(query,product).accepted).length});
+          if(usable)collected.push(...items.map((item:any)=>({...item,__providerSource:data?.source})));
+          } catch(error) { if(diagnostic?.signal.aborted)throw error; requestErrors.push(String(error)); report("provider_variant_error",{requestUrl,error:String(error)}); }
         }
-        return lastData;
+        if(!lastData && requestErrors.length)throw new Error(requestErrors.join("; "));
+        return collected.length ? {...lastData,products:collected,variantErrors:requestErrors} : lastData;
       }
       // Start catalog lookup concurrently with the existing selected-store providers.
       // The catalog never supplies a store price or modifies recipe/offer engines.
-      const neonPromise = fetch("/api/neon-first-search?q="+encodeURIComponent(query), {cache:"no-store", ...(diagnostic?{signal:diagnostic.signal}:{})})
+      const neonPromise = fetch("/api/neon-first-search?desktop=1&q="+encodeURIComponent(query), {cache:"no-store", ...(diagnostic?{signal:diagnostic.signal}:{})})
         .then(async response => response.ok ? response.json() : null)
         .then(data => Array.isArray(data?.products) ? data.products : [] as any[])
         .catch(() => [] as any[]);
@@ -2306,8 +2310,8 @@ export default function DesktopPreviewPage() {
       if(k)calls.push(fetchSearchData(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`).then(d=>({chain:"K",store:k,data:d})));
       const neonRaw = await neonPromise;
       if(!diagnostic)traceNormal("neon_response",{count:neonRaw.length,products:neonRaw.slice(0,100)});
-      const neonRows = rankNormalSearchResults(query,neonRaw)
-        .filter((x:any)=>!isBadNormalResult(x,query) && Boolean(x.name) && Boolean(x.ean))
+      const neonRows = neonRaw
+        .filter((x:any)=>desktopSearchDecision(query,x).accepted && Boolean(x.name) && Boolean(x.ean))
         .slice(0,50)
         .map((x:any)=>({...x,__chain:"Neon",__store:"Tuoteluettelo",__price:null,__priceSource:"neon-catalog-unpriced"}));
       // Keep the Neon catalog as a fallback, but do not flash an unpriced
@@ -2323,11 +2327,11 @@ export default function DesktopPreviewPage() {
         const items=Array.isArray(batch.data?.products)?batch.data.products:Array.isArray(batch.data?.items)?batch.data.items:Array.isArray(batch.data)?batch.data:[];
         for(const x of items){
           const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);
-          const responseSource=batch.data?.source;
+          const responseSource=x.__providerSource||batch.data?.source;
           const priceIsEuros=batch.chain==="S"&&responseSource==="s-kaupat-normal-v220";
           const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
           const product={...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:responseSource||""};
-          const normalRejected=isBadNormalResult(product,query);
+          const normalRejected=!desktopSearchDecision(query,product).accepted;
           const included=!normalRejected;
           productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});
           if(included)rows.push(product);
@@ -2345,81 +2349,10 @@ export default function DesktopPreviewPage() {
         const ean=String(product.ean||product.barcode||product.product?.ean||"").replace(/\D/g,"");
         const key=ean||`name:${String(product.name||"").toLocaleLowerCase("fi")}:${String(product.__store||"")}`;
         const previous=combinedByEan.get(key);
-        if(!previous||(!Number.isFinite(previous.__price)&&Number.isFinite(product.__price)))combinedByEan.set(key,product);
+        if(!previous||(Number.isFinite(product.__price)&&(!Number.isFinite(previous.__price)||product.__price<previous.__price)))combinedByEan.set(key,product);
       }
-      const eligibleRows=[...combinedByEan.values()].filter(product=>!isBadNormalResult(product,query));
-      const relevanceRows=rankProductResultsByRelevanceAndPrice(query,eligibleRows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
-      // Exact generic milk searches compare the shelf prices of actual milk first.
-      // Missing prices must never interrupt ascending priced results. Keep the
-      // semantic order as a stable tie-breaker and for other search intents.
-      const milkPriceSearch=/^maito$/i.test(query.trim());
-      const semanticIndex=new Map(relevanceRows.map((product:any,index:number)=>[product,index]));
-      const milkName=(product:any)=>String(product.name||"").toLocaleLowerCase("fi").normalize("NFKC");
-      const isActualMilk=(product:any)=>{
-        const name=milkName(product);
-        const category=String(product.category||"").toLocaleLowerCase("fi");
-        // A product's own name must identify milk. Category alone is insufficient:
-        // "maidot-ja-piimat" also contains buttermilk and other dairy drinks.
-        const milkWord=/(?:^|[^a-zåäö])(?:maito|kevytmaito|täysmaito|rasvatonmaito|ykkösmaito|luomumaito|vuohenmaito)(?=$|[^a-zåäö])/.test(name);
-        const otherProduct=/(?:äidinmaidonkorvike|aidinmaidonkorvike|maitopohjainen|maitojuoma|maitokahvi|maitokaakao|maitojauhe|proteiinijuoma|pirtelö|makeinen|mochi|tutti|piimä|piima)/.test(name);
-        const wrongCategory=/(?:aidinmaidonkorvik|äidinmaidonkorvik|\/piimat(?:\/|$)|lastenruoat|\/makeiset(?:\/|$))/.test(category);
-        return milkWord&&!otherProduct&&!wrongCategory;
-      };
-      // A generic search for milk must not fill the remaining result slots with
-      // baby formula, buttermilk, bottle teats or unrelated dairy-brand goods.
-      // Keep the entire actual-milk group, including products without prices.
-      // General-purpose token-aware normalization. Do not rank catalog-only
-      // records over priced shop matches, or brand/substring hits over actual
-      // product-name matches. This applies to all normal search queries.
-      const normalizeSearchText=(value:any)=>String(value||"").normalize("NFKC").toLocaleLowerCase("fi-FI")
-        .replace(/[‐‑‒–—]/g,"-").replace(/[^a-zåäö0-9]+/gu," ").trim().replace(/\\s+/g," ");
-      const queryWords=normalizeSearchText(query).split(" ").filter(Boolean);
-      const semanticScore=(product:any)=>{
-        const name=normalizeSearchText(product.name);
-        const brand=normalizeSearchText(product.brand);
-        const category=normalizeSearchText(product.category);
-        const words=name.split(" ").filter(Boolean);
-        if(!queryWords.length)return 0;
-        let score=0;
-        for(const term of queryWords){
-          if(words.includes(term))score+=120;
-          else if(words.some(word=>word.startsWith(term)&&term.length>=3))score+=85;
-          else if(words.some(word=>word.endsWith(term)&&term.length>=4))score+=45;
-          else if(name.includes(term)&&term.length>=4)score+=12;
-          else if(category.split(" ").includes(term))score+=8;
-          else if(brand.split(" ").includes(term))score+=3;
-          else score-=100;
-        }
-        if(name===queryWords.join(" "))score+=45;
-        if(name.startsWith(queryWords.join(" ")))score+=15;
-        return score;
-      };
-      const isRelevantName=(product:any)=>{
-        if(!queryWords.length)return false;
-        const words=normalizeSearchText(product.name).split(" ").filter(Boolean);
-        // Prevent short substring noise: "cola" must not match "chocolate"
-        // or an unrelated item solely because of its brand/category.
-        return queryWords.every(term=>words.some(word=>
-          word===term||(term.length>=3&&word.startsWith(term))||
-          (term.length>=4&&word.endsWith(term))));
-      };
-      const genericFiltered=relevanceRows.filter(isRelevantName);
-      const displayRows=milkPriceSearch?relevanceRows.filter(isActualMilk):genericFiltered;
-      const sortedRows=[...displayRows].sort((a:any,b:any)=>{
-        if(milkPriceSearch){
-          const ap=Number.isFinite(a.__price)?a.__price:Number.POSITIVE_INFINITY;
-          const bp=Number.isFinite(b.__price)?b.__price:Number.POSITIVE_INFINITY;
-          if(ap!==bp)return ap-bp;
-        } else {
-          const scoreDifference=semanticScore(b)-semanticScore(a);
-          if(scoreDifference!==0)return scoreDifference;
-          const aPriced=Number.isFinite(a.__price);
-          const bPriced=Number.isFinite(b.__price);
-          if(aPriced!==bPriced)return aPriced?-1:1;
-          if(aPriced&&bPriced&&a.__price!==b.__price)return a.__price-b.__price;
-        }
-        return (semanticIndex.get(a)??0)-(semanticIndex.get(b)??0);
-      }).slice(0,120);
+      const eligibleRows=[...combinedByEan.values()].filter(product=>desktopSearchDecision(query,product).accepted);
+      const sortedRows=rankDesktopNormalRows(query,eligibleRows).slice(0,100);
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,neonOnlyCount:neonOnly.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
