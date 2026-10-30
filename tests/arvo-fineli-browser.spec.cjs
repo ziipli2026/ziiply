@@ -12,6 +12,8 @@ test('Arvo manual EAN shows labeled Fineli estimate and scales by grams', async 
   await page.getByRole('button', { name: 'Syötä EAN' }).click();
   await page.getByRole('textbox', { name: 'EAN-koodi' }).fill('6410405228529');
   await page.getByRole('button', { name: 'Hae EAN' }).click();
+  console.log('ARVO_DEBUG', await page.locator('body').innerText().then(s => s.slice(-1500)));
+  console.log('ARVO_INPUT', await page.getByRole('textbox', { name: 'EAN-koodi' }).inputValue());
   await expect(page.getByText('Pirkka gluteeniton makaroni 400g')).toBeVisible();
   await expect(page.getByText('Fineli – arvio')).toBeVisible();
   await expect(page.getByText(/0,0106 g/)).toBeVisible();
@@ -29,6 +31,8 @@ test('Arvo does not show estimate when declared salt is present', async ({ page 
   await page.getByRole('button', { name: 'Syötä EAN' }).click();
   await page.getByRole('textbox', { name: 'EAN-koodi' }).fill('6410405228529');
   await page.getByRole('button', { name: 'Hae EAN' }).click();
+  console.log('ARVO_DEBUG', await page.locator('body').innerText().then(s => s.slice(-1500)));
+  console.log('ARVO_INPUT', await page.getByRole('textbox', { name: 'EAN-koodi' }).inputValue());
   await expect(page.getByText(/0,5 g/)).toBeVisible();
   await expect(page.getByText('Fineli – arvio')).toHaveCount(0);
 });
