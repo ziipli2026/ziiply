@@ -133,6 +133,11 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                                      if k in provenance_fields}},
                              default=str, ensure_ascii=False),
                   flush=True)
+        print("FINELI_SALT_LOCAL_EAN_CONFLICTS",
+              json.dumps({"review_only":sorted(
+                  ean for ean in suspicious_pairs if ean.startswith("2") and ean in reasons
+              ), "note":"Retailer-specific EANs must not be resolved by name alone"}),
+              flush=True)
         for ean, name, matches in rows:
             if ean not in counts:
                 print("FINELI_SALT_MANUAL_REVIEW",
