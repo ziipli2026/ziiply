@@ -138,6 +138,25 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                   ean for ean in suspicious_pairs if ean.startswith("2") and ean in reasons
               ), "note":"Retailer-specific EANs must not be resolved by name alone"}),
               flush=True)
+        cur.execute("""
+            SELECT left(e.ean, 2) AS prefix,
+                   count(*) AS catalog_products,
+                   count(*) FILTER (WHERE n.ean IS NOT NULL) AS with_off_nutrition,
+                   count(*) FILTER (WHERE n.product_name IS DISTINCT FROM
+                     COALESCE(to_jsonb(e)->>'name', to_jsonb(e)->>'product_name',
+                              to_jsonb(e)->>'name_fi')
+                     AND n.product_name IS NOT NULL) AS off_name_differences
+            FROM public.ziiply_ean_products e
+            LEFT JOIN public.ziiply_off_nutrition n ON n.ean = e.ean
+            WHERE left(e.ean, 2) IN ('20','21','22','23','24','25','26','27','28','29')
+            GROUP BY left(e.ean, 2)
+            ORDER BY prefix
+        """)
+        for prefix, total, with_off, differing in cur.fetchall():
+            print("FINELI_SALT_LOCAL_PREFIX_AUDIT",
+                  json.dumps({"prefix":prefix, "catalog_products":total,
+                              "with_off_nutrition":with_off,
+                              "off_name_differences":differing}), flush=True)
         for ean, name, matches in rows:
             if ean not in counts:
                 print("FINELI_SALT_MANUAL_REVIEW",
