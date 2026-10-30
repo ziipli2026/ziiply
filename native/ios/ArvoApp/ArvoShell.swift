@@ -4,9 +4,9 @@ import WebKit
 /// Web content can only request opening the native health screen. It never
 /// receives readings, consent metadata, permission state or callback messages.
 enum ArvoNavigationPolicy {
-    static let webOrigin = URL(string: "https://ziiply.fi")!
+    static let webOrigin = URL(string: "https://ziiply.vercel.app")!
     static func isZiiply(_ url: URL) -> Bool {
-        url.scheme == "https" && url.host == "ziiply.fi" && (url.port == nil || url.port == 443) && url.user == nil && url.password == nil
+        url.scheme == "https" && url.host == "ziiply.vercel.app" && (url.port == nil || url.port == 443) && url.user == nil && url.password == nil
     }
     static func opensHealth(destination: URL, source: URL?, mainFrame: Bool, userLink: Bool) -> Bool {
         guard mainFrame, userLink, let source, isZiiply(source), isZiiply(destination) else { return false }
@@ -46,7 +46,7 @@ private struct ArvoWebStatistics: UIViewRepresentable {
             guard let url = action.request.url else { decisionHandler(.cancel); return }
             let source = action.sourceFrame.request.url
             let origin = action.sourceFrame.securityOrigin
-            let trustedOrigin = origin.protocol == "https" && origin.host == "ziiply.fi" && (origin.port == 0 || origin.port == 443)
+            let trustedOrigin = origin.protocol == "https" && origin.host == "ziiply.vercel.app" && (origin.port == 0 || origin.port == 443)
             if trustedOrigin && ArvoNavigationPolicy.opensHealth(destination: url, source: source,
                 mainFrame: action.sourceFrame.isMainFrame, userLink: action.navigationType == .linkActivated) {
                 decisionHandler(.cancel); openHealth(); return

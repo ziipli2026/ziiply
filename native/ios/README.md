@@ -11,7 +11,7 @@ Tämä on olemassa olevan `ZiiplyArvoTest`-testin jatko, samalla bundle identifi
 
 ## Ravinto ja terveys samassa sovelluksessa
 
-Sovellus avaa tuotannon `https://ziiply.fi/arvo-tilastot`-sivun Ravintotilastot-välilehteen. Terveys-välilehti avaa paikallisen HealthKit-näkymän. Ravintotilastojen linkki `/arvo-terveystiedot` vaihtaa Terveys-välilehdelle vain käyttäjän linkkipainalluksesta Ziiplyn pääkehyksessä. Linkki ei anna suostumusta eikä käynnistä lukua.
+Sovellus avaa tuotannon `https://ziiply.vercel.app/arvo-tilastot`-sivun Ravintotilastot-välilehteen. Terveys-välilehti avaa paikallisen HealthKit-näkymän. Ravintotilastojen linkki `/arvo-terveystiedot` vaihtaa Terveys-välilehdelle vain käyttäjän linkkipainalluksesta Ziiplyn pääkehyksessä. Linkki ei anna suostumusta eikä käynnistä lukua.
 
 Terveystietoja, suostumuslokia tai lupatilaa ei palauteta verkkonäkymään. Yhteistä ravinto–terveyslaskentaa ei vielä ole. Safariin tallennetut ateriat eivät automaattisesti siirry sovelluksen WKWebView-tallennustilaan. Ravintotilastot vaativat verkkoyhteyden; Terveys-välilehti toimii paikallisesti. Terveys-välilehdeltä poistuminen peruu istunnon ja tyhjentää lukemat.
 
