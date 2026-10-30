@@ -113,6 +113,26 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                               "fineli_name":fineli_name, "match_method":method,
                               "confidence":confidence}, ensure_ascii=False),
                   flush=True)
+        cur.execute("""
+            SELECT e.ean, to_jsonb(e) AS catalog_record,
+                   to_jsonb(n) AS off_nutrition_record
+            FROM public.ziiply_ean_products e
+            LEFT JOIN public.ziiply_off_nutrition n ON n.ean = e.ean
+            WHERE e.ean IN ('2000607000005', '2000610800005')
+            ORDER BY e.ean
+        """)
+        provenance_fields = ("source", "source_name", "provider", "origin",
+                             "updated_at", "created_at", "last_seen_at",
+                             "last_updated", "product_url", "url", "brand")
+        for ean, catalog_record, off_record in cur.fetchall():
+            print("FINELI_SALT_SOURCE_PROVENANCE",
+                  json.dumps({"ean":ean,
+                              "catalog":{k:v for k,v in catalog_record.items()
+                                         if k in provenance_fields},
+                              "off":{k:v for k,v in (off_record or {}).items()
+                                     if k in provenance_fields}},
+                             default=str, ensure_ascii=False),
+                  flush=True)
         for ean, name, matches in rows:
             if ean not in counts:
                 print("FINELI_SALT_MANUAL_REVIEW",
