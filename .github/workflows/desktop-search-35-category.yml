@@ -45,4 +45,5 @@ jobs:
           path: |
             desktop-search-35-category-report.json
             desktop-search-35-category-summary.md
+            neon-live-search-report.json
           if-no-files-found: warn
