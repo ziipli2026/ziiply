@@ -47,6 +47,7 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
         """)
         counts = {}
         reasons = {}
+        details = {}
         reason_counts = {}
         for ean, confidence, method, unit, value, value_type in cur.fetchall():
             eligible = confidence in ("verified", "high") and method == "manual_verified" and unit == "MG" and value_type == "number"
@@ -56,6 +57,8 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                 eligible = False
             if eligible:
                 counts[ean] = counts.get(ean, 0) + 1
+            else:
+                details.setdefault(ean, []).append({'confidence':confidence,'method':method,'salt_unit':unit,'salt_value_type':value_type})
             else:
                 reason = ("unverified_match" if method != "manual_verified"
                           else "low_confidence" if confidence not in ("verified", "high")
@@ -78,7 +81,8 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
             if ean not in counts:
                 print("FINELI_SALT_MANUAL_REVIEW",
                       json.dumps({"ean":ean, "product_name":name,
-                                  "reasons":sorted(reasons.get(ean, {"no_eligible_match"}))},
+                                  "reasons":sorted(reasons.get(ean, {"no_eligible_match"})),
+                                  "details":details.get(ean, [])},
                                  ensure_ascii=False),
                       flush=True)
             print("FINELI_SALT_REVIEW_ITEM",
