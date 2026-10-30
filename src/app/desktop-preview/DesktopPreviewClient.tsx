@@ -2305,10 +2305,9 @@ export default function DesktopPreviewPage() {
         .filter((x:any)=>!isBadNormalResult(x,query) && Boolean(x.name) && Boolean(x.ean))
         .slice(0,50)
         .map((x:any)=>({...x,__chain:"Neon",__store:"Tuoteluettelo",__price:null,__priceSource:"neon-catalog-unpriced"}));
-      if(!diagnostic && generation===desktopVoiceRunRef.current && neonRows.length>0){
-        setJustiinaResults(neonRows);setJustiinaResultsOpen(true);
-        report("neon_first_visible",{count:neonRows.length});
-      }
+      // Keep the Neon catalog as a fallback, but do not flash an unpriced
+      // preliminary list before store prices and final ranking are available.
+      // The loading state remains visible until the merged result is ready.
       const settled=await Promise.allSettled(calls);
       const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
       const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
