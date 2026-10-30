@@ -81,7 +81,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   const brand=parse(product.brandName || product.brand).terms;
   let productWords=searchWords(product.name || product.title);
   const knownFamily=q.terms.flatMap(t=>alternatives[t] || []);
-  const brandDefinesFamily=knownFamily.some(t=>brand.join(' ')===t || brand.join(' ').startsWith(t+' '));
+  const brandDefinesFamily=(q.terms.includes('cola') && /^coca cola(?: |$)/.test(brand.join(' '))) || knownFamily.some(t=>brand.join(' ')===t || brand.join(' ').startsWith(t+' '));
   if(brand.length && !brand.every(t=>q.terms.includes(t)) && !brandDefinesFamily) {
     const index=productWords.findIndex((_,i)=>brand.every((t,j)=>canonical(productWords[i+j] || '')===t));
     if(index>=0)productWords=[...productWords.slice(0,index),...productWords.slice(index+brand.length)];

@@ -56,6 +56,7 @@ for(const [q,name] of yes)assert.equal(dec(q,{name}).accepted,true,`missing ${q}
 for(const [q,name] of no)assert.equal(dec(q,{name}).accepted,false,`noise ${q}: ${name}`);
 assert.equal(dec('juusto',{name:'Jokilaakson Juusto kirkastettu voi 200g',brand:'Jokilaakson Juusto'}).accepted,false);
 assert.equal(dec('voi',{name:'Jokilaakson Juusto kirkastettu voi 200g',brand:'Jokilaakson Juusto'}).accepted,true);
+assert.equal(dec('cola zero',{name:'Coca-Cola Zero 1l',brand:'Coca-Cola'}).accepted,true);
 assert.equal(dec('cola',{name:'Pepsi Max 1l',brand:'Pepsi Max'}).accepted,true);
 assert.equal(dec('cola',{name:'Vesi',brand:'Cola Company',category:'Cola'}).accepted,false);
 const rows=[{name:'Cola',__price:null},{name:'Pepsi Max',__price:2},{name:'Cola',__price:1},{name:'Cola',__price:NaN},{name:'Cola',__price:0}];
