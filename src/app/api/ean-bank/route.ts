@@ -1,4 +1,4 @@
-import { attachFineliSaltEstimate, hasConflictingOffProductName } from "./fineli-salt-estimate.mjs";
+import { attachFineliSaltEstimate, hasConflictingOffProductName, shouldSuppressLocalOffNutrition } from "./fineli-salt-estimate.mjs";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanProducts from "../../../../data/lidl/verified-ean-links.json";
@@ -119,9 +119,8 @@ export async function GET(request: NextRequest) {
           const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
           // Internal retailer EANs may refer to unrelated products in OFF.
           // Preserve catalog identity, but suppress untrusted nutrition.
-          const unsafeLocalOff = /^2[0-9]/.test(ean) &&
-            selected?.source === "open-food-facts" &&
-            hasConflictingOffProductName(rows[0].name, selected.data?.product_name);
+          const unsafeLocalOff = selected?.source === "open-food-facts" &&
+            shouldSuppressLocalOffNutrition(ean, rows[0].name, selected.data?.product_name);
           if (selected && !unsafeLocalOff) {
             const safeNutrition: Record<string, unknown> = { ...selected.data, source: selected.source };
             // Do not expose physically impossible OFF values to the scanner.
