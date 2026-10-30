@@ -35,7 +35,8 @@ for(const query of queries){
   results.push(entry);console.log(query,source.chain,entry.status,entry.count,entry.errors.join(';'));
  }
 }
-const report={target:base,runAt:new Date().toISOString(),queryCount:queries.length,requestCount:results.length,failures:results.filter(r=>r.errors.length).length,results};
+const report={target:base,runAt:new Date().toISOString(),queryCount:queries.length,requestCount:results.length,failures:results.filter(r=>r.errors.length).length,suspectSampleCount:results.reduce((sum,r)=>sum+r.suspectMatches.length,0),results};
 writeFileSync('desktop-search-35-category-report.json',JSON.stringify(report,null,2));
-writeFileSync('desktop-search-35-category-summary.md','# Desktop preview: 35 search terms / 70 live provider requests\n\nTarget: '+base+'\n\n| Query | Chain | HTTP | Results | Errors |\n|---|---|---:|---:|---|\n'+results.map(r=>'| '+r.query+' | '+r.chain+' | '+(r.status??'-')+' | '+r.count+' | '+(r.errors.join(', ')||'-')+' |').join('\n')+'\n\nNote: This tests live provider APIs, not the rendered desktop UI, Neon merge, or category relevance.\n');
+console.log('Suspect category sample matches:',report.suspectSampleCount);
+writeFileSync('desktop-search-35-category-summary.md','# Desktop preview: 35 search terms / 70 live provider requests\n\nTarget: '+base+'\n\n| Query | Chain | HTTP | Results | Errors |\n|---|---|---:|---:|---|\n'+results.map(r=>'| '+r.query+' | '+r.chain+' | '+(r.status??'-')+' | '+r.count+' | '+(r.errors.join(', ')||'-')+' |').join('\n')+'\n\nSuspect raw provider matches in sampled category checks: '+report.suspectSampleCount+'\n\nNote: This tests live provider APIs, not the rendered desktop UI or Neon merge. Suspect matches are diagnostic, not confirmed final search errors.\n');
 if(report.failures)process.exitCode=1;
