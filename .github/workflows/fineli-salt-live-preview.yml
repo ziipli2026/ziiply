@@ -12,3 +12,16 @@ jobs:
         with:
           node-version: '22'
       - run: node --test tests/fineli-salt-estimate-runtime.test.mjs tests/fineli-salt-estimate-contract.test.mjs tests/arvo-fineli-scanner-ui.test.mjs
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install read-only audit dependencies
+        run: python -m pip install 'psycopg[binary]>=3.2,<4' 'certifi>=2025.1.31'
+      - name: Count eligible Fineli salt matches without writes
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: python -u scripts/review-approved-fineli-salt.py
