@@ -85,6 +85,11 @@ export function desktopSearchDecision(query: string, product: Row) {
     return {accepted:false,score:-10000,reason:'different_product_group'};
   // A requested ingredient is not automatically the finished product. Keep
   // this guard directional so explicit searches for these products still work.
+  const accessories=['tutti','pulloharja','suodatinpussi','kahvinsuodatin','avaaja','leipaveitsi','olutlasi','kahvimuki'];
+  if(accessories.some(t=>nameText.includes(t) && !q.terms.some(w=>w.includes(t))))
+    return {accepted:false,score:-10000,reason:'accessory_not_food'};
+  if(q.terms.includes('maito') && /maitojuoma|maitokahvi|maitokaakao|korvike|maitojauhe|pirtelo/.test(nameText))
+    return {accepted:false,score:-10000,reason:'different_milk_product'};
   const derived=['jaatelo','suklaa','makeinen','karkki','limppu','sampyla','mauste','kastike','kakku','keksi'];
   if(q.terms.some(t=>['kahvi','maito','piima','juusto','jauheliha'].includes(t)) &&
      derived.some(t=>nameText.includes(t) && !q.terms.some(w=>w.includes(t))))

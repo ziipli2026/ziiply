@@ -143,7 +143,7 @@ export async function GET(request: NextRequest) {
     const products = desktop ? rankDesktopNormalRows(q, rows) : rows;
     return NextResponse.json({
       ok: true, query: q, products, count: products.length, readOnly: true,
-      elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v10-sausage-lactose-intent-test",
+      elapsedMs: Date.now() - started, searchVersion: desktop ? "desktop-normalized-v1" : "neon-category-aware-v10-sausage-lactose-intent-test",
       categoryExpansion: "combined-name-and-leaf-category-relevance",
       truncated: rows.length === 100
     });

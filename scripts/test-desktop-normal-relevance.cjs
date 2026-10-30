@@ -25,6 +25,8 @@ const no=[
  ['pepsi max','Coca-Cola Zero 1l'],['coca cola','Pepsi Max 1l'],
  ['cola 1.5l','Coca-Cola 0.5l'],['maito 1 l','Maito 1kg'],['xyzbrand','Muu tuote'],
  ['voi','Voileipä'],['kana','Kananmuna 10kpl'],
+ ['Pirkka maito','Pirkka pullotutti (maito) 0-3 kk 2kpl'],
+ ['maitoa','Valio maitojuoma 1l'],['olut','Olutlasi 0,5l'],
  ['makkara','Koiranmakkara'],['maito','Kissan maito'],
  ['kahvi','Kahvijäätelö'],['piimä','Piimälimppu'],
  ['cola zero','Cola Original'],['luomu tomaatti','Tomaatti'],
