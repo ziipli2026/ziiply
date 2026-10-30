@@ -2355,8 +2355,16 @@ export default function DesktopPreviewPage() {
       const milkPriceSearch=/^maito$/i.test(query.trim());
       const semanticIndex=new Map(relevanceRows.map((product:any,index:number)=>[product,index]));
       const milkName=(product:any)=>String(product.name||"").toLocaleLowerCase("fi").normalize("NFKC");
-      const isActualMilk=(product:any)=>/(?:^|[\\s-])(?:maito|kevytmaito|täysmaito|rasvatonmaito|ykkösmaito|luomumaito|vuohenmaito)(?:$|[\\s\\d-])/.test(milkName(product))
-        && !/(?:maitojuoma|maitokahvi|maitokaakao|maitojauhe|äidinmaito|aidinmaito|proteiinijuoma|pirtelö|makeinen|mochi|tutti)/.test(milkName(product));
+      const isActualMilk=(product:any)=>{
+        const name=milkName(product);
+        const category=String(product.category||"").toLocaleLowerCase("fi");
+        // A product's own name must identify milk. Category alone is insufficient:
+        // "maidot-ja-piimat" also contains buttermilk and other dairy drinks.
+        const milkWord=/(?:^|[^a-zåäö])(?:maito|kevytmaito|täysmaito|rasvatonmaito|ykkösmaito|luomumaito|vuohenmaito)(?=$|[^a-zåäö])/.test(name);
+        const otherProduct=/(?:äidinmaidonkorvike|aidinmaidonkorvike|maitopohjainen|maitojuoma|maitokahvi|maitokaakao|maitojauhe|proteiinijuoma|pirtelö|makeinen|mochi|tutti|piimä|piima)/.test(name);
+        const wrongCategory=/(?:aidinmaidonkorvik|äidinmaidonkorvik|\/piimat(?:\/|$)|lastenruoat|\/makeiset(?:\/|$))/.test(category);
+        return milkWord&&!otherProduct&&!wrongCategory;
+      };
       const sortedRows=(milkPriceSearch
         ? [...relevanceRows].sort((a:any,b:any)=>{
             const categoryDiff=Number(isActualMilk(b))-Number(isActualMilk(a));
