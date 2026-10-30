@@ -2827,21 +2827,18 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   products: T[],
   priceOf: (product: T) => number,
 ): T[] {
+  // Preserve the semantic ranking (real product type, category and name).
+  // The old score/40 buckets discarded the core-intent ordering and allowed
+  // cheap unrelated products to precede actual matches.
   const ranked = rankNormalSearchResults(query, products);
   const order = new Map(ranked.map((product, index) => [product, index]));
   return [...products].sort((a, b) => {
-    const aScore = scoreNormalSResult(query, a);
-    const bScore = scoreNormalSResult(query, b);
-    const aTier = Math.floor(aScore / 40);
-    const bTier = Math.floor(bScore / 40);
-    if (aTier !== bTier) return bTier - aTier;
-    const aPrice = priceOf(a);
-    const bPrice = priceOf(b);
-    const validA = Number.isFinite(aPrice) && aPrice > 0;
-    const validB = Number.isFinite(bPrice) && bPrice > 0;
-    if (validA !== validB) return validA ? -1 : 1;
-    if (validA && aPrice !== bPrice) return aPrice - bPrice;
-    return (order.get(a) ?? 0) - (order.get(b) ?? 0);
+    const semanticOrder = (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER);
+    if (semanticOrder !== 0) return semanticOrder;
+    const ap = priceOf(a);
+    const bp = priceOf(b);
+    return (Number.isFinite(ap) ? ap : Number.POSITIVE_INFINITY) -
+      (Number.isFinite(bp) ? bp : Number.POSITIVE_INFINITY);
   });
 }
 
