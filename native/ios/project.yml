@@ -22,6 +22,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Ziiply Arvo
         INFOPLIST_KEY_NSHealthShareUsageDescription: Arvo lukee vain erikseen hyväksymäsi terveystiedot henkilökohtaiseen seurantaan tällä iPhonella.
+        INFOPLIST_KEY_NSCameraUsageDescription: Ziiplyn EAN-skanneri lukee tuotteen viivakoodin kameralla vain käynnistäessäsi skannauksen.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Ziiply käyttää sijaintia lähikauppojen ja polttoaineasemien näyttämiseen vain luvallasi.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
     entitlements:
       path: ArvoApp/Arvo.entitlements

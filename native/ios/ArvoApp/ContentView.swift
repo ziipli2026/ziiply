@@ -103,6 +103,7 @@ struct ArvoConsent: Codable {
 }
 
 struct ContentView: View {
+    var isVisible = true
     @StateObject private var model = ArvoHealthModel()
     @Environment(\.scenePhase) private var scenePhase
     @State private var categories = Set<String>()
@@ -149,7 +150,7 @@ struct ContentView: View {
                     Section("Tietosuojatiedot · \(ArvoHealthModel.privacyVersion)") {
                         Text("Ziiply Oy · legal@ziiply.fi")
                         Text("Tarkoitus: valitsemiesi aktiivisuus- ja terveystietojen näyttäminen Arvon henkilökohtaisessa seurannassa. Käsittely perustuu nimenomaiseen suostumukseesi. Tietoja ei käytetä mainontaan tai markkinointiin.")
-                        Text("Päiväyhteenvedot ovat vain sovelluksen työmuistissa. Ne poistetaan, kun perut luvan, sovellus siirtyy taustalle tai sulkeutuu. Ziiplyn palvelin, analytiikka ja muut vastaanottajat eivät saa niitä.")
+                        Text("Päiväyhteenvedot ovat vain sovelluksen työmuistissa. Ne poistetaan, kun perut luvan, poistut Terveys-välilehdeltä, sovellus siirtyy taustalle tai sulkeutuu. Ziiplyn palvelin, analytiikka ja muut vastaanottajat eivät saa niitä.")
                         Text("Lupatapahtuman aika, selosteen versio, valitut tietoryhmät ja peruutus tallennetaan suojattuun tiedostoon tällä laitteella. Lokia ei varmuuskopioida pilveen. Se poistuu sovelluksen poiston yhteydessä.")
                         Text("Yhteys on vapaaehtoinen. Luvan voi perua tästä näkymästä; Apple Healthin lukuluvat perutaan lisäksi Terveys-sovelluksessa. Arvo ei muuta eikä poista Apple Healthin alkuperäisiä tietoja. Voit pyytää tietosuojasta lisätietoja yllä olevasta osoitteesta ja tehdä kantelun tietosuojavaltuutetulle.")
                         Toggle("Olen lukenut tietosuojatiedot", isOn: $privacyRead)
@@ -194,6 +195,8 @@ struct ContentView: View {
             }
             .navigationTitle("Arvo")
             .onChange(of: count) { _ in model.refresh(days: count) }
+            .onDisappear { revoke() }
+            .onChange(of: isVisible) { visible in if !visible { revoke() } }
             .onChange(of: scenePhase) { phase in if phase == .background { revoke() } }
         }
     }
