@@ -50,6 +50,15 @@ for (const [query, name] of [
 ]) {
   assert.equal(isBadNormalResult(product(name), query), true, query + ": " + name + " must not appear in final results");
 }
+// Additional false positives observed in the desktop milk debug export.
+for (const name of [
+  "Nestlé NAN H.A.1 Maitopohjainen äidinmaidonkorvike 200ml",
+  "Maitokolmio asidofilus-bifidopiimä 1l",
+  "Maitokolmio rasvaton piimä 1l",
+  "Nestlé Nan Pro 2 maitopohjainen käyttövalmis vierotusvalmiste 1000ml",
+]) {
+  assert.equal(isBadNormalResult(product(name), "maito"), true, name + " must not appear in milk results");
+}
 // Keep legitimate products visible when rejecting misleading raw provider hits.
 for (const [query, name] of [
   ["jogurtti", "Valio luonnonjogurtti 1 kg"],
