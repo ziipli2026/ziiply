@@ -2040,7 +2040,7 @@ export function productGroupGate(sourceName: string, targetName: string) {
     if (targetIsWrongYogurtProduct) return false;
   }
 
-  const sourceIsCheese = hasAnyToken(source, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+  const sourceIsCheese = hasAnyToken(source.replace(/\bjuustoportti(?:n)?\b/g, " "), ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
     const targetIsCheese = hasAnyToken(target.replace(/\bjuustoportti(?:n)?\b/g, " "), ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
     const targetIsWrongCheeseProduct = hasAnyToken(target, [
@@ -2111,7 +2111,7 @@ export function isHardRejectedKMatch(query: string, candidateName: string) {
     if (forbiddenWords) return true;
   }
 
-  const sourceIsCheese = hasAnyToken(source, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+  const sourceIsCheese = hasAnyToken(source.replace(/\bjuustoportti(?:n)?\b/g, " "), ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
     const targetIsCheese = hasAnyToken(target.replace(/\bjuustoportti(?:n)?\b/g, " "), ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
     const forbiddenWords = hasAnyToken(target, ["juustodippi", "dippi", "nacho", "kastike"]);
