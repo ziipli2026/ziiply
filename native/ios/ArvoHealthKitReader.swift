@@ -1,13 +1,43 @@
 import Foundation
 import HealthKit
 
+@MainActor protocol ArvoHealthReading {
+    func requestAccess(approved: Set<String>) async throws
+    func readDay(_ date: Date) async throws -> [String: Any]
+    func revokeLocalConsent()
+}
+
 /// Local-only HealthKit reader. Call only after an explicit in-app consent flow.
-@MainActor final class ArvoHealthKitReader {
+@MainActor final class ArvoHealthKitReader: ArvoHealthReading {
     private let store = HKHealthStore()
     private func quantity(_ id: HKQuantityTypeIdentifier) -> HKQuantityType { HKObjectType.quantityType(forIdentifier: id)! }
     private var approvedCategories = Set<String>()
     private var generation = UUID()
-    func revokeLocalConsent() { approvedCategories.removeAll(); generation = UUID() }
+    private var pending: [UUID: (query: HKQuery, cancel: () -> Void)] = [:]
+    func revokeLocalConsent() {
+        approvedCategories.removeAll(); generation = UUID()
+        let queries = Array(pending.values)
+        pending.removeAll()
+        for item in queries { store.stop(item.query); item.cancel() }
+    }
+
+    // Serialize callback completion and revocation on the main actor. Each
+    // continuation resumes once, even when HealthKit calls back after stop().
+    private func run<T>(_ build: (@escaping (Result<T, Error>) -> Void) -> HKQuery) async throws -> T {
+        try Task.checkCancellation()
+        guard !approvedCategories.isEmpty else { throw CancellationError() }
+        return try await withCheckedThrowingContinuation { continuation in
+            let id = UUID()
+            let query = build { result in
+                Task { @MainActor in
+                    guard self.pending.removeValue(forKey: id) != nil else { return }
+                    continuation.resume(with: result)
+                }
+            }
+            pending[id] = (query, { continuation.resume(throwing: CancellationError()) })
+            store.execute(query)
+        }
+    }
     func requestAccess(approved: Set<String>) async throws {
         let allowed: Set<String> = ["steps", "active_energy", "resting_heart_rate", "hrv", "sleep_stages"]
         guard !approved.isEmpty && approved.isSubset(of: allowed) else { throw NSError(domain:"ArvoHealth",code:2) }
@@ -24,31 +54,28 @@ import HealthKit
         approvedCategories = approved
     }
     private func sum(_ type: HKQuantityType, unit: HKUnit, from start:Date, to end:Date) async throws -> Double? {
-        try await withCheckedThrowingContinuation { continuation in
-            let query=HKStatisticsQuery(quantityType:type,quantitySamplePredicate:HKQuery.predicateForSamples(withStart:start,end:end,options:.strictStartDate),options:.cumulativeSum){_,result,error in
-                if let error { continuation.resume(throwing:error);return }
-                continuation.resume(returning:result?.sumQuantity()?.doubleValue(for:unit))
+        try await run { finish in
+            HKStatisticsQuery(quantityType: type, quantitySamplePredicate: HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate), options: .cumulativeSum) { _, result, error in
+                if let error { finish(.failure(error)); return }
+                finish(.success(result?.sumQuantity()?.doubleValue(for: unit)))
             }
-            store.execute(query)
         }
     }
     private func average(_ type: HKQuantityType, unit: HKUnit, from start:Date, to end:Date) async throws -> Double? {
-        try await withCheckedThrowingContinuation { continuation in
-            let query=HKStatisticsQuery(quantityType:type,quantitySamplePredicate:HKQuery.predicateForSamples(withStart:start,end:end,options:.strictStartDate),options:.discreteAverage){_,result,error in
-                if let error { continuation.resume(throwing:error);return }
-                continuation.resume(returning:result?.averageQuantity()?.doubleValue(for:unit))
+        try await run { finish in
+            HKStatisticsQuery(quantityType: type, quantitySamplePredicate: HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate), options: .discreteAverage) { _, result, error in
+                if let error { finish(.failure(error)); return }
+                finish(.success(result?.averageQuantity()?.doubleValue(for: unit)))
             }
-            store.execute(query)
         }
     }
     private func sleep(_ start: Date, _ end: Date) async throws -> [String: Int] {
         let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)!
-        let samples: [HKCategorySample] = try await withCheckedThrowingContinuation { continuation in
-            let query = HKSampleQuery(sampleType: type, predicate: HKQuery.predicateForSamples(withStart: start, end: end, options: []), limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, results, error in
-                if let error { continuation.resume(throwing: error); return }
-                continuation.resume(returning: (results as? [HKCategorySample]) ?? [])
+        let samples: [HKCategorySample] = try await run { finish in
+            HKSampleQuery(sampleType: type, predicate: HKQuery.predicateForSamples(withStart: start, end: end, options: []), limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, results, error in
+                if let error { finish(.failure(error)); return }
+                finish(.success((results as? [HKCategorySample]) ?? []))
             }
-            store.execute(query)
         }
         let intervals = samples.compactMap { sample -> ArvoSleepInterval? in
             let stage: String

@@ -20,13 +20,20 @@ struct ArvoConsent: Codable {
     @Published var busy = false
     @Published var status = "Yhteyttä ei ole avattu."
     @Published var updatedAt: Date?
-    private let reader = ArvoHealthKitReader()
+    private let reader: any ArvoHealthReading
+    private let recordConsent: ((ArvoConsent) throws -> Void)?
+    init(reader: (any ArvoHealthReading)? = nil,
+         recordConsent: ((ArvoConsent) throws -> Void)? = nil) {
+        self.reader = reader ?? ArvoHealthKitReader()
+        self.recordConsent = recordConsent
+    }
     private var task: Task<Void, Never>?
     private var generation = UUID()
     static let privacyVersion = "2026-10-30-local-v1"
 
     // Consent metadata only. Health readings never go into a file, browser or network.
     private func audit(_ record: ArvoConsent) throws {
+        if let recordConsent { try recordConsent(record); return }
         let directory = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                    appropriateFor: nil, create: true)
             .appendingPathComponent("ArvoConsent", isDirectory: true)
@@ -53,7 +60,8 @@ struct ArvoConsent: Codable {
                 refresh(days: count)
             } catch {
                 guard generation == token else { return }
-                busy = false; status = "Health-yhteyden avaaminen ei onnistunut. Tarkista Terveys-sovelluksen luvat."
+                revoke()
+                status = "Health-yhteyden avaaminen ei onnistunut. Tarkista Terveys-sovelluksen luvat."
             }
         }
     }
