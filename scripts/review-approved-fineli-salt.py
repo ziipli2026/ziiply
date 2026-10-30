@@ -75,6 +75,12 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                                                   for reason in sorted(reason_counts)}}),
               flush=True)
         for ean, name, matches in rows:
+            if ean not in counts:
+                print("FINELI_SALT_MANUAL_REVIEW",
+                      json.dumps({"ean":ean, "product_name":name,
+                                  "reasons":sorted(reasons.get(ean, {"no_eligible_match"}))},
+                                 ensure_ascii=False),
+                      flush=True)
             print("FINELI_SALT_REVIEW_ITEM",
                   json.dumps({"ean":ean,"product_name":name,
                               "approved_matches":matches},ensure_ascii=False),
