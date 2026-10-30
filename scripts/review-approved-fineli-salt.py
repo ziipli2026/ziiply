@@ -67,6 +67,10 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                           else "invalid_salt_range")
                 reasons.setdefault(ean, set()).add(reason)
                 reason_counts[reason] = reason_counts.get(reason, 0) + 1
+        print("FINELI_SALT_MISSING_NUTRIENT",
+              json.dumps({"products":sum(any(d["salt_unit"] is None and d["salt_value_type"] is None for d in items) for items in details.values()),
+                          "ean_list":sorted(ean for ean, items in details.items() if any(d["salt_unit"] is None and d["salt_value_type"] is None for d in items))}),
+              flush=True)
         print("FINELI_SALT_ELIGIBILITY",
               json.dumps({"unique_eligible":sum(n == 1 for n in counts.values()),
                           "multiple_eligible_matches":sum(n > 1 for n in counts.values()),
