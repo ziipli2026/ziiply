@@ -14,7 +14,7 @@ test('Neon catalog results are unpriced and never substituted for selected-store
  assert.match(normal,/__price:null,__priceSource:"neon-catalog-unpriced"/);
  assert.match(normal,/selectedStoreEans/);
  assert.match(normal,/neonOnly/);
- assert.match(normal,/setJustiinaResults\(neonRows\)/);
+ assert.doesNotMatch(normal,/setJustiinaResults\(neonRows\)/);
  assert.match(normal,/setJustiinaResults\(sortedRows\)/);
 });
 test('EAN canonicalization uses non-digit regex and avoids empty-EAN collision',()=>{
