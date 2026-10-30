@@ -27,7 +27,7 @@ struct ArvoConsent: Codable {
         self.reader = reader ?? ArvoHealthKitReader()
         self.recordConsent = recordConsent
     }
-    private var task: Task<Void, Never>?
+    private(set) var task: Task<Void, Never>?
     private var generation = UUID()
     static let privacyVersion = "2026-10-30-local-v1"
 

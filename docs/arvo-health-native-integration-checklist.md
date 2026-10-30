@@ -1,6 +1,12 @@
 # Arvo Health native bridge integration checklist
 
-The current native reader source files are reference implementations, NOT yet included in a buildable iOS/Android application. Do not claim a device connection is ready.
+## Current status (2026-10-30)
+
+- iOS has a native SwiftUI app target in `native/ios/project.yml`, generated with XcodeGen. The user has confirmed that the earlier Xcode/iPhone reader reads real data. The expanded dashboard still needs its own real-device acceptance checks below.
+- The iOS app has category selection, explicit versioned consent recorded locally, day/7-day/30-day charts, and local revocation. Revocation stops active HealthKit queries and rejects late callbacks.
+- Android remains a reader implementation without a packaged app target.
+- The iOS dashboard does not deliver data to Safari or the Next.js statistics page. Server health routes remain closed pending authentication and the separate consent/storage implementation.
+- CI compiles the native app and runs sleep and consent lifecycle tests. A passing simulator build does not verify real HealthKit permissions or actual readings.
 
 ## Explicit local consent
 1. Display versioned privacy information and category-specific toggles in the native host.

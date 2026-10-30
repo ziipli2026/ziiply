@@ -51,11 +51,11 @@ final class ArvoConsentTests: XCTestCase {
         model.connect(categories: ["steps"], days: 30)
         await fulfillment(of: [started], timeout: 2)
         XCTAssertEqual(reader.approved, ["steps"])
+        let pendingTask = model.task
         model.revoke()
         reader.readContinuation?.resume(returning: ["steps": 999])
-        // Let the suspended model task finish after a late native callback.
-        await Task.yield()
-        await Task.yield()
+        // Wait for the actual task; scheduler timing must not decide the test.
+        await pendingTask?.value
         XCTAssertTrue(reader.revoked)
         XCTAssertEqual(reader.reads, 1)
         XCTAssertTrue(model.days.isEmpty)
