@@ -122,3 +122,8 @@ assert.equal(dec('cola',{name:'Pepsi Zero Sugar Cream Soda virvoitusjuoma',brand
 assert.equal(dec('mehu',{name:'Sun Lolly mehujää cola'}).accepted,false);
 assert.equal(dec('olut',{name:'Karhu olut 0,33l',category:'juomat/oluet'}).accepted,true);
 assert.equal(dec('olut',{name:'Olutlasi 0,5l'}).accepted,false);
+
+assert.equal(dec('kahvi',{name:'Pirkka Costa Rica kahvi 500g',brandName:'Pirkka',category:'juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea'}).accepted,true);
+assert.equal(dec('kahvi',{name:'Frezza kahvijuoma 250ml',brandName:'Frezza',category:'juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat'}).accepted,false);
+
+assert.equal(dec('cola',{name:'Chupa Chups Fizzy tikkari Cola',category:'makeiset-ja-naposteltavat/muut-makeiset/tikkarit'}).accepted,false);

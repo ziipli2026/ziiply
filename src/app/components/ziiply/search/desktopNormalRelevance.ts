@@ -89,15 +89,17 @@ export function desktopSearchDecision(query: string, product: Row) {
     if(index>=0)productWords=[...productWords.slice(0,index),...productWords.slice(index+brand.length)];
   }
   const name=parse(productWords.join(' '));
-  const category=parse(product.category).terms;
+  const categoryLeaf=String(product.category || '').split('/').at(-1) || '';
+  const category=parse(categoryLeaf).terms;
   const intent=resolveSearchIntentAI(desktopSearchQuery(query));
   intent.includeTerms=[...intent.includeTerms,...q.terms.flatMap(t=>alternatives[t] || [])];
-  if (!isProductAllowedByIntent({...product, brandName:product.brandName || product.brand},intent))
+  if (!isProductAllowedByIntent({...product, category:categoryLeaf, brandName:product.brandName || product.brand},intent))
     return {accepted:false,score:-10000,reason:'wrong_product_group'};
   if (!q.terms.length) return {accepted:false,score:0,reason:'empty_query'};
   const nameText=productWords.join(' ');
   const identityText=searchWords(product.name || product.title).join(' ');
   const categoryText=searchWords(product.category).join(' ');
+  const categoryLeafText=searchWords(categoryLeaf).join(' ');
   const nonfood=['shampoo','hoitoaine','tuoksusuihke','saippua','suihkugeeli','kosmetiikka','pesuaine','huulivoide','vartalovoide','hiusnaamio'];
   if(intent.intent!=='unknown' && nonfood.some(t=>(identityText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'non_food_product'};
@@ -137,7 +139,8 @@ export function desktopSearchDecision(query: string, product: Row) {
   if(q.terms.some(t=>['kinkku','makkara','nakki','leikkele'].includes(t)))requestedTypes.add('processed_meat');
   if(rawIntent || ['kahvi','cola','limsa','vesi','tee'].some(t=>q.terms.includes(t))) {
     for(const [type,pattern] of typeRules) {
-      if(!pattern.test(identityText+' '+categoryText) || requestedTypes.has(type))continue;
+      const typeCategory=(type==='drink'||type==='concentrate') ? categoryLeafText : categoryText;
+      if(!pattern.test(identityText+' '+typeCategory) || requestedTypes.has(type))continue;
       if(type==='drink' && q.terms.some(t=>['cola','limsa','vesi','tee'].includes(t)))continue;
       // Category "mehu" is unrelated to a fresh orange search, just as a
       // cheese-flavoured snack is unrelated to the cheese shelf.
