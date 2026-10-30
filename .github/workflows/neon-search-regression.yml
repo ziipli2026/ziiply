@@ -15,6 +15,7 @@ on:
       - 'tests/neon-ean-price-enrichment.test.mjs'
       - 'tests/neon-ruoanhinta-price-lookup.test.mjs'
       - 'tests/neon-selected-store-merge.test.mjs'
+      - 'tests/neon-search-pipeline-isolation.test.mjs'
       - 'src/lib/neonSearchSimulation/ruoanhintaPriceLookup.mjs'
       - 'src/lib/neonSearchSimulation/enrichPrices.mjs'
       - 'src/lib/neonSearchSimulation/**'
@@ -80,6 +81,8 @@ jobs:
         run: node --test tests/neon-ruoanhinta-price-lookup.test.mjs
       - name: Test selected-store mobile merge contract
         run: node --test tests/neon-selected-store-merge.test.mjs
+      - name: Verify normal search, recipe and offer pipeline isolation
+        run: node --test tests/neon-search-pipeline-isolation.test.mjs
       - name: Read-only live S/K upstream EAN and price coverage smoke test
         continue-on-error: true
         env:
