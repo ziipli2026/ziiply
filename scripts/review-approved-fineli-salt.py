@@ -91,6 +91,28 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                           "missing_fineli_salt":sorted(ean for ean, items in details.items()
                                                        if any(d["salt_unit"] is None and d["salt_value_type"] is None for d in items))}),
               flush=True)
+        cur.execute("""
+            SELECT e.ean,
+                   n.product_name AS off_name,
+                   COALESCE(to_jsonb(e)->>'name', to_jsonb(e)->>'product_name',
+                            to_jsonb(e)->>'name_fi') AS catalog_name,
+                   f.fineli_id, f.name_fi AS fineli_name,
+                   m.match_method, m.confidence
+            FROM public.ziiply_ean_fineli_matches m
+            JOIN public.ziiply_ean_products e ON e.ean = m.ean
+            LEFT JOIN public.ziiply_off_nutrition n ON n.ean = m.ean
+            JOIN public.ziiply_fineli_foods f ON f.fineli_id = m.fineli_id
+            WHERE m.approved IS TRUE
+              AND m.ean IN ('2000607000005', '2000610800005')
+            ORDER BY e.ean
+        """)
+        for ean, off_name, catalog_name, fineli_id, fineli_name, method, confidence in cur.fetchall():
+            print("FINELI_SALT_SUSPECT_DETAIL",
+                  json.dumps({"ean":ean, "off_name":off_name,
+                              "catalog_name":catalog_name, "fineli_id":fineli_id,
+                              "fineli_name":fineli_name, "match_method":method,
+                              "confidence":confidence}, ensure_ascii=False),
+                  flush=True)
         for ean, name, matches in rows:
             if ean not in counts:
                 print("FINELI_SALT_MANUAL_REVIEW",
