@@ -24,7 +24,10 @@ const forms: Record<string, string> = {
 };
 const canonical = (word: string) => forms[word] || word;
 const alternatives: Record<string, string[]> = {
-  cola:['cola','pepsi'], limsa:['virvoitusjuoma','limonadi','cola','pepsi','fanta','sprite','jaffa'],
+  kahvi:['kahvi','juhla mokka','kulta katriina'],
+  ketsuppi:['ketsuppi','ketchup'], ketsuppia:['ketsuppi','ketchup'],
+  zero:['zero','sokeriton','max'], sokeriton:['sokeriton','zero','max'],
+  cola:['cola','pepsi','coke'], limsa:['virvoitusjuoma','limonadi','cola','pepsi','fanta','sprite','jaffa'],
   broileri:['broileri','kana'], kana:['kana','broileri'], jogurtti:['jogurtti','yoghurt','yogurt'],
   sipsi:['sipsi','perunalastu','chips'], kananmuna:['kananmuna','muna'],
 };
@@ -56,7 +59,8 @@ export function desktopSearchQueries(raw: string): string[] {
   const words=searchWords(q).map(canonical);
   // No default pack sizes, brands or extra attributes are invented.
   const normalized=/\d/.test(q) ? q : words.join(' ');
-  const family=words.length===1 ? alternatives[words[0]] || [] : [];
+  const parsed=parse(q);
+  const family=parsed.terms.length===1 ? (alternatives[parsed.terms[0]] || []).map(term=>[term,...parsed.sizes].join(' ')) : [];
   return [...new Set([q, normalized, ...family])].filter(Boolean).slice(0,6);
 }
 type Row = {name?: string; title?: string; brand?: string; brandName?: string; category?: string; ean?: string; __price?: number | null; quantity?: string};
@@ -67,6 +71,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   const brand=parse(product.brandName || product.brand).terms;
   const category=parse(product.category).terms;
   const intent=resolveSearchIntentAI(desktopSearchQuery(query));
+  intent.includeTerms=[...intent.includeTerms,...q.terms.flatMap(t=>alternatives[t] || [])];
   if (!isProductAllowedByIntent({...product, brandName:product.brandName || product.brand},intent))
     return {accepted:false,score:-10000,reason:'wrong_product_group'};
   if (!q.terms.length) return {accepted:false,score:0,reason:'empty_query'};
@@ -87,7 +92,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   let score=0;
   for(const term of q.terms) {
     const variants=alternatives[term] || [term];
-    const strength=Math.max(0,...variants.map(v => name.terms.includes(v) ? (v===term?100:80)
+    const strength=Math.max(0,...variants.map(v => (name.terms.includes(v) || (v.includes(' ') && (' '+name.terms.join(' ')+' ').includes(' '+v+' '))) ? (v===term?100:80)
       : name.terms.some(w=>v.length>=3 && w.startsWith(v)) ? 65
       : name.terms.some(w=>v.length>=4 && w.endsWith(v)) ? 50 : 0));
     if(strength) score+=strength;
