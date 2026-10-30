@@ -182,9 +182,16 @@ let lastKOfferDedupeAuditV1: {
   collisionCount: number; collisions: Array<Record<string, unknown>>;
 } | null = null;
 
-export function getKruokaOfferPipelineDebugV34() {
-  const providerDebug = getLastKruokaPipelineDebugV49() ?? lastKruokaGateDebugV35;
-  return providerDebug ? { ...providerDebug, kOfferDedupeAuditV1: lastKOfferDedupeAuditV1 } : null;
+export function getKruokaOfferPipelineDebugV34(expectedStoreName?: string | null) {
+  // Never report a previous request's store as the currently selected store.
+  // The provider's legacy debug slot is process-global, not request-local.
+  const wanted = String(expectedStoreName ?? "").trim().toLocaleLowerCase("fi");
+  const matches = (value: KruokaPipelineDebugV49 | null) =>
+    value && (!wanted || String(value.selectedStoreName ?? "").trim().toLocaleLowerCase("fi") === wanted);
+  const providerDebug = getLastKruokaPipelineDebugV49();
+  const debug = matches(providerDebug) ? providerDebug
+    : matches(lastKruokaGateDebugV35) ? lastKruokaGateDebugV35 : null;
+  return debug ? { ...debug, kOfferDedupeAuditV1: lastKOfferDedupeAuditV1 } : null;
 }
 
 export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & KruokaOfferProviderOptionsV10 & {
