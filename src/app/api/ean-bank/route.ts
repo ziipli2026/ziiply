@@ -174,9 +174,10 @@ export async function GET(request: NextRequest) {
             WHEN LOWER(name) = LOWER(${q}) THEN 0
             WHEN name ILIKE ${prefix} THEN 1
             WHEN name ILIKE ${like} THEN 2
-            WHEN category ILIKE ${like} THEN 3
+            WHEN split_part(category, '/', array_length(string_to_array(category, '/'), 1)) ILIKE ${like} THEN 3
             WHEN brand ILIKE ${like} THEN 4
-            ELSE 5
+            WHEN category ILIKE ${like} THEN 5
+            ELSE 6
           END ASC,
           LENGTH(name) ASC,
           last_seen_at DESC
