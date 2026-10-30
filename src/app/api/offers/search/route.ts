@@ -1025,7 +1025,7 @@ export async function GET(request: Request) {
         sourceFailures: offerSourceDiagnostics.failures,
         citymarketNotice,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
-          const debug = getKruokaOfferPipelineDebugV34();
+          const debug = getKruokaOfferPipelineDebugV34(rawKStoreName);
           const providerRows = (debug?.kTabClassificationAuditV1 ?? []) as Array<{ publicationId: string; offerId: string; campaignType: string; title: string }>;
           const identity = (row: UnknownRecord) => [
             String((row.debug as UnknownRecord | undefined)?.publicationId ?? ""),
@@ -1075,7 +1075,7 @@ export async function GET(request: Request) {
           deploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
         },
         kruokaDebug: (() => {
-          const debug = isKCitymarketV19 ? null : getKruokaOfferPipelineDebugV34();
+          const debug = isKCitymarketV19 ? null : getKruokaOfferPipelineDebugV34(rawKStoreName);
           if (process.env.VERCEL_ENV !== "production") {
             return isKCitymarketV19
               ? {
