@@ -20,7 +20,7 @@ export default function BetaLoginPage() {
         body:JSON.stringify({email})
       });
       const data=await response.json();
-      setStatus(response.ok ? data.message : "Kirjautuminen ei ole vielä käytettävissä. Yritä myöhemmin.");
+      setStatus(response.ok ? data.message : (data.code === "BETA_LOGIN_RATE_LIMITED" ? data.message : data.code === "EMAIL_DELIVERY_FAILED" ? "Sähköpostin lähettäminen epäonnistui. Yritä myöhemmin." : "Kirjautuminen ei ole vielä käytettävissä. Yritä myöhemmin."));
     } catch { setStatus("Yhteysvirhe. Yritä myöhemmin."); }
     finally { setBusy(false); }
   }
