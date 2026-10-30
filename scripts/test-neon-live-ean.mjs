@@ -45,7 +45,7 @@ for(const query of ['juusto','jogurtti','jauheliha','peruna','makkara','laktoosi
  assert.notEqual(response.categoryExpansion,'exact-ean','word search must not use barcode path');
  for(const product of response.products){
   assert.ok(product.name,query+' returned a product without name');
-  assert.ok(/^\\d{8,14}$/.test(String(product.ean||'')),query+' returned invalid EAN');
+  assert.ok(/^\d{8,14}$/.test(String(product.ean||'')),query+' returned invalid EAN');
  }
  console.log(query+': '+response.count+' valid products');
 }
