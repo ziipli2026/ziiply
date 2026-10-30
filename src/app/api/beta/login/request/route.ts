@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       SELECT ${emailHash}, ${emailHash} FROM recent WHERE attempts < 3
       RETURNING id
     ) SELECT id FROM inserted`;
-  if (!allowed.length) return generic();
+  if (!allowed.length) return NextResponse.json({ ok: false, code: "BETA_LOGIN_RATE_LIMITED", message: "Kirjautumislinkkiä on pyydetty liian monta kertaa. Odota tunti edellisestä yrityksestä ja yritä uudelleen." }, { status: 429, headers: noStore });
   const token = createBetaToken();
   const tokenHash = hashBetaToken(token);
   const expires = new Date(Date.now() + BETA_LOGIN_TTL_MS).toISOString();
@@ -58,6 +58,8 @@ export async function POST(request: Request) {
   try {
     await sendBetaLoginEmail({ to: email, loginUrl: url.toString() });
   } catch (error) {
+    // A failed SMTP attempt must not consume the user's hourly send quota.
+    await sql`DELETE FROM public.ziiply_beta_login_attempts WHERE id = ${allowed[0].id}`;
     console.error("[beta-login] SMTP delivery failed", { code: error instanceof Error && "code" in error ? String(error.code) : "unknown", command: error instanceof Error && "command" in error ? String(error.command) : "unknown", syscall: error instanceof Error && "syscall" in error ? String(error.syscall) : "unknown" });
     return NextResponse.json({ ok: false, code: "EMAIL_DELIVERY_FAILED" }, { status: 503, headers: noStore });
   }
