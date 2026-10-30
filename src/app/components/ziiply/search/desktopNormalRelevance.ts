@@ -31,6 +31,7 @@ const alternatives: Record<string, string[]> = {
   broileri:['broileri','kana'], kana:['kana','broileri'], jogurtti:['jogurtti','yoghurt','yogurt'],
   sipsi:['sipsi','perunalastu','chips'], kananmuna:['kananmuna','muna'],
 };
+const compoundPrefixes=new Set(['kevyt','tays','luomu','ruis','kaura','maito','kerma','vuohen','soija','manteli','ykkos','rasvaton','sulate','tuore','rae','proteiini','varhais','ruoka','kesa','pika','jaa','vihrea','musta','yrtti','suodatin','pannu','papu','grilli','lenkki','nakki','juusto','havu','meri','hieno','sormi','puna','kirsikka','mini']);
 const units: Record<string, [string, number]> = {
   kg:['g',1000], g:['g',1], l:['ml',1000], dl:['ml',100], cl:['ml',10], ml:['ml',1], kpl:['kpl',1],
 };
@@ -90,6 +91,11 @@ export function desktopSearchDecision(query: string, product: Row) {
     return {accepted:false,score:-10000,reason:'accessory_not_food'};
   if(q.terms.includes('maito') && /maitojuoma|maitokahvi|maitokaakao|korvike|maitojauhe|pirtelo/.test(nameText))
     return {accepted:false,score:-10000,reason:'different_milk_product'};
+  if(q.terms.includes('kahvi')) {
+    const otherCoffeeProducts=['jogurtti','skyr','rahka','vanukas','likoori','jaloviina','olut','kerma'];
+    if(otherCoffeeProducts.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
+      return {accepted:false,score:-10000,reason:'coffee_flavoured_other_product'};
+  }
   const derived=['jaatelo','suklaa','makeinen','karkki','limppu','sampyla','mauste','kastike','kakku','keksi'];
   if(q.terms.some(t=>['kahvi','maito','piima','juusto','jauheliha'].includes(t)) &&
      derived.some(t=>nameText.includes(t) && !q.terms.some(w=>w.includes(t))))
@@ -99,7 +105,7 @@ export function desktopSearchDecision(query: string, product: Row) {
     const variants=alternatives[term] || [term];
     const strength=Math.max(0,...variants.map(v => (name.terms.includes(v) || (v.includes(' ') && (' '+name.terms.join(' ')+' ').includes(' '+v+' '))) ? (v===term?100:80)
       : name.terms.some(w=>v.length>=3 && w.startsWith(v)) ? 65
-      : name.terms.some(w=>v.length>=4 && w.endsWith(v)) ? 50 : 0));
+      : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0));
     if(strength) score+=strength;
     else if(!alternatives[term] && brand.includes(term) && (q.terms.length>1 || brand.join(" ")===term)) score+=25;
     else return {accepted:false,score:-1000,reason:`missing_term:${term}`};

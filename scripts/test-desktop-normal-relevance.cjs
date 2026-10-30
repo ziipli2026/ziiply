@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const {desktopSearchDecision:dec,rankDesktopNormalRows:rank,desktopSearchQueries:queries}=require('../src/app/components/ziiply/search/desktopNormalRelevance.ts');
 const yes=[
  ['cola','Coca-Cola Zero 1,5 l'],['cola','Pepsi Max 1.5l'],['COLA','Coca‑Cola 330 ml'],
+ ['tee','Lipton jäätee 500ml'],
  ['maitoa','Arla kevytmaito 1 l'],['maidon','Valio rasvaton maito 1l'],
  ['rasvaton maito','Valio maito rasvaton 1l'],['laktoositon maito','Valio laktoositon kevytmaito 1l'],
  ['kahvia','Paulig suodatinkahvi 500g'],['juhla moka','Juhla Mokka 500 g'],
@@ -24,7 +25,9 @@ const no=[
  ['rasvaton maito','Kevytmaito 1l'],['laktoositon maito','Valio maito 1l'],
  ['pepsi max','Coca-Cola Zero 1l'],['coca cola','Pepsi Max 1l'],
  ['cola 1.5l','Coca-Cola 0.5l'],['maito 1 l','Maito 1kg'],['xyzbrand','Muu tuote'],
+ ['kana','Porkkana 1kg'],['kana','Americana pizza'],
  ['voi','Voileipä'],['kana','Kananmuna 10kpl'],
+ ['kahvi','Arla jogurtti 1kg kahvi'],['kahvi','Jaloviina Kahvi 5% 0,33l'],
  ['Pirkka maito','Pirkka pullotutti (maito) 0-3 kk 2kpl'],
  ['maitoa','Valio maitojuoma 1l'],['olut','Olutlasi 0,5l'],
  ['makkara','Koiranmakkara'],['maito','Kissan maito'],
