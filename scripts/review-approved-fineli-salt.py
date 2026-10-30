@@ -37,7 +37,8 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
         cur.execute("""
             SELECT m.ean, m.confidence, m.match_method,
                    f.nutrients->'NACL'->>'unit' AS salt_unit,
-                   f.nutrients->'NACL'->>'value' AS salt_value
+                   f.nutrients->'NACL'->>'value' AS salt_value,
+                   jsonb_typeof(f.nutrients->'NACL'->'value') AS salt_value_type
             FROM public.ziiply_ean_fineli_matches m
             JOIN public.ziiply_fineli_foods f ON f.fineli_id = m.fineli_id
             JOIN public.ziiply_off_nutrition n ON n.ean = m.ean
@@ -45,8 +46,8 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
             WHERE m.approved IS TRUE AND n.salt_100g IS NULL
         """)
         counts = {}
-        for ean, confidence, method, unit, value in cur.fetchall():
-            eligible = confidence in ("verified", "high") and method == "manual_verified" and unit == "MG"
+        for ean, confidence, method, unit, value, value_type in cur.fetchall():
+            eligible = confidence in ("verified", "high") and method == "manual_verified" and unit == "MG" and value_type == "number"
             try:
                 eligible = eligible and value is not None and 0 <= float(value) <= 100000
             except (ValueError, TypeError):
