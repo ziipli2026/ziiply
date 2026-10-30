@@ -81,6 +81,16 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                           "product_level_counts":{reason:sum(reason in v for ean, v in reasons.items() if ean not in counts)
                                                   for reason in sorted(reason_counts)}}),
               flush=True)
+        suspicious_pairs = {
+            "2000607000005": "product_name_conflicts_with_parsnip",
+            "2000610800005": "product_name_conflicts_with_beetroot",
+        }
+        print("FINELI_SALT_REVIEW_PRIORITIES",
+              json.dumps({"suspected_mismatches":sorted(ean for ean in suspicious_pairs if ean in reasons),
+                          "missing_off_names":sorted(ean for ean, name, _ in rows if name is None and ean not in counts),
+                          "missing_fineli_salt":sorted(ean for ean, items in details.items()
+                                                       if any(d["salt_unit"] is None and d["salt_value_type"] is None for d in items))}),
+              flush=True)
         for ean, name, matches in rows:
             if ean not in counts:
                 print("FINELI_SALT_MANUAL_REVIEW",
