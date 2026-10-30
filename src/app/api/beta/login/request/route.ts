@@ -10,7 +10,10 @@ export async function POST(request: Request) {
   const expected = process.env.ZIIPLY_PUBLIC_ORIGIN;
   if (!expected || !origin || origin !== expected)
     return NextResponse.json({ ok: false, error: "Origin not allowed" }, { status: 403, headers: noStore });
-  // Stay disabled until shared rate limiting and schema verification are completed.\n  if (process.env.ZIIPLY_BETA_LOGIN_ENABLED !== "true" || process.env.ZIIPLY_BETA_RATE_LIMIT_READY !== "true")\n    return NextResponse.json({ ok: false, code: "BETA_LOGIN_TEST_NOT_READY" }, { status: 503, headers: noStore });\n  const config = [process.env.DATABASE_URL, process.env.RESEND_API_KEY, process.env.ZIIPLY_BETA_MAIL_FROM];
+  // Stay disabled until shared rate limiting and schema verification are completed.
+  if (process.env.ZIIPLY_BETA_LOGIN_ENABLED !== "true" || process.env.ZIIPLY_BETA_RATE_LIMIT_READY !== "true")
+    return NextResponse.json({ ok: false, code: "BETA_LOGIN_TEST_NOT_READY" }, { status: 503, headers: noStore });
+  const config = [process.env.DATABASE_URL, process.env.RESEND_API_KEY, process.env.ZIIPLY_BETA_MAIL_FROM];
   if (config.some(value => !value))
     return NextResponse.json({ ok: false, code: "BETA_LOGIN_NOT_CONFIGURED" }, { status: 503, headers: noStore });
   let body: unknown;
@@ -38,7 +41,11 @@ export async function POST(request: Request) {
       from: process.env.ZIIPLY_BETA_MAIL_FROM,
       to: [email],
       subject: "Ziiply – beetakirjautuminen",
-      text: `Kirjaudu Ziiplyyn tästä linkistä (voimassa 15 minuuttia):\n\n${url.toString()}\n\nJos et pyytänyt linkkiä, voit jättää viestin huomiotta.`
+      text: `Kirjaudu Ziiplyyn tästä linkistä (voimassa 15 minuuttia):
+
+${url.toString()}
+
+Jos et pyytänyt linkkiä, voit jättää viestin huomiotta.`
     })
   });
   if (!response.ok) return NextResponse.json({ ok: false, code: "EMAIL_DELIVERY_FAILED" }, { status: 503, headers: noStore });
