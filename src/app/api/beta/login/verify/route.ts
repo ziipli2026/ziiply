@@ -50,6 +50,6 @@ export async function POST(request: Request) {
   if (!result.length)
     return NextResponse.json({ ok: false, code: "INVALID_OR_EXPIRED_LINK" }, { status: 400, headers: noStore });
   const response = NextResponse.json({ ok: true }, { headers: noStore });
-  response.cookies.set(BETA_COOKIE_NAME, sessionToken, betaCookieOptions());
+  response.cookies.set(BETA_COOKIE_NAME, sessionToken,  { ...betaCookieOptions(), sameSite: "lax" as const });
   return response;
 }
