@@ -36,8 +36,8 @@ test('Fineli is a separately labeled estimate, not a replacement for OFF salt', 
 });
 
 test('local EAN name conflicts suppress OFF nutrition without hiding catalog product', () => {
-  assert.match(route, /const unsafeLocalOff = \/\^2\[0-9\]\//);
-  assert.match(route, /hasConflictingOffProductName\(rows\[0\]\.name, selected\.data\?\.product_name\)/);
+  assert.match(route, /const unsafeLocalOff = selected\?\.source === "open-food-facts"/);
+  assert.match(route, /shouldSuppressLocalOffNutrition\(ean, rows\[0\]\.name, selected\.data\?\.product_name\)/);
   assert.match(route, /if \(selected && !unsafeLocalOff\)/);
   assert.match(route, /return NextResponse\.json\(\{ ok: true, product: \{ \.\.\.rows\[0\], nutrition \} \}\)/);
 });
