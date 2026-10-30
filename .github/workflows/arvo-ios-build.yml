@@ -16,6 +16,11 @@ jobs:
       - name: Generate project
         working-directory: native/ios
         run: xcodegen generate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ZiiplyArvoTest-Xcode-project
+          path: native/ios/
+          retention-days: 7
       - name: Build and test on available iPhone simulator
         working-directory: native/ios
         run: |
