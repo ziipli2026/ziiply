@@ -260,6 +260,15 @@ async function fetchKSupermarketRegionalOffers(publicationId: string, slug: stri
       throw new Error(`K-Supermarket regional publication ${publicationId} page ${page} HTTP ${response.status}`);
     }
     const payload = await response.json() as UnknownRecord;
+    if (publicationId === "bUGl9JyG" && page <= 2) {
+      console.info("[Ziiply K viewer diagnostic]", JSON.stringify({
+        publicationId, page, keys: Object.keys(payload),
+        hotspotCount: Array.isArray(payload.hotspots) ? payload.hotspots.length : null,
+        decorationCount: Array.isArray(payload.decorations) ? payload.decorations.length : null,
+        firstHotspotKeys: Array.isArray(payload.hotspots) && payload.hotspots[0] && typeof payload.hotspots[0] === "object" ? Object.keys(payload.hotspots[0]) : [],
+        firstDecorationKeys: Array.isArray(payload.decorations) && payload.decorations[0] && typeof payload.decorations[0] === "object" ? Object.keys(payload.decorations[0]) : [],
+      }));
+    }
     // Tjek can return hotspots at page level or nested under page data.
     // Collect only explicitly linked offers; never accept unrelated chain offers.
     const nested = payload.data && typeof payload.data === "object" ? payload.data as UnknownRecord : null;
