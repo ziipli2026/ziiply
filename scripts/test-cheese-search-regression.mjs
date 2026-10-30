@@ -37,4 +37,16 @@ assert.equal(isBadNormalResult(product("Juustoportti juustodippi 200 g"), "juust
 assert.equal(isHardRejectedKMatch("juusto", "Juustoportti juustodippi 200 g"), true);
 assert.equal(productGroupGate("juusto", "Juustoportti juustodippi 200 g"), false);
 assert.equal(isHardRejectedKMatch("Juustoportti porkkanasose", "Juustoportti porkkanasose"), false);
-console.log("Cheese search behavioral regression checks passed");
+// Regression examples from the 35-category provider report: raw API results
+// must not be accepted as final normal-search matches.
+for (const [query, name] of [
+  ["jogurtti", "Myslipatukka jogurttikuorrutteella 35 g"],
+  ["jogurtti", "Jogurttisalaattikastike 250 ml"],
+  ["jauheliha", "Jauhelihapizza 350 g"],
+  ["jauheliha", "Jauhelihamausteseos 30 g"],
+  ["maito", "Maitopullotutti 2 kpl"],
+  ["maito", "Pikacappuccino maitojauhe 200 g"],
+]) {
+  assert.equal(isBadNormalResult(product(name), query), true, query + ": " + name + " must not appear in final results");
+}
+console.log("Cheese and provider-spillover behavioral regression checks passed");
