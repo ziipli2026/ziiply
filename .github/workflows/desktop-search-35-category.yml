@@ -5,6 +5,7 @@ on:
     branches: [preview/legacy-desktop-ui]
     paths:
       - 'scripts/test-desktop-search-live.mjs'
+      - 'scripts/test-cheese-search-regression.mjs'
       - 'src/app/components/ziiply/ziiplyCore.ts'
       - 'src/app/desktop-preview/DesktopPreviewClient.tsx'
       - '.github/workflows/desktop-search-35-category.yml'
@@ -17,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check cheese search regression
+        run: node scripts/test-cheese-search-regression.mjs
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
       - name: Test 35 queries against protected preview live provider endpoints
