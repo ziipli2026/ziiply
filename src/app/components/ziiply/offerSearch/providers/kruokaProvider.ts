@@ -669,30 +669,42 @@ export async function fetchKruokaOffers(
     debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
     const campaignPublicationIds = new Set(resolvedPublications.campaignIds);
     if (tjekStoreId === "986cCCi") {
-      for (const name of ["publication", "paged-publication", "publication-pages"]) {
+      // One-off Incito API compatibility probe: no credentials logged, no offer data exposed.
+      const body = {
+        id: "bUGl9JyG",
+        device_category: "desktop",
+        pointer: "fine",
+        orientation: "horizontal",
+        pixel_ratio: 1,
+        max_width: 1024,
+        versions_supported: ["1.0.0"],
+        locale_code: "fi_FI",
+        time: new Date().toISOString(),
+        feature_labels: [{ key: "none", value: 1 }],
+        enable_lazy_loading: false,
+      };
+      for (const origin of ["https://api.tjek.com", "https://api.shopgun.io"]) {
         try {
-          const value = await fetchTjekData(name, { publicId: "bUGl9JyG" }, business.slug);
-          console.info("[Ziiply Wiljami content route]", JSON.stringify({ name, type: Array.isArray(value) ? "array" : typeof value, keys: value && typeof value === "object" ? Object.keys(value).slice(0, 25) : [], preview: JSON.stringify(value ?? null).slice(0, 900) }));
-        } catch (error) { console.info("[Ziiply Wiljami content route error]", JSON.stringify({ name, error: String(error) })); }
-      }
-    }
-
-    if (tjekStoreId === "986cCCi") {
-      const probes: Array<[string, UnknownRecord]> = [
-        ["publication-only", { publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
-        ["store-only", { localBusinessIds: [tjekStoreId], pagination: { limit: 100, offset: 0 } }],
-        ["store-source-filtered", { localBusinessIds: [tjekStoreId], sources: ["publication", "business_product"], pagination: { limit: 100, offset: 0 }, sort: ["score_desc"] }],
-        ["store-publication-combined", { localBusinessIds: [tjekStoreId], publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
-        ["store-business-combined", { localBusinessIds: [tjekStoreId], businessIds: [business.businessId], pagination: { limit: 100, offset: 0 } }],
-        ["business-and-publication", { businessIds: [business.businessId], publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
-        ["publication-standard", { publicationIds: ["bUGl9JyG"], sources: ["publication", "business_product"], pagination: { limit: 100, offset: 0 }, sort: ["score_desc"] }],
-      ];
-      for (const [variant, params] of probes) {
-        try {
-          const value = await fetchTjekData("offers", params, business.slug);
-          const rows = dataArray(value);
-          console.info("[Ziiply Wiljami offers probe]", JSON.stringify({ variant, count: rows.length, publicationIds: [...new Set(rows.slice(0, 20).map(row => String(row.publicationPublicId ?? "")))], keys: value && typeof value === "object" ? Object.keys(value) : [] }));
-        } catch (error) { console.info("[Ziiply Wiljami offers probe error]", JSON.stringify({ variant, error: String(error) })); }
+          const response = await fetch(origin + "/v4/rpc/generate_incito_from_publication", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(body),
+            cache: "no-store",
+            signal: AbortSignal.timeout(5000),
+          });
+          const contentType = response.headers.get("content-type") ?? "";
+          const payload = await response.text();
+          let parsed: unknown;
+          try { parsed = JSON.parse(payload); } catch { parsed = null; }
+          console.info("[Ziiply Wiljami Incito API]", JSON.stringify({
+            origin, status: response.status, contentType,
+            keys: parsed && typeof parsed === "object" ? Object.keys(parsed).slice(0, 20) : [],
+            responseSample: response.ok ? "" : payload.slice(0, 240),
+            payloadLength: payload.length,
+          }));
+        } catch (error) {
+          console.info("[Ziiply Wiljami Incito API error]", JSON.stringify({ origin, error: String(error) }));
+        }
       }
     }
 
