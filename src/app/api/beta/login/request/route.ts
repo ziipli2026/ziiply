@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createBetaToken, hashBetaToken, BETA_LOGIN_TTL_MS } from "../../../../lib/ziiplyBetaAuthTokens.mjs";
+import { createBetaToken, hashBetaToken, BETA_LOGIN_TTL_MS } from "../../../../../lib/ziiplyBetaAuthTokens.mjs";
 import { neon } from "@neondatabase/serverless";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
