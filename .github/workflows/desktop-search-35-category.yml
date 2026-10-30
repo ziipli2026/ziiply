@@ -1,0 +1,28 @@
+name: Desktop preview 35-category live search
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - 'scripts/test-desktop-search-live.mjs'
+      - '.github/workflows/desktop-search-35-category.yml'
+jobs:
+  search-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test 35 queries against preview live provider endpoints
+        run: node scripts/test-desktop-search-live.mjs
+      - name: Upload detailed results even on failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-search-35-category-report
+          path: |
+            desktop-search-35-category-report.json
+            desktop-search-35-category-summary.md
+          if-no-files-found: warn
