@@ -1123,6 +1123,7 @@ export async function GET(request: Request) {
             } : {}),
             error: debug?.error ?? null,
             ...(debug?.kOfferDedupeAuditV1 ? { kOfferDedupeAuditV1: debug.kOfferDedupeAuditV1 } : {}),
+            ...(debug?.publicationFetch ? { publicationFetch: debug.publicationFetch } : {}),
             ...(debug?.publicationPipeline ? { publicationPipeline: debug.publicationPipeline } : {}),
             ...(debug?.kTabClassificationAuditV1 ? { kTabClassificationAuditV1: debug.kTabClassificationAuditV1 } : {}),
             ...(debug?.rawOfferAnalysis ? { kOfferMappingAuditV1: {
