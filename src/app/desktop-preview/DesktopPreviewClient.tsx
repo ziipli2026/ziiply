@@ -2347,7 +2347,26 @@ export default function DesktopPreviewPage() {
         const previous=combinedByEan.get(key);
         if(!previous||(!Number.isFinite(previous.__price)&&Number.isFinite(product.__price)))combinedByEan.set(key,product);
       }
-      const sortedRows=rankProductResultsByRelevanceAndPrice(query,[...combinedByEan.values()].filter(product=>!isBadNormalResult(product,query)),(p:any)=>p.__price??Number.POSITIVE_INFINITY).slice(0,120);
+      const eligibleRows=[...combinedByEan.values()].filter(product=>!isBadNormalResult(product,query));
+      const relevanceRows=rankProductResultsByRelevanceAndPrice(query,eligibleRows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
+      // Exact generic milk searches compare the shelf prices of actual milk first.
+      // Missing prices must never interrupt ascending priced results. Keep the
+      // semantic order as a stable tie-breaker and for other search intents.
+      const milkPriceSearch=/^maito$/i.test(query.trim());
+      const semanticIndex=new Map(relevanceRows.map((product:any,index:number)=>[product,index]));
+      const milkName=(product:any)=>String(product.name||"").toLocaleLowerCase("fi").normalize("NFKC");
+      const isActualMilk=(product:any)=>/(?:^|[\\s-])(?:maito|kevytmaito|täysmaito|rasvatonmaito|ykkösmaito|luomumaito|vuohenmaito)(?:$|[\\s\\d-])/.test(milkName(product))
+        && !/(?:maitojuoma|maitokahvi|maitokaakao|maitojauhe|äidinmaito|aidinmaito|proteiinijuoma|pirtelö|makeinen|mochi|tutti)/.test(milkName(product));
+      const sortedRows=(milkPriceSearch
+        ? [...relevanceRows].sort((a:any,b:any)=>{
+            const categoryDiff=Number(isActualMilk(b))-Number(isActualMilk(a));
+            if(categoryDiff)return categoryDiff;
+            const ap=Number.isFinite(a.__price)?a.__price:Number.POSITIVE_INFINITY;
+            const bp=Number.isFinite(b.__price)?b.__price:Number.POSITIVE_INFINITY;
+            if(ap!==bp)return ap-bp;
+            return (semanticIndex.get(a)??0)-(semanticIndex.get(b)??0);
+          })
+        : relevanceRows).slice(0,120);
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,neonOnlyCount:neonOnly.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
