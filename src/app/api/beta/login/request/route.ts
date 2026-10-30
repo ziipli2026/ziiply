@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   // Stay disabled until shared rate limiting and schema verification are completed.
   if (process.env.ZIIPLY_BETA_LOGIN_ENABLED !== "true" || process.env.ZIIPLY_BETA_RATE_LIMIT_READY !== "true")
     return NextResponse.json({ ok: false, code: "BETA_LOGIN_TEST_NOT_READY" }, { status: 503, headers: noStore });
-  const config = [process.env.DATABASE_URL, process.env.RESEND_API_KEY, process.env.ZIIPLY_BETA_MAIL_FROM];
+  const config = [process.env.DATABASE_URL, process.env.ZIIPLY_SMTP_HOST, process.env.ZIIPLY_SMTP_USER, process.env.ZIIPLY_SMTP_PASSWORD, process.env.ZIIPLY_BETA_MAIL_FROM];
   if (config.some(value => !value))
     return NextResponse.json({ ok: false, code: "BETA_LOGIN_NOT_CONFIGURED" }, { status: 503, headers: noStore });
   let body: unknown;
@@ -53,20 +53,12 @@ export async function POST(request: Request) {
     VALUES (${applications[0].id}, ${tokenHash}, ${expires})`;
   const url = new URL("/beta/kirjaudu/vahvista", expected);
   url.searchParams.set("token", token);
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: process.env.ZIIPLY_BETA_MAIL_FROM,
-      to: [email],
-      subject: "Ziiply – beetakirjautuminen",
-      text: `Kirjaudu Ziiplyyn tästä linkistä (voimassa 15 minuuttia):
-
-${url.toString()}
-
-Jos et pyytänyt linkkiä, voit jättää viestin huomiotta.`
-    })
-  });
-  if (!response.ok) return NextResponse.json({ ok: false, code: "EMAIL_DELIVERY_FAILED" }, { status: 503, headers: noStore });
+  // Existing Zoner mailbox over authenticated TLS SMTP.
+  const { sendBetaLoginEmail } = await import("../../../../../lib/ziiplyBetaSmtp.mjs");
+  try {
+    await sendBetaLoginEmail({ to: email, loginUrl: url.toString() });
+  } catch {
+    return NextResponse.json({ ok: false, code: "EMAIL_DELIVERY_FAILED" }, { status: 503, headers: noStore });
+  }
   return generic();
 }
