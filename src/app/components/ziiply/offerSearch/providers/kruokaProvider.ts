@@ -681,6 +681,9 @@ export async function fetchKruokaOffers(
       const probes: Array<[string, UnknownRecord]> = [
         ["publication-only", { publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
         ["store-only", { localBusinessIds: [tjekStoreId], pagination: { limit: 100, offset: 0 } }],
+        ["store-source-filtered", { localBusinessIds: [tjekStoreId], sources: ["publication", "business_product"], pagination: { limit: 100, offset: 0 }, sort: ["score_desc"] }],
+        ["store-publication-combined", { localBusinessIds: [tjekStoreId], publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
+        ["store-business-combined", { localBusinessIds: [tjekStoreId], businessIds: [business.businessId], pagination: { limit: 100, offset: 0 } }],
         ["business-and-publication", { businessIds: [business.businessId], publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
         ["publication-standard", { publicationIds: ["bUGl9JyG"], sources: ["publication", "business_product"], pagination: { limit: 100, offset: 0 }, sort: ["score_desc"] }],
       ];
