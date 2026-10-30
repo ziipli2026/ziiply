@@ -2042,7 +2042,7 @@ export function productGroupGate(sourceName: string, targetName: string) {
 
   const sourceIsCheese = hasAnyToken(source, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
-    const targetIsCheese = hasAnyToken(target, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+    const targetIsCheese = hasAnyToken(target.replace(/\bjuustoportti(?:n)?\b/g, " "), ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
     const targetIsWrongCheeseProduct = hasAnyToken(target, [
       "tuorejuusto",
       "sulatejuusto",
