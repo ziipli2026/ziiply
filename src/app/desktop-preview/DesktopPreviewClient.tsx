@@ -2314,7 +2314,7 @@ export default function DesktopPreviewPage() {
         .filter((x:any)=>desktopSearchDecision(query,x).accepted && Boolean(x.name) && Boolean(x.ean))
         .slice(0,50)
         .map((x:any)=>({...x,__chain:"Neon",__store:"Tuoteluettelo",__price:null,__priceSource:"neon-catalog-unpriced"}));
-      // Keep the Neon catalog as a fallback, but do not flash an unpriced
+      // Keep Neon metadata internal until a selected-store price is available; do not show an unpriced
       // preliminary list before store prices and final ranking are available.
       // The loading state remains visible until the merged result is ready.
       const settled=await Promise.allSettled(calls);
@@ -2339,10 +2339,10 @@ export default function DesktopPreviewPage() {
       }
       const relevanceAndPriceRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
       const selectedStoreEans=new Set(relevanceAndPriceRows.map((x:any)=>String(x.ean||x.barcode||x.product?.ean||"").replace(/\D/g,"")).filter(Boolean));
-      // A store result wins by EAN; Neon-only products remain visibly unpriced.
+      // A store result wins by EAN; catalog-only products never enter the visible list.
       // Do not imply that a Neon catalog match is stocked in a selected store.
       const neonOnly=neonRows.filter((x:any)=>!selectedStoreEans.has(String(x.ean||x.barcode||x.product?.ean||"").replace(/\D/g,"")));
-      // Rank the combined catalog, not store hits ahead of every Neon match.
+      // Combine catalog metadata and shop records before the final priced-only policy.
       // Preserve store-priced records when the same EAN exists in both sources.
       const combinedByEan=new Map<string,any>();
       for(const product of [...neonOnly,...relevanceAndPriceRows]){
