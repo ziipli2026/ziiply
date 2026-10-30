@@ -1,4 +1,4 @@
-import { attachFineliSaltEstimate } from "./fineli-salt-estimate.mjs";
+import { attachFineliSaltEstimate, shouldSuppressLocalOffNutrition } from "./fineli-salt-estimate.mjs";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanProducts from "../../../../data/lidl/verified-ean-links.json";
@@ -117,7 +117,10 @@ export async function GET(request: NextRequest) {
           `;
           const specific = matched.find((item) => item.source === "open-food-facts");
           const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
-          if (selected) {
+          // Retailer-local EANs can collide with unrelated OFF product identities.
+          const unsafeLocalOff = selected?.source === "open-food-facts" &&
+            shouldSuppressLocalOffNutrition(ean, rows[0].name, selected.data?.product_name);
+          if (selected && !unsafeLocalOff) {
             const safeNutrition: Record<string, unknown> = { ...selected.data, source: selected.source };
             // Do not expose physically impossible OFF values to the scanner.
             // Keep other valid nutrients; never change the stored source record.
