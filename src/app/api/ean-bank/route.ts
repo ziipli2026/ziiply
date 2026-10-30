@@ -160,15 +160,27 @@ export async function GET(request: NextRequest) {
 
     if (q.length >= 2) {
       const like = `%${q}%`;
+      const prefix = `${q}%`;
       const rows = await sql`
         SELECT ean, name, brand, quantity, image_url AS "imageUrl", category, source,
                aliases, last_seen_at AS "lastSeenAt", updated_at AS "updatedAt"
         FROM ziiply_ean_products
         WHERE name ILIKE ${like}
            OR brand ILIKE ${like}
+           OR category ILIKE ${like}
            OR EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE ${like})
-        ORDER BY last_seen_at DESC
-        LIMIT 20
+        ORDER BY
+          CASE
+            WHEN LOWER(name) = LOWER(${q}) THEN 0
+            WHEN name ILIKE ${prefix} THEN 1
+            WHEN name ILIKE ${like} THEN 2
+            WHEN category ILIKE ${like} THEN 3
+            WHEN brand ILIKE ${like} THEN 4
+            ELSE 5
+          END ASC,
+          LENGTH(name) ASC,
+          last_seen_at DESC
+        LIMIT 100
       `;
       return NextResponse.json({ ok: true, products: rows });
     }
