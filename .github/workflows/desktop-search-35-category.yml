@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install project dependencies
+        run: npm ci
       - name: Check cheese search regression
         run: node scripts/test-cheese-search-regression.mjs
       - name: Install Vercel CLI
