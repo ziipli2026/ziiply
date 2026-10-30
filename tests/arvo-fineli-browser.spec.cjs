@@ -8,7 +8,7 @@ test('Arvo manual EAN shows labeled Fineli estimate and scales by grams', async 
         value:0.01055,unit:'g/100g',source:'fineli-generic',estimated:true,label:'Fineli – arvio',
         fineliId:29496,foodName:'MAKARONI, GLUTEENITON',confidence:'verified'}}}})
   }));
-  await page.goto('/arvo-scanner-preview');
+  await page.goto('http://127.0.0.1:3000/arvo-scanner-preview');
   await page.getByRole('button', { name: 'Syötä EAN' }).click();
   await page.getByRole('textbox', { name: 'EAN-koodi' }).fill('6410405228529');
   await page.getByRole('button', { name: 'Hae EAN' }).click();
@@ -25,7 +25,7 @@ test('Arvo does not show estimate when declared salt is present', async ({ page 
       nutrition:{source:'open-food-facts',salt_100g:0.5,estimatedSalt:{
         value:0.01055,source:'fineli-generic',estimated:true}}}})
   }));
-  await page.goto('/arvo-scanner-preview');
+  await page.goto('http://127.0.0.1:3000/arvo-scanner-preview');
   await page.getByRole('button', { name: 'Syötä EAN' }).click();
   await page.getByRole('textbox', { name: 'EAN-koodi' }).fill('6410405228529');
   await page.getByRole('button', { name: 'Hae EAN' }).click();
