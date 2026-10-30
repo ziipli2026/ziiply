@@ -3,6 +3,8 @@
 Does not write, infer salt from sodium, or change approval status.
 """
 import json
+import re
+import unicodedata
 import os
 import certifi
 import psycopg
@@ -138,6 +140,32 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                   ean for ean in suspicious_pairs if ean.startswith("2") and ean in reasons
               ), "note":"Retailer-specific EANs must not be resolved by name alone"}),
               flush=True)
+        def normalized_tokens(value):
+            normalized = unicodedata.normalize("NFKC", value or "").casefold()
+            return {token for token in re.findall(r"[^\\W_]+", normalized)
+                    if len(token) >= 3}
+
+        cur.execute("""
+            SELECT e.ean,
+                   COALESCE(to_jsonb(e)->>'name', to_jsonb(e)->>'product_name',
+                            to_jsonb(e)->>'name_fi') AS catalog_name,
+                   n.product_name
+            FROM public.ziiply_ean_products e
+            JOIN public.ziiply_off_nutrition n ON n.ean = e.ean
+            WHERE left(e.ean, 2) IN ('20','21','22','23','24','25','26','27','28','29')
+        """)
+        token_comparison = {"compared":0, "no_shared_tokens":0, "missing_name":0}
+        for ean, catalog_name, off_name in cur.fetchall():
+            catalog_tokens = normalized_tokens(catalog_name)
+            off_tokens = normalized_tokens(off_name)
+            if not catalog_tokens or not off_tokens:
+                token_comparison["missing_name"] += 1
+                continue
+            token_comparison["compared"] += 1
+            if catalog_tokens.isdisjoint(off_tokens):
+                token_comparison["no_shared_tokens"] += 1
+        print("FINELI_SALT_LOCAL_NAME_TOKEN_AUDIT",
+              json.dumps(token_comparison), flush=True)
         cur.execute("""
             SELECT left(e.ean, 2) AS prefix,
                    count(*) AS catalog_products,
