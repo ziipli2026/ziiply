@@ -260,7 +260,7 @@ async function fetchKSupermarketRegionalOffers(publicationId: string, slug: stri
       throw new Error(`K-Supermarket regional publication ${publicationId} page ${page} HTTP ${response.status}`);
     }
     const payload = await response.json() as UnknownRecord;
-    if (publicationId === "bUGl9JyG") {
+    if (publicationId === "bUGl9JyG" || publicationId === "r_-FTxaX") {
       console.info("[Ziiply K viewer diagnostic]", JSON.stringify({
         publicationId, page, keys: Object.keys(payload),
         hotspotCount: Array.isArray(payload.hotspots) ? payload.hotspots.length : null,
