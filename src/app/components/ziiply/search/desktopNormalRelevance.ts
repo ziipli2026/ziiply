@@ -74,6 +74,8 @@ type Row = {name?: string; title?: string; brand?: string; brandName?: string; c
 export function desktopSearchDecision(query: string, product: Row) {
   if (/^\d{8,14}$/.test(query.trim())) return {accepted: product.ean===query.trim(), score:10000, reason:'exact_ean'};
   const q=parse(desktopSearchQuery(query));
+  if(/\b(?:tai|valitse)\b/.test(searchWords(product.name).join(' ')) && !/\b(?:tai|valitse)\b/.test(query))
+    return {accepted:false,score:-10000,reason:'ambiguous_product_choice'};
   const name=parse(product.name || product.title);
   const brand=parse(product.brandName || product.brand).terms;
   const category=parse(product.category).terms;
@@ -92,7 +94,37 @@ export function desktopSearchDecision(query: string, product: Row) {
   const alcohol=['alkoholi','jaloviina','vodka','likoori','rommi','whisky','lonkero'];
   if(q.terms.some(t=>['cola','limsa','kahvi'].includes(t)) && alcohol.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'alcoholic_other_product'};
-  const pet=/\b(?:koiran|kissan|lemmik|dog|cat)/;
+  // Product type takes precedence over a flavour/ingredient word. These
+  // shared classes apply across queries, including catalog categories which
+  // contain no usable taxonomy (opaque supplier codes).
+  const typeRules: [string, RegExp][] = [
+    ['nonfood', /shampoo|hoitoaine|tuoksusuihke|kosmetiikka|kauneus|hygienia|epsom|kylpysuola|eteerinen|hius|pyydys|torjunta|ilmapallo|sirotin|pippurimylly|ruoanvalmistusastia|lelu|hiusoljy|elvital/],
+    ['pet', /best in|bestin|kssanherkku|almo nature|purina|whiskas|pedigree|schesir|shelma|cesar|koir|kiss|lemmik/],
+    ['snacks', /chips|snacks|snack|sipsi|naksu|puffs|perunalastu|juusto rinkula/],
+    ['sweets', /suklaa|tryffeli|makeis|karkki|konvehti|purukumi|pastilli/],
+    ['prepared', /valmisruo|mikroateria|pizza|pitsa|panini|patonki|kanakastike|vegekastike|keitto|ateriat|ateria|salaatti|tahna|sose|pyree|kiusaus|gratiini/],
+    ['processed_meat', /makkara|nakki|lihaleikkele/],
+    ['spread', /& voi|margariini|rasvalevit|rasvaseos/],
+    ['babyfood', /lastenruo|piltti|vauvanruo/],
+    ['bakery', /leivonnai|leivos|kakku|keksi|kranssi|wiener|vohveli|pullapitko/],
+    ['yogurt', /jogurtti|jogurtit|yoghurt|yogurt|skyr|vanukas/],
+    ['icecream', /jaatelo|sorbet/],
+    ['drink', /virvoitusjuoma|limonadi|kivennais|lahdeves|vitaminoitu vesi|energiajuoma|smoothie|juoma|mehu|(?:^| )tee(?: |$)/],
+  ];
+  const rawIngredientTerms=new Set(['maito','juusto','kerma','rahka','voi','riisi','jauheliha','kana','broileri','kinkku','lohi','peruna','porkkana','tomaatti','kurkku','banaani','omena','appelsiini','sokeri','suola','oljy','jauho']);
+  const rawIntent=q.terms.some(t=>rawIngredientTerms.has(t));
+  const requestedTypes=new Set(typeRules.filter(([,pattern])=>pattern.test(q.terms.join(' '))).map(([type])=>type));
+  if(q.terms.some(t=>['kinkku','makkara','nakki','leikkele'].includes(t)))requestedTypes.add('processed_meat');
+  if(rawIntent || ['kahvi','cola','limsa','vesi','tee'].some(t=>q.terms.includes(t))) {
+    for(const [type,pattern] of typeRules) {
+      if(!pattern.test(nameText+' '+categoryText) || requestedTypes.has(type))continue;
+      if(type==='drink' && q.terms.some(t=>['cola','limsa','vesi','tee'].includes(t)))continue;
+      // Category "mehu" is unrelated to a fresh orange search, just as a
+      // cheese-flavoured snack is unrelated to the cheese shelf.
+      return {accepted:false,score:-10000,reason:'different_product_type:'+type};
+    }
+  }
+  const pet=/\b(?:koir|kiss|lemmik|dog|cat)/;
   const petRequest=q.terms.some(t=>pet.test(t));
   if(!petRequest && pet.test(nameText+' '+categoryText))
     return {accepted:false,score:-10000,reason:'pet_product'};
