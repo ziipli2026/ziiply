@@ -12,6 +12,11 @@ export function hasConflictingOffProductName(catalogName, offName) {
     ![...catalogTokens].some(token => offTokens.has(token));
 }
 
+export function shouldSuppressLocalOffNutrition(ean, catalogName, offName) {
+  return typeof ean === 'string' && /^2[0-9]/.test(ean) &&
+    hasConflictingOffProductName(catalogName, offName);
+}
+
 export function buildFineliSaltEstimate(row) {
   if (!row || row.saltG100g === null || row.saltG100g === undefined || row.saltG100g === '' || !Number.isFinite(Number(row.saltG100g))) return null;
   if (!['verified', 'high'].includes(row.confidence) || !Number.isInteger(Number(row.fineliId)) || Number(row.fineliId) <= 0 || typeof row.foodName !== 'string' || !row.foodName.trim()) return null;
