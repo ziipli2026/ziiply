@@ -28,3 +28,18 @@ assert.equal(exact.products.length,1,'known EAN should return one product');
 assert.equal(String(exact.products[0].ean),String(candidate.ean));
 assert.equal(exact.categoryExpansion,'exact-ean');
 console.log('Known EAN:',candidate.ean,'matched exactly');
+for(const query of ['juusto','jogurtti','jauheliha','peruna','makkara','laktoositon maito']){
+ const response=request(query);
+ assert.equal(response.query,query,'response must identify the requested query');
+ assert.equal(response.count,response.products.length,'count must match products length');
+ assert.ok(response.count>0,query+' must return products');
+ assert.ok(response.count<=100,query+' must respect the 100-result cap');
+ assert.equal(response.readOnly,true,'Neon search must remain read-only');
+ assert.notEqual(response.categoryExpansion,'exact-ean','word search must not use barcode path');
+ for(const product of response.products){
+  assert.ok(product.name,query+' returned a product without name');
+  assert.ok(/^\\d{8,14}$/.test(String(product.ean||'')),query+' returned invalid EAN');
+ }
+ console.log(query+': '+response.count+' valid products');
+}
+
