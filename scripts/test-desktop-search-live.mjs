@@ -14,7 +14,7 @@ for(const query of queries){
   const start=Date.now();let entry={query,chain:source.chain,status:null,count:0,ms:0,errors:[],examples:[]};
   try{
    // Vercel CLI authenticates protected preview requests using the GitHub secret.
-   const raw=execFileSync('vercel',['curl',url.toString(),'-sS','-f'],{encoding:'utf8',timeout:30000,env:process.env});
+   const raw=execFileSync('vercel',['curl',url.toString(),'--','-sS','-f'],{encoding:'utf8',timeout:30000,env:process.env});
    entry.status=200;
    const body=JSON.parse(raw);
    const items=Array.isArray(body.products)?body.products:Array.isArray(body.items)?body.items:Array.isArray(body)?body:[];
