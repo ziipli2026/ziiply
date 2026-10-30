@@ -14,6 +14,7 @@ export function hasConflictingOffProductName(catalogName, offName) {
 
 export function buildFineliSaltEstimate(row) {
   if (!row || row.saltG100g === null || row.saltG100g === undefined || row.saltG100g === '' || !Number.isFinite(Number(row.saltG100g))) return null;
+  if (!['verified', 'high'].includes(row.confidence) || !Number.isInteger(Number(row.fineliId)) || Number(row.fineliId) <= 0 || typeof row.foodName !== 'string' || !row.foodName.trim()) return null;
   const value = Number(row.saltG100g);
   if (value < 0 || value > 100) return null;
   return {
