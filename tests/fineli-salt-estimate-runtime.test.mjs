@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { attachFineliSaltEstimate } from '../src/app/api/ean-bank/fineli-salt-estimate.mjs';
+import { hasConflictingOffProductName, shouldSuppressLocalOffNutrition, attachFineliSaltEstimate } from '../src/app/api/ean-bank/fineli-salt-estimate.mjs';
 
 const row = { saltG100g: '0.1147', fineliId: 123, foodName: 'SEESAMINSIEMEN', confidence: 'verified' };
 const off = { salt_100g: null, proteins_100g: 18 };
@@ -26,4 +26,33 @@ test('ambiguous or invalid estimates are rejected', () => {
 });
 test('does not add Fineli salt to other sources', () => {
   assert.deepEqual(attachFineliSaltEstimate(off, 'fineli-generic', true, [row]), off);
+});
+
+test('obvious mismatched OFF product name blocks Fineli estimate', () => {
+  assert.equal(hasConflictingOffProductName('Omena gala', 'Chili Carolina Reaper 50g'), true);
+  assert.equal(hasConflictingOffProductName('Omena gala', 'Omena Gala 1kg'), false);
+  assert.equal(hasConflictingOffProductName('Omena gala', ''), false);
+});
+
+test('rejects estimates without verified confidence and complete Fineli identity', () => {
+  for (const invalid of [
+    {...row, confidence: 'low'},
+    {...row, confidence: 'medium'},
+    {...row, confidence: null},
+    {...row, fineliId: null},
+    {...row, fineliId: -1},
+    {...row, foodName: ''},
+    {...row, foodName: null}
+  ]) {
+    assert.deepEqual(attachFineliSaltEstimate(off, 'open-food-facts', true, [invalid]), off);
+  }
+  assert.equal(attachFineliSaltEstimate(off, 'open-food-facts', true, [{...row,confidence:'high'}]).estimatedSalt.confidence, 'high');
+});
+
+test('local EAN conflicting OFF products are suppressed, regular EANs unaffected', () => {
+  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', 'Nocetta'), true);
+  assert.equal(shouldSuppressLocalOffNutrition('2000610800005', 'Punajuuri Luomu Suomi', 'Änglamark Sitron 400g'), true);
+  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', 'Palsternakka Suomi'), false);
+  assert.equal(shouldSuppressLocalOffNutrition('6410405078872', 'Palsternakka Suomi', 'Nocetta'), false);
+  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', ''), false);
 });
