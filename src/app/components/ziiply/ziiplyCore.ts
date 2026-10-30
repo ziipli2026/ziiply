@@ -2116,7 +2116,7 @@ export function isHardRejectedKMatch(query: string, candidateName: string) {
 
   const sourceIsCheese = hasAnyToken(source, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
-    const targetIsCheese = hasAnyToken(target, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+    const targetIsCheese = hasAnyToken(target.replace(/\bjuustoportti(?:n)?\b/g, " "), ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
     const forbiddenWords = hasAnyToken(target, ["tuorejuusto", "sulatejuusto", "raejuusto", "juustodippi", "dippi", "nacho", "kastike"]);
 
     if (!targetIsCheese) return true;
