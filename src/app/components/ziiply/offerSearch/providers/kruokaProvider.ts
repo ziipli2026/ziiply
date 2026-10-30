@@ -668,46 +668,6 @@ export async function fetchKruokaOffers(
     const resolvedPublications = await resolveKLocalPublicationIds(selected, business.businessId, business.slug);
     debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
     const campaignPublicationIds = new Set(resolvedPublications.campaignIds);
-    if (tjekStoreId === "986cCCi") {
-      // One-off Incito API compatibility probe: no credentials logged, no offer data exposed.
-      const body = {
-        id: "bUGl9JyG",
-        device_category: "desktop",
-        pointer: "fine",
-        orientation: "horizontal",
-        pixel_ratio: 1,
-        max_width: 1024,
-        versions_supported: ["1.0.0"],
-        locale_code: "fi_FI",
-        time: new Date().toISOString(),
-        feature_labels: [{ key: "none", value: 1 }],
-        enable_lazy_loading: false,
-      };
-      for (const origin of ["https://squid-api.tjek.com"]) {
-        try {
-          const response = await fetch(origin + "/v4/rpc/generate_incito_from_publication", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify(body),
-            cache: "no-store",
-            signal: AbortSignal.timeout(5000),
-          });
-          const contentType = response.headers.get("content-type") ?? "";
-          const payload = await response.text();
-          let parsed: unknown;
-          try { parsed = JSON.parse(payload); } catch { parsed = null; }
-          console.info("[Ziiply Wiljami Incito API]", JSON.stringify({
-            origin, status: response.status, contentType,
-            keys: parsed && typeof parsed === "object" ? Object.keys(parsed).slice(0, 20) : [],
-            responseSample: response.ok ? "" : payload.slice(0, 240),
-            payloadLength: payload.length,
-          }));
-        } catch (error) {
-          console.info("[Ziiply Wiljami Incito API error]", JSON.stringify({ origin, error: String(error) }));
-        }
-      }
-    }
-
     // Both K-Market and K-Supermarket can have selected-store publications whose
     // label contains no campaign keyword. Fetch every store-scoped active publication;
     // retain the source's campaign classification rather than inventing one.
