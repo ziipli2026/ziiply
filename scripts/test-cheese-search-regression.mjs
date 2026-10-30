@@ -17,20 +17,24 @@ vm.runInNewContext(compiled, {
     throw new Error("Unexpected dependency: " + id);
   },
 }, { timeout: 10000 });
-const { isBadNormalResult, isHardRejectedKMatch } = module.exports;
+const { isBadNormalResult, isHardRejectedKMatch, productGroupGate } = module.exports;
 assert.equal(typeof isBadNormalResult, "function");
 assert.equal(typeof isHardRejectedKMatch, "function");
+assert.equal(typeof productGroupGate, "function");
 const product = (name) => ({ id: 1, name, category: "Maitotuotteet" });
 
 for (const name of ["Juustoportti porkkanasose 500 g", "Juustoportti kaurapuuro 400 g"]) {
   assert.equal(isBadNormalResult(product(name), "juusto"), true, name + " must not pass cheese search");
   assert.equal(isHardRejectedKMatch("juusto", name), true, name + " must not match cheese");
+  assert.equal(productGroupGate("juusto", name), false, name + " must fail group gate");
 }
 for (const name of ["Juustoportti Edam juusto 500 g", "Valio tuorejuusto 200 g", "Valio sulatejuusto 200 g", "Valio raejuusto 200 g"]) {
   assert.equal(isBadNormalResult(product(name), "juusto"), false, name + " must remain in cheese search");
   assert.equal(isHardRejectedKMatch("juusto", name), false, name + " must match cheese");
+  assert.equal(productGroupGate("juusto", name), true, name + " must pass group gate");
 }
 assert.equal(isBadNormalResult(product("Juustoportti juustodippi 200 g"), "juusto"), true);
 assert.equal(isHardRejectedKMatch("juusto", "Juustoportti juustodippi 200 g"), true);
+assert.equal(productGroupGate("juusto", "Juustoportti juustodippi 200 g"), false);
 assert.equal(isHardRejectedKMatch("Juustoportti porkkanasose", "Juustoportti porkkanasose"), false);
 console.log("Cheese search behavioral regression checks passed");
