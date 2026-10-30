@@ -34,3 +34,10 @@ test('Fineli is a separately labeled estimate, not a replacement for OFF salt', 
   assert.doesNotMatch(block, /safeNutrition\.salt_100g\s*(?:=(?!=)|\+=(?!=)|-=(?!=)|\*=(?!=)|\/=(?!=)|\?\?=)/);
   assert.doesNotMatch(block, /\b(?:INSERT|UPDATE|DELETE)\b/i);
 });
+
+test('local EAN name conflicts suppress OFF nutrition without hiding catalog product', () => {
+  assert.match(route, /const unsafeLocalOff = \/\^2\[0-9\]\//);
+  assert.match(route, /hasConflictingOffProductName\(rows\[0\]\.name, selected\.data\?\.product_name\)/);
+  assert.match(route, /if \(selected && !unsafeLocalOff\)/);
+  assert.match(route, /return NextResponse\.json\(\{ ok: true, product: \{ \.\.\.rows\[0\], nutrition \} \}\)/);
+});
