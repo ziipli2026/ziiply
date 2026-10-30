@@ -58,6 +58,41 @@ function shouldDebugRanker(query: string) {
   return q.includes("makkara") || q.includes("nakki") || q.includes("liha") || q.includes("ruisleipa") || q.includes("kaurahiutale");
 }
 
+
+/** Query-independent lexical relevance: no product-specific keyword exceptions. */
+function lexicalRelevance(product: ZiiplySearchProductLike, query: string) {
+  const q = normalizeFi(query).trim();
+  const tokens = tokenizeFi(q).filter(Boolean);
+  if (!tokens.length) return { score: 0, reasons: [] as string[] };
+  const name = normalizeFi(product.name || product.title);
+  const brand = normalizeFi(product.brandName || product.brand);
+  const category = normalizeFi(product.category);
+  const words = tokenizeFi(name);
+  const categoryWords = tokenizeFi(category.replace(/[/-]/g, " "));
+  const reasons: string[] = [];
+  let score = 0;
+  if (name === q) { score += 240; reasons.push("lexical_exact_name"); }
+  else if (words.includes(q)) { score += 170; reasons.push("lexical_name_word"); }
+  else if (name.startsWith(q + " ")) { score += 135; reasons.push("lexical_name_prefix"); }
+  else if (name.includes(q)) { score += 45; reasons.push("lexical_name_substring"); }
+  let matched = 0;
+  for (const token of tokens) {
+    const exact = words.includes(token);
+    const prefix = token.length >= 3 && words.some(w => w.startsWith(token));
+    const compound = token.length >= 4 && words.some(w => w.includes(token));
+    const categoryMatch = categoryWords.includes(token);
+    if (exact) { score += 75; matched++; }
+    else if (prefix) { score += 42; matched++; }
+    else if (compound) { score += 12; matched++; }
+    else if (categoryMatch) { score += 5; matched++; }
+    else if (brand.split(" ").includes(token)) { score += 15; matched++; }
+  }
+  if (matched === tokens.length) { score += 35; reasons.push("lexical_all_tokens"); }
+  else if (matched === 0) { score -= 120; reasons.push("lexical_no_match"); }
+  else { score -= 90 * (tokens.length - matched); reasons.push("lexical_missing_tokens"); }
+  return { score, reasons };
+}
+
 export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
   product: T,
   query: string,
@@ -92,7 +127,9 @@ export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
     }
   }
 
-  let score = baseScore;
+  const lexical = lexicalRelevance(product, q);
+  let score = Math.max(-50, Math.min(50, baseScore)) + lexical.score;
+  reasons.push(...lexical.reasons);
 
   if (name === q) {
     score += 100;
