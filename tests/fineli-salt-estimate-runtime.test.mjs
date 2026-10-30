@@ -54,5 +54,6 @@ test('local EAN conflicting OFF products are suppressed, regular EANs unaffected
   assert.equal(shouldSuppressLocalOffNutrition('2000610800005', 'Punajuuri Luomu Suomi', 'Änglamark Sitron 400g'), true);
   assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', 'Palsternakka Suomi'), false);
   assert.equal(shouldSuppressLocalOffNutrition('6410405078872', 'Palsternakka Suomi', 'Nocetta'), false);
-  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', ''), false);
+  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', ''), true);
+  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', null), true);
 });
