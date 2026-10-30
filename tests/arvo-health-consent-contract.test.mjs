@@ -8,8 +8,10 @@ const schema = readFileSync(new URL("../db/migrations/20261029_arvo_health_conse
 
 test("health consent API fails closed for every HTTP method", () => {
   for (const method of ["GET", "POST", "DELETE"]) {
-    assert.match(route, new RegExp("export async function " + method + "\\(\\) \\{ return disabled\\(\\); \\}"));
+    assert.match(route, new RegExp("export async function " + method + "\\(\\) \\{ return unavailable\\(\\); \\}"));
   }
+  assert.match(route, /await requireArvoHealthUser\(\)/);
+  assert.match(route, /if \(!auth.ok\) return auth.response/);
   assert.match(route, /status: 503/);
   assert.match(route, /Cache-Control": "no-store"/);
   assert.doesNotMatch(route, /DATABASE_URL|process\.env\.|user_id\s*=/);
