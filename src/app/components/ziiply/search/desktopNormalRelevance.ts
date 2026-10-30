@@ -25,6 +25,7 @@ const forms: Record<string, string> = {
 };
 const canonical = (word: string) => forms[word] || word;
 const alternatives: Record<string, string[]> = {
+  maito:['maito','kevytmaito','täysmaito','ykkösmaito','luomumaito','rasvaton maito'],
   kahvi:['kahvi','juhla mokka','kulta katriina'],
   ketsuppi:['ketsuppi','ketchup'], ketsuppia:['ketsuppi','ketchup'],
   zero:['zero','sokeriton','max'], sokeriton:['sokeriton','zero','max'],
@@ -120,6 +121,7 @@ export function desktopSearchDecision(query: string, product: Row) {
     ['bakery', /leivonnai|leivos|kakku|keksi|kranssi|wiener|vohveli|pullapitko/],
     ['yogurt', /jogurtti|jogurtit|yoghurt|yogurt|skyr|vanukas/],
     ['icecream', /jaatelo|sorbet/],
+    ['coffee', /cappuccino|latte|kahvijauhe|kahvi|kaakao/],
     ['drink', /virvoitusjuoma|limonadi|kivennais|lahdeves|vitaminoitu vesi|energiajuoma|smoothie|juoma|mehu|(?:^| )tee(?: |$)/],
   ];
   const rawIngredientTerms=new Set(['piima','jogurtti','leipa','maito','juusto','kerma','rahka','voi','riisi','jauheliha','kana','broileri','kinkku','lohi','peruna','porkkana','tomaatti','kurkku','banaani','omena','appelsiini','sokeri','suola','oljy','jauho']);
@@ -151,6 +153,8 @@ export function desktopSearchDecision(query: string, product: Row) {
   const accessories=['tutti','pulloharja','suodatinpussi','kahvinsuodatin','avaaja','leipaveitsi','olutlasi','kahvimuki'];
   if(accessories.some(t=>nameText.includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'accessory_not_food'};
+  if(q.terms.includes('maito') && ['kondensoitu','tiivistetty','haihdutettu'].some(t=>nameText.includes(t) && !q.terms.includes(t)))
+    return {accepted:false,score:-10000,reason:'different_milk_preparation'};
   if(q.terms.includes('maito') && /maitojuoma|maitokahvi|maitokaakao|korvike|maitojauhe|pirtelo/.test(nameText))
     return {accepted:false,score:-10000,reason:'different_milk_product'};
   if(q.terms.includes('kahvi')) {
@@ -165,9 +169,9 @@ export function desktopSearchDecision(query: string, product: Row) {
   let score=0;
   for(const term of q.terms) {
     const variants=alternatives[term] || [term];
-    const strength=Math.max(0,...variants.map(v => (name.terms.includes(v) || (v.includes(' ') && (' '+name.terms.join(' ')+' ').includes(' '+v+' '))) ? (v===term?100:80)
+    const strength=Math.max(0,...variants.map(rawVariant => { const v=searchWords(rawVariant).map(canonical).join(' '); return (name.terms.includes(v) || (v.includes(' ') && (' '+name.terms.join(' ')+' ').includes(' '+v+' '))) ? (v===term?100:80)
       : name.terms.some(w=>v.length>=3 && w.startsWith(v) && (!rawIngredientTerms.has(v) || (['kana','broileri'].includes(v) && /^(?:n)?(?:filee|rinta|reis|siipi|suikale|koipi|paisti|pihvi|jauheliha)/.test(w.slice(v.length))))) ? 65
-      : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0));
+      : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0; }));
     if(strength) score+=strength;
     else if(!alternatives[term] && brand.includes(term) && (q.terms.length>1 || brand.join(" ")===term)) score+=25;
     else return {accepted:false,score:-1000,reason:`missing_term:${term}`};
@@ -180,15 +184,15 @@ export function desktopSearchDecision(query: string, product: Row) {
   score+=q.terms.filter(t=>category.some(w=>canonical(w)===t)).length*5;
   return {accepted:true,score,reason:'all_terms_match'};
 }
-export function rankDesktopNormalRows<T extends Row>(query: string, rows: T[]): T[] {
+export function rankDesktopNormalRows<T extends Row>(query: string, rows: T[], options: {requirePrice?: boolean} = {}): T[] {
   return rows.map((product,index)=>({product,index,...desktopSearchDecision(query,product)}))
-    .filter(x=>x.accepted)
+    .filter(x=>x.accepted && (!options.requirePrice || (typeof x.product.__price==='number' && Number.isFinite(x.product.__price) && x.product.__price>0)))
     .sort((a,b)=>{
       // Every accepted row matches all requested terms. A price must be a
       // positive finite number; null/zero/NaN never masquerades as a quote.
       const ap=typeof a.product.__price==='number' && Number.isFinite(a.product.__price) && a.product.__price>0;
       const bp=typeof b.product.__price==='number' && Number.isFinite(b.product.__price) && b.product.__price>0;
-      return Number(bp)-Number(ap) || b.score-a.score ||
+      return Number(bp)-Number(ap) || (ap && bp ? a.product.__price!-b.product.__price! : 0) || b.score-a.score ||
         (ap&&bp ? a.product.__price!-b.product.__price! : 0) || a.index-b.index;
     }).map(x=>x.product);
 }

@@ -70,3 +70,33 @@ assert.ok(!queries('kana').some(q=>q.includes('suikale')));
 assert.equal(dec('6410400000001',{name:'Unknown',ean:'6410400000001'}).accepted,true);
 assert.equal(dec('6410400000001',{name:'6410400000001',ean:'6410400000002'}).accepted,false);
 console.log(`PASS ${yes.length+no.length+7} desktop normal relevance cases`);
+
+assert.deepEqual(rank('cola',rows,{requirePrice:true}).map(x=>x.__price),[1,2]);
+assert.equal(rank('maito',[{name:'Valio maito',__price:null}],{requirePrice:true}).length,0);
+assert.deepEqual(rank('maito',[{name:'Valio maito 1l',__price:2},{name:'Arla kevytmaito 1l',__price:1}],{requirePrice:true}).map(x=>x.__price),[1,2]);
+for(const name of ['Dovgan Kondensoitu maito 397g','Tiivistetty maito 300g'])assert.equal(dec('maito',{name}).accepted,false);
+
+assert.deepEqual(rank('kahvi',[{name:'Kahvi 500g',__price:5},{name:'Suodatinkahvi 500g',__price:3}],{requirePrice:true}).map(x=>x.__price),[3,5]);
+assert.deepEqual(rank('cola',[{name:'Cola 1l',__price:2},{name:'Pepsi Max 1l',__price:1}],{requirePrice:true}).map(x=>x.__price),[1,2]);
+
+assert.ok(queries('maito').includes('kevytmaito'));
+assert.ok(queries('maito').includes('täysmaito'));
+assert.equal(dec('maito',{name:'Xtra pikacappuccino maito-kahvijauhe 250g'}).accepted,false);
+assert.equal(dec('maito',{name:'Arla täysmaito 1l'}).accepted,true);
+
+// The display policy is query-independent: qualify first, require an actual
+// selected-store quote, then order every accepted result by purchase price.
+for(const query of ['maito','kahvi','cola','juusto','suola','sokeri','vesi','xyzbrand']) {
+  const sample=[
+    {id:'expensive',name:query,__price:4},
+    {id:'unpriced',name:query,__price:null},
+    {id:'cheap',name:query+' 500g',__price:1},
+    {id:'zero',name:query,__price:0},
+    {id:'negative',name:query,__price:-1},
+    {id:'nan',name:query,__price:NaN},
+    {id:'infinity',name:query,__price:Infinity},
+    {id:'unrelated',name:'Completely unrelated',__price:0.01},
+  ];
+  assert.deepEqual(rank(query,sample,{requirePrice:true}).map(p=>p.id),['cheap','expensive'],query+' must apply the same qualified priced ascending policy');
+}
+console.log('PASS universal Justiina display policy: wrong/unpriced rows excluded; ascending price across all query cases');

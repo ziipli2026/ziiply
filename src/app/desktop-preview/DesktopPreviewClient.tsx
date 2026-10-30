@@ -2352,13 +2352,13 @@ export default function DesktopPreviewPage() {
         if(!previous||(Number.isFinite(product.__price)&&(!Number.isFinite(previous.__price)||product.__price<previous.__price)))combinedByEan.set(key,product);
       }
       const eligibleRows=[...combinedByEan.values()].filter(product=>desktopSearchDecision(query,product).accepted);
-      const sortedRows=rankDesktopNormalRows(query,eligibleRows).slice(0,100);
+      const sortedRows=rankDesktopNormalRows(query,eligibleRows,{requirePrice:true}).slice(0,100);
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,neonOnlyCount:neonOnly.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
       if(generation!==desktopVoiceRunRef.current)return false;
       setJustiinaDebug({query,status:"Valmis",selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,storeId:b.store?.id,source:b.data?.source,apiStatus:b.data?.status,error:b.data?.error,rawCount:Array.isArray(b.data?.items)?b.data.items.length:Array.isArray(b.data?.products)?b.data.products.length:0,examples:(b.data?.items||b.data?.products||[]).slice(0,3).map((x:any)=>x.name)})),rankedCount:sortedRows.length});
-      setJustiinaResults(sortedRows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Hakemaasi "${query}" ei löydy.`);
+      setJustiinaResults(sortedRows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
       return sortedRows.length > 0;
     }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
   }
