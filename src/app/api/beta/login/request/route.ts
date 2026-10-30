@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createBetaToken, hashBetaToken, BETA_LOGIN_TTL_MS } from "../../../../../lib/ziiplyBetaAuthTokens.mjs";
 import { neon } from "@neondatabase/serverless";
+import { createHmac } from "node:crypto";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const noStore = { "Cache-Control": "no-store" };
@@ -26,6 +27,24 @@ export async function POST(request: Request) {
   const applications = await sql`SELECT id FROM public.ziiply_beta_applications
     WHERE lower(email) = ${email} AND status IN ('invited','active') LIMIT 1`;
   if (!applications.length) return generic();
+  // Per-account throttling is database-backed and shared across all Vercel instances.
+  const secret = process.env.ZIIPLY_BETA_RATE_LIMIT_SECRET;
+  if (!secret || secret.length < 32)
+    return NextResponse.json({ ok: false, code: "BETA_LOGIN_NOT_CONFIGURED" }, { status: 503, headers: noStore });
+  const emailHash = createHmac("sha256", secret).update(email).digest("hex");
+  const allowed = await sql`
+    WITH lock AS (
+      SELECT pg_advisory_xact_lock(hashtext(${emailHash})) AS acquired
+    ), recent AS (
+      SELECT count(*)::integer AS attempts
+      FROM public.ziiply_beta_login_attempts, lock
+      WHERE email_hash = ${emailHash} AND created_at > now() - interval '1 hour'
+    ), inserted AS (
+      INSERT INTO public.ziiply_beta_login_attempts (email_hash, ip_hash)
+      SELECT ${emailHash}, ${emailHash} FROM recent WHERE attempts < 3
+      RETURNING id
+    ) SELECT id FROM inserted`;
+  if (!allowed.length) return generic();
   const token = createBetaToken();
   const tokenHash = hashBetaToken(token);
   const expires = new Date(Date.now() + BETA_LOGIN_TTL_MS).toISOString();
