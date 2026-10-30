@@ -58,3 +58,17 @@ test('Arvo rejects an invalid manually entered EAN', async ({ page }) => {
   await expect(page.getByRole('textbox', { name: 'EAN-koodi' })).toHaveAttribute('pattern', '[0-9]{8,14}');
   expect(requests).toBe(0);
 });
+
+test('Arvo keeps catalog product visible when conflicting local EAN nutrition is suppressed', async ({ page }) => {
+  await page.route('**/api/ean-bank?ean=2000607000005', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ok:true,product:{ean:'2000607000005',name:'Palsternakka Suomi',nutrition:null}})
+  }));
+  await page.goto('http://127.0.0.1:3000/arvo-scanner-preview');
+  await page.getByRole('button', { name: 'Syötä EAN' }).click();
+  await page.getByRole('textbox', { name: 'EAN-koodi' }).fill('2000607000005');
+  await page.getByRole('button', { name: 'Hae EAN' }).click();
+  await expect(page.getByText('Palsternakka Suomi')).toBeVisible();
+  await expect(page.getByText('Tuote löytyi, ravintoarvot puuttuvat')).toBeVisible();
+  await expect(page.getByText('Fineli – arvio')).toHaveCount(0);
+});
