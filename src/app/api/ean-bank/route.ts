@@ -117,7 +117,12 @@ export async function GET(request: NextRequest) {
           `;
           const specific = matched.find((item) => item.source === "open-food-facts");
           const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
-          if (selected) {
+          // Internal retailer EANs may refer to unrelated products in OFF.
+          // Preserve catalog identity, but suppress untrusted nutrition.
+          const unsafeLocalOff = /^2[0-9]/.test(ean) &&
+            selected?.source === "open-food-facts" &&
+            hasConflictingOffProductName(rows[0].name, selected.data?.product_name);
+          if (selected && !unsafeLocalOff) {
             const safeNutrition: Record<string, unknown> = { ...selected.data, source: selected.source };
             // Do not expose physically impossible OFF values to the scanner.
             // Keep other valid nutrients; never change the stored source record.
