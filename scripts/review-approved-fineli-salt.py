@@ -46,6 +46,8 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
             WHERE m.approved IS TRUE AND n.salt_100g IS NULL
         """)
         counts = {}
+        reasons = {}
+        reason_counts = {}
         for ean, confidence, method, unit, value, value_type in cur.fetchall():
             eligible = confidence in ("verified", "high") and method == "manual_verified" and unit == "MG" and value_type == "number"
             try:
@@ -54,10 +56,23 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                 eligible = False
             if eligible:
                 counts[ean] = counts.get(ean, 0) + 1
+            else:
+                reason = ("unverified_match" if method != "manual_verified"
+                          else "low_confidence" if confidence not in ("verified", "high")
+                          else "wrong_salt_unit" if unit != "MG"
+                          else "non_numeric_salt" if value_type != "number"
+                          else "invalid_salt_range")
+                reasons.setdefault(ean, set()).add(reason)
+                reason_counts[reason] = reason_counts.get(reason, 0) + 1
         print("FINELI_SALT_ELIGIBILITY",
               json.dumps({"unique_eligible":sum(n == 1 for n in counts.values()),
                           "multiple_eligible_matches":sum(n > 1 for n in counts.values()),
                           "no_eligible_match":sum(ean not in counts for ean, _, _ in rows)}),
+              flush=True)
+        print("FINELI_SALT_INELIGIBLE_REASONS",
+              json.dumps({"match_level_counts":reason_counts,
+                          "product_level_counts":{reason:sum(reason in v for ean, v in reasons.items() if ean not in counts)
+                                                  for reason in sorted(reason_counts)}}),
               flush=True)
         for ean, name, matches in rows:
             print("FINELI_SALT_REVIEW_ITEM",
