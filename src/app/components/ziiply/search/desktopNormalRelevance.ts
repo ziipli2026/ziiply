@@ -11,6 +11,7 @@ export function searchWords(value: unknown): string[] {
     .match(/[a-z]+|\d+(?:\.\d+)?/g) || [];
 }
 const forms: Record<string, string> = {
+  kanan:'kana', broilerin:'broileri', kermat:'kerma',
   maitoa:'maito', maidon:'maito', maidot:'maito', kahvia:'kahvi', kahvin:'kahvi',
   juustoa:'juusto', juuston:'juusto', juustot:'juusto', leipaa:'leipa', leivat:'leipa',
   jogurttia:'jogurtti', jogurtin:'jogurtti', jugurtti:'jogurtti', jugurti:'jogurtti',
@@ -77,15 +78,22 @@ export function desktopSearchDecision(query: string, product: Row) {
   const q=parse(desktopSearchQuery(query));
   if(/\b(?:tai|valitse)\b/.test(searchWords(product.name).join(' ')) && !/\b(?:tai|valitse)\b/.test(query))
     return {accepted:false,score:-10000,reason:'ambiguous_product_choice'};
-  const name=parse(product.name || product.title);
   const brand=parse(product.brandName || product.brand).terms;
+  let productWords=searchWords(product.name || product.title);
+  const knownFamily=q.terms.flatMap(t=>alternatives[t] || []);
+  const brandDefinesFamily=knownFamily.some(t=>brand.join(' ')===t || brand.join(' ').startsWith(t+' '));
+  if(brand.length && !brand.every(t=>q.terms.includes(t)) && !brandDefinesFamily) {
+    const index=productWords.findIndex((_,i)=>brand.every((t,j)=>canonical(productWords[i+j] || '')===t));
+    if(index>=0)productWords=[...productWords.slice(0,index),...productWords.slice(index+brand.length)];
+  }
+  const name=parse(productWords.join(' '));
   const category=parse(product.category).terms;
   const intent=resolveSearchIntentAI(desktopSearchQuery(query));
   intent.includeTerms=[...intent.includeTerms,...q.terms.flatMap(t=>alternatives[t] || [])];
   if (!isProductAllowedByIntent({...product, brandName:product.brandName || product.brand},intent))
     return {accepted:false,score:-10000,reason:'wrong_product_group'};
   if (!q.terms.length) return {accepted:false,score:0,reason:'empty_query'};
-  const nameText=searchWords(product.name || product.title).join(' ');
+  const nameText=productWords.join(' ');
   const categoryText=searchWords(product.category).join(' ');
   const nonfood=['shampoo','hoitoaine','tuoksusuihke','saippua','suihkugeeli','kosmetiikka','pesuaine','huulivoide','vartalovoide','hiusnaamio'];
   if(intent.intent!=='unknown' && nonfood.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
@@ -102,9 +110,10 @@ export function desktopSearchDecision(query: string, product: Row) {
     ['nonfood', /shampoo|hoitoaine|tuoksusuihke|kosmetiikka|kauneus|hygienia|epsom|kylpysuola|eteerinen|hius|pyydys|torjunta|ilmapallo|sirotin|pippurimylly|ruoanvalmistusastia|lelu|hiusoljy|elvital/],
     ['pet', /best in|bestin|kssanherkku|almo nature|purina|whiskas|pedigree|schesir|shelma|cesar|koir|kiss|lemmik/],
     ['snacks', /chips|snacks|snack|sipsi|naksu|puffs|perunalastu|juusto rinkula/],
+    ['additive', /stabilointiaine|hyyteloimisaine|sakeuttamisaine/],
     ['nuts', /pahkina|cashew|pistaasi|(?:^| )manteli(?: |$)|(?:^| )siemen(?: |$)/],
-    ['sweets', /suklaa|tryffeli|makeis|karkki|konvehti|purukumi|pastilli/],
-    ['prepared', /valmisruo|mikroateria|pizza|pitsa|panini|patonki|kanakastike|vegekastike|keitto|ateriat|ateria|salaatti|tahna|sose|pyree|kiusaus|gratiini/],
+    ['sweets', /toffee|suklaa|tryffeli|makeis|karkki|konvehti|purukumi|pastilli/],
+    ['prepared', /valmisruo|mikroateria|pizza|pitsa|panini|patonki|kanakastike|vegekastike|keitto|ateriat|ateria|salaatti|tahna|perunamuus|kermaperun|sose|pyree|kiusaus|gratiini/],
     ['processed_meat', /makkara|nakki|lihaleikkele/],
     ['spread', /& voi|margariini|rasvalevit|rasvaseos/],
     ['babyfood', /lastenruo|piltti|vauvanruo/],
@@ -113,7 +122,7 @@ export function desktopSearchDecision(query: string, product: Row) {
     ['icecream', /jaatelo|sorbet/],
     ['drink', /virvoitusjuoma|limonadi|kivennais|lahdeves|vitaminoitu vesi|energiajuoma|smoothie|juoma|mehu|(?:^| )tee(?: |$)/],
   ];
-  const rawIngredientTerms=new Set(['maito','juusto','kerma','rahka','voi','riisi','jauheliha','kana','broileri','kinkku','lohi','peruna','porkkana','tomaatti','kurkku','banaani','omena','appelsiini','sokeri','suola','oljy','jauho']);
+  const rawIngredientTerms=new Set(['piima','jogurtti','leipa','maito','juusto','kerma','rahka','voi','riisi','jauheliha','kana','broileri','kinkku','lohi','peruna','porkkana','tomaatti','kurkku','banaani','omena','appelsiini','sokeri','suola','oljy','jauho']);
   const rawIntent=q.terms.some(t=>rawIngredientTerms.has(t));
   const requestedTypes=new Set(typeRules.filter(([,pattern])=>pattern.test(q.terms.join(' '))).map(([type])=>type));
   if(q.terms.some(t=>['kinkku','makkara','nakki','leikkele'].includes(t)))requestedTypes.add('processed_meat');
@@ -125,6 +134,11 @@ export function desktopSearchDecision(query: string, product: Row) {
       // cheese-flavoured snack is unrelated to the cheese shelf.
       return {accepted:false,score:-10000,reason:'different_product_type:'+type};
     }
+  }
+  const nameTypes: [string,RegExp][]=[['cheese',/juusto|edam|gouda|emmental|cheddar|mozzarella/],['meat',/kana|broileri|naudan|nauta|porsaan|possu|liha|kinkku|lohi/]];
+  for(const [type,pattern] of nameTypes) {
+    if(rawIntent && pattern.test(nameText) && !pattern.test(q.terms.join(' ')))
+      return {accepted:false,score:-10000,reason:'different_named_product:'+type};
   }
   const pet=/\b(?:koir|kiss|lemmik|dog|cat)/;
   const petRequest=q.terms.some(t=>pet.test(t));
@@ -152,7 +166,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   for(const term of q.terms) {
     const variants=alternatives[term] || [term];
     const strength=Math.max(0,...variants.map(v => (name.terms.includes(v) || (v.includes(' ') && (' '+name.terms.join(' ')+' ').includes(' '+v+' '))) ? (v===term?100:80)
-      : name.terms.some(w=>v.length>=3 && w.startsWith(v)) ? 65
+      : name.terms.some(w=>v.length>=3 && w.startsWith(v) && (!rawIngredientTerms.has(v) || (['kana','broileri'].includes(v) && /^(?:n)?(?:filee|rinta|reis|siipi|suikale|koipi|paisti|pihvi|jauheliha)/.test(w.slice(v.length))))) ? 65
       : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0));
     if(strength) score+=strength;
     else if(!alternatives[term] && brand.includes(term) && (q.terms.length>1 || brand.join(" ")===term)) score+=25;

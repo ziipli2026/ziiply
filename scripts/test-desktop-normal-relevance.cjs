@@ -27,6 +27,9 @@ const no=[
  ['cola 1.5l','Coca-Cola 0.5l'],['maito 1 l','Maito 1kg'],['xyzbrand','Muu tuote'],
  ['kana','Porkkana 1kg'],['kana','Americana pizza'],
  ['voi','Voileipä'],['kana','Kananmuna 10kpl'],
+ ['kerma','Sahlman Kerma pehmeä toffee 50g'],['kerma','Ahvenanmaan kermajuusto 200g'],
+ ['kerma','Kermainen Riistakäristys ja perunamuusia'],['kerma','Dr Oetker kerman stabilointiaine'],
+ ['suola','HK Viljaporsaan lastut Suola&Pippuri'],
  ['suola','Finca La Rosala Marcona manteli 80g evoo & suola'],
  ['lohi','Carnilove herkku koirille lohi-mustikka'],['suola','Epsom-suola 500g'],
  ['kerma','Pirkka yrttijuoma karpalo & kerma'],['jaatelo','Jäätelö tai virvoitusjuoma'],
@@ -51,6 +54,9 @@ const no=[
 ];
 for(const [q,name] of yes)assert.equal(dec(q,{name}).accepted,true,`missing ${q}: ${name} ${JSON.stringify(dec(q,{name}))}`);
 for(const [q,name] of no)assert.equal(dec(q,{name}).accepted,false,`noise ${q}: ${name}`);
+assert.equal(dec('juusto',{name:'Jokilaakson Juusto kirkastettu voi 200g',brand:'Jokilaakson Juusto'}).accepted,false);
+assert.equal(dec('voi',{name:'Jokilaakson Juusto kirkastettu voi 200g',brand:'Jokilaakson Juusto'}).accepted,true);
+assert.equal(dec('cola',{name:'Pepsi Max 1l',brand:'Pepsi Max'}).accepted,true);
 assert.equal(dec('cola',{name:'Vesi',brand:'Cola Company',category:'Cola'}).accepted,false);
 const rows=[{name:'Cola',__price:null},{name:'Pepsi Max',__price:2},{name:'Cola',__price:1},{name:'Cola',__price:NaN},{name:'Cola',__price:0}];
 assert.deepEqual(rank('cola',rows).slice(0,2).map(x=>x.__price),[1,2]);
