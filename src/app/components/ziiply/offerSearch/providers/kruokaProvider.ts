@@ -44,7 +44,7 @@ export type KruokaPipelineDebugV49 = {
   campaignProbe?: { activePublicationIds: string[]; campaignPublicationIds: string[]; fetchedCampaignRows: number; mappedCampaignRows: number; returnedCampaignRows: number };
   publicationPipeline?: Array<{ publicationId: string; raw: number; allowed: number; mapped: number; queryMatched: number; duplicate: number; returned: number }>;
   kTabClassificationAuditV1?: Array<{ publicationId: string; offerId: string; title: string; campaignType: string; validFrom: string | null; validUntil: string | null }>;
-  publicationFetch?: Array<{ publicationId: string; fetchedRows: number; uniqueOfferIds: number; addedAfterBaseDedupe: number; skippedAsDuplicate: number }>;
+  publicationFetch?: Array<{ publicationId: string; fetchedRows: number; uniqueOfferIds: number; addedAfterBaseDedupe: number; skippedAsDuplicate: number; source: "publication-index" | "viewer-fallback"; indexedRows: number }>;
   error: string | null;
   rawOffers?: UnknownRecord[];
   kSupermarketPublicationResolverDebug?: {
@@ -646,10 +646,12 @@ export async function fetchKruokaOffers(
         sort: ["score_desc"],
       }, business.slug)).filter(row => String(row.publicationPublicId ?? "") === publicationId);
       // Viewer hotspots are a fallback for regional leaflets not indexed by Tjek.
-      const rows = indexedRows.length > 0 || campaignPublicationIds.has(publicationId)
+      // A store-specific campaign can also have viewer hotspots even when its
+      // publication offer index is empty. Do not skip that fallback.
+      const rows = indexedRows.length > 0
         ? indexedRows
         : await fetchKSupermarketRegionalOffers(publicationId);
-      publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0 });
+      publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0, source: indexedRows.length > 0 ? "publication-index" : "viewer-fallback", indexedRows: indexedRows.length });
       regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
         campaignType: campaignPublicationIds.has(publicationId) ? localBenefitType(row) : row.campaignType })));
     }
