@@ -31,7 +31,7 @@ export default function BetaLoginPage() {
     <form onSubmit={submit}>
       <label htmlFor="beta-email">Sähköpostiosoite</label>
       <input id="beta-email" type="email" autoComplete="email" required value={email}
-        onChange={e=>setEmail(e.target.value)} disabled={!ready || busy}
+        onChange={e=>setEmail(e.target.value)} disabled={busy}
         style={{display:"block",width:"100%",padding:12,margin:"8px 0 16px",border:"1px solid #888",borderRadius:8}}/>
       <button type="submit" disabled={!ready || busy} style={{padding:"12px 20px",borderRadius:8}}>
         {busy?"Lähetetään…":"Lähetä kirjautumislinkki"}
