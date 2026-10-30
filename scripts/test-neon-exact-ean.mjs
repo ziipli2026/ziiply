@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const source = readFileSync("src/app/api/neon-first-search/route.ts", "utf8");
+const exact = source.indexOf("if (isEan) {");
+const fuzzy = source.indexOf("const contains =");
+assert.ok(exact >= 0 && fuzzy > exact, "EAN lookup must precede fuzzy candidate search");
+const block = source.slice(exact, fuzzy);
+assert.match(block, /WHERE ean = \$\{q\}/, "EAN must be matched exactly");
+assert.match(block, /LIMIT 1/, "EAN lookup must return at most one record");
+assert.doesNotMatch(block, /ILIKE|aliases|category_words/, "EAN lookup must not use fuzzy matching");
+assert.match(block, /return NextResponse\.json/, "EAN must return before text search");
+assert.match(source, /const isEan = \/\^\\d\{8,14\}\$\//, "EAN format must remain 8-14 digits");
+console.log("Neon exact EAN isolation checks passed");
