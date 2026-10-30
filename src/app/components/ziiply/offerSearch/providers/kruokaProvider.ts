@@ -259,6 +259,18 @@ async function fetchKSupermarketRegionalOffers(publicationId: string, slug: stri
       if (page > 1 && (response.status === 400 || response.status === 404)) break;
       throw new Error(`K-Supermarket regional publication ${publicationId} page ${page} HTTP ${response.status}`);
     }
+    if (publicationId === "bUGl9JyG" && page === 1) {
+      try {
+        const comparison = await fetch(`${TJEK_PUBLICATION_VIEWER_ORIGIN}/api/paged-publications/r_-FTxaX/1`, { headers: { Accept: "application/json" }, cache: "no-store" });
+        const comparisonPayload = comparison.ok ? await comparison.json() as UnknownRecord : null;
+        console.info("[Ziiply K comparison viewer]", JSON.stringify({
+          publicationId: "r_-FTxaX", status: comparison.status,
+          keys: comparisonPayload ? Object.keys(comparisonPayload) : [],
+          hotspots: Array.isArray(comparisonPayload?.hotspots) ? comparisonPayload.hotspots.length : null,
+          decorations: Array.isArray(comparisonPayload?.decorations) ? comparisonPayload.decorations.length : null,
+        }));
+      } catch (error) { console.info("[Ziiply K comparison viewer error]", String(error)); }
+    }
     const payload = await response.json() as UnknownRecord;
     if (publicationId === "bUGl9JyG" || publicationId === "r_-FTxaX") {
       console.info("[Ziiply K viewer diagnostic]", JSON.stringify({
