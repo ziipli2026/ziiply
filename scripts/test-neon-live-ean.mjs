@@ -1,0 +1,29 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+const base=(process.env.PREVIEW_URL||'https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app').replace(/\/$/,'');
+if(!process.env.VERCEL_TOKEN)throw Error('Missing VERCEL_TOKEN');
+function request(q){
+ const url=new URL('/api/neon-first-search',base);url.searchParams.set('q',q);
+ const raw=execFileSync('vercel',['curl',url.toString(),'--','-sS','-f'],{encoding:'utf8',timeout:30000,env:process.env});
+ const result=JSON.parse(raw);
+ assert.equal(result.ok,true,JSON.stringify(result));
+ assert.ok(Array.isArray(result.products),'products must be array');
+ return result;
+}
+const unknown='99999999999999';
+const missing=request(unknown);
+assert.equal(missing.count,0,'unknown EAN should have zero matches');
+assert.equal(missing.products.length,0,'unknown EAN must not return fuzzy matches');
+assert.equal(missing.categoryExpansion,'exact-ean');
+console.log('Unknown EAN: exact lookup, zero matches');
+const name=request('maito');
+assert.ok(name.count>0,'name search should return products');
+assert.notEqual(name.categoryExpansion,'exact-ean');
+console.log('Name search:',name.count,'products');
+const candidate=name.products.find(p=>/^\d{8,14}$/.test(String(p.ean||'')));
+if(!candidate)throw Error('No EAN in name-search sample');
+const exact=request(String(candidate.ean));
+assert.equal(exact.products.length,1,'known EAN should return one product');
+assert.equal(String(exact.products[0].ean),String(candidate.ean));
+assert.equal(exact.categoryExpansion,'exact-ean');
+console.log('Known EAN:',candidate.ean,'matched exactly');
