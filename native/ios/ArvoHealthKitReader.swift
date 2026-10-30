@@ -6,7 +6,8 @@ import HealthKit
     private let store = HKHealthStore()
     private func quantity(_ id: HKQuantityTypeIdentifier) -> HKQuantityType { HKObjectType.quantityType(forIdentifier: id)! }
     private var approvedCategories = Set<String>()
-    func revokeLocalConsent() { approvedCategories.removeAll() }
+    private var generation = UUID()
+    func revokeLocalConsent() { approvedCategories.removeAll(); generation = UUID() }
     func requestAccess(approved: Set<String>) async throws {
         let allowed: Set<String> = ["steps", "active_energy", "resting_heart_rate", "hrv", "sleep_stages"]
         guard !approved.isEmpty && approved.isSubset(of: allowed) else { throw NSError(domain:"ArvoHealth",code:2) }
@@ -17,7 +18,9 @@ import HealthKit
         if approved.contains("resting_heart_rate") { types.insert(quantity(.restingHeartRate)) }
         if approved.contains("hrv") { types.insert(quantity(.heartRateVariabilitySDNN)) }
         if approved.contains("sleep_stages") { types.insert(HKObjectType.categoryType(forIdentifier:.sleepAnalysis)!) }
+        let requestGeneration = generation
         try await store.requestAuthorization(toShare: [], read: types)
+        guard requestGeneration == generation else { throw CancellationError() }
         approvedCategories = approved
     }
     private func sum(_ type: HKQuantityType, unit: HKUnit, from start:Date, to end:Date) async throws -> Double? {
@@ -47,26 +50,25 @@ import HealthKit
             }
             store.execute(query)
         }
-        var totals = ["remMinutes": 0, "coreMinutes": 0, "deepMinutes": 0, "awakeMinutes": 0]
-        for sample in samples {
-            let clippedStart = max(sample.startDate, start)
-            let clippedEnd = min(sample.endDate, end)
-            let minutes = max(0, Int(clippedEnd.timeIntervalSince(clippedStart) / 60))
+        let intervals = samples.compactMap { sample -> ArvoSleepInterval? in
+            let stage: String
             switch sample.value {
-            case HKCategoryValueSleepAnalysis.asleepREM.rawValue: totals["remMinutes", default: 0] += minutes
-            case HKCategoryValueSleepAnalysis.asleepCore.rawValue: totals["coreMinutes", default: 0] += minutes
-            case HKCategoryValueSleepAnalysis.asleepDeep.rawValue: totals["deepMinutes", default: 0] += minutes
-            case HKCategoryValueSleepAnalysis.awake.rawValue: totals["awakeMinutes", default: 0] += minutes
-            default: break
+            case HKCategoryValueSleepAnalysis.asleepREM.rawValue: stage = "rem"
+            case HKCategoryValueSleepAnalysis.asleepCore.rawValue: stage = "core"
+            case HKCategoryValueSleepAnalysis.asleepDeep.rawValue: stage = "deep"
+            case HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue: stage = "unspecified"
+            case HKCategoryValueSleepAnalysis.awake.rawValue: stage = "awake"
+            default: return nil
             }
+            return ArvoSleepInterval(start: sample.startDate, end: sample.endDate,
+                source: sample.sourceRevision.source.bundleIdentifier, stage: stage)
         }
-        if samples.isEmpty { return [:] }
-        totals["sleepMinutes"] = totals["remMinutes", default: 0] + totals["coreMinutes", default: 0] + totals["deepMinutes", default: 0]
-        return totals
+        return ArvoSleepNormalizer.totals(intervals, start: start, end: end)
     }
     /// Does not send to network. Calendar days use the device's local timezone.
     func readDay(_ date:Date) async throws -> [String:Any] {
         guard !approvedCategories.isEmpty else { throw NSError(domain:"ArvoHealth",code:3) }
+        let readGeneration = generation
         let calendar=Calendar.current
         let start=calendar.startOfDay(for:date)
         let end=calendar.date(byAdding:.day,value:1,to:start)!
@@ -77,6 +79,7 @@ import HealthKit
         if approvedCategories.contains("resting_heart_rate"), let v=try await average(quantity(.restingHeartRate),unit:HKUnit.count().unitDivided(by:.minute()),from:start,to:end) { output["restingHeartRateBpm"]=v }
         if approvedCategories.contains("hrv"), let v=try await average(quantity(.heartRateVariabilitySDNN),unit:.secondUnit(with:.milli),from:start,to:end) { output["hrvSdnnMs"]=v }
         if approvedCategories.contains("sleep_stages") { for (key, value) in try await sleep(start, end) { output[key] = value } }
+        guard readGeneration == generation, !approvedCategories.isEmpty else { throw CancellationError() }
         return output
     }
 }

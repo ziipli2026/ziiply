@@ -1,0 +1,46 @@
+name: ZiiplyArvoTest
+options:
+  bundleIdPrefix: fi.ziiply
+  deploymentTarget:
+    iOS: '16.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    TARGETED_DEVICE_FAMILY: '1'
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  ZiiplyArvoTest:
+    type: application
+    platform: iOS
+    sources:
+      - ArvoApp
+      - ArvoHealthKitReader.swift
+      - ArvoSleepNormalizer.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fi.ziiply.arvotest
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Ziiply Arvo
+        INFOPLIST_KEY_NSHealthShareUsageDescription: Arvo lukee vain erikseen hyväksymäsi terveystiedot henkilökohtaiseen seurantaan tällä iPhonella.
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    entitlements:
+      path: ArvoApp/Arvo.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+  ArvoTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: ZiiplyArvoTest
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  ZiiplyArvoTest:
+    build:
+      targets:
+        ZiiplyArvoTest: all
+        ArvoTests: [test]
+    test:
+      targets: [ArvoTests]
