@@ -5,8 +5,12 @@ const base=(process.env.PREVIEW_URL||'https://ziiply-git-preview-legacy-desktop-
 if(!process.env.VERCEL_TOKEN)throw Error('Missing VERCEL_TOKEN');
 function request(q){
  const url=new URL('/api/neon-first-search',base);url.searchParams.set('q',q);
- const raw=execFileSync('vercel',['curl',url.toString(),'--','-sS','-f'],{encoding:'utf8',timeout:30000,env:process.env});
- const result=JSON.parse(raw);
+ let raw;
+ try { raw=execFileSync('vercel',['curl',url.toString(),'--','-sS','-f'],{encoding:'utf8',timeout:30000,env:process.env}); }
+ catch(error){console.error('Neon live request failed for',q,':',error.message);throw error;}
+ let result;
+ try { result=JSON.parse(raw); }
+ catch(error){console.error('Neon returned invalid JSON for',q,':',String(raw).slice(0,300));throw error;}
  assert.equal(result.ok,true,JSON.stringify(result));
  assert.ok(Array.isArray(result.products),'products must be array');
  return result;
