@@ -32,3 +32,29 @@ test('Arvo does not show estimate when declared salt is present', async ({ page 
   await expect(page.getByText(/0,5 g/)).toBeVisible();
   await expect(page.getByText('Fineli – arvio')).toHaveCount(0);
 });
+
+test('Arvo keeps unknown salt visibly unknown', async ({ page }) => {
+  await page.route('**/api/ean-bank?ean=6410405228529', route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({product:{ean:'6410405228529',name:'Tuote ilman suolatietoa',
+      nutrition:{source:'open-food-facts',salt_100g:null}}})
+  }));
+  await page.goto('http://127.0.0.1:3000/arvo-scanner-preview');
+  await page.getByRole('button', { name: 'Syötä EAN' }).click();
+  await page.getByRole('textbox', { name: 'EAN-koodi' }).fill('6410405228529');
+  await page.getByRole('button', { name: 'Hae EAN' }).click();
+  await expect(page.getByText('Tuote ilman suolatietoa')).toBeVisible();
+  await expect(page.getByText('Ei suolatietoa')).toBeVisible();
+  await expect(page.getByText('Fineli – arvio')).toHaveCount(0);
+});
+
+test('Arvo rejects an invalid manually entered EAN', async ({ page }) => {
+  let requests = 0;
+  await page.route('**/api/ean-bank?*', route => { requests++; return route.abort(); });
+  await page.goto('http://127.0.0.1:3000/arvo-scanner-preview');
+  await page.getByRole('button', { name: 'Syötä EAN' }).click();
+  await page.getByRole('textbox', { name: 'EAN-koodi' }).fill('1234');
+  await page.getByRole('button', { name: 'Hae EAN' }).click();
+  await expect(page.getByRole('textbox', { name: 'EAN-koodi' })).toHaveAttribute('pattern', '[0-9]{8,14}');
+  expect(requests).toBe(0);
+});
