@@ -27,6 +27,7 @@ const no=[
  ['cola 1.5l','Coca-Cola 0.5l'],['maito 1 l','Maito 1kg'],['xyzbrand','Muu tuote'],
  ['kana','Porkkana 1kg'],['kana','Americana pizza'],
  ['voi','Voileipä'],['kana','Kananmuna 10kpl'],
+ ['suola','Finca La Rosala Marcona manteli 80g evoo & suola'],
  ['lohi','Carnilove herkku koirille lohi-mustikka'],['suola','Epsom-suola 500g'],
  ['kerma','Pirkka yrttijuoma karpalo & kerma'],['jaatelo','Jäätelö tai virvoitusjuoma'],
  ['kerma','Herkku vihreä tee päärynä-kerma 80g'],['suola','El Valle chips oliiviöljy suola'],

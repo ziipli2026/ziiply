@@ -102,6 +102,7 @@ export function desktopSearchDecision(query: string, product: Row) {
     ['nonfood', /shampoo|hoitoaine|tuoksusuihke|kosmetiikka|kauneus|hygienia|epsom|kylpysuola|eteerinen|hius|pyydys|torjunta|ilmapallo|sirotin|pippurimylly|ruoanvalmistusastia|lelu|hiusoljy|elvital/],
     ['pet', /best in|bestin|kssanherkku|almo nature|purina|whiskas|pedigree|schesir|shelma|cesar|koir|kiss|lemmik/],
     ['snacks', /chips|snacks|snack|sipsi|naksu|puffs|perunalastu|juusto rinkula/],
+    ['nuts', /pahkina|cashew|pistaasi|(?:^| )manteli(?: |$)|(?:^| )siemen(?: |$)/],
     ['sweets', /suklaa|tryffeli|makeis|karkki|konvehti|purukumi|pastilli/],
     ['prepared', /valmisruo|mikroateria|pizza|pitsa|panini|patonki|kanakastike|vegekastike|keitto|ateriat|ateria|salaatti|tahna|sose|pyree|kiusaus|gratiini/],
     ['processed_meat', /makkara|nakki|lihaleikkele/],
