@@ -683,7 +683,7 @@ export async function fetchKruokaOffers(
         feature_labels: [{ key: "none", value: 1 }],
         enable_lazy_loading: false,
       };
-      for (const origin of ["https://api.tjek.com", "https://api.shopgun.io"]) {
+      for (const origin of ["https://squid-api.tjek.com"]) {
         try {
           const response = await fetch(origin + "/v4/rpc/generate_incito_from_publication", {
             method: "POST",
