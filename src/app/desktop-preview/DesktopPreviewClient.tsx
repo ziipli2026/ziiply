@@ -2322,10 +2322,10 @@ export default function DesktopPreviewPage() {
         }
       }
       const relevanceAndPriceRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
-      const selectedStoreEans=new Set(relevanceAndPriceRows.map((x:any)=>String(x.ean||"").replace(/\\D/g,"")));
+      const selectedStoreEans=new Set(relevanceAndPriceRows.map((x:any)=>String(x.ean||x.barcode||x.product?.ean||"").replace(/\D/g,"")).filter(Boolean));
       // A store result wins by EAN; Neon-only products remain visibly unpriced.
       // Do not imply that a Neon catalog match is stocked in a selected store.
-      const neonOnly=neonRows.filter((x:any)=>!selectedStoreEans.has(String(x.ean||"").replace(/\\D/g,"")));
+      const neonOnly=neonRows.filter((x:any)=>!selectedStoreEans.has(String(x.ean||x.barcode||x.product?.ean||"").replace(/\D/g,"")));
       const sortedRows=[...relevanceAndPriceRows,...neonOnly].slice(0,120);
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
