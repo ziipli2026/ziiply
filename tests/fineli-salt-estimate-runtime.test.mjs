@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hasConflictingOffProductName, attachFineliSaltEstimate } from '../src/app/api/ean-bank/fineli-salt-estimate.mjs';
+import { hasConflictingOffProductName, shouldSuppressLocalOffNutrition, attachFineliSaltEstimate } from '../src/app/api/ean-bank/fineli-salt-estimate.mjs';
 
 const row = { saltG100g: '0.1147', fineliId: 123, foodName: 'SEESAMINSIEMEN', confidence: 'verified' };
 const off = { salt_100g: null, proteins_100g: 18 };
@@ -47,4 +47,12 @@ test('rejects estimates without verified confidence and complete Fineli identity
     assert.deepEqual(attachFineliSaltEstimate(off, 'open-food-facts', true, [invalid]), off);
   }
   assert.equal(attachFineliSaltEstimate(off, 'open-food-facts', true, [{...row,confidence:'high'}]).estimatedSalt.confidence, 'high');
+});
+
+test('local EAN conflicting OFF products are suppressed, regular EANs unaffected', () => {
+  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', 'Nocetta'), true);
+  assert.equal(shouldSuppressLocalOffNutrition('2000610800005', 'Punajuuri Luomu Suomi', 'Änglamark Sitron 400g'), true);
+  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', 'Palsternakka Suomi'), false);
+  assert.equal(shouldSuppressLocalOffNutrition('6410405078872', 'Palsternakka Suomi', 'Nocetta'), false);
+  assert.equal(shouldSuppressLocalOffNutrition('2000607000005', 'Palsternakka Suomi', ''), false);
 });
