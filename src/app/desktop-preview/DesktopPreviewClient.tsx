@@ -2259,8 +2259,13 @@ export default function DesktopPreviewPage() {
     if(!diagnostic)traceNormal("selected_stores",{stores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)}))});
     if(!diagnostic)setJustiinaDebug({query,selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),sStore:s?.name||null,kStore:k?.name||null,status:"Haku käynnissä"});
     if(!s&&!k){report("validation_error",{error:"Valitse ensin S- tai K-kauppa."});if(!diagnostic)setJustiinaMessage("Valitse ensin S- tai K-kauppa.");return false;}
-    if(!diagnostic){setJustiinaResults([]);setJustiinaResultsOpen(true);
-    setJustiinaLoading(true);setJustiinaMessage("");}
+    if(!diagnostic){
+      // Keep the previous result grid mounted while the next search is loading.
+      // Clearing it here causes a visible empty-grid flash before the final merged results arrive.
+      setJustiinaResultsOpen(true);
+      setJustiinaLoading(true);
+      setJustiinaMessage("");
+    }
     // The typing debounce is applied in the effect below; never delay a started search again.
     try{
       async function fetchSearchData(url: string) {
