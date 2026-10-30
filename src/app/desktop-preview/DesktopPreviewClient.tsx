@@ -2283,9 +2283,24 @@ export default function DesktopPreviewPage() {
         }
         return lastData;
       }
+      // Start catalog lookup concurrently with the existing selected-store providers.
+      // The catalog never supplies a store price or modifies recipe/offer engines.
+      const neonPromise = fetch("/api/neon-first-search?q="+encodeURIComponent(query), {cache:"no-store", ...(diagnostic?{signal:diagnostic.signal}:{})})
+        .then(async response => response.ok ? response.json() : null)
+        .then(data => Array.isArray(data?.products) ? data.products : [] as any[])
+        .catch(() => [] as any[]);
       const calls:any[]=[];
       if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.id))}&storeName=${encodeURIComponent(String(s.name||""))}&storeType=${storeKind(s)==="sLocal"?"local":"hyper"}`).then(d=>({chain:"S",store:s,data:d})));
       if(k)calls.push(fetchSearchData(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`).then(d=>({chain:"K",store:k,data:d})));
+      const neonRaw = await neonPromise;
+      const neonRows = rankNormalSearchResults(query,neonRaw)
+        .filter((x:any)=>!isBadNormalResult(x,query) && Boolean(x.name) && Boolean(x.ean))
+        .slice(0,50)
+        .map((x:any)=>({...x,__chain:"Neon",__store:"Tuoteluettelo",__price:null,__priceSource:"neon-catalog-unpriced"}));
+      if(!diagnostic && generation===desktopVoiceRunRef.current && neonRows.length>0){
+        setJustiinaResults(neonRows);setJustiinaResultsOpen(true);
+        report("neon_first_visible",{count:neonRows.length});
+      }
       const settled=await Promise.allSettled(calls);
       const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
       const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
@@ -2307,7 +2322,11 @@ export default function DesktopPreviewPage() {
         }
       }
       const relevanceAndPriceRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
-      const sortedRows=relevanceAndPriceRows.slice(0,120);
+      const selectedStoreEans=new Set(relevanceAndPriceRows.map((x:any)=>String(x.ean||"").replace(/\\D/g,"")));
+      // A store result wins by EAN; Neon-only products remain visibly unpriced.
+      // Do not imply that a Neon catalog match is stocked in a selected store.
+      const neonOnly=neonRows.filter((x:any)=>!selectedStoreEans.has(String(x.ean||"").replace(/\\D/g,"")));
+      const sortedRows=[...relevanceAndPriceRows,...neonOnly].slice(0,120);
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
       if(generation!==desktopVoiceRunRef.current)return false;
