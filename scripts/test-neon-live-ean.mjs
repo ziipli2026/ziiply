@@ -13,6 +13,10 @@ function request(q){
 }
 const unknown='99999999999999';
 const observations=[];
+process.on('exit',()=>{
+ try{writeFileSync('neon-live-search-report.json',JSON.stringify({target:base,observations},null,2));}
+ catch(error){console.error('Could not write Neon diagnostics:',error.message);}
+});
 function observe(query,response){observations.push({query,count:response.count,version:response.searchVersion,categoryExpansion:response.categoryExpansion,examples:response.products.slice(0,5).map(p=>({ean:p.ean,name:p.name,category:p.category,rank:p.rank}))});}
 const missing=request(unknown);
 observe(unknown,missing);
@@ -50,5 +54,3 @@ for(const query of ['juusto','jogurtti','jauheliha','peruna','makkara','laktoosi
  console.log(query+': '+response.count+' valid products');
 }
 
-
-writeFileSync('neon-live-search-report.json',JSON.stringify({target:base,observations},null,2));
