@@ -1,3 +1,4 @@
+import {writeFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 const base=(process.env.PREVIEW_URL||'https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app').replace(/\/$/,'');
@@ -11,12 +12,16 @@ function request(q){
  return result;
 }
 const unknown='99999999999999';
+const observations=[];
+function observe(query,response){observations.push({query,count:response.count,version:response.searchVersion,categoryExpansion:response.categoryExpansion,examples:response.products.slice(0,5).map(p=>({ean:p.ean,name:p.name,category:p.category,rank:p.rank}))});}
 const missing=request(unknown);
+observe(unknown,missing);
 assert.equal(missing.count,0,'unknown EAN should have zero matches');
 assert.equal(missing.products.length,0,'unknown EAN must not return fuzzy matches');
 assert.equal(missing.categoryExpansion,'exact-ean');
 console.log('Unknown EAN: exact lookup, zero matches');
 const name=request('maito');
+observe('maito',name);
 assert.ok(name.count>0,'name search should return products');
 assert.notEqual(name.categoryExpansion,'exact-ean');
 console.log('Name search:',name.count,'products');
@@ -24,12 +29,14 @@ const candidate=name.products.find(p=>/^\d{8,14}$/.test(String(p.ean||'')));
 assert.equal(name.searchVersion.startsWith('neon-category-aware-'),true);
 if(!candidate)throw Error('No EAN in name-search sample');
 const exact=request(String(candidate.ean));
+observe(String(candidate.ean),exact);
 assert.equal(exact.products.length,1,'known EAN should return one product');
 assert.equal(String(exact.products[0].ean),String(candidate.ean));
 assert.equal(exact.categoryExpansion,'exact-ean');
 console.log('Known EAN:',candidate.ean,'matched exactly');
 for(const query of ['juusto','jogurtti','jauheliha','peruna','makkara','laktoositon maito']){
  const response=request(query);
+ observe(query,response);
  assert.equal(response.query,query,'response must identify the requested query');
  assert.equal(response.count,response.products.length,'count must match products length');
  assert.ok(response.count>0,query+' must return products');
@@ -43,3 +50,5 @@ for(const query of ['juusto','jogurtti','jauheliha','peruna','makkara','laktoosi
  console.log(query+': '+response.count+' valid products');
 }
 
+
+writeFileSync('neon-live-search-report.json',JSON.stringify({target:base,observations},null,2));
