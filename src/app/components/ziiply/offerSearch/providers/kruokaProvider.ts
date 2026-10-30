@@ -669,6 +669,15 @@ export async function fetchKruokaOffers(
     debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
     const campaignPublicationIds = new Set(resolvedPublications.campaignIds);
     if (tjekStoreId === "986cCCi") {
+      for (const name of ["publication", "paged-publication", "publication-pages"]) {
+        try {
+          const value = await fetchTjekData(name, { publicId: "bUGl9JyG" }, business.slug);
+          console.info("[Ziiply Wiljami content route]", JSON.stringify({ name, type: Array.isArray(value) ? "array" : typeof value, keys: value && typeof value === "object" ? Object.keys(value).slice(0, 25) : [], preview: JSON.stringify(value).slice(0, 900) }));
+        } catch (error) { console.info("[Ziiply Wiljami content route error]", JSON.stringify({ name, error: String(error) })); }
+      }
+    }
+
+    if (tjekStoreId === "986cCCi") {
       const probes: Array<[string, UnknownRecord]> = [
         ["publication-only", { publicationIds: ["bUGl9JyG"], pagination: { limit: 100, offset: 0 } }],
         ["store-only", { localBusinessIds: [tjekStoreId], pagination: { limit: 100, offset: 0 } }],
