@@ -198,7 +198,7 @@ async function resolveKLocalPublicationIds(
     console.info("[Ziiply Wiljami fronts metadata]", JSON.stringify({
       fronts: fronts.map(front => front && typeof front === "object" ? { keys: Object.keys(front as UnknownRecord), id: (front as UnknownRecord).id, label: (front as UnknownRecord).label } : null),
       publications: publications.map(publication => ({
-        id: publication.id, label: publication.label, title: publication.title,
+        id: publication.id, label: publication.label, title: publication.title, view: publication.view, thumb: publication.thumb,
         keys: Object.keys(publication), validFrom: publication.validFrom, validUntil: publication.validUntil,
         businessIds: publication.businessIds, localBusinessIds: publication.localBusinessIds,
         type: publication.type, category: publication.category,
