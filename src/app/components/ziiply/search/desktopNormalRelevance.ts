@@ -67,7 +67,8 @@ export function desktopSearchQueries(raw: string): string[] {
   for(const term of parsed.terms) {
     variants=variants.flatMap(prefix=>(alternatives[term] || [term]).map(word=>[...prefix,word])).slice(0,24);
   }
-  const family=variants.map(terms=>[...terms,...parsed.sizes].join(' '));
+  const retrievalSizes=q.match(/\d+(?:[.,]\d+)?\s*(?:kg|ml|cl|dl|l|g|kpl)\b/gi) || [];
+  const family=variants.map(terms=>[...terms,...retrievalSizes].join(' '));
   return [...new Set([q, normalized, ...family])].filter(Boolean).slice(0,6);
 }
 type Row = {name?: string; title?: string; brand?: string; brandName?: string; category?: string; ean?: string; __price?: number | null; quantity?: string};
