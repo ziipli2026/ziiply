@@ -6,12 +6,19 @@ const base=(process.env.PREVIEW_URL||'https://ziiply-git-preview-legacy-desktop-
 const queries=['maito','juusto','jogurtti','leipä','voi','kananmuna','kerma','piimä','rahka','riisi','pasta','peruna','porkkana','tomaatti','kurkku','banaani','omena','appelsiini','kahvi','tee','sokeri','suola','jauheliha','kana','lohi','makkara','kinkku','murot','kaurahiutale','öljy','jauho','mehu','vesi','pakastepizza','jäätelö'];
 const stores=[{chain:'K',path:'/api/k-products',store:'3221'},{chain:'S',path:'/api/s-products',store:'292',storeName:'Prisma Hyvinkää',storeType:'hyper'}];
 const results=[];
+const relevanceChecks={
+ juusto:p=>/(?:juusto|edam|emmental|gouda|mozzarella|cheddar|feta|parmesan|brie|halloumi)/i.test(String(p.name||p.title||'').replace(/juustoportti(?:n)?/ig,'')),
+ jogurtti:p=>/jogurtt|jogurt/i.test(p.name||p.title||''),
+ kananmuna:p=>/kananmun|munia|munat/i.test(p.name||p.title||''),
+ jauheliha:p=>/jauheliha/i.test(p.name||p.title||''),
+ piimä:p=>/piimä/i.test(p.name||p.title||'')
+};
 for(const query of queries){
  for(const source of stores){
   const url=new URL(source.path,base);url.searchParams.set('search',query);url.searchParams.set('store',source.store);
   if(source.storeName)url.searchParams.set('storeName',source.storeName);
   if(source.storeType)url.searchParams.set('storeType',source.storeType);
-  const start=Date.now();let entry={query,chain:source.chain,status:null,count:0,ms:0,errors:[],examples:[]};
+  const start=Date.now();let entry={query,chain:source.chain,status:null,count:0,ms:0,errors:[],examples:[],suspectMatches:[]};
   try{
    // Vercel CLI authenticates protected preview requests using the GitHub secret.
    const raw=execFileSync('vercel',['curl',url.toString(),'--','-sS','-f'],{encoding:'utf8',timeout:30000,env:process.env});
@@ -19,6 +26,7 @@ for(const query of queries){
    const body=JSON.parse(raw);
    const items=Array.isArray(body.products)?body.products:Array.isArray(body.items)?body.items:Array.isArray(body)?body:[];
    entry.count=items.length;
+   if(relevanceChecks[query])entry.suspectMatches=items.filter(p=>!relevanceChecks[query](p)).slice(0,20).map(p=>p.name||p.title||p.productName);
    entry.examples=items.slice(0,6).map(p=>({name:p.name||p.title,category:p.category,ean:p.ean,price:p.price}));
    if(!Array.isArray(items))entry.errors.push('invalid product array');
    for(const p of items){if(!(p.name||p.title||p.productName))entry.errors.push('missing name');if(p.price!=null&&!Number.isFinite(Number(p.price)))entry.errors.push('invalid price');}
