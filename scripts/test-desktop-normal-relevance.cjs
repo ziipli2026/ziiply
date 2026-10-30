@@ -43,6 +43,8 @@ assert.equal(dec('cola',{name:'Vesi',brand:'Cola Company',category:'Cola'}).acce
 const rows=[{name:'Cola',__price:null},{name:'Pepsi Max',__price:2},{name:'Cola',__price:1},{name:'Cola',__price:NaN},{name:'Cola',__price:0}];
 assert.deepEqual(rank('cola',rows).slice(0,2).map(x=>x.__price),[1,2]);
 assert.deepEqual(queries('juusto'),['juusto']);
+assert.ok(queries('cola zero').includes('pepsi max'));
+assert.ok(queries('cola zero').includes('cola sokeriton'));
 assert.ok(queries('kahvi 500g').includes('juhla mokka 500g'));
 assert.ok(!queries('kana').some(q=>q.includes('suikale')));
 assert.equal(dec('6410400000001',{name:'Unknown',ean:'6410400000001'}).accepted,true);

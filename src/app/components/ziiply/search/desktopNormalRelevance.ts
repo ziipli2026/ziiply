@@ -61,7 +61,13 @@ export function desktopSearchQueries(raw: string): string[] {
   // No default pack sizes, brands or extra attributes are invented.
   const normalized=/\d/.test(q) ? q : words.join(' ');
   const parsed=parse(q);
-  const family=parsed.terms.length===1 ? (alternatives[parsed.terms[0]] || []).map(term=>[term,...parsed.sizes].join(' ')) : [];
+  // Expand each requested term, including combinations, without dropping
+  // modifiers. E.g. cola zero -> Pepsi Max / cola sokeriton, not plain cola.
+  let variants:string[][]=[[]];
+  for(const term of parsed.terms) {
+    variants=variants.flatMap(prefix=>(alternatives[term] || [term]).map(word=>[...prefix,word])).slice(0,24);
+  }
+  const family=variants.map(terms=>[...terms,...parsed.sizes].join(' '));
   return [...new Set([q, normalized, ...family])].filter(Boolean).slice(0,6);
 }
 type Row = {name?: string; title?: string; brand?: string; brandName?: string; category?: string; ean?: string; __price?: number | null; quantity?: string};
