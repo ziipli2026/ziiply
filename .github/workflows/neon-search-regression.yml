@@ -30,6 +30,19 @@ concurrency:
   group: neon-search-relevance
   cancel-in-progress: true
 jobs:
+  isolated-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test selected-store EAN merge without npm install
+        run: node --test tests/neon-selected-store-merge.test.mjs
+      - name: Test recipe and offer engine isolation without npm install
+        run: node --test tests/neon-search-pipeline-isolation.test.mjs
+      - name: Test price enrichment without npm install
+        run: node --test tests/neon-ean-price-enrichment.test.mjs tests/neon-ruoanhinta-price-lookup.test.mjs
   relevance:
     runs-on: ubuntu-latest
     steps:
