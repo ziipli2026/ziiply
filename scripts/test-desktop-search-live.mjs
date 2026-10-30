@@ -1,4 +1,7 @@
 import {writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+if(!process.env.VERCEL_TOKEN){console.error('Missing VERCEL_TOKEN GitHub Actions secret: cannot access protected preview.');process.exit(2);}
+
 const base=(process.env.PREVIEW_URL||'https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app').replace(/\/$/,'');
 const queries=['maito','juusto','jogurtti','leipä','voi','kananmuna','kerma','piimä','rahka','riisi','pasta','peruna','porkkana','tomaatti','kurkku','banaani','omena','appelsiini','kahvi','tee','sokeri','suola','jauheliha','kana','lohi','makkara','kinkku','murot','kaurahiutale','öljy','jauho','mehu','vesi','pakastepizza','jäätelö'];
 const stores=[{chain:'K',path:'/api/k-products',store:'3221'},{chain:'S',path:'/api/s-products',store:'292',storeName:'Prisma Hyvinkää',storeType:'hyper'}];
@@ -10,13 +13,13 @@ for(const query of queries){
   if(source.storeType)url.searchParams.set('storeType',source.storeType);
   const start=Date.now();let entry={query,chain:source.chain,status:null,count:0,ms:0,errors:[],examples:[]};
   try{
-   const response=await fetch(url,{headers:{accept:'application/json'},signal:AbortSignal.timeout(20000)});
-   entry.status=response.status;
-   const body=await response.json();
+   // Vercel CLI authenticates protected preview requests using the GitHub secret.
+   const raw=execFileSync('vercel',['curl',url.toString(),'-sS','-f'],{encoding:'utf8',timeout:30000,env:process.env});
+   entry.status=200;
+   const body=JSON.parse(raw);
    const items=Array.isArray(body.products)?body.products:Array.isArray(body.items)?body.items:Array.isArray(body)?body:[];
    entry.count=items.length;
    entry.examples=items.slice(0,6).map(p=>({name:p.name||p.title,category:p.category,ean:p.ean,price:p.price}));
-   if(!response.ok)entry.errors.push('HTTP '+response.status);
    if(!Array.isArray(items))entry.errors.push('invalid product array');
    for(const p of items){if(!(p.name||p.title||p.productName))entry.errors.push('missing name');if(p.price!=null&&!Number.isFinite(Number(p.price)))entry.errors.push('invalid price');}
   }catch(e){entry.errors.push(String(e));}
