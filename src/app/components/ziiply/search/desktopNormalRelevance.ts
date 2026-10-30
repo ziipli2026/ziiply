@@ -78,6 +78,12 @@ export function desktopSearchDecision(query: string, product: Row) {
   if (!q.terms.length) return {accepted:false,score:0,reason:'empty_query'};
   const nameText=searchWords(product.name || product.title).join(' ');
   const categoryText=searchWords(product.category).join(' ');
+  const nonfood=['shampoo','hoitoaine','tuoksusuihke','saippua','suihkugeeli','kosmetiikka','pesuaine','huulivoide','vartalovoide','hiusnaamio'];
+  if(intent.intent!=='unknown' && nonfood.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
+    return {accepted:false,score:-10000,reason:'non_food_product'};
+  const alcohol=['alkoholi','jaloviina','vodka','likoori','rommi','whisky','lonkero'];
+  if(q.terms.some(t=>['cola','limsa','kahvi'].includes(t)) && alcohol.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
+    return {accepted:false,score:-10000,reason:'alcoholic_other_product'};
   const pet=/\b(?:koiran|kissan|lemmik|dog|cat)/;
   const petRequest=q.terms.some(t=>pet.test(t));
   if(!petRequest && pet.test(nameText+' '+categoryText))
@@ -92,7 +98,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   if(q.terms.includes('maito') && /maitojuoma|maitokahvi|maitokaakao|korvike|maitojauhe|pirtelo/.test(nameText))
     return {accepted:false,score:-10000,reason:'different_milk_product'};
   if(q.terms.includes('kahvi')) {
-    const otherCoffeeProducts=['jogurtti','skyr','rahka','vanukas','likoori','jaloviina','olut','kerma'];
+    const otherCoffeeProducts=['jogurtti','skyr','rahka','vanukas','likoori','jaloviina','olut','kerma','energiajuoma'];
     if(otherCoffeeProducts.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
       return {accepted:false,score:-10000,reason:'coffee_flavoured_other_product'};
   }
