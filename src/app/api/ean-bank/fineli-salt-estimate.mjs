@@ -14,7 +14,8 @@ export function hasConflictingOffProductName(catalogName, offName) {
 
 export function shouldSuppressLocalOffNutrition(ean, catalogName, offName) {
   return typeof ean === 'string' && /^2[0-9]/.test(ean) &&
-    hasConflictingOffProductName(catalogName, offName);
+    (typeof offName !== 'string' || !offName.trim() ||
+      hasConflictingOffProductName(catalogName, offName));
 }
 
 export function buildFineliSaltEstimate(row) {
