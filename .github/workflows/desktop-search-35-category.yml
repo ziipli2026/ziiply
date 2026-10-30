@@ -5,6 +5,8 @@ on:
     branches: [preview/legacy-desktop-ui]
     paths:
       - 'scripts/test-desktop-search-live.mjs'
+      - 'src/app/components/ziiply/ziiplyCore.ts'
+      - 'src/app/desktop-preview/DesktopPreviewClient.tsx'
       - '.github/workflows/desktop-search-35-category.yml'
 jobs:
   search-matrix:
