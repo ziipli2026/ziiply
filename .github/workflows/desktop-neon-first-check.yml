@@ -1,0 +1,22 @@
+name: Desktop Neon-first integration check
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - 'src/app/desktop-preview/DesktopPreviewClient.tsx'
+      - 'src/app/api/neon-first-search/route.ts'
+      - 'tests/desktop-neon-first-integration.test.mjs'
+      - '.github/workflows/desktop-neon-first-check.yml'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Neon-first desktop search isolation and price hydration wiring
+        run: node --test tests/desktop-neon-first-integration.test.mjs
