@@ -57,7 +57,8 @@ export async function POST(request: Request) {
   const { sendBetaLoginEmail } = await import("../../../../../lib/ziiplyBetaSmtp.mjs");
   try {
     await sendBetaLoginEmail({ to: email, loginUrl: url.toString() });
-  } catch {
+  } catch (error) {
+    console.error("[beta-login] SMTP delivery failed", { code: error instanceof Error && "code" in error ? String(error.code) : "unknown" });
     return NextResponse.json({ ok: false, code: "EMAIL_DELIVERY_FAILED" }, { status: 503, headers: noStore });
   }
   return generic();
