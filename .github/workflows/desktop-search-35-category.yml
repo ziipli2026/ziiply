@@ -5,6 +5,8 @@ on:
     branches: [preview/legacy-desktop-ui]
     paths:
       - 'scripts/test-desktop-search-live.mjs'
+      - 'scripts/test-neon-live-ean.mjs'
+      - 'scripts/test-neon-exact-ean.mjs'
       - 'src/app/api/neon-first-search/route.ts'
       - 'scripts/test-cheese-search-regression.mjs'
       - 'src/app/components/ziiply/ziiplyCore.ts'
@@ -27,6 +29,10 @@ jobs:
         run: node scripts/test-neon-exact-ean.mjs
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
+      - name: Test live Neon exact EAN and name search
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/test-neon-live-ean.mjs
       - name: Test 35 queries against protected preview live provider endpoints
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
