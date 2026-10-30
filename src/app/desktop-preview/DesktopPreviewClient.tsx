@@ -2368,7 +2368,26 @@ export default function DesktopPreviewPage() {
       // A generic search for milk must not fill the remaining result slots with
       // baby formula, buttermilk, bottle teats or unrelated dairy-brand goods.
       // Keep the entire actual-milk group, including products without prices.
-      const displayRows=milkPriceSearch?relevanceRows.filter(isActualMilk):relevanceRows;
+      // Short generic queries are prone to accidental substring/brand matches.
+      // Require a real word or word-start in the product name, rather than
+      // treating a brand-only or embedded substring hit as a relevant product.
+      const shortQuery=query.trim().normalize("NFKC").toLocaleLowerCase("fi-FI");
+      const shortTermSearch=/^[a-zåäö]{3,4}$/u.test(shortQuery);
+      const shortNameMatches=(product:any)=>{
+        const name=String(product.name||"").normalize("NFKC").toLocaleLowerCase("fi-FI");
+        const words=name.split(/[^a-zåäö0-9]+/u).filter(Boolean);
+        return words.some(word=>word===shortQuery||word.startsWith(shortQuery));
+      };
+      const displayRows=milkPriceSearch?relevanceRows.filter(isActualMilk)
+        :shortTermSearch?relevanceRows.filter(shortNameMatches):relevanceRows;
+      // When short-name matches are equally relevant, show actual store prices
+      // before catalog-only records. Never invent a price for a Neon-only hit.
+      const shortSortedRows=shortTermSearch?[...displayRows].sort((a:any,b:any)=>{
+        const aPriced=Number.isFinite(a.__price);
+        const bPriced=Number.isFinite(b.__price);
+        if(aPriced!==bPriced)return aPriced?-1:1;
+        return (semanticIndex.get(a)??0)-(semanticIndex.get(b)??0);
+      }):displayRows;
       const sortedRows=(milkPriceSearch
         ? [...displayRows].sort((a:any,b:any)=>{
             const categoryDiff=Number(isActualMilk(b))-Number(isActualMilk(a));
@@ -2378,7 +2397,7 @@ export default function DesktopPreviewPage() {
             if(ap!==bp)return ap-bp;
             return (semanticIndex.get(a)??0)-(semanticIndex.get(b)??0);
           })
-        : relevanceRows).slice(0,120);
+        : shortSortedRows).slice(0,120);
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,neonOnlyCount:neonOnly.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
