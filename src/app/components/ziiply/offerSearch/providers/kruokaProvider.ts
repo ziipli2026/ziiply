@@ -260,13 +260,20 @@ async function fetchKSupermarketRegionalOffers(publicationId: string, slug: stri
       throw new Error(`K-Supermarket regional publication ${publicationId} page ${page} HTTP ${response.status}`);
     }
     const payload = await response.json() as UnknownRecord;
-    const hotspots = Array.isArray(payload.hotspots) ? payload.hotspots : [];
-    for (const hotspot of hotspots) {
-      if (!hotspot || typeof hotspot !== "object") continue;
-      const offer = (hotspot as UnknownRecord).offer;
-      if (!offer || typeof offer !== "object") continue;
-      const id = String((offer as UnknownRecord).id ?? "").trim();
-      if (id && !offerIds.includes(id)) offerIds.push(id);
+    // Tjek can return hotspots at page level or nested under page data.
+    // Collect only explicitly linked offers; never accept unrelated chain offers.
+    const nested = payload.data && typeof payload.data === "object" ? payload.data as UnknownRecord : null;
+    const pages = [payload, nested, payload.page && typeof payload.page === "object" ? payload.page as UnknownRecord : null];
+    for (const pageData of pages) {
+      if (!pageData) continue;
+      const hotspots = Array.isArray(pageData.hotspots) ? pageData.hotspots : [];
+      for (const hotspot of hotspots) {
+        if (!hotspot || typeof hotspot !== "object") continue;
+        const record = hotspot as UnknownRecord;
+        const offer = record.offer && typeof record.offer === "object" ? record.offer as UnknownRecord : null;
+        const id = String(offer?.id ?? offer?.publicId ?? record.offerId ?? "").trim();
+        if (id && !offerIds.includes(id)) offerIds.push(id);
+      }
     }
   }
   const rows: UnknownRecord[] = [];
