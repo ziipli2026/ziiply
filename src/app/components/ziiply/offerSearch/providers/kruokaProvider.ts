@@ -248,7 +248,7 @@ async function resolveKLocalPublicationIds(
   };
 }
 
-async function fetchKSupermarketRegionalOffers(publicationId: string): Promise<UnknownRecord[]> {
+async function fetchKSupermarketRegionalOffers(publicationId: string, slug: string): Promise<UnknownRecord[]> {
   const offerIds: string[] = [];
   for (let page = 1; page <= 20; page++) {
     const response = await fetch(`${TJEK_PUBLICATION_VIEWER_ORIGIN}/api/paged-publications/${encodeURIComponent(publicationId)}/${page}`, {
@@ -275,7 +275,7 @@ async function fetchKSupermarketRegionalOffers(publicationId: string): Promise<U
     const batch = offerIds.slice(offset, offset + concurrency);
     const values = await Promise.all(batch.map(async publicId => {
       try {
-        const value = await fetchTjekData("offer", { publicId }, "K-Supermarket");
+        const value = await fetchTjekData("offer", { publicId }, slug);
         return value && typeof value === "object"
           ? { ...(value as UnknownRecord), publicationPublicId: publicationId }
           : null;
@@ -650,7 +650,7 @@ export async function fetchKruokaOffers(
       // publication offer index is empty. Do not skip that fallback.
       const rows = indexedRows.length > 0
         ? indexedRows
-        : await fetchKSupermarketRegionalOffers(publicationId);
+        : await fetchKSupermarketRegionalOffers(publicationId, business.slug);
       publicationFetch.push({ publicationId, fetchedRows: rows.length, uniqueOfferIds: new Set(rows.map(row => String(row.publicId ?? "")).filter(Boolean)).size, addedAfterBaseDedupe: 0, skippedAsDuplicate: 0, source: indexedRows.length > 0 ? "publication-index" : "viewer-fallback", indexedRows: indexedRows.length });
       regionalOffers.push(...rows.map(row => ({ ...row, publicationPublicId: publicationId,
         campaignType: campaignPublicationIds.has(publicationId) ? localBenefitType(row) : row.campaignType })));
