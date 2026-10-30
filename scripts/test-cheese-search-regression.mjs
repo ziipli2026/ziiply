@@ -49,4 +49,15 @@ for (const [query, name] of [
 ]) {
   assert.equal(isBadNormalResult(product(name), query), true, query + ": " + name + " must not appear in final results");
 }
+// Keep legitimate products visible when rejecting misleading raw provider hits.
+for (const [query, name] of [
+  ["jogurtti", "Valio luonnonjogurtti 1 kg"],
+  ["jogurtti", "Arla maustamaton jogurtti 1 l"],
+  ["jauheliha", "Naudan jauheliha 400 g"],
+  ["jauheliha", "Sika-nauta jauheliha 400 g"],
+  ["maito", "Valio kevytmaito 1 l"],
+  ["maito", "Valio rasvaton maito 1 l"],
+]) {
+  assert.equal(isBadNormalResult(product(name), query), false, query + ": " + name + " must remain in final results");
+}
 console.log("Cheese and provider-spillover behavioral regression checks passed");
