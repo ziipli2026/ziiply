@@ -59,7 +59,6 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                 counts[ean] = counts.get(ean, 0) + 1
             else:
                 details.setdefault(ean, []).append({'confidence':confidence,'method':method,'salt_unit':unit,'salt_value_type':value_type})
-            else:
                 reason = ("unverified_match" if method != "manual_verified"
                           else "low_confidence" if confidence not in ("verified", "high")
                           else "wrong_salt_unit" if unit != "MG"
