@@ -2338,7 +2338,16 @@ export default function DesktopPreviewPage() {
       // A store result wins by EAN; Neon-only products remain visibly unpriced.
       // Do not imply that a Neon catalog match is stocked in a selected store.
       const neonOnly=neonRows.filter((x:any)=>!selectedStoreEans.has(String(x.ean||x.barcode||x.product?.ean||"").replace(/\D/g,"")));
-      const sortedRows=[...relevanceAndPriceRows,...neonOnly].slice(0,120);
+      // Rank the combined catalog, not store hits ahead of every Neon match.
+      // Preserve store-priced records when the same EAN exists in both sources.
+      const combinedByEan=new Map<string,any>();
+      for(const product of [...neonOnly,...relevanceAndPriceRows]){
+        const ean=String(product.ean||product.barcode||product.product?.ean||"").replace(/\D/g,"");
+        const key=ean||`name:${String(product.name||"").toLocaleLowerCase("fi")}:${String(product.__store||"")}`;
+        const previous=combinedByEan.get(key);
+        if(!previous||(!Number.isFinite(previous.__price)&&Number.isFinite(product.__price)))combinedByEan.set(key,product);
+      }
+      const sortedRows=rankProductResultsByRelevanceAndPrice(query,[...combinedByEan.values()].filter(product=>!isBadNormalResult(product,query)),(p:any)=>p.__price??Number.POSITIVE_INFINITY).slice(0,120);
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,neonOnlyCount:neonOnly.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
