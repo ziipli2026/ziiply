@@ -2365,8 +2365,12 @@ export default function DesktopPreviewPage() {
         const wrongCategory=/(?:aidinmaidonkorvik|äidinmaidonkorvik|\/piimat(?:\/|$)|lastenruoat|\/makeiset(?:\/|$))/.test(category);
         return milkWord&&!otherProduct&&!wrongCategory;
       };
+      // A generic search for milk must not fill the remaining result slots with
+      // baby formula, buttermilk, bottle teats or unrelated dairy-brand goods.
+      // Keep the entire actual-milk group, including products without prices.
+      const displayRows=milkPriceSearch?relevanceRows.filter(isActualMilk):relevanceRows;
       const sortedRows=(milkPriceSearch
-        ? [...relevanceRows].sort((a:any,b:any)=>{
+        ? [...displayRows].sort((a:any,b:any)=>{
             const categoryDiff=Number(isActualMilk(b))-Number(isActualMilk(a));
             if(categoryDiff)return categoryDiff;
             const ap=Number.isFinite(a.__price)?a.__price:Number.POSITIVE_INFINITY;
