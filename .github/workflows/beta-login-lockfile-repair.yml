@@ -1,0 +1,35 @@
+name: Beta login dependency lockfile repair
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+      - name: Update npm lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Verify clean installation
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify beta auth tests
+        run: |
+          node --test tests/*beta*test*.mjs
+      - name: Commit lockfile only
+        run: |
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "Lockfile already up to date"
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'fix(beta): synchronize npm lockfile for SMTP'
+          git push origin HEAD:${GITHUB_REF_NAME}
