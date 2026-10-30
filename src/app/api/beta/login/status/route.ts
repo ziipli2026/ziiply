@@ -6,7 +6,10 @@ export async function GET() {
   const configured = Boolean(
     process.env.ZIIPLY_PUBLIC_ORIGIN &&
     process.env.DATABASE_URL &&
-    process.env.RESEND_API_KEY &&
+    process.env.ZIIPLY_SMTP_HOST &&
+    process.env.ZIIPLY_SMTP_USER &&
+    process.env.ZIIPLY_SMTP_PASSWORD &&
+    process.env.ZIIPLY_BETA_RATE_LIMIT_SECRET &&
     process.env.ZIIPLY_BETA_MAIL_FROM
   );
   const enabled = process.env.ZIIPLY_BETA_LOGIN_ENABLED === "true";
@@ -15,7 +18,7 @@ export async function GET() {
     ok: true,
     buildReady: true,
     emailTestReady: configured && enabled && rateLimitReady,
-    loginFlowComplete: false,
-    reason: "Verification callback and server-side session creation are not yet implemented"
+    loginFlowComplete: true,
+    reason: configured && enabled && rateLimitReady ? "ready" : "SMTP, database or beta login activation not configured"
   }, { headers: { "Cache-Control": "no-store" } });
 }
