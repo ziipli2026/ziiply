@@ -21,6 +21,7 @@ assert.ok(name.count>0,'name search should return products');
 assert.notEqual(name.categoryExpansion,'exact-ean');
 console.log('Name search:',name.count,'products');
 const candidate=name.products.find(p=>/^\d{8,14}$/.test(String(p.ean||'')));
+assert.equal(name.searchVersion.startsWith('neon-category-aware-'),true);
 if(!candidate)throw Error('No EAN in name-search sample');
 const exact=request(String(candidate.ean));
 assert.equal(exact.products.length,1,'known EAN should return one product');
