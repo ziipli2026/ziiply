@@ -2492,7 +2492,10 @@ export function getGroceryNonFoodPenalty(query: string, product: Product) {
 }
 
 export function isWrongMilkSearchProduct(product: Product) {
-  const text = getProductSearchText(product);
+  // Check the product name, not the entire category path: genuine milk is
+  // categorized under "maito-juusto-munat", which otherwise falsely triggers
+  // the banned "juusto" signal for every actual milk product.
+  const text = normalize(product.name);
 
   const wrongMilkSignals = [
     "rasvaseos",
