@@ -5,11 +5,25 @@ export default function BetaLoginPage() {
   const [status,setStatus] = useState("");
   const [busy,setBusy] = useState(false);
   const [ready,setReady] = useState(false);
+  const [authenticated,setAuthenticated] = useState(false);
   useEffect(() => {
     fetch("/api/beta/login/status",{cache:"no-store"})
       .then(r=>r.json()).then(data=>setReady(Boolean(data.emailTestReady && data.loginFlowComplete)))
       .catch(()=>setReady(false));
+    fetch("/api/beta/login/session",{cache:"no-store"})
+      .then(r=>r.json()).then(data=>setAuthenticated(Boolean(data.authenticated)))
+      .catch(()=>setAuthenticated(false));
   },[]);
+  async function logout() {
+    setBusy(true);setStatus("");
+    try {
+      const response=await fetch("/api/beta/login/logout",{method:"POST",cache:"no-store"});
+      if(!response.ok) throw new Error("logout failed");
+      setAuthenticated(false);
+      setStatus("Olet kirjautunut ulos.");
+    } catch { setStatus("Uloskirjautuminen epäonnistui. Yritä uudelleen."); }
+    finally { setBusy(false); }
+  }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if(!ready || busy) return;
@@ -28,7 +42,8 @@ export default function BetaLoginPage() {
     <h1>Ziiply – beetakirjautuminen</h1>
     <p>Kirjaudu beetarekisteriin ilmoittamallasi sähköpostiosoitteella. Et tarvitse salasanaa.</p>
     {!ready && <p role="status">Sähköpostikirjautumisen testiä valmistellaan. Lomake avautuu, kun palvelu on valmis.</p>}
-    <form onSubmit={submit}>
+    {authenticated && <section aria-label="Beetaistunto"><p>Olet kirjautunut beetatestaajana.</p><a href="/arvo-tilastot">Avaa Arvon tilastot</a><p><button type="button" onClick={logout} disabled={busy}>Kirjaudu ulos</button></p></section>}
+    {!authenticated && <form onSubmit={submit}>
       <label htmlFor="beta-email">Sähköpostiosoite</label>
       <input id="beta-email" type="email" autoComplete="email" required value={email}
         onChange={e=>setEmail(e.target.value)} disabled={busy}
@@ -36,7 +51,7 @@ export default function BetaLoginPage() {
       <button type="submit" disabled={!ready || busy} style={{padding:"12px 20px",borderRadius:8}}>
         {busy?"Lähetetään…":"Lähetä kirjautumislinkki"}
       </button>
-    </form>
+    </form>}
     {status && <p role="status">{status}</p>}
     <p style={{fontSize:13,marginTop:24}}>Terveystietoja ei lueta eikä tallenneta kirjautumisen yhteydessä.</p>
   </main>;
