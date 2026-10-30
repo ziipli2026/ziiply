@@ -33,3 +33,18 @@ test('obvious mismatched OFF product name blocks Fineli estimate', () => {
   assert.equal(hasConflictingOffProductName('Omena gala', 'Omena Gala 1kg'), false);
   assert.equal(hasConflictingOffProductName('Omena gala', ''), false);
 });
+
+test('rejects estimates without verified confidence and complete Fineli identity', () => {
+  for (const invalid of [
+    {...row, confidence: 'low'},
+    {...row, confidence: 'medium'},
+    {...row, confidence: null},
+    {...row, fineliId: null},
+    {...row, fineliId: -1},
+    {...row, foodName: ''},
+    {...row, foodName: null}
+  ]) {
+    assert.deepEqual(attachFineliSaltEstimate(off, 'open-food-facts', true, [invalid]), off);
+  }
+  assert.equal(attachFineliSaltEstimate(off, 'open-food-facts', true, [{...row,confidence:'high'}]).estimatedSalt.confidence, 'high');
+});
