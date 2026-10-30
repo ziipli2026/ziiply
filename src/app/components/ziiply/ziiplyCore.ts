@@ -3072,7 +3072,7 @@ export function isBadNormalResult(product: Product, query: string) {
     if (!targetIsYogurt || forbiddenWords) return true;
   }
 
-  if (normalizedQuery.includes("juusto")) {
+  if (normalizedQuery.replace(/\bjuustoportti(?:n)?\b/g, " ").includes("juusto")) {
     // Brand names such as Juustoportti must not qualify unrelated foods as cheese.
     const productTypeName = normalizedName.replace(/\bjuustoportti(?:n)?\b/g, " ").trim();
     const targetIsCheese = hasAnyToken(productTypeName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
