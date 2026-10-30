@@ -35,7 +35,7 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                           "multiple_approved_matches":sum(r[2]>1 for r in rows)}),
               flush=True)
         cur.execute("""
-            SELECT m.ean, m.confidence, m.match_method,
+            SELECT m.ean, m.confidence, m.match_method, f.fineli_id, f.name_fi,
                    f.nutrients->'NACL'->>'unit' AS salt_unit,
                    f.nutrients->'NACL'->>'value' AS salt_value,
                    jsonb_typeof(f.nutrients->'NACL'->'value') AS salt_value_type
@@ -49,7 +49,7 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
         reasons = {}
         details = {}
         reason_counts = {}
-        for ean, confidence, method, unit, value, value_type in cur.fetchall():
+        for ean, confidence, method, fineli_id, food_name, unit, value, value_type in cur.fetchall():
             eligible = confidence in ("verified", "high") and method == "manual_verified" and unit == "MG" and value_type == "number"
             try:
                 eligible = eligible and value is not None and 0 <= float(value) <= 100000
@@ -58,7 +58,7 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
             if eligible:
                 counts[ean] = counts.get(ean, 0) + 1
             else:
-                details.setdefault(ean, []).append({'confidence':confidence,'method':method,'salt_unit':unit,'salt_value_type':value_type})
+                details.setdefault(ean, []).append({'confidence':confidence,'method':method,'fineli_id':fineli_id,'fineli_food_name':food_name,'salt_unit':unit,'salt_value_type':value_type})
                 reason = ("unverified_match" if method != "manual_verified"
                           else "low_confidence" if confidence not in ("verified", "high")
                           else "missing_salt" if unit is None and value_type is None
