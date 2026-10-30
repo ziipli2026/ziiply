@@ -194,6 +194,17 @@ async function resolveKLocalPublicationIds(
     const rows = (front as UnknownRecord).publications;
     return Array.isArray(rows) ? rows.filter((p): p is UnknownRecord => !!p && typeof p === "object") : [];
   });
+  if (storeId === "986cCCi") {
+    console.info("[Ziiply Wiljami fronts metadata]", JSON.stringify({
+      fronts: fronts.map(front => front && typeof front === "object" ? { keys: Object.keys(front as UnknownRecord), id: (front as UnknownRecord).id, label: (front as UnknownRecord).label } : null),
+      publications: publications.map(publication => ({
+        id: publication.id, label: publication.label, title: publication.title,
+        keys: Object.keys(publication), validFrom: publication.validFrom, validUntil: publication.validUntil,
+        businessIds: publication.businessIds, localBusinessIds: publication.localBusinessIds,
+        type: publication.type, category: publication.category,
+      })),
+    }));
+  }
   const active = publications.filter(publication => {
     const from = Date.parse(String(publication.validFrom ?? ""));
     const until = Date.parse(String(publication.validUntil ?? ""));
