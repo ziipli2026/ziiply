@@ -37,6 +37,7 @@ assert.equal(isBadNormalResult(product("Juustoportti juustodippi 200 g"), "juust
 assert.equal(isHardRejectedKMatch("juusto", "Juustoportti juustodippi 200 g"), true);
 assert.equal(productGroupGate("juusto", "Juustoportti juustodippi 200 g"), false);
 assert.equal(isHardRejectedKMatch("Juustoportti porkkanasose", "Juustoportti porkkanasose"), false);
+assert.equal(isBadNormalResult(product("Juustoportti porkkanasose 500 g"), "Juustoportti porkkanasose"), false, "brand-specific carrot puree search must not become cheese search");
 // Regression examples from the 35-category provider report: raw API results
 // must not be accepted as final normal-search matches.
 for (const [query, name] of [
