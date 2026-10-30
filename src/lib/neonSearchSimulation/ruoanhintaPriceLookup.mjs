@@ -15,7 +15,7 @@ export function createRuoanhintaPriceLookup(stores, fetcher=fetch) {
         if(!Array.isArray(data.items))return [];
         return data.items.filter(item=>String(item.ean||'')===String(ean)).flatMap(item=>{
           const match=(item.storeItems||[]).find(x=>Number(x.storeId)===store.storeId&&typeof x.price==='number'&&Number.isFinite(x.price)&&x.price>0);
-          return match?[{ean:String(ean),store:store.id,price:match.price}]:[];
+          return match?[{ean:String(ean),store:store.id,price:match.price/100}]:[];
         });
       } catch(error) {
         if(signal.aborted)throw error;
