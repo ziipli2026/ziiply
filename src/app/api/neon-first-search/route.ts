@@ -10,6 +10,28 @@ export async function GET(request: NextRequest) {
   if (!process.env.DATABASE_URL) return NextResponse.json({ ok: false, error: "Database unavailable" }, { status: 503 });
 
   const isEan = /^\d{8,14}$/.test(q);
+  // Barcode searches must not fall back to fuzzy name, brand or alias matches.
+  if (isEan) {
+    const started = Date.now();
+    try {
+      const sql = neon(process.env.DATABASE_URL);
+      const rows = await sql`
+        SELECT ean, name, brand, quantity, image_url AS "imageUrl",
+               category, source, aliases, last_seen_at AS "lastSeenAt", 0 AS rank
+        FROM ziiply_ean_products
+        WHERE ean = ${q}
+        LIMIT 1
+      `;
+      return NextResponse.json({
+        ok: true, query: q, products: rows, count: rows.length, readOnly: true,
+        elapsedMs: Date.now() - started, searchVersion: "neon-category-aware-v11-exact-ean",
+        categoryExpansion: "exact-ean", truncated: false
+      });
+    } catch (error) {
+      console.error("[neon-first-search] EAN lookup failed", error);
+      return NextResponse.json({ ok: false, error: "Search unavailable" }, { status: 500 });
+    }
+  }
   // Shared category-aware search for every term, without per-keyword exceptions.
   const contains = "%" + q.replace(/[\\%_]/g, "\\$&") + "%";
   const prefix = q.replace(/[\\%_]/g, "\\$&") + "%";
