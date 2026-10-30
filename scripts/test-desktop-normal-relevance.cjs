@@ -100,3 +100,21 @@ for(const query of ['maito','kahvi','cola','juusto','suola','sokeri','vesi','xyz
   assert.deepEqual(rank(query,sample,{requirePrice:true}).map(p=>p.id),['cheap','expensive'],query+' must apply the same qualified priced ascending policy');
 }
 console.log('PASS universal Justiina display policy: wrong/unpriced rows excluded; ascending price across all query cases');
+
+for(const product of [
+ {name:'Poppamies BBQ Sauce Cherry Cola grillikastike',brand:'Poppamies'},
+ {name:'Mun smoothie pina colada',brand:'Mun'},
+ {name:'Hartwall Cocktails Pina Colada 5,5%',brand:'Hartwall Cocktails'},
+ {name:'Revell 3D Palapeli Coca-Cola Rekka',brand:'Revell'},
+ {name:'Green Dates sour cola Candy Dates',brand:'Green Dates'},
+ {name:'Sun Lolly mehujää cola',brand:'Sun Lolly'},
+ {name:'SodaStream 440ml Pepsi Max',brand:'SodaStream'},
+ {name:'Jaloviina Cola 5%',brand:'Jaloviina'},
+ {name:'Mad-Croc enegiajuoma Cola',brand:'Mad-Croc'},
+ {name:'Kariniemen Kananpojan paistileike Cola BBQ',brand:'Kariniemen'},
+ {name:'Pirkka appelsiini-colajuoma 2dl',brand:'Pirkka'},
+])assert.equal(dec('cola',product).accepted,false,'wrong product type or embedded colada: '+product.name);
+
+assert.equal(dec('pepsi',{name:'Pepsi Max 0,5l',brand:'Pepsi Max'}).accepted,true);
+
+assert.equal(dec('cola',{name:'Pepsi Zero Sugar Cream Soda virvoitusjuoma',brand:'Pepsi'}).accepted,false);

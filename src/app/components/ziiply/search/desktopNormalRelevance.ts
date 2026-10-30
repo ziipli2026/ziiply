@@ -29,6 +29,7 @@ const alternatives: Record<string, string[]> = {
   kahvi:['kahvi','juhla mokka','kulta katriina'],
   ketsuppi:['ketsuppi','ketchup'], ketsuppia:['ketsuppi','ketchup'],
   zero:['zero','sokeriton','max'], sokeriton:['sokeriton','zero','max'],
+  pepsi:['pepsi'],
   cola:['cola','pepsi','coke'], limsa:['virvoitusjuoma','limonadi','cola','pepsi','fanta','sprite','jaffa'],
   broileri:['broileri','kana'], kana:['kana','broileri'], jogurtti:['jogurtti','yoghurt','yogurt'],
   sipsi:['sipsi','perunalastu','chips'], kananmuna:['kananmuna','muna'],
@@ -95,32 +96,37 @@ export function desktopSearchDecision(query: string, product: Row) {
     return {accepted:false,score:-10000,reason:'wrong_product_group'};
   if (!q.terms.length) return {accepted:false,score:0,reason:'empty_query'};
   const nameText=productWords.join(' ');
+  const identityText=searchWords(product.name || product.title).join(' ');
   const categoryText=searchWords(product.category).join(' ');
   const nonfood=['shampoo','hoitoaine','tuoksusuihke','saippua','suihkugeeli','kosmetiikka','pesuaine','huulivoide','vartalovoide','hiusnaamio'];
-  if(intent.intent!=='unknown' && nonfood.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
+  if(intent.intent!=='unknown' && nonfood.some(t=>(identityText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'non_food_product'};
-  if(q.terms.some(t=>['cola','limsa'].includes(t)) && nameText.includes('energiajuoma') && !q.terms.some(t=>t.includes('energiajuoma')))
+  if(q.terms.some(t=>['cola','limsa'].includes(t)) && /ene(?:r)?giajuoma/.test(identityText) && !q.terms.some(t=>t.includes('energiajuoma')))
     return {accepted:false,score:-10000,reason:'energy_drink_other_group'};
   const alcohol=['alkoholi','jaloviina','vodka','likoori','rommi','whisky','lonkero'];
-  if(q.terms.some(t=>['cola','limsa','kahvi'].includes(t)) && alcohol.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
+  if(q.terms.some(t=>['cola','limsa','kahvi'].includes(t)) && alcohol.some(t=>(identityText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'alcoholic_other_product'};
   // Product type takes precedence over a flavour/ingredient word. These
   // shared classes apply across queries, including catalog categories which
   // contain no usable taxonomy (opaque supplier codes).
   const typeRules: [string, RegExp][] = [
-    ['nonfood', /shampoo|hoitoaine|tuoksusuihke|kosmetiikka|kauneus|hygienia|epsom|kylpysuola|eteerinen|hius|pyydys|torjunta|ilmapallo|sirotin|pippurimylly|ruoanvalmistusastia|lelu|hiusoljy|elvital/],
+    ['nonfood', /shampoo|hoitoaine|tuoksusuihke|kosmetiikka|kauneus|hygienia|epsom|kylpysuola|eteerinen|hius|palapeli|pyydys|torjunta|ilmapallo|sirotin|pippurimylly|ruoanvalmistusastia|lelu|hiusoljy|elvital/],
     ['pet', /best in|bestin|kssanherkku|almo nature|purina|whiskas|pedigree|schesir|shelma|cesar|koir|kiss|lemmik/],
     ['snacks', /chips|snacks|snack|sipsi|naksu|puffs|perunalastu|juusto rinkula/],
+    ['sauce', /kastike|sauce|dressing|dippi/],
+    ['juice', /mehu|smoothie/],
+    ['cream_soda', /cream soda|strawberries cream/],
+    ['concentrate', /sodastream|juomatiiviste|siirappi/],
     ['additive', /stabilointiaine|hyyteloimisaine|sakeuttamisaine/],
     ['nuts', /pahkina|cashew|pistaasi|(?:^| )manteli(?: |$)|(?:^| )siemen(?: |$)/],
-    ['sweets', /toffee|suklaa|tryffeli|makeis|karkki|konvehti|purukumi|pastilli/],
+    ['sweets', /candy|gummy|toffee|suklaa|tryffeli|makeis|karkki|konvehti|purukumi|pastilli/],
     ['prepared', /valmisruo|mikroateria|pizza|pitsa|panini|patonki|kanakastike|vegekastike|keitto|ateriat|ateria|salaatti|tahna|perunamuus|kermaperun|sose|pyree|kiusaus|gratiini/],
     ['processed_meat', /makkara|nakki|lihaleikkele/],
     ['spread', /& voi|margariini|rasvalevit|rasvaseos/],
     ['babyfood', /lastenruo|piltti|vauvanruo/],
     ['bakery', /leivonnai|leivos|kakku|keksi|kranssi|wiener|vohveli|pullapitko/],
     ['yogurt', /jogurtti|jogurtit|yoghurt|yogurt|skyr|vanukas/],
-    ['icecream', /jaatelo|sorbet/],
+    ['icecream', /jaatelo|mehujaa|sorbet/],
     ['coffee', /cappuccino|latte|kahvijauhe|kahvi|kaakao/],
     ['drink', /virvoitusjuoma|limonadi|kivennais|lahdeves|vitaminoitu vesi|energiajuoma|smoothie|juoma|mehu|(?:^| )tee(?: |$)/],
   ];
@@ -130,7 +136,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   if(q.terms.some(t=>['kinkku','makkara','nakki','leikkele'].includes(t)))requestedTypes.add('processed_meat');
   if(rawIntent || ['kahvi','cola','limsa','vesi','tee'].some(t=>q.terms.includes(t))) {
     for(const [type,pattern] of typeRules) {
-      if(!pattern.test(nameText+' '+categoryText) || requestedTypes.has(type))continue;
+      if(!pattern.test(identityText+' '+categoryText) || requestedTypes.has(type))continue;
       if(type==='drink' && q.terms.some(t=>['cola','limsa','vesi','tee'].includes(t)))continue;
       // Category "mehu" is unrelated to a fresh orange search, just as a
       // cheese-flavoured snack is unrelated to the cheese shelf.
@@ -139,7 +145,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   }
   const nameTypes: [string,RegExp][]=[['cheese',/juusto|edam|gouda|emmental|cheddar|mozzarella/],['meat',/kana|broileri|naudan|nauta|porsaan|possu|liha|kinkku|lohi/]];
   for(const [type,pattern] of nameTypes) {
-    if(rawIntent && pattern.test(nameText) && !pattern.test(q.terms.join(' ')))
+    if((rawIntent || ['cola','limsa','kahvi','vesi','tee'].some(t=>q.terms.includes(t))) && pattern.test(nameText) && !pattern.test(q.terms.join(' ')))
       return {accepted:false,score:-10000,reason:'different_named_product:'+type};
   }
   const pet=/\b(?:koir|kiss|lemmik|dog|cat)/;
@@ -159,7 +165,7 @@ export function desktopSearchDecision(query: string, product: Row) {
     return {accepted:false,score:-10000,reason:'different_milk_product'};
   if(q.terms.includes('kahvi')) {
     const otherCoffeeProducts=['jogurtti','skyr','rahka','vanukas','likoori','jaloviina','olut','kerma','energiajuoma'];
-    if(otherCoffeeProducts.some(t=>(nameText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
+    if(otherCoffeeProducts.some(t=>(identityText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
       return {accepted:false,score:-10000,reason:'coffee_flavoured_other_product'};
   }
   const derived=['jaatelo','suklaa','makeinen','karkki','limppu','sampyla','mauste','kastike','kakku','keksi'];
@@ -170,7 +176,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   for(const term of q.terms) {
     const variants=alternatives[term] || [term];
     const strength=Math.max(0,...variants.map(rawVariant => { const v=searchWords(rawVariant).map(canonical).join(' '); return (name.terms.includes(v) || (v.includes(' ') && (' '+name.terms.join(' ')+' ').includes(' '+v+' '))) ? (v===term?100:80)
-      : name.terms.some(w=>v.length>=3 && w.startsWith(v) && (!rawIngredientTerms.has(v) || (['kana','broileri'].includes(v) && /^(?:n)?(?:filee|rinta|reis|siipi|suikale|koipi|paisti|pihvi|jauheliha)/.test(w.slice(v.length))))) ? 65
+      : name.terms.some(w=>v.length>=3 && w.startsWith(v) && ((!rawIngredientTerms.has(v) && !['cola','pepsi','coke','kahvi'].includes(v)) || (['kana','broileri'].includes(v) && /^(?:n)?(?:filee|rinta|reis|siipi|suikale|koipi|paisti|pihvi|jauheliha)/.test(w.slice(v.length))))) ? 65
       : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0; }));
     if(strength) score+=strength;
     else if(!alternatives[term] && brand.includes(term) && (q.terms.length>1 || brand.join(" ")===term)) score+=25;
