@@ -19,6 +19,6 @@ export async function POST(request: NextRequest) {
     }
   }
   const response = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
-  response.cookies.set(BETA_COOKIE_NAME, "", { ...betaCookieOptions(0), maxAge: 0 });
+  response.cookies.set(BETA_COOKIE_NAME, "", { ...betaCookieOptions(0), sameSite: "lax" as const, maxAge: 0 });
   return response;
 }
