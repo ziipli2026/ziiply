@@ -15,7 +15,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Test 35 queries against preview live provider endpoints
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Test 35 queries against protected preview live provider endpoints
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: node scripts/test-desktop-search-live.mjs
       - name: Upload detailed results even on failures
         if: always()
