@@ -45,6 +45,11 @@ export default function ArvoStatisticsPage() {
           {chart.map(({date,values})=>{const max=Math.max(1,...chart.map(day=>day.values.kcal));return <div key={date} className="flex min-w-[48px] flex-1 flex-col items-center justify-end gap-1"><span className="text-[11px] font-bold">{values.known.kcal?format(values.kcal):"—"}</span><div className="w-full max-w-[60px] rounded-t-md bg-[#24573e]" style={{height:`${values.known.kcal?Math.max(4,Math.round(values.kcal/max*125)):2}px`}} title={date+": "+(values.known.kcal?format(values.kcal)+" kcal":"ei kirjattua energia-arvoa")}/><span className="text-[10px]">{date.slice(5)}</span></div>;})}
         </div>}
       </div>
+      <section className="mt-8 rounded-xl border border-[#d3c9ad] bg-white p-4" aria-label="Apple Health -seuranta">
+        <h2 className="text-xl font-black">Terveys ja aktiivisuus</h2>
+        <p className="mt-2 text-sm">Ziiply Arvo -iPhone-sovelluksessa voit tarkastella Apple Healthin tietoja erikseen antamallasi luvalla. Terveystiedot pysyvät iPhonella.</p>
+        <a href="/arvo-terveystiedot" className="mt-3 inline-block rounded-xl bg-[#24573e] px-4 py-3 text-sm font-bold text-white">Avaa terveystietojen seuranta</a>
+      </section>
       <h2 className="mt-8 text-xl font-black">Päivittäinen seuranta</h2>
       {daily.length===0?<p className="mt-3 rounded-xl bg-white p-5">Ei vielä tallennettuja aterioita valitulla jaksolla. Skannaa tuote Arvolla ja paina Aterialle.</p>:<div className="mt-3 overflow-x-auto rounded-xl border border-[#d3c9ad] bg-white"><table className="w-full text-left text-sm"><thead><tr className="border-b bg-[#efe9da]"><th className="p-3">Päivä</th><th className="p-3">Ateriat</th>{metrics.map(metric=><th key={metric.key} className="p-3">{metric.label}</th>)}</tr></thead><tbody>{daily.map(([date,values])=><tr key={date} className="border-b last:border-0"><td className="p-3">{date}</td><td className="p-3">{values.entries}</td>{metrics.map(metric=><td key={metric.key} className="p-3">{values.known[metric.key]?format(values[metric.key]):"—"}</td>)}</tr>)}</tbody></table></div>}
       <h2 className="mt-8 text-xl font-black">Ateriapäiväkirja</h2>
