@@ -82,8 +82,8 @@ with psycopg.connect(os.environ["DATABASE_URL"], sslmode="verify-full",
                                                   for reason in sorted(reason_counts)}}),
               flush=True)
         suspicious_pairs = {
-            "2000607000005": "product_name_conflicts_with_parsnip",
-            "2000610800005": "product_name_conflicts_with_beetroot",
+            "2000607000005": "off_catalog_name_conflict",
+            "2000610800005": "off_catalog_name_conflict",
         }
         print("FINELI_SALT_REVIEW_PRIORITIES",
               json.dumps({"suspected_mismatches":sorted(ean for ean in suspicious_pairs if ean in reasons),
