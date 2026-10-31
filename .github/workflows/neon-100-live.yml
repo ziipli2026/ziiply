@@ -1,0 +1,57 @@
+name: Neon 100 grocery queries live audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - 'scripts/test-neon-100-live.cjs'
+      - 'scripts/summarize-neon-100-live.cjs'
+      - '.github/workflows/neon-100-live.yml'
+permissions:
+  contents: read
+jobs:
+  live-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm install --global vercel@65.9.0
+      - name: Audit 25 queries against the published desktop deployment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          SHARD: ${{ matrix.shard }}
+          SHARDS: '4'
+          PREVIEW_URL: https://ziiply-cecippwge-ziipli2026s-projects.vercel.app
+        run: node scripts/test-neon-100-live.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-100-live-${{ matrix.shard }}
+          path: neon-100-live-*.json
+          if-no-files-found: error
+  report:
+    needs: live-search
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: neon-100-live-*
+          merge-multiple: true
+      - run: node scripts/summarize-neon-100-live.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-100-live-complete-report
+          path: |
+            neon-100-live-*.json
+            neon-100-summary.md
