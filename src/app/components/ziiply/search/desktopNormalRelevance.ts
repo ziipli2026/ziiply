@@ -280,6 +280,17 @@ export function desktopSearchDecision(query: string, product: Row) {
   }
   return primary;
 }
+/** Add compatible identity evidence to a shop quote, never catalogue prices.
+ * Restricted codes need the same current name; EAN alone cannot transfer a
+ * different producer or preparation between stores. */
+export function withDesktopCatalogEvidence<T extends Row>(product: T, catalog?: Row): T {
+  const ean=String(product.ean || '');
+  if(!catalog || !/^\d{8,14}$/.test(ean) || ean!==String(catalog.ean || ''))return product;
+  if(!compatibleCatalogNames(product.name || product.title,catalog.name || catalog.title,product.quantity))return product;
+  if(/^2/.test(ean) && searchWords(product.name || product.title).join(' ')!==searchWords(catalog.name || catalog.title).join(' '))return product;
+  const aliases=[...new Set([...(product.aliases || []),String(catalog.name || catalog.title || ''),...(catalog.aliases || [])].filter(Boolean))].slice(0,24);
+  return {...product,aliases};
+}
 export function rankDesktopNormalRows<T extends Row>(query: string, rows: T[], options: {requirePrice?: boolean} = {}): T[] {
   return rows.map((product,index)=>({product,index,...desktopSearchDecision(query,product)}))
     .filter(x=>x.accepted && (!options.requirePrice || (typeof x.product.__price==='number' && Number.isFinite(x.product.__price) && x.product.__price>0)))

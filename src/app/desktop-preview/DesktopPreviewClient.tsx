@@ -1,5 +1,5 @@
 "use client";
-import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, rankDesktopNormalRows } from "../components/ziiply/search/desktopNormalRelevance";
+import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, rankDesktopNormalRows, withDesktopCatalogEvidence, searchWords } from "../components/ziiply/search/desktopNormalRelevance";
 import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
 import { citymarketFailureNotice } from "../components/ziiply/offerSearch/citymarketAvailability";
@@ -2269,8 +2269,8 @@ export default function DesktopPreviewPage() {
     }
     // The typing debounce is applied in the effect below; never delay a started search again.
     try{
-      async function fetchSearchData(url: string) {
-        const queries = desktopSearchQueries(query);
+      async function fetchSearchData(url: string, exactQueries?: string[]) {
+        const queries = exactQueries || desktopSearchQueries(query);
         let lastData: any = null;
         const collected:any[]=[];
         const requestErrors:string[]=[];
@@ -2293,7 +2293,8 @@ export default function DesktopPreviewPage() {
           report("response",{requestUrl,rawCount:items.length,source:data?.source,apiStatus:data?.status,error:data?.error});
           const usable=items.some((product:any)=>desktopSearchDecision(query,product).accepted);
           if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:items.filter((product:any)=>desktopSearchDecision(query,product).accepted).length});
-          if(usable)collected.push(...items.map((item:any)=>({...item,__providerSource:data?.source})));
+          // Qualification is repeated after Neon has supplied compatible name evidence.
+          collected.push(...items.map((item:any)=>({...item,__providerSource:data?.source})));
           } catch(error) { if(diagnostic?.signal.aborted)throw error; requestErrors.push(String(error)); report("provider_variant_error",{requestUrl,error:String(error)}); }
         }
         if(!lastData && requestErrors.length)throw new Error(requestErrors.join("; "));
@@ -2323,6 +2324,33 @@ export default function DesktopPreviewPage() {
       const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
       if(!batches.length && failures.length)throw new Error(failures.join("; "));
       report("providers_settled",{failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,error:b.data?.error}))});
+      const catalogByEan=new Map<string,any>(neonRows.map((item:any)=>[String(item.ean),item]));
+      const withEvidence=(item:any)=>withDesktopCatalogEvidence(item,catalogByEan.get(String(item.ean || '')));
+      const itemsOf=(data:any):any[]=>Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+      // A named product may be indexed under a shorter current shop name.
+      // Try at most two qualified catalogue identities, only when a successful
+      // store response has no usable quote. Final query constraints still apply.
+      if(searchWords(query).length>=2){
+        const tried=new Set(desktopSearchQueries(query).map(name=>searchWords(name).join(' ')));
+        const fallbackNames=[...new Set<string>(neonRows.map((item:any)=>String(item.name || '')).filter(Boolean))]
+          .filter(name=>!tried.has(searchWords(name).join(' '))).slice(0,2);
+        await Promise.all(batches.map(async batch=>{
+          const usable=itemsOf(batch.data).some(item=>{
+            const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
+            return Number.isFinite(price)&&price>0&&desktopSearchDecision(query,withEvidence(item)).accepted;
+          });
+          if(usable || !fallbackNames.length)return;
+          const store=batch.store;
+          const url=batch.chain==='S'
+            ? `/api/s-products?store=${encodeURIComponent(String(store.id))}&storeName=${encodeURIComponent(String(store.name||""))}&storeType=${storeKind(store)==="sLocal"?"local":"hyper"}`
+            : `/api/k-products?store=${encodeURIComponent(String(store.id))}`;
+          try{
+            report('catalog_name_lookup',{chain:batch.chain,store:store.name,names:fallbackNames});
+            const recovered=await fetchSearchData(url,fallbackNames);
+            batch.data={...batch.data,products:[...itemsOf(batch.data),...itemsOf(recovered)]};
+          }catch(error){failures.push(String(error));report('catalog_name_lookup_error',{chain:batch.chain,error:String(error)});}
+        }));
+      }
       const rows:any[]=[];
       const productDecisions:any[]=[];
       for(const batch of batches){
@@ -2332,7 +2360,7 @@ export default function DesktopPreviewPage() {
           const responseSource=x.__providerSource||batch.data?.source;
           const priceIsEuros=batch.chain==="S"&&responseSource==="s-kaupat-normal-v220";
           const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
-          const product={...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:responseSource||""};
+          const product=withEvidence({...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:responseSource||""});
           const normalRejected=!desktopSearchDecision(query,product).accepted;
           const included=!normalRejected;
           productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});

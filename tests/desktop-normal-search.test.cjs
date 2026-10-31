@@ -8,7 +8,7 @@ const source = fs.readFileSync('src/app/desktop-preview/DesktopPreviewClient.tsx
 const start = source.indexOf('  async function runDesktopNormalSearch(');
 const end = source.indexOf('  async function runDesktopJustiinaSearch(',start);
 const compiled = ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
-function harness({delay=false,products=null,providerFailure=false}={}) {
+function harness({delay=false,products=null,providerFailure=false,catalogProducts=null,providerProducts=null}={}) {
   const state = {requests:[],results:null,loading:false};
   const generation = {current:1};
   let release;
@@ -28,10 +28,10 @@ function harness({delay=false,products=null,providerFailure=false}={}) {
       if(url.startsWith("/api/ean-bank?"))return {ok:false,status:204,json:async()=>({})};
       state.requests.push(url);
       if(providerFailure&&url.startsWith('/api/neon-first-search'))await new Promise(resolve=>setTimeout(resolve,20));
-      if(url.startsWith('/api/neon-first-search'))return {ok:true,json:async()=>({products:[{ean:'6410000000001',name:'Valio kevytmaito 1l',price:999}]})};
+      if(url.startsWith('/api/neon-first-search'))return {ok:true,json:async()=>({products:catalogProducts||[{ean:'6410000000001',name:'Valio kevytmaito 1l',price:999}]})};
       if(providerFailure)throw new Error("Provider failed before Neon settled");
       if(delay&&!delayed){delayed=true;await new Promise(resolve=>{release=resolve});}
-      return {ok:true,status:200,headers:new Headers(),json:async()=>({source:'s-kaupat-normal-v220',products:products||[
+      return {ok:true,status:200,headers:new Headers(),json:async()=>({source:'s-kaupat-normal-v220',products:providerProducts?providerProducts(new URL(url,'https://example.test').searchParams.get('search')):products||[
         {id:'beer',name:'Karhu olut 4,6% 0,33l',price:1.24},
         {id:'milk',name:'Valio kevytmaito 1l',price:1.09}
       ]})};
@@ -70,5 +70,30 @@ function harness({delay=false,products=null,providerFailure=false}={}) {
   assert.deepEqual(failed.state.results,[],'failed providers must not leave stale results visible');
   assert.equal(failed.state.loading,false);
   assert.match(failed.state.message,/Haku ei onnistunut/);
+  const longQuery='Atria Artesaani Kalapihvit Smetanakastikkeella ja Pinaatti';
+  const catalog={ean:'6407800008252',name:'Atria Artesaani kalapihvit ja pinaattimuusi 350g',brand:'Atria Artesaani',aliases:['Atria Artesaani Kalapihvit Smetanakastikkeella ja Pinaatti-Perunamuusi 350g']};
+  const quote={ean:catalog.ean,id:'meal',name:catalog.name,brandName:catalog.brand,price:5.85};
+  const named=harness({catalogProducts:[catalog],products:[quote]});
+  await named.run(longQuery);
+  assert.equal(named.state.results.length,1,'same-EAN selected-store quote must inherit compatible observed names');
+  assert.equal(named.state.results[0].name,quote.name,'retain the current shop display name');
+  assert.equal(named.state.results[0].__price,5.85,'retain the real selected-store euro quote');
+  const lookup=harness({catalogProducts:[catalog],providerProducts:search=>search===catalog.name?[quote]:[]});
+  await lookup.run(longQuery);
+  assert.equal(lookup.state.results.length,1,'a catalogue name lookup must recover the real shop quote');
+  assert.ok(lookup.state.requests.some(url=>new URL(url,'https://example.test').searchParams.get('search')===catalog.name));
+  const mismatch=harness({catalogProducts:[catalog],products:[{...quote,name:quote.name.replace('350g','1kg')}]});
+  await mismatch.run(longQuery);
+  assert.equal(mismatch.state.results.length,0,'a conflicting package must not inherit catalogue names');
+  const noQuote=harness({catalogProducts:[{...catalog,price:999}],products:[{...quote,price:null}]});
+  await noQuote.run(longQuery);
+  assert.equal(noQuote.state.results.length,0,'catalogue evidence never supplies a missing shop quote');
+  const localProducer=harness({catalogProducts:[{ean:'2000629900000',name:'Kurkku Härkälä'}],products:[{ean:'2000629900000',name:'Kurkku Juntti',price:1.29}]});
+  await localProducer.run('Kurkku Härkälä');
+  assert.equal(localProducer.state.results.length,0,'restricted EAN cannot transfer another producer between stores');
+  const cauliflower={ean:'2000604100005',name:'Kukkakaali',aliases:['Kukkakaali irto']};
+  const loose=harness({catalogProducts:[cauliflower],providerProducts:search=>search===cauliflower.name?[{ean:cauliflower.ean,name:cauliflower.name,price:2.89}]:[]});
+  await loose.run('Kukkakaali irto');
+  assert.equal(loose.state.results.length,1,'two-word attribute queries can recover a shorter current shop name');
   console.log('PASS normal search: provider route, relevance gate, euro prices, diagnostics and stale-response guard');
 })().catch(error=>{console.error(error);process.exitCode=1});
