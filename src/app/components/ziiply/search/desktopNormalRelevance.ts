@@ -82,6 +82,14 @@ export function desktopSearchDecision(query: string, product: Row) {
   const q=parse(desktopSearchQuery(query));
   if(/\b(?:tai|valitse)\b/.test(searchWords(product.name).join(' ')) && !/\b(?:tai|valitse)\b/.test(query))
     return {accepted:false,score:-10000,reason:'ambiguous_product_choice'};
+  // A complete product identity (or a sufficiently specific leading name)
+  // is stronger evidence than broad, sometimes mixed catalog departments.
+  // Keep every requested token and package constraint mandatory.
+  const identity = parse(product.name || product.title);
+  const exactIdentity = q.terms.length >= 2 && q.terms.length === identity.terms.length && q.terms.every((term, index) => term === identity.terms[index]);
+  const namedPrefix = q.terms.length >= 4 && q.terms.every((term, index) => term === identity.terms[index]);
+  if ((exactIdentity || namedPrefix) && q.sizes.every(size => identity.sizes.includes(size) || parse(product.quantity).sizes.includes(size)))
+    return {accepted:true,score:q.terms.length*100+q.sizes.length*40,reason:'explicit_product_identity'};
   const brand=parse(product.brandName || product.brand).terms;
   let productWords=searchWords(product.name || product.title);
   const knownFamily=q.terms.flatMap(t=>alternatives[t] || []);
