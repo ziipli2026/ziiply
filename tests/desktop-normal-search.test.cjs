@@ -8,7 +8,7 @@ const source = fs.readFileSync('src/app/desktop-preview/DesktopPreviewClient.tsx
 const start = source.indexOf('  async function runDesktopNormalSearch(');
 const end = source.indexOf('  async function runDesktopJustiinaSearch(',start);
 const compiled = ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
-function harness({delay=false,products=null}={}) {
+function harness({delay=false,products=null,providerFailure=false}={}) {
   const state = {requests:[],results:null,loading:false};
   const generation = {current:1};
   let release;
@@ -25,8 +25,11 @@ function harness({delay=false,products=null}={}) {
     setJustiinaLoading:v=>state.loading=v,
     justiinaLastSearchedRef:{current:''},justiinaUserEditedRef:{current:false},justiinaAddedDuringSelectionRef:{current:false},
     fetch:async url=>{
+      if(url.startsWith("/api/ean-bank?"))return {ok:false,status:204,json:async()=>({})};
       state.requests.push(url);
+      if(providerFailure&&url.startsWith('/api/neon-first-search'))await new Promise(resolve=>setTimeout(resolve,20));
       if(url.startsWith('/api/neon-first-search'))return {ok:true,json:async()=>({products:[{ean:'6410000000001',name:'Valio kevytmaito 1l',price:999}]})};
+      if(providerFailure)throw new Error("Provider failed before Neon settled");
       if(delay&&!delayed){delayed=true;await new Promise(resolve=>{release=resolve});}
       return {ok:true,status:200,headers:new Headers(),json:async()=>({source:'s-kaupat-normal-v220',products:products||[
         {id:'beer',name:'Karhu olut 4,6% 0,33l',price:1.24},
@@ -62,5 +65,10 @@ function harness({delay=false,products=null}={}) {
   const stale=harness({delay:true});const pending=stale.run('maito');
   stale.generation.current++;stale.release();await pending;
   assert.deepEqual(stale.state.results,null,'cancelled search must not replace current results');
+  const failed=harness({providerFailure:true});
+  assert.equal(await failed.run('maito'),false);
+  assert.deepEqual(failed.state.results,[],'failed providers must not leave stale results visible');
+  assert.equal(failed.state.loading,false);
+  assert.match(failed.state.message,/Haku ei onnistunut/);
   console.log('PASS normal search: provider route, relevance gate, euro prices, diagnostics and stale-response guard');
 })().catch(error=>{console.error(error);process.exitCode=1});

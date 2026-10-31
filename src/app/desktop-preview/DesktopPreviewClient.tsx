@@ -2308,6 +2308,7 @@ export default function DesktopPreviewPage() {
       const calls:any[]=[];
       if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.id))}&storeName=${encodeURIComponent(String(s.name||""))}&storeType=${storeKind(s)==="sLocal"?"local":"hyper"}`).then(d=>({chain:"S",store:s,data:d})));
       if(k)calls.push(fetchSearchData(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`).then(d=>({chain:"K",store:k,data:d})));
+      const settledPromise=Promise.allSettled(calls);
       const neonRaw = await neonPromise;
       if(!diagnostic)traceNormal("neon_response",{count:neonRaw.length,products:neonRaw.slice(0,100)});
       const neonRows = neonRaw
@@ -2317,9 +2318,10 @@ export default function DesktopPreviewPage() {
       // Keep Neon metadata internal until a selected-store price is available; do not show an unpriced
       // preliminary list before store prices and final ranking are available.
       // The loading state remains visible until the merged result is ready.
-      const settled=await Promise.allSettled(calls);
+      const settled=await settledPromise;
       const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
       const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
+      if(!batches.length && failures.length)throw new Error(failures.join("; "));
       report("providers_settled",{failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,error:b.data?.error}))});
       const rows:any[]=[];
       const productDecisions:any[]=[];
@@ -2382,7 +2384,7 @@ export default function DesktopPreviewPage() {
       });
       justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
       return sortedRows.length > 0;
-    }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
+    }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaResults([]);setJustiinaResultsOpen(false);setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
   }
 
   async function runDesktopJustiinaSearch(raw=justiinaQuery, voiceRunId?:number, diagnostic?: { observe: SearchDebugObserver; signal: AbortSignal }) {
