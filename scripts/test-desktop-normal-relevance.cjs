@@ -156,3 +156,22 @@ for(const [query,product] of [
 ])assert.equal(dec(query,product).accepted,true,query+' must keep '+product.name);
 assert.ok(queries('kananfilee').includes('broilerin filee'));
 console.log('PASS real 100-query audit regressions');
+for(const [query,name] of [
+ ['kaakao','Ziaja Kaakao shampoo 400ml'],['kauramaito','Lumene Kauramaito-öljypuhdistus 150ml'],
+ ['oliiviöljy','Le Petit Olivier Marseille saippua Oliiviöljy'],['mustikka','Bliw nestesaippua Mustikka'],
+ ['paprika','Pirkka paprikajauhe 25g'],['sipuli','Coop sipulijauhe 65g'],
+ ['pasta','Santa Maria Pasta Rossa Mausteseos'],['omena','Coop omena-kanelimarmeladi 300g'],
+ ['mansikka','Valio Herkku mousse mansikka'],['avokado','Coop avokadoöljy 250ml'],
+ ['edam','Dave&Jons edamame papuja'],['kaakao','Coop kaakaokeksi 150g'],
+ ['kaakao','Coop kaakao-valkosuklaamurot'],['banaani','Semper puurojauhe banaani 400g'],
+ ['maissi','Doritos maissilastu 170g'],
+])assert.equal(dec(query,{name}).accepted,false,query+' rejects other product class: '+name);
+for(const [query,name] of [
+ ['kahvi','Juhla Mokka jauhettu kahvi 500g'],['kaakao','Fazer kaakaojuomajauhe 30g'],
+ ['margariini','Keiju Rypsiöljy margariini 60 400g'],['tonnikala','Coop tonnikala oliiviöljyssä'],
+ ['omenahillo','Coop omenahillo'],
+])assert.equal(dec(query,{name}).accepted,true,query+' keeps requested form: '+name);
+console.log('PASS ingredient derivatives and nonfood live regressions');
+
+assert.equal(dec('kauramaito',{name:'Oatly kaurajuoma 1l',category:'juomat/kasvipohjaiset-juomat/kaurajuomat'}).accepted,true);
+assert.ok(queries('kauramaito').includes('kaurajuoma'));
