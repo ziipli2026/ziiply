@@ -1,19 +1,47 @@
 "use client";
 import {useEffect,useState} from "react";
 type Count={status:string;count:number};
+type Applicant={id:string;email:string;municipality:string;profile_key:string;status:string;created_at:string};
 export default function AdminPage() {
  const [counts,setCounts]=useState<Count[]|null>(null);
+ const [applications,setApplications]=useState<Applicant[]>([]);
  const [unauthorized,setUnauthorized]=useState(false);
  const [email,setEmail]=useState("");
  const [notice,setNotice]=useState("");
  const [busy,setBusy]=useState(false);
- useEffect(()=>{fetch("/api/beta/admin/summary",{cache:"no-store"}).then(async r=>{if(r.status===403){setUnauthorized(true);return;}if(!r.ok)throw Error();const data=await r.json();setCounts(data.counts);}).catch(()=>setNotice("Tietojen lataaminen epäonnistui."));},[]);
+ const [changing,setChanging]=useState("");
+ async function refresh(){
+  const r=await fetch("/api/beta/admin/summary",{cache:"no-store"});
+  if(r.status===403){setUnauthorized(true);return;}
+  if(!r.ok)throw Error("summary");
+  const data=await r.json();setCounts(data.counts);
+  const a=await fetch("/api/beta/admin/applications",{cache:"no-store"});
+  if(!a.ok)throw Error("applications");
+  setApplications((await a.json()).applications);
+ }
+ useEffect(()=>{refresh().catch(()=>setNotice("Tietojen lataaminen epäonnistui."));},[]);
  async function send(e:React.FormEvent){e.preventDefault();setBusy(true);setNotice("");try{const r=await fetch("/api/beta/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});const data=await r.json();setNotice(r.ok?data.message:"Linkin lähettäminen epäonnistui. Yritä myöhemmin.");}catch{setNotice("Yhteysvirhe.");}finally{setBusy(false);}}
- return <main style={{maxWidth:600,margin:"3rem auto",padding:24,fontFamily:"system-ui"}}>
+ async function change(a:Applicant,status:string){
+  const label=status==="invited"?"kutsutuksi":status==="active"?"aktiiviseksi":"poistetuksi käytöstä";
+  if(!window.confirm("Muutetaanko "+a.email+" tilaan "+label+"?"))return;
+  setChanging(a.id);setNotice("");
+  try{const r=await fetch("/api/beta/admin/applications",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:a.id,status})});
+   if(!r.ok)throw Error();await refresh();setNotice("Tila päivitetty. Huom: kutsusähköpostia ei lähetetä automaattisesti.");
+  }catch{setNotice("Tilan muuttaminen epäonnistui.");}finally{setChanging("");}
+ }
+ return <main style={{maxWidth:1050,margin:"3rem auto",padding:24,fontFamily:"system-ui"}}>
  <h1>Ziiply – beetatestaajien hallinta</h1>
- {counts && <><p>Beetatestaajien määrät</p><table><thead><tr><th>Tila</th><th>Määrä</th></tr></thead><tbody>{counts.map(x=><tr key={x.status}><td style={{padding:8}}>{x.status}</td><td style={{padding:8}}>{x.count}</td></tr>)}</tbody></table></>}
+ {counts && <><h2>Beetatestaajien määrät</h2><table><thead><tr><th>Tila</th><th>Määrä</th></tr></thead><tbody>{counts.map(x=><tr key={x.status}><td style={{padding:8}}>{x.status}</td><td style={{padding:8}}>{x.count}</td></tr>)}</tbody></table>
+ <h2>Hakemukset (enintään 400 uusinta)</h2>
+ <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr><th>Sähköposti</th><th>Kunta</th><th>Profiili</th><th>Tila</th><th>Toiminnot</th></tr></thead><tbody>{applications.map(a=><tr key={a.id} style={{borderTop:"1px solid #888"}}>
+ <td style={{padding:8}}>{a.email}</td><td style={{padding:8}}>{a.municipality}</td><td style={{padding:8}}>{a.profile_key}</td><td style={{padding:8}}>{a.status}</td>
+ <td style={{padding:8,whiteSpace:"nowrap"}}>
+ {["registered","waitlist"].includes(a.status)&&<button disabled={!!changing} onClick={()=>change(a,"invited")}>Hyväksy kutsuttavaksi</button>}
+ {a.status==="invited"&&<button disabled={!!changing} onClick={()=>change(a,"active")}>Aktivoi</button>}
+ {["invited","active"].includes(a.status)&&<button disabled={!!changing} onClick={()=>change(a,"withdrawn")} style={{marginLeft:8}}>Poista käyttöoikeus</button>}
+ </td></tr>)}</tbody></table></div></>}
  {unauthorized && <><p>Kirjaudu ylläpitäjän sähköpostiin lähetettävällä kertakäyttölinkillä.</p><form onSubmit={send}><label htmlFor="admin-email">Ylläpitäjän sähköposti</label><input id="admin-email" type="email" required value={email} onChange={e=>setEmail(e.target.value)} style={{display:"block",padding:10,margin:"12px 0",width:"100%",boxSizing:"border-box"}}/><button disabled={busy} type="submit">{busy?"Lähetetään…":"Lähetä kirjautumislinkki"}</button></form></>}
- {!unauthorized && !counts && !notice && <p>Tarkistetaan kirjautuminen…</p>}
- {notice && <p role="status">{notice}</p>}
+ {!unauthorized&&!counts&&!notice&&<p>Tarkistetaan kirjautuminen…</p>}
+ {notice&&<p role="status">{notice}</p>}
  </main>;
 }
