@@ -4,8 +4,8 @@ import { createBetaToken, hashBetaToken } from "../../../../../lib/ziiplyBetaAut
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
-  const origin=process.env.ZIIPLY_PUBLIC_ORIGIN;
-  if (!origin || request.headers.get("origin")!==origin || !process.env.DATABASE_URL) return NextResponse.json({ok:false},{status:403});
+  const origin=new URL(request.url).origin;
+  if (request.headers.get("origin")!==origin || !process.env.DATABASE_URL) return NextResponse.json({ok:false},{status:403});
   let body: {token?:string};
   try {body=await request.json();} catch {return NextResponse.json({ok:false},{status:400});}
   let hash:string;
