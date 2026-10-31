@@ -27,6 +27,11 @@ export default function AdminPage() {
   try {const r=await fetch("/api/beta/admin/invite",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:a.id})});if(!r.ok)throw Error();await refresh();setNotice("Kutsu lähetetty sähköpostiin.");}
   catch{setNotice("Kutsun lähetys epäonnistui. Tarkista tilanne ennen uutta yritystä.");}finally{setChanging("");}
  }
+ function shareWhatsApp(a:Applicant){
+  const link=new URL("/beta/kirjaudu",window.location.origin).toString();
+  const message="Hei! Sinut on kutsuttu Ziiplyn beetatestaukseen. Avaa "+link+" ja pyydä kirjautumislinkki ilmoittautumisesi sähköpostiosoitteeseen ("+a.email+").";
+  window.open("https://wa.me/?text="+encodeURIComponent(message),"_blank","noopener,noreferrer");
+ }
  async function change(a:Applicant,status:string){
   const label=status==="invited"?"kutsutuksi":status==="active"?"aktiiviseksi":"poistetuksi käytöstä";
   if(!window.confirm("Muutetaanko "+a.email+" tilaan "+label+"?"))return;
@@ -43,6 +48,7 @@ export default function AdminPage() {
  <td style={{padding:8}}>{a.email}</td><td style={{padding:8}}>{a.municipality}</td><td style={{padding:8}}>{a.profile_key}</td><td style={{padding:8}}>{a.status}</td>
  <td style={{padding:8,whiteSpace:"nowrap"}}>
  {["registered","waitlist"].includes(a.status)&&<button disabled={!!changing} onClick={()=>invite(a)}>Lähetä kutsu</button>}
+ {["registered","waitlist","invited","active"].includes(a.status)&&<button disabled={!!changing} onClick={()=>shareWhatsApp(a)} style={{marginLeft:8}}>Jaa WhatsAppissa</button>}
  {a.status==="invited"&&<button disabled={!!changing} onClick={()=>change(a,"active")}>Aktivoi</button>}
  {["invited","active"].includes(a.status)&&<button disabled={!!changing} onClick={()=>change(a,"withdrawn")} style={{marginLeft:8}}>Poista käyttöoikeus</button>}
  </td></tr>)}</tbody></table></div></>}
