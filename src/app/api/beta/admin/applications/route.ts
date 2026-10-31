@@ -20,7 +20,7 @@ export async function GET(request:NextRequest) {
  return NextResponse.json({applications:rows},{headers});
 }
 export async function PATCH(request:NextRequest) {
- if(request.headers.get("origin")!==process.env.ZIIPLY_PUBLIC_ORIGIN || !await authorized(request))
+ if(request.headers.get("origin")!==new URL(request.url).origin || !await authorized(request))
    return NextResponse.json({error:"Forbidden"},{status:403,headers});
  let body:{id?:string,status?:string};
  try {body=await request.json();}catch{return NextResponse.json({error:"Invalid body"},{status:400,headers});}
@@ -28,7 +28,7 @@ export async function PATCH(request:NextRequest) {
    return NextResponse.json({error:"Invalid input"},{status:400,headers});
  const sql=neon(process.env.DATABASE_URL!);
  const id=body.id!,status=body.status!;
- if(status==="invited") return NextResponse.json({error:"Use invite endpoint to send email"},{status:400,headers});
+ // WhatsApp invitation is shared manually by the administrator; no email is sent here.
  // Do not resurrect withdrawn/rejected users via the admin interface.
  const rows=await sql`UPDATE public.ziiply_beta_applications
  SET status=${status}, updated_at=now(),
