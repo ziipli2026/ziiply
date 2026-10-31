@@ -5,7 +5,7 @@ const assert=require('node:assert/strict');
 const {NextRequest}=require('next/server');
 const {GET}=require('../src/app/api/neon-first-search/route.ts');
 const {desktopSearchDecision}=require('../src/app/components/ziiply/search/desktopNormalRelevance.ts');
-const fixed=new Set(['6408430014804','8004030026018','7350153720670','6409531101196','6411300181445','7613035962965','8715700015026','6416453054813']);
+const fixed=new Set(['6413467282508','6413467442407','6416192080012','6416453040502','6416453555105','6408430014804','8004030026018','7350153720670','6409531101196','6411300181445','7613035962965','8715700015026','6416453054813']);
 const cases=require('./fixtures/neon-31-canonical.json');
 (async()=>{
  assert.ok(process.env.DATABASE_URL,'Missing DATABASE_URL');

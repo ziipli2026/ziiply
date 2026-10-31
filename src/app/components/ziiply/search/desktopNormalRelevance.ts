@@ -25,6 +25,10 @@ const forms: Record<string, string> = {
 };
 const canonical = (word: string) => forms[word] || word;
 const alternatives: Record<string, string[]> = {
+  taysjyvaruisleipa:['taysjyvaruisleipa','taysjyvaruis ruisleipa'],
+  siivutettu:['siivutettu','viipaloitu','siivu'],
+  keksi:['keksi','leivoskeksi'],
+  karkkirasia:['karkkirasia','makeisrasia','marmeladi rasia'],
   pippuripekka:['pippuripekka','pippuri pekka'],
   tomaattiketsuppi:['tomaattiketsuppi','ketsuppi','ketchup'],
   vanilja:['vanilja','vanilla'], sitruuna:['sitruuna','lemon'],

@@ -189,7 +189,7 @@ assert.equal(dec('valkosipuli',{name:'Chef X Valkosipuliperunat',category:'CAAAG
 assert.equal(dec('kananmuna',{name:'Menu vapaan kanan keitetty ja kuorittu muna 30kpl',category:'Liha'}).accepted,true);
 
 // Canonical records captured by the read-only 31-EAN root-cause run.
-const recovered=new Set(['6408430014804','8004030026018','7350153720670','6409531101196','6411300181445','7613035962965','8715700015026','6416453054813']);
+const recovered=new Set(['6413467282508','6413467442407','6416192080012','6416453040502','6416453555105','6408430014804','8004030026018','7350153720670','6409531101196','6411300181445','7613035962965','8715700015026','6416453054813']);
 for(const c of require('./fixtures/neon-31-canonical.json')) {
  const decision=dec(c.query,{name:c.storedName,brand:c.brand});
  assert.equal(decision.accepted,recovered.has(c.ean),`${c.ean}: ${decision.reason}`);
@@ -199,7 +199,13 @@ assert.equal(dec('tonnikala',{name:'Rio Mare Insalatissime Meksikolainen tonnika
 assert.equal(dec('Heinz Tomaattiketsuppi',{name:'Heinz tomaattikeitto'}).accepted,false);
 assert.ok(queries('Valio Pippuripekka').includes('valio pippuri pekka'));
 assert.ok(queries('Heinz Tomaattiketsuppi').includes('heinz ketsuppi'));
-console.log('PASS 31 canonical records; 8 qualified, 23 retain unresolved attributes');
+console.log('PASS 31 canonical records; 13 qualified, 18 retain unresolved attributes');
 
 assert.equal(dec('Suklaalevy Fazer vanilja kaakao',{name:'Karl Fazer Vanilla-Kaakao Fudge suklaalevy 180g',brand:'Karl Fazer',category:'Makeiset & keksit'}).accepted,true);
 assert.equal(dec('kaakao',{name:'Kaakaokeksi',category:'Makeiset & keksit'}).accepted,false);
+assert.equal(dec('täysjyväruisleipä',{name:'Vehnäruisleipä'}).accepted,false,'wholegrain qualifier remains mandatory');
+assert.equal(dec('ruisleipä siivutettu',{name:'Ruisleipä kokonainen'}).accepted,false,'sliced qualifier remains mandatory');
+assert.equal(dec('karkkirasia',{name:'Muovinen säilytysrasia'}).accepted,false,'candy box does not mean every box');
+assert.equal(dec('Jaffa keksi Fazer sitruuna 300g',{name:'Fazer Jaffa Sitruuna 150g leivoskeksi',brand:'Fazer Jaffa'}).accepted,false,'equivalent product form still requires package size');
+assert.ok(queries('Fazer Puikula Täysjyväruis täysjyväruisleipä').some(q=>q.includes('taysjyvaruis ruisleipa')));
+assert.ok(queries('Porokylän Ruisleipä siivutettu').some(q=>q.includes('siivu')));
