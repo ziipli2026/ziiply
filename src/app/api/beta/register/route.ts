@@ -6,7 +6,7 @@ export async function POST(req:NextRequest){
  if(!origin || origin!==new URL(req.url).origin || !process.env.DATABASE_URL)return NextResponse.json({ok:false,error:"Pyyntöä ei hyväksytty."},{status:403});
  let body:{email?:string;municipality?:string;profile?:string;consent?:boolean};
  try{body=await req.json();}catch{return NextResponse.json({ok:false,error:"Virheelliset tiedot."},{status:400});}
- const profile=String(body.profile||""); const allowedProfiles=["ordinary","technical","family","senior"]; if(!allowedProfiles.includes(profile))return NextResponse.json({ok:false,error:"Valitse testaajaprofiili."},{status:400}); const email=String(body.email||"").trim().toLowerCase(); const municipality=String(body.municipality||"").trim().slice(0,100);
+ const profile=String(body.profile||""); const allowedProfiles=["household","family","budget","recipes","fuel","technical","nutrition"]; if(!allowedProfiles.includes(profile))return NextResponse.json({ok:false,error:"Valitse testaajaprofiili."},{status:400}); const email=String(body.email||"").trim().toLowerCase(); const municipality=String(body.municipality||"").trim().slice(0,100);
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||body.consent!==true)return NextResponse.json({ok:false,error:"Anna sähköposti ja hyväksy tietojen käsittely."},{status:400});
  try{
  const sql=neon(process.env.DATABASE_URL);
