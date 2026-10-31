@@ -85,9 +85,11 @@ export async function GET(request: NextRequest) {
              SELECT 1 FROM jsonb_array_elements(${JSON.stringify(desktopPatterns)}::jsonb) terms
              WHERE NOT EXISTS (
                SELECT 1 FROM jsonb_array_elements_text(terms) term
-               WHERE coalesce(name, '') NOT ILIKE term
-                 AND coalesce(brand, '') NOT ILIKE term
-                 AND NOT EXISTS (SELECT 1 FROM unnest(aliases) a WHERE a ILIKE term)
+               -- searchWords folds Finnish diacritics in every desktop pattern.
+               -- Apply the same fold to catalog values before comparing.
+               WHERE translate(lower(coalesce(name, '')), 'åäö', 'aao') NOT LIKE term
+                 AND translate(lower(coalesce(brand, '')), 'åäö', 'aao') NOT LIKE term
+                 AND NOT EXISTS (SELECT 1 FROM unnest(aliases) a WHERE translate(lower(a), 'åäö', 'aao') LIKE term)
              )
            ))
            OR name ILIKE ${contains}
