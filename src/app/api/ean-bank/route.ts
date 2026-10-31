@@ -42,14 +42,14 @@ function packageInvariantName(value: unknown) {
   return clean(value, 300).toLocaleLowerCase("fi-FI").normalize("NFKC")
     .replace(/\u00a0/g, " ")
     .replace(/(^|[\s,(])\d+(?:[.,]\d+)?\s*(?:ml|cl|dl|kg|g|l)(?=$|[\s,).])/giu, " ")
-    .replace(/[^\p{L}\p{N}]+/gu, " ").trim().replace(/\s+/g, " ");
+    .replace(/[^\p{L}\p{N}]+/gu, " ").trim().split(/\s+/g).sort().join(" ");
 }
 function strictVariantMatch(a: Record<string, unknown>, b: Record<string, unknown>) {
   const norm = (x: unknown) => clean(x).toLocaleLowerCase("fi-FI").trim();
   return Boolean(norm(a.brand) && norm(a.brand) === norm(b.brand)
     && norm(a.category) && norm(a.category) === norm(b.category)
     && packageInvariantName(a.name) && packageInvariantName(a.name) === packageInvariantName(b.name)
-    && norm(a.quantity) && norm(b.quantity) && norm(a.quantity) !== norm(b.quantity)
+    && norm(a.quantity) && norm(b.quantity)
     && norm(a.ean) !== norm(b.ean));
 }
 
