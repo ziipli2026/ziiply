@@ -47,7 +47,7 @@ function energySummary(product: ZiiplyMobileSearchResultProduct): { line: string
   const kcal = Number(raw);
   if (!Number.isFinite(kcal) || kcal < 0 || kcal > 1000) return null;
   const packageText = String(source.packageSize ?? product.packageSize ?? "").trim();
-  const match = packageText.match(/^(\\d+(?:[.,]\\d+)?)\\s*(kg|g|ml|l)$/i);
+  const match = packageText.match(/^(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)$/i);
   const unit = match && /^(ml|l)$/i.test(match[2]) ? "ml" : "g";
   const estimated = nutrition.source === "fineli-generic" || nutrition.estimated === true;
   let line = `Energia ${Math.round(kcal)} kcal / 100 ${unit}`;
