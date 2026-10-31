@@ -46,8 +46,18 @@ function energySummary(product: ZiiplyMobileSearchResultProduct): { line: string
   if (raw === null || raw === undefined || raw === "") return null;
   const kcal = Number(raw);
   if (!Number.isFinite(kcal) || kcal < 0 || kcal > 1000) return null;
+  const packageText = String(source.packageSize ?? product.packageSize ?? "").trim();
+  const match = packageText.match(/^(\\d+(?:[.,]\\d+)?)\\s*(kg|g|ml|l)$/i);
+  const unit = match && /^(ml|l)$/i.test(match[2]) ? "ml" : "g";
   const estimated = nutrition.source === "fineli-generic" || nutrition.estimated === true;
-  return { line: `Energia ${Math.round(kcal)} kcal / 100 g`, estimated };
+  let line = `Energia ${Math.round(kcal)} kcal / 100 ${unit}`;
+  if (match) {
+    const quantity = Number(match[1].replace(",", ".")) * (/^(kg|l)$/i.test(match[2]) ? 1000 : 1);
+    if (Number.isFinite(quantity) && quantity > 0 && quantity <= 100000) {
+      line += ` · ${Math.round(kcal * quantity / 100)} kcal / pkt`;
+    }
+  }
+  return { line, estimated };
 }
 
 export type ZiiplyMobileSearchResultsCardProps = {
