@@ -8,7 +8,7 @@ const ts=require('typescript');
 const normal=require('../src/app/components/ziiply/ziiplyCore.ts');
 const relevance=require('../src/app/components/ziiply/search/desktopNormalRelevance.ts');
 const cli=promisify(execFile);
-const base=process.env.PREVIEW_URL||'https://ziiply-cecippwge-ziipli2026s-projects.vercel.app';
+const base=process.env.PREVIEW_URL||'https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app';
 const shard=Number(process.env.SHARD||0), shards=Number(process.env.SHARDS||1);
 const queries=`maito|kevytmaito|rasvaton maito|täysmaito|laktoositon maito|kauramaito|soijajuoma|piimä|kerma|kuohukerma|ruokakerma|jogurtti|luonnonjogurtti|rahka|maitorahka|raejuusto|juusto|edam|mozzarella|feta|voi|margariini|kananmuna|cola|pepsi|coca cola|cola zero|limonadi|kivennäisvesi|vesi|appelsiinimehu|omenamehu|mehu|kahvi|suodatinkahvi|pikakahvi|tee|kaakao|olut|alkoholiton olut|energiajuoma|jauheliha|naudan jauheliha|sika-nauta jauheliha|kana|broileri|kananfilee|lohi|kirjolohi|tonnikala|seiti|makkara|nakki|kinkku|pekoni|meetvursti|peruna|bataatti|porkkana|sipuli|punasipuli|valkosipuli|tomaatti|kurkku|paprika|parsakaali|kukkakaali|kesäkurpitsa|salaatti|pinaatti|herne|maissi|banaani|omena|appelsiini|mandariini|päärynä|sitruuna|avokado|viinirypäle|mansikka|mustikka|vadelma|leipä|ruisleipä|paahtoleipä|sämpylä|riisi|pasta|makaroni|spagetti|kaurahiutale|murot|vehnäjauho|sokeri|suola|öljy|oliiviöljy|ketsuppi|jäätelö`.split('|');
 assert.equal(queries.length,100);assert.equal(new Set(queries).size,100);
@@ -17,18 +17,29 @@ const start=source.indexOf('  async function runDesktopNormalSearch('), end=sour
 assert.ok(start>=0&&end>start);
 const compiled=ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
 function fold(s){return String(s||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'');}
-const aliases={maito:/maito/,kauramaito:/kaura.*(?:juoma|maito)|(?:juoma|maito).*kaura/,juusto:/juusto|edam|emmental|gouda|mozzarella|cheddar|feta|parmesan|brie|halloumi/,cola:/\bcola\b|pepsi|coke/,'coca cola':/coca.?cola/,'cola zero':/(?:cola|pepsi|coke).*(?:zero|sokeriton|max)|(?:zero|sokeriton|max).*(?:cola|pepsi|coke)/,kahvi:/kahvi|coffee|espresso|juhla mokka|presidentti|kulta katriina|paulig|lofbergs/,suodatinkahvi:/kahvi|juhla mokka|presidentti|kulta katriina|paulig|lofbergs/,pikakahvi:/pikakahvi|instant|nescafe/,jogurtti:/jogurtti|jogurt|yogurt/,kananmuna:/kananmun|munia|munat/,jauheliha:/jauheliha/,tomaatti:/tomaat/,peruna:/perun/,porkkana:/porkkan/,banaani:/banaan/,omena:/omen/,appelsiini:/appelsiin/,mandariini:/mandariin/,sitruuna:/sitruun/,viinirypäle:/viinirypal/,leipä:/leipa|leivat|leivan/,ruisleipä:/ruisleipa|ruisleivat|ruisleivan/,paahtoleipä:/paahtoleipa/,sämpylä:/sampyl/,murot:/muro|cereal/,spagetti:/spaget|spaghet/,öljy:/oljy/,oliiviöljy:/oliivioljy/,ketsuppi:/ketsup|ketchup/,tee:/\btee\b|teeta|tea\b/};
+const aliases={maito:/maito/,kauramaito:/kaura.*(?:juoma|maito)|(?:juoma|maito).*kaura/,juusto:/juusto|edam|emmental|gouda|mozzarella|cheddar|feta|parmesan|brie|halloumi/,cola:/\bcola\b|pepsi|coke/,'coca cola':/coca.?cola|\bcoke\b/,'cola zero':/(?:cola|pepsi|coke).*(?:zero|sokeriton|max)|(?:zero|sokeriton|max).*(?:cola|pepsi|coke)/,kahvi:/kahvi|coffee|espresso|juhla mokka|presidentti|kulta katriina|paulig|lofbergs/,suodatinkahvi:/kahvi|juhla mokka|presidentti|kulta katriina|paulig|lofbergs/,pikakahvi:/pikakahvi|instant|nescafe/,jogurtti:/jogurtti|jogurt|yoghurt|yogurt/,kana:/kana|broiler/,broileri:/kana|broiler/,kananfilee:/kanan?filee|broilerin.*filee/,kananmuna:/kananmun|\bmuna\b|munia|munat/,jauheliha:/jauheliha/,tomaatti:/tomaat/,peruna:/perun/,porkkana:/porkkan/,banaani:/banaan/,omena:/omen/,appelsiini:/appelsiin/,mandariini:/mandariin/,sitruuna:/sitruun/,viinirypäle:/viinirypal/,leipä:/leipa|leivat|leivan/,ruisleipä:/ruisleipa|ruisleivat|ruisleivan/,paahtoleipä:/paahtoleipa/,sämpylä:/sampyl/,murot:/muro|cereal/,spagetti:/spaget|spaghet/,öljy:/oljy/,oliiviöljy:/oliivioljy/,ketsuppi:/ketsup|ketchup/,tee:/tee(?:\b|ta)|tea\b/};
 function suspect(query,p){
  const name=fold(p.name||p.title||p.productName).replace(/juustoportti(?:n)?/g,'');
  const pattern=aliases[query];
  if(pattern ? !pattern.test(name) : !fold(query).split(/[\s-]+/).every(w=>name.includes(w)))return 'name mismatch';
+ const category=String(p.category||'');
+ if(/shampoo|hoitoaine|saippua|vartalovoide|pesuaine|oljypuhdistus/.test(name))return 'nonfood';
+ if(!['suola','kahvi','suodatinkahvi','pikakahvi','kaakao','vehnäjauho'].includes(query)&&/mausteseos|maustesekoitus|perunakuorrute|sipulijauhe|paprikajauhe|sitruunapippuri/.test(name))return 'spice or coating';
+ if(['banaani','omena','appelsiini','mandariini','päärynä','sitruuna','avokado','viinirypäle','mansikka','mustikka','vadelma'].includes(query)&&/hillo|marmeladi|mousse|kiisseli|patukka|(?:^| )[a-z]*oljy(?: |$)/.test(name))return 'fruit ingredient in another product';
+ if(['paprika','sipuli','valkosipuli','sitruuna'].includes(query)&&/\/mausteet\//.test(category))return 'spice taxonomy';
+ if(['paprika','sipuli','valkosipuli'].includes(query)&&/dipmix|pesto|creme fraiche|sekaleipa/.test(name))return 'ingredient in condiment/dairy/bread';
+ if(query==='edam'&&/edamame/.test(name))return 'legume, not cheese';
+ if(query==='kaakao'&&/patukka|keksi|donitsi|pulla|bites|kaakaopallo|vanukas|levite|muro|shampoo|hoitoaine/.test(name))return 'cocoa ingredient in another product';
+ if(/^CAABO/.test(category)||/kattovit|jahti.?vahti|mac.s.*(?:virtsakivi|munuais)|kuivaruoka|taysrehu|koiran|kissan/.test(name))return 'pet food';
+ if(query!=='salaatti' && /^CAAAG/.test(category) && !(query==='pasta'&&/^CAAAGAAAAAQ/.test(category)))return 'prepared food taxonomy';
+ if(['kana','broileri','kananmuna'].includes(query) && /nuudeli|riisipata|risotto|gnocchi|wrap|ciabatta|kolmari|kolmioleipa|evasleipa|pasteija|munakoiso|mignon|muna.*voi.*levite|kinkku.*muna|leikke[l e]|kebablastu|pasta|kananmuna.*sisaltaa/.test(name))return 'ingredient in another food';
  if(query==='maito'&&/jauhe|suklaa|cappuccino|kondens|tiiviste|korvike|vierot|vieroit|piima|kaura|soija|pirtelo/.test(name))return 'milk derivative/substitute';
  if(['cola','pepsi','coca cola','cola zero'].includes(query)&&/ketsup|kastike|karkki|makeinen|tikkari|sodastream|tiiviste|jaatelo|mehuj|jaloviina|shampoo|hoitoaine|pulled|kana/.test(name))return 'cola derivative';
  if(['kahvi','suodatinkahvi'].includes(query)&&/shampoo|hoitoaine|suodatinpussi|suodatinpaper|jaakahvi|kahvijuoma|jogurtti|jaatelo|suklaa|jaloviina/.test(name))return 'coffee derivative/accessory';
  if(query==='jauheliha'&&/pizza|mauste|kastike|keitto|laatikko|piirakka/.test(name))return 'prepared food';
  return null;
 }
-const cache=new Map(),report={target:base,sourceCommit:process.env.GITHUB_SHA||null,shard,shards,runAt:new Date().toISOString(),results:[]};
+const cache=new Map(),report={target:base,sourceCommit:process.env.GITHUB_SHA||null,targetCommit:process.env.TARGET_COMMIT||null,shard,shards,runAt:new Date().toISOString(),results:[]};
 function save(){report.failures=report.results.filter(r=>r.errors.length).length;fs.writeFileSync(`neon-100-live-${shard}.json`,JSON.stringify(report,null,2));}
 process.on('exit',save);
 async function request(path){
@@ -48,6 +59,7 @@ async function test(query){
   for(const desktop of [false,true]){
    const path='/api/neon-first-search?q='+encodeURIComponent(query)+(desktop?'&desktop=1':'');
    const {data,items}=await request(path);
+   if(desktop)assert.equal(data.searchVersion,'desktop-normalized-v2','must test the corrected deployed search version');
    assert.equal(data.readOnly,true);assert.equal(data.count,items.length);assert.ok(items.length<=100);
    assert.notEqual(data.categoryExpansion,'exact-ean');
    const suspects=items.map(p=>({...summarize(p),reason:suspect(query,p)})).filter(p=>p.reason);
