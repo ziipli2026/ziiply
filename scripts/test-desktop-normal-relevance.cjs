@@ -200,3 +200,6 @@ assert.equal(dec('Heinz Tomaattiketsuppi',{name:'Heinz tomaattikeitto'}).accepte
 assert.ok(queries('Valio Pippuripekka').includes('valio pippuri pekka'));
 assert.ok(queries('Heinz Tomaattiketsuppi').includes('heinz ketsuppi'));
 console.log('PASS 31 canonical records; 8 qualified, 23 retain unresolved attributes');
+
+assert.equal(dec('Suklaalevy Fazer vanilja kaakao',{name:'Karl Fazer Vanilla-Kaakao Fudge suklaalevy 180g',brand:'Karl Fazer',category:'Makeiset & keksit'}).accepted,true);
+assert.equal(dec('kaakao',{name:'Kaakaokeksi',category:'Makeiset & keksit'}).accepted,false);

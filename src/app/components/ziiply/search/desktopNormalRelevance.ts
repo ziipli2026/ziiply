@@ -171,11 +171,12 @@ export function desktopSearchDecision(query: string, product: Row) {
   if(q.terms.includes('suola'))requestedTypes.add('spice');
   if(q.terms.some(t=>/(?:mehu|maito|juoma)$/.test(t)))requestedTypes.add('drink');
   if(q.terms.some(t=>['kinkku','makkara','nakki','leikkele','pekoni','meetvursti'].includes(t)))requestedTypes.add('processed_meat');
+  const mixedRequestedDepartment=typeRules.some(([type,pattern])=>requestedTypes.has(type) && pattern.test(categoryLeafText));
   if(rawIntent || ['kahvi','cola','limsa','vesi','tee'].some(t=>q.terms.includes(t))) {
     for(const [type,pattern] of typeRules) {
       // Mixed parent departments (e.g. kahvit-teet-ja-mehut or leivat-keksit)
       // cannot identify a product type. Retain only unambiguous departments.
-      const typeCategory=(type==='spice' && /\/mausteet\//.test(String(product.category))) || ['pet','nonfood','processed_meat'].includes(type) || (type==='prepared' && /^valmisruoka\//.test(String(product.category))) ? categoryText : categoryLeafText;
+      const typeCategory=(type==='spice' && /\/mausteet\//.test(String(product.category))) || ['pet','nonfood','processed_meat'].includes(type) || (type==='prepared' && /^valmisruoka\//.test(String(product.category))) ? categoryText : mixedRequestedDepartment ? '' : categoryLeafText;
       if(!pattern.test(identityText+' '+typeCategory) || requestedTypes.has(type))continue;
       if(type==='prepared' && requestedTypes.has('pasta') && /tuorepasta/.test(identityText) && !/bolognese|carbonara|kastike/.test(identityText))continue;
       if(type==='oil' && requestedTypes.has('spread'))continue;
