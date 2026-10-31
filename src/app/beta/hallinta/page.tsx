@@ -40,8 +40,8 @@ export default function AdminPage() {
    if(!r.ok)throw Error();await refresh();setNotice("Tila päivitetty.");
   }catch{setNotice("Tilan muuttaminen epäonnistui.");}finally{setChanging("");}
  }
- return <main style={{maxWidth:1050,margin:"3rem auto",padding:24,fontFamily:"system-ui"}}>
- <h1>Ziiply – beetatestaajien hallinta</h1>
+ return <main className="beta-admin" style={{maxWidth:1050,margin:"0 auto",minHeight:"100dvh",boxSizing:"border-box",padding:"clamp(12px,3vw,32px)",fontFamily:"system-ui",color:"#17212f"}}>
+ <h1 style={{fontSize:"clamp(22px,3vw,30px)",margin:"0 0 16px"}}>Ziiply – beetatestaajien hallinta</h1>
  {counts && <><h2>Beetatestaajien määrät</h2><table><thead><tr><th>Tila</th><th>Määrä</th></tr></thead><tbody>{counts.map(x=><tr key={x.status}><td style={{padding:8}}>{x.status}</td><td style={{padding:8}}>{x.count}</td></tr>)}</tbody></table>
  <h2>Hakemukset (enintään 400 uusinta)</h2>
  <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr><th>Sähköposti</th><th>WhatsApp</th><th>Kunta</th><th>Profiili</th><th>Tila</th><th>Toiminnot</th></tr></thead><tbody>{applications.map(a=><tr key={a.id} style={{borderTop:"1px solid #888"}}>
@@ -52,7 +52,7 @@ export default function AdminPage() {
  {a.status==="invited"&&<button disabled={!!changing} onClick={()=>change(a,"active")}>Aktivoi</button>}
  {["invited","active"].includes(a.status)&&<button disabled={!!changing} onClick={()=>change(a,"withdrawn")} style={{marginLeft:8}}>Poista käyttöoikeus</button>}
  </td></tr>)}</tbody></table></div></>}
- {unauthorized && <><p>Kirjaudu ylläpitäjän sähköpostiin lähetettävällä kertakäyttölinkillä.</p><form onSubmit={send}><label htmlFor="admin-email">Ylläpitäjän sähköposti</label><input id="admin-email" type="email" required value={email} onChange={e=>setEmail(e.target.value)} style={{display:"block",padding:10,margin:"12px 0",width:"100%",boxSizing:"border-box"}}/><button disabled={busy} type="submit">{busy?"Lähetetään…":"Lähetä kirjautumislinkki"}</button></form></>}
+ {unauthorized && <section style={{maxWidth:480,margin:"clamp(18px,8vh,80px) auto 0",padding:"clamp(18px,4vw,30px)",background:"#fff",border:"1px solid #dbe5f0",borderRadius:16,boxShadow:"0 8px 30px #1a365015"}}><h2 style={{fontSize:21,margin:"0 0 8px"}}>Ylläpitäjän kirjautuminen</h2><p style={{fontSize:14,lineHeight:1.5,margin:"0 0 20px",color:"#526274"}}>Saat kertakäyttöisen kirjautumislinkin ylläpitäjän sähköpostiin.</p><form onSubmit={send} style={{display:"grid",gap:12}}><label htmlFor="admin-email" style={{fontWeight:600,fontSize:14}}>Ylläpitäjän sähköpostiosoite</label><input id="admin-email" type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="contact@ziiply.fi" style={{width:"100%",boxSizing:"border-box",minHeight:46,padding:"10px 12px",fontSize:16,color:"#17212f",background:"#fff",border:"1.5px solid #7c9cc8",borderRadius:9}}/><button disabled={busy} type="submit" style={{minHeight:46,padding:"10px 14px",fontSize:16,fontWeight:700,color:"#fff",background:busy?"#64748b":"#1769c2",border:0,borderRadius:9,cursor:busy?"wait":"pointer"}}>{busy?"Lähetetään…":"Lähetä kirjautumislinkki"}</button></form></section>}
  {!unauthorized&&!counts&&!notice&&<p>Tarkistetaan kirjautuminen…</p>}
  {notice&&<p role="status">{notice}</p>}
  </main>;
