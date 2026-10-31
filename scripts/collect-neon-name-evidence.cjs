@@ -11,7 +11,12 @@ const cases=baseline.results.filter(r=>!r.found);
 const apply=process.env.APPLY_ALIAS_EVIDENCE==='1';
 const result={readOnly:!apply,startedAt:new Date().toISOString(),results:[]};
 const save=()=>fs.writeFileSync('neon-name-evidence.json',JSON.stringify(result,null,2));
-function getEan(p){return [p.ean,p.gtin,p.eanCode,p.barcode,p.externalId].map(String).find(x=>/^\d{8,14}$/.test(x))||'';}
+function getEan(p){return [p.ean,p.gtin,p.eanCode,p.barcode,p.externalId,p.id].map(String).find(x=>/^\d{8,14}$/.test(x))||'';}
+function previewProducts(value,depth=0){
+ if(!value||typeof value!=='object'||depth>14)return [];
+ if(typeof value.name==='string'&&(value.ean||value.id))return [{name:value.name,ean:value.ean,id:value.id,keys:Object.keys(value)}];
+ return Object.values(value).flatMap(v=>previewProducts(v,depth+1)).slice(0,2);
+}
 function findExact(value,ean,depth=0){
  if(!value||typeof value!=='object'||depth>14)return [];
  if(!Array.isArray(value)&&getEan(value)===ean&&typeof value.name==='string')return [value];
@@ -62,7 +67,7 @@ async function request(url,headers={}){
    url.searchParams.set('operationName','RemoteFilteredProducts');
    url.searchParams.set('variables',JSON.stringify({facets:[{key:'brandName',order:'asc'},{key:'category'},{key:'labels'}],filters:[],generatedSessionId:'ziiply-name-evidence',fetchSponsoredContent:false,limit:96,queryString:hint,storeId:'603217266',useRandomId:false,marketingId:'ziiply-name-evidence',from:0}));
    url.searchParams.set('extensions',JSON.stringify({clientLibrary:{name:'@apollo/client',version:protocol.apolloVersion},persistedQuery:{version:1,sha256Hash:protocol.persistedQueryHash}}));
-   try{record(await request(url,{'accept-language':'fi',origin:'https://www.s-kaupat.fi',referer:'https://www.s-kaupat.fi/','x-client-name':'skaupat-web','x-client-version':protocol.clientVersion}),url.toString(),'s-kaupat-official');row.attempts.push({source:'s-kaupat-official',hint,ok:true});}
+   try{const data=await request(url,{'accept-language':'fi',origin:'https://www.s-kaupat.fi',referer:'https://www.s-kaupat.fi/','x-client-name':'skaupat-web','x-client-version':protocol.clientVersion});record(data,url.toString(),'s-kaupat-official');row.attempts.push({source:'s-kaupat-official',hint,ok:true,preview:previewProducts(data)});console.log('S EVIDENCE',JSON.stringify({ean:c.ean,hint,preview:previewProducts(data),roots:Object.keys(data.data||data)}));}
    catch(error){row.attempts.push({source:'s-kaupat-official',hint,error:String(error)});}
   }
   const safe=[...new Set(row.observations.filter(o=>o.compatible).map(o=>o.name))];
