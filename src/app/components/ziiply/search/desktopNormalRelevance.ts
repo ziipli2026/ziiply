@@ -12,6 +12,7 @@ export function searchWords(value: unknown): string[] {
     .match(/[a-z]+|\d+(?:\.\d+)?/g) || [];
 }
 const forms: Record<string, string> = {
+  tomattia:'tomaattia', mozarellaa:'mozzarellaa',
   kanan:'kana', kananmunan:'kananmuna', kananmunaa:'kananmuna', broilerin:'broileri', kermat:'kerma',
   maitoa:'maito', maidon:'maito', maidot:'maito', kahvia:'kahvi', kahvin:'kahvi',
   juustoa:'juusto', juuston:'juusto', juustot:'juusto', leipaa:'leipa', leivat:'leipa',
@@ -26,6 +27,8 @@ const forms: Record<string, string> = {
 };
 const canonical = (word: string) => forms[word] || word;
 const alternatives: Record<string, string[]> = {
+  kotimainen:['kotimainen','kotimaiset'],
+  tomaattia:['tomaattia','tomattia'], mozzarellaa:['mozzarellaa','mozarellaa'],
   taysjyvaruisleipa:['taysjyvaruisleipa','taysjyvaruis ruisleipa'],
   siivutettu:['siivutettu','viipaloitu','siivu'],
   keksi:['keksi','leivoskeksi'],
@@ -56,7 +59,7 @@ function parse(value: unknown) {
     if (/^\d/.test(words[i]) && units[words[i+1]]) {
       const [unit, factor] = units[words[i+1]];
       sizes.push(`${Math.round(Number(words[i])*factor*1000)/1000}${unit}`); i++;
-    } else terms.push(words[i]);
+    } else if(words[i]!=='ja' || words.length===1) terms.push(words[i]);
   }
   return {terms, sizes};
 }
@@ -235,6 +238,7 @@ function desktopSearchNameDecision(query: string, product: Row) {
       : name.terms.some(w=>v.length>=3 && w.startsWith(v) && ((!rawIngredientTerms.has(v) && !['cola','pepsi','coke','kahvi'].includes(v)) || (['kana','broileri'].includes(v) && /^(?:n)?(?:filee|rinta|reis|siipi|suikale|koipi|paisti|pihvi|jauheliha)/.test(w.slice(v.length))))) ? 65
       : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0; }));
     if(strength) score+=strength;
+    else if(term==='pakaste' && /^pakasteet(?:\/|$)/i.test(String(product.category || ''))) score+=60;
     else if(!alternatives[term] && brand.includes(term) && (q.terms.length>1 || brand.join(" ")===term)) score+=25;
     else return {accepted:false,score:-1000,reason:`missing_term:${term}`};
   }

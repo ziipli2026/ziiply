@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
                  SELECT 1 FROM jsonb_array_elements_text(terms) term
                  -- Every word must belong to one complete observed name (plus brand).
                  WHERE translate(lower(identity_name), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') NOT LIKE term
+                   AND NOT (term = '%pakaste%' AND lower(coalesce(category, '')) ~ '^pakasteet(/|$)')
                    AND translate(lower(coalesce(brand, '')), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') NOT LIKE term
                )
              )

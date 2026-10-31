@@ -10,16 +10,18 @@ assert.equal(compatible('Gluteeniton leipä','Leipä sisältää gluteenia'),fal
 assert.equal(compatible('Herneet 430g/230g','Herneet 430g'),true);
 assert.equal(compatible('Juoma','Juoma 330ml','1 l'),false);
 const ean='6430104921217';
-const p={ean,name:'Apetit Kotimaiset sipulikuutiot 200g pa',brand:'Apetit',category:'pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset',aliases:['Apetit Kotimainen Sipulikuutio pakaste 200g']};
-assert.equal(decision('Apetit Kotimainen Sipulikuutio pakaste',p).accepted,true);
-assert.equal(decision('Apetit Kotimainen Sipulikuutio pakaste 500g',p).accepted,false);
-assert.equal(decision('Apetit Kotimainen Sipulikuutio pakaste',{...p,aliases:['Apetit Kotimainen Sipulikuutio pakaste 500g']}).accepted,false);
+const p={ean,name:'Apetit Kotimaiset sipulikuutiot 200g pa',brand:'Apetit',category:'pakasteet/vihannes--ja-juurespakasteet/yksittaiset-kasvikset',aliases:['Apetit Kotimainen Sipulikuutio pakaste 200g maustamaton']};
+assert.equal(decision('Apetit Kotimainen Sipulikuutio pakaste maustamaton',p).accepted,true);
+assert.equal(decision('Apetit Kotimainen Sipulikuutio pakaste maustamaton 500g',p).accepted,false);
+assert.equal(decision('Apetit Kotimainen Sipulikuutio pakaste maustamaton',{...p,aliases:['Apetit Kotimainen Sipulikuutio pakaste maustamaton 500g']}).accepted,false);
 assert.equal(decision('luomu kurkku',{name:'Kurkku',aliases:['Luomu tomaatti','Kurkku suomi']}).accepted,false,'never combine words from different observed names');
 assert.equal(decision('maito',{name:'Maitosuklaa 200g',aliases:['Maitosuklaa 200g']} ).accepted,false);
 assert.equal(decision('maito',{name:'Kissan maito',category:'lemmikit',aliases:['Maito']} ).accepted,false);
 assert.equal(decision('6430104921218',p).accepted,false,'EAN lookup never uses name history');
 assert.equal(decision('gluteeniton leipä',{name:'Leipä sisältää gluteenia',aliases:['Gluteeniton leipä']}).accepted,false);
 assert.equal(decision('cola zero',{name:'Cola original 1l',aliases:['Cola zero 1l']}).accepted,false);
-assert.deepEqual(rank('Apetit Kotimainen Sipulikuutio pakaste',[{...p,__price:null},{...p,__price:2},{...p,__price:1}],{requirePrice:true}).map(p=>p.__price),[1,2]);
+assert.deepEqual(rank('Apetit Kotimainen Sipulikuutio pakaste maustamaton',[{...p,__price:null},{...p,__price:2},{...p,__price:1}],{requirePrice:true}).map(p=>p.__price),[1,2]);
 assert.equal(p.name,'Apetit Kotimaiset sipulikuutiot 200g pa','alias match must not replace display name');
 console.log('PASS observed EAN names: complete-name matching, packages, variants, EAN isolation and priced display');
+
+assert.match(decision('Apetit Kotimainen Sipulikuutio pakaste maustamaton',p).reason,/^observed_ean_name:/);
