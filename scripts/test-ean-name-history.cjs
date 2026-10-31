@@ -8,6 +8,7 @@ const {NextRequest}=require('next/server');
 const captured=[];
 const originalLoad=Module._load;
 Module._load=function(id,...args){
+ if(id.endsWith('/verified-ean-links.json'))return {default:originalLoad.call(this,id,...args)};
  if(id==='@neondatabase/serverless')return {neon:()=>async(strings,...values)=>{if(strings.join('?').includes('INSERT INTO'))captured.push({strings,values});return [];}};
  return originalLoad.call(this,id,...args);
 };
