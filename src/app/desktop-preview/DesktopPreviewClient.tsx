@@ -2361,8 +2361,8 @@ export default function DesktopPreviewPage() {
       setJustiinaResults(sortedRows);
       // Nutrition is display-only: enrich already ranked, priced results without changing ordering.
       void Promise.all(sortedRows.slice(0,30).map(async (row:any,index:number)=>{
-        const ean=String(row.ean||row.barcode||row.product?.ean||"").replace(/\\D/g,"");
-        if(!/^(?:\\d{8}|\\d{12,14})$/.test(ean))return null;
+        const ean=String(row.ean||row.barcode||row.product?.ean||"").replace(/\D/g,"");
+        if(!/^(?:\d{8}|\d{12,14})$/.test(ean))return null;
         try{
           const response=await fetch("/api/ean-bank?ean="+encodeURIComponent(ean),{cache:"no-store"});
           if(!response.ok)return null;
@@ -2376,7 +2376,7 @@ export default function DesktopPreviewPage() {
         const found=enriched.filter(Boolean) as Array<{index:number;ean:string;nutrition:any}>;
         if(!found.length)return;
         setJustiinaResults(current=>current.map((row:any,index:number)=>{
-          const item=found.find(x=>x.index===index && x.ean===String(row.ean||row.barcode||row.product?.ean||"").replace(/\\D/g,""));
+          const item=found.find(x=>x.index===index && x.ean===String(row.ean||row.barcode||row.product?.ean||"").replace(/\D/g,""));
           return item?{...row,nutrition:item.nutrition}:row;
         }));
       });
