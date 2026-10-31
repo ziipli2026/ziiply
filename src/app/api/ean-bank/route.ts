@@ -73,7 +73,24 @@ export async function GET(request: NextRequest) {
         LIMIT 1
       `;
       if (rows[0]) {
-        return NextResponse.json({ ok: true, product: rows[0] });
+        // Nutrition is optional: never block the EAN lookup when enrichment fails.
+        let nutrition: { kcal_100g: number; source: string; estimated?: boolean } | null = null;
+        try {
+          const off = await sql`SELECT kcal_100g FROM ziiply_off_nutrition WHERE ean = ${ean} AND kcal_100g IS NOT NULL LIMIT 1`;
+          const kcal = Number(off[0]?.kcal_100g);
+          if (off.length && Number.isFinite(kcal) && kcal >= 0) {
+            nutrition = { kcal_100g: kcal, source: "open-food-facts" };
+          } else {
+            const fineli = await sql`SELECT f.nutrients->'ENERC'->>'value' AS energy_kj FROM ziiply_ean_fineli_matches m JOIN ziiply_fineli_foods f ON f.fineli_id = m.fineli_id WHERE m.ean = ${ean} AND m.approved = true LIMIT 1`;
+            const energyKj = Number(fineli[0]?.energy_kj);
+            if (fineli.length && Number.isFinite(energyKj) && energyKj >= 0) {
+              nutrition = { kcal_100g: Math.round((energyKj / 4.184) * 10) / 10, source: "fineli-generic", estimated: true };
+            }
+          }
+        } catch (error) {
+          console.error("EAN nutrition enrichment failed", error);
+        }
+        return NextResponse.json({ ok: true, product: { ...rows[0], nutrition } });
       }
 
       const verifiedLidl = VERIFIED_LIDL_EAN_BY_CODE.get(ean);
