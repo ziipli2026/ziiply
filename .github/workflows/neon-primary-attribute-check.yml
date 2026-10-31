@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -26,12 +27,21 @@ jobs:
           MIN_RECOVERED: '27'
         run: node scripts/audit-neon-31-corrected.cjs
       - run: cp neon-31-corrected.json neon-31-before-primary.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: neon-100-live-complete-report
+          run-id: 41171142541
+          github-token: ${{ github.token }}
+          path: neon-history
       - name: Verify current primary cauliflower identity before restoring the omitted loose-sale name
         id: primary
         env:
           SOURCE_EAN: '2000604100005'
           PRIMARY_SOURCE_URL: https://www.s-kaupat.fi/tuote/kukkakaali-irto/2000604100005
           APPLY_PRIMARY_NAME: '1'
+          REVIEWED_PRIMARY_EVIDENCE: data/catalog/reviewed-primary-loose-name.json
+          HISTORY_SOURCE_DIR: neon-history
+          HISTORY_SOURCE_RUN: '41171142541'
         run: node scripts/recover-primary-loose-name.cjs
       - name: Recheck all 31 cases after primary name recovery
         if: always()

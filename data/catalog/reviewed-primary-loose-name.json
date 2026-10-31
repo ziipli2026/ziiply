@@ -1,0 +1,10 @@
+{
+  "ean": "2000604100005",
+  "name": "Kukkakaali irto",
+  "sourceUrl": "https://www.s-kaupat.fi/tuote/kukkakaali-irto/2000604100005",
+  "reviewedAt": "2026-10-31T17:54:25Z",
+  "primaryEvidence": "Published retailer page retrieved independently during review; the indexed page prints both the title and product EAN. It is not represented as a fresh runner HTTP response.",
+  "corroboratingRunId": "41171142541",
+  "corroboratingArtifact": "neon-100-live-complete-report",
+  "allowedChange": "Restore only the omitted loose-sale modifier to aliases; retain the current main name, quantity, category, origin and prices."
+}

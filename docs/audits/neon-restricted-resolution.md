@@ -18,7 +18,11 @@ No query or expected EAN is removed from the audit.
   3221 feeds both return the same product ID 108626, sold per kilogram.
   [The primary S-kaupat product page](https://www.s-kaupat.fi/tuote/kukkakaali-irto/2000604100005)
   expressly prints the loose-sale name and this EAN. The one-off recovery
-  parses both from a fresh HTTP response, requires the current fresh-produce
+  parses both from a fresh HTTP response when available. If the primary server
+  rate-limits the runner, an explicit reviewed primary observation must also
+  match an independent raw catalogue artifact less than 24 hours old; the
+  report names this archival method and preserves the original 429 statuses.
+  Both methods require the current fresh-produce
   taxonomy and an otherwise identical name, and records the response hash and
   before/after aliases. It cannot add a producer, origin or different package.
 

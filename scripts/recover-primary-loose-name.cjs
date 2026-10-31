@@ -1,7 +1,8 @@
 // One-off observed-name recovery from a primary retailer product page.
 // The source name is parsed from the page, never copied from a test fixture.
 require('./recipe-audit-runtime.cjs');
-const fs=require('node:fs'),assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {createHash}=require('node:crypto');
 const {neon}=require('@neondatabase/serverless');
 const {compatibleCatalogNames}=require('../src/lib/catalogNameEvidence.ts');
 const {extractPrimaryName,addsOnlyLooseModifier}=require('./lib/primary-name-evidence.cjs');
@@ -23,8 +24,29 @@ const save=()=>fs.writeFileSync('neon-primary-name-recovery.json',JSON.stringify
   await new Promise(resolve=>setTimeout(resolve,Math.max(1,seconds)*1000));
  }
 
- assert.equal(response.status,200,'Primary product page unavailable');
- report.sourceUrl=url.toString();report.evidence=extractPrimaryName(await response.text(),ean);
+ report.sourceUrl=url.toString();
+ if(response.status===200){
+  report.method='fresh_primary_http';report.evidence=extractPrimaryName(await response.text(),ean);
+ }else if(response.status===429 && process.env.REVIEWED_PRIMARY_EVIDENCE && process.env.HISTORY_SOURCE_DIR){
+  // A rate limit must not be labelled a successful live read. Use only a
+  // reviewed primary observation corroborated by an independent raw snapshot.
+  const reviewed=JSON.parse(fs.readFileSync(process.env.REVIEWED_PRIMARY_EVIDENCE,'utf8'));
+  assert.equal(reviewed.ean,ean);assert.equal(reviewed.sourceUrl,url.toString());
+  const reviewAge=Date.now()-Date.parse(reviewed.reviewedAt);
+  assert.ok(Number.isFinite(reviewAge)&&reviewAge>=0&&reviewAge<86400000,'Primary review is stale');
+  assert.equal(reviewed.corroboratingRunId,process.env.HISTORY_SOURCE_RUN);
+  let evidence;
+  for(const file of fs.readdirSync(process.env.HISTORY_SOURCE_DIR).filter(f=>/^neon-100-live-\d+\.json$/.test(f))){
+   const raw=fs.readFileSync(path.join(process.env.HISTORY_SOURCE_DIR,file),'utf8'),snapshot=JSON.parse(raw);
+   const age=Date.now()-Date.parse(snapshot.runAt);
+   if(!Number.isFinite(age)||age<0||age>=86400000)continue;
+   for(const r of snapshot.results||[])for(const p of r.raw?.products||[]){
+    if(String(p.ean)===ean && p.name===reviewed.name)evidence={ean,name:p.name,sourceFile:file,sourceRun:reviewed.corroboratingRunId,observedAt:snapshot.runAt,sha256:createHash('sha256').update(raw).digest('hex')};
+   }
+  }
+  assert.ok(evidence,'Independent recent raw observation does not corroborate the primary product name');
+  report.method='reviewed_primary_with_independent_recent_snapshot';report.reviewedPrimary=reviewed;report.evidence=evidence;
+ }else assert.fail('Primary product page unavailable: '+response.status);
  const sql=neon(process.env.DATABASE_URL);
  const [current]=await sql`SELECT ean,name,quantity,category,aliases FROM ziiply_ean_products WHERE ean=${ean} LIMIT 1`;
  assert.ok(current,'Current product missing');report.before=current;
