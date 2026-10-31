@@ -37,6 +37,17 @@ export type ZiiplyMobileSearchResultProduct = {
   [key: string]: any;
 };
 
+
+function energySummary(product: ZiiplyMobileSearchResultProduct): { line: string; estimated: boolean } | null {
+  const source = product.product ?? product;
+  const nutrition = source.nutrition ?? product.nutrition;
+  const kcal = Number(nutrition?.energy_kcal_100g ?? nutrition?.energyKcal100g ?? nutrition?.energy_kcal);
+  if (!Number.isFinite(kcal) || kcal < 0 || kcal > 1000 || nutrition == null) return null;
+  const unit = /(?:ml|litra|juoma)/i.test(String(source.packageSize ?? product.packageSize ?? "")) ? "100 ml" : "100 g";
+  const estimated = nutrition.source === "fineli-generic" || nutrition.estimated === true;
+  return { line: `Energia ${Math.round(kcal)} kcal / ${unit}`, estimated };
+}
+
 export type ZiiplyMobileSearchResultsCardProps = {
   open?: boolean;
   loading?: boolean;
@@ -342,6 +353,7 @@ export default function ZiiplyMobileSearchResultsCard({
                   : "";
                 const price = researchOnly ? "" : formatMainPrice(rawPrice, product);
                 const comparison = researchOnly ? "" : formatComparisonPrice(product, rawPrice);
+                const energy = energySummary(product);
 
                 return (
                   <article
@@ -379,6 +391,7 @@ export default function ZiiplyMobileSearchResultsCard({
                           {observedPrice ? `Havaittu ${observedPrice} (${product.observedDate ?? "päiväys puuttuu"}) · ei vahvistettu` : "Hinta ei vahvistettu"}
                         </div>
                       )}
+                      {energy && <div className="mt-1 text-[0.68rem] font-bold text-[#123d32]">{energy.line}{energy.estimated && <span className="ml-1 text-[#78633a]">· Fineli – arvio</span>}</div>}
                       {!researchOnly && comparison && (
                         <div className="mt-1 break-words text-[0.68rem] font-black text-[#8a7a55]">{comparison}</div>
                       )}
