@@ -71,7 +71,7 @@ async function request(path){
     break;
    }catch(error){
     const detail=String(error.stderr||error.message||'');
-    const transient=error.killed||error.signal==='SIGTERM'||['ETIMEDOUT','ECONNRESET','EAI_AGAIN'].includes(error.code)||/ECONNRESET|ETIMEDOUT|EAI_AGAIN|curl: \(28\)/.test(detail);
+    const transient=error.killed||error.signal==='SIGTERM'||['ETIMEDOUT','ECONNRESET','EAI_AGAIN'].includes(error.code)||/ECONNRESET|ETIMEDOUT|EAI_AGAIN|Connection reset by peer|curl: \((?:6|7|28|35|52|55|56)\)/i.test(detail);
     const issue={path,attempt:attempt+1,ms:Date.now()-started,code:error.code??null,signal:error.signal??null,killed:Boolean(error.killed),detail:detail.slice(0,500),retried:Boolean(transient&&attempt===0),recovered:false};
     report.transportIssues.push(issue);
     if(!issue.retried)throw error;
