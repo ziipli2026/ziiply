@@ -27,7 +27,13 @@ export default function AdminPage() {
   try {const r=await fetch("/api/beta/admin/invite",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:a.id})});if(!r.ok)throw Error();await refresh();setNotice("Kutsu lähetetty sähköpostiin.");}
   catch{setNotice("Kutsun lähetys epäonnistui. Tarkista tilanne ennen uutta yritystä.");}finally{setChanging("");}
  }
- function shareWhatsApp(a:Applicant){
+ async function shareWhatsApp(a:Applicant){
+  if(["registered","waitlist"].includes(a.status)){
+   if(!window.confirm("Hyväksytäänkö "+a.email+" kutsutuksi ja avataan WhatsApp-kutsu?"))return;
+   setChanging(a.id);
+   try{const r=await fetch("/api/beta/admin/applications",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:a.id,status:"invited"})});if(!r.ok)throw Error();await refresh();}catch{setNotice("Kutsun hyväksyminen epäonnistui.");return;}finally{setChanging("");}
+  }
+
   const link=new URL("/beta/kirjaudu",window.location.origin).toString();
   const message="Hei! Sinut on kutsuttu Ziiplyn beetatestaukseen. Avaa "+link+" ja pyydä kirjautumislinkki ilmoittautumisesi sähköpostiosoitteeseen ("+a.email+").";
   window.open("https://wa.me/"+(a.whatsapp_phone?a.whatsapp_phone.replace(/\D/g,""):"")+"?text="+encodeURIComponent(message),"_blank","noopener,noreferrer");
@@ -50,7 +56,7 @@ export default function AdminPage() {
  <td data-label="Sähköposti" className="beta-email">{a.email}</td><td data-label="WhatsApp">{a.whatsapp_phone||"—"}</td><td data-label="Kunta">{a.municipality||"—"}</td><td data-label="Profiili">{({household:"Kotitalous",family:"Lapsiperhe",budget:"Hintatietoinen",recipes:"Reseptit",fuel:"Polttoaine",technical:"Tekninen",nutrition:"Ravitsemus"} as Record<string,string>)[a.profile_key]||a.profile_key}</td><td data-label="Tila"><span className={"beta-status beta-status-"+a.status}>{({registered:"Ilmoittautunut",waitlist:"Jonossa",invited:"Kutsuttu",active:"Aktiivinen",withdrawn:"Poistettu"} as Record<string,string>)[a.status]||a.status}</span></td>
  <td data-label="Toiminnot"><div className="beta-actions">
  {["registered","waitlist"].includes(a.status)&&<button className="beta-btn beta-btn-primary" disabled={!!changing} onClick={()=>invite(a)}>Lähetä kutsu</button>}
- {["invited","active"].includes(a.status)&&<button className="beta-btn" disabled={!!changing} onClick={()=>shareWhatsApp(a)}>Jaa WhatsAppissa</button>}
+ {["registered","waitlist","invited","active"].includes(a.status)&&<button className="beta-btn" disabled={!!changing} onClick={()=>shareWhatsApp(a)}>{["registered","waitlist"].includes(a.status)?"Kutsu WhatsAppissa":"Jaa WhatsAppissa"}</button>}
  {a.status==="invited"&&<button className="beta-btn beta-btn-primary" disabled={!!changing} onClick={()=>change(a,"active")}>Aktivoi</button>}
  {["invited","active"].includes(a.status)&&<button className="beta-btn beta-btn-danger" disabled={!!changing} onClick={()=>change(a,"withdrawn")}>Poista käyttöoikeus</button>}
  </div></td></tr>)}</tbody></table></div>
