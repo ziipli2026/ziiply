@@ -2376,7 +2376,7 @@ export default function DesktopPreviewPage() {
         }catch(error){return {index,ean,status:"request_error",error:String(error)};}
       })).then(enriched=>{
         if(generation!==desktopVoiceRunRef.current)return;
-        const found=enriched.filter((x):x is Extract<typeof x,{status:"found"}>=>x.status==="found");
+        const found=enriched.filter(x=>x.status==="found") as Array<{index:number;ean:string;status:string;nutrition:any}>;
         traceNormal("nutrition_enrichment_complete",{query,requested:enriched.length,found:found.length,results:enriched.map(x=>({index:x.index,ean:x.ean,status:x.status,...("httpStatus" in x?{httpStatus:x.httpStatus}:{}),...("responseKeys" in x?{responseKeys:x.responseKeys,nutritionKeys:x.nutritionKeys}:{}),...("error" in x?{error:x.error}:{})}))});
         if(!found.length)return;
         setJustiinaResults(current=>current.map((row:any,index:number)=>{
