@@ -91,10 +91,10 @@ export async function GET(request: NextRequest) {
         // Nutrition is optional: never block the EAN lookup when enrichment fails.
         let nutrition: { kcal_100g: number; source: string; estimated?: boolean; source_ean?: string } | null = null;
         try {
-          const off = await sql`SELECT kcal_100g FROM ziiply_off_nutrition WHERE ean = ${ean} AND kcal_100g IS NOT NULL LIMIT 1`;
+          const off = await sql`SELECT kcal_100g, source FROM ziiply_off_nutrition WHERE ean = ${ean} AND kcal_100g IS NOT NULL LIMIT 1`;
           const kcal = Number(off[0]?.kcal_100g);
           if (off.length && Number.isFinite(kcal) && kcal >= 0) {
-            nutrition = { kcal_100g: kcal, source: "open-food-facts" };
+            nutrition = { kcal_100g: kcal, source: off[0]?.source === "arla-manufacturer" ? "manufacturer" : "open-food-facts" };
           } else {
             const fineli = await sql`SELECT f.nutrients->'ENERC'->>'value' AS energy_kj FROM ziiply_ean_fineli_matches m JOIN ziiply_fineli_foods f ON f.fineli_id = m.fineli_id WHERE m.ean = ${ean} AND m.approved = true LIMIT 1`;
             const energyKj = Number(fineli[0]?.energy_kj);
