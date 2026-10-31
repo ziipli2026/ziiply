@@ -2,7 +2,7 @@ name: Desktop Neon - verified fish cut and loose produce
 on:
   push:
     branches: [preview/legacy-desktop-ui]
-    paths: ['.github/workflows/neon-primary-attribute-check.yml']
+    paths: ['.github/workflows/neon-primary-attribute-check.yml', 'scripts/recover-primary-loose-name.cjs', 'scripts/lib/primary-name-evidence.cjs']
   workflow_dispatch:
 permissions:
   contents: read

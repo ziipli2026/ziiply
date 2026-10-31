@@ -11,7 +11,18 @@ const save=()=>fs.writeFileSync('neon-primary-name-recovery.json',JSON.stringify
  const ean=process.env.SOURCE_EAN,url=new URL(process.env.PRIMARY_SOURCE_URL);
  assert.ok(/^\d{8,14}$/.test(ean||''),'Expected EAN is required');
  assert.ok(url.protocol==='https:'&&url.hostname==='www.s-kaupat.fi'&&url.pathname.endsWith('/'+ean),'Verified primary product URL required');
- const response=await fetch(url,{headers:{accept:'text/html','accept-language':'fi','user-agent':'Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)'},redirect:'error',signal:AbortSignal.timeout(20000)});
+ let response;report.attempts=[];
+ for(let attempt=0;attempt<3;attempt++){
+  response=await fetch(url,{headers:{accept:'text/html','accept-language':'fi','user-agent':'Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)'},redirect:'error',signal:AbortSignal.timeout(20000)});
+  const retryAfter=response.headers.get('retry-after');
+  report.attempts.push({status:response.status,retryAfter});
+  if(response.status!==429 || attempt===2)break;
+  const seconds=retryAfter && /^\d+$/.test(retryAfter)?Number(retryAfter):10*(attempt+1);
+  // Respect the provider's backoff; long retry windows need a later run.
+  if(seconds>60)break;
+  await new Promise(resolve=>setTimeout(resolve,Math.max(1,seconds)*1000));
+ }
+
  assert.equal(response.status,200,'Primary product page unavailable');
  report.sourceUrl=url.toString();report.evidence=extractPrimaryName(await response.text(),ean);
  const sql=neon(process.env.DATABASE_URL);
