@@ -10,8 +10,8 @@ export async function POST(req:NextRequest){
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>254||body.consent!==true)return NextResponse.json({ok:false,error:"Anna sähköposti ja hyväksy tietojen käsittely."},{status:400});
  try{
  const sql=neon(process.env.DATABASE_URL);
- await sql`INSERT INTO public.ziiply_beta_applications(id,email,municipality,profile_key,privacy_consent_at,status)
- VALUES (nextval('public.ziiply_beta_application_id_seq'),${email},${municipality},${profile},now(),'registered')
+ await sql`INSERT INTO public.ziiply_beta_applications(email,municipality,profile_key,privacy_consent_at,status)
+ VALUES (${email},${municipality},${profile},now(),'registered')
  ON CONFLICT DO NOTHING`;
  return NextResponse.json({ok:true,message:"Ilmoittautuminen vastaanotettu. Ylläpitäjä voi lähettää kutsun."},{headers:{"Cache-Control":"no-store"}});
  }catch(e){console.error("Beta registration failed",e);return NextResponse.json({ok:false,error:"Tallennus epäonnistui. Yritä uudelleen."},{status:500});}
