@@ -71,6 +71,14 @@ export function desktopSearchQuery(raw: string): string {
   const corrected=correctSearchQuery(clean);
   return corrected || clean;
 }
+// Salmon D-cut is a named preparation attribute, not a synonym for the
+// letter D on arbitrary products. See docs/audits/neon-restricted-resolution.md.
+function salmonDcutIsBoneless(value: unknown): boolean {
+  const text=searchWords(value).join(' ');
+  return /(?:^| )(?:kirjo)?lohifilee?(?: |$)/.test(text)
+    && /(?:^| )d (?:leikkuu|leikattu|leikattuna|leikkaus|leik)(?: |$)/.test(text)
+    && !/(?:^| )ruodollinen(?: |$)/.test(text);
+}
 export function desktopSearchQueries(raw: string): string[] {
   const q=desktopSearchQuery(raw);
   const words=searchWords(q).map(canonical);
@@ -85,7 +93,11 @@ export function desktopSearchQueries(raw: string): string[] {
   }
   const retrievalSizes=q.match(/\d+(?:[.,]\d+)?\s*(?:kg|ml|cl|dl|l|g|kpl)\b/gi) || [];
   const family=variants.map(terms=>[...terms,...retrievalSizes].join(' '));
-  return [...new Set([q, normalized, ...family])].filter(Boolean).slice(0,6);
+  // Only retrieve without 'ruodoton' when D-cut and salmon fillet remain
+  // explicit requirements; final qualification still proves the attribute.
+  const dcut=parsed.terms.includes('ruodoton') && parsed.terms.includes('d') && parsed.terms.some(t=>/^(?:kirjo)?lohifilee?$/.test(t))
+    ? [[...parsed.terms.filter(t=>t!=='ruodoton'),...retrievalSizes].join(' ')] : [];
+  return [...new Set([q, normalized, ...dcut, ...family])].filter(Boolean).slice(0,6);
 }
 type Row = {name?: string; title?: string; brand?: string; brandName?: string; category?: string; ean?: string; __price?: number | null; quantity?: string; aliases?: string[]};
 function desktopSearchNameDecision(query: string, product: Row) {
@@ -238,6 +250,7 @@ function desktopSearchNameDecision(query: string, product: Row) {
       : name.terms.some(w=>v.length>=3 && w.startsWith(v) && ((!rawIngredientTerms.has(v) && !['cola','pepsi','coke','kahvi'].includes(v)) || (['kana','broileri'].includes(v) && /^(?:n)?(?:filee|rinta|reis|siipi|suikale|koipi|paisti|pihvi|jauheliha)/.test(w.slice(v.length))))) ? 65
       : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0; }));
     if(strength) score+=strength;
+    else if(term==='ruodoton' && salmonDcutIsBoneless(product.name || product.title)) score+=60;
     else if(term==='pakaste' && /^pakasteet(?:\/|$)/i.test(String(product.category || ''))) score+=60;
     else if(!alternatives[term] && brand.includes(term) && (q.terms.length>1 || brand.join(" ")===term)) score+=25;
     else return {accepted:false,score:-1000,reason:`missing_term:${term}`};

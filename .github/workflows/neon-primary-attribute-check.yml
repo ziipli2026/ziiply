@@ -1,0 +1,49 @@
+name: Desktop Neon - verified fish cut and loose produce
+on:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths: ['.github/workflows/neon-primary-attribute-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node scripts/test-desktop-normal-relevance.cjs
+      - run: node scripts/test-catalog-name-evidence.cjs
+      - run: node scripts/test-primary-name-evidence.cjs
+      - name: Require the D-cut correction and all 26 earlier recoveries
+        env:
+          MIN_RECOVERED: '27'
+        run: node scripts/audit-neon-31-corrected.cjs
+      - run: cp neon-31-corrected.json neon-31-before-primary.json
+      - name: Verify current primary cauliflower identity before restoring the omitted loose-sale name
+        id: primary
+        env:
+          SOURCE_EAN: '2000604100005'
+          PRIMARY_SOURCE_URL: https://www.s-kaupat.fi/tuote/kukkakaali-irto/2000604100005
+          APPLY_PRIMARY_NAME: '1'
+        run: node scripts/recover-primary-loose-name.cjs
+      - name: Recheck all 31 cases after primary name recovery
+        if: always()
+        env:
+          MIN_RECOVERED: ${{ steps.primary.outcome == 'success' && '28' || '27' }}
+        run: node scripts/audit-neon-31-corrected.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-primary-attribute-check
+          path: |
+            neon-31-before-primary.json
+            neon-primary-name-recovery.json
+            neon-31-corrected.json
+          if-no-files-found: error

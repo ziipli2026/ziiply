@@ -216,3 +216,12 @@ assert.equal(dec('Apetit Kotimainen Sipulikuutio pakaste 500g',{name:'Apetit Kot
 assert.equal(dec('Hipp Luomu Spagettia Tomaattia ja mozzarellaa',{name:'HIPP spagettia tomattia & mozarellaa 190g 8kk luomu',brand:'HiPP',category:'lapset/lastenruoat/lastenruoat-8-kk'}).accepted,true);
 assert.equal(dec('Hipp Luomu Spagettia Tomaattia ja mozzarellaa',{name:'HIPP spagettia tomattia 190g 8kk luomu',brand:'HiPP'}).accepted,false);
 assert.equal(dec('Hipp Luomu Spagettia Tomaattia ja mozzarellaa',{name:'HIPP spagettia tomattia & mozarellaa 190g',brand:'HiPP'}).accepted,false);
+
+// A fish-cut attribute may prove bonelessness; unrelated D labels may not.
+assert.equal(dec('Kirjolohifilee D ruodoton',{name:'Kirjolohifilee D-leikkuu kg'}).accepted,true);
+assert.equal(dec('Lohifilee D ruodoton 500g',{name:'Lohifilee D-leikattu 500g'}).accepted,true);
+for(const name of ['Kirjolohifilee A-leikkuu','Kirjolohifilee B-leikkuu','Kirjolohifilee D-vitamiinia','Kirjolohifilee D-leikkuu ruodollinen','D-leikattu kananfilee'])
+ assert.equal(dec('Kirjolohifilee D ruodoton',{name}).accepted,false,name);
+assert.equal(dec('Kirjolohifilee D ruodoton 500g',{name:'Kirjolohifilee D-leikkuu 1kg'}).accepted,false);
+assert.ok(queries('Kirjolohifilee D ruodoton').includes('kirjolohifilee d'));
+assert.ok(!queries('Kirjolohifilee ruodoton').includes('kirjolohifilee'));
