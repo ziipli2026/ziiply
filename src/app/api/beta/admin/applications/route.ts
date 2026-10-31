@@ -15,7 +15,7 @@ async function authorized(request:NextRequest) {
 export async function GET(request:NextRequest) {
  if(!await authorized(request)) return NextResponse.json({error:"Forbidden"},{status:403,headers});
  const sql=neon(process.env.DATABASE_URL!);
- const rows=await sql`SELECT id::text AS id,email,municipality,profile_key,status,created_at,invited_at
+ const rows=await sql`SELECT id::text AS id,email,municipality,profile_key,status,created_at,invited_at,whatsapp_phone
  FROM public.ziiply_beta_applications ORDER BY created_at DESC,id DESC LIMIT 400`;
  return NextResponse.json({applications:rows},{headers});
 }
