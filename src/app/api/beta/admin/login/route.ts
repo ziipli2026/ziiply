@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { createBetaToken, hashBetaToken } from "../../../../../../lib/ziiplyBetaAuthTokens.mjs";
+import { createBetaToken, hashBetaToken } from "../../../../../lib/ziiplyBetaAuthTokens.mjs";
 import { createHmac } from "node:crypto";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   await sql`INSERT INTO public.ziiply_beta_admin_tokens(token_hash,purpose,expires_at) VALUES(${hash},'login',${expires})`;
   const url = new URL("/beta/hallinta/vahvista",origin);
   url.searchParams.set("token",token);
-  const {sendBetaLoginEmail} = await import("../../../../../../lib/ziiplyBetaSmtp.mjs");
+  const {sendBetaLoginEmail} = await import("../../../../../lib/ziiplyBetaSmtp.mjs");
   try { await sendBetaLoginEmail({to:email,loginUrl:url.toString()}); }
   catch { await sql`DELETE FROM public.ziiply_beta_login_attempts WHERE id=${allowed[0].id}`; return NextResponse.json({ok:false,code:"EMAIL_DELIVERY_FAILED"},{status:503,headers}); }
   return generic();
