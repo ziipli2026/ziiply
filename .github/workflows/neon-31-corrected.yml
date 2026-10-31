@@ -2,7 +2,7 @@ name: Desktop Neon - corrected 31 EAN regression
 on:
   push:
     branches: [preview/legacy-desktop-ui]
-    paths: ['.github/workflows/neon-31-corrected.yml', 'scripts/audit-neon-31-corrected.cjs', 'src/app/components/ziiply/search/desktopNormalRelevance.ts', 'src/app/api/neon-first-search/route.ts', 'src/lib/catalogNameEvidence.ts', 'src/lib/eanBank.ts', 'src/app/api/ean-bank/route.ts', 'scripts/collect-neon-name-evidence.cjs']
+    paths: ['.github/workflows/neon-31-corrected.yml', 'scripts/audit-neon-31-corrected.cjs', 'src/app/components/ziiply/search/desktopNormalRelevance.ts', 'src/app/api/neon-first-search/route.ts', 'src/lib/catalogNameEvidence.ts', 'src/lib/eanBank.ts', 'src/app/api/ean-bank/route.ts', 'scripts/collect-neon-name-evidence.cjs', 'scripts/test-ean-name-history.cjs', 'scripts/test-catalog-name-evidence.cjs']
   workflow_dispatch:
 permissions:
   contents: read
