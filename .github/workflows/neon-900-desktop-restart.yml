@@ -1,5 +1,5 @@
 name: Desktop Neon - 900 searches restart
-run-name: Restart corrected Neon 900 named-food searches
+run-name: Recheck all 900 searches after the 28 verified priced EAN recoveries
 on:
   workflow_dispatch:
   push:
@@ -34,12 +34,7 @@ jobs:
         id: target
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          for attempt in $(seq 1 30); do
-            if node scripts/prepare-neon-live-target.cjs; then exit 0; fi
-            sleep 10
-          done
-          exit 1
+        run: node scripts/prepare-neon-live-target.cjs
   audit:
     needs: target
     env:
