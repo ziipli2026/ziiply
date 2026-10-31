@@ -1,0 +1,50 @@
+name: Desktop Neon - restore independently observed names
+on:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths: ['.github/workflows/neon-name-history-recovery.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node scripts/test-desktop-normal-relevance.cjs
+      - run: node scripts/test-catalog-name-evidence.cjs
+      - run: node scripts/audit-neon-31-corrected.cjs
+      - run: cp neon-31-corrected.json neon-31-before-history.json
+      - uses: actions/download-artifact@v4
+        with:
+          name: neon-100-live-complete-report
+          run-id: 41171142541
+          github-token: ${{ github.token }}
+          path: neon-history
+      - name: Restore compatible full names observed before fixture generation
+        env:
+          HISTORY_SOURCE_DIR: neon-history
+          HISTORY_SOURCE_RUN: '41171142541'
+          APPLY_NAME_HISTORY: '1'
+        run: node scripts/restore-observed-ean-names.cjs
+      - name: Recheck all 31 searches against the actual updated catalogue
+        env:
+          MIN_RECOVERED: '26'
+        run: node scripts/audit-neon-31-corrected.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-name-history-recovery
+          path: |
+            neon-31-before-history.json
+            neon-name-history-restore.json
+            neon-31-corrected.json
+          if-no-files-found: error

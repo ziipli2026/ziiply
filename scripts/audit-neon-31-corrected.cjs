@@ -23,4 +23,5 @@ const cases=require('./fixtures/neon-31-canonical.json');
  fs.writeFileSync('neon-31-corrected.json',JSON.stringify(report,null,2));
  console.log('SUMMARY',JSON.stringify({recovered:report.recovered,remaining:report.remaining}));
  assert.ok(results.filter(r=>r.expectedFixed).every(r=>r.found),'A verified correction still loses its EAN');
+ assert.ok(report.recovered>=Number(process.env.MIN_RECOVERED||0),'Recovered coverage fell below the independently reviewed minimum');
 })().catch(error=>{console.error(error);process.exitCode=1});
