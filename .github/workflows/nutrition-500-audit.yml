@@ -4,6 +4,7 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -13,8 +14,24 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Audit 500 EANs against desktop preview API
+      - name: Configure Ziiply Neon database
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          ZIIPLY_DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+          RAW_DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL || secrets.DATABASE_URL }}
+        run: |
+          node --input-type=module -e 'const raw=process.env.RAW_DATABASE_URL; if(!raw)throw Error("Missing database secret"); const url=new URL(raw); url.pathname="/neondb"; const fs=await import("node:fs"); fs.appendFileSync(process.env.GITHUB_ENV,"DATABASE_URL="+url.toString()+"\\n");'
+      - name: Build Next.js API
+        run: npm run build
+      - name: Start local API
+        run: |
+          npm run start -- --hostname 127.0.0.1 > /tmp/ziiply-next.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS 'http://127.0.0.1:3000/api/ean-bank?ean=6408430102440' | grep -q '"ok":true'; then
+              echo 'Local EAN API ready'
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/ziiply-next.log
+          exit 1
+      - name: Audit 500 EANs against local API
         run: node scripts/audit-nutrition-500.mjs
