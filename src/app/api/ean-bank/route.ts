@@ -38,6 +38,17 @@ function aliases(value: unknown) {
   return Array.from(new Set(value.map((v) => clean(v, 160)).filter(Boolean))).slice(0, 24);
 }
 
+function inferredPackageQuantity(value: unknown) {
+  const name = clean(value, 300).toLocaleLowerCase("fi-FI").normalize("NFKC").replace(/\u00a0/g, " ");
+  // Only an explicit single package size is safe to infer; reject multipacks and ambiguous names.
+  if (/\b\d+\s*[x×*]\s*\d+(?:[.,]\d+)?\s*(?:ml|cl|dl|kg|g|l)\b/u.test(name)) return "";
+  const matches = [...name.matchAll(/(?:^|[\s,(])([0-9]+(?:[.,][0-9]+)?)\s*(ml|cl|dl|kg|g|l)(?=$|[\s,).])/gu)];
+  if (matches.length !== 1) return "";
+  const amount = Number(matches[0][1].replace(",", "."));
+  if (!Number.isFinite(amount) || amount <= 0) return "";
+  return `${amount} ${matches[0][2]}`;
+}
+
 function packageInvariantName(value: unknown) {
   return clean(value, 300).toLocaleLowerCase("fi-FI").normalize("NFKC")
     .replace(/\u00a0/g, " ")
@@ -49,7 +60,7 @@ function strictVariantMatch(a: Record<string, unknown>, b: Record<string, unknow
   return Boolean(norm(a.brand) && norm(a.brand) === norm(b.brand)
     && norm(a.category) && norm(a.category) === norm(b.category)
     && packageInvariantName(a.name) && packageInvariantName(a.name) === packageInvariantName(b.name)
-    && norm(a.quantity) && norm(b.quantity)
+    && (norm(a.quantity) || inferredPackageQuantity(a.name)) && (norm(b.quantity) || inferredPackageQuantity(b.name))
     && norm(a.ean) !== norm(b.ean));
 }
 
@@ -102,7 +113,7 @@ export async function GET(request: NextRequest) {
               nutrition = { kcal_100g: Math.round((energyKj / 4.184) * 10) / 10, source: "fineli-generic", estimated: true };
             }
           }
-          if (!nutrition && rows[0].brand && rows[0].category && rows[0].name && rows[0].quantity) {
+          if (!nutrition && rows[0].brand && rows[0].category && rows[0].name && (rows[0].quantity || inferredPackageQuantity(rows[0].name))) {
             const variants = await sql`SELECT p.ean, p.name, p.brand, p.category, p.quantity, n.kcal_100g AS kcal
               FROM ziiply_ean_products p JOIN ziiply_off_nutrition n ON n.ean = p.ean
               WHERE p.ean <> ${ean} AND p.brand = ${rows[0].brand} AND p.category = ${rows[0].category}
@@ -246,7 +257,7 @@ export async function POST(request: NextRequest) {
     }
 
     const brand = clean(body.brand, 160) || null;
-    const quantity = clean(body.quantity, 120) || null;
+    const quantity = clean(body.quantity, 120) || inferredPackageQuantity(name) || null;
     const imageUrl = clean(body.imageUrl, 1000) || null;
     const category = clean(body.category, 160) || null;
     const source = clean(body.source, 120) || null;
