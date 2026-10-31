@@ -57,7 +57,7 @@ function suspect(query,p){
  if(query==='jauheliha'&&/pizza|mauste|kastike|keitto|laatikko|piirakka/.test(name))return 'prepared food';
  return null;
 }
-const cache=new Map(),report={target:base,sourceCommit:process.env.GITHUB_SHA||null,targetCommit:process.env.TARGET_COMMIT||null,batchNumber,batchLabel:batch?.label||'100 common grocery queries',shard,shards,runAt:new Date().toISOString(),results:[],transportIssues:[]};
+const cache=new Map(),report={target:base,sourceCommit:process.env.SOURCE_COMMIT||process.env.GITHUB_SHA||null,targetCommit:process.env.TARGET_COMMIT||null,batchNumber,batchLabel:batch?.label||'100 common grocery queries',shard,shards,runAt:new Date().toISOString(),results:[],transportIssues:[]};
 function save(){report.failures=report.results.filter(r=>r.errors.length).length;fs.writeFileSync(`${reportPrefix}-${shard}.json`,JSON.stringify(report,null,2));}
 process.on('exit',save);
 async function request(path){
