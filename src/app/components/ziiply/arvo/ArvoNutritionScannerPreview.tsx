@@ -111,6 +111,19 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     return Number.isFinite(number) && number >= 0 ? (number * grams / 100).toLocaleString("fi-FI",{maximumFractionDigits:1}) : "—";
   };
   const [grams, setGrams] = useState(100);
+  const estimatedSalt = nutrition?.estimatedSalt && typeof nutrition.estimatedSalt === "object"
+    ? nutrition.estimatedSalt as Record<string, unknown> : null;
+  const estimatedSaltValue = estimatedSalt?.estimated === true && estimatedSalt?.source === "fineli-generic"
+    && typeof estimatedSalt?.value === "number" && Number.isFinite(estimatedSalt.value)
+    && estimatedSalt.value >= 0 && estimatedSalt.value <= 100
+    ? estimatedSalt.value : null;
+  const reportedSalt = nutrition?.salt_100g;
+  const reportedSaltNumber = typeof reportedSalt === "number" ? reportedSalt
+    : typeof reportedSalt === "string" && reportedSalt.trim() !== "" ? Number(reportedSalt) : NaN;
+  const reportedSaltValue = Number.isFinite(reportedSaltNumber) && reportedSaltNumber >= 0 && reportedSaltNumber <= 100
+    ? reportedSaltNumber : null;
+  const saltForAmount = (value: number) => (value * grams / 100).toLocaleString("fi-FI", {maximumFractionDigits: 4});
+
   const addToCart = async () => {
     if (!onAddToCart || !ean || !productName || cartSaving || cartSaved) return;
     setCartSaving(true);
@@ -176,6 +189,17 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
               <input id="arvo-grams" type="range" min="0" max="500" step="5" value={Math.min(grams,500)} onChange={e=>setGrams(Number(e.target.value))} className="mt-1 w-full accent-[#24573e]"/>
               <div className="mt-2 grid grid-cols-4 gap-1">
                 {([["kcal",["kcal_100g","energy-kcal_100g","ENERC"]],["Prot.",["proteins_100g","protein_100g","PROCNT"]],["HH",["carbohydrates_100g","CHOCDF"]],["Rasva",["fat_100g","FAT"]]] as [string,string[]][]).map(([label,keys])=><div key={label} className="rounded-lg bg-white px-1 py-2 text-center"><div className="text-[10px] font-bold">{label}</div><div className="text-base font-black">{nutrient(keys)}</div></div>)}
+              </div>
+              <div className="mt-2 rounded-lg border border-[#d7c69d] bg-white p-2 text-xs">
+                <div className="font-bold">Suola · {grams} g annos</div>
+                {reportedSaltValue !== null ? (
+                  <div>{saltForAmount(reportedSaltValue)} g <span className="text-[#536456]">· ilmoitettu ravintoarvo</span></div>
+                ) : estimatedSaltValue !== null ? (
+                  <div>
+                    <div className="font-bold">{saltForAmount(estimatedSaltValue)} g <span className="text-[#83652f]">· Fineli – arvio</span></div>
+                    <p className="mt-1 text-[11px] text-[#695e48]">Arvio vastaavan elintarvikkeen koostumuksesta, ei valmistajan ilmoittama tuotearvo.</p>
+                  </div>
+                ) : <div className="text-[#536456]">Ei suolatietoa</div>}
               </div>
               <div className="mt-2">
                 <a href="/arvo-tilastot" className="mb-2 block rounded-xl border-2 border-[#24573e] bg-white p-2 text-center text-sm font-bold">📊 Katso ravintotilastot</a>
