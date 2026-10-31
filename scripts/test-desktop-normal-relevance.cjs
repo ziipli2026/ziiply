@@ -182,3 +182,8 @@ for(const [query,product] of [
  ['sipuli',{name:'Shandong sipulilla maustettu sekaleipä'}],['kaakao',{name:'Kaakaokierrepulla täytepulla'}],
  ['kaakao',{name:'Coop kaakaopallot'}],['kaakao',{name:'Space Bites kaurapalat kaakao-banaani'}],
 ])assert.equal(dec(query,product).accepted,false,query+' rejects condiment or prepared form '+product.name);
+
+for(const name of ['Mignon muna 52g','Kinkku-muna Ruispala 145g'])assert.equal(dec('kananmuna',{name}).accepted,false);
+assert.equal(dec('bataatti',{name:'Saarioinen bataattivuoka',category:'CAAAGAAAAAQAA'}).accepted,false);
+assert.equal(dec('valkosipuli',{name:'Chef X Valkosipuliperunat',category:'CAAAGAAAAAQAA'}).accepted,false);
+assert.equal(dec('kananmuna',{name:'Menu vapaan kanan keitetty ja kuorittu muna 30kpl',category:'Liha'}).accepted,true);

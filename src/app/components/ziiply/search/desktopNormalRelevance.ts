@@ -138,7 +138,7 @@ export function desktopSearchDecision(query: string, product: Row) {
     ['additive', /stabilointiaine|hyyteloimisaine|sakeuttamisaine/],
     ['nuts', /pahkina|cashew|pistaasi|(?:^| )manteli(?: |$)|(?:^| )siemen(?: |$)/],
     ['sweets', /candy|gummy|toffee|patukka|suklaa|tryffeli|makeis|karkki|tikkari|konvehti|purukumi|pastilli/],
-    ['prepared', /valmisruo|mikroateria|pizza|(?:^| )pitsa|panini|patonki|kanakastike|vegekastike|keitto|ateriat|ateria|salaatti|tahna|perunamuus|kermaperun|sose|pyree|kiusaus|gratiini|bolognese|carbonara|nuudeli|riisipata|risotto|gnocchi|wrap|ciabatta|kolmari|kolmioleipa|evasleipa|pasteija|kana.*pasta|pekoni.*pasta|riisilla|caaag(?!aaaaaq)[a-z]*/],
+    ['prepared', /valmisruo|mikroateria|pizza|(?:^| )pitsa|panini|patonki|kanakastike|vegekastike|keitto|ateriat|ateria|salaatti|tahna|perunamuus|kermaperun|sose|pyree|kiusaus|gratiini|bolognese|carbonara|nuudeli|riisipata|risotto|gnocchi|wrap|ciabatta|kolmari|kolmioleipa|evasleipa|pasteija|kana.*pasta|pekoni.*pasta|riisilla|caaag[a-z]*/],
     ['processed_meat', /makkara|nakki|leikkele|kebablastu/],
     ['spread', /muna voi|margariini|rasvalevit|rasvaseos|levite/],
     ['babyfood', /puurojauhe|lastenruo|piltti|vauvanruo|\b[0-9]{1,2} kk\b/],
@@ -164,6 +164,7 @@ export function desktopSearchDecision(query: string, product: Row) {
       // cannot identify a product type. Retain only unambiguous departments.
       const typeCategory=(type==='spice' && /\/mausteet\//.test(String(product.category))) || ['pet','nonfood','processed_meat'].includes(type) || (type==='prepared' && /^valmisruoka\//.test(String(product.category))) ? categoryText : categoryLeafText;
       if(!pattern.test(identityText+' '+typeCategory) || requestedTypes.has(type))continue;
+      if(type==='prepared' && requestedTypes.has('pasta') && /tuorepasta/.test(identityText) && !/bolognese|carbonara|kastike/.test(identityText))continue;
       if(type==='oil' && requestedTypes.has('spread'))continue;
       if(type==='drink' && q.terms.some(t=>['cola','pepsi','coke','limsa','vesi','tee'].includes(t)))continue;
       // Category "mehu" is unrelated to a fresh orange search, just as a
@@ -185,6 +186,13 @@ export function desktopSearchDecision(query: string, product: Row) {
     return {accepted:false,score:-10000,reason:'different_product_group'};
   // A requested ingredient is not automatically the finished product. Keep
   // this guard directional so explicit searches for these products still work.
+  // The generic word muna also describes confectionery and fillings. Require
+  // a poultry-egg name or an egg department before accepting that synonym.
+  if(q.terms.some(t=>['kananmuna','muna'].includes(t))) {
+    const eggName=/kananmun|(?:^| )kanan .*?(?:muna|munat)(?: |$)|luomumuna/.test(identityText);
+    const eggCategory=/kananmun|(?:^| )munat(?: |$)|munavalmiste|^caaau/.test(categoryLeafText);
+    if(!eggName && !eggCategory)return {accepted:false,score:-10000,reason:'unverified_egg_product_type'};
+  }
   const accessories=['tutti','pulloharja','suodatinpussi','kahvinsuodatin','avaaja','leipaveitsi','olutlasi','kahvimuki'];
   if(accessories.some(t=>nameText.includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'accessory_not_food'};
