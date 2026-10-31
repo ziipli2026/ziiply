@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
-const source = fs.readFileSync('src/app/desktop-preview/page.tsx', 'utf8');
+const source = fs.readFileSync('src/app/desktop-preview/DesktopPreviewClient.tsx', 'utf8');
 function extract(name, next) {
   const start = source.indexOf('  function '+name+'(');
   let end = source.indexOf('  function '+next+'(', start+1);
