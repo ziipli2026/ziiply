@@ -21,12 +21,18 @@ export default function AdminPage() {
  }
  useEffect(()=>{refresh().catch(()=>setNotice("Tietojen lataaminen epäonnistui."));},[]);
  async function send(e:React.FormEvent){e.preventDefault();setBusy(true);setNotice("");try{const r=await fetch("/api/beta/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});const data=await r.json();setNotice(r.ok?data.message:"Linkin lähettäminen epäonnistui. Yritä myöhemmin.");}catch{setNotice("Yhteysvirhe.");}finally{setBusy(false);}}
+ async function invite(a:Applicant){
+  if(!window.confirm("Lähetetäänkö kirjautumiskutsu osoitteeseen "+a.email+"?"))return;
+  setChanging(a.id);setNotice("");
+  try {const r=await fetch("/api/beta/admin/invite",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:a.id})});if(!r.ok)throw Error();await refresh();setNotice("Kutsu lähetetty sähköpostiin.");}
+  catch{setNotice("Kutsun lähetys epäonnistui. Tarkista tilanne ennen uutta yritystä.");}finally{setChanging("");}
+ }
  async function change(a:Applicant,status:string){
   const label=status==="invited"?"kutsutuksi":status==="active"?"aktiiviseksi":"poistetuksi käytöstä";
   if(!window.confirm("Muutetaanko "+a.email+" tilaan "+label+"?"))return;
   setChanging(a.id);setNotice("");
   try{const r=await fetch("/api/beta/admin/applications",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:a.id,status})});
-   if(!r.ok)throw Error();await refresh();setNotice("Tila päivitetty. Huom: kutsusähköpostia ei lähetetä automaattisesti.");
+   if(!r.ok)throw Error();await refresh();setNotice("Tila päivitetty.");
   }catch{setNotice("Tilan muuttaminen epäonnistui.");}finally{setChanging("");}
  }
  return <main style={{maxWidth:1050,margin:"3rem auto",padding:24,fontFamily:"system-ui"}}>
@@ -36,7 +42,7 @@ export default function AdminPage() {
  <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr><th>Sähköposti</th><th>Kunta</th><th>Profiili</th><th>Tila</th><th>Toiminnot</th></tr></thead><tbody>{applications.map(a=><tr key={a.id} style={{borderTop:"1px solid #888"}}>
  <td style={{padding:8}}>{a.email}</td><td style={{padding:8}}>{a.municipality}</td><td style={{padding:8}}>{a.profile_key}</td><td style={{padding:8}}>{a.status}</td>
  <td style={{padding:8,whiteSpace:"nowrap"}}>
- {["registered","waitlist"].includes(a.status)&&<button disabled={!!changing} onClick={()=>change(a,"invited")}>Hyväksy kutsuttavaksi</button>}
+ {["registered","waitlist"].includes(a.status)&&<button disabled={!!changing} onClick={()=>invite(a)}>Lähetä kutsu</button>}
  {a.status==="invited"&&<button disabled={!!changing} onClick={()=>change(a,"active")}>Aktivoi</button>}
  {["invited","active"].includes(a.status)&&<button disabled={!!changing} onClick={()=>change(a,"withdrawn")} style={{marginLeft:8}}>Poista käyttöoikeus</button>}
  </td></tr>)}</tbody></table></div></>}
