@@ -5,7 +5,7 @@ const headers={"Cache-Control":"no-store"};
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export async function POST(request:NextRequest) {
- if(request.headers.get("origin")!==process.env.ZIIPLY_PUBLIC_ORIGIN || !process.env.DATABASE_URL || !process.env.ZIIPLY_BETA_ADMIN_EMAIL) return NextResponse.json({error:"Forbidden"},{status:403,headers});
+ if(request.headers.get("origin")!==new URL(request.url).origin || !process.env.DATABASE_URL || !process.env.ZIIPLY_BETA_ADMIN_EMAIL) return NextResponse.json({error:"Forbidden"},{status:403,headers});
  let sessionHash:string;
  try{sessionHash=hashBetaToken(request.cookies.get("__Host-ziiply_beta_admin")?.value||"");}catch{return NextResponse.json({error:"Forbidden"},{status:403,headers});}
  const sql=neon(process.env.DATABASE_URL);
