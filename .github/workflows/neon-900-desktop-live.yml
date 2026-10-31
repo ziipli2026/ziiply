@@ -1,0 +1,91 @@
+name: Desktop Neon - 900 searches
+run-name: Neon 900 named-food searches on desktop preview
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: desktop-grocery-live-audits
+  cancel-in-progress: false
+jobs:
+  target:
+    runs-on: ubuntu-latest
+    outputs:
+      preview_url: ${{ steps.target.outputs.preview_url }}
+      target_commit: ${{ steps.target.outputs.target_commit }}
+      source_commit: ${{ steps.source.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/legacy-desktop-ui
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Record desktop source commit
+        id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - run: node scripts/validate-neon-900-fixtures.cjs
+      - run: npm install --global vercel@65.9.0
+      - name: Pin READY desktop deployment and verify source matches
+        id: target
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/prepare-neon-live-target.cjs
+  audit:
+    needs: target
+    env:
+      PREVIEW_URL: ${{ needs.target.outputs.preview_url }}
+      TARGET_COMMIT: ${{ needs.target.outputs.target_commit }}
+      SOURCE_COMMIT: ${{ needs.target.outputs.source_commit }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        batch: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.target.outputs.source_commit }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm install --global vercel@65.9.0
+      - run: node scripts/validate-neon-900-fixtures.cjs
+      - name: Audit 100 new named-food searches
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          BATCH: ${{ matrix.batch }}
+        run: node scripts/test-neon-100-live.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-900-batch-${{ matrix.batch }}
+          overwrite: true
+          path: neon-900-batch-*.json
+          if-no-files-found: error
+  report:
+    needs: [target, audit]
+    if: always() && needs.target.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.target.outputs.source_commit }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: neon-900-batch-*
+          merge-multiple: true
+      - run: node scripts/summarize-neon-900-live.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-900-complete-report
+          overwrite: true
+          path: |
+            neon-900-batch-*.json
+            neon-900-summary.md
