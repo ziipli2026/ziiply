@@ -56,6 +56,7 @@ for (const name of [
   "Maitokolmio asidofilus-bifidopiimä 1l",
   "Maitokolmio rasvaton piimä 1l",
   "Nestlé Nan Pro 2 maitopohjainen käyttövalmis vierotusvalmiste 1000ml",
+  "Nestlé Nan Pro 2 maitopohjainen käyttövalmis vieroitusvalmiste 1000ml",
 ]) {
   assert.equal(isBadNormalResult(product(name), "maito"), true, name + " must not appear in milk results");
 }

@@ -3047,7 +3047,7 @@ export function isBadNormalResult(product: Product, query: string) {
     if (hasAnyToken(productText, forbiddenMilkContext)) return true;
     // Reject adjacent dairy categories by product name, not category metadata:
     // store category paths may legitimately contain "maidot-ja-piimat".
-    if (hasAnyToken(normalizedName, ["äidinmaidonkorvike", "aidinmaidonkorvike", "vieroitusvalmiste", "piimä", "piima", "maitopirtelö", "maitopirtelo"])) return true;
+    if (hasAnyToken(normalizedName, ["äidinmaidonkorvike", "aidinmaidonkorvike", "vieroitusvalmiste", "vierotusvalmiste", "piimä", "piima", "maitopirtelö", "maitopirtelo"])) return true;
   }
 
   if (detectSearchIntent(query).category === "ketchup" &&

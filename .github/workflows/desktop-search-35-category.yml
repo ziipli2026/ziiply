@@ -4,6 +4,8 @@ on:
   push:
     branches: [preview/legacy-desktop-ui]
     paths:
+      - 'package.json'
+      - 'package-lock.json'
       - 'scripts/test-desktop-search-live.mjs'
       - 'scripts/test-neon-live-ean.mjs'
       - 'scripts/test-neon-exact-ean.mjs'
