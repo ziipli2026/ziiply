@@ -41,11 +41,13 @@ export type ZiiplyMobileSearchResultProduct = {
 function energySummary(product: ZiiplyMobileSearchResultProduct): { line: string; estimated: boolean } | null {
   const source = product.product ?? product;
   const nutrition = source.nutrition ?? product.nutrition;
-  const kcal = Number(nutrition?.energy_kcal_100g ?? nutrition?.energyKcal100g ?? nutrition?.energy_kcal);
-  if (!Number.isFinite(kcal) || kcal < 0 || kcal > 1000 || nutrition == null) return null;
-  const unit = /(?:ml|litra|juoma)/i.test(String(source.packageSize ?? product.packageSize ?? "")) ? "100 ml" : "100 g";
+  if (!nutrition || typeof nutrition !== "object") return null;
+  const raw = nutrition.kcal_100g ?? nutrition.energy_kcal_100g;
+  if (raw === null || raw === undefined || raw === "") return null;
+  const kcal = Number(raw);
+  if (!Number.isFinite(kcal) || kcal < 0 || kcal > 1000) return null;
   const estimated = nutrition.source === "fineli-generic" || nutrition.estimated === true;
-  return { line: `Energia ${Math.round(kcal)} kcal / ${unit}`, estimated };
+  return { line: `Energia ${Math.round(kcal)} kcal / 100 g`, estimated };
 }
 
 export type ZiiplyMobileSearchResultsCardProps = {
