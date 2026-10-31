@@ -6,6 +6,7 @@ on:
       - 'scripts/fixtures/neon-900-queries.json'
       - 'scripts/validate-neon-900-fixtures.cjs'
       - 'scripts/prepare-neon-live-target.cjs'
+      - 'src/app/api/desktop-search-version/route.ts'
       - '.github/workflows/ziiply-live-relevance-audit.yml'
       - '.github/workflows/neon-900-fixture-check.yml'
 permissions:
@@ -17,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
