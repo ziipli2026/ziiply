@@ -225,3 +225,9 @@ for(const name of ['Kirjolohifilee A-leikkuu','Kirjolohifilee B-leikkuu','Kirjol
 assert.equal(dec('Kirjolohifilee D ruodoton 500g',{name:'Kirjolohifilee D-leikkuu 1kg'}).accepted,false);
 assert.ok(queries('Kirjolohifilee D ruodoton').includes('kirjolohifilee d'));
 assert.ok(!queries('Kirjolohifilee ruodoton').includes('kirjolohifilee'));
+
+const ccut={name:'Hätälä kirjolohifilee C-leikattu n1kg vakuumipakattu',brand:'Hätälä',category:'kala-ja-merenelavat/tuorekala/kirjolohi'};
+assert.equal(dec('Hätälä Kirjolohifilee C leikkuu n1kg',ccut).accepted,true);
+assert.equal(dec('Hätälä Kirjolohifilee C leikkuu n700g',ccut).accepted,false);
+assert.equal(dec('Hätälä Kirjolohifilee C leikkuu n700g',ccut).reason,'different_package_size');
+assert.equal(dec('Hätälä Kirjolohifilee D leikkuu n1kg',ccut).accepted,false);

@@ -6,8 +6,8 @@ const {NextRequest}=require('next/server');
 const {GET}=require('../src/app/api/neon-first-search/route.ts');
 const {desktopSearchDecision}=require('../src/app/components/ziiply/search/desktopNormalRelevance.ts');
 const cases=require('./fixtures/neon-31-canonical.json');
-// All independently recovered fixed-code names plus the verified D-cut rule.
-const fixed=new Set(cases.filter(c=>!/^2/.test(c.ean)||c.ean==='2000436800005').map(c=>c.ean));
+// All independently recovered fixed-code names plus the verified D-cut and loose-produce cases.
+const fixed=new Set(cases.filter(c=>!/^2/.test(c.ean)||['2000436800005','2000604100005'].includes(c.ean)).map(c=>c.ean));
 (async()=>{
  assert.ok(process.env.DATABASE_URL,'Missing DATABASE_URL');
  const results=[];

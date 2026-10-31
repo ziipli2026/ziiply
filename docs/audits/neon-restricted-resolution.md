@@ -38,3 +38,13 @@ Read-only store evidence: [run 41225696033](https://github.com/ziipli2026/ziiply
 The store-specific observations retain provider, store ID, product ID, family
 key and quote timestamps. The catalogue's single EAN key is insufficient to
 assert an unobserved producer or package across these restricted identities.
+
+## Verified outcome
+
+[Run 41226860852](https://github.com/ziipli2026/ziiply/actions/runs/41226860852)
+rechecked all 31 original queries: **28 expected EANs found, 3 not found**.
+The cauliflower recovery used the explicitly reported archival method after
+three HTTP 429 responses; no live HTTP success was claimed. The three remaining
+cases above retain their full requested constraints. The language variation
+`leikkuu` / `leikattu` is normalized independently of package size: the current
+1 kg C-cut product qualifies for a 1 kg query and is still rejected for 700 g.
