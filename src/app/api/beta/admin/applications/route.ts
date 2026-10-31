@@ -28,6 +28,7 @@ export async function PATCH(request:NextRequest) {
    return NextResponse.json({error:"Invalid input"},{status:400,headers});
  const sql=neon(process.env.DATABASE_URL!);
  const id=body.id!,status=body.status!;
+ if(status==="invited") return NextResponse.json({error:"Use invite endpoint to send email"},{status:400,headers});
  // Do not resurrect withdrawn/rejected users via the admin interface.
  const rows=await sql`UPDATE public.ziiply_beta_applications
  SET status=${status}, updated_at=now(),
