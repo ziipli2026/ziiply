@@ -87,9 +87,9 @@ export async function GET(request: NextRequest) {
                SELECT 1 FROM jsonb_array_elements_text(terms) term
                -- searchWords folds Finnish diacritics in every desktop pattern.
                -- Apply the same fold to catalog values before comparing.
-               WHERE translate(lower(coalesce(name, '')), 'åäö', 'aao') NOT LIKE term
-                 AND translate(lower(coalesce(brand, '')), 'åäö', 'aao') NOT LIKE term
-                 AND NOT EXISTS (SELECT 1 FROM unnest(aliases) a WHERE translate(lower(a), 'åäö', 'aao') LIKE term)
+               WHERE translate(lower(coalesce(name, '')), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') NOT LIKE term
+                 AND translate(lower(coalesce(brand, '')), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') NOT LIKE term
+                 AND NOT EXISTS (SELECT 1 FROM unnest(aliases) a WHERE translate(lower(a), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') LIKE term)
              )
            ))
            OR name ILIKE ${contains}
@@ -154,3 +154,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Search unavailable", searchVersion: "neon-category-aware-v3" }, { status: 500 });
   }
 }
+

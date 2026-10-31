@@ -25,6 +25,9 @@ const forms: Record<string, string> = {
 };
 const canonical = (word: string) => forms[word] || word;
 const alternatives: Record<string, string[]> = {
+  pippuripekka:['pippuripekka','pippuri pekka'],
+  tomaattiketsuppi:['tomaattiketsuppi','ketsuppi','ketchup'],
+  vanilja:['vanilja','vanilla'], sitruuna:['sitruuna','lemon'],
   kauramaito:['kauramaito','kaurajuoma','kaura juoma'],
   maito:['maito','kevytmaito','täysmaito','ykkösmaito','luomumaito','rasvaton maito'],
   kahvi:['kahvi','juhla mokka','kulta katriina'],
@@ -87,8 +90,10 @@ export function desktopSearchDecision(query: string, product: Row) {
   // Keep every requested token and package constraint mandatory.
   const identity = parse(product.name || product.title);
   const exactIdentity = q.terms.length >= 2 && q.terms.length === identity.terms.length && q.terms.every((term, index) => term === identity.terms[index]);
+  const namedBrand = parse(product.brandName || product.brand).terms;
+  const namedIdentity = q.terms.length >= 3 && namedBrand.length > 0 && namedBrand.every(term=>q.terms.includes(term)) && q.terms.every(term=>identity.terms.includes(term));
   const namedPrefix = q.terms.length >= 4 && q.terms.every((term, index) => term === identity.terms[index]);
-  if ((exactIdentity || namedPrefix) && q.sizes.every(size => identity.sizes.includes(size) || parse(product.quantity).sizes.includes(size)))
+  if ((exactIdentity || namedPrefix || namedIdentity) && q.sizes.every(size => identity.sizes.includes(size) || parse(product.quantity).sizes.includes(size)))
     return {accepted:true,score:q.terms.length*100+q.sizes.length*40,reason:'explicit_product_identity'};
   const brand=parse(product.brandName || product.brand).terms;
   let productWords=searchWords(product.name || product.title);
@@ -101,7 +106,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   const name=parse(productWords.join(' '));
   const categoryLeaf=String(product.category || '').split('/').at(-1) || '';
   const category=parse(categoryLeaf).terms;
-  const intent=resolveSearchIntentAI(desktopSearchQuery(query));
+  const intent=resolveSearchIntentAI(q.terms.map(term=>term==='tomaattiketsuppi'?'ketsuppi':term).join(' '));
   // An explicitly requested product form overrides an ingredient-family exclusion.
   // Fruit intent must not reject appelsiinimehu merely because it excludes mehu.
   intent.excludeTerms=intent.excludeTerms.filter(t=>!q.terms.some(w=>w.includes(searchWords(t).join(' '))));
@@ -247,3 +252,4 @@ export function rankDesktopNormalRows<T extends Row>(query: string, rows: T[], o
         (ap&&bp ? a.product.__price!-b.product.__price! : 0) || a.index-b.index;
     }).map(x=>x.product);
 }
+

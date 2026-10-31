@@ -187,3 +187,16 @@ for(const name of ['Mignon muna 52g','Kinkku-muna Ruispala 145g'])assert.equal(d
 assert.equal(dec('bataatti',{name:'Saarioinen bataattivuoka',category:'CAAAGAAAAAQAA'}).accepted,false);
 assert.equal(dec('valkosipuli',{name:'Chef X Valkosipuliperunat',category:'CAAAGAAAAAQAA'}).accepted,false);
 assert.equal(dec('kananmuna',{name:'Menu vapaan kanan keitetty ja kuorittu muna 30kpl',category:'Liha'}).accepted,true);
+
+// Canonical records captured by the read-only 31-EAN root-cause run.
+const recovered=new Set(['6408430014804','8004030026018','7350153720670','6409531101196','6411300181445','7613035962965','8715700015026','6416453054813']);
+for(const c of require('./fixtures/neon-31-canonical.json')) {
+ const decision=dec(c.query,{name:c.storedName,brand:c.brand});
+ assert.equal(decision.accepted,recovered.has(c.ean),`${c.ean}: ${decision.reason}`);
+}
+assert.equal(dec('Rio Mare Insalatissime MSC Meksikolainen tonnikala 500g',{name:'Rio Mare Insalatissime Meksikolainen tonnikala valmissalaatti 160g MSC',brand:'Rio Mare'}).accepted,false);
+assert.equal(dec('tonnikala',{name:'Rio Mare Insalatissime Meksikolainen tonnikala valmissalaatti 160g MSC',brand:'Rio Mare'}).accepted,false);
+assert.equal(dec('Heinz Tomaattiketsuppi',{name:'Heinz tomaattikeitto'}).accepted,false);
+assert.ok(queries('Valio Pippuripekka').includes('valio pippuri pekka'));
+assert.ok(queries('Heinz Tomaattiketsuppi').includes('heinz ketsuppi'));
+console.log('PASS 31 canonical records; 8 qualified, 23 retain unresolved attributes');
