@@ -15,10 +15,17 @@ const batchNumber=Number(process.env.BATCH||0);
 assert.ok(Number.isInteger(batchNumber)&&batchNumber>=0&&batchNumber<=9,'BATCH must be 0 or 1-9');
 const batch=batchNumber?JSON.parse(fs.readFileSync('scripts/fixtures/neon-900-queries.json','utf8')).batches[batchNumber-1]:null;
 const cases=batch?batch.cases:baselineQueries.map(query=>({query,expectPriced:true}));
+const regression=process.env.REGRESSION_QUERIES_FILE;
+if(regression){
+ const requested=JSON.parse(fs.readFileSync(regression,'utf8'));
+ const all=JSON.parse(fs.readFileSync('scripts/fixtures/neon-900-queries.json','utf8')).batches.flatMap(b=>b.cases);
+ const lookup=new Map(all.map(c=>[c.query,c]));
+ cases.splice(0,cases.length,...requested.map(q=>{const c=lookup.get(q);if(!c)throw Error('Unknown regression query: '+q);return c;}));
+}
 const queries=cases.map(c=>c.query);
 const referenceByQuery=new Map(cases.map(c=>[c.query,c]));
 const reportPrefix=batchNumber?'neon-900-batch-'+batchNumber:'neon-100-live';
-assert.equal(queries.length,100);assert.equal(new Set(queries).size,100);
+assert.ok(queries.length>0 && (regression || queries.length===100));assert.equal(new Set(queries).size,queries.length);
 const source=fs.readFileSync('src/app/desktop-preview/DesktopPreviewClient.tsx','utf8');
 const start=source.indexOf('  async function runDesktopNormalSearch('), end=source.indexOf('  async function runDesktopJustiinaSearch(',start);
 assert.ok(start>=0&&end>start);
