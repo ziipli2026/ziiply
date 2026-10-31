@@ -2358,7 +2358,29 @@ export default function DesktopPreviewPage() {
       if(diagnostic)return sortedRows.length>0;
       if(generation!==desktopVoiceRunRef.current)return false;
       setJustiinaDebug({query,status:"Valmis",selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,storeId:b.store?.id,source:b.data?.source,apiStatus:b.data?.status,error:b.data?.error,rawCount:Array.isArray(b.data?.items)?b.data.items.length:Array.isArray(b.data?.products)?b.data.products.length:0,examples:(b.data?.items||b.data?.products||[]).slice(0,3).map((x:any)=>x.name)})),rankedCount:sortedRows.length});
-      setJustiinaResults(sortedRows);justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
+      setJustiinaResults(sortedRows);
+      // Nutrition is display-only: enrich already ranked, priced results without changing ordering.
+      void Promise.all(sortedRows.slice(0,30).map(async (row:any,index:number)=>{
+        const ean=String(row.ean||row.barcode||row.product?.ean||"").replace(/\\D/g,"");
+        if(!/^(?:\\d{8}|\\d{12,14})$/.test(ean))return null;
+        try{
+          const response=await fetch("/api/ean-bank?ean="+encodeURIComponent(ean),{cache:"no-store"});
+          if(!response.ok)return null;
+          const data=await response.json();
+          const nutrition=data?.product?.nutrition;
+          if(!nutrition || nutrition.kcal_100g==null || !Number.isFinite(Number(nutrition.kcal_100g)))return null;
+          return {index,ean,nutrition};
+        }catch{return null;}
+      })).then(enriched=>{
+        if(generation!==desktopVoiceRunRef.current)return;
+        const found=enriched.filter(Boolean) as Array<{index:number;ean:string;nutrition:any}>;
+        if(!found.length)return;
+        setJustiinaResults(current=>current.map((row:any,index:number)=>{
+          const item=found.find(x=>x.index===index && x.ean===String(row.ean||row.barcode||row.product?.ean||"").replace(/\\D/g,""));
+          return item?{...row,nutrition:item.nutrition}:row;
+        }));
+      });
+      justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
       return sortedRows.length > 0;
     }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
   }
