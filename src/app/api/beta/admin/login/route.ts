@@ -6,8 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store" };
 export async function POST(request: NextRequest) {
-  const origin = process.env.ZIIPLY_PUBLIC_ORIGIN;
-  if (!origin || request.headers.get("origin") !== origin) return NextResponse.json({ok:false}, {status:403,headers});
+  const origin = new URL(request.url).origin;
+  if (request.headers.get("origin") !== origin) return NextResponse.json({ok:false}, {status:403,headers});
   if (!process.env.DATABASE_URL || !process.env.ZIIPLY_BETA_RATE_LIMIT_SECRET || !process.env.ZIIPLY_BETA_ADMIN_EMAIL || process.env.ZIIPLY_BETA_LOGIN_ENABLED !== "true") return NextResponse.json({ok:false}, {status:503,headers});
   let body: {email?:string};
   try { body = await request.json(); } catch { return NextResponse.json({ok:false},{status:400,headers}); }
