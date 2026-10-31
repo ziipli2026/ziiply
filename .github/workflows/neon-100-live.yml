@@ -9,6 +9,9 @@ on:
       - '.github/workflows/neon-100-live.yml'
 permissions:
   contents: read
+concurrency:
+  group: desktop-grocery-live-audits
+  cancel-in-progress: false
 jobs:
   live-search:
     runs-on: ubuntu-latest
