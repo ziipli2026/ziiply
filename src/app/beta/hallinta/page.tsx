@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useState} from "react";
 type Count={status:string;count:number};
-type Applicant={id:string;email:string;municipality:string;profile_key:string;status:string;created_at:string};
+type Applicant={id:string;email:string;whatsapp_phone?:string|null;municipality:string;profile_key:string;status:string;created_at:string};
 export default function AdminPage() {
  const [counts,setCounts]=useState<Count[]|null>(null);
  const [applications,setApplications]=useState<Applicant[]>([]);
@@ -30,7 +30,7 @@ export default function AdminPage() {
  function shareWhatsApp(a:Applicant){
   const link=new URL("/beta/kirjaudu",window.location.origin).toString();
   const message="Hei! Sinut on kutsuttu Ziiplyn beetatestaukseen. Avaa "+link+" ja pyydä kirjautumislinkki ilmoittautumisesi sähköpostiosoitteeseen ("+a.email+").";
-  window.open("https://wa.me/?text="+encodeURIComponent(message),"_blank","noopener,noreferrer");
+  window.open("https://wa.me/"+(a.whatsapp_phone?a.whatsapp_phone.replace(/\D/g,""):"")+"?text="+encodeURIComponent(message),"_blank","noopener,noreferrer");
  }
  async function change(a:Applicant,status:string){
   const label=status==="invited"?"kutsutuksi":status==="active"?"aktiiviseksi":"poistetuksi käytöstä";
@@ -44,11 +44,11 @@ export default function AdminPage() {
  <h1>Ziiply – beetatestaajien hallinta</h1>
  {counts && <><h2>Beetatestaajien määrät</h2><table><thead><tr><th>Tila</th><th>Määrä</th></tr></thead><tbody>{counts.map(x=><tr key={x.status}><td style={{padding:8}}>{x.status}</td><td style={{padding:8}}>{x.count}</td></tr>)}</tbody></table>
  <h2>Hakemukset (enintään 400 uusinta)</h2>
- <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr><th>Sähköposti</th><th>Kunta</th><th>Profiili</th><th>Tila</th><th>Toiminnot</th></tr></thead><tbody>{applications.map(a=><tr key={a.id} style={{borderTop:"1px solid #888"}}>
- <td style={{padding:8}}>{a.email}</td><td style={{padding:8}}>{a.municipality}</td><td style={{padding:8}}>{a.profile_key}</td><td style={{padding:8}}>{a.status}</td>
+ <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr><th>Sähköposti</th><th>WhatsApp</th><th>Kunta</th><th>Profiili</th><th>Tila</th><th>Toiminnot</th></tr></thead><tbody>{applications.map(a=><tr key={a.id} style={{borderTop:"1px solid #888"}}>
+ <td style={{padding:8}}>{a.email}</td><td style={{padding:8}}>{a.whatsapp_phone||"—"}</td><td style={{padding:8}}>{a.municipality}</td><td style={{padding:8}}>{a.profile_key}</td><td style={{padding:8}}>{a.status}</td>
  <td style={{padding:8,whiteSpace:"nowrap"}}>
  {["registered","waitlist"].includes(a.status)&&<button disabled={!!changing} onClick={()=>invite(a)}>Lähetä kutsu</button>}
- {["registered","waitlist","invited","active"].includes(a.status)&&<button disabled={!!changing} onClick={()=>shareWhatsApp(a)} style={{marginLeft:8}}>Jaa WhatsAppissa</button>}
+ {["invited","active"].includes(a.status)&&<button disabled={!!changing} onClick={()=>shareWhatsApp(a)} style={{marginLeft:8}}>Jaa WhatsAppissa</button>}
  {a.status==="invited"&&<button disabled={!!changing} onClick={()=>change(a,"active")}>Aktivoi</button>}
  {["invited","active"].includes(a.status)&&<button disabled={!!changing} onClick={()=>change(a,"withdrawn")} style={{marginLeft:8}}>Poista käyttöoikeus</button>}
  </td></tr>)}</tbody></table></div></>}
