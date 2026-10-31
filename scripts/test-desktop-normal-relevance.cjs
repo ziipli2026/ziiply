@@ -127,3 +127,32 @@ assert.equal(dec('kahvi',{name:'Pirkka Costa Rica kahvi 500g',brandName:'Pirkka'
 assert.equal(dec('kahvi',{name:'Frezza kahvijuoma 250ml',brandName:'Frezza',category:'juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat'}).accepted,false);
 
 assert.equal(dec('cola',{name:'Chupa Chups Fizzy tikkari Cola',category:'makeiset-ja-naposteltavat/muut-makeiset/tikkarit'}).accepted,false);
+
+// Real false positives/negatives from the 100-query protected live audit.
+for(const [query,product] of [
+ ['pepsi',{name:'SodaStream 440ml Pepsi Max',category:'juomat/virvoitusjuomat/muut-virvoitusjuomat'}],
+ ['kananmuna',{name:'Mignon muna 52g',category:'makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset'}],
+ ['kananmuna',{name:'HK muna-pekoni kolmioleipä 160g',category:'valmisruoka/valmisruoat/kolmioleivat'}],
+ ['kananmuna',{name:'Munakoiso 225g luomu'}],
+ ['kananmuna',{name:'Coop Lasagne pasta, sisältää kananmunaa 500g'}],
+ ['kananmuna',{name:'Laitilan Kanatarha Muna & Voi-levite 180g'}],
+ ['broileri',{name:'Jahti&Vahti Kana ja Riisi 3kg',category:'CAABOAAAAAAAA'}],
+ ['lohi',{name:"Mac's lohi ja kana munuais 100g",category:'CAABOAAACACAA'}],
+ ['kana',{name:'Mrs Chengs Yakisoba nuudeli kana 93g',category:'kuivat-elintarvikkeet/nuudelit/pikanuudelit'}],
+ ['mozzarella',{name:'Coop Pizza tomaatti-mozzarella 120g',category:'CAAAGAAAIAAAA'}],
+ ['pasta',{name:'Herkku Pasta Carbonara 350g',category:'CAAAGAAAGACAA'}],
+ ['pinaatti',{name:'Xtra tortellini ricotta & pinaatti 500g',category:'CAAAGAAAAAQAA'}],
+])assert.equal(dec(query,product).accepted,false,query+' must reject '+product.name);
+for(const [query,product] of [
+ ['appelsiinimehu',{name:'Innocent appelsiinimehu hedelmälihalla 900ml',category:'juomat/mehut/mehut-viileasta'}],
+ ['omenamehu',{name:'Juustoportti Hyvin omenamehu 2dl',category:'juomat/mehut/kerta-annosmehut'}],
+ ['omenamehu',{name:'AITO Omenamehu tuorepuristettu 1l',category:'kahvit-teet-ja-mehut/mehut/omenamehut'}],
+ ['kahvi',{name:'Pirkka kahvi 500g',category:'kahvit-teet-ja-mehut/kahvit/jauhettu-kahvi'}],
+ ['leipä',{name:'Vaasan leipä 500g',category:'leivat-keksit-ja-leivonnaiset/leivat/ruisleivat'}],
+ ['kananmuna',{name:'Kieku Vapaan kanan muna M6 348g',category:'maito-juusto-munat-ja-rasvat/munat/kananmunat'}],
+ ['kananfilee',{name:'Jyväbroiler broilerin filee maustamaton 320g',category:'liha/broileri/fileet-pihvit-ja-rullat'}],
+ ['pasta',{name:'Coop Tortelloni tuorepasta juusto 250g',category:'CAAAGAAAAAQAA'}],
+ ['kesäkurpitsa',{name:'Kesäkurpitsa 1kpl'}],
+])assert.equal(dec(query,product).accepted,true,query+' must keep '+product.name);
+assert.ok(queries('kananfilee').includes('broilerin filee'));
+console.log('PASS real 100-query audit regressions');
