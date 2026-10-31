@@ -57,12 +57,28 @@ function suspect(query,p){
  if(query==='jauheliha'&&/pizza|mauste|kastike|keitto|laatikko|piirakka/.test(name))return 'prepared food';
  return null;
 }
-const cache=new Map(),report={target:base,sourceCommit:process.env.GITHUB_SHA||null,targetCommit:process.env.TARGET_COMMIT||null,batchNumber,batchLabel:batch?.label||'100 common grocery queries',shard,shards,runAt:new Date().toISOString(),results:[]};
+const cache=new Map(),report={target:base,sourceCommit:process.env.GITHUB_SHA||null,targetCommit:process.env.TARGET_COMMIT||null,batchNumber,batchLabel:batch?.label||'100 common grocery queries',shard,shards,runAt:new Date().toISOString(),results:[],transportIssues:[]};
 function save(){report.failures=report.results.filter(r=>r.errors.length).length;fs.writeFileSync(`${reportPrefix}-${shard}.json`,JSON.stringify(report,null,2));}
 process.on('exit',save);
 async function request(path){
  if(!cache.has(path))cache.set(path,(async()=>{
-  const {stdout}=await cli('vercel',['curl',new URL(path,base).toString(),'--','-sS','-f'],{timeout:45000,maxBuffer:8*1024*1024,env:process.env});
+  let stdout,retryIssue;
+  for(let attempt=0;attempt<2;attempt++){
+   const started=Date.now();
+   try{
+    ({stdout}=await cli('vercel',['curl',new URL(path,base).toString(),'--','-sS','-f'],{timeout:45000,maxBuffer:8*1024*1024,env:process.env}));
+    if(retryIssue)retryIssue.recovered=true;
+    break;
+   }catch(error){
+    const detail=String(error.stderr||error.message||'');
+    const transient=error.killed||error.signal==='SIGTERM'||['ETIMEDOUT','ECONNRESET','EAI_AGAIN'].includes(error.code)||/ECONNRESET|ETIMEDOUT|EAI_AGAIN|curl: \(28\)/.test(detail);
+    const issue={path,attempt:attempt+1,ms:Date.now()-started,code:error.code??null,signal:error.signal??null,killed:Boolean(error.killed),detail:detail.slice(0,500),retried:Boolean(transient&&attempt===0),recovered:false};
+    report.transportIssues.push(issue);
+    if(!issue.retried)throw error;
+    retryIssue=issue;console.warn('Recorded connection retry:',path,issue.code||issue.signal);
+    await new Promise(resolve=>setTimeout(resolve,1000));
+   }
+  }
   const data=JSON.parse(stdout);
   const items=Array.isArray(data)?data:Array.isArray(data.products)?data.products:Array.isArray(data.items)?data.items:null;
   assert.ok(items,'Missing products/items array: '+path);

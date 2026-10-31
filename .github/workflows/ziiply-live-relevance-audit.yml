@@ -60,6 +60,7 @@ jobs:
         if: always()
         with:
           name: neon-900-batch-${{ matrix.batch }}
+          overwrite: true
           path: neon-900-batch-*.json
           if-no-files-found: error
   report:
@@ -77,6 +78,7 @@ jobs:
         if: always()
         with:
           name: neon-900-complete-report
+          overwrite: true
           path: |
             neon-900-batch-*.json
             neon-900-summary.md

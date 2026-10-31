@@ -40,6 +40,7 @@ jobs:
         if: always()
         with:
           name: neon-100-live-${{ matrix.shard }}
+          overwrite: true
           path: neon-100-live-*.json
           if-no-files-found: error
   report:
@@ -57,6 +58,7 @@ jobs:
         if: always()
         with:
           name: neon-100-live-complete-report
+          overwrite: true
           path: |
             neon-100-live-*.json
             neon-100-summary.md
