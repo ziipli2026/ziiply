@@ -141,7 +141,7 @@
           "referenceCategory": "maito-juusto-munat-ja-rasvat/rasvat/rasvalevitteet"
         },
         {
-          "query": "Valio Oltermanni Saint Paulin juusto e900",
+          "query": "Valio Oltermanni Saint Paulin juusto",
           "expectedNeonEan": "6408430348398",
           "expectPriced": true,
           "referenceName": "Valio Oltermanni® Saint Paulin juusto e900 g",
