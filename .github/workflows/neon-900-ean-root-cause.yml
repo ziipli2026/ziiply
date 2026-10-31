@@ -1,0 +1,33 @@
+name: Desktop Neon - missing EAN root cause
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - '.github/workflows/neon-900-ean-root-cause.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/legacy-desktop-ui
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compare all 31 missing EANs to canonical Neon records
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: node scripts/audit-neon-900-ean-root-cause.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-900-ean-root-cause
+          path: |
+            neon-900-ean-root-cause.json
+            neon-900-ean-root-cause.md
+          if-no-files-found: warn
