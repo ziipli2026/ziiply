@@ -175,3 +175,10 @@ console.log('PASS ingredient derivatives and nonfood live regressions');
 
 assert.equal(dec('kauramaito',{name:'Oatly kaurajuoma 1l',category:'juomat/kasvipohjaiset-juomat/kaurajuomat'}).accepted,true);
 assert.ok(queries('kauramaito').includes('kaurajuoma'));
+for(const [query,product] of [
+ ['paprika',{name:'Santa Maria Paprika, purkki 37g',category:'mausteet-ja-maustaminen/mausteet/purkit'}],
+ ['paprika',{name:'Arla Creme fraiche chili-paprika',category:'maito/maitotuotteet/ranskankermat'}],
+ ['paprika',{name:'Coop Pesto paprika ja ricotta'}],['sipuli',{name:'Pirkka dipmix paahdettu sipuli'}],
+ ['sipuli',{name:'Shandong sipulilla maustettu sekaleipä'}],['kaakao',{name:'Kaakaokierrepulla täytepulla'}],
+ ['kaakao',{name:'Coop kaakaopallot'}],['kaakao',{name:'Space Bites kaurapalat kaakao-banaani'}],
+])assert.equal(dec(query,product).accepted,false,query+' rejects condiment or prepared form '+product.name);

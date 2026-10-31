@@ -119,7 +119,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   const typeRules: [string, RegExp][] = [
     ['nonfood', /shampoo|hoitoaine|tuoksusuihke|kosmetiikka|kauneus|hygienia|epsom|kylpysuola|eteerinen|hius|palapeli|pyydys|torjunta|ilmapallo|sirotin|pippurimylly|ruoanvalmistusastia|lelu|hiusoljy|elvital/],
     ['pet', /caabo[a-z]*|kattovit|jahti vahti|mac s|best in|bestin|kssanherkku|almo nature|purina|whiskas|pedigree|schesir|shelma|cesar|koir|kiss|lemmik/],
-    ['spice', /mausteseos|maustesekoitus|spice mix|perunakuorrute|(?:^| )mauste(?: |$)|(?:^| )maus(?: |$)|sipulijauhe|paprikajauhe|sitruunapippuri/],
+    ['spice', /caabgbaak[a-z]*|(?:^| )mausteet(?: |$)|mausteseos|maustesekoitus|spice mix|perunakuorrute|(?:^| )mauste(?: |$)|(?:^| )maus(?: |$)|sipulijauhe|paprikajauhe|sitruunapippuri/],
     ['powder', /[a-z]*jauhe(?: |$)|(?:^| )jauhettu(?: |$)/],
     ['preserve', /hillo|marmeladi|kiisseli/],
     ['oil', /(?:^| )[a-z]*oljy(?: |$)|oljyt/],
@@ -127,8 +127,10 @@ export function desktopSearchDecision(query: string, product: Row) {
     ['legume', /edamame|(?:^| )pavut(?: |$)|(?:^| )papu(?: |$)|(?:^| )herne(?: |$)/],
     ['olive', /(?:^| )oliivi(?:t|a|en)?(?: |$)/],
     ['seafood', /sinisimpuk|katkarapu|oster/],
-    ['snacks', /maissilastu|chips|snacks|snack|sipsi|naksu|puffs|perunalastu|juusto rinkula/],
-    ['sauce', /kastike|sauce|dressing|dippi/],
+    ['snacks', /(?:^| )bites(?: |$)|maissilastu|chips|snacks|snack|sipsi|naksu|puffs|perunalastu|juusto rinkula/],
+    ['sauce', /kastike|sauce|dressing|dippi|dipmix|(?:^| )dipit(?: |$)|pesto|ketsuppi|ketchup/],
+    ['bread', /(?:^| )[a-z]*leipa(?: |$)|(?:^| )leivat(?: |$)|sampyla|rieska|limppu/],
+    ['sour_cream', /creme fraiche|ranskankerma|smetana/],
     ['pasta', /pasta|nuudeli|tagliatelle|lasagne|tortell|spaget|makaron/],
     ['juice', /mehu|smoothie/],
     ['cream_soda', /cream soda|strawberries cream/],
@@ -140,7 +142,7 @@ export function desktopSearchDecision(query: string, product: Row) {
     ['processed_meat', /makkara|nakki|leikkele|kebablastu/],
     ['spread', /muna voi|margariini|rasvalevit|rasvaseos|levite/],
     ['babyfood', /puurojauhe|lastenruo|piltti|vauvanruo|\b[0-9]{1,2} kk\b/],
-    ['bakery', /donitsi|leivonnai|leivos|kakku|keksi|kranssi|wiener|vohveli|pullapitko/],
+    ['bakery', /kaakaopallo|chokladboll|pulla|donitsi|leivonnai|leivos|kakku|keksi|kranssi|wiener|vohveli|pullapitko/],
     ['yogurt', /jogurtti|jogurtit|yoghurt|yogurt|skyr|rahka|mousse|vanukas/],
     ['icecream', /jaatelo|mehujaa|sorbet/],
     ['coffee', /cappuccino|latte|kahvijauhe|kahvi|kaakao/],
@@ -160,7 +162,7 @@ export function desktopSearchDecision(query: string, product: Row) {
     for(const [type,pattern] of typeRules) {
       // Mixed parent departments (e.g. kahvit-teet-ja-mehut or leivat-keksit)
       // cannot identify a product type. Retain only unambiguous departments.
-      const typeCategory=['pet','nonfood','processed_meat'].includes(type) || (type==='prepared' && /^valmisruoka\//.test(String(product.category))) ? categoryText : categoryLeafText;
+      const typeCategory=(type==='spice' && /\/mausteet\//.test(String(product.category))) || ['pet','nonfood','processed_meat'].includes(type) || (type==='prepared' && /^valmisruoka\//.test(String(product.category))) ? categoryText : categoryLeafText;
       if(!pattern.test(identityText+' '+typeCategory) || requestedTypes.has(type))continue;
       if(type==='oil' && requestedTypes.has('spread'))continue;
       if(type==='drink' && q.terms.some(t=>['cola','pepsi','coke','limsa','vesi','tee'].includes(t)))continue;
