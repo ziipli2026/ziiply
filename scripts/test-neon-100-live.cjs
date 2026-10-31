@@ -73,7 +73,10 @@ async function test(query){
    rankProductResultsByRelevanceAndPrice:normal.rankProductResultsByRelevanceAndPrice,
    setJustiinaDebug:noOp,setJustiinaMessage:noOp,setJustiinaResults:v=>{rows=v},setJustiinaResultsOpen:noOp,setJustiinaLoading:noOp,
    justiinaLastSearchedRef:{current:''},justiinaUserEditedRef:{current:false},justiinaAddedDuringSelectionRef:{current:false},
-   fetch:async path=>{r.requests.push(path);let data;try{({data}=await request(path));}catch(error){r.errors.push(String(error));throw error;}return {ok:true,status:200,headers:new Headers({'content-type':'application/json'}),json:async()=>data};}};
+   fetch:async path=>{
+    // Display-only nutrition enrichment is outside the search audit.
+    if(path.startsWith('/api/ean-bank?'))return {ok:false,status:204,headers:new Headers(),json:async()=>({})};
+    r.requests.push(path);let data;try{({data}=await request(path));}catch(error){r.errors.push(String(error));throw error;}return {ok:true,status:200,headers:new Headers({'content-type':'application/json'}),json:async()=>data};}};
   const run=new Function(...Object.keys(deps),compiled+';return runDesktopNormalSearch;')(...Object.values(deps));
   await run(query);
   assert.ok(Array.isArray(rows),'Normal handler did not produce results');
