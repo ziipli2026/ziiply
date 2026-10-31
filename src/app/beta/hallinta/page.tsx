@@ -34,7 +34,7 @@ export default function AdminPage() {
    try{const r=await fetch("/api/beta/admin/applications",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:a.id,status:"invited"})});if(!r.ok)throw Error();await refresh();}catch{setNotice("Kutsun hyväksyminen epäonnistui.");return;}finally{setChanging("");}
   }
 
-  const link=new URL("/beta/kirjaudu",window.location.origin).toString();
+  const link="https://ziiply.fi/beta/kirjaudu";
   const message="Hei! Sinut on kutsuttu Ziiplyn beetatestaukseen. Avaa "+link+" ja pyydä kirjautumislinkki ilmoittautumisesi sähköpostiosoitteeseen ("+a.email+").";
   window.location.assign("https://wa.me/"+(a.whatsapp_phone?a.whatsapp_phone.replace(/\D/g,""):"")+"?text="+encodeURIComponent(message));
  }
