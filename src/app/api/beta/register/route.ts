@@ -15,7 +15,7 @@ export async function POST(req:NextRequest){
  const sql=neon(process.env.DATABASE_URL);
  await sql`INSERT INTO public.ziiply_beta_applications(email,municipality,profile_key,privacy_consent_at,status,whatsapp_phone)
  VALUES (${email},${municipality},${profile},now(),'registered',${phone||null})
- ON CONFLICT (email) DO UPDATE SET whatsapp_phone=CASE WHEN EXCLUDED.whatsapp_phone IS NOT NULL THEN EXCLUDED.whatsapp_phone ELSE public.ziiply_beta_applications.whatsapp_phone END, updated_at=now()`;
+ ON CONFLICT (lower(btrim(email))) DO UPDATE SET whatsapp_phone=CASE WHEN EXCLUDED.whatsapp_phone IS NOT NULL THEN EXCLUDED.whatsapp_phone ELSE public.ziiply_beta_applications.whatsapp_phone END, updated_at=now()`;
  return NextResponse.json({ok:true,message:"Ilmoittautuminen vastaanotettu. Ylläpitäjä voi lähettää kutsun."},{headers:{"Cache-Control":"no-store"}});
  }catch(e){console.error("Beta registration failed",e);return NextResponse.json({ok:false,error:"Tallennus epäonnistui. Yritä uudelleen."},{status:500});}
 }
