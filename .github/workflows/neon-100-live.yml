@@ -29,8 +29,8 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           SHARD: ${{ matrix.shard }}
           SHARDS: '4'
-          TARGET_COMMIT: fb5de04598b256a9994fa142a3acb567169e04f9
-          PREVIEW_URL: https://ziiply-1yv9tc5gz-ziipli2026s-projects.vercel.app
+          TARGET_COMMIT: 2d099a191232b169ae8f9f061f0c6955f2af8e48
+          PREVIEW_URL: https://ziiply-5tukq8lmx-ziipli2026s-projects.vercel.app
         run: node scripts/test-neon-100-live.cjs
       - uses: actions/upload-artifact@v4
         if: always()
