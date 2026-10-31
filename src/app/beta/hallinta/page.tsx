@@ -36,7 +36,7 @@ export default function AdminPage() {
 
   const link=new URL("/beta/kirjaudu",window.location.origin).toString();
   const message="Hei! Sinut on kutsuttu Ziiplyn beetatestaukseen. Avaa "+link+" ja pyydä kirjautumislinkki ilmoittautumisesi sähköpostiosoitteeseen ("+a.email+").";
-  window.open("https://wa.me/"+(a.whatsapp_phone?a.whatsapp_phone.replace(/\D/g,""):"")+"?text="+encodeURIComponent(message),"_blank","noopener,noreferrer");
+  window.location.assign("https://wa.me/"+(a.whatsapp_phone?a.whatsapp_phone.replace(/\D/g,""):"")+"?text="+encodeURIComponent(message));
  }
  async function change(a:Applicant,status:string){
   const label=status==="invited"?"kutsutuksi":status==="active"?"aktiiviseksi":"poistetuksi käytöstä";
