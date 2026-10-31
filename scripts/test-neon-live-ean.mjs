@@ -3,8 +3,10 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 const base=(process.env.PREVIEW_URL||'https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app').replace(/\/$/,'');
 if(!process.env.VERCEL_TOKEN)throw Error('Missing VERCEL_TOKEN');
+let desktop = false;
 function request(q){
  const url=new URL('/api/neon-first-search',base);url.searchParams.set('q',q);
+ if(desktop)url.searchParams.set('desktop','1');
  let raw;
  try { raw=execFileSync('vercel',['curl',url.toString(),'--','-sS','-f'],{encoding:'utf8',timeout:30000,env:process.env}); }
  catch(error){console.error('Neon live request failed for',q,':',error.message);throw error;}
@@ -21,7 +23,9 @@ process.on('exit',()=>{
  try{writeFileSync('neon-live-search-report.json',JSON.stringify({target:base,observations},null,2));}
  catch(error){console.error('Could not write Neon diagnostics:',error.message);}
 });
-function observe(query,response){observations.push({query,count:response.count,version:response.searchVersion,categoryExpansion:response.categoryExpansion,examples:response.products.slice(0,5).map(p=>({ean:p.ean,name:p.name,category:p.category,rank:p.rank}))});}
+function observe(query,response){observations.push({desktop,query,count:response.count,version:response.searchVersion,categoryExpansion:response.categoryExpansion,examples:response.products.slice(0,5).map(p=>({ean:p.ean,name:p.name,category:p.category,rank:p.rank}))});}
+for (desktop of [false, true]) {
+console.log(desktop ? 'Desktop search path' : 'Original search path');
 const missing=request(unknown);
 observe(unknown,missing);
 assert.equal(missing.count,0,'unknown EAN should have zero matches');
@@ -34,7 +38,7 @@ assert.ok(name.count>0,'name search should return products');
 assert.notEqual(name.categoryExpansion,'exact-ean');
 console.log('Name search:',name.count,'products');
 const candidate=name.products.find(p=>/^\d{8,14}$/.test(String(p.ean||'')));
-assert.equal(name.searchVersion.startsWith('neon-category-aware-'),true);
+assert.equal(desktop ? name.searchVersion === 'desktop-normalized-v1' : name.searchVersion.startsWith('neon-category-aware-'),true);
 if(!candidate)throw Error('No EAN in name-search sample');
 const exact=request(String(candidate.ean));
 observe(String(candidate.ean),exact);
@@ -58,3 +62,6 @@ for(const query of ['juusto','jogurtti','jauheliha','peruna','makkara','laktoosi
  console.log(query+': '+response.count+' valid products');
 }
 
+
+}
+console.log('Neon live EAN and name checks passed on both search paths');
