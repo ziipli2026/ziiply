@@ -1,0 +1,32 @@
+name: Desktop Neon - collect missing EANs
+run-name: Collect missing EANs from 900-search audit
+on:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - 'scripts/collect-neon-900-missing-eans.cjs'
+      - '.github/workflows/neon-900-missing-ean-collection.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/legacy-desktop-ui
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Collect missing EAN reference records from Open Food Facts
+        run: node scripts/collect-neon-900-missing-eans.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: neon-900-missing-ean-collection
+          path: |
+            neon-missing-ean-collection.json
+            neon-missing-ean-collection.md
+          if-no-files-found: warn
