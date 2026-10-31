@@ -1,3 +1,4 @@
+import { compatibleCatalogNames, catalogPackageSizes } from '../../../../lib/catalogNameEvidence';
 import { correctSearchQuery, resolveSearchIntentAI, isProductAllowedByIntent } from './searchIntentAI';
 
 /** Desktop normal-search contract, shared by retrieval qualification and display.
@@ -83,8 +84,8 @@ export function desktopSearchQueries(raw: string): string[] {
   const family=variants.map(terms=>[...terms,...retrievalSizes].join(' '));
   return [...new Set([q, normalized, ...family])].filter(Boolean).slice(0,6);
 }
-type Row = {name?: string; title?: string; brand?: string; brandName?: string; category?: string; ean?: string; __price?: number | null; quantity?: string};
-export function desktopSearchDecision(query: string, product: Row) {
+type Row = {name?: string; title?: string; brand?: string; brandName?: string; category?: string; ean?: string; __price?: number | null; quantity?: string; aliases?: string[]};
+function desktopSearchNameDecision(query: string, product: Row) {
   if (/^\d{8,14}$/.test(query.trim())) return {accepted: product.ean===query.trim(), score:10000, reason:'exact_ean'};
   const q=parse(desktopSearchQuery(query));
   if(/\b(?:tai|valitse)\b/.test(searchWords(product.name).join(' ')) && !/\b(?:tai|valitse)\b/.test(query))
@@ -244,6 +245,22 @@ export function desktopSearchDecision(query: string, product: Row) {
   score+=q.sizes.length*40;
   score+=q.terms.filter(t=>category.some(w=>canonical(w)===t)).length*5;
   return {accepted:true,score,reason:'all_terms_match'};
+}
+/** Match one complete observed identity at a time; never assemble an identity
+ * from unrelated aliases or use another package size to satisfy a query. */
+export function desktopSearchDecision(query: string, product: Row) {
+  const primary=desktopSearchNameDecision(query,product);
+  if(primary.accepted || /^\d{8,14}$/.test(query.trim()) || !Array.isArray(product.aliases))return primary;
+  if(/non_food|pet_product|accessory_not_food|different_product_type:(?:nonfood|pet)/.test(primary.reason))return primary;
+  const requested=parse(desktopSearchQuery(query)).sizes;
+  const currentSizes=[...catalogPackageSizes(product.name || product.title),...catalogPackageSizes(product.quantity)];
+  if(currentSizes.length && requested.some(size=>!currentSizes.includes(size)))return primary;
+  for(const alias of product.aliases.slice(0,24)) {
+    if(typeof alias!=='string' || !alias.trim() || !compatibleCatalogNames(product.name || product.title,alias,product.quantity))continue;
+    const decision=desktopSearchNameDecision(query,{...product,name:alias,aliases:undefined});
+    if(decision.accepted)return {...decision,reason:'observed_ean_name:'+decision.reason};
+  }
+  return primary;
 }
 export function rankDesktopNormalRows<T extends Row>(query: string, rows: T[], options: {requirePrice?: boolean} = {}): T[] {
   return rows.map((product,index)=>({product,index,...desktopSearchDecision(query,product)}))

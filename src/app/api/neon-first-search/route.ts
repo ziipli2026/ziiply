@@ -82,14 +82,15 @@ export async function GET(request: NextRequest) {
         FROM ziiply_ean_products
         WHERE (${isEan} AND ean = ${q})
            OR (${desktop} AND EXISTS (
-             SELECT 1 FROM jsonb_array_elements(${JSON.stringify(desktopPatterns)}::jsonb) terms
-             WHERE NOT EXISTS (
-               SELECT 1 FROM jsonb_array_elements_text(terms) term
-               -- searchWords folds Finnish diacritics in every desktop pattern.
-               -- Apply the same fold to catalog values before comparing.
-               WHERE translate(lower(coalesce(name, '')), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') NOT LIKE term
-                 AND translate(lower(coalesce(brand, '')), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') NOT LIKE term
-                 AND NOT EXISTS (SELECT 1 FROM unnest(aliases) a WHERE translate(lower(a), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') LIKE term)
+             SELECT 1 FROM unnest(ARRAY[coalesce(name, '')] || coalesce(aliases, ARRAY[]::text[])) identity_name
+             WHERE EXISTS (
+               SELECT 1 FROM jsonb_array_elements(${JSON.stringify(desktopPatterns)}::jsonb) terms
+               WHERE NOT EXISTS (
+                 SELECT 1 FROM jsonb_array_elements_text(terms) term
+                 -- Every word must belong to one complete observed name (plus brand).
+                 WHERE translate(lower(identity_name), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') NOT LIKE term
+                   AND translate(lower(coalesce(brand, '')), 'åäöáàâãéèêëíìîïóòôõúùûüýÿçñ', 'aaoaaaaeeeeiiiioooouuuuyycn') NOT LIKE term
+               )
              )
            ))
            OR name ILIKE ${contains}

@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
     const imageUrl = clean(body.imageUrl, 1000) || null;
     const category = clean(body.category, 160) || null;
     const source = clean(body.source, 120) || null;
-    const aliasList = aliases(body.aliases);
+    const aliasList = aliases([name, ...aliases(body.aliases)]);
     const sql = db();
     await ensureSchema(sql);
 
@@ -275,7 +275,10 @@ export async function POST(request: NextRequest) {
         image_url = COALESCE(EXCLUDED.image_url, ziiply_ean_products.image_url),
         category = COALESCE(EXCLUDED.category, ziiply_ean_products.category),
         source = COALESCE(EXCLUDED.source, ziiply_ean_products.source),
-        aliases = ARRAY(SELECT DISTINCT x FROM unnest(ziiply_ean_products.aliases || EXCLUDED.aliases) x),
+        aliases = ARRAY(
+          SELECT x FROM unnest(ARRAY[EXCLUDED.name, ziiply_ean_products.name] || EXCLUDED.aliases || ziiply_ean_products.aliases) WITH ORDINALITY AS observed(x, position)
+          WHERE TRIM(x) <> '' GROUP BY x ORDER BY MIN(position) LIMIT 24
+        ),
         last_seen_at = NOW(),
         updated_at = NOW()
       RETURNING ean, name, brand, quantity, image_url AS "imageUrl", category, source,
@@ -288,3 +291,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "EAN bank unavailable" }, { status: 500 });
   }
 }
+

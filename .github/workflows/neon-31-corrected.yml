@@ -2,14 +2,14 @@ name: Desktop Neon - corrected 31 EAN regression
 on:
   push:
     branches: [preview/legacy-desktop-ui]
-    paths: ['.github/workflows/neon-31-corrected.yml', 'scripts/audit-neon-31-corrected.cjs', 'src/app/components/ziiply/search/desktopNormalRelevance.ts', 'src/app/api/neon-first-search/route.ts']
+    paths: ['.github/workflows/neon-31-corrected.yml', 'scripts/audit-neon-31-corrected.cjs', 'src/app/components/ziiply/search/desktopNormalRelevance.ts', 'src/app/api/neon-first-search/route.ts', 'src/lib/catalogNameEvidence.ts', 'src/lib/eanBank.ts', 'src/app/api/ean-bank/route.ts', 'scripts/collect-neon-name-evidence.cjs']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,13 +17,24 @@ jobs:
           node-version: '22'
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: node scripts/test-desktop-normal-relevance.cjs
+      - run: node scripts/test-catalog-name-evidence.cjs
+      - name: Test name-history upserts in a temporary table
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: node scripts/test-ean-name-history.cjs
       - name: Test corrected route against real Neon for all 31 queries
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
         run: node scripts/audit-neon-31-corrected.cjs
+      - name: Collect fresh exact-EAN name evidence without catalogue writes
+        env:
+          DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
+        run: node scripts/collect-neon-name-evidence.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: neon-31-corrected
-          path: neon-31-corrected.json
+          path: |
+            neon-31-corrected.json
+            neon-name-evidence.json
           if-no-files-found: error

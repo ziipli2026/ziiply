@@ -54,8 +54,8 @@ export async function observeEanProductsBestEffort(observations: EanObservation[
     const sql = neon(url);
     for (const item of rows) {
       await sql`
-        INSERT INTO ziiply_ean_products (ean, name, brand, image_url, category, source)
-        VALUES (${item.ean}, ${item.name}, ${item.brand}, ${item.imageUrl}, ${item.category}, ${item.source})
+        INSERT INTO ziiply_ean_products (ean, name, brand, image_url, category, source, aliases)
+        VALUES (${item.ean}, ${item.name}, ${item.brand}, ${item.imageUrl}, ${item.category}, ${item.source}, ${item.name ? [item.name] : []})
         ON CONFLICT (ean) DO UPDATE SET
           name = CASE WHEN EXCLUDED.name <> '' THEN EXCLUDED.name ELSE ziiply_ean_products.name END,
           brand = COALESCE(EXCLUDED.brand, ziiply_ean_products.brand),
@@ -66,6 +66,10 @@ export async function observeEanProductsBestEffort(observations: EanObservation[
             ELSE ziiply_ean_products.category
           END,
           source = COALESCE(EXCLUDED.source, ziiply_ean_products.source),
+          aliases = ARRAY(
+            SELECT x FROM unnest(ARRAY[EXCLUDED.name, ziiply_ean_products.name] || ziiply_ean_products.aliases) WITH ORDINALITY AS observed(x, position)
+            WHERE TRIM(x) <> '' GROUP BY x ORDER BY MIN(position) LIMIT 24
+          ),
           last_seen_at = NOW(),
           updated_at = NOW()
       `;
@@ -74,3 +78,4 @@ export async function observeEanProductsBestEffort(observations: EanObservation[
     console.warn("EAN observation skipped", error);
   }
 }
+
