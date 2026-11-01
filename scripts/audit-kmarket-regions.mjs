@@ -52,3 +52,44 @@ try {
   console.log("CHAIN_PUBLICATIONS", JSON.stringify([...byPublication].map(([id, rows]) => ({ id, count:rows.length, sample:rows.slice(0,5) }))));
   console.log("AUDIT_DONE", JSON.stringify({ storeCount:all.length, offers:offers.length, publicationCount:byPublication.size }));
 } catch (e) { console.error("AUDIT_FAILED", e instanceof Error ? e.message : String(e)); process.exitCode=1; }
+
+
+// National coverage: inspect EVERY returned K-Market, with bounded concurrency.
+// A publication ID is not evidence that its offer index has usable priced rows.
+if (process.env.AUDIT_ALL_KMARKETS === "1") {
+  const all = list(await data("stores", { businessId, pagination: { offset: 0, limit: 1000 } }));
+  const counts = { total: all.length, withCoordinates: 0, withActivePublication: 0, withIndexedOffers: 0, emptyIndex: 0, noActivePublication: 0, errors: 0 };
+  const publicationCounts = new Map();
+  const failures = [];
+  const now = Date.now();
+  let cursor = 0;
+  async function worker() {
+    while (cursor < all.length) {
+      const store = all[cursor++];
+      try {
+        if (!store.coordinates || !store.id) { counts.noActivePublication++; continue; }
+        counts.withCoordinates++;
+        const fronts = list(await data("fronts", { businessIds:[businessId], localBusinessIds:[String(store.id)], coordinates:store.coordinates }));
+        const pubs = fronts.flatMap(f => Array.isArray(f.publications) ? f.publications : []).filter(p => {
+          const from = Date.parse(String(p.validFrom ?? "")), until = Date.parse(String(p.validUntil ?? ""));
+          return Number.isFinite(from) && Number.isFinite(until) && from <= now && now <= until && p.id;
+        });
+        if (!pubs.length) { counts.noActivePublication++; continue; }
+        counts.withActivePublication++;
+        let found = false;
+        for (const p of pubs) {
+          const id = String(p.id);
+          publicationCounts.set(id, (publicationCounts.get(id) ?? 0) + 1);
+          const rows = list(await data("offers", { publicationIds:[id], sources:["publication","business_product"], pagination:{limit:1000,offset:0}, sort:["score_desc"] }));
+          if (rows.some(r => String(r.publicationPublicId ?? "") === id && r.name && [r.appPrice,r.membershipPrice,r.price,r.fromPrice].some(v => Number(v) > 0))) found = true;
+        }
+        if (found) counts.withIndexedOffers++; else { counts.emptyIndex++; failures.push({ id:store.id, name:store.name, publications:pubs.map(p=>p.id), reason:"NO_PRICED_INDEX_OFFERS" }); }
+      } catch(e) { counts.errors++; failures.push({ id:store.id, name:store.name, reason:String(e) }); }
+    }
+  }
+  await Promise.all(Array.from({length:8}, () => worker()));
+  console.log("NATIONAL_COUNTS", JSON.stringify(counts));
+  console.log("NATIONAL_PUBLICATIONS", JSON.stringify([...publicationCounts].sort((a,b)=>b[1]-a[1]).slice(0,30)));
+  console.log("NATIONAL_FAILURES", JSON.stringify(failures));
+  if (counts.errors) process.exitCode = 1;
+}
