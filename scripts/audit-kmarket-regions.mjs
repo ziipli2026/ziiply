@@ -93,3 +93,36 @@ if (process.env.AUDIT_ALL_KMARKETS === "1") {
   console.log("NATIONAL_FAILURES", JSON.stringify(failures));
   if (counts.errors) process.exitCode = 1;
 }
+
+
+// Deep-dive: determine whether empty indexes contain non-priced offers or
+// whether the publication viewer has linked offers not present in the index.
+if (process.env.AUDIT_VIEWER_FALLBACK === "1") {
+  const all = list(await data("stores", { businessId, pagination:{offset:0,limit:1000} }));
+  const chosen = all.filter(s => /wiljami|hämis|hakalantori|kotikontu|tiltuntori/i.test(String(s.name)));
+  const results = [];
+  for (const store of chosen) {
+    const fronts = list(await data("fronts", { businessIds:[businessId], localBusinessIds:[String(store.id)], coordinates:store.coordinates }));
+    const pubs = fronts.flatMap(f => Array.isArray(f.publications) ? f.publications : []);
+    for (const pub of pubs) {
+      const id = String(pub.id ?? "");
+      if (!id) continue;
+      const rows = list(await data("offers", {publicationIds:[id],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]})).filter(o=>String(o.publicationPublicId??"")===id);
+      const viewer = [];
+      for(let page=1;page<=3;page++){
+        try{
+          const response=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+encodeURIComponent(id)+"/"+page);
+          if(!response.ok){viewer.push({page,status:response.status});break;}
+          const body=await response.json();
+          const nested=body.data && typeof body.data==="object"?body.data:{};
+          const p=body.page && typeof body.page==="object"?body.page:{};
+          const hotspots=[...(Array.isArray(body.hotspots)?body.hotspots:[]),...(Array.isArray(nested.hotspots)?nested.hotspots:[]),...(Array.isArray(p.hotspots)?p.hotspots:[])];
+          const decorations=[...(Array.isArray(body.decorations)?body.decorations:[]),...(Array.isArray(nested.decorations)?nested.decorations:[])];
+          viewer.push({page,status:response.status,keys:Object.keys(body),hotspots:hotspots.length,decorations:decorations.length,hotspotSamples:hotspots.slice(0,2).map(h=>({keys:Object.keys(h),offerId:h.offerId,offer:h.offer?.publicId??h.offer?.id})),decorationSamples:decorations.slice(0,2).map(d=>({keys:Object.keys(d),type:d.type}))});
+        }catch(e){viewer.push({page,error:String(e)});break;}
+      }
+      results.push({store:store.name,id,validFrom:pub.validFrom,validUntil:pub.validUntil,indexRows:rows.length,priced:rows.filter(r=>[r.appPrice,r.membershipPrice,r.price,r.fromPrice].some(v=>Number(v)>0)).length,viewer});
+    }
+  }
+  console.log("VIEWER_DEEP_DIVE",JSON.stringify(results));
+}
