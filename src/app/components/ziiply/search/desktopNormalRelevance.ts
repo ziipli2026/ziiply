@@ -146,6 +146,16 @@ function desktopSearchNameDecision(query: string, product: Row) {
   const alcohol=['alkoholi','jaloviina','vodka','likoori','rommi','whisky','lonkero'];
   if(q.terms.some(t=>['cola','pepsi','coke','limsa','kahvi'].includes(t)) && alcohol.some(t=>(identityText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'alcoholic_other_product'};
+  // A bare fresh-fruit query must not turn a translated flavour such as
+  // "lemon" into evidence for the fruit itself. Check the current product
+  // identity and department before consulting aliases or fuzzy synonyms.
+  if(q.terms.length===1 && q.terms[0]==='sitruuna') {
+    const fruitDepartment=/hedelmat|sitrushedelmat|sitruunat|tuoretuotteet/.test(categoryText);
+    const actualFruit=/\\bsitruun(?:a|at|oita|an)?\\b|\\blemon(?:s)?\\b/.test(identityText);
+    const derivative=/juoma|drink|cider|siideri|lonkero|cocktail|kombucha|limonadi|lemonade|soda|patukka|bar|cake|kakku|dessert|vanukas|koriste|tabletti|magnesium|vitamiini|pepper|pippuri|mauste|keksi|tee|mehu|tiiviste|flavo|maku|aromi|tuoksu|saippua|shampoo|hoitoaine|energia|kuivat|taateli|flakes|vegan|salaatti|kastike|sauce/.test(identityText+' '+categoryText);
+    if(!actualFruit || derivative || (categoryText && !fruitDepartment))
+      return {accepted:false,score:-10000,reason:'fresh_lemon_not_flavoured_product'};
+  }
   // Product type takes precedence over a flavour/ingredient word. These
   // shared classes apply across queries, including catalog categories which
   // contain no usable taxonomy (opaque supplier codes).
