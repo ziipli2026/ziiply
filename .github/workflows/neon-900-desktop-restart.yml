@@ -1,5 +1,5 @@
 name: Desktop Neon - retry batch 9
-run-name: Recheck only batch 9 after FrankOli Neon alias fix
+run-name: Recheck batch 9 after desktop catalog identity fix
 on:
   workflow_dispatch:
   push:
