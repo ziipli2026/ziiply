@@ -287,6 +287,12 @@ function desktopSearchNameDecision(query: string, product: Row) {
 /** Match one complete observed identity at a time; never assemble an identity
  * from unrelated aliases or use another package size to satisfy a query. */
 export function desktopSearchDecision(query: string, product: Row) {
+  // An alias must not hide the original product's preparation/type.
+  // Example: "MySoda Cola sokeriton" cannot turn a concentrate into a ready-to-drink cola.
+  const requestedTerms=parse(desktopSearchQuery(query)).terms;
+  const originalIdentity=searchWords(product.name || product.title).join(' ');
+  if(requestedTerms.includes('cola') && /juomatiiviste|sodastream|siirappi/.test(originalIdentity))
+    return {accepted:false,score:-10000,reason:'cola_concentrate_original_identity'};
   const primary=desktopSearchNameDecision(query,product);
   if(primary.accepted || /^\d{8,14}$/.test(query.trim()) || !Array.isArray(product.aliases))return primary;
   // A catalog identity can be phrased differently from the primary name (for
