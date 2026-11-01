@@ -49,10 +49,19 @@ function suspect(query,p){
  const name=fold(p.name||p.title||p.productName).replace(/juustoportti(?:n)?/g,'');
  const pattern=aliases[query];
  const observedNames=[p.name||p.title||p.productName,...(Array.isArray(p.aliases)?p.aliases:[])].filter(Boolean).map(v=>fold(v).replace(/juustoportti(?:n)?/g,''));
- const matched=observedNames.some(n=>pattern?pattern.test(n):fold(query).split(/[\\s-]+/).every(w=>n.includes(w)));
+ const terms=fold(query).split(/\\s+/).filter(Boolean);
+ const equivalent=(n)=>{
+  if(query==='broileri')return /broiler|kana(?:n|a)?/.test(n);
+  if(query==='cola')return /\\bcola\\b|pepsi|coke/.test(n);
+  if(query==='laktoositon maito')return /laktoositon/.test(n)&&/maito/.test(n);
+  if(query==='alkoholiton olut')return /alkoholiton/.test(n)&&/olut|lager|pils/.test(n);
+  if(query==='sika-nauta jauheliha')return /jauheliha/.test(n)&&(/sika.*nauta|nauta.*sika/.test(n));
+  return pattern?pattern.test(n):terms.every(w=>n.includes(w));
+ };
+ const matched=observedNames.some(equivalent);
  // Aliases can describe the correct product in a different language or with a
  // fuller name. Do not let an alias override an explicitly different type.
- const conflictingIdentity=/muffinssi|piirakka|lasagne|pastasalaatti|salaatti|chorizopasta|keitto|sandwich|ciabatta|twist|ateria|paneroitu/.test(name);
+ const conflictingIdentity=/muffinssi|piirakka|lasagne|pastasalaatti|salaatti|chorizopasta|keitto|sandwich|ciabatta|ateria/.test(name);
  if(!matched || (conflictingIdentity && !fold(query).split(/[\\s-]+/).every(w=>name.includes(w))))return 'name mismatch';
  const category=String(p.category||'');
  if(/shampoo|hoitoaine|saippua|vartalovoide|pesuaine|oljypuhdistus/.test(name))return 'nonfood';
