@@ -275,7 +275,7 @@ function desktopSearchNameDecision(query: string, product: Row) {
 export function desktopSearchDecision(query: string, product: Row) {
   const primary=desktopSearchNameDecision(query,product);
   if(primary.accepted || /^\d{8,14}$/.test(query.trim()) || !Array.isArray(product.aliases))return primary;
-  if(/non_food|pet_product|accessory_not_food|different_product_type:/.test(primary.reason))return primary;
+  if(/non_food|pet_product|accessory_not_food|different_product_type:(?:nonfood|pet|snacks|drink|bakery)/.test(primary.reason))return primary;
   const requested=parse(desktopSearchQuery(query)).sizes;
   const currentSizes=[...catalogPackageSizes(product.name || product.title),...catalogPackageSizes(product.quantity)];
   if(currentSizes.length && requested.some(size=>!currentSizes.includes(size)))return primary;

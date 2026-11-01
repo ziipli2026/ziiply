@@ -248,4 +248,6 @@ assert.equal(dec('Hart sport Energy gel sitruuna',{name:'Hart-sport Energy gel 3
 assert.equal(dec('Dexal energiageeli sitruuna',{name:'Dexal energiageeli 30g sitruuna',category:'kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet'}).accepted,true);
 assert.equal(dec("Lay's Max Heinz Tomato Ketchup perunalastut",chips).accepted,true,'explicitly requested chips remain searchable');
 assert.equal(dec('Coop jäätee sitruuna',{name:'Coop jäätee sitruuna light 500 ml',brand:'Coop'}).accepted,true);
+assert.equal(dec('Atria Artesaani Kalapihvit Smetanakastikkeella ja Pinaatti',{name:'Atria Artesaani kalapihvit ja pinaattimuusi 350g',brand:'Atria Artesaani',category:'valmisruoka/valmisateriat-keitot-ja-aterianosat/mikroateriat',aliases:['Atria Artesaani Kalapihvit Smetanakastikkeella ja Pinaatti-Perunamuusi 350g']}).accepted,true);
+assert.equal(dec('Friggs Gluteeniton Maissikakku Chiansiemenet merisuola',{name:'Friggs maissikakku 130g chiasiemen & merisuola',brand:'Friggs',category:'leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut',aliases:['Friggs Gluteeniton Maissikakku Chiansiemenet & merisuola 130g']}).accepted,true);
 console.log('PASS 900 audit: named fruit and sauce searches exclude flavour derivatives and household goods');
