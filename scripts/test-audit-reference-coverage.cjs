@@ -11,5 +11,11 @@ const assert=require('node:assert/strict'),{auditReferenceCoverage:audit}=requir
  assert.equal((await audit(ref,[],changed)).state,'current_shop_identity_conflict');
  const unverified=await audit({query:'Kurkku Härkälä',expectedNeonEan:'2000629900000'},[],async()=>({data:{products:[{ean:'2000629900000',name:'Kurkku Juntti'}]}}));
  assert.equal(unverified.state,'catalog_identity_unverified');
+ const fish={query:'Hätälä kirjolohifilee 700g',expectedNeonEan:'2387966000007'};
+ const displayed={ean:fish.expectedNeonEan,name:'Hätälä kirjolohifilee 700g',__price:29.95};
+ const differentCatalogue=async()=>({data:{products:[{ean:fish.expectedNeonEan,name:'Hätälä kirjolohifilee 1kg'}]}});
+ assert.equal((await audit(fish,[displayed],differentCatalogue,false)).state,'visible_store_catalog_conflict');
+ assert.equal((await audit(fish,[displayed],async()=>({data:{products:[displayed]}}),false)).state,'visible_catalog_retrieval_gap','a correctly named catalogue row lost by retrieval must still fail');
+ assert.equal((await audit(fish,[{...displayed,name:'Hätälä kirjolohifilee 1kg'}],differentCatalogue,false)).state,'displayed_reference_identity_conflict','same EAN never excuses a wrong displayed package');
  console.log('PASS independent reference probes: missing real quote fails; absent quote and identity conflicts stay explicit');
 })().catch(error=>{console.error(error);process.exitCode=1});

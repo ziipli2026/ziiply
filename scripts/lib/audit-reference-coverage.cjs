@@ -1,9 +1,18 @@
 const {auditNamedProduct}=require('./named-audit-oracle.cjs');
 const items=data=>Array.isArray(data)?data:data.products||data.items||[];
-async function auditReferenceCoverage(reference,visible,request){
+async function auditReferenceCoverage(reference,visible,request,catalogueQueryMatched=true){
  const ean=reference.expectedNeonEan;
  if(!ean)return null;
- if(visible.some(p=>String(p.ean)===ean))return {state:'visible',ean};
+ const displayed=visible.find(p=>String(p.ean)===ean);
+ if(displayed){
+  const issue=auditNamedProduct(reference.query,displayed);
+  if(issue)return {state:'displayed_reference_identity_conflict',ean,displayed,issue};
+  if(catalogueQueryMatched!==false)return {state:'visible',ean};
+  const exact=await request('/api/neon-first-search?q='+ean);
+  const canonical=items(exact.data||exact).find(p=>String(p.ean)===ean);
+  const catalogueIssue=canonical?auditNamedProduct(reference.query,canonical):{reason:'catalogue record missing'};
+  return {state:catalogueIssue?'visible_store_catalog_conflict':'visible_catalog_retrieval_gap',ean,displayed,canonical,catalogueIssue};
+ }
  const exact=await request('/api/neon-first-search?q='+ean);
  const canonical=items(exact.data||exact).find(p=>String(p.ean)===ean);
  if(!canonical)return {state:'catalog_record_missing',ean};

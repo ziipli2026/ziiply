@@ -125,10 +125,11 @@ async function test(query){
   if(suspects.length)r.errors.push('Normal display: '+suspects.length+' suspect names/types');
   assert.ok(rows.every(p=>Number.isFinite(p.__price)&&p.__price>0),'Unpriced visible product');
   assert.ok(rows.every((p,i)=>i===0||rows[i-1].__price<=p.__price),'Prices not ascending');
-  r.referenceCoverage=await auditReferenceCoverage(reference,rows,request);
+  r.referenceCoverage=await auditReferenceCoverage(reference,rows,request,r.expectedCatalogEanFound);
   if(r.referenceCoverage?.state==='known_quote_dropped')r.errors.push('Known current priced reference EAN dropped: '+reference.expectedNeonEan);
   if(r.referenceCoverage?.state==='catalog_record_missing')r.errors.push('Expected catalog EAN missing: '+reference.expectedNeonEan);
-  if(r.expectedCatalogEanFound===false && r.referenceCoverage?.state!=='catalog_identity_unverified')r.errors.push('Expected catalog EAN missing: '+reference.expectedNeonEan);
+  if(r.referenceCoverage?.state==='displayed_reference_identity_conflict')r.errors.push('Displayed reference EAN has conflicting identity: '+reference.expectedNeonEan);
+  if(r.expectedCatalogEanFound===false && !['catalog_identity_unverified','visible_store_catalog_conflict'].includes(r.referenceCoverage?.state))r.errors.push('Expected catalog EAN missing: '+reference.expectedNeonEan);
   const expectedEanVisible=reference.expectedNeonEan?rows.some(p=>String(p.ean)===reference.expectedNeonEan):null;
   // A different priced product must not mask a missing reference EAN.
   // Unpriced reference observations remain coverage gaps, not stock claims.
