@@ -1,0 +1,56 @@
+name: Desktop five common grocery searches
+run-name: Live normal search - maito kahvi makkara peruna cola
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - '.github/workflows/desktop-five-common-searches.yml'
+permissions:
+  contents: read
+jobs:
+  target:
+    runs-on: ubuntu-latest
+    outputs:
+      preview_url: ${{ steps.target.outputs.preview_url }}
+      target_commit: ${{ steps.target.outputs.target_commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/legacy-desktop-ui
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --global vercel@65.9.0
+      - name: Verify published search matches preview branch
+        id: target
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/prepare-neon-live-target.cjs
+  live-search:
+    needs: target
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PREVIEW_URL: ${{ needs.target.outputs.preview_url }}
+      TARGET_COMMIT: ${{ needs.target.outputs.target_commit }}
+      BASELINE_QUERIES: 'maito|kahvi|makkara|peruna|cola'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.target.outputs.target_commit }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm install --global vercel@65.9.0
+      - name: Run five real API and desktop-handler searches
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/test-neon-100-live.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: five-common-search-results
+          path: neon-100-live*.json
+          if-no-files-found: warn
