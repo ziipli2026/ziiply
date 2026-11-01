@@ -21,3 +21,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node tests/fuel-auto-station-30m.test.cjs
+      - run: node tests/fuel-photo-station-distance.test.cjs
