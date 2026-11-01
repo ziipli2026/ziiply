@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: '22'
       - name: Compare Tjek K-Market publications
-        run: AUDIT_ALL_KMARKETS=1 node scripts/audit-kmarket-regions.mjs
+        run: AUDIT_VIEWER_FALLBACK=1 node scripts/audit-kmarket-regions.mjs
