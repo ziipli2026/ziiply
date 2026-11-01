@@ -293,6 +293,14 @@ export function desktopSearchDecision(query: string, product: Row) {
   const originalIdentity=searchWords(product.name || product.title).join(' ');
   if(requestedTerms.includes('cola') && /juomatiiviste|sodastream|siirappi/.test(originalIdentity))
     return {accepted:false,score:-10000,reason:'cola_concentrate_original_identity'};
+  // Protect primary product identity from ingredient matches in prepared meals.
+  // Aliases may clarify a genuine product but cannot turn a muffin, salad or
+  // ready meal into the ingredient sought by the shopper.
+  const originalName=originalIdentity;
+  const ingredientQueries=new Set(['tuorejuusto','gouda','halloumi','vuohenjuusto','sisafilee','porsaanfilee','salami','chorizo','rapu']);
+  if(requestedTerms.some(term=>ingredientQueries.has(term)) &&
+     /muffin|sandwich|ciabatta|salaatti|keitto|lasagne|piirakka|pasta|ateria|kastikkeella|perunoilla|paneroitu|twist/.test(originalName))
+    return {accepted:false,score:-10000,reason:'prepared_food_not_requested_ingredient'};
   const primary=desktopSearchNameDecision(query,product);
   if(primary.accepted || /^\d{8,14}$/.test(query.trim()) || !Array.isArray(product.aliases))return primary;
   // A catalog identity can be phrased differently from the primary name (for
