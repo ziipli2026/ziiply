@@ -1,0 +1,49 @@
+name: Desktop - focused checks before 900 searches
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths: [.github/workflows/desktop-before-900.yml, scripts/fixtures/neon-before-900-queries.json]
+permissions:
+  contents: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm install --global vercel@65.9.0
+      - run: node scripts/test-named-audit-oracle.cjs
+      - run: node scripts/test-audit-reference-coverage.cjs
+      - run: node tests/desktop-normal-search.test.cjs
+      - name: Pin the published corrected desktop source
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          for attempt in $(seq 1 20); do
+            if node scripts/prepare-neon-live-target.cjs > /tmp/desktop-target.log 2>&1; then
+              cat /tmp/desktop-target.log
+              exit 0
+            fi
+            echo "Waiting for the corrected desktop alias ($attempt/20)"
+            sleep 15
+          done
+          cat /tmp/desktop-target.log
+          exit 1
+      - name: Live audit of corrected spelling, missing quotes and brand punctuation
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          REGRESSION_QUERIES_FILE: scripts/fixtures/neon-before-900-queries.json
+        run: node scripts/test-neon-100-live.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-before-900
+          path: neon-100-live-*.json
+          if-no-files-found: error

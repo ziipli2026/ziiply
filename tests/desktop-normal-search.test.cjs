@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const ts = require('typescript');
 const normal = require('../src/app/components/ziiply/ziiplyCore.ts');
 const relevance=require('../src/app/components/ziiply/search/desktopNormalRelevance.ts');
+require('../scripts/test-named-audit-oracle.cjs');
 const source = fs.readFileSync('src/app/desktop-preview/DesktopPreviewClient.tsx','utf8');
 const start = source.indexOf('  async function runDesktopNormalSearch(');
 const end = source.indexOf('  async function runDesktopJustiinaSearch(',start);
@@ -100,6 +101,13 @@ function harness({delay=false,products=null,providerFailure=false,catalogProduct
   await slash.run('Peruna kiinteä pesty mullattu Suomi');
   assert.equal(slash.state.results.length,1,'word-equivalent punctuation must not suppress the canonical shop lookup');
   assert.equal(slash.state.results[0].__price,2.95);
+  const beer={ean:'6419800021261',name:'A. Le Coq Premium 4,5 % olut 0,33 l tlk',brand:'A. Le Coq'};
+  const alternativeBeer={ean:'4740098004363',name:'A. Le Coq Premium Alkoholiton olut 0,0 % 0,568 l tlk',price:1.89};
+  const brandPunctuation=harness({catalogProducts:[beer],providerProducts:search=>search===beer.brand?[{...beer,name:'A.Le Coq Premium olut 4,5% 0,33l',price:1.24},alternativeBeer]:[alternativeBeer]});
+  await brandPunctuation.run('A Le Coq Premium olut');
+  assert.ok(brandPunctuation.state.results.some(p=>p.ean===beer.ean),'another priced EAN must not suppress a missing observed abbreviated-brand lookup');
+  assert.equal(brandPunctuation.state.results[0].__price,1.24);
+  assert.ok(brandPunctuation.state.requests.every(url=>url.startsWith('/api/neon-first-search')||new URL(url,'https://example.test').searchParams.get('store')==='prisma'),'brand probes stay in the selected store');
   // Exercise the actual audit verdict, so another priced EAN cannot turn a
   // missing known reference product into a passing coverage check.
   const auditSource=fs.readFileSync('scripts/test-neon-100-live.cjs','utf8');

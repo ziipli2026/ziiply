@@ -2328,8 +2328,8 @@ export default function DesktopPreviewPage() {
       const withEvidence=(item:any)=>withDesktopCatalogEvidence(item,catalogByEan.get(String(item.ean || '')));
       const itemsOf=(data:any):any[]=>Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
       // A named product may be indexed under a shorter current shop name.
-      // Try at most two qualified catalogue identities, only when a successful
-      // store response has no usable quote. Final query constraints still apply.
+      // Try at most two observed identities. Abbreviated brand punctuation
+      // can hide one EAN even when a different product already has a quote.
       if(searchWords(query).length>=2){
         // Shop search can distinguish punctuation such as pesty/mullattu.
         // Only skip identities actually requested, not word-equivalent names.
@@ -2338,18 +2338,24 @@ export default function DesktopPreviewPage() {
         const fallbackNames=[...new Set<string>(neonRows.map((item:any)=>String(item.name || '')).filter(Boolean))]
           .filter(name=>!tried.has(lookupKey(name))).slice(0,2);
         await Promise.all(batches.map(async batch=>{
-          const usable=itemsOf(batch.data).some(item=>{
+          const priced=itemsOf(batch.data).filter(item=>{
             const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
             return Number.isFinite(price)&&price>0&&desktopSearchDecision(query,withEvidence(item)).accepted;
           });
-          if(usable || !fallbackNames.length)return;
+          const pricedEans=new Set(priced.map(item=>String(item.ean||'')));
+          const queryWords=' '+searchWords(query).join(' ')+' ';
+          const brandLookups=[...new Set<string>(neonRows.filter((item:any)=>!pricedEans.has(String(item.ean))).map((item:any)=>String(item.brand||'')).filter((brand:string)=>
+            /\./.test(brand) && searchWords(brand).length>=2 && queryWords.includes(' '+searchWords(brand).join(' ')+' ')
+          ))];
+          const lookupNames=[...brandLookups,...(priced.length?[]:fallbackNames)].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,2);
+          if(!lookupNames.length)return;
           const store=batch.store;
           const url=batch.chain==='S'
             ? `/api/s-products?store=${encodeURIComponent(String(store.id))}&storeName=${encodeURIComponent(String(store.name||""))}&storeType=${storeKind(store)==="sLocal"?"local":"hyper"}`
             : `/api/k-products?store=${encodeURIComponent(String(store.id))}`;
           try{
-            report('catalog_name_lookup',{chain:batch.chain,store:store.name,names:fallbackNames});
-            const recovered=await fetchSearchData(url,fallbackNames);
+            report('catalog_name_lookup',{chain:batch.chain,store:store.name,names:lookupNames});
+            const recovered=await fetchSearchData(url,lookupNames);
             batch.data={...batch.data,products:[...itemsOf(batch.data),...itemsOf(recovered)]};
           }catch(error){failures.push(String(error));report('catalog_name_lookup_error',{chain:batch.chain,error:String(error)});}
         }));

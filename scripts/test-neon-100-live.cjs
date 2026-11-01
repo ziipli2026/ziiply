@@ -7,6 +7,8 @@ const {promisify}=require('node:util');
 const ts=require('typescript');
 const normal=require('../src/app/components/ziiply/ziiplyCore.ts');
 const relevance=require('../src/app/components/ziiply/search/desktopNormalRelevance.ts');
+const {auditNamedProduct}=require('./lib/named-audit-oracle.cjs');
+const {auditReferenceCoverage}=require('./lib/audit-reference-coverage.cjs');
 const cli=promisify(execFile);
 const base=process.env.PREVIEW_URL||'https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app';
 const shard=Number(process.env.SHARD||0), shards=Number(process.env.SHARDS||1);
@@ -33,16 +35,11 @@ const compiled=ts.transpileModule(source.slice(start,end),{compilerOptions:{targ
 function fold(s){return String(s||'').toLowerCase().normalize('NFKC').normalize('NFD').replace(/\p{M}/gu,'');}
 const aliases={maito:/maito/,kauramaito:/kaura.*(?:juoma|maito)|(?:juoma|maito).*kaura/,juusto:/juusto|edam|emmental|gouda|mozzarella|cheddar|feta|parmesan|brie|halloumi/,cola:/\bcola\b|pepsi|coke/,'coca cola':/coca.?cola|\bcoke\b/,'cola zero':/(?:cola|pepsi|coke).*(?:zero|sokeriton|max)|(?:zero|sokeriton|max).*(?:cola|pepsi|coke)/,kahvi:/kahvi|coffee|espresso|juhla mokka|presidentti|kulta katriina|paulig|lofbergs/,suodatinkahvi:/kahvi|juhla mokka|presidentti|kulta katriina|paulig|lofbergs/,pikakahvi:/pikakahvi|instant|nescafe/,jogurtti:/jogurtti|jogurt|yoghurt|yogurt/,kana:/kana|broiler/,broileri:/kana|broiler/,kananfilee:/kanan?filee|broilerin.*filee/,kananmuna:/kananmun|\bmuna\b|munia|munat/,jauheliha:/jauheliha/,tomaatti:/tomaat/,peruna:/perun/,porkkana:/porkkan/,banaani:/banaan/,omena:/omen/,appelsiini:/appelsiin/,mandariini:/mandariin/,sitruuna:/sitruun/,viinirypäle:/viinirypal/,leipä:/leipa|leivat|leivan/,ruisleipä:/ruisleipa|ruisleivat|ruisleivan/,paahtoleipä:/paahtoleipa/,sämpylä:/sampyl/,murot:/muro|cereal/,spagetti:/spaget|spaghet/,öljy:/oljy/,oliiviöljy:/oliivioljy/,ketsuppi:/ketsup|ketchup/,tee:/tee(?:\b|ta)|tea\b/};
 function suspect(query,p){
- if(batchNumber){
+ if(batchNumber||regression){
   // Product-specific queries explicitly request their named product form.
   // Do not apply the baseline's raw-ingredient exclusions to e.g. a named sauce.
-  const identity=fold(p.name||p.title||p.productName);
-  const words=identity.match(/[\p{L}\p{N}]+/gu)||[];
-  const requested=fold(query).match(/[\p{L}\p{N}]+/gu)||[];
-  if(!requested.every(q=>words.some(w=>w===q||w.startsWith(q))))return 'requested name word missing';
-  if(/shampoo|hoitoaine|saippua|vartalovoide|pesuaine|oljypuhdistus|koiranruoka|kissanruoka/.test(identity))return 'nonfood/pet product';
-  if(/^CAABO/.test(String(p.category||'')))return 'pet taxonomy';
-  return null;
+  const issue=auditNamedProduct(query,p);
+  return issue?issue.kind+': '+issue.reason:null;
  }
  const name=fold(p.name||p.title||p.productName).replace(/juustoportti(?:n)?/g,'');
  const pattern=aliases[query];
@@ -93,7 +90,7 @@ async function request(path){
   return {data,items};
  })());return cache.get(path);
 }
-function summarize(p){return {ean:p.ean,name:p.name||p.title||p.productName,category:p.category,price:p.__price??p.price??null,store:p.__store};}
+function summarize(p){return {ean:p.ean,name:p.name||p.title||p.productName,brand:p.brand||p.brandName,aliases:p.aliases,quantity:p.quantity,category:p.category,price:p.__price??p.price??null,store:p.__store};}
 async function test(query){
  const reference=referenceByQuery.get(query);
  const r={query,reference:reference.expectedNeonEan?reference:null,coverageGap:false,errors:[],requests:[],raw:null,desktop:null,visible:null};report.results.push(r);
@@ -106,7 +103,7 @@ async function test(query){
    assert.notEqual(data.categoryExpansion,'exact-ean');
    const suspects=items.map(p=>({...summarize(p),reason:suspect(query,p)})).filter(p=>p.reason);
    r[desktop?'desktop':'raw']={count:items.length,version:data.searchVersion,suspects,products:items.map(summarize)};
-   if(desktop&&reference.expectedNeonEan&&!items.some(p=>String(p.ean)===reference.expectedNeonEan))r.errors.push('Expected catalog EAN missing: '+reference.expectedNeonEan);
+   if(desktop&&reference.expectedNeonEan)r.expectedCatalogEanFound=items.some(p=>String(p.ean)===reference.expectedNeonEan);
    if(desktop&&suspects.length)r.errors.push('Neon desktop: '+suspects.length+' suspect names/types');
    for(const p of items)if(!p.name||!/^\d{8,14}$/.test(String(p.ean)))r.errors.push('Invalid Neon record');
   }
@@ -123,19 +120,23 @@ async function test(query){
   const run=new Function(...Object.keys(deps),compiled+';return runDesktopNormalSearch;')(...Object.values(deps));
   await run(query);
   assert.ok(Array.isArray(rows),'Normal handler did not produce results');
-  if(!rows.length){r.coverageGap=true;if(reference.expectPriced)r.errors.push('No priced normal results (previously seen in selected stores)');}
+  if(!rows.length){r.coverageGap=true;if(reference.expectPriced&&!reference.expectedNeonEan)r.errors.push('No priced normal results (previously seen in selected stores)');}
   const suspects=rows.map(p=>({...summarize(p),reason:suspect(query,p)})).filter(p=>p.reason);
   if(suspects.length)r.errors.push('Normal display: '+suspects.length+' suspect names/types');
   assert.ok(rows.every(p=>Number.isFinite(p.__price)&&p.__price>0),'Unpriced visible product');
   assert.ok(rows.every((p,i)=>i===0||rows[i-1].__price<=p.__price),'Prices not ascending');
+  r.referenceCoverage=await auditReferenceCoverage(reference,rows,request);
+  if(r.referenceCoverage?.state==='known_quote_dropped')r.errors.push('Known current priced reference EAN dropped: '+reference.expectedNeonEan);
+  if(r.referenceCoverage?.state==='catalog_record_missing')r.errors.push('Expected catalog EAN missing: '+reference.expectedNeonEan);
+  if(r.expectedCatalogEanFound===false && r.referenceCoverage?.state!=='catalog_identity_unverified')r.errors.push('Expected catalog EAN missing: '+reference.expectedNeonEan);
   const expectedEanVisible=reference.expectedNeonEan?rows.some(p=>String(p.ean)===reference.expectedNeonEan):null;
   // A different priced product must not mask a missing reference EAN.
   // Unpriced reference observations remain coverage gaps, not stock claims.
-  if(reference.expectedNeonEan && !expectedEanVisible && reference.expectPriced && rows.length)
+  if(reference.expectedNeonEan && !expectedEanVisible && reference.expectPriced && rows.length && (!r.referenceCoverage||r.referenceCoverage.state==='known_quote_dropped'))
    r.errors.push('Expected priced EAN missing from normal display: '+reference.expectedNeonEan);
   r.visible={count:rows.length,expectedEanVisible,suspects,products:rows.map(summarize)};
  }catch(error){r.errors.push(String(error));}
- console.log(JSON.stringify({query,raw:r.raw?.count,desktop:r.desktop?.count,visible:r.visible?.count,rawSuspects:r.raw?.suspects.length,suspects:[...(r.desktop?.suspects||[]),...(r.visible?.suspects||[])].slice(0,12),errors:r.errors}));save();
+ console.log(JSON.stringify({query,raw:r.raw?.count,desktop:r.desktop?.count,visible:r.visible?.count,referenceState:r.referenceCoverage?.state,rawSuspects:r.raw?.suspects.length,suspects:[...(r.desktop?.suspects||[]),...(r.visible?.suspects||[])].slice(0,12),errors:r.errors}));save();
 }
 (async()=>{
  if(!process.env.VERCEL_TOKEN)throw Error('Missing VERCEL_TOKEN');
