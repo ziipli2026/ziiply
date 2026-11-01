@@ -1,5 +1,5 @@
 name: Desktop Neon - retry batch 9
-run-name: Recheck batch 9 after desktop catalog identity fix
+run-name: Validate batch 9 and its scoped report
 on:
   workflow_dispatch:
   push:
