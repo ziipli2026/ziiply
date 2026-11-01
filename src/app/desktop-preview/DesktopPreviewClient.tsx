@@ -2331,9 +2331,12 @@ export default function DesktopPreviewPage() {
       // Try at most two qualified catalogue identities, only when a successful
       // store response has no usable quote. Final query constraints still apply.
       if(searchWords(query).length>=2){
-        const tried=new Set(desktopSearchQueries(query).map(name=>searchWords(name).join(' ')));
+        // Shop search can distinguish punctuation such as pesty/mullattu.
+        // Only skip identities actually requested, not word-equivalent names.
+        const lookupKey=(name:string)=>name.normalize('NFKC').toLocaleLowerCase('fi-FI').trim().replace(/\s+/g,' ');
+        const tried=new Set(desktopSearchQueries(query).map(lookupKey));
         const fallbackNames=[...new Set<string>(neonRows.map((item:any)=>String(item.name || '')).filter(Boolean))]
-          .filter(name=>!tried.has(searchWords(name).join(' '))).slice(0,2);
+          .filter(name=>!tried.has(lookupKey(name))).slice(0,2);
         await Promise.all(batches.map(async batch=>{
           const usable=itemsOf(batch.data).some(item=>{
             const price=Number(item?.storeItems?.[0]?.price??item?.price??0);

@@ -128,7 +128,12 @@ async function test(query){
   if(suspects.length)r.errors.push('Normal display: '+suspects.length+' suspect names/types');
   assert.ok(rows.every(p=>Number.isFinite(p.__price)&&p.__price>0),'Unpriced visible product');
   assert.ok(rows.every((p,i)=>i===0||rows[i-1].__price<=p.__price),'Prices not ascending');
-  r.visible={count:rows.length,suspects,products:rows.map(summarize)};
+  const expectedEanVisible=reference.expectedNeonEan?rows.some(p=>String(p.ean)===reference.expectedNeonEan):null;
+  // A different priced product must not mask a missing reference EAN.
+  // Unpriced reference observations remain coverage gaps, not stock claims.
+  if(reference.expectedNeonEan && !expectedEanVisible && reference.expectPriced && rows.length)
+   r.errors.push('Expected priced EAN missing from normal display: '+reference.expectedNeonEan);
+  r.visible={count:rows.length,expectedEanVisible,suspects,products:rows.map(summarize)};
  }catch(error){r.errors.push(String(error));}
  console.log(JSON.stringify({query,raw:r.raw?.count,desktop:r.desktop?.count,visible:r.visible?.count,rawSuspects:r.raw?.suspects.length,suspects:[...(r.desktop?.suspects||[]),...(r.visible?.suspects||[])].slice(0,12),errors:r.errors}));save();
 }
@@ -138,3 +143,4 @@ async function test(query){
  save();console.log('Completed',report.results.length,'queries; failures:',report.failures);
  if(report.failures)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1});
+

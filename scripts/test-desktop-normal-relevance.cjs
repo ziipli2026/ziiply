@@ -231,3 +231,21 @@ assert.equal(dec('Hätälä Kirjolohifilee C leikkuu n1kg',ccut).accepted,true);
 assert.equal(dec('Hätälä Kirjolohifilee C leikkuu n700g',ccut).accepted,false);
 assert.equal(dec('Hätälä Kirjolohifilee C leikkuu n700g',ccut).reason,'different_package_size');
 assert.equal(dec('Hätälä Kirjolohifilee D leikkuu n1kg',ccut).accepted,false);
+
+// Independent product/type observations from the completed 900-query audit.
+for(const name of ['Coop lemon hankausaine 500 ml','Coop All-In-1 Lemon konetiskitabletti 30 kpl','Coop ilmanraikastin sitruuna täyttö 3x15 ml','Coop jäätee sitruuna light 500 ml','Coop sitruunanmakuiset muffinit 2-pack 120g','Coop Radler Lemon alkoholiton olut 0,0% 0,33l','Coop Lemon-Lime 4,5% 330ml hard seltzer','Coop Lemonade 750 ml','Coop sitruunamajoneesi 260g'])
+ assert.equal(dec('Coop sitruuna',{name,brand:'Coop'}).accepted,false,name);
+for(const name of ['Coop sitruuna','Coop Sitruuna Eureka','Coop sitruuna luomu'])
+ assert.equal(dec('Coop sitruuna',{name,brand:'Coop'}).accepted,true,name);
+const chips={name:"Lay's Max Heinz Tomato Ketchup perunalastut 185g",brand:'Heinz',category:'makeiset-ja-naposteltavat/sipsit-ja-snacksit/sipsit'};
+assert.equal(dec('Heinz Tomaattiketsuppi',chips).accepted,false);
+assert.equal(dec('Heinz Tomaattiketsuppi',{...chips,aliases:['Heinz Tomaattiketsuppi 185g']}).accepted,false,'an observed alias cannot disguise the current product type');
+assert.equal(dec('Heinz ketsuppi',chips).accepted,false);
+assert.equal(dec('Heinz Tomato Ketchup',chips).accepted,false,'brand metadata cannot make flavour words a complete product identity');
+assert.equal(dec('Heinz Tomaattiketsuppi',{name:'Heinz Tomato Ketchup 250g',brand:'Heinz'}).accepted,true);
+assert.equal(dec('Heinz Tomaattiketsuppi',{name:'Heinz ketsuppi 1,35kg',brand:'Heinz',category:'Mausteet ja kastikkeet'}).accepted,true);
+assert.equal(dec('Hart sport Energy gel sitruuna',{name:'Hart-sport Energy gel 30g sitruuna',category:'kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet'}).accepted,true);
+assert.equal(dec('Dexal energiageeli sitruuna',{name:'Dexal energiageeli 30g sitruuna',category:'kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet'}).accepted,true);
+assert.equal(dec("Lay's Max Heinz Tomato Ketchup perunalastut",chips).accepted,true,'explicitly requested chips remain searchable');
+assert.equal(dec('Coop jäätee sitruuna',{name:'Coop jäätee sitruuna light 500 ml',brand:'Coop'}).accepted,true);
+console.log('PASS 900 audit: named fruit and sauce searches exclude flavour derivatives and household goods');

@@ -95,5 +95,27 @@ function harness({delay=false,products=null,providerFailure=false,catalogProduct
   const loose=harness({catalogProducts:[cauliflower],providerProducts:search=>search===cauliflower.name?[{ean:cauliflower.ean,name:cauliflower.name,price:2.89}]:[]});
   await loose.run('Kukkakaali irto');
   assert.equal(loose.state.results.length,1,'two-word attribute queries can recover a shorter current shop name');
+  const potato={ean:'2000680700007',name:'Peruna kiinteä pesty/mullattu Suomi'};
+  const slash=harness({catalogProducts:[potato],providerProducts:search=>search===potato.name?[{...potato,price:2.95}]:[]});
+  await slash.run('Peruna kiinteä pesty mullattu Suomi');
+  assert.equal(slash.state.results.length,1,'word-equivalent punctuation must not suppress the canonical shop lookup');
+  assert.equal(slash.state.results[0].__price,2.95);
+  // Exercise the actual audit verdict, so another priced EAN cannot turn a
+  // missing known reference product into a passing coverage check.
+  const auditSource=fs.readFileSync('scripts/test-neon-100-live.cjs','utf8');
+  const guardStart=auditSource.indexOf('  const expectedEanVisible=');
+  const guardEnd=auditSource.indexOf('\n }catch(error)',guardStart);
+  assert.ok(guardStart>=0 && guardEnd>guardStart);
+  const auditVerdict=new Function('reference','rows','r','suspects','summarize',auditSource.slice(guardStart,guardEnd));
+  const missing={errors:[]};
+  auditVerdict({expectedNeonEan:'6407800008252',expectPriced:true},[{ean:'6413300016468',__price:1.89}],missing,[],p=>p);
+  assert.equal(missing.visible.expectedEanVisible,false);
+  assert.deepEqual(missing.errors,['Expected priced EAN missing from normal display: 6407800008252']);
+  const present={errors:[]};
+  auditVerdict({expectedNeonEan:'6407800008252',expectPriced:true},[{ean:'6407800008252',__price:5.85}],present,[],p=>p);
+  assert.equal(present.visible.expectedEanVisible,true);assert.deepEqual(present.errors,[]);
+  const unconfirmed={errors:[]};
+  auditVerdict({expectedNeonEan:'6407800008252',expectPriced:false},[{ean:'6413300016468',__price:1.89}],unconfirmed,[],p=>p);
+  assert.equal(unconfirmed.visible.expectedEanVisible,false);assert.deepEqual(unconfirmed.errors,[],'a reference without a price is recorded without claiming stock');
   console.log('PASS normal search: provider route, relevance gate, euro prices, diagnostics and stale-response guard');
 })().catch(error=>{console.error(error);process.exitCode=1});
