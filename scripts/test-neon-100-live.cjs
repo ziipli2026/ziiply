@@ -49,10 +49,10 @@ function suspect(query,p){
  const name=fold(p.name||p.title||p.productName).replace(/juustoportti(?:n)?/g,'');
  const pattern=aliases[query];
  const observedNames=[p.name||p.title||p.productName,...(Array.isArray(p.aliases)?p.aliases:[])].filter(Boolean).map(v=>fold(v).replace(/juustoportti(?:n)?/g,''));
- const terms=fold(query).split(/\\s+/).filter(Boolean);
+ const terms=fold(query).split(/\s+/).filter(Boolean);
  const equivalent=(n)=>{
   if(query==='broileri')return /broiler|kana(?:n|a)?/.test(n);
-  if(query==='cola')return /\\bcola\\b|pepsi|coke/.test(n);
+  if(query==='cola')return /\bcola\b|pepsi|coke/.test(n);
   if(query==='laktoositon maito')return /laktoositon/.test(n)&&/maito/.test(n);
   if(query==='alkoholiton olut')return /alkoholiton/.test(n)&&/olut|lager|pils/.test(n);
   if(query==='sika-nauta jauheliha')return /jauheliha/.test(n)&&(/sika.*nauta|nauta.*sika/.test(n));
