@@ -1,5 +1,5 @@
 name: Desktop Neon - 900 searches restart
-run-name: Recheck all 900 searches after the 28 verified priced EAN recoveries
+run-name: Recheck all 900 searches after verified spelling, type, brand and variety corrections
 on:
   workflow_dispatch:
   push:
