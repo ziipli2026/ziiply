@@ -10,6 +10,8 @@ function words(x){
 }
 function sizes(x){const factors={kg:1000,g:1,l:1000,dl:100,cl:10,ml:1,kpl:1};return [...fold(x).matchAll(/(\d+(?:\.\d+)?)\s*(kg|ml|cl|dl|kpl|g|l)\b/g)].map(([,n,u])=>`${Number(n)*factors[u]}${['kg','g'].includes(u)?'g':['kpl'].includes(u)?'kpl':'ml'}`);}
 function compatible(a,b){
+ const alternatives=text=>[...fold(text).matchAll(/\b([a-z]{2,})\s*\/\s*([a-z]{2,})\b/g)].filter(([,x,y])=>!['kg','ml','cl','dl'].includes(x)&&!['kg','ml','cl','dl'].includes(y)).map(([,x,y])=>[x,y].sort().join('/'));
+ const aa=alternatives(a),bb=alternatives(b);if(aa.length&&bb.length&&!aa.every(x=>bb.includes(x)))return false;
  const left=sizes(a),right=sizes(b);
  for(const unit of ['g','ml','kpl']){const l=left.filter(s=>s.endsWith(unit)),r=right.filter(s=>s.endsWith(unit));if(l.length&&r.length&&!l.some(s=>r.includes(s)))return false;}
  for(const [x,y] of [[/\bzero|sokeriton/,/\boriginal|sokerillinen/],[/\bkofeiiniton/,/\bkofeiinillinen/],[/\bgluteeniton/,/sisaltaa gluteenia/]])if((x.test(fold(a))&&y.test(fold(b)))||(y.test(fold(a))&&x.test(fold(b))))return false;

@@ -12,6 +12,12 @@ export function catalogPackageSizes(value: unknown): string[] {
 }
 export function compatibleCatalogNames(current: unknown, alternate: unknown, quantity?: unknown): boolean {
   const a=fold(current), b=fold(alternate);
+  // A/B and A/C labels explicitly list different alternatives. The shared A
+  // does not prove that the changed variety/producer/preparation is identical.
+  const choices=(text:string)=>[...text.matchAll(/\b([a-z]{2,})\s*\/\s*([a-z]{2,})\b/g)]
+    .filter(([,x,y])=>!factors[x]&&!factors[y]).map(([,x,y])=>[x,y].sort());
+  const aChoices=choices(a),bChoices=choices(b);
+  if(aChoices.length&&bChoices.length&&!aChoices.every(left=>bChoices.some(right=>left.join('/')===right.join('/'))))return false;
   const aSizes=[...catalogPackageSizes(a),...catalogPackageSizes(quantity)], bSizes=catalogPackageSizes(b);
   // Count, mass and volume are separate constraints. Net/drained sizes may
   // omit one another, but disjoint explicit values are conflicting evidence.

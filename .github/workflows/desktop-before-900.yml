@@ -1,5 +1,5 @@
 name: Desktop - focused checks before 900 searches
-run-name: Verify 24 named searches and explicit store/catalogue identity conflicts
+run-name: Verify 24 searches with spelling evidence and current variety/package identities
 on:
   workflow_dispatch:
   push:

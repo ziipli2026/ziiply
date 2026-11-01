@@ -15,7 +15,7 @@ async function main(){
  const url=info.deploymentUrl,sha=info.commit;
  assert.match(sha,/^[a-f0-9]{40}$/);assert.ok(new URL(url).hostname.endsWith('-ziipli2026s-projects.vercel.app'));
  execFileSync('git',['fetch','--no-tags','--depth=1','origin',sha],{stdio:'pipe'});
- try{execFileSync('git',['diff','--exit-code',sha,'HEAD','--','src/app/components/ziiply/search/desktopNormalRelevance.ts','src/app/api/neon-first-search/route.ts','src/app/desktop-preview/DesktopPreviewClient.tsx'],{stdio:'pipe'});}
+ try{execFileSync('git',['diff','--exit-code',sha,'HEAD','--','src/app/components/ziiply/search/desktopNormalRelevance.ts','src/app/api/neon-first-search/route.ts','src/app/desktop-preview/DesktopPreviewClient.tsx','src/lib/catalogNameEvidence.ts','src/app/components/ziiply/search/searchIntentAI.ts','src/app/components/ziiply/ziiplyCore.ts'],{stdio:'pipe'});}
  catch{throw Error('Published desktop search source differs from selected branch. Publish the latest branch and update its preview alias before starting the audit.');}
  if(process.env.GITHUB_ENV)fs.appendFileSync(process.env.GITHUB_ENV,`PREVIEW_URL=${url}\nTARGET_COMMIT=${sha}\n`);
  if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,`preview_url=${url}\ntarget_commit=${sha}\n`);

@@ -16,5 +16,6 @@ for(const [q,p] of [
  ['Hätälä kirjolohifilee 700g',{name:'Hätälä kirjolohifilee 1kg',aliases:['Hätälä kirjolohifilee 700g']}],
 ])assert.ok(check(q,p)&&check(q,p).kind!=='evidence_review',q);
 assert.equal(check('Kurkku Härkälä',{name:'Kurkku Juntti'}).kind,'evidence_review');
+assert.equal(check('Omena Jonagold Jonaprince',{name:'Omena Jonagold/Jonagored',aliases:['Omena Jonagold/Jonaprince']}).kind,'evidence_review','a historical slash label cannot change an explicit variety pair');
 assert.equal(check('Valio kofeiiniton',{name:'Valio juoma',aliases:['Valio kofeiinillinen juoma']}).kind,'evidence_review');
 console.log('PASS independent audit oracle: spelling, brands, complete evidence, types and conflicting packages');

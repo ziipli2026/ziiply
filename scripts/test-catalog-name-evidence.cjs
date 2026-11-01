@@ -25,3 +25,6 @@ assert.equal(p.name,'Apetit Kotimaiset sipulikuutiot 200g pa','alias match must 
 console.log('PASS observed EAN names: complete-name matching, packages, variants, EAN isolation and priced display');
 
 assert.match(decision('Apetit Kotimainen Sipulikuutio pakaste maustamaton',p).reason,/^observed_ean_name:/);
+assert.equal(compatible('Omena Jonagold/Jonagored','Omena Jonagold/Jonaprince'),false,'shared alternative does not make changed variety pairs equivalent');
+assert.equal(compatible('Omena Jonagold/Jonaprince','Omena Jonaprince/Jonagold'),true,'alternative order does not change identity');
+assert.equal(decision('Omena Jonagold Jonaprince',{ean:'2000516200008',name:'Omena Jonagold/Jonagored',aliases:['Omena Jonagold/Jonaprince']}).accepted,false);
