@@ -48,7 +48,12 @@ function suspect(query,p){
  }
  const name=fold(p.name||p.title||p.productName).replace(/juustoportti(?:n)?/g,'');
  const pattern=aliases[query];
- if(pattern ? !pattern.test(name) : !fold(query).split(/[\s-]+/).every(w=>name.includes(w)))return 'name mismatch';
+ const observedNames=[p.name||p.title||p.productName,...(Array.isArray(p.aliases)?p.aliases:[])].filter(Boolean).map(v=>fold(v).replace(/juustoportti(?:n)?/g,''));
+ const matched=observedNames.some(n=>pattern?pattern.test(n):fold(query).split(/[\\s-]+/).every(w=>n.includes(w)));
+ // Aliases can describe the correct product in a different language or with a
+ // fuller name. Do not let an alias override an explicitly different type.
+ const conflictingIdentity=/muffinssi|piirakka|lasagne|pastasalaatti|salaatti|chorizopasta|keitto|sandwich|ciabatta|twist|ateria|paneroitu/.test(name);
+ if(!matched || (conflictingIdentity && !fold(query).split(/[\\s-]+/).every(w=>name.includes(w))))return 'name mismatch';
  const category=String(p.category||'');
  if(/shampoo|hoitoaine|saippua|vartalovoide|pesuaine|oljypuhdistus/.test(name))return 'nonfood';
  if(!['suola','kahvi','suodatinkahvi','pikakahvi','kaakao','vehnäjauho'].includes(query)&&/mausteseos|maustesekoitus|perunakuorrute|sipulijauhe|paprikajauhe|sitruunapippuri/.test(name))return 'spice or coating';
