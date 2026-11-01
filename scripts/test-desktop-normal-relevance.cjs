@@ -19,6 +19,12 @@ const yes=[
  ['xyzbrand','XYZBrand erikoistuote'],['piimä','Arla AB-piimä 1l'],
 ];
 const no=[
+ ['sitruuna','Oddlygood Dessert 130g dreamy lemon gluteeniton'],
+ ['sitruuna','Dr. Oetker Lemon&Orange -koristerakeet 50 g'],
+ ['sitruuna','Blend Lemon Twist 0,0% Cocktail 330ml'],
+ ['sitruuna','House tabletti pyöreä Solid 38cm Lemon drop'],
+ ['sitruuna','Foodin MATKA Energy Bar, Lemon Cake, 50g'],
+ ['sitruuna','The Gutsy Captain Kombucha Ginger-Lemon 0,4l luomu'],
  ['cola','Chocolate patukka'],['cola','Nicolas suklaa'],['cola','Cola makeinen'],
  ['maito','Maitosuklaa 200g'],['kahvi','Kahvinsuodatin 100kpl'],
  ['juusto','Juustonaksu'],['jauheliha','Jauhelihamauste'],
