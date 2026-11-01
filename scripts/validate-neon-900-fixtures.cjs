@@ -3,8 +3,8 @@ const data=JSON.parse(fs.readFileSync('scripts/fixtures/neon-900-queries.json','
 const source=fs.readFileSync('scripts/test-neon-100-live.cjs','utf8');
 const baseline=source.match(/const baselineQueries=`([^`]+)`/)[1].split('|');
 const fold=s=>s.toLowerCase().normalize('NFD').replace(/\p{M}/gu,'').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
-const referenceByQuery=new Map(data.batches.flatMap(b=>b.cases).map(c=>[c.query,c]));
-const oracle=new Function('batchNumber','referenceByQuery',source.slice(source.indexOf('function fold'),source.indexOf('const cache='))+';return suspect;')(1,referenceByQuery);
+const {auditNamedProduct}=require('./lib/named-audit-oracle.cjs');
+const oracle=(query,product)=>auditNamedProduct(query,product)?.reason||null;
 const seen=new Set(baseline.map(fold)),eans=new Set();assert.equal(data.batches.length,9);
 for(const [i,batch] of data.batches.entries()){
  assert.equal(batch.id,i+1);assert.equal(batch.cases.length,100);
