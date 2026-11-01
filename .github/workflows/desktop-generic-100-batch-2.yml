@@ -1,0 +1,56 @@
+name: Desktop generic grocery searches batch 2
+run-name: Live normal search - second 100 distinct generic grocery terms
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - '.github/workflows/desktop-generic-100-batch-2.yml'
+permissions:
+  contents: read
+jobs:
+  target:
+    runs-on: ubuntu-latest
+    outputs:
+      preview_url: ${{ steps.target.outputs.preview_url }}
+      target_commit: ${{ steps.target.outputs.target_commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview/legacy-desktop-ui
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --global vercel@65.9.0
+      - name: Verify published search matches preview branch
+        id: target
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/prepare-neon-live-target.cjs
+  live-search:
+    needs: target
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PREVIEW_URL: ${{ needs.target.outputs.preview_url }}
+      TARGET_COMMIT: ${{ needs.target.outputs.target_commit }}
+      GENERIC_BATCH: '2'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.target.outputs.target_commit }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm install --global vercel@65.9.0
+      - name: Run second 100 real API and desktop-handler searches
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: node scripts/test-neon-100-live.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: generic-100-batch-2-results
+          path: generic-100-batch-2*.json
+          if-no-files-found: warn
