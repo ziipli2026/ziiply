@@ -6,6 +6,7 @@ on:
     branches: [preview/legacy-desktop-ui]
     paths:
       - '.github/workflows/desktop-five-common-searches.yml'
+      - 'scripts/test-neon-100-live.cjs'
 permissions:
   contents: read
 jobs:
