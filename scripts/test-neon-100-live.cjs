@@ -52,6 +52,7 @@ function suspect(query,p){
  const terms=fold(query).split(/\s+/).filter(Boolean);
  const equivalent=(n)=>{
   if(query==='broileri')return /broiler|kana(?:n|a)?/.test(n);
+  if(query==='broilerin koipi')return /(?:broiler|kana|kanan).*koipi/.test(n);
   if(query==='cola')return /\bcola\b|pepsi|coke/.test(n);
   if(query==='laktoositon maito')return /laktoositon/.test(n)&&/maito/.test(n);
   if(query==='alkoholiton olut')return /alkoholiton/.test(n)&&/olut|lager|pils/.test(n);
