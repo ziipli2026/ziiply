@@ -486,6 +486,50 @@ export default function DesktopPreviewPage() {
   const [fuelMode, setFuelMode] = useState<"nearby" | "compare">("nearby");
   const [fuelStations, setFuelStations] = useState<any[]>([]);
   const [fuelLocationCoords,setFuelLocationCoords]=useState<{latitude:number;longitude:number}|null>(null);
+  const [fuelPlaceQuery,setFuelPlaceQuery]=useState("");
+  const [fuelPlaceBounds,setFuelPlaceBounds]=useState<number[]|null>(null);
+  const [fuelPlaceCoords,setFuelPlaceCoords]=useState<{latitude:number;longitude:number}|null>(null);
+  const [fuelPlaceStatus,setFuelPlaceStatus]=useState("");
+  const [fuelPlaceLoading,setFuelPlaceLoading]=useState(false);
+  const [fuelPlaceStations,setFuelPlaceStations]=useState<any[]>([]);
+  const fuelPlaceRequest=useRef(0);
+  useEffect(()=>{
+    const query=fuelPlaceQuery.trim();
+    if(query.length<2 || !fuelCompared)return;
+    const id=++fuelPlaceRequest.current;
+    const timer=window.setTimeout(async()=>{
+      setFuelPlaceLoading(true);setFuelPlaceStatus("Etsitään paikkaa…");
+      try{
+        const response=await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=fi&limit=5&q=${encodeURIComponent(query)}`);
+        if(!response.ok)throw Error("Paikkahaku ei onnistunut.");
+        const results=await response.json();
+        if(id!==fuelPlaceRequest.current)return;
+        if(!Array.isArray(results)||!results.length)throw Error("Paikkaa ei löytynyt.");
+        const best=results[0],latitude=Number(best.lat),longitude=Number(best.lon);
+        const bounds=Array.isArray(best.boundingbox)?best.boundingbox.map(Number):null;
+        if(!Number.isFinite(latitude)||!Number.isFinite(longitude))throw Error("Paikan koordinaatit puuttuvat.");
+        const stationsResponse=await fetch(`/api/fuel/stations?lat=${latitude}&lon=${longitude}`,{cache:"no-store"});
+        const data=await stationsResponse.json();
+        if(!stationsResponse.ok||!data.ok)throw Error("Asemien haku epäonnistui.");
+        if(id!==fuelPlaceRequest.current)return;
+        setFuelPlaceCoords({latitude,longitude});
+        setFuelPlaceBounds(bounds&&bounds.length===4&&bounds.every(Number.isFinite)?bounds:null);
+        setFuelPlaceStations(Array.isArray(data.stations)?data.stations:[]);
+        setFuelPlaceStatus(`Haettu alue: ${best.display_name}`);
+      }catch(error){if(id===fuelPlaceRequest.current){setFuelPlaceCoords(null);setFuelPlaceStations([]);setFuelPlaceStatus(error instanceof Error?error.message:"Haku epäonnistui.");}}
+      finally{if(id===fuelPlaceRequest.current)setFuelPlaceLoading(false);}
+    },1800);
+    return()=>window.clearTimeout(timer);
+  },[fuelPlaceQuery,fuelCompared]);
+  const fuelComparisonStations=fuelPlaceQuery.trim().length>=2?(fuelPlaceCoords?fuelPlaceStations:[]):fuelStations;
+  const fuelComparisonInArea=(station:any)=>{
+    if(fuelPlaceQuery.trim().length>=2){
+      if(!fuelPlaceCoords)return false;
+      if(fuelPlaceBounds)return Number(station.latitude)>=fuelPlaceBounds[0]&&Number(station.latitude)<=fuelPlaceBounds[1]&&Number(station.longitude)>=fuelPlaceBounds[2]&&Number(station.longitude)<=fuelPlaceBounds[3];
+      return Number(station.distanceKm)<=15;
+    }
+    return Number(station.distanceKm)>=0&&Number(station.distanceKm)<=100;
+  };
   const [fuelLoading, setFuelLoading] = useState(false);
   const [fuelError, setFuelError] = useState("");
   const [fuelType, setFuelType] = useState<"diesel" | "price95" | "price98">("diesel");
@@ -3057,6 +3101,11 @@ export default function DesktopPreviewPage() {
                 <button type="button" onClick={()=>setFuelCompared(false)} aria-label="Sulje polttoainevertailu" className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black text-[#fff0c8]">×</button>
               </div>
               <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-3">
+                <div className="mb-2 flex shrink-0 items-center justify-center gap-2">
+                  <button type="button" onClick={()=>{fuelPlaceRequest.current++;setFuelPlaceQuery("");setFuelPlaceCoords(null);setFuelPlaceBounds(null);setFuelPlaceStations([]);setFuelPlaceStatus("GPS · 100 km säteellä");}} aria-label="GPS päälle · 100 km" className={`rounded-xl border-2 px-3 py-2 text-sm font-bold ${fuelPlaceQuery.trim().length<2?"border-green-700 bg-green-100":"border-red-700 bg-red-100"}`}>📍 GPS · 100 km</button>
+                  <input aria-label="Polttoainevertailun paikkakunta tai postinumero" placeholder="Hyvinkää tai 05510" value={fuelPlaceQuery} onChange={e=>{fuelPlaceRequest.current++;setFuelPlaceQuery(e.target.value);setFuelPlaceCoords(null);setFuelPlaceBounds(null);setFuelPlaceStations([]);setFuelPlaceStatus(e.target.value.trim().length>=2?"Haetaan paikkaa…":"");}} className="w-48 rounded-lg border-2 border-[#c59a53] bg-white px-3 py-2 text-sm" />
+                </div>
+                <p role="status" className="mb-2 shrink-0 text-center text-xs text-[#685b46]">{fuelPlaceLoading?"Haetaan paikkakuntaa ja hintoja…":fuelPlaceStatus || (fuelPlaceQuery.trim().length<2?"GPS · 100 km säteellä":"")}</p>
                 <div className="mb-3 shrink-0 text-center text-[13px] font-bold text-[#6d604c]">{fuelStationSide==="traffic"?"Liikenneasemat":fuelStationSide==="cold"?"Kylmäasemat / muut":"Kaikki asematyypit"} · {fuelScope==="within"?"Ketjun sisältä":"Ketjujen väliltä"} · Hinnat €/l · {fuelSort==="distance"?"Lähimmästä kaukaisimpaan":fuelSort==="diesel"?"Halvin diesel ensin · tasahinnalla lähin":"Halvin bensa 95 ensin · tasahinnalla lähin"}</div>
                 {(()=>{
                   const groups=(["Neste","ABC","Muut","St1","SEO"] as const).filter(group=>group==="Muut"?["Gulf","Ritoil","Muut"].some(g=>fuelGroups.includes(g)):fuelGroups.includes(group));
@@ -3078,7 +3127,7 @@ export default function DesktopPreviewPage() {
                     if(time==="00.00.00" || time==="00:00:00")return "Lähteen päiväys "+date.toLocaleDateString("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric"});
                     return date.toLocaleString("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"});
                   };
-                  const candidates=fuelVisible.filter((station:any)=>[station.diesel,station.price95,station.price98].some(value=>value!=null&&Number.isFinite(Number(value))&&Number(value)>0)).sort(compareStations);
+                  const candidates=fuelComparisonStations.filter((station:any)=>fuelComparisonInArea(station) && fuelGroups.includes(fuelGroupOf(station)) && (fuelStationSide==="both" || (fuelStationSide==="traffic" ? fuelIsTraffic(station) : !fuelIsTraffic(station))) && [station.diesel,station.price95,station.price98].some(value=>value!=null&&Number.isFinite(Number(value))&&Number(value)>0)).sort(compareStations);
                   return groups.length===0?<p className="py-8 text-center font-bold">Valitse ensin vähintään yksi ketju.</p>:<div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-[#d9c89c] bg-white/90" tabIndex={0} aria-label="Polttoaineasemien hintaluettelo">
                     <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] gap-1 border-b border-[#d9c89c] bg-[#fff4cf] px-3 py-2 text-[11px] font-black text-[#174c35]"><span>Asema / etäisyys</span><span className="text-right">DI</span><span className="text-right">95</span><span className="text-right">98</span></div>
                     {candidates.length===0?<p className="p-5 text-center text-sm font-bold text-[#6d604c]">Ei hintahavaintoja valituista asemista.</p>:candidates.map((station:any)=><article key={station.id} className="grid grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] items-center gap-1 border-b border-[#e6dfcc] px-3 py-1.5 last:border-b-0">
