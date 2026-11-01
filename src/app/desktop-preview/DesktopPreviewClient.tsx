@@ -522,7 +522,10 @@ export default function DesktopPreviewPage() {
 
   const fuelGroupOf=(s:any)=>{const t=String(s.chain||"").toLowerCase();return t.includes("neste")?"Neste":t.includes("st1")||t.includes("shell")?"St1":t.includes("abc")?"ABC":t.includes("seo")?"SEO":t.includes("gulf")?"Gulf":t.includes("ritoil")?"Ritoil":"Muut";};
   const fuelIsTraffic=(s:any)=>s.isTrafficStation===true;
-  // Tankkaus shows only stations within 100 km of GPS or the manually selected locality.\n  // The API intentionally remains unrestricted for other consumers (including photo reporting).\n  const fuelWithinSearchArea=(s:any)=>Number.isFinite(Number(s.distanceKm)) && Number(s.distanceKm)>=0 && Number(s.distanceKm)<=100;\n  const fuelVisible=fuelStations.filter((s:any)=>fuelWithinSearchArea(s) && fuelGroups.includes(fuelGroupOf(s)) && (fuelStationSide==="both" || (fuelStationSide==="traffic" ? fuelIsTraffic(s) : !fuelIsTraffic(s))));
+  // Tankkaus shows only stations within 100 km of GPS or the manually selected locality.
+  // The API intentionally remains unrestricted for other consumers (including photo reporting).
+  const fuelWithinSearchArea=(s:any)=>Number.isFinite(Number(s.distanceKm)) && Number(s.distanceKm)>=0 && Number(s.distanceKm)<=100;
+  const fuelVisible=fuelStations.filter((s:any)=>fuelWithinSearchArea(s) && fuelGroups.includes(fuelGroupOf(s)) && (fuelStationSide==="both" || (fuelStationSide==="traffic" ? fuelIsTraffic(s) : !fuelIsTraffic(s))));
 
   useEffect(() => {
     const fuelCoords=gpsCoords||fuelLocationCoords;
