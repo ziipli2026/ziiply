@@ -7,6 +7,7 @@ const getZeroResultFallbackQuery = new Function(js + "; return getZeroResultFall
 assert.equal(getZeroResultFallbackQuery("Oltermanni alkuperäinen 1kg"), "Oltermanni alkuperäinen");
 assert.equal(getZeroResultFallbackQuery("Santa Maria tortilla original 8kpl"), "Santa Maria tortilla original");
 assert.equal(getZeroResultFallbackQuery("Santa Maria tortilla"), null);
+assert.equal(getZeroResultFallbackQuery("Perheleipuri Salonen Ruis-hamppupalat 4kpl"), "Salonen Ruis-hamppupalat 4kpl");
 assert.equal(getZeroResultFallbackQuery("Valio PROfeel proteiinivanukas suklaa"), null);
 assert.equal(getZeroResultFallbackQuery("Pirkka täysjyvävehnätortilla 8 kpl 320g"), "Pirkka täysjyvävehnätortilla 8 kpl");
 console.log("Zero-result fallback query tests passed");
