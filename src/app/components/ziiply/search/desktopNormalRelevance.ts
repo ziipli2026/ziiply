@@ -297,7 +297,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   // Aliases may clarify a genuine product but cannot turn a muffin, salad or
   // ready meal into the ingredient sought by the shopper.
   const originalName=originalIdentity;
-  const ingredientQueries=new Set(['tuorejuusto','gouda','halloumi','vuohenjuusto','sisafilee','porsaanfilee','salami','chorizo','rapu']);
+  const ingredientQueries=new Set(['tuorejuusto','gouda','halloumi','vuohenjuusto','sisafilee','porsaanfilee','salami','chorizo','rapu','savukinkku']);
   if(requestedTerms.some(term=>ingredientQueries.has(term)) &&
      /muffin|sandwich|ciabatta|salaatti|keitto|lasagne|piirakka|pasta|ateria|kastikkeella|perunoilla|paneroitu|twist/.test(originalName))
     return {accepted:false,score:-10000,reason:'prepared_food_not_requested_ingredient'};
