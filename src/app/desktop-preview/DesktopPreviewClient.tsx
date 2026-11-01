@@ -520,7 +520,7 @@ export default function DesktopPreviewPage() {
       finally{if(id===fuelPlaceRequest.current)setFuelPlaceLoading(false);}
     },1800);
     return()=>window.clearTimeout(timer);
-  },[fuelPlaceQuery,fuelCompared]);
+  },[fuelPlaceQuery]);
   const fuelComparisonStations=fuelPlaceQuery.trim().length>=2?(fuelPlaceCoords?fuelPlaceStations:[]):fuelStations;
   const fuelComparisonInArea=(station:any)=>{
     if(fuelPlaceQuery.trim().length>=2){
