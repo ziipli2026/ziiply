@@ -251,6 +251,10 @@ function desktopSearchNameDecision(query: string, product: Row) {
     return {accepted:false,score:-10000,reason:'different_milk_preparation'};
   if(q.terms.includes('maito') && /maitojuoma|maitokahvi|maitokaakao|korvike|maitojauhe|pirtelo/.test(nameText))
     return {accepted:false,score:-10000,reason:'different_milk_product'};
+  if(q.terms.includes('cola') && /juomatiiviste|sodastream|siirappi/.test(identityText+' '+categoryText))
+    return {accepted:false,score:-10000,reason:'cola_concentrate_not_soft_drink'};
+  if(q.terms.length===1 && q.terms[0]==='kahvi' && /jaakahvi|ice coffee|iced coffee|valmiit kahvi|kahvijuoma/.test(identityText+' '+categoryText))
+    return {accepted:false,score:-10000,reason:'ready_to_drink_coffee_not_ground_coffee'};
   if(q.terms.includes('kahvi')) {
     const otherCoffeeProducts=['jogurtti','skyr','rahka','vanukas','likoori','jaloviina','olut','kerma','energiajuoma'];
     if(otherCoffeeProducts.some(t=>(identityText+' '+categoryText).includes(t) && !q.terms.some(w=>w.includes(t))))
