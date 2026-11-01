@@ -16,7 +16,10 @@ const baselineQueries=`maito|kevytmaito|rasvaton maito|täysmaito|laktoositon ma
 const batchNumber=Number(process.env.BATCH||0);
 assert.ok(Number.isInteger(batchNumber)&&batchNumber>=0&&batchNumber<=9,'BATCH must be 0 or 1-9');
 const batch=batchNumber?JSON.parse(fs.readFileSync('scripts/fixtures/neon-900-queries.json','utf8')).batches[batchNumber-1]:null;
-const selectedBaseline=process.env.BASELINE_QUERIES?process.env.BASELINE_QUERIES.split('|').map(q=>q.trim()).filter(Boolean):baselineQueries;
+const genericBatch=Number(process.env.GENERIC_BATCH||1);
+assert.ok([1,2].includes(genericBatch),'GENERIC_BATCH must be 1 or 2');
+const additionalGeneric=genericBatch===2?JSON.parse(fs.readFileSync('scripts/fixtures/generic-100-batch-2.json','utf8')).queries:null;
+const selectedBaseline=process.env.BASELINE_QUERIES?process.env.BASELINE_QUERIES.split('|').map(q=>q.trim()).filter(Boolean):(additionalGeneric||baselineQueries);
 if(process.env.BASELINE_QUERIES){assert.equal(batchNumber,0,'BASELINE_QUERIES requires BATCH=0');for(const q of selectedBaseline)assert.ok(baselineQueries.includes(q),'Unknown baseline query: '+q);}
 const cases=batch?batch.cases:selectedBaseline.map(query=>({query,expectPriced:true}));
 const regression=process.env.REGRESSION_QUERIES_FILE;
@@ -28,7 +31,7 @@ if(regression){
 }
 const queries=cases.map(c=>c.query);
 const referenceByQuery=new Map(cases.map(c=>[c.query,c]));
-const reportPrefix=batchNumber?'neon-900-batch-'+batchNumber:'neon-100-live';
+const reportPrefix=batchNumber?'neon-900-batch-'+batchNumber:genericBatch===2?'generic-100-batch-2':'neon-100-live';
 assert.ok(queries.length>0 && (regression || process.env.BASELINE_QUERIES || queries.length===100));assert.equal(new Set(queries).size,queries.length);
 const source=fs.readFileSync('src/app/desktop-preview/DesktopPreviewClient.tsx','utf8');
 const start=source.indexOf('  async function runDesktopNormalSearch('), end=source.indexOf('  async function runDesktopJustiinaSearch(',start);
