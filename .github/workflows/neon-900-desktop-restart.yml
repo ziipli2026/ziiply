@@ -1,5 +1,5 @@
-name: Desktop Neon - retry batch 9
-run-name: Validate batch 9 and its scoped report
+name: Desktop Neon - full 900-query audit
+run-name: Audit all nine batches of 100 named-food searches
 on:
   workflow_dispatch:
   push:
@@ -43,9 +43,9 @@ jobs:
       SOURCE_COMMIT: ${{ needs.target.outputs.source_commit }}
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 2
       matrix:
-        batch: [9]
+        batch: [1, 2, 3, 4, 5, 6, 7, 8, 9]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
