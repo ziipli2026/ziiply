@@ -131,7 +131,7 @@ function desktopSearchNameDecision(query: string, product: Row) {
   // Fruit intent must not reject appelsiinimehu merely because it excludes mehu.
   intent.excludeTerms=intent.excludeTerms.filter(t=>!q.terms.some(w=>w.includes(searchWords(t).join(' '))));
   intent.includeTerms=[...intent.includeTerms,...q.terms.flatMap(t=>alternatives[t] || [])];
-  if (!explicitIdentity && !(q.terms.length===1 && q.terms[0]==='sitruuna' && /\\bsitruun(?:a|at|oita|an)?\\b|\\blemon(?:s)?\\b/.test(searchWords(product.name || product.title).join(' '))) && !isProductAllowedByIntent({...product, category:categoryLeaf, brandName:product.brandName || product.brand},intent))
+  if (!explicitIdentity && !(q.terms.length===1 && q.terms[0]==='sitruuna' && /\bsitruun(?:a|at|oita|an)?\b|\blemon(?:s)?\b/.test(searchWords(product.name || product.title).join(' '))) && !isProductAllowedByIntent({...product, category:categoryLeaf, brandName:product.brandName || product.brand},intent))
     return {accepted:false,score:-10000,reason:'wrong_product_group'};
   if (!q.terms.length) return {accepted:false,score:0,reason:'empty_query'};
   const nameText=productWords.join(' ');
@@ -151,7 +151,7 @@ function desktopSearchNameDecision(query: string, product: Row) {
   // identity and department before consulting aliases or fuzzy synonyms.
   if(q.terms.length===1 && q.terms[0]==='sitruuna') {
     const fruitDepartment=/hedelmat|sitrushedelmat|sitruunat|tuoretuotteet/.test(categoryText);
-    const actualFruit=/\\bsitruun(?:a|at|oita|an)?\\b|\\blemon(?:s)?\\b/.test(identityText);
+    const actualFruit=/\bsitruun(?:a|at|oita|an)?\b|\blemon(?:s)?\b/.test(identityText);
     const derivative=/juoma|drink|cider|siideri|lonkero|cocktail|kombucha|limonadi|lemonade|soda|patukka|bar|cake|kakku|dessert|vanukas|koriste|tabletti|magnesium|vitamiini|pepper|pippuri|mauste|keksi|tee|mehu|tiiviste|flavo|maku|aromi|tuoksu|saippua|shampoo|hoitoaine|energia|kuivat|taateli|flakes|vegan|salaatti|kastike|sauce/.test(identityText+' '+categoryText);
     if(!actualFruit || derivative || (categoryText && !fruitDepartment && !/^c[a-z]{8,}$/.test(categoryText)))
       return {accepted:false,score:-10000,reason:'fresh_lemon_not_flavoured_product'};
