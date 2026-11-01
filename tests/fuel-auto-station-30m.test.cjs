@@ -21,4 +21,25 @@ const cases=[
  ['no location', [seo,neste],null,'',false,''],
 ];
 for(const [name,stations,gps,ocr,conflicted,expected] of cases){const actual=identify(stations,gps,ocr,conflicted);assert.equal(actual,expected,name);console.log('PASS',name,actual||'(manual confirmation)');}
-console.log('9/9 PASS');
+
+const near=(id,lat,lon,chain='SEO')=>({id,name:chain+' station',chain,latitude:lat,longitude:lon});
+const centered={lat:60.5,lon:25.5,accuracy:3};
+const offsetLat=meters=>meters/111195;
+const checks=[
+ ['single station at 0m', [near('a',60.5,25.5)],centered,'',false,'a'],
+ ['single station at 29m', [near('a',60.5+offsetLat(29),25.5)],centered,'',false,'a'],
+ ['single station at 31m', [near('a',60.5+offsetLat(31),25.5)],centered,'',false,''],
+ ['two stations both within 30m', [near('a',60.5+offsetLat(10),25.5),near('b',60.5+offsetLat(20),25.5,'Neste')],centered,'',false,''],
+ ['OCR disambiguates two within 30m', [near('a',60.5+offsetLat(10),25.5),near('b',60.5+offsetLat(20),25.5,'Neste')],centered,'SEO',false,''],
+ ['GPS accuracy 30m at same point', [near('a',60.5,25.5)],{...centered,accuracy:30},'',false,'a'],
+ ['GPS accuracy 31m rejected', [near('a',60.5,25.5)],{...centered,accuracy:31},'',false,''],
+ ['missing accuracy rejected', [near('a',60.5,25.5)],{...centered,accuracy:null},'',false,''],
+ ['zero accuracy rejected', [near('a',60.5,25.5)],{...centered,accuracy:0},'',false,''],
+ ['OCR mismatch rejects location', [near('a',60.5,25.5)],centered,'Neste',false,''],
+ ['conflict blocks regardless of OCR', [near('a',60.5,25.5)],centered,'SEO',true,''],
+ ['station near GPS uncertainty boundary', [near('a',60.5+offsetLat(28),25.5),near('b',60.5+offsetLat(32),25.5,'Neste')],centered,'',false,''],
+ ['clear distant competitor', [near('a',60.5+offsetLat(10),25.5),near('b',60.5+offsetLat(90),25.5,'Neste')],centered,'',false,'a'],
+ ['station list empty', [],centered,'',false,''],
+];
+for(const [name,stations,gps,ocr,conflicted,expected] of checks){const actual=identify(stations,gps,ocr,conflicted);assert.equal(actual,expected,name);console.log('PASS',name,actual||'(manual confirmation)');}
+console.log('23/23 PASS');
