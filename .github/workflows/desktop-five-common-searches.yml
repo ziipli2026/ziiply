@@ -1,5 +1,5 @@
-name: Desktop five common grocery searches
-run-name: Live normal search - maito kahvi makkara peruna cola
+name: Desktop 100 generic grocery searches
+run-name: Live normal search - 100 generic grocery terms
 on:
   workflow_dispatch:
   push:
@@ -34,7 +34,6 @@ jobs:
     env:
       PREVIEW_URL: ${{ needs.target.outputs.preview_url }}
       TARGET_COMMIT: ${{ needs.target.outputs.target_commit }}
-      BASELINE_QUERIES: 'maito|kahvi|makkara|peruna|cola'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,6 +50,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: five-common-search-results
+          name: generic-100-search-results
           path: neon-100-live*.json
           if-no-files-found: warn
