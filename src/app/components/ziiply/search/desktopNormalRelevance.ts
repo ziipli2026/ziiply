@@ -289,7 +289,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   // example a translated ingredient or shortened product form). Evaluate each
   // independently verified same-EAN alias before deciding the product type;
   // the alias itself must still pass every requested term and safety guard.
-  if(/non_food|pet_product|accessory_not_food/.test(primary.reason))return primary;
+  if(/non_food|pet_product|accessory_not_food|different_product_type:snacks|different_product_type:bakery|different_product_type:drink|different_product_type:nonfood|different_product_type:pet/.test(primary.reason))return primary;
   const requested=parse(desktopSearchQuery(query)).sizes;
   const currentSizes=[...catalogPackageSizes(product.name || product.title),...catalogPackageSizes(product.quantity)];
   if(currentSizes.length && requested.some(size=>!currentSizes.includes(size)))return primary;
