@@ -6,6 +6,11 @@ export function getZeroResultFallbackQuery(input: string): string | null {
   const words = query.split(" ");
   if (words.length < 3) return null;
   const last = words[words.length - 1];
+  // A descriptive bakery prefix may differ between catalog and retailer.
+  // Only broaden retrieval; callers must still verify product identity/EAN.
+  if (/^perheleipuri$/i.test(words[0]) && words.length >= 4) {
+    return words.slice(1).join(" ");
+  }
   // Remove only an explicit trailing package quantity. Avoid stripping
   // brand, flavour, dietary or other identifying words.
   if (!/^\d+(?:[.,]\d+)?\s*(?:kg|g|ml|l|kpl|pkt|pss)$/i.test(last)) return null;
