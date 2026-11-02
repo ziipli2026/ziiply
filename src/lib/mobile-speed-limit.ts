@@ -12,7 +12,7 @@ export function parseRoadSpeedLimit(value?: string): number | null {
 }
 
 export function matchRoadSpeedLimit(roads: OsmRoad[], fix: SpeedLimitFix): SpeedLimitMatch | null {
-  if (![fix.latitude, fix.longitude, fix.accuracy].every(Number.isFinite) || fix.accuracy > 60) return null;
+  if (![fix.latitude, fix.longitude, fix.accuracy].every(Number.isFinite) || fix.accuracy > 100) return null;
   const scale = Math.cos(fix.latitude * Math.PI / 180) * 111_195;
   const matches: Array<SpeedLimitMatch & { headingDifference: number }> = [];
   roads.forEach((road, roadIndex) => {
@@ -36,7 +36,7 @@ export function matchRoadSpeedLimit(roads: OsmRoad[], fix: SpeedLimitFix): Speed
   });
   matches.sort((a, b) => a.distance - b.distance || a.headingDifference - b.headingDifference);
   const best = matches[0];
-  if (!best || best.distance > Math.min(35, Math.max(12, fix.accuracy + 8))) return null;
+  if (!best || best.distance > Math.min(60, Math.max(15, fix.accuracy + 10))) return null;
   const conflicting = matches.find(m => m.roadIndex !== best.roadIndex && m.limit !== best.limit && m.distance <= best.distance + Math.max(8, fix.accuracy));
   if (conflicting) return null;
   return { limit: best.limit, distance: best.distance, roadIndex: best.roadIndex };
