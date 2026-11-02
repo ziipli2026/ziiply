@@ -2816,7 +2816,7 @@ export default function DesktopPreviewPage() {
 
       <div data-desktop-layout className="relative mx-auto flex h-[100dvh] min-h-0 w-full max-w-[1800px] flex-col overflow-hidden px-8 pb-2 pt-3 xl:px-12 xl:pb-2 xl:pt-3">
             <div aria-label="Ajonopeus" style={{left: notebookCenterX === null ? "18%" : `${notebookCenterX}px`}} className="absolute top-3 z-10 flex w-[136px] -translate-x-1/2 h-[66px] min-w-0 flex-col items-center justify-center gap-0 rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
-              <span aria-hidden="true" className="flex w-full items-center justify-center text-[27px] leading-[27px]">🚗</span>
+              <span aria-hidden="true" className="pointer-events-none absolute right-2 top-0 text-[27px] leading-[27px]">🚗</span>
               <span className={`flex w-full min-w-0 items-baseline justify-center gap-0 whitespace-nowrap font-black leading-none tabular-nums ${shownSpeed === null || shownSpeed <= 20 ? "text-[#526b61]" : speedOverLimit ? "text-[#cf202a]" : shownSpeedLimit !== null ? "text-[#138441]" : "text-[#102a24]"}`}>
                 <span className="relative inline-flex items-baseline justify-center"><span className="w-[3ch] text-center text-[32px] tracking-tight">{shownSpeed ?? 0}</span><span className="absolute left-full bottom-[3px] ml-1 text-[10px] font-bold">km/h</span></span>
               </span>
