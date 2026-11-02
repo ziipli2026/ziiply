@@ -27,7 +27,7 @@ export function arrivalNoticeReducer(state: ArrivalNotice | null, event: Arrival
     const d = event.decision;
     // Never open a store-arrival dialog for a store the user has not selected.
     if (!d.isSelectedStore) {
-      if (!d.askStoreChange || !d.store) return null;
+      if (!d.askStoreChange || !d.store) return state?.phase === "change-store" ? state : null;
       if (state?.id===d.store.id && state.phase==='done') return state;
       return {id:d.store.id,name:d.store.name,phase:'change-store',deadline:null,
         approachUntil:event.at,confirmed:true,selected:false,selectedStoreName:d.selectedStoreName};
