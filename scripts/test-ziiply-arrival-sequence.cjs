@@ -20,7 +20,7 @@ for(const selected of [false,true]){
  sample(15000,0,selected);if(selected)assert.equal(notice.phase,'done');else assert.equal(notice,null);
  sample(16000,.004,selected);assert.equal(notice,null);assert.equal(state.arrivalStoreId,null);
  assert.equal(sample(17000,0,selected).showArrivalMessage,true);
- sample(18000,0,selected,100);if(selected)assert.equal(notice.phase,'waiting');else assert.equal(notice,null);
+ sample(18000,0,selected,100);assert.equal(notice,null,'invalid GPS accuracy must clear stale arrival notice');
 }
 state=core.initialZiiplyArrivalState();notice=null;
 assert.equal(sample(0,0,true,5,[shop,{...shop,id:'other',latitude:60.00001}]).status,'uncertain');
