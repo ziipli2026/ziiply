@@ -2,10 +2,10 @@ import type { ZiiplyArrivalDecision } from './ziiplyArrivalSequence';
 
 export const APPROACH_NOTICE_MS = 4000;
 export const ARRIVAL_CHOICE_MS = 5000;
-export type ArrivalPhase = 'approach' | 'waiting' | 'list' | 'offers' | 'done';
+export type ArrivalPhase = 'change-store' | 'approach' | 'waiting' | 'list' | 'offers' | 'done';
 export type ArrivalNotice = {
   id: string; name: string; phase: ArrivalPhase; deadline: number | null;
-  approachUntil: number; confirmed: boolean; selected: boolean;
+  approachUntil: number; confirmed: boolean; selected: boolean; selectedStoreName?: string | null;
 };
 export type ArrivalNoticeEvent =
   | { type: 'sample'; decision: ZiiplyArrivalDecision; at: number }
@@ -26,7 +26,12 @@ export function arrivalNoticeReducer(state: ArrivalNotice | null, event: Arrival
   if (event.type === 'sample') {
     const d = event.decision;
     // Never open a store-arrival dialog for a store the user has not selected.
-    if (!d.isSelectedStore) return null;
+    if (!d.isSelectedStore) {
+      if (!d.askStoreChange || !d.store) return null;
+      if (state?.id===d.store.id && state.phase==='done') return state;
+      return {id:d.store.id,name:d.store.name,phase:'change-store',deadline:null,
+        approachUntil:event.at,confirmed:true,selected:false,selectedStoreName:d.selectedStoreName};
+    }
     if (d.status === 'uncertain') return state ? { ...state, confirmed: false, phase: state.phase === 'done' ? 'done' : 'waiting', deadline: null } : null;
     if (!d.store || (d.status !== 'near-store' && d.status !== 'in-store')) return null;
     if (!state || state.id !== d.store.id) {
@@ -40,6 +45,7 @@ export function arrivalNoticeReducer(state: ArrivalNotice | null, event: Arrival
     return next;
   }
   if (!state || (event.type === 'tick' && (state.deadline === null || event.at < state.deadline))) return state;
+  if (state.phase === 'change-store') return state;
   if (state.phase === 'approach') return choices(state, event.at);
   if (state.phase === 'list') return { ...state, phase: 'offers', deadline: event.at + ARRIVAL_CHOICE_MS };
   return { ...state, phase: 'done', deadline: null };
