@@ -2680,15 +2680,56 @@ export default function DesktopPreviewPage() {
   useEffect(() => {
     let cancelled = false;
     const loadElectricity = () => {
-      fetch("/api/desktop-electricity", { cache: "no-store" }).then(r => r.json()).then(data => {
-        const prices = Array.isArray(data?.prices) ? data.prices : [];
-        const chartPrices = prices.map((p:any)=>({start:new Date(p.startDate ?? p.start).getTime(),end:new Date(p.endDate ?? p.end).getTime(),price:Number(p.price ?? p.value ?? p.priceWithTax)})).filter((p:any)=>Number.isFinite(p.start)&&Number.isFinite(p.end)&&p.end>p.start&&Number.isFinite(p.price)).sort((a:any,b:any)=>a.start-b.start);
-        if(!cancelled)setElectricityPrices(chartPrices);
-        const t = Date.now();
-        const current = prices.find((p: any) => { const a = new Date(p.startDate ?? p.start).getTime(); const b = new Date(p.endDate ?? p.end).getTime(); return a <= t && t < b; });
-        const n = Number(current?.price ?? current?.value ?? current?.priceWithTax);
-        if (!cancelled) setElectricity(Number.isFinite(n) && current ? { value: n.toLocaleString("fi-FI",{maximumFractionDigits:1}), detail: "c/kWh nyt" } : {value:"—",detail:"ei saatavilla"});
-      }).catch(() => { if (!cancelled) setElectricity({value:"—",detail:"ei saatavilla"}); });
+      // Use the same current-price source and fallback sequence as the mobile topbar.
+      const readPrice=(item:any)=>{
+        for(const key of ["price","value","priceWithTax","PriceWithTax","spotPrice","SpotPrice","centsPerKwh","cents_per_kwh"]){
+          const raw=item?.[key];
+          if(raw==null||raw==="")continue;
+          const n=Number(String(raw).replace(",","."));
+          if(Number.isFinite(n)&&Math.abs(n)<=500)return n;
+        }
+        for(const key of ["EUR_per_kWh","eur_per_kwh","eurPerKwh"]){
+          const raw=item?.[key];
+          if(raw==null||raw==="")continue;
+          const n=Number(String(raw).replace(",","."))*100;
+          if(Number.isFinite(n)&&Math.abs(n)<=500)return n;
+        }
+        return null;
+      };
+      const readTime=(...values:any[])=>{
+        for(const value of values){if(value==null)continue;const t=new Date(String(value)).getTime();if(Number.isFinite(t))return t;}
+        return null;
+      };
+      const fetchJson=async(url:string)=>{
+        const response=await fetch(url+(url.includes("?")?"&":"?")+"ziiply_no_cache="+Date.now(),{cache:"no-store",headers:{accept:"application/json"}});
+        if(!response.ok)throw Error("HTTP "+response.status);
+        return response.json();
+      };
+      void (async()=>{
+        let price:number|null=null;
+        let chartPrices:{start:number;end:number;price:number}[]=[];
+        for(const url of ["https://api.porssisahko.net/v1/latest-prices.json","https://api.porssisahko.net/v2/latest-prices.json"]){
+          try{
+            const data=await fetchJson(url);
+            const raw=Array.isArray(data?.prices)?data.prices:Array.isArray(data)?data:[];
+            const windows=raw.map((item:any)=>{
+              const p=readPrice(item);
+              const start=readTime(item.startDate,item.start,item.StartDate,item.time_start,item.date,item.Date);
+              const end=readTime(item.endDate,item.end,item.EndDate,item.time_end);
+              return p!=null&&start!=null&&end!=null&&end>start?{start,end,price:p}:null;
+            }).filter((item:any)=>item!=null).sort((x:any,y:any)=>x.start-y.start);
+            const now=Date.now();
+            const current=windows.find((item:any)=>item.start<=now&&now<item.end);
+            if(current){price=current.price;chartPrices=windows;break;}
+          }catch{}
+        }
+        if(price==null){
+          try{price=readPrice(await fetchJson("https://api.porssisahko.net/v2/price.json?date="+encodeURIComponent(new Date().toISOString())));}catch{}
+        }
+        if(cancelled)return;
+        if(chartPrices.length)setElectricityPrices(chartPrices);
+        setElectricity(price!=null?{value:price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh nyt"}:{value:"—",detail:"ei saatavilla"});
+      })();
     };
     // Align updates to :01, :16, :31 and :46 every hour.
     let timer: ReturnType<typeof setTimeout>;
