@@ -1,5 +1,5 @@
-name: Desktop Neon - recheck batches 6 and 9
-run-name: Recheck 200 searches in failed batches 6 and 9
+name: Desktop Neon - named-product regression
+run-name: Recheck 100 named-product searches batch 9
 on:
   workflow_dispatch:
   push:
