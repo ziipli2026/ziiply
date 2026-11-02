@@ -2943,18 +2943,14 @@ function KauppiasMobileTopBar({
         </div>
       </div>
     </div>
-      {/* Compact mobile speed sign — fixed 0 km/h preview until live GPS integration. */}
+      {/* Compact mobile speed sign — fixed 0 preview, space reserved for three digits. */}
       <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+88px)] z-[299] -translate-x-1/2 sm:hidden">
         <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[0.9rem] border-[3px] border-[#073d32] bg-[#fff5d9] text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
           <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <span className="absolute inset-x-0 top-[6px] text-center text-[17px] leading-none" aria-hidden="true">🚗</span>
-          <div className="absolute inset-x-0 top-[27px] flex items-baseline justify-center gap-[2px] whitespace-nowrap">
-            <span className="text-[27px] font-black leading-none tabular-nums">0</span>
-            <span className="text-[9px] font-black leading-none">km/h</span>
-          </div>
+          <div className="absolute inset-x-[3px] top-[10px] flex h-[40px] items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums">0</div>
           <div className="absolute inset-x-0 bottom-[9px] whitespace-nowrap text-center text-[8px] font-black leading-none">Rajoitus <span className="text-[9px]">—</span></div>
         </div>
       </div>
