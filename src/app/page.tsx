@@ -2184,12 +2184,36 @@ function KauppiasMobileTopBar({
   // Oma page-boot-GPS pysyy silti pois päältä.
   const [mobileDrivingSpeed, setMobileDrivingSpeed] = useState<number | null>(null);
   useEffect(() => {
+    // Speed display must receive continuous GPS updates, independently of
+    // store-arrival polling (which can be slow or reject fixes in a moving car).
+    if (!navigator.geolocation) return;
+    let lastFixAt = 0;
+    let active = true;
+    const applySpeed = (kmh: number | null, timestamp: number) => {
+      if (!active || kmh === null || !Number.isFinite(kmh) || timestamp < lastFixAt) return;
+      lastFixAt = timestamp;
+      setMobileDrivingSpeed(kmh > 20 ? Math.round(kmh) : null);
+    };
     const onSpeed = (event: Event) => {
       const speed = (event as CustomEvent<number | null>).detail;
-      setMobileDrivingSpeed(typeof speed === "number" && Number.isFinite(speed) && speed > 20 ? Math.round(speed) : null);
+      if (typeof speed === "number" && Number.isFinite(speed)) applySpeed(speed, Date.now());
     };
     window.addEventListener("ziiply:gps-speed-kmh", onSpeed);
-    return () => window.removeEventListener("ziiply:gps-speed-kmh", onSpeed);
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const speed = position.coords.speed;
+        if (typeof speed === "number" && Number.isFinite(speed) && speed >= 0) {
+          applySpeed(speed * 3.6, position.timestamp);
+        }
+      },
+      () => { /* Keep the last valid speed during temporary GPS interruptions. */ },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
+    );
+    return () => {
+      active = false;
+      window.removeEventListener("ziiply:gps-speed-kmh", onSpeed);
+      navigator.geolocation.clearWatch(watchId);
+    };
   }, []);
   const [weatherValue, setWeatherValue] = useState("—°");
   const [weatherText, setWeatherText] = useState(areaLabel);
