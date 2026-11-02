@@ -2943,15 +2943,17 @@ function KauppiasMobileTopBar({
         </div>
       </div>
     </div>
-      {/* Compact square mobile speed sign — 0 km/h layout preview only. */}
-      <div aria-label="Ajonopeuden ulkoasun esikatselu" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+88px)] z-[299] -translate-x-1/2 sm:hidden">
-        <div className="relative flex h-[108px] w-[108px] flex-col items-center justify-center rounded-[1.1rem] border-[3px] border-[#073d32] bg-[#fff5d9] px-1 py-1 text-center text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
-          <span className="absolute left-[5px] top-[5px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <span className="absolute right-[5px] top-[5px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <span className="block text-[25px] leading-none" aria-hidden="true">🚗</span>
-          <span className="mt-[3px] block whitespace-nowrap text-[8px] font-black tracking-[0.03em]">NOPEUS · DEMO</span>
-          <span className="mt-[2px] block whitespace-nowrap text-[23px] font-black leading-none tabular-nums">0 <span className="text-[9px]">km/h</span></span>
-          <span className="mt-[4px] block whitespace-nowrap text-[9px] font-bold leading-none">Rajoitus —</span>
+      {/* Compact mobile speed sign — static 0 km/h appearance preview, no GPS simulation. */}
+      <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+88px)] z-[299] -translate-x-1/2 sm:hidden">
+        <div className="relative flex h-[76px] w-[76px] flex-col items-center justify-center rounded-[0.9rem] border-[3px] border-[#073d32] bg-[#fff5d9] px-0.5 py-0.5 text-center text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
+          <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+          <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+          <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+          <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+          <span className="block text-[18px] leading-none" aria-hidden="true">🚗</span>
+          <span className="mt-[1px] block whitespace-nowrap text-[7px] font-black tracking-[0.02em]">NOPEUS</span>
+          <span className="mt-[1px] block whitespace-nowrap text-[17px] font-black leading-none tabular-nums">0 <span className="text-[7px]">km/h</span></span>
+          <span className="mt-[2px] block whitespace-nowrap text-[7px] font-bold leading-none">Rajoitus —</span>
         </div>
       </div>
       {mobileFuelMenuOpen && (
