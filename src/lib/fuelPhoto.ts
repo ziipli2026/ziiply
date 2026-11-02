@@ -86,19 +86,17 @@ export function fuelPhotoBrand(text:string):string|null {
   const found=[...new Set(brands.filter(brand=>new RegExp("\\b"+brand+"\\b","i").test(normalized)).map(brand=>brand==='Shell'?'St1':brand))];
   return found.length===1?found[0]:null;
 }
+/** Automatic station selection uses a strict 30 m GPS radius, independently of OCR. */
 export function identifyFuelPhotoStation<T extends {id:string;name:string;chain?:string;latitude:number;longitude:number}>(stations:T[],location:PhotoLocation|null,text:string,conflicted:boolean):string {
-  if(!location || conflicted || !hasFuelLocationAccuracy(location) || location.accuracy>200)return "";
+  if(!location || conflicted || !hasFuelLocationAccuracy(location) || location.accuracy>30)return "";
   const brand=fuelPhotoBrand(text);
-  // A photo is commonly taken across the road from the station map pin.
-  // Exact EXIF coordinates do not imply the camera is at the pump coordinate.
-  const radius=fuelPhotoStationDistanceLimit(location);
-  const candidates=stations.filter(s=>(!brand || fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=radius);
+  const radiusM=30;
+  const nearby=stations.filter(s=>fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=radiusM);
+  // An OCR brand can disambiguate stations, but missing OCR must never block GPS matching.
+  const candidates=brand?nearby.filter(s=>fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand):nearby;
   if(candidates.length!==1)return "";
-  // Nearby stations can be confused by GPS drift even when only one is within the matching radius.
-  // Require manual confirmation when any other station is within 75 m of the candidate.
   const selected=candidates[0];
-  if(stations.some(s=>s.id!==selected.id && (!brand||fuelPhotoBrand(`${s.chain||""} ${s.name}`)===brand) && fuelDistanceKm(selected.latitude,selected.longitude,s.latitude,s.longitude)*1000<=75))return "";
+  // A second station within GPS uncertainty can make even a single in-radius hit ambiguous.
+  if(stations.some(s=>s.id!==selected.id && fuelDistanceKm(location.lat,location.lon,s.latitude,s.longitude)*1000<=radiusM+location.accuracy))return "";
   return selected.id;
 }
-
-
