@@ -104,6 +104,11 @@ export async function GET(request: NextRequest) {
       ), ranked AS (
         SELECT *, CASE
           WHEN ${isEan} AND ean = ${q} THEN 0
+          -- A verified full-name alias is stronger than broad category/brand
+          -- matches. This keeps named products in the first 50 catalog rows.
+          WHEN EXISTS (SELECT 1 FROM unnest(coalesce(aliases, ARRAY[]::text[])) a
+            WHERE lower(regexp_replace(a, '[^[:alnum:]]+', ' ', 'g')) =
+              lower(regexp_replace(${q}, '[^[:alnum:]]+', ' ', 'g'))) THEN -10
           WHEN ${lactoseFreeMilkIntent} AND name_words ~ ${lactoseChocolatePattern} THEN 90
           WHEN ${lactoseFreeMilkIntent} AND name_words ~ ${lactoseCondensedPattern} THEN 30
           WHEN ${lactoseFreeMilkIntent} AND (name_words ~ ${lactoseMilkName} OR category ILIKE ${milkLactose} OR category ILIKE ${milkLeaf}) AND (name_words ~ ${lactoseOrdinaryPattern} OR (name_words !~ ${lactoseSpecialPattern} AND coalesce(category, '') NOT ILIKE ${milkSpecial})) THEN 1
