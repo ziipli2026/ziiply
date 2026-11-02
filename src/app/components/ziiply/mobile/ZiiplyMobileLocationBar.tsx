@@ -25,7 +25,7 @@
 // tämä komponentti EI ole se layeri, jota ruutu käyttää.
 // Ei logiikkamuutoksia.
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export type ZiiplyMobileLocationBarProps = {
   locationInput: string;
@@ -54,7 +54,12 @@ export default function ZiiplyMobileLocationBar({
 }: ZiiplyMobileLocationBarProps) {
   const [debugOn,setDebugOn]=useState(false);
   const [debugEvents,setDebugEvents]=useState<any[]>([]);
-  const [debugWatch,setDebugWatch]=useState<number|null>(null);
+  const debugWatch=useRef<number|null>(null);
+  const eventsRef=useRef<any[]>([]);
+  const [lastGps,setLastGps]=useState<any>(null);
+  useEffect(()=>()=>{if(debugWatch.current!==null)navigator.geolocation.clearWatch(debugWatch.current);},[]);
+  const appendDebug=(entry:any)=>{eventsRef.current.push(entry);setDebugEvents([...eventsRef.current]);setLastGps(entry);};
+  const downloadDebug=()=>{const blob=new Blob([JSON.stringify({capturedAt:new Date().toISOString(),locationInput,usingOwnLocation,gpsStatusText,gpsErrorMessage,events:eventsRef.current},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-gps-debug.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
   const rawStatusText =
     gpsErrorMessage ||
     gpsStatusText ||
@@ -152,7 +157,20 @@ export default function ZiiplyMobileLocationBar({
           />
         </button>
       </div>
-      <button type="button" className="mt-2 rounded border px-3 py-2 text-xs font-bold" onClick={() => { if (!debugOn) {setDebugEvents([]);setDebugOn(true);const id=navigator.geolocation.watchPosition(p=>setDebugEvents(v=>[...v,{time:new Date().toISOString(),lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy,speed:p.coords.speed,heading:p.coords.heading}]),e=>setDebugEvents(v=>[...v,{time:new Date().toISOString(),error:e.message}]),{enableHighAccuracy:true});setDebugWatch(id);}else{if(debugWatch!==null)navigator.geolocation.clearWatch(debugWatch);setDebugOn(false);const blob=new Blob([JSON.stringify({capturedAt:new Date().toISOString(),locationInput,usingOwnLocation,gpsStatusText,gpsErrorMessage,events:debugEvents},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-gps-debug.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);} }}>{debugOn?"Pysäytä ja lataa GPS-debug ("+debugEvents.length+")":"Aloita GPS-debug"}</button>
+      <div className="mt-2 rounded-lg border border-emerald-500 bg-white/90 p-2 text-xs text-slate-900" aria-live="polite">
+        <div className="font-bold">GPS LIVE: {debugOn?"SEURANTA PÄÄLLÄ":"PYSÄYTETTY"} · {debugEvents.length} tapahtumaa</div>
+        <div>Viimeisin: {lastGps?.time??"–"} · Tarkkuus: {lastGps?.accuracy!=null?Math.round(lastGps.accuracy)+" m":"–"} · Nopeus: {lastGps?.speed!=null?(lastGps.speed*3.6).toFixed(1)+" km/h":"–"}</div>
+        <div>Sijainti: {lastGps?.lat??"–"}, {lastGps?.lon??"–"} {lastGps?.error?" · VIRHE: "+lastGps.error:""}</div>
+      </div>
+      <div className="mt-2 flex gap-2">
+        <button type="button" className="rounded border px-3 py-2 text-xs font-bold" onClick={()=>{
+          if(debugOn){if(debugWatch.current!==null)navigator.geolocation.clearWatch(debugWatch.current);debugWatch.current=null;setDebugOn(false);downloadDebug();return;}
+          if(!navigator.geolocation){appendDebug({time:new Date().toISOString(),error:"GPS ei käytettävissä"});return;}
+          eventsRef.current=[];setDebugEvents([]);setLastGps(null);setDebugOn(true);
+          debugWatch.current=navigator.geolocation.watchPosition(p=>appendDebug({time:new Date().toISOString(),lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy,speed:p.coords.speed,heading:p.coords.heading,altitude:p.coords.altitude,positionTime:p.timestamp}),e=>appendDebug({time:new Date().toISOString(),error:e.message,code:e.code}),{enableHighAccuracy:true,maximumAge:0,timeout:20000});
+        }}>{debugOn?"Pysäytä ja lataa GPS-debug":"Aloita GPS-debug"}</button>
+        <button type="button" className="rounded border px-3 py-2 text-xs font-bold" disabled={!debugEvents.length} onClick={downloadDebug}>Lataa LIVE-loki</button>
+      </div>
     </section>
   );
 }
