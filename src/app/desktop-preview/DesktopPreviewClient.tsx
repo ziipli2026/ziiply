@@ -2812,7 +2812,6 @@ export default function DesktopPreviewPage() {
 
       <div aria-hidden className="pointer-events-none absolute -left-32 top-24 h-[520px] w-[520px] rounded-full bg-[#f6e8b8]/35 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute -right-40 bottom-[-80px] h-[620px] w-[620px] rounded-full bg-[#8ead91]/25 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute left-[44%] top-[10%] h-[190px] w-[190px] rotate-12 rounded-[44px] border border-[#8c7042]/10 bg-[#fff7df]/18 shadow-[0_30px_80px_rgba(70,60,35,0.05)]" />
 
       <div className="relative mx-auto flex h-[100dvh] min-h-0 w-full max-w-[1800px] flex-col overflow-hidden px-8 pb-2 pt-3 xl:px-12 xl:pb-2 xl:pt-3">
         <header ref={desktopHeaderRef} className="grid grid-cols-[minmax(215px,240px)_minmax(265px,300px)_minmax(0,1fr)] items-center gap-3 border-b border-[#64745f]/20 pb-4">
