@@ -2732,7 +2732,7 @@ export default function DesktopPreviewPage() {
       })();
     };
     // Align updates to :01, :16, :31 and :46 every hour.
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: number;
     const schedule = () => {
       const now = Date.now();
       const next = Math.floor((now - 60_000) / 900_000 + 1) * 900_000 + 60_000;
