@@ -86,17 +86,17 @@ function weatherTextFromCode(code?: number) {
   return "Sää";
 }
 
-function electricityLevel(value: string): PriceLevel {
-  const number = readNumber(value);
-  if (number == null) return "unknown";
-  if (number < 8) return "low";
-  if (number <= 16) return "normal";
-  return "high";
+function electricityTrend(current: number | null, next: number | null): PriceLevel {
+  if (current == null || next == null || !Number.isFinite(current) || !Number.isFinite(next)) return "unknown";
+  const delta = next - current;
+  if (delta > 0.5) return "high";
+  if (delta < -0.5) return "low";
+  return "normal";
 }
 
 function levelDotClass(level: PriceLevel) {
   if (level === "low") return "bg-[#159447] shadow-[0_0_0_2px_rgba(21,148,71,0.18),0_1px_4px_rgba(6,74,33,0.35)]";
-  if (level === "normal") return "bg-[#d8a928] shadow-[0_0_0_2px_rgba(216,169,40,0.18),0_1px_4px_rgba(89,57,0,0.28)]";
+  if (level === "normal") return "bg-[#888888] shadow-[0_0_0_2px_rgba(136,136,136,0.18),0_1px_4px_rgba(60,60,60,0.28)]";
   if (level === "high") return "bg-[#c93632] shadow-[0_0_0_2px_rgba(201,54,50,0.18),0_1px_4px_rgba(96,20,16,0.35)]";
   return "bg-[#b8a77e] shadow-[0_0_0_2px_rgba(184,167,126,0.15),0_1px_4px_rgba(75,52,16,0.20)]";
 }
@@ -226,6 +226,7 @@ export default function ZiiplyMobileTopBar({
   const [autoWeatherValue, setAutoWeatherValue] = useState("+18°");
   const [autoWeatherText, setAutoWeatherText] = useState(areaLabel);
   const [autoElectricityValue, setAutoElectricityValue] = useState("—");
+  const [autoElectricityTrend, setAutoElectricityTrend] = useState<PriceLevel>("unknown");
   const [autoElectricityText, setAutoElectricityText] = useState("haetaan");
   // The top bar deliberately selects the nearest station WITH at least one price.
   // Unlike the full station comparison, unpriced stations are not candidates here.
@@ -475,6 +476,10 @@ export default function ZiiplyMobileTopBar({
 
         if (cancelled) return;
 
+        const end = new Date(current.endDate ?? current.end).getTime();
+        const next = prices.find((item: any) => new Date(item.startDate ?? item.start).getTime() === end);
+        const nextPrice = next ? readPrice(next) : null;
+        setAutoElectricityTrend(electricityTrend(price, nextPrice));
         setAutoElectricityValue(fmtFi(price, 1));
         setAutoElectricityText("c/kWh");
       } catch (error) {
@@ -482,6 +487,7 @@ export default function ZiiplyMobileTopBar({
 
         const message = error instanceof Error ? error.message : "api virhe";
         setAutoElectricityValue("—");
+        setAutoElectricityTrend("unknown");
 
         if (message.includes("Failed to fetch")) setAutoElectricityText("fetch");
         else if (message.includes("HTTP")) setAutoElectricityText(message.slice(0, 10));
@@ -552,7 +558,7 @@ export default function ZiiplyMobileTopBar({
 
   const effectiveElectricityValue = electricityValue || autoElectricityValue;
   const effectiveElectricityText = electricityText || autoElectricityText;
-  const electricityPriceLevel = electricityLevel(effectiveElectricityValue);
+  const electricityPriceLevel = electricityValue ? "unknown" : autoElectricityTrend;
 
   const panels: InfoPanel[] = [
     {
