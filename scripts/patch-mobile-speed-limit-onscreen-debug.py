@@ -5,7 +5,7 @@ needle='const timeout = window.setTimeout(() => controller.abort(), 39000);'
 assert s.count(needle)==1, "speed limit lookup anchor missing"
 s=s.replace(needle,'''const debugLine = (message: string) => {
       const target = document.getElementById("mobile-speed-limit-debug");
-      if (target) target.textContent = new Date().toLocaleTimeString("fi-FI") + " " + message;
+      if (!target) { const el = document.createElement("div"); el.id = "mobile-speed-limit-debug"; el.style.cssText = "position:fixed;z-index:2147483647;top:35%;left:8px;right:8px;background:#111;color:#baffbd;padding:12px;border:2px solid white;border-radius:10px;font:600 14px monospace;pointer-events:none"; document.body.appendChild(el); }\n      document.getElementById("mobile-speed-limit-debug")!.textContent = new Date().toLocaleTimeString("fi-FI") + " " + message;
     };
     debugLine("GPS ±" + Math.round(accuracy) + " m | haku alkaa");
     const timeout = window.setTimeout(() => { debugLine("AIKAKATKAISU 39 s"); controller.abort(); }, 39000);''',1)
