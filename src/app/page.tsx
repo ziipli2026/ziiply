@@ -2183,6 +2183,7 @@ function KauppiasMobileTopBar({
   // palautetaan page.tsx:lle, joka käyttää sitä paikkakuntaan ja kauppahakuun.
   // Oma page-boot-GPS pysyy silti pois päältä.
   const [mobileDrivingSpeed, setMobileDrivingSpeed] = useState<number | null>(null);
+  const [mobileSpeedLimit, setMobileSpeedLimit] = useState<number | null>(null);
   useEffect(() => {
     if (!navigator.geolocation) return;
     let active = true;
@@ -2191,12 +2192,64 @@ function KauppiasMobileTopBar({
     let driving = false;
     let belowThresholdSince: number | null = null;
     let candidateHigh: { speed: number; at: number } | null = null;
+    let lastLimitQueryAt = 0;
+    let limitGeneration = 0;
+    const queryLimit = (position: GeolocationPosition) => {
+      const now = Date.now();
+      if (now - lastLimitQueryAt < 15000 || position.coords.accuracy > 25) return;
+      lastLimitQueryAt = now;
+      const { latitude, longitude, accuracy, heading } = position.coords;
+      const generation = ++limitGeneration;
+      const query = '[out:json][timeout:8];way(around:35,' + latitude + ',' + longitude + ')["highway"]["maxspeed"];out geom;';
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 9000);
+      void fetch('https://overpass.kumi.systems/api/interpreter', {
+        method: 'POST', body: new URLSearchParams({ data: query }), signal: controller.signal,
+      }).then(async response => {
+        if (!response.ok) throw new Error('speed limit unavailable');
+        return response.json();
+      }).then((data: { elements?: Array<{ tags?: Record<string,string>; geometry?: Array<{lat:number;lon:number}> }> }) => {
+        if (!active || generation !== limitGeneration) return;
+        const matches: Array<{ limit:number; distance:number; angle:number }> = [];
+        for (const way of data.elements ?? []) {
+          const match = /^(\d{1,3})(?:\s*km\/h)?$/.exec((way.tags?.maxspeed ?? '').trim());
+          if (!match) continue;
+          const limit = Number(match[1]);
+          if (limit < 10 || limit > 130) continue;
+          const geometry = way.geometry ?? [];
+          for (let i = 1; i < geometry.length; i++) {
+            const p = geometry[i-1], q = geometry[i];
+            const scale = Math.cos(latitude * Math.PI / 180) * 111000;
+            const ax = (p.lon-longitude)*scale, ay = (p.lat-latitude)*111000;
+            const dx = (q.lon-p.lon)*scale, dy = (q.lat-p.lat)*111000;
+            const t = Math.max(0,Math.min(1,-(ax*dx+ay*dy)/(dx*dx+dy*dy||1)));
+            matches.push({ limit, distance: Math.hypot(ax+t*dx,ay+t*dy),
+              angle: (Math.atan2(dx,dy)*180/Math.PI+360)%360 });
+          }
+        }
+        const angleDifference = (angle:number) => {
+          if (heading === null || !Number.isFinite(heading)) return 0;
+          const d = Math.abs(angle-heading);
+          return Math.min(d,360-d,Math.abs(d-180));
+        };
+        const eligible = matches.filter(m=>angleDifference(m.angle)<=35).sort((x,y)=>x.distance-y.distance);
+        const best = eligible[0];
+        const different = eligible.find(m=>m.limit!==best?.limit);
+        const reliable = best && best.distance<=Math.min(15,accuracy+5) &&
+          (!different || different.distance>best.distance+12);
+        setMobileSpeedLimit(reliable ? best.limit : null);
+      }).catch(() => {
+        if (active && generation === limitGeneration) setMobileSpeedLimit(null);
+      }).finally(() => window.clearTimeout(timeout));
+    };
     const reset = () => {
       driving = false;
       belowThresholdSince = null;
       candidateHigh = null;
       lastAcceptedSpeed = null;
       setMobileDrivingSpeed(null);
+      setMobileSpeedLimit(null);
+      ++limitGeneration;
     };
     const applyFix = (position: GeolocationPosition) => {
       const now = Date.now();
@@ -2229,6 +2282,7 @@ function KauppiasMobileTopBar({
       lastFixAt = timestamp;
       lastAcceptedSpeed = kmh;
       if (!driving) return;
+      queryLimit(position);
       if (kmh < 20) belowThresholdSince ??= now;
       else belowThresholdSince = null;
       setMobileDrivingSpeed(Math.round(kmh));
@@ -3019,8 +3073,8 @@ function KauppiasMobileTopBar({
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <div className="absolute inset-x-[3px] top-[10px] flex h-[40px] items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums">{mobileDrivingSpeed}</div>
-          <div className="absolute inset-x-0 bottom-[9px] whitespace-nowrap text-center text-[8px] font-black leading-none">Rajoitus <span className="text-[9px]">—</span></div>
+          <div className="absolute inset-x-[3px] top-[10px] flex h-[40px] items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums" style={{ color: mobileSpeedLimit === null ? "#173b31" : mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileDrivingSpeed}</div>
+          <div className="absolute inset-x-0 bottom-[9px] whitespace-nowrap text-center text-[8px] font-black leading-none">Rajoitus <span className="text-[9px]">{mobileSpeedLimit ?? "—"}</span></div>
         </div>
       </div>}
       {mobileFuelMenuOpen && (
