@@ -2865,7 +2865,7 @@ export default function DesktopPreviewPage() {
                     </span>
                   </>
                 ) : (
-                  <span className="min-w-0">
+                  <span className="relative -top-[6px] min-w-0">
                     <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
                     {title === "SÄHKÖ" ? (
                       <>
