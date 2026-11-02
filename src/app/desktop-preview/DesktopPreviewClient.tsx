@@ -2679,16 +2679,30 @@ export default function DesktopPreviewPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/desktop-electricity", { cache: "no-store" }).then(r => r.json()).then(data => {
-      const prices = Array.isArray(data?.prices) ? data.prices : [];
-      const chartPrices = prices.map((p:any)=>({start:new Date(p.startDate ?? p.start).getTime(),end:new Date(p.endDate ?? p.end).getTime(),price:Number(p.price ?? p.value ?? p.priceWithTax)})).filter((p:any)=>Number.isFinite(p.start)&&Number.isFinite(p.end)&&p.end>p.start&&Number.isFinite(p.price)).sort((a:any,b:any)=>a.start-b.start);
-      if(!cancelled)setElectricityPrices(chartPrices);
-      const t = Date.now();
-      const current = prices.find((p: any) => { const a = new Date(p.startDate ?? p.start).getTime(); const b = new Date(p.endDate ?? p.end).getTime(); return a <= t && t < b; });
-      const n = Number(current?.price ?? current?.value ?? current?.priceWithTax);
-      if (!cancelled && Number.isFinite(n)) setElectricity({ value: n.toLocaleString("fi-FI",{maximumFractionDigits:1}), detail: "c/kWh nyt" });
-    }).catch(() => { if (!cancelled) setElectricity({value:"—",detail:"ei saatavilla"}); });
-    return () => { cancelled = true; };
+    const loadElectricity = () => {
+      fetch("/api/desktop-electricity", { cache: "no-store" }).then(r => r.json()).then(data => {
+        const prices = Array.isArray(data?.prices) ? data.prices : [];
+        const chartPrices = prices.map((p:any)=>({start:new Date(p.startDate ?? p.start).getTime(),end:new Date(p.endDate ?? p.end).getTime(),price:Number(p.price ?? p.value ?? p.priceWithTax)})).filter((p:any)=>Number.isFinite(p.start)&&Number.isFinite(p.end)&&p.end>p.start&&Number.isFinite(p.price)).sort((a:any,b:any)=>a.start-b.start);
+        if(!cancelled)setElectricityPrices(chartPrices);
+        const t = Date.now();
+        const current = prices.find((p: any) => { const a = new Date(p.startDate ?? p.start).getTime(); const b = new Date(p.endDate ?? p.end).getTime(); return a <= t && t < b; });
+        const n = Number(current?.price ?? current?.value ?? current?.priceWithTax);
+        if (!cancelled) setElectricity(Number.isFinite(n) && current ? { value: n.toLocaleString("fi-FI",{maximumFractionDigits:1}), detail: "c/kWh nyt" } : {value:"—",detail:"ei saatavilla"});
+      }).catch(() => { if (!cancelled) setElectricity({value:"—",detail:"ei saatavilla"}); });
+    };
+    // Align updates to :01, :16, :31 and :46 every hour.
+    let timer: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const now = Date.now();
+      const next = Math.floor((now - 60_000) / 900_000 + 1) * 900_000 + 60_000;
+      timer = window.setTimeout(() => { if(!cancelled){ loadElectricity(); schedule(); } }, Math.max(100,next-now));
+    };
+    const onFocus = () => { if(!document.hidden) loadElectricity(); };
+    loadElectricity();
+    schedule();
+    document.addEventListener("visibilitychange",onFocus);
+    window.addEventListener("focus",onFocus);
+    return () => { cancelled = true; window.clearTimeout(timer); document.removeEventListener("visibilitychange",onFocus); window.removeEventListener("focus",onFocus); };
   }, []);
 
   useEffect(() => {
