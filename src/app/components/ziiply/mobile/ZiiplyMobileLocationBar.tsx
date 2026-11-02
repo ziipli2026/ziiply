@@ -58,6 +58,7 @@ export default function ZiiplyMobileLocationBar({
   const eventsRef=useRef<any[]>([]);
   const [lastGps,setLastGps]=useState<any>(null);
   useEffect(()=>()=>{if(debugWatch.current!==null)navigator.geolocation.clearWatch(debugWatch.current);},[]);
+  useEffect(()=>{const onDecision=(event:Event)=>{if(!debugWatch.current)return;const detail=(event as CustomEvent).detail;appendDebug({time:new Date().toISOString(),type:"arrival-decision",detail});};window.addEventListener("ziiply-arrival-debug",onDecision);return()=>window.removeEventListener("ziiply-arrival-debug",onDecision);},[]);
   const appendDebug=(entry:any)=>{eventsRef.current.push(entry);setDebugEvents([...eventsRef.current]);setLastGps(entry);};
   const downloadDebug=()=>{const blob=new Blob([JSON.stringify({capturedAt:new Date().toISOString(),locationInput,usingOwnLocation,gpsStatusText,gpsErrorMessage,events:eventsRef.current},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-gps-debug.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
   const rawStatusText =
@@ -166,7 +167,7 @@ export default function ZiiplyMobileLocationBar({
         <button type="button" className="rounded border px-3 py-2 text-xs font-bold" onClick={()=>{
           if(debugOn){if(debugWatch.current!==null)navigator.geolocation.clearWatch(debugWatch.current);debugWatch.current=null;setDebugOn(false);downloadDebug();return;}
           if(!navigator.geolocation){appendDebug({time:new Date().toISOString(),error:"GPS ei käytettävissä"});return;}
-          eventsRef.current=[];setDebugEvents([]);setLastGps(null);setDebugOn(true);
+          eventsRef.current=[];setDebugEvents([]);setLastGps(null);setDebugOn(true);appendDebug({time:new Date().toISOString(),type:"debug-start",locationInput,usingOwnLocation,gpsStatusText,gpsErrorMessage});
           debugWatch.current=navigator.geolocation.watchPosition(p=>appendDebug({time:new Date().toISOString(),lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy,speed:p.coords.speed,heading:p.coords.heading,altitude:p.coords.altitude,positionTime:p.timestamp}),e=>appendDebug({time:new Date().toISOString(),error:e.message,code:e.code}),{enableHighAccuracy:true,maximumAge:0,timeout:20000});
         }}>{debugOn?"Pysäytä ja lataa GPS-debug":"Aloita GPS-debug"}</button>
         <button type="button" className="rounded border px-3 py-2 text-xs font-bold" disabled={!debugEvents.length} onClick={downloadDebug}>Lataa LIVE-loki</button>
