@@ -2708,26 +2708,21 @@ export default function DesktopPreviewPage() {
       void (async()=>{
         let price:number|null=null;
         let chartPrices:{start:number;end:number;price:number}[]=[];
-        for(const url of ["https://api.porssisahko.net/v1/latest-prices.json","https://api.porssisahko.net/v2/latest-prices.json"]){
-          try{
-            const data=await fetchJson(url);
-            const raw=Array.isArray(data?.prices)?data.prices:Array.isArray(data)?data:[];
-            const windows=raw.map((item:any)=>{
-              const p=readPrice(item);
-              const start=readTime(item.startDate,item.start,item.StartDate,item.time_start,item.date,item.Date);
-              const end=readTime(item.endDate,item.end,item.EndDate,item.time_end);
-              return p!=null&&start!=null&&end!=null&&end>start?{start,end,price:p}:null;
-            }).filter((item:any)=>item!=null).sort((x:any,y:any)=>x.start-y.start);
-            const now=Date.now();
-            const current=windows.find((item:any)=>item.start<=now&&now<item.end);
-            if(current){price=current.price;chartPrices=windows;break;}
-          }catch{}
-        }
-        if(price==null){
-          try{price=readPrice(await fetchJson("https://api.porssisahko.net/v2/price.json?date="+encodeURIComponent(new Date().toISOString())));}catch{}
-        }
+        try{
+          // Same-origin server proxy: browser calls to the external provider can be blocked by CORS.
+          const data=await fetchJson("/api/desktop-electricity");
+          const raw=Array.isArray(data?.prices)?data.prices:Array.isArray(data)?data:[];
+          chartPrices=raw.map((item:any)=>{
+            const p=readPrice(item);
+            const start=readTime(item.startDate,item.start,item.StartDate,item.time_start,item.date,item.Date);
+            const end=readTime(item.endDate,item.end,item.EndDate,item.time_end);
+            return p!=null&&start!=null&&end!=null&&end>start?{start,end,price:p}:null;
+          }).filter((item:any)=>item!=null).sort((x:any,y:any)=>x.start-y.start);
+          const now=Date.now();
+          price=chartPrices.find(item=>item.start<=now&&now<item.end)?.price??null;
+        }catch{}
         if(cancelled)return;
-        if(chartPrices.length)setElectricityPrices(chartPrices);
+        setElectricityPrices(chartPrices);
         setElectricity(price!=null?{value:price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh nyt"}:{value:"—",detail:"ei saatavilla"});
       })();
     };
