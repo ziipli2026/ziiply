@@ -2395,7 +2395,9 @@ export default function DesktopPreviewPage() {
           const brandLookups=[...new Set<string>(neonRows.filter((item:any)=>!pricedEans.has(String(item.ean))).map((item:any)=>String(item.brand||'')).filter((brand:string)=>
             /\./.test(brand) && searchWords(brand).length>=2 && queryWords.includes(' '+searchWords(brand).join(' ')+' ')
           ))];
-          const missingCatalogNames=neonRows.filter((item:any)=>!pricedEans.has(String(item.ean||''))).map((item:any)=>String(item.name||'')).filter(Boolean);
+          const missingCatalogNames=neonRows.filter((item:any)=>!pricedEans.has(String(item.ean||'')))
+            .flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases.filter((alias:unknown)=>typeof alias==='string').map(String):[])])
+            .filter(Boolean);
           // Recover missing EAN quotes even when another matching product is already priced.
           // Otherwise Jozo salt and Salonen bread can be silently omitted from the visible results.
           const lookupNames=[...brandLookups,...missingCatalogNames,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
