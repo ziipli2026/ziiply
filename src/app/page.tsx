@@ -2944,7 +2944,7 @@ function KauppiasMobileTopBar({
       </div>
     </div>
       {/* Compact mobile speed sign — fixed 0 preview, space reserved for three digits. */}
-      <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+80px)] z-[299] -translate-x-1/2 sm:hidden">
+      <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+84px)] z-[299] -translate-x-1/2 sm:hidden">
         <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[0.9rem] border-[3px] border-[#073d32] bg-[#fff5d9] text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
           <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
