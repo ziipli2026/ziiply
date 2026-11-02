@@ -1,5 +1,5 @@
 name: Desktop Neon - full 900 search regression
-run-name: Recheck batch 8 Pepsi product recovery
+run-name: Recheck batch 8 A Le Coq product recovery
 on:
   workflow_dispatch:
   push:
