@@ -20,6 +20,9 @@ export type ZiiplyArrivalStore = {
   name: string;
   latitude: number;
   longitude: number;
+  /** Explicit retail chain and UI group; never infer the group from proximity. */
+  chainId?: string;
+  groupId?: string;
 };
 export type ZiiplyArrivalState = {
   tripStartedAt: number | null;
@@ -35,6 +38,7 @@ export type ZiiplyArrivalDecision = {
   store: ZiiplyArrivalStore | null;
   isSelectedStore: boolean;
   askStoreChange: boolean;
+  selectedStoreName: string | null;
   showArrivalMessage: boolean;
   radar: 'white' | 'green';
 };
@@ -92,9 +96,14 @@ export function evaluateZiiplyArrival(
   if(inStore)state.arrivalStoreId=store.id;
   else if(valid&&!ambiguous&&!store)state.arrivalStoreId=null;
   const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
+  const selectedPeers=store && !isSelectedStore && store.chainId && store.groupId
+    ? stores.filter(s=>selectedStoreIds.includes(s.id) && s.chainId===store.chainId && s.groupId===store.groupId)
+    : [];
+  const eligibleChange=selectedPeers.length===1 && !!store && !isSelectedStore;
   return {
     state,status:!valid||ambiguous?'uncertain':inStore?'in-store':store?'near-store':'checking',
-    store,isSelectedStore,askStoreChange:!!inStore&&!isSelectedStore&&showArrivalMessage,
+    store,isSelectedStore,askStoreChange:!!inStore&&eligibleChange&&showArrivalMessage,
+    selectedStoreName:eligibleChange?selectedPeers[0].name:null,
     showArrivalMessage,radar:inStore?'green':'white',
   };
 }
