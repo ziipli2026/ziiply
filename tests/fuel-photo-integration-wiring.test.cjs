@@ -7,7 +7,7 @@ const api=read('src/app/api/fuel/reports/route.ts');
 const checks=[
  ['Tankkaus embeds the shared photo reporter',tank.includes('DesktopFuelPhotoReport')],
  ['Reporter imports GPS station recognition',report.includes('identifyFuelPhotoStation')],
- ['Photo OCR falls back to GPS-only station recognition',/const gpsIdentified=identifyFuelPhotoStation\(candidates\|\|\[\],location,"",/.test(report)&&report.includes('identified||gpsIdentified')],
+ ['Photo OCR falls back to GPS-only station recognition',/const gpsIdentified=identifyFuelPhotoStation\(candidates\|\|\[\],location,"",/.test(report)&&report.includes('identified||(fuelPhotoBrand(result.text)?"":gpsIdentified)')],
  ['Conflicting OCR brand cannot be overridden by GPS-only fallback',report.includes('fuelPhotoBrand(result.text)?"":gpsIdentified')],
  ['Manual selection prevents station overwrite',report.includes('stationChoiceEdited.current')&&report.includes('onChange={e=>{stationChoiceEdited.current=true')],
  ['Reporter submits fuel report through API',report.includes('fetch("/api/fuel/reports"')],
