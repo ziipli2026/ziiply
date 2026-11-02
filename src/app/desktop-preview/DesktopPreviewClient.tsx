@@ -2870,7 +2870,7 @@ export default function DesktopPreviewPage() {
                             {value}
                             <span className="absolute left-1/2 top-[calc(100%+6px)] block -translate-x-1/2 whitespace-nowrap text-[10px] font-black leading-none text-[#706a58]">{detail.replace(/^c\/kWh\s*·?\s*/, "")}</span>
                           </span>
-                          <span className="-ml-[2px] relative text-[10px] font-black leading-none text-[#706a58]">c/kWh</span>
+                          <span className="ml-[4px] relative text-[10px] font-black leading-none text-[#706a58]">c/kWh</span>
                         </span>
                       </>
                     ) : (
