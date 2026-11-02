@@ -25,6 +25,8 @@ export function arrivalNoticeReducer(state: ArrivalNotice | null, event: Arrival
     ? { ...state, deadline: event.at + (state.phase === 'approach' ? APPROACH_NOTICE_MS : ARRIVAL_CHOICE_MS) } : state;
   if (event.type === 'sample') {
     const d = event.decision;
+    // Never open a store-arrival dialog for a store the user has not selected.
+    if (!d.isSelectedStore) return null;
     if (d.status === 'uncertain') return state ? { ...state, confirmed: false, phase: state.phase === 'done' ? 'done' : 'waiting', deadline: null } : null;
     if (!d.store || (d.status !== 'near-store' && d.status !== 'in-store')) return null;
     if (!state || state.id !== d.store.id) {
