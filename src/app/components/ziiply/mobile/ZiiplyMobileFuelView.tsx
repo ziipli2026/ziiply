@@ -110,6 +110,7 @@ export default function ZiiplyMobileFuelView({
     () => !coords ? [] : stations
       // Station cards are LOCAL discovery, not a nationwide fallback.
       // Missing fuel prices do not make a nearby station disappear.
+      .filter((s) => [s.diesel,s.price95,s.price98].some(isValidFuelPrice))
       .filter((s) => Number.isFinite(s.distanceKm) && s.distanceKm >= 0 && s.distanceKm <= 30)
       .filter((s) => stationSide === "both" || s.isTrafficStation === (stationSide === "traffic"))
       .sort((a, b) => a.distanceKm - b.distanceKm),
@@ -146,13 +147,14 @@ export default function ZiiplyMobileFuelView({
             <p className="text-[13px] font-bold leading-tight">{stationSide === "traffic" ? "Liikenneasemat" : stationSide === "cold" ? "Kylmäasemat / muut" : "Kaikki asemat"} · €/l</p>
           </div>
         </header>
-        <div role="group" aria-label="Polttoainevertailun järjestys" className="grid shrink-0 grid-cols-3 gap-1">
+        <div role="group" aria-label="Polttoainevertailun järjestys" className="grid shrink-0 grid-cols-4 gap-1">
           {([
             ["distance", "Lähimmät"],
             ["diesel", "Halvin diesel"],
-            ["price95", "Halvin bensa 95"],
+            ["price95", "Halvin 95E"],
+            ["price98", "Halvin 98E"],
           ] as const).map(([sort, label]) => (
-            <button key={sort} type="button" aria-pressed={comparisonSort === sort} onClick={() => setComparisonSort(current => current === sort ? "distance" : sort)} className={`min-h-[40px] rounded-xl border-2 px-1 py-1 text-[10px] font-black leading-tight ${comparisonSort === sort ? "border-[#07502c] bg-[#0a6d39] text-white" : "border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}>{label}</button>
+            <button key={sort} type="button" aria-pressed={comparisonSort === sort} onClick={() => setComparisonSort(current => current === sort ? "distance" : sort)} className={`min-h-[40px] rounded-xl border-2 px-0.5 py-1 text-[9px] font-black leading-tight ${comparisonSort === sort ? "border-[#07502c] bg-[#0a6d39] text-white" : "border-[#d2ad68] bg-[#fff8df] text-[#5a4424]"}`}>{label}</button>
           ))}
         </div>
         <p role="status" className="shrink-0 text-center text-[10px] font-bold leading-tight">
