@@ -83,7 +83,11 @@ export function evaluateZiiplyArrival(
   }
   const stationaryArrival=selectedNearby&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=20000;
   const arrivalConfirmed=!!store&&valid&&(candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS||stationaryArrival);
-  const inStore=!!store&&arrivalConfirmed&&valid;
+  // Once confirmed, tolerate indoor GPS drift while still near the selected shop.
+  // Release only when the device is clearly outside the approach area.
+  const retainedArrival=!!store&&valid&&state.arrivalStoreId===store.id
+    &&selectedStoreIds.includes(store.id)&&candidates[0].distance<=ZIIPLY_APPROACH_RADIUS_METERS;
+  const inStore=!!store&&valid&&(arrivalConfirmed||retainedArrival);
   const showArrivalMessage=!!inStore&&state.arrivalStoreId!==store?.id;
   if(inStore)state.arrivalStoreId=store.id;
   else if(valid&&!ambiguous&&!store)state.arrivalStoreId=null;
