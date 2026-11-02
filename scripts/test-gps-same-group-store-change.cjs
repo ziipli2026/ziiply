@@ -31,7 +31,7 @@ const first=core.evaluateZiiplyArrival(core.initialZiiplyArrivalState(),sample,[
 assert.equal(first.status,'near-store');
 assert.equal(first.selectedStoreName,selectedName);
 const second=core.evaluateZiiplyArrival(first.state,{...sample,at:22000},[citymarket],['k-supermarket vierema'],[selectedName]);
-assert.equal(second.status,'in-store');
+assert.equal(second.status,'near-store','unselected shop must not be auto-confirmed');
 assert.equal(second.askStoreChange,true);
 const prompt=reduce(null,{type:'sample',decision:second,at:22000});
 assert.equal(prompt?.phase,'change-store');
@@ -51,6 +51,7 @@ for(const gps of actualLogSamples){
   asked=asked||d.askStoreChange;
 }
 assert.equal(asked,true,'Exact 2026-11-02 debug samples must trigger store conflict');
+assert.equal(actualState.arrivalStoreId,null,'GPS mismatch must not automatically select the detected store');
 assert.equal(actualNotice?.phase,'change-store','Conflict must be visible on screen');
 console.log('PASS: exact four GPS samples from 2026-11-02 debug JSON, K-Supermarket Vieremä selected, K-Citymarket Hyvinkää detected');
 console.log('PASS: real Hyvinkää 108m GPS mismatch, 20s stationary, selected shop outside GPS pool, persistent prompt');
