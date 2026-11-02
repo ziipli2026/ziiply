@@ -2035,14 +2035,7 @@ export default function DesktopPreviewPage() {
       const kind=storeKind(store);
       const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";
       const results=await warmOffers(chain,store);
-      const searchTerms=getNormalSearchQueries(query);
-      const matching=results.filter((offer:any)=>{
-        const title=String(offer.title||offer.name||"");
-        const category=String(offer.categoryName||offer.category||"");
-        const normalizedTitle=title.toLocaleLowerCase("fi");
-        if(!searchTerms.some(term=>normalizedTitle.includes(String(term).toLocaleLowerCase("fi"))))return false;
-        return productGroupGate(query,title) && !isBadNormalResult({name:title,category} as any,query);
-      });
+      const matching=results.filter((offer:any)=>desktopSearchDecision(query,{...offer,name:String(offer.title||offer.name||"")}).accepted);
       return rankNormalSearchResults(query,matching.map((offer:any)=>({...offer,name:String(offer.title||offer.name||"")}))).map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeChain:chain==="LIDL"?"Lidl":chain==="EUROSPAR"?"Eurospar":chain==="TOKMANNI"?"Tokmanni":chain==="S"?"S-ryhmä":"K-ryhmä",__gostaHomeCity:String(store?.city||store?.municipality||store?.locality||""),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
     }));
     if(request!==gostaHomeRequestId.current)return;
