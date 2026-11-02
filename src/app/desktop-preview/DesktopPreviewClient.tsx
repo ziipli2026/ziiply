@@ -2383,7 +2383,7 @@ export default function DesktopPreviewPage() {
         const lookupKey=(name:string)=>name.normalize('NFKC').toLocaleLowerCase('fi-FI').trim().replace(/\s+/g,' ');
         const tried=new Set(desktopSearchQueries(query).map(lookupKey));
         const fallbackNames=[...new Set<string>(neonRows.map((item:any)=>String(item.name || '')).filter(Boolean))]
-          .filter(name=>!tried.has(lookupKey(name))).slice(0,2);
+          .filter(name=>!tried.has(lookupKey(name)));
         await Promise.all(batches.map(async batch=>{
           const priced=itemsOf(batch.data).filter(item=>{
             const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
@@ -2394,7 +2394,10 @@ export default function DesktopPreviewPage() {
           const brandLookups=[...new Set<string>(neonRows.filter((item:any)=>!pricedEans.has(String(item.ean))).map((item:any)=>String(item.brand||'')).filter((brand:string)=>
             /\./.test(brand) && searchWords(brand).length>=2 && queryWords.includes(' '+searchWords(brand).join(' ')+' ')
           ))];
-          const lookupNames=[...brandLookups,...(priced.length?[]:fallbackNames)].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,2);
+          const missingCatalogNames=neonRows.filter((item:any)=>!pricedEans.has(String(item.ean||''))).map((item:any)=>String(item.name||'')).filter(Boolean);
+          // Recover missing EAN quotes even when another matching product is already priced.
+          // Otherwise Jozo salt and Salonen bread can be silently omitted from the visible results.
+          const lookupNames=[...brandLookups,...missingCatalogNames,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
           if(!lookupNames.length)return;
           const store=batch.store;
           const url=batch.chain==='S'
