@@ -2077,10 +2077,13 @@ export default function DesktopPreviewPage() {
   const desktopArrivalState = useRef(initialZiiplyArrivalState());
   const desktopArrivalDecision = useRef<ZiiplyArrivalDecision | null>(null);
   const desktopArrivalFixAt = useRef(0);
+  const [desktopSpeedKmh, setDesktopSpeedKmh] = useState<number | null>(null);
   const desktopArrivalHandler = useRef<(position: GeolocationPosition | null) => void>(() => {});
   const desktopArrivalStoreId = (store:any) => String(store?.name || "").trim().toLocaleLowerCase("fi");
   desktopArrivalHandler.current = position => {
     const at=Date.now();
+    const measuredSpeed = position?.coords.speed;
+    setDesktopSpeedKmh(position && at-position.timestamp<5000 && position.coords.accuracy<=50 && measuredSpeed!=null && Number.isFinite(measuredSpeed) && measuredSpeed>=0 ? Math.round(measuredSpeed*3.6) : null);
     if(!position || at-position.timestamp>10000 || position.timestamp>at+1000 ||
       !Number.isFinite(position.coords.accuracy) || position.coords.accuracy<=0 || position.coords.accuracy>50) {
       if(at-desktopArrivalFixAt.current>30000){
@@ -2835,7 +2838,7 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="ml-auto grid w-full max-w-[900px] grid-cols-4 gap-2.5">
+          <div className="ml-auto grid w-full max-w-[1050px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.45fr)_minmax(0,1.1fr)] gap-2.5">
             {[
               ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
@@ -2885,6 +2888,10 @@ export default function DesktopPreviewPage() {
                 )}
               </button>
             ))}
+            <div aria-label="Ajonopeus" className="relative flex h-[66px] min-w-0 items-center justify-center gap-2 rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-2 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
+              <span className="text-[23px]" aria-hidden="true">🚗</span>
+              <span className="min-w-0"><span className="block whitespace-nowrap text-[9px] font-black tracking-[0.08em] text-[#526b61]">NOPEUS</span><span className="block whitespace-nowrap text-[19px] font-black leading-tight text-[#102a24] tabular-nums">{desktopSpeedKmh !== null && desktopSpeedKmh > 20 ? desktopSpeedKmh : "—"} <span className="text-[9px]">km/h</span></span><span className="block whitespace-nowrap text-[9px] font-bold text-[#526b61]">Rajoitus —</span></span>
+            </div>
             <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition ">
               <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
               <span>
