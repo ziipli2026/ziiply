@@ -2838,27 +2838,27 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="ml-auto grid w-full max-w-[1050px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.45fr)_minmax(0,1.1fr)] gap-2.5">
+          <div className="ml-auto grid w-full max-w-[1050px] grid-cols-5 gap-2.5">
             {[
               ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
               ["⛽", "AJOAINE", fuelLoading ? "Haetaan…" : `DI ${fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "–"}`, `95 ${fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "–"} / 98 ${fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "–"}`, "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
-              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "order-4" : title === "SÄHKÖ" ? "order-2" : "order-1"} ${title === "AJOAINE" ? "gap-0 !pl-[78px] !pr-2" : "gap-2 px-2"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
-                {title === "AJOAINE" ? <span className="absolute left-[19px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : title === "SÄHKÖ" ? (() => {
+              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "order-4" : title === "SÄHKÖ" ? "order-2" : "order-1"} ${title === "AJOAINE" ? "gap-0 !pl-[65px] !pr-1" : "gap-2 px-2"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
+                {title === "AJOAINE" ? <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : title === "SÄHKÖ" ? (() => {
                   // Compare the next quarter with the current quarter, matching mobile.
                   const color = electricityTrendColor;
                   return <svg viewBox="0 0 64 64" className="h-[29px] w-[29px] shrink-0 drop-shadow-sm" aria-hidden="true"><path d="M37 3 14 36h18L25 61l25-36H32L37 3Z" fill={color} stroke={color} strokeWidth="3" strokeLinejoin="round" /></svg>;
                 })() : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
                 {title === "AJOAINE" ? (
                   <>
-                    <span className="absolute left-[35px] top-[6px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
+                    <span className="absolute left-[29px] top-[6px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
                       {fuelNearestStation ? Number(fuelNearestStation.distanceKm).toLocaleString("fi-FI",{maximumFractionDigits:1})+" km" : "— km"}
                     </span>
-                    <span className="absolute bottom-[6px] left-[35px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
+                    <span className="absolute bottom-[6px] left-[29px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
                       {fuelNearestStation ? fuelStationBrand(fuelNearestStation) : "—"}
                     </span>
-                    <span className="flex min-w-0 flex-1 flex-col justify-center overflow-hidden">
+                    <span className="flex min-w-0 flex-1 flex-col justify-center">
                       <span className="mb-[3px] block whitespace-nowrap text-[10px] font-black tracking-[0.04em] leading-none text-[#625b43]">AJOAINE</span>
                       <span className="block whitespace-nowrap text-[11px] font-black leading-[1.25] text-[#102a24] tabular-nums">DI {fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "—"}</span>
                       <span className="block whitespace-nowrap text-[11px] font-black leading-[1.25] text-[#102a24] tabular-nums">95 {fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "—"}</span>
@@ -2875,7 +2875,7 @@ export default function DesktopPreviewPage() {
                             {value}
                             <span className="absolute left-1/2 top-[calc(100%+3px)] block -translate-x-1/2 whitespace-nowrap text-[10px] font-black leading-none text-[#706a58]">{detail.replace(/^c\/kWh\s*·?\s*/, "")}</span>
                           </span>
-                          <span className="ml-[4px] relative text-[10px] font-black leading-none text-[#706a58]">c/kWh</span>
+                          <span className="ml-[4px] relative shrink-0 text-[9px] font-black leading-none text-[#706a58]">c/kWh</span>
                         </span>
                       </>
                     ) : (
@@ -2892,10 +2892,10 @@ export default function DesktopPreviewPage() {
               <span className="text-[23px]" aria-hidden="true">🚗</span>
               <span className="min-w-0"><span className="block whitespace-nowrap text-[9px] font-black tracking-[0.08em] text-[#526b61]">NOPEUS</span><span className="block whitespace-nowrap text-[19px] font-black leading-tight text-[#102a24] tabular-nums">{desktopSpeedKmh !== null && desktopSpeedKmh > 20 ? desktopSpeedKmh : "—"} <span className="text-[9px]">km/h</span></span><span className="block whitespace-nowrap text-[9px] font-bold text-[#526b61]">Rajoitus —</span></span>
             </div>
-            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative order-5 flex h-[66px] items-center gap-3 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition ">
-              <span className="flex h-10 w-10 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
-              <span>
-                <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{month}</span>
+            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative order-5 flex h-[66px] min-w-0 items-center gap-2 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-2 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition ">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
+              <span className="min-w-0">
+                <span className="block truncate text-[9px] font-black tracking-[0.06em] text-[#625b43]">{month}</span>
                 <span className="mt-0.5 block text-[14px] font-black leading-none text-[#102a24]">Kalenteri</span>
                 <span className="mt-1 block text-[9px] font-black text-[#8a5b1d]">Avaa kalenteri →</span>
               </span>
