@@ -333,7 +333,11 @@ export function desktopSearchDecision(query: string, product: Row) {
 export function withDesktopCatalogEvidence<T extends Row>(product: T, catalog?: Row): T {
   const ean=String(product.ean || '');
   if(!catalog || !/^\d{8,14}$/.test(ean) || ean!==String(catalog.ean || ''))return product;
-  if(!compatibleCatalogNames(product.name || product.title,catalog.name || catalog.title,product.quantity))return product;
+  // Same-EAN shop quotes can use a shortened brand identity while the catalog
+  // carries the complete caffeine-free variant. Check compatible observed
+  // aliases as well; never transfer attributes between unrelated EANs.
+  const catalogNames=[String(catalog.name || catalog.title || ''),...(catalog.aliases || [])];
+  if(!catalogNames.some(name=>compatibleCatalogNames(product.name || product.title,name,product.quantity)))return product;
   if(/^2/.test(ean) && searchWords(product.name || product.title).join(' ')!==searchWords(catalog.name || catalog.title).join(' '))return product;
   const aliases=[...new Set([...(product.aliases || []),String(catalog.name || catalog.title || ''),...(catalog.aliases || [])].filter(Boolean))].slice(0,24);
   return {...product,aliases};
