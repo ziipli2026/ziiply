@@ -8,7 +8,7 @@ export function useZiiplyArrivalNotice(enabled: boolean) {
   const update = useCallback((decision: ZiiplyArrivalDecision, at: number) => {
     dispatch({ type: 'sample', decision, at });
     window.dispatchEvent(new CustomEvent('ziiply-arrival-debug', { detail: {
-      source: 'main', status: decision.status, store: decision.store?.name ?? null,
+      source: 'main', at, decision, status: decision.status, store: decision.store?.name ?? null,
       selected: decision.isSelectedStore, arrival: decision.showArrivalMessage, radar: decision.radar,
     } }));
   }, []);
