@@ -25411,7 +25411,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             if (mode !== storeMode) handleStoreModeChange(mode);
             selectStoreForCurrentMode(target, mode);
             arrivalNotice.dismiss();
-          }
+          }}
           onDismiss={arrivalNotice.dismiss}
           onSkip={arrivalNotice.skip}
           onList={() => {
