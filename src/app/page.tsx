@@ -14990,6 +14990,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const id = normalize(name);
       if (!unique.has(id)) unique.set(id, {id,name,latitude,longitude});
     }
+    // Include selected stores even when the 200m GPS candidate pool omits them.
+    // The engine needs their identity to offer a consented same-chain switch.
+    for (const selectedName of names) {
+      const id = normalize(selectedName);
+      if (unique.has(id)) continue;
+      const match = foundStores.find(store => normalize(String(store.name || "")) === id);
+      if (!match) continue;
+      const latitude = getStoreCoordinateV320(match, ["latitude","lat","y"]);
+      const longitude = getStoreCoordinateV320(match, ["longitude","lng","lon","x"]);
+      if (latitude != null && longitude != null) unique.set(id, {id,name:selectedName,latitude,longitude});
+    }
     const decision = evaluateZiiplyArrival(liveArrivalStateRefV864.current, {
       at:position.timestamp, latitude:position.coords.latitude, longitude:position.coords.longitude,
       accuracyMeters:position.coords.accuracy,
