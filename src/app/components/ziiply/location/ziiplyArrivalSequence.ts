@@ -42,6 +42,7 @@ export type ZiiplyArrivalState = {
   lastStationaryPosition: { latitude: number; longitude: number } | null;
   tripConfirmed: boolean;
   arrivalStoreId: string | null;
+  recoveringFromBadGps: boolean;
 };
 export type ZiiplyArrivalDecision = {
   state: ZiiplyArrivalState;
@@ -56,6 +57,7 @@ export type ZiiplyArrivalDecision = {
 export const initialZiiplyArrivalState = (): ZiiplyArrivalState => ({
   tripStartedAt: null, stoppedAt: null, lastStationarySampleAt: null,
   lastStationaryPosition: null, tripConfirmed: false, arrivalStoreId: null,
+  recoveringFromBadGps: false,
 });
 const rad = (n: number) => n * Math.PI / 180;
 export function ziiplyDistanceMeters(a: {latitude:number;longitude:number}, b:{latitude:number;longitude:number}) {
@@ -71,9 +73,12 @@ export function evaluateZiiplyArrival(
   selectedStoreNames: string[] = [],
 ): ZiiplyArrivalDecision {
   const state={...previous};
+  const wasRecoveringFromBadGps=state.recoveringFromBadGps;
+  state.recoveringFromBadGps=false;
   const valid=Number.isFinite(sample.latitude)&&Number.isFinite(sample.longitude)
     &&Number.isFinite(sample.accuracyMeters)&&sample.accuracyMeters>0
     &&sample.accuracyMeters<=50;
+  if(!valid && state.arrivalStoreId) state.recoveringFromBadGps=true;
   const candidates=valid?stores.map(store=>({store,distance:ziiplyDistanceMeters(sample,store)}))
     .filter(x=>x.distance<=ZIIPLY_APPROACH_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
   // GPS uncertainty: if two shops are indistinguishable within the accuracy radius,
@@ -99,10 +104,13 @@ export function evaluateZiiplyArrival(
   }
   const stationaryArrival=selectedNearby&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=20000;
   const arrivalConfirmed=!!store&&valid&&stationary&&(candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS||(stationaryArrival&&selectedStoreIds.includes(store.id)));
-  // Once confirmed, tolerate indoor GPS drift while still near the selected shop.
-  // Release only when the device is clearly outside the approach area.
-  const retainedArrival=!!store&&valid&&state.arrivalStoreId===store.id
-    &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS;
+  // A single poor-accuracy sample may be followed by a drifted indoor fix.
+  // This recovery exception is one-shot; ordinary approach fixes never retain collection.
+  const retainedArrival=!!store&&valid&&stationary&&state.arrivalStoreId===store.id
+    &&(candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS
+      ||(wasRecoveringFromBadGps&&candidates[0].distance<=130
+        &&previous.lastStationarySampleAt!==null
+        &&sample.at-previous.lastStationarySampleAt<=20000));
   const inStore=!!store&&valid&&(arrivalConfirmed||retainedArrival);
   const showArrivalMessage=!!inStore&&state.arrivalStoreId!==store?.id;
   if(inStore)state.arrivalStoreId=store.id;
