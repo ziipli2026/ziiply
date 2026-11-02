@@ -2199,16 +2199,43 @@ function KauppiasMobileTopBar({
     const { latitude, longitude, accuracy, heading } = position.coords;
     if (accuracy > 100 || now - lastLimitQueryAt < 12000) {
       const target = document.getElementById("mobile-speed-limit-debug");
-      if (target && accuracy > 100) target.textContent = "GPS liian epätarkka ±" + Math.round(accuracy) + " m";
+      if (target && accuracy > 100) { const h = document.getElementById("mobile-speed-limit-debug-history"); if (h) h.textContent += "\nGPS liian epätarkka ±" + Math.round(accuracy) + " m"; }
       return;
     }
     lastLimitQueryAt = now;
     const generation = ++limitGeneration;
     const controller = new AbortController();
     const debugLine = (message: string) => {
-      const target = document.getElementById("mobile-speed-limit-debug");
-      if (!target) { const el = document.createElement("div"); el.id = "mobile-speed-limit-debug"; el.style.cssText = "position:fixed;z-index:2147483647;top:35%;left:8px;right:8px;background:#111;color:#baffbd;padding:12px;border:2px solid white;border-radius:10px;font:600 14px monospace;pointer-events:none"; document.body.appendChild(el); }
-      document.getElementById("mobile-speed-limit-debug")!.textContent = new Date().toLocaleTimeString("fi-FI") + " " + message;
+      let target = document.getElementById("mobile-speed-limit-debug");
+      if (!target) {
+        const panel = document.createElement("details");
+        panel.id = "mobile-speed-limit-debug";
+        panel.style.cssText = "position:fixed;z-index:2147483647;bottom:90px;left:8px;right:8px;max-height:42vh;overflow:auto;background:#111;color:#baffbd;border:2px solid white;border-radius:10px;padding:8px;font:12px/1.4 monospace";
+        const summary = document.createElement("summary");
+        summary.textContent = "GPS / RAJOITUS DEBUG – avaa loki";
+        panel.appendChild(summary);
+        const copy = document.createElement("button");
+        copy.textContent = "Kopioi loki";
+        copy.type = "button";
+        copy.style.cssText = "margin:8px;padding:6px;background:#fff;color:#111;border-radius:5px";
+        copy.onclick = () => {
+          const data = document.getElementById("mobile-speed-limit-debug-history")?.textContent ?? "";
+          void navigator.clipboard.writeText(data).then(() => { copy.textContent = "Kopioitu"; }).catch(() => { copy.textContent = "Kopiointi epäonnistui"; });
+        };
+        panel.appendChild(copy);
+        const history = document.createElement("pre");
+        history.id = "mobile-speed-limit-debug-history";
+        history.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;margin:4px";
+        panel.appendChild(history);
+        document.body.appendChild(panel);
+        target = panel;
+      }
+      const history = document.getElementById("mobile-speed-limit-debug-history");
+      if (history) {
+        const lines = (history.textContent ?? "").split("\n").filter(Boolean);
+        lines.push(new Date().toLocaleTimeString("fi-FI") + " " + message);
+        history.textContent = lines.slice(-80).join("\n");
+      }
     };
     debugLine("GPS ±" + Math.round(accuracy) + " m | haku alkaa");
     const timeout = window.setTimeout(() => { debugLine("AIKAKATKAISU 39 s"); controller.abort(); }, 39000);
@@ -2218,22 +2245,29 @@ function KauppiasMobileTopBar({
       accuracy: String(accuracy),
     });
     if (heading !== null && Number.isFinite(heading)) params.set("heading", String(heading));
+    params.set("debug", "1");
     void fetch("/api/mobile-speed-limit?" + params.toString(), {
       signal: controller.signal,
       cache: "no-store",
     }).then(async response => {
-      if (!response.ok) {
-        debugLine("HTTP " + response.status + " | palvelinhaku epäonnistui");
-        throw new Error("speed limit unavailable");
-      }
-      return response.json() as Promise<{ limit: number | null; reason?: string }>;
+      const data = await response.json() as {
+        limit: number | null; reason?: string;
+        diagnostics?: { accuracy: number; radius: number; providers: Array<{provider:string;ms:number;status:number|null;outcome:string;candidates?:number}> };
+      };
+      const providerLines = data.diagnostics?.providers.map(p =>
+        p.provider + " | HTTP " + (p.status ?? "—") + " | " + p.outcome + " | " + p.ms + "ms | roads " + (p.candidates ?? "—")
+      ).join("\n") ?? "Palvelimen diagnostiikka puuttuu";
+      debugLine("GPS ±" + (data.diagnostics?.accuracy ?? Math.round(accuracy)) + "m | " +
+        (data.reason ?? "tuntematon") + "\n" + providerLines);
+      if (!response.ok) throw new Error("HTTP " + response.status + " " + (data.reason ?? ""));
+      return data;
     }).then(data => {
       if (!active || generation !== limitGeneration) return;
       const limit = typeof data.limit === "number" && Number.isFinite(data.limit) ? data.limit : null;
       debugLine(limit === null ? "EI RAJOITUSTA | " + (data.reason ?? "tuntematon") : "RAJOITUS " + limit + " km/h | " + (data.reason ?? "matched"));
       setMobileSpeedLimit(limit);
      }).catch((error: unknown) => {
-      debugLine("HAKUVIRHE " + (error instanceof Error ? error.name + ": " + error.message : String(error)));
+      if (!(error instanceof Error && error.message.startsWith("HTTP "))) debugLine("VERKKOVIRHE " + (error instanceof Error ? error.name + ": " + error.message : String(error)));
       if (active && generation === limitGeneration) setMobileSpeedLimit(null);
     }).finally(() => window.clearTimeout(timeout));
   };
