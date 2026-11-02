@@ -14,7 +14,7 @@ assert.equal(photo.validateFuelStationLocation('offline',{...evidence,photoGps:u
 const device={...gps,accuracy:8};
 assert.equal(photo.fuelPhotoEvidenceLocation('online',{...evidence,photoGps:unknown,deviceGps:device}),device);
 assert.equal(photo.fuelPhotoEvidenceLocation('offline',{...evidence,photoGps:unknown,deviceGps:device}),unknown);
-assert.equal(photo.identifyFuelPhotoStation([{id:'1',name:'ABC',chain:'ABC',...near}],device,'ABC',false),'1');
+assert.equal(photo.identifyFuelPhotoStation([{id:'1',name:'ABC',chain:'ABC',...near}],device,'ABC',false),'','49m station must not auto-select beyond 30m even with matching OCR');
 assert.equal(photo.validateFuelStationLocation('offline',evidence,far).ok,false);
 assert.equal(photo.validateFuelStationLocation('offline',{...evidence,photoGps:null},near).ok,false);
 assert.equal(photo.validateFuelStationLocation('offline',{...evidence,photoGps:{...gps,accuracy:2000}},near).ok,false);
@@ -29,5 +29,5 @@ assert.equal(photo.validateFuelStationLocation('manual',{...evidence,photoGps:nu
   const r=await POST({headers:{get:k=>k==='origin'?'https://ziiply.vercel.app':null},nextUrl:{origin:'https://ziiply.vercel.app'},text:async()=>JSON.stringify(body)});
   assert.equal(r.status,409,path+' must reject a station 4.5 km away even with confirmation');assert.equal(writes,0,'rejection must happen before report, observation or learning writes');
  }
- console.log('PASS: hard 250m station limit, 49m allowed after explicit selection, unknown precision never auto-selected, 4.5km rejected, missing/inaccurate GPS rejected, confirmation cannot bypass either API');
+ console.log('PASS: hard 250m station limit, 49m requires manual selection, unknown precision never auto-selected, 4.5km rejected, missing/inaccurate GPS rejected, confirmation cannot bypass either API');
 })().catch(e=>{console.error(e);process.exitCode=1});
