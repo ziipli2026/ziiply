@@ -2182,6 +2182,15 @@ function KauppiasMobileTopBar({
   // Sääkenttä saa tehdä avauksessa yhden GPS-haun. Onnistunut koordinaatti
   // palautetaan page.tsx:lle, joka käyttää sitä paikkakuntaan ja kauppahakuun.
   // Oma page-boot-GPS pysyy silti pois päältä.
+  const [mobileDrivingSpeed, setMobileDrivingSpeed] = useState<number | null>(null);
+  useEffect(() => {
+    const onSpeed = (event: Event) => {
+      const speed = (event as CustomEvent<number | null>).detail;
+      setMobileDrivingSpeed(typeof speed === "number" && Number.isFinite(speed) && speed > 20 ? Math.round(speed) : null);
+    };
+    window.addEventListener("ziiply:gps-speed-kmh", onSpeed);
+    return () => window.removeEventListener("ziiply:gps-speed-kmh", onSpeed);
+  }, []);
   const [weatherValue, setWeatherValue] = useState("—°");
   const [weatherText, setWeatherText] = useState(areaLabel);
   const [weatherGpsFallbackCoordsV104, setWeatherGpsFallbackCoordsV104] = useState<{
@@ -2944,16 +2953,16 @@ function KauppiasMobileTopBar({
       </div>
     </div>
       {/* Compact mobile speed sign — fixed 0 preview, space reserved for three digits. */}
-      <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+84px)] z-[299] -translate-x-1/2 sm:hidden">
+      {mobileDrivingSpeed !== null && <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+84px)] z-[299] -translate-x-1/2 sm:hidden">
         <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[0.9rem] border-[3px] border-[#073d32] bg-[#fff5d9] text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
           <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <div className="absolute inset-x-[3px] top-[10px] flex h-[40px] items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums">0</div>
+          <div className="absolute inset-x-[3px] top-[10px] flex h-[40px] items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums">{mobileDrivingSpeed}</div>
           <div className="absolute inset-x-0 bottom-[9px] whitespace-nowrap text-center text-[8px] font-black leading-none">Rajoitus <span className="text-[9px]">—</span></div>
         </div>
-      </div>
+      </div>}
       {mobileFuelMenuOpen && (
         <ZiiplyMobileFuelMenu
           onClose={() => setMobileFuelMenuOpen(false)}
@@ -14982,6 +14991,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (eanScannerOpen) setScannerLocationStatusV855(current => current ? {...current, verified:false, checking:true} : null);
       return;
     }
+    // Reuse the existing GPS sample; do not start a second geolocation watcher.
+    window.dispatchEvent(new CustomEvent("ziiply:gps-speed-kmh", {
+      detail: typeof position.coords.speed === "number" && Number.isFinite(position.coords.speed) && position.coords.speed >= 0
+        ? position.coords.speed * 3.6 : null,
+    }));
     if (position.timestamp <= liveArrivalLastFixAtRefV864.current) return;
     if (position.timestamp - liveArrivalLastFixAtRefV864.current > 30000 && !liveArrivalDecisionRefV864.current?.state.arrivalStoreId)
       liveArrivalStateRefV864.current = initialZiiplyArrivalState();
