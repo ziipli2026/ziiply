@@ -7,6 +7,8 @@ on:
       - 'src/app/components/ziiply/location/**'
       - 'scripts/test-gps-arrival-indoor-regression.cjs'
       - 'scripts/test-gps-same-group-store-change.cjs'
+      - 'scripts/test-gps-store-change-ui.cjs'
+      - 'src/app/components/ziiply/location/ZiiplyArrivalNotice.tsx'
       - 'src/app/page.tsx'
       - '.github/workflows/gps-arrival-indoor-regression.yml'
   workflow_dispatch:
@@ -23,6 +25,7 @@ jobs:
       - run: npm ci
       - run: node scripts/test-gps-arrival-indoor-regression.cjs
       - run: node scripts/test-gps-same-group-store-change.cjs
+      - run: node scripts/test-gps-store-change-ui.cjs
       - run: node scripts/test-ziiply-arrival-sequence.cjs
       - run: node scripts/test-ziiply-arrival-scenarios.cjs
       - run: node scripts/test-scanner-live-arrival.cjs
