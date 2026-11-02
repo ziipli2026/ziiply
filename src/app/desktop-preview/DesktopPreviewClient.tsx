@@ -2723,8 +2723,8 @@ export default function DesktopPreviewPage() {
         }catch{}
         if(cancelled)return;
         setElectricityPrices(chartPrices);
-        const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end);
-        setElectricity(price!=null&&currentWindow?{value:price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh · "+new Date(currentWindow.start).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})+"–"+new Date(currentWindow.end).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})}:{value:"—",detail:"ei ajantasaista hintaa"});
+        const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end&&item.end-item.start===15*60*1000);
+        setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh"}:{value:"—",detail:"varttihinta ei saatavilla"});
       })();
     };
     // Align updates to :01, :16, :31 and :46 every hour.
