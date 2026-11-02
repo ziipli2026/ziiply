@@ -2184,15 +2184,27 @@ function KauppiasMobileTopBar({
   // Oma page-boot-GPS pysyy silti pois päältä.
   const [mobileDrivingSpeed, setMobileDrivingSpeed] = useState<number | null>(null);
   useEffect(() => {
-    // Speed display must receive continuous GPS updates, independently of
-    // store-arrival polling (which can be slow or reject fixes in a moving car).
+    // Start displaying after the first >20 km/h sample. Keep showing at lower
+    // speeds, and hide only after 30 continuous seconds of confirmed standstill.
     if (!navigator.geolocation) return;
-    let lastFixAt = 0;
     let active = true;
-    const applySpeed = (kmh: number | null, timestamp: number) => {
-      if (!active || kmh === null || !Number.isFinite(kmh) || timestamp < lastFixAt) return;
+    let lastFixAt = 0;
+    let hasStartedDriving = false;
+    let stationarySince: number | null = null;
+    let lastSpeedKmh: number | null = null;
+    const applySpeed = (kmh: number, timestamp: number) => {
+      if (!active || !Number.isFinite(kmh) || kmh < 0 || timestamp <= lastFixAt) return;
       lastFixAt = timestamp;
-      setMobileDrivingSpeed(kmh > 20 ? Math.round(kmh) : null);
+      lastSpeedKmh = kmh;
+      if (kmh > 20) hasStartedDriving = true;
+      if (!hasStartedDriving) return;
+      // GPS can fluctuate near zero: <=2 km/h is treated as stationary.
+      if (kmh <= 2) {
+        stationarySince ??= Date.now();
+      } else {
+        stationarySince = null;
+      }
+      setMobileDrivingSpeed(Math.round(kmh));
     };
     const onSpeed = (event: Event) => {
       const speed = (event as CustomEvent<number | null>).detail;
@@ -2206,11 +2218,22 @@ function KauppiasMobileTopBar({
           applySpeed(speed * 3.6, position.timestamp);
         }
       },
-      () => { /* Keep the last valid speed during temporary GPS interruptions. */ },
+      () => { /* Missing GPS fix does not count as confirmed standstill. */ },
       { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
     );
+    const stationaryTimer = window.setInterval(() => {
+      if (hasStartedDriving && stationarySince !== null &&
+          lastSpeedKmh !== null && lastSpeedKmh <= 2 &&
+          Date.now() - stationarySince >= 30000 &&
+          Date.now() - lastFixAt <= 10000) {
+        hasStartedDriving = false;
+        stationarySince = null;
+        setMobileDrivingSpeed(null);
+      }
+    }, 1000);
     return () => {
       active = false;
+      window.clearInterval(stationaryTimer);
       window.removeEventListener("ziiply:gps-speed-kmh", onSpeed);
       navigator.geolocation.clearWatch(watchId);
     };
