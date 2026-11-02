@@ -597,6 +597,7 @@ export default function DesktopPreviewPage() {
 
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
+  const [electricityTrendColor, setElectricityTrendColor] = useState("#888888");
   const [electricityOpen, setElectricityOpen] = useState(false);
   const [electricityPrices, setElectricityPrices] = useState<{start:number;end:number;price:number}[]>([]);
   const [electricityOfferTypes, setElectricityOfferTypes] = useState<string[]>([]);
@@ -2726,6 +2727,9 @@ export default function DesktopPreviewPage() {
         // Match mobile main: use the price for the interval containing the current instant.
         // Only label an interval as a quarter-hour when the provider actually supplies 15 minutes.
         const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end&&item.end-item.start===15*60*1000);
+        const nextWindow=currentWindow?chartPrices.find(item=>item.start===currentWindow.end&&item.end-item.start===15*60*1000):undefined;
+        const delta=currentWindow&&nextWindow?nextWindow.price-currentWindow.price:null;
+        setElectricityTrendColor(delta==null?"#888888":delta>0.5?"#c93632":delta< -0.5?"#159447":"#888888");
         const quarter=currentWindow&&currentWindow.end-currentWindow.start===15*60*1000;
         const interval=quarter?" · "+new Date(currentWindow.start).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})+"–"+new Date(currentWindow.end).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"}):"";
         setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh"+interval}:{value:"—",detail:"ei ajantasaista hintaa"});
@@ -2837,9 +2841,8 @@ export default function DesktopPreviewPage() {
             ].map(([icon, title, value, detail, theme]) => (
               <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "gap-0 !pl-[78px] !pr-2" : "gap-3 px-4"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
                 {title === "AJOAINE" ? <span className="absolute left-[19px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : title === "SÄHKÖ" ? (() => {
-                  // Same price categories as mobile electricityLevel: <8 low, 8–16 normal, >16 high.
-                  const amount = Number(electricity.value.replace(",", "."));
-                  const color = !Number.isFinite(amount) ? "#b8a77e" : amount < 8 ? "#159447" : amount <= 16 ? "#d8a928" : "#c93632";
+                  // Compare the next quarter with the current quarter, matching mobile.
+                  const color = electricityTrendColor;
                   return <svg viewBox="0 0 64 64" className="h-[29px] w-[29px] shrink-0 drop-shadow-sm" aria-hidden="true"><path d="M37 3 14 36h18L25 61l25-36H32L37 3Z" fill={color} stroke={color} strokeWidth="3" strokeLinejoin="round" /></svg>;
                 })() : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
                 {title === "AJOAINE" ? (
