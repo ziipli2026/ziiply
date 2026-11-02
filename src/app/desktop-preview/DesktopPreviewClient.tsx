@@ -2723,8 +2723,12 @@ export default function DesktopPreviewPage() {
         }catch{}
         if(cancelled)return;
         setElectricityPrices(chartPrices);
-        const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end&&item.end-item.start===15*60*1000);
-        setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh · "+new Date(currentWindow.start).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})+"–"+new Date(currentWindow.end).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})}:{value:"—",detail:"varttihinta ei saatavilla"});
+        // Match mobile main: use the price for the interval containing the current instant.
+        // Only label an interval as a quarter-hour when the provider actually supplies 15 minutes.
+        const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end);
+        const quarter=currentWindow&&currentWindow.end-currentWindow.start===15*60*1000;
+        const interval=quarter?" · "+new Date(currentWindow.start).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})+"–"+new Date(currentWindow.end).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"}):"";
+        setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh"+interval}:{value:"—",detail:"ei ajantasaista hintaa"});
       })();
     };
     // Align updates to :01, :16, :31 and :46 every hour.
