@@ -25406,7 +25406,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           notice={arrivalNotice.notice}
           onConfirmStoreChange={(storeId) => {
             const decision = liveArrivalDecisionRefV864.current;
-            if (arrivalNotice.notice?.phase !== "change-store" || arrivalNotice.notice.store?.id !== storeId) return;
+            if (arrivalNotice.notice?.phase !== "change-store" || arrivalNotice.notice.id !== storeId) return;
             const target = foundStores.map(normalizeStoreForPickerV320).find(store =>
               normalize(String(store.name || "")) === storeId &&
               (store.type === "S" || store.type === "K"));
