@@ -2950,10 +2950,9 @@ function KauppiasMobileTopBar({
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <span className="block text-[18px] leading-none" aria-hidden="true">🚗</span>
-          <span className="mt-[1px] block whitespace-nowrap text-[7px] font-black tracking-[0.02em]">NOPEUS</span>
-          <span className="mt-[1px] block whitespace-nowrap text-[17px] font-black leading-none tabular-nums">0 <span className="text-[7px]">km/h</span></span>
-          <span className="mt-[2px] block whitespace-nowrap text-[7px] font-bold leading-none">Rajoitus —</span>
+          <span className="absolute -mt-[5px] block text-[18px] leading-none" aria-hidden="true">🚗</span>
+          <span className="mt-[3px] block whitespace-nowrap text-[28px] font-black leading-none tabular-nums">0 <span className="text-[11px]">km/h</span></span>
+          <span className="mt-[3px] block whitespace-nowrap text-[9px] font-black leading-none">Rajoitus <span className="text-[11px]">—</span></span>
         </div>
       </div>
       {mobileFuelMenuOpen && (
