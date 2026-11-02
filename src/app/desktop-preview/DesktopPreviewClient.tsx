@@ -2815,7 +2815,7 @@ export default function DesktopPreviewPage() {
       <div aria-hidden className="pointer-events-none absolute left-[44%] top-[10%] h-[190px] w-[190px] rotate-12 rounded-[44px] border border-[#8c7042]/10 bg-[#fff7df]/18 shadow-[0_30px_80px_rgba(70,60,35,0.05)]" />
 
       <div className="relative mx-auto flex h-[100dvh] min-h-0 w-full max-w-[1800px] flex-col overflow-hidden px-8 pb-2 pt-3 xl:px-12 xl:pb-2 xl:pt-3">
-        <header ref={desktopHeaderRef} className="grid grid-cols-[auto_minmax(360px,0.68fr)_minmax(650px,1fr)] items-center gap-5 border-b border-[#64745f]/20 pb-4">
+        <header ref={desktopHeaderRef} className="grid grid-cols-[minmax(215px,240px)_minmax(265px,300px)_minmax(0,1fr)] items-center gap-3 border-b border-[#64745f]/20 pb-4">
           <div className="flex items-center gap-3">
             <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
             <div>
@@ -2824,7 +2824,7 @@ export default function DesktopPreviewPage() {
             </div>
           </div>
 
-          <div className="relative grid h-[66px] min-w-0 grid-cols-[52px_minmax(180px,1fr)_64px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
+          <div className="relative grid h-[66px] min-w-0 grid-cols-[52px_minmax(0,1fr)_52px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
             <div className="grid h-[52px] w-[52px] place-items-center"><button type="button" onClick={() => { useGps(); }} title={gpsOn ? "Päivitä GPS-sijainti" : locationStatus} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
               <span className="text-[23px]">📍</span>{gpsToast&&<span className="absolute left-1/2 top-[62px] z-50 w-max -translate-x-1/2 rounded-full border border-[#6f806a]/20 bg-[#fffaf0] px-3 py-1.5 text-[10px] font-black text-[#536252] shadow-lg">{gpsToast}</span>}
               <span className={`absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white shadow-sm ${gpsOn?"bg-[#159447]":"bg-[#a44f4f]"}`} />
@@ -2833,18 +2833,18 @@ export default function DesktopPreviewPage() {
               <span className="block text-[8px] font-black uppercase tracking-[0.12em] text-[#756848]">Paikkakunta tai postinumero</span>
               <input value={location} onChange={(e) => setLocation(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") applyLocation(); }} aria-label="Paikkakunta tai postinumero" className="mt-0.5 block w-full bg-transparent text-[15px] font-black text-[#241b13] outline-none placeholder:text-[#766e5c]" placeholder="05510 tai Hyvinkää" />
             </label>
-            <button type="button" onClick={() => setMapOpen(true)} title="Avaa kartta" className="group grid h-[52px] w-[64px] place-items-center rounded-[16px] border-2 border-[#65a99c] bg-gradient-to-b from-[#c8eee8] to-[#86cabf] shadow-[inset_0_1px_0_rgba(255,255,255,.65)]">
-              <img src="/icons/ziiply-compass.png" alt="Avaa kartta" className="h-[43px] w-[43px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,.24)] transition " />
+            <button type="button" onClick={() => setMapOpen(true)} title="Avaa kartta" className="group grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 border-[#65a99c] bg-gradient-to-b from-[#c8eee8] to-[#86cabf] shadow-[inset_0_1px_0_rgba(255,255,255,.65)]">
+              <img src="/icons/ziiply-compass.png" alt="Avaa kartta" className="h-[39px] w-[39px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,.24)] transition " />
             </button>
           </div>
 
-          <div className="ml-auto grid w-full max-w-[1050px] grid-cols-5 gap-2.5">
+          <div className="ml-auto grid w-full min-w-0 grid-cols-5 gap-2">
             {[
               ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
               ["⛽", "AJOAINE", fuelLoading ? "Haetaan…" : `DI ${fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "–"}`, `95 ${fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "–"} / 98 ${fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "–"}`, "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
-              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "order-4" : title === "SÄHKÖ" ? "order-2" : "order-1"} ${title === "AJOAINE" ? "gap-0 !pl-[65px] !pr-1" : "gap-2 px-2"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
+              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "order-4" : title === "SÄHKÖ" ? "order-3" : "order-2"} ${title === "AJOAINE" ? "gap-0 !pl-[65px] !pr-1" : "gap-2 px-2"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
                 {title === "AJOAINE" ? <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : title === "SÄHKÖ" ? (() => {
                   // Compare the next quarter with the current quarter, matching mobile.
                   const color = electricityTrendColor;
@@ -2888,7 +2888,7 @@ export default function DesktopPreviewPage() {
                 )}
               </button>
             ))}
-            <div aria-label="Ajonopeus" className="relative order-3 flex h-[66px] min-w-0 items-center justify-center gap-2 rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-2 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
+            <div aria-label="Ajonopeus" className="relative order-1 flex h-[66px] min-w-0 items-center justify-center gap-2 rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-2 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
               <span className="text-[23px]" aria-hidden="true">🚗</span>
               <span className="min-w-0"><span className="block whitespace-nowrap text-[9px] font-black tracking-[0.08em] text-[#526b61]">NOPEUS</span><span className="block whitespace-nowrap text-[19px] font-black leading-tight text-[#102a24] tabular-nums">{desktopSpeedKmh !== null && desktopSpeedKmh > 20 ? desktopSpeedKmh : "—"} <span className="text-[9px]">km/h</span></span><span className="block whitespace-nowrap text-[9px] font-bold text-[#526b61]">Rajoitus —</span></span>
             </div>
