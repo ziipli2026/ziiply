@@ -460,23 +460,18 @@ export default function ZiiplyMobileTopBar({
       setAutoElectricityText("haetaan");
 
       try {
-        let price: number | null = null;
-        let latestError = "";
-
-        try {
-          price = await readFromLatestPrices();
-        } catch (error) {
-          latestError = error instanceof Error ? error.message : "listahaku";
-        }
-
-        if (price == null) {
-          try {
-            price = await readFromDirectPrice();
-          } catch (error) {
-            const directError = error instanceof Error ? error.message : "suorahaku";
-            throw new Error(`${latestError} / ${directError}`);
-          }
-        }
+        // Use the same API, current time window and price field as desktop.
+        const data = await fetchJson("/api/desktop-electricity");
+        const prices = Array.isArray(data?.prices) ? data.prices : [];
+        const now = Date.now();
+        const current = prices.find((item: any) => {
+          const start = new Date(item.startDate ?? item.start).getTime();
+          const end = new Date(item.endDate ?? item.end).getTime();
+          return Number.isFinite(start) && Number.isFinite(end) && start <= now && now < end;
+        });
+        if (!current) throw new Error("ei nykyhetkeä");
+        const price = readPrice(current);
+        if (price == null) throw new Error("ei hintaa");
 
         if (cancelled) return;
 
