@@ -3,9 +3,10 @@ import { matchRoadSpeedLimit, type OsmRoad } from "@/lib/mobile-speed-limit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const endpoints = [
-  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
   "https://overpass-api.de/api/interpreter",
   "https://overpass.nchc.org.tw/api/interpreter",
+  "https://overpass.osm.ch/api/interpreter",
 ];
 type Attempt = { provider: string; ms: number; status: number | null; outcome: string; candidates?: number; limit?: number | null };
 export async function GET(request: NextRequest) {
@@ -30,11 +31,10 @@ export async function GET(request: NextRequest) {
     const started = Date.now();
     let status: number | null = null;
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        body: new URLSearchParams({ data: query }),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        signal: AbortSignal.timeout(8500),
+      const response = await fetch(endpoint + "?data=" + encodeURIComponent(query), {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+        signal: AbortSignal.timeout(6500),
         cache: "no-store",
       });
       status = response.status;
