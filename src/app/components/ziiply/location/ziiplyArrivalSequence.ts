@@ -83,7 +83,7 @@ export function evaluateZiiplyArrival(
   // A mapped shop coordinate may be at the building centre rather than its entrance.
   // Only extend the arrival radius for the explicitly selected store after
   // 20 seconds of stable positioning; do not change selection automatically.
-  const selectedNearby=!!store&&selectedStoreIds.includes(store.id)
+  const selectedNearby=!!store
     &&candidates[0].distance<=Math.min(130,ZIIPLY_STORE_RADIUS_METERS+Math.max(40,sample.accuracyMeters*2));
   const stationary=sample.speedKmh===null||sample.speedKmh<5;
   const anchor=state.lastStationaryPosition;
@@ -101,7 +101,7 @@ export function evaluateZiiplyArrival(
   // Once confirmed, tolerate indoor GPS drift while still near the selected shop.
   // Release only when the device is clearly outside the approach area.
   const retainedArrival=!!store&&valid&&state.arrivalStoreId===store.id
-    &&selectedStoreIds.includes(store.id)&&candidates[0].distance<=ZIIPLY_APPROACH_RADIUS_METERS;
+    &&candidates[0].distance<=ZIIPLY_APPROACH_RADIUS_METERS;
   const inStore=!!store&&valid&&(arrivalConfirmed||retainedArrival);
   const showArrivalMessage=!!inStore&&state.arrivalStoreId!==store?.id;
   if(inStore)state.arrivalStoreId=store.id;
