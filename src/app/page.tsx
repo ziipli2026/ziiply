@@ -6174,9 +6174,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const savedS = getActiveAreaStoreCandidateV139("S", gpsMode);
       const savedK = getActiveAreaStoreCandidateV139("K", gpsMode);
       const selectedS = manualCandidate("S", gpsMode) ??
-        (gpsMode === "local" ? ranked.sLocal : ranked.sHyper) ?? savedS;
+        savedS ?? (gpsMode === "local" ? ranked.sLocal : ranked.sHyper);
       const selectedK = manualCandidate("K", gpsMode) ??
-        (gpsMode === "local" ? ranked.kLocal : ranked.kHyper) ?? savedK;
+        savedK ?? (gpsMode === "local" ? ranked.kLocal : ranked.kHyper);
       return {
         sStoreId: selectedS?.id ?? 0,
         sStoreName: selectedS?.name ?? (gpsMode === "local" ? "S-lähikauppa ei valittu" : "S-tavaratalo ei valittu"),
@@ -25406,7 +25406,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           notice={arrivalNotice.notice}
           onConfirmStoreChange={(storeId) => {
             const decision = liveArrivalDecisionRefV864.current;
-            if (!decision?.askStoreChange || !decision.store || decision.store.id !== storeId) return;
+            if (arrivalNotice.notice?.phase !== "change-store" || arrivalNotice.notice.store?.id !== storeId) return;
             const target = foundStores.map(normalizeStoreForPickerV320).find(store =>
               normalize(String(store.name || "")) === storeId &&
               (store.type === "S" || store.type === "K"));
