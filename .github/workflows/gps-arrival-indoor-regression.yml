@@ -10,7 +10,7 @@ on:
       - 'src/app/page.tsx'
       - '.github/workflows/gps-arrival-indoor-regression.yml'
   workflow_dispatch:
-  # Explicit rerun requested after arrival-sequence test correction (2026-11-02).
+  # Force a fresh push-triggered run for the corrected GPS scenario tests (2026-11-02).
 jobs:
   arrival:
     runs-on: ubuntu-latest
