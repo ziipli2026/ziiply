@@ -2836,7 +2836,12 @@ export default function DesktopPreviewPage() {
               ["⛽", "AJOAINE", fuelLoading ? "Haetaan…" : `DI ${fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "–"}`, `95 ${fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "–"} / 98 ${fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "–"}`, "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
               <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "gap-0 !pl-[78px] !pr-2" : "gap-3 px-4"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
-                {title === "AJOAINE" ? <span className="absolute left-[19px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
+                {title === "AJOAINE" ? <span className="absolute left-[19px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : title === "SÄHKÖ" ? (() => {
+                  // Same price categories as mobile electricityLevel: <8 low, 8–16 normal, >16 high.
+                  const amount = Number(electricity.value.replace(",", "."));
+                  const color = !Number.isFinite(amount) ? "#b8a77e" : amount < 8 ? "#159447" : amount <= 16 ? "#d8a928" : "#c93632";
+                  return <svg viewBox="0 0 64 64" className="h-[29px] w-[29px] shrink-0 drop-shadow-sm" aria-hidden="true"><path d="M37 3 14 36h18L25 61l25-36H32L37 3Z" fill={color} stroke={color} strokeWidth="3" strokeLinejoin="round" /></svg>;
+                })() : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
                 {title === "AJOAINE" ? (
                   <>
                     <span className="absolute left-[35px] top-[6px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
