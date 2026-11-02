@@ -68,6 +68,7 @@ export function evaluateZiiplyArrival(
   sample: ZiiplyArrivalSample,
   stores: ZiiplyArrivalStore[],
   selectedStoreIds: string[],
+  selectedStoreNames: string[] = [],
 ): ZiiplyArrivalDecision {
   const state={...previous};
   const valid=Number.isFinite(sample.latitude)&&Number.isFinite(sample.longitude)
@@ -84,7 +85,7 @@ export function evaluateZiiplyArrival(
   // Only extend the arrival radius for the explicitly selected store after
   // 20 seconds of stable positioning; do not change selection automatically.
   const selectedNearby=!!store
-    &&candidates[0].distance<=Math.min(130,ZIIPLY_STORE_RADIUS_METERS+Math.max(40,sample.accuracyMeters*2));
+    &&candidates[0].distance<=130;
   const stationary=sample.speedKmh===null||sample.speedKmh<5;
   const anchor=state.lastStationaryPosition;
   const stable=!anchor||ziiplyDistanceMeters(anchor,sample)<=Math.max(35,sample.accuracyMeters*1.5);
@@ -112,11 +113,16 @@ export function evaluateZiiplyArrival(
   const selectedPeers=store && !isSelectedStore && detectedGroup
     ? stores.filter(s=>{const g=groupOf(s);return selectedStoreIds.includes(s.id)&&g?.chainId===detectedGroup.chainId;})
     : [];
-  const eligibleChange=selectedPeers.length===1 && !!store && !isSelectedStore;
+  const selectedNamesInChain = selectedStoreNames.filter(name => {
+    const group = ziiplyStoreChainGroup(name);
+    return !!detectedGroup && group?.chainId === detectedGroup.chainId && name.trim().toLowerCase() !== store?.name.trim().toLowerCase();
+  });
+  const selectedName = selectedNamesInChain[0] ?? (selectedPeers.length === 1 ? selectedPeers[0].name : null);
+  const eligibleChange=!!selectedName && !!store && !isSelectedStore;
   return {
     state,status:!valid||ambiguous?'uncertain':inStore?'in-store':store?'near-store':'checking',
     store,isSelectedStore,askStoreChange:!!inStore&&eligibleChange&&showArrivalMessage,
-    selectedStoreName:eligibleChange?selectedPeers[0].name:null,
+    selectedStoreName:eligibleChange?selectedName:null,
     showArrivalMessage,radar:inStore?'green':'white',
   };
 }
