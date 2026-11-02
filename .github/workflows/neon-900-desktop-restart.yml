@@ -1,5 +1,5 @@
-name: Desktop Neon - full 900-query audit
-run-name: Audit all nine batches of 100 named-food searches
+name: Desktop Neon - recheck batches 6 and 9
+run-name: Recheck 200 searches in failed batches 6 and 9
 on:
   workflow_dispatch:
   push:
@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        batch: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        batch: [6, 9]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
