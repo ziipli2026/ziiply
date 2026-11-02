@@ -23,3 +23,18 @@ check('Prisma Hyvinkää','K-Citymarket Hyvinkää',false);
 check('S-market Hyvinkää','K-Supermarket Hyvinkää',false);
 check('Tuntematon kauppa','K-Citymarket Hyvinkää',false);
 console.log('PASS: chain and store-group isolation, K/S cross-format switching, consent prompt and decline');
+
+const citymarket={id:'k-citymarket hyvinkaa',name:'K-Citymarket Hyvinkää',latitude:60.63256951925641,longitude:24.8639144333107};
+const selectedName='K-Supermarket Vieremä';
+const sample={at:1000,latitude:60.631593183629526,longitude:24.863967967839802,accuracyMeters:16.78,speedKmh:null};
+const first=core.evaluateZiiplyArrival(core.initialZiiplyArrivalState(),sample,[citymarket],['k-supermarket vierema'],[selectedName]);
+assert.equal(first.status,'near-store');
+assert.equal(first.selectedStoreName,selectedName);
+const second=core.evaluateZiiplyArrival(first.state,{...sample,at:22000},[citymarket],['k-supermarket vierema'],[selectedName]);
+assert.equal(second.status,'in-store');
+assert.equal(second.askStoreChange,true);
+const prompt=reduce(null,{type:'sample',decision:second,at:22000});
+assert.equal(prompt?.phase,'change-store');
+const next=core.evaluateZiiplyArrival(second.state,{...sample,at:29000},[citymarket],['k-supermarket vierema'],[selectedName]);
+assert.equal(reduce(prompt,{type:'sample',decision:next,at:29000})?.phase,'change-store');
+console.log('PASS: real Hyvinkää 108m GPS mismatch, 20s stationary, selected shop outside GPS pool, persistent prompt');
