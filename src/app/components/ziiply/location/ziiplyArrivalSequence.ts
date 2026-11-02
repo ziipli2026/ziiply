@@ -24,6 +24,15 @@ export type ZiiplyArrivalStore = {
   chainId?: string;
   groupId?: string;
 };
+/** Classification is deliberately explicit: no cross-chain or cross-group prompts. */
+export function ziiplyStoreChainGroup(name: string): {chainId:string;groupId:string}|null {
+  const n=name.trim().toLowerCase().replace(/\s+/g,' ');
+  if (/^(k-citymarket|citymarket|k-supermarket|k supermarket)\b/.test(n)) return {chainId:'k',groupId:'tavaratalot'};
+  if (/^(prisma|s-market|s market)\b/.test(n)) return {chainId:'s',groupId:'tavaratalot'};
+  if (/^(k-market|k market)\b/.test(n)) return {chainId:'k',groupId:'lahikaupat'};
+  if (/^(sale|alepa)\b/.test(n)) return {chainId:'s',groupId:'lahikaupat'};
+  return null;
+}
 export type ZiiplyArrivalState = {
   tripStartedAt: number | null;
   stoppedAt: number | null;
@@ -96,8 +105,10 @@ export function evaluateZiiplyArrival(
   if(inStore)state.arrivalStoreId=store.id;
   else if(valid&&!ambiguous&&!store)state.arrivalStoreId=null;
   const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
-  const selectedPeers=store && !isSelectedStore && store.chainId && store.groupId
-    ? stores.filter(s=>selectedStoreIds.includes(s.id) && s.chainId===store.chainId && s.groupId===store.groupId)
+  const groupOf=(s:ZiiplyArrivalStore)=>s.chainId&&s.groupId?{chainId:s.chainId,groupId:s.groupId}:ziiplyStoreChainGroup(s.name);
+  const detectedGroup=store?groupOf(store):null;
+  const selectedPeers=store && !isSelectedStore && detectedGroup
+    ? stores.filter(s=>{const g=groupOf(s);return selectedStoreIds.includes(s.id)&&g?.chainId===detectedGroup.chainId&&g?.groupId===detectedGroup.groupId;})
     : [];
   const eligibleChange=selectedPeers.length===1 && !!store && !isSelectedStore;
   return {
