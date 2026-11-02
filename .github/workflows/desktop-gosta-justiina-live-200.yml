@@ -1,0 +1,31 @@
+name: Desktop Gösta Justiina live 200 API audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - '.github/workflows/desktop-gosta-justiina-live-200.yml'
+permissions:
+  contents: read
+jobs:
+  live-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm install --global vercel@65.9.0
+      - name: Run 100 real Gösta offer and 100 real Justiina product API searches
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          PREVIEW_URL: https://ziiply-git-preview-legacy-desktop-ui-ziipli2026s-projects.vercel.app
+        run: node scripts/test-desktop-gosta-justiina-live-200.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-gosta-justiina-live-200
+          path: desktop-gosta-justiina-live-200.json
+          if-no-files-found: warn
