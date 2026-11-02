@@ -50,9 +50,9 @@ export function useZiiplyArrivalNotice(enabled: boolean) {
     skip: () => dispatch({ type: 'skip', at: Date.now() }) };
 }
 
-export default function ZiiplyArrivalNotice({ notice, onDismiss, onSkip, onList, onRecipe, onOffers }: {
+export default function ZiiplyArrivalNotice({ notice, onDismiss, onSkip, onList, onRecipe, onOffers, onConfirmStoreChange }: {
   notice: ArrivalNotice | null; onDismiss: () => void; onSkip: () => void;
-  onList: () => void; onRecipe: () => void; onOffers: () => void;
+  onList: () => void; onRecipe: () => void; onOffers: () => void; onConfirmStoreChange?: (storeId: string) => void;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const visible = !!notice && !['waiting', 'done'].includes(notice.phase);
@@ -75,8 +75,9 @@ export default function ZiiplyArrivalNotice({ notice, onDismiss, onSkip, onList,
         else if (!e.shiftKey && (document.activeElement === last || document.activeElement === panel.current)) { e.preventDefault(); first.focus(); }
       }
     }} style={{ width: '100%', maxWidth: 410, maxHeight: '80dvh', overflowY: 'auto', borderRadius: 20, padding: 24, color: '#103b25', background: '#e4f8e8', boxShadow: '0 12px 36px #0006', textAlign: 'center' }}>
-      <div className="mb-4 text-xl font-extrabold" aria-live="polite">{notice.phase === 'approach' ? `Olet saapumassa ${notice.name}` : notice.phase === 'list' ? 'Lisätäänkö ostoslista tai resepti?' : 'Katso tarjoukset?'}</div>
-      {notice.phase !== 'approach' && <div className="flex flex-wrap justify-center gap-3">
+      <div className="mb-4 text-xl font-extrabold" aria-live="polite">{notice.phase === 'change-store' ? `Olet saapumassa ${notice.name}, mutta valittuna on ${notice.selectedStoreName ?? 'toinen kauppa'}. Haluatko vaihtaa tähän kauppaan?` : notice.phase === 'approach' ? `Olet saapumassa ${notice.name}` : notice.phase === 'list' ? 'Lisätäänkö ostoslista tai resepti?' : 'Katso tarjoukset?'}</div>
+      {notice.phase === 'change-store' && <div className="flex flex-wrap justify-center gap-3"><button type="button" className={button} onClick={() => { if (onConfirmStoreChange) onConfirmStoreChange(notice.id); else onDismiss(); }}>Kyllä, vaihda kauppa</button><button type="button" className={button} onClick={onDismiss}>Ei, säilytä nykyinen</button></div>}
+      {notice.phase !== 'approach' && notice.phase !== 'change-store' && <div className="flex flex-wrap justify-center gap-3">
         {notice.phase === 'list' ? <><button type="button" className={button} onClick={onList}>Ostoslista</button><button type="button" className={button} onClick={onRecipe}>Resepti</button><button type="button" className={button} onClick={onSkip}>Ei nyt</button></> : <><button type="button" className={button} onClick={onOffers}>Katso tarjoukset</button><button type="button" className={button} onClick={onDismiss}>Ei nyt</button></>}
       </div>}
     </div>
