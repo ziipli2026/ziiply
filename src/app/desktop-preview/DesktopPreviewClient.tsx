@@ -2725,7 +2725,7 @@ export default function DesktopPreviewPage() {
         setElectricityPrices(chartPrices);
         // Match mobile main: use the price for the interval containing the current instant.
         // Only label an interval as a quarter-hour when the provider actually supplies 15 minutes.
-        const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end);
+        const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end&&item.end-item.start===15*60*1000);
         const quarter=currentWindow&&currentWindow.end-currentWindow.start===15*60*1000;
         const interval=quarter?" · "+new Date(currentWindow.start).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})+"–"+new Date(currentWindow.end).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"}):"";
         setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh"+interval}:{value:"—",detail:"ei ajantasaista hintaa"});
@@ -2853,7 +2853,7 @@ export default function DesktopPreviewPage() {
                     </span>
                   </>
                 ) : (
-                  <span className={title === "SÄHKÖ" ? "flex min-w-0 flex-1 flex-col items-center justify-center text-center" : "min-w-0"}>
+                  <span className="min-w-0">
                     <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
                     <span className="mt-0.5 block text-[19px] font-black leading-none text-[#102a24]">{value}</span>
                     <span className={title === "SÄHKÖ" ? "mt-1 block whitespace-nowrap text-[9px] font-black text-[#706a58]" : "mt-1 block truncate text-[9px] font-black text-[#706a58]"}>{detail}</span>
