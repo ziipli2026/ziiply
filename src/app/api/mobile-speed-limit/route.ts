@@ -3,10 +3,10 @@ import { matchRoadSpeedLimit, type OsmRoad } from "@/lib/mobile-speed-limit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const endpoints = [
-  "https://overpass.private.coffee/api/interpreter",
-  "https://overpass-api.de/api/interpreter",
   "https://overpass.nchc.org.tw/api/interpreter",
-  "https://overpass.osm.ch/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.openstreetmap.ru/api/interpreter",
+  "https://overpass.osm.jp/api/interpreter",
 ];
 type Attempt = { provider: string; ms: number; status: number | null; outcome: string; candidates?: number; limit?: number | null };
 export async function GET(request: NextRequest) {
@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
     }
   }));
   const matched = attempts.find(a => a.outcome === "matched" && a.limit != null);
-  const usable = attempts.some(a => a.status === 200);
-  const reason = matched ? "matched" : usable ? "no_reliable_match" : "upstream_unavailable";
+  const usable = attempts.some(a => a.status === 200 && (a.candidates ?? 0) > 0);
+  const reason = matched ? "matched" : usable ? "no_reliable_match" : "no_road_data";
   const details = attempts.map(({provider, ms, status, outcome, candidates}) => ({provider, ms, status, outcome, candidates}));
   console.info("[mobile-speed-limit] diagnostics", JSON.stringify({reason, attempts: details, accuracy: Math.round(accuracy)}));
   return respond({
