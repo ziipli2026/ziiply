@@ -25,7 +25,7 @@
 // tämä komponentti EI ole se layeri, jota ruutu käyttää.
 // Ei logiikkamuutoksia.
 
-import React from "react";
+import React, { useState } from "react";
 
 export type ZiiplyMobileLocationBarProps = {
   locationInput: string;
@@ -52,6 +52,9 @@ export default function ZiiplyMobileLocationBar({
   onApplyLocation,
   onOpenMap,
 }: ZiiplyMobileLocationBarProps) {
+  const [debugOn,setDebugOn]=useState(false);
+  const [debugEvents,setDebugEvents]=useState<any[]>([]);
+  const [debugWatch,setDebugWatch]=useState<number|null>(null);
   const rawStatusText =
     gpsErrorMessage ||
     gpsStatusText ||
@@ -149,6 +152,7 @@ export default function ZiiplyMobileLocationBar({
           />
         </button>
       </div>
+      <button type="button" className="mt-2 rounded border px-3 py-2 text-xs font-bold" onClick={() => { if (!debugOn) {setDebugEvents([]);setDebugOn(true);const id=navigator.geolocation.watchPosition(p=>setDebugEvents(v=>[...v,{time:new Date().toISOString(),lat:p.coords.latitude,lon:p.coords.longitude,accuracy:p.coords.accuracy,speed:p.coords.speed,heading:p.coords.heading}]),e=>setDebugEvents(v=>[...v,{time:new Date().toISOString(),error:e.message}]),{enableHighAccuracy:true});setDebugWatch(id);}else{if(debugWatch!==null)navigator.geolocation.clearWatch(debugWatch);setDebugOn(false);const blob=new Blob([JSON.stringify({capturedAt:new Date().toISOString(),locationInput,usingOwnLocation,gpsStatusText,gpsErrorMessage,events:debugEvents},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-gps-debug.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);} }}>{debugOn?"Pysäytä ja lataa GPS-debug ("+debugEvents.length+")":"Aloita GPS-debug"}</button>
     </section>
   );
 }
