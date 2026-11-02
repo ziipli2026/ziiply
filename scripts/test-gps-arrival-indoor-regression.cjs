@@ -19,4 +19,11 @@ d=run(state,49000,60.636,24.86349,10);state=d.state;assert.equal(d.status,'check
 d=run(state,56000,60.6318,24.86349,22);state=d.state;assert.equal(d.status,'near-store','reentry needs a fresh confirmation');
 state=init();for(const at of [0,7000,14000,21000,28000]){d=run(state,at,60.6318,24.86349,22,false);state=d.state;}assert.equal(d.status,'near-store','unselected store must not be auto-confirmed outside 50m');
 state=init();d=run(state,0,60.6318,24.86349,22,true,null,[store,{...store,id:'second',latitude:60.63181,longitude:24.86350}]);assert.equal(d.status,'uncertain','ambiguous neighbouring shops must not auto-confirm');
+state=init();
+for(const [at,lat,lon] of [[0,60.634,24.86349],[3000,60.63257,24.863914],[6000,60.6318,24.86349],[9000,60.630,24.86349]]){
+ d=run(state,at,lat,lon,8,true,35);state=d.state;
+ assert.notEqual(d.status,'in-store','driving past a store must not confirm arrival');
+ assert.equal(d.radar,'white','radar must remain white when driving past');
+}
+console.log('PASS: driving past at 35 km/h does not trigger in-store');
 console.log('PASS: indoor arrival dwell, retention, bad accuracy, recovery, departure, reentry, unselected and ambiguous shops');
