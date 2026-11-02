@@ -3,7 +3,8 @@ import fs from 'node:fs';
 const terms=JSON.parse(fs.readFileSync('scripts/fixtures/generic-100-batch-2.json','utf8')).queries;
 const base=process.env.DESKTOP_URL||'http://127.0.0.1:3000/desktop-preview';
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
-const page=await browser.newPage({viewport:{width:1440,height:900}});
+const context=await browser.newContext({viewport:{width:1440,height:900},geolocation:{latitude:60.6333,longitude:24.8667},permissions:['geolocation'],locale:'fi-FI'});
+const page=await context.newPage();
 const report={base,runAt:new Date().toISOString(),queries:[],offerRequests:[],errors:[],screenshots:[]};
 const out='browser-test-results/gosta-villikortti';
 fs.mkdirSync(out,{recursive:true});
@@ -12,6 +13,12 @@ page.on('pageerror',e=>report.errors.push(String(e)));
 try{
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:90000});
  await page.screenshot({path:out+'/initial.png'});
+ const location=page.getByRole('textbox',{name:'Paikkakunta tai postinumero'});
+ await location.fill('Hyvinkää');
+ await location.press('Enter');
+ await page.waitForResponse(r=>r.url().includes('/api/store-search')&&r.status()===200,{timeout:30000}).catch(()=>{});
+ await page.waitForTimeout(2500);
+ await page.screenshot({path:out+'/location.png'});
  const dialog=page.getByRole('dialog',{name:'Göstan tarjoushaku'});
  if(!await dialog.isVisible()){
   const candidates=page.getByRole('button',{name:/tarjoushaku|tarjoukset|gösta/i});
@@ -23,7 +30,7 @@ try{
  const submit=dialog.getByRole('button',{name:'Hae',exact:true});
  for(let i=0;i<terms.length;i++){
   const query=terms[i];await input.fill(query);await submit.click();
-  await page.waitForTimeout(350);
+  await page.waitForFunction(()=>{const d=document.querySelector('[role="dialog"][aria-label="Göstan tarjoushaku"]');return !!d && !/Haetaan…/.test(d.textContent||'')},{timeout:30000}).catch(()=>{});
   const text=await dialog.innerText();
   const loading=/Haetaan…/.test(text);
   const error=await dialog.locator('[role=status]').allInnerTexts();
