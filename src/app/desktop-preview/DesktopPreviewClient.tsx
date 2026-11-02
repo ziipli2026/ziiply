@@ -2062,6 +2062,15 @@ export default function DesktopPreviewPage() {
     finally{if(request===offerRequestId.current)setGostaLoading(false)}
   }
 
+  const notebookAlignRef = useRef<HTMLButtonElement | null>(null);
+  const [notebookCenterX, setNotebookCenterX] = useState<number | null>(null);
+  useEffect(() => {
+    const update = () => { const node = notebookAlignRef.current; const container = node?.closest("[data-desktop-layout]"); if (node && container) { const n = node.getBoundingClientRect(); const c = container.getBoundingClientRect(); setNotebookCenterX(n.left + n.width / 2 - c.left); } };
+    update(); window.addEventListener("resize", update);
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(update) : null;
+    if (notebookAlignRef.current) observer?.observe(notebookAlignRef.current);
+    return () => { window.removeEventListener("resize", update); observer?.disconnect(); };
+  }, []);
   const desktopArrivalNotice = useZiiplyArrivalNotice(gpsOn);
   const desktopArrivalState = useRef(initialZiiplyArrivalState());
   const desktopArrivalDecision = useRef<ZiiplyArrivalDecision | null>(null);
@@ -2805,7 +2814,15 @@ export default function DesktopPreviewPage() {
       <div aria-hidden className="pointer-events-none absolute -left-32 top-24 h-[520px] w-[520px] rounded-full bg-[#f6e8b8]/35 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute -right-40 bottom-[-80px] h-[620px] w-[620px] rounded-full bg-[#8ead91]/25 blur-3xl" />
 
-      <div className="relative mx-auto flex h-[100dvh] min-h-0 w-full max-w-[1800px] flex-col overflow-hidden px-8 pb-2 pt-3 xl:px-12 xl:pb-2 xl:pt-3">
+      <div data-desktop-layout className="relative mx-auto flex h-[100dvh] min-h-0 w-full max-w-[1800px] flex-col overflow-hidden px-8 pb-2 pt-3 xl:px-12 xl:pb-2 xl:pt-3">
+            <div aria-label="Ajonopeus" style={{left: notebookCenterX === null ? "18%" : `${notebookCenterX}px`}} className="absolute top-3 z-10 flex w-[136px] -translate-x-1/2 h-[66px] min-w-0 flex-col items-center justify-center rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
+              <span className="flex w-full min-w-0 items-center justify-center gap-1 whitespace-nowrap text-[9px] font-black tracking-[0.06em] text-[#526b61]"><span aria-hidden="true">🚗</span> NOPEUS</span>
+              <span className={`flex w-full min-w-0 items-baseline justify-center gap-1 whitespace-nowrap font-black leading-none tabular-nums ${shownSpeed === null || shownSpeed <= 20 ? "text-[#526b61]" : speedOverLimit ? "text-[#cf202a]" : shownSpeedLimit !== null ? "text-[#138441]" : "text-[#102a24]"}`}>
+                <span className="text-[clamp(22px,2vw,32px)] tracking-tight">{shownSpeed ?? 0}</span><span className="text-[10px]">km/h</span>
+              </span>
+              <span className="whitespace-nowrap text-[9px] font-bold leading-tight text-[#526b61]">Rajoitus {shownSpeedLimit ?? "—"}</span>
+            </div>
+
         <header ref={desktopHeaderRef} className="grid grid-cols-[minmax(215px,240px)_minmax(265px,300px)_minmax(0,1fr)] items-center gap-3 border-b border-[#64745f]/20 pb-4">
           <div className="flex items-center gap-3">
             <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
@@ -2829,21 +2846,13 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="ml-auto grid w-full min-w-0 grid-cols-[repeat(5,minmax(0,136px))] justify-end gap-2">
-            <div aria-label="Ajonopeus" className="relative order-1 flex w-full h-[66px] min-w-0 flex-col items-center justify-center rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
-              <span className="flex w-full min-w-0 items-center justify-center gap-1 whitespace-nowrap text-[9px] font-black tracking-[0.06em] text-[#526b61]"><span aria-hidden="true">🚗</span> NOPEUS</span>
-              <span className={`flex w-full min-w-0 items-baseline justify-center gap-1 whitespace-nowrap font-black leading-none tabular-nums ${shownSpeed === null || shownSpeed <= 20 ? "text-[#526b61]" : speedOverLimit ? "text-[#cf202a]" : shownSpeedLimit !== null ? "text-[#138441]" : "text-[#102a24]"}`}>
-                <span className="text-[clamp(22px,2vw,32px)] tracking-tight">{shownSpeed ?? 0}</span><span className="text-[10px]">km/h</span>
-              </span>
-              <span className="whitespace-nowrap text-[9px] font-bold leading-tight text-[#526b61]">Rajoitus {shownSpeedLimit ?? "—"}</span>
-            </div>
-
+          <div className="ml-auto grid w-full min-w-0 grid-cols-[repeat(4,minmax(0,136px))] justify-end gap-2">
             {[
               ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
               ["⛽", "AJOAINE", fuelLoading ? "Haetaan…" : `DI ${fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "–"}`, `95 ${fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "–"} / 98 ${fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "–"}`, "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
-              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "order-4" : title === "SÄHKÖ" ? "order-3" : "order-2"} ${title === "AJOAINE" ? "gap-0 !pl-[65px] !pr-1" : "gap-2 px-2"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
+              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "order-3" : title === "SÄHKÖ" ? "order-2" : "order-1"} ${title === "AJOAINE" ? "gap-0 !pl-[65px] !pr-1" : "gap-2 px-2"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
                 {title === "AJOAINE" ? <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : title === "SÄHKÖ" ? (() => {
                   // Compare the next quarter with the current quarter, matching mobile.
                   const color = electricityTrendColor;
@@ -2887,7 +2896,7 @@ export default function DesktopPreviewPage() {
                 )}
               </button>
             ))}
-            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative order-5 flex h-[66px] min-w-0 items-center gap-2 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-2 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition ">
+            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative order-4 flex h-[66px] min-w-0 items-center gap-2 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-2 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition ">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
               <span className="min-w-0">
                 <span className="block truncate text-[9px] font-black tracking-[0.06em] text-[#625b43]">{month}</span>
@@ -3020,7 +3029,7 @@ export default function DesktopPreviewPage() {
 
           <nav aria-label="Ostokset ja vertailu" className={fuelSelected ? "relative z-20 flex h-full min-h-0 flex-col items-stretch justify-center gap-4 pb-0 pt-1" : "relative z-20 flex h-full min-h-0 flex-col items-stretch justify-between gap-4 pb-0 pt-1"}>
             {!fuelSelected && <>
-            <button type="button" onClick={()=>setNotebookOpen(true)} className="relative flex h-[clamp(112px,16vh,154px)] min-h-0 flex-col items-center justify-center gap-1 rounded-[25px] border-[3px] border-[#8d663f] bg-gradient-to-b from-[#fff2c8] to-[#d8b77b] p-2 text-[#51391f] shadow-[0_8px_0_#987c50,0_16px_26px_#5e4c2929] transition "><span className="shrink-0 text-[48px] leading-none drop-shadow-md">📜</span><span className="shrink-0 text-[14px] font-black leading-tight">Vihkonen</span>{savedLists.length>0&&<span className="absolute right-2 top-2 rounded-full bg-[#79552d] px-2 py-1 text-[11px] font-black text-white">{savedLists.length}</span>}</button>
+            <button type="button" ref={notebookAlignRef} onClick={()=>setNotebookOpen(true)} className="relative flex h-[clamp(112px,16vh,154px)] min-h-0 flex-col items-center justify-center gap-1 rounded-[25px] border-[3px] border-[#8d663f] bg-gradient-to-b from-[#fff2c8] to-[#d8b77b] p-2 text-[#51391f] shadow-[0_8px_0_#987c50,0_16px_26px_#5e4c2929] transition "><span className="shrink-0 text-[48px] leading-none drop-shadow-md">📜</span><span className="shrink-0 text-[14px] font-black leading-tight">Vihkonen</span>{savedLists.length>0&&<span className="absolute right-2 top-2 rounded-full bg-[#79552d] px-2 py-1 text-[11px] font-black text-white">{savedLists.length}</span>}</button>
             <button type="button" onClick={()=>setCartOpen(true)} className="group relative flex h-[clamp(90px,12dvh,125px)] min-h-0 flex-col items-center justify-center rounded-[25px] border-[3px] border-[#4b815e] bg-gradient-to-b from-[#f0ffe4] to-[#b9ddb2] p-2 text-[#174c35] shadow-[0_8px_0_#6d9270,0_16px_26px_#254d3529] transition "><svg aria-hidden="true" viewBox="0 0 96 80" className="h-[65px] w-[83px] drop-shadow-[1px_3px_2px_#36563b55]" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M24 31C27 9 69 9 72 31" stroke="#86532e" strokeWidth="6"/><path d="M24 31C27 9 69 9 72 31" stroke="#d6a66a" strokeWidth="2.5"/><path d="M12 33h72l-9 36c-1 4-5 6-10 6H31c-5 0-9-2-10-6L12 33Z" fill="#bb8650" stroke="#704829" strokeWidth="3"/><path d="M17 39h62M20 50h56M23 61h50" stroke="#e4bb7d" strokeWidth="4"/><path d="m22 34 10 38m1-38 7 39m8-39v40m8-40-7 39m18-39-10 38m17-38-10 36" stroke="#7b522e" strokeWidth="3"/><path d="M12 33h72" stroke="#684329" strokeWidth="6"/><path d="M16 34h64" stroke="#e4b77d" strokeWidth="2"/></svg><span className="text-[14px] font-black">Kori</span>{desktopCartCount>0&&<span className="absolute right-2 top-2 rounded-full bg-[#147a49] px-2 py-1 text-[11px] font-black text-white">{desktopCartCount}</span>}</button>
             <button type="button" onClick={()=>{const eligible=Object.values(selectedStores).filter(x=>["sHyper","sLocal","kHyper","kLocal","lidl","spar"].includes(storeKind(x)));if((storeCompareScope==="within_chain"&&(!withinChain||eligible.length!==2))||(storeCompareScope!=="within_chain"&&betweenMode==="one"&&eligible.length!==1)||(storeCompareScope!=="within_chain"&&betweenMode==="many"&&eligible.length<2)){setDesktopCompareStoreWarning(true);window.setTimeout(()=>setDesktopCompareStoreWarning(false),2800);return}setDesktopCompareStoreWarning(false);if(betweenMode!=="one")setWorkspace(null);void openDesktopComparison();}} title="Avaa hintavertailu" className="flex h-[clamp(90px,12dvh,125px)] min-h-0 flex-col items-center justify-center rounded-[25px] border-[3px] border-[#c39b50] bg-gradient-to-b from-[#fff8df] to-[#eed49c] p-2 text-[#59411f] shadow-[0_8px_0_#b49a68,0_16px_26px_#5e4c2929] transition "><svg aria-hidden="true" viewBox="0 0 104 88" className="h-[68px] w-[83px] drop-shadow-[1px_3px_2px_#70533b55]" fill="none" strokeLinejoin="round" strokeLinecap="round"><path d="M31 14Q52 3 73 14L81 49Q52 60 23 49Z" fill="#32617a" stroke="#233e4b" strokeWidth="4"/><path d="M31 16Q52 7 73 16L75 35Q52 41 29 35Z" fill="#eee0b8" stroke="#9c7d5b" strokeWidth="2"/><path d="M34 29Q52 19 70 29" stroke="#8b7355" strokeWidth="1.5"/><path d="M52 35 65 24" stroke="#b34836" strokeWidth="2.5"/><circle cx="52" cy="35" r="2.5" fill="#b34836"/><path d="M30 17h4m35 0h4M25 45l5 2m44 0 5-2" stroke="#b96e49" strokeWidth="3"/><path d="M12 60h80l-6 13H18Z" fill="#32536a" stroke="#253e4a" strokeWidth="3"/><path d="M4 51h31l-4 11H8Z" fill="#b7aaa0" stroke="#655c55" strokeWidth="2"/><path d="M69 51h31l-4 11H73Z" fill="#b7aaa0" stroke="#655c55" strokeWidth="2"/><path d="M12 49h16m48 0h16" stroke="#6d6056" strokeWidth="3"/><path d="M23 73v5m58-5v5" stroke="#3b3633" strokeWidth="5"/><path d="M33 13Q52 6 71 13" stroke="#c76f56" strokeWidth="2" strokeDasharray="4 5"/></svg><span className="text-[13px] font-black">Vertailu</span></button>
             </>}
