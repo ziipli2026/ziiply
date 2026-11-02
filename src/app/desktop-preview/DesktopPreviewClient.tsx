@@ -361,16 +361,12 @@ export default function DesktopPreviewPage() {
     // Show the previous results instantly even when background refresh is due.
     // Never show offers whose explicit expiry date has passed.
     const query=saved.query.trim().toLocaleLowerCase("fi");
-    const searchTerms=getNormalSearchQueries(query);
     const valid=saved.results.filter((offer:any)=>{
       const until=gostaCacheExpiry(offer);
       if(until!==null&&until<now)return false;
       const title=String(offer.title||offer.name||"");
       const category=String(offer.categoryName||offer.category||"");
-      const normalizedTitle=title.toLocaleLowerCase("fi");
-      return searchTerms.some(term=>normalizedTitle.includes(String(term).toLocaleLowerCase("fi")))
-        &&productGroupGate(query,title)
-        &&!isBadNormalResult({name:title,category} as any,query);
+      return desktopSearchDecision(query,{...offer,name:title,category}).accepted;
     });
     return rankProductResultsByRelevanceAndPrice(query,valid.map((offer:any)=>({...offer,name:String(offer.title||offer.name||"")})),(offer:any)=>{
       const displayed=splitOfferDisplayPrice(getOfferPrice(offer)).amount;
@@ -2051,7 +2047,7 @@ export default function DesktopPreviewPage() {
     }));
     if(request!==gostaHomeRequestId.current)return;
     const allMatches=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]);
-    const refreshed=rankProductResultsByRelevanceAndPrice(query,allMatches,(offer:any)=>{
+    const refreshed=rankProductResultsByRelevanceAndPrice(query,allMatches.filter((offer:any)=>desktopSearchDecision(query,{...offer,name:String(offer.title||offer.name||"")}).accepted),(offer:any)=>{
       const displayed=splitOfferDisplayPrice(getOfferPrice(offer)).amount;
       const value=Number.parseFloat(String(displayed).replace(/[^\\d,.]/g,"").replace(",","."));
       return Number.isFinite(value)?value:NaN;
@@ -2530,8 +2526,8 @@ export default function DesktopPreviewPage() {
           if (coverageQueries.length) coverageResponses.push(data);
           const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
           report("response",{requestUrl,rawCount:items.length,source:data?.source,apiStatus:data?.status,error:data?.error});
-          const usable=rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(!isBadNormalResult(product,query)||Boolean(recipeIngredient)));
-          if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:rankNormalSearchResults(query,items).filter((product:any)=>recipeAllows(product)&&(!isBadNormalResult(product,query)||Boolean(recipeIngredient))).length});
+          const usable=rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(desktopSearchDecision(query,product).accepted||Boolean(recipeIngredient)));
+          if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:rankNormalSearchResults(query,items).filter((product:any)=>recipeAllows(product)&&(desktopSearchDecision(query,product).accepted||Boolean(recipeIngredient))).length});
           const hasFreshCandidate=!recipeIngredient||items.some((product:any)=>recipeAllows(product)&&recipeFishFreshnessTier(recipeIngredient.name,product,recipeIngredient)===0);
           if(!diagnostic)appendDesktopRecipeDebug("api_qualification",{query,searchQuery,requestUrl,usable,hasFreshCandidate,willTryNextQuery:coverageQueries.length ? searchQuery !== queries[queries.length - 1] : !usable||!hasFreshCandidate,decisions:items.map((product:any)=>({name:product.name||product.title||product.productName,recipeRejection:recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient):null,normalRejected:isBadNormalResult(product,query)}))});
           if(usable&&hasFreshCandidate&&!coverageQueries.length)return data;
@@ -2567,7 +2563,7 @@ export default function DesktopPreviewPage() {
           const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
           const product={...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:responseSource||""};
           const recipeRejection=recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient):null;
-          const normalRejected=isBadNormalResult(product,query);
+          const normalRejected=!desktopSearchDecision(query,product).accepted;
           const included=recipeAllows(product)&&Boolean(recipeIngredient||!normalRejected);
           productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,recipeRejection,normalRejected,normalGateApplied:!recipeIngredient,freshnessTier:recipeIngredient?recipeFishFreshnessTier(recipeIngredient.name,product,recipeIngredient):null});
           if(included)rows.push(product);
