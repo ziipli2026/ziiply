@@ -2201,7 +2201,7 @@ function KauppiasMobileTopBar({
     lastLimitQueryAt = now;
     const generation = ++limitGeneration;
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 16000);
+    const timeout = window.setTimeout(() => controller.abort(), 39000);
     const params = new URLSearchParams({
       lat: String(latitude),
       lon: String(longitude),
