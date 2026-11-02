@@ -2846,7 +2846,7 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="ml-auto grid w-full min-w-0 grid-cols-[repeat(4,minmax(0,136px))] justify-end gap-2">
+          <div className="ml-auto grid w-full min-w-0 grid-cols-[repeat(4,136px)] justify-end gap-2">
             {[
               ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
