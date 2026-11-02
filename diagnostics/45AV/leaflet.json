@@ -1,0 +1,763 @@
+{
+  "leaflet": "https://kcm-tarjouslehdet.k-ruoka.fi/89d635q_tarjouslehti_45AV_KCM/index.html",
+  "pdfUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/89d635q_tarjouslehti_45AV_KCM/files/extfile/DownloadURL.pdf",
+  "pdfSha256": "65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3",
+  "pageCount": 20,
+  "rows": [
+    {
+      "id": "kcm:spatial:1:eriat 300 g:7",
+      "page": 1,
+      "title": "ERIAT 300 g",
+      "anchor": {
+        "left": 0.543244,
+        "top": 0.632422,
+        "width": 0.06187000000000009,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Katso resepti »",
+        "Kokkikartano",
+        "ERIAT 300 g",
+        "(11,67/kg) 7",
+        "Mikromåltider",
+        "2RS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:arrufatina klementiini 1,5 kg:2.99",
+      "page": 2,
+      "title": "ARRUFATINA KLEMENTIINI 1,5 kg",
+      "anchor": {
+        "left": 0.708975,
+        "top": 0.354502,
+        "width": 0.135544,
+        "height": 0.013773
+      },
+      "nearby": [
+        "ARRUFATINA KLEMENTIINI",
+        "1 5 kg",
+        "Espanja (1,99/kg)",
+        "PS",
+        "Klementiner"
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:paprika 2 kpl/300 g:1.99",
+      "page": 2,
+      "title": "PAPRIKA 2 kpl/300 g",
+      "anchor": {
+        "left": 0.680341,
+        "top": 0.726543,
+        "width": 0.10989300000000002,
+        "height": 0.013773
+      },
+      "nearby": [
+        "PAPRIKA 2 kpl/300 g",
+        "PS",
+        "Alankomaat/Belgia/Espanja g",
+        "(6,63/kg)",
+        "Suomi",
+        "Huvudkål"
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:kiinteä, yleis ja auhoinen peruna 2 kg:1.29",
+      "page": 2,
+      "title": "KIINTEÄ, YLEIS ja AUHOINEN PERUNA 2 kg",
+      "anchor": {
+        "left": 0.83816,
+        "top": 0.479234,
+        "width": 0.08902200000000005,
+        "height": 0.013773
+      },
+      "nearby": [
+        "KIINTEÄ YLEIS ja",
+        "AUHOINEN PERUNA 2 kg",
+        "Suomi (0,65/kg) kg",
+        "Potatis",
+        "PS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:vaasan laktoositon moilas free from ohut tumma 3 kpl/150 g:2.99",
+      "page": 3,
+      "title": "Vaasan LAKTOOSITON MOILAS FREE FROM OHUT TUMMA 3 kpl/150 g",
+      "anchor": {
+        "left": 0.188356,
+        "top": 0.571115,
+        "width": 0.12858299999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Vaasan",
+        "MOILAS FREE FROM OHUT"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:tumma 3 kpl/150 g:2.99",
+      "page": 3,
+      "title": "TUMMA 3 kpl/150 g",
+      "anchor": {
+        "left": 0.188356,
+        "top": 0.582714,
+        "width": 0.10074400000000003,
+        "height": 0.013773
+      },
+      "nearby": [
+        "TUMMA 3 kpl/150 50 g",
+        "(19,93/kg) 3 g",
+        "Rågbröd",
+        "PS",
+        "Ilman Plussa-korttia",
+        "(21,93/kg) 3"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:protein rahkat 200 g:3.5",
+      "page": 3,
+      "title": "PROTEIN RAHKAT 200 g",
+      "anchor": {
+        "left": 0.811566,
+        "top": 0.582714,
+        "width": 0.12266999999999995,
+        "height": 0.013773
+      },
+      "nearby": [
+        "MOILAS FREE FROM OHUT",
+        "TUMMA 3 kpl/150 g",
+        "(19,93/kg) (5,77-6,00/kg)",
+        "Rågbröd Tunnbröd Laktosfri kvarg",
+        "Lännentilan",
+        "Arla",
+        "RIESKAT 6-",
+        "99               50",
+        "2 3. 3",
+        "–7 kpl/250–260 g",
+        "PROTEIN RAHKAT 200 g",
+        "(4,38/kg)",
+        "PS",
+        "-9%",
+        "24",
+        " -20%",
+        "PS",
+        "-7%",
+        "PRK",
+        "Ilman Plussa-korttia 3,29/ps Ilman Plussa-korttia 1,89/ps Ilman Plussa-korttia 0,95/prk",
+        "(21,93/kg)",
+        "(7,27–7,56/kg)",
+        "(4,75/kg)",
+        "                 Innocent",
+        "TÄYSMEHUT 900 ml/pl tai",
+        "SMOOTHIET 750 ml/pl"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:täysmehut 900 ml/pl tai:3.34",
+      "page": 3,
+      "title": "TÄYSMEHUT 900 ml/pl tai",
+      "anchor": {
+        "left": 0.320948,
+        "top": 0.79628,
+        "width": 0.13320700000000002,
+        "height": 0.013773
+      },
+      "nearby": [
+        "3,29/ps",
+        "Innocent",
+        "TÄYSMEHUT 900 ml/pl tai"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:smoothiet 750 ml/pl:2.54",
+      "page": 3,
+      "title": "SMOOTHIET 750 ml/pl",
+      "anchor": {
+        "left": 0.320948,
+        "top": 0.807878,
+        "width": 0.11280299999999999,
+        "height": 0.013773
+      },
+      "nearby": [
+        "SMOOTHIET 750 ml/pl",
+        "(3,66–4,39/l) Sis pantin 0 20",
+        "Juice",
+        "PL",
+        "3,89-4,99/pl",
+        "Ilman Plussa-korttia",
+        "(4,10-6 3,39/l) Sis pantin 0 20"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:vital hyvinvointimehut 1 l:3.7",
+      "page": 3,
+      "title": "VITAL HYVINVOINTIMEHUT 1 l",
+      "anchor": {
+        "left": 0.803786,
+        "top": 0.807878,
+        "width": 0.15291100000000002,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Marli l",
+        "VITAL HYVINVOINTIMEHUT 1 l",
+        "Ei sokerittomat (2,35/l) l",
+        "Välmåendejuicer",
+        "2",
+        "TLK",
+        "2,65/tlk",
+        "Ilman Plussa-korttia",
+        "(2,65/l)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:vihis kasvispiirakka 115 g:2.5",
+      "page": 4,
+      "title": "VIHIS KASVISPIIRAKKA 115 g",
+      "anchor": {
+        "left": 0.682831,
+        "top": 0.142535,
+        "width": 0.12053600000000009,
+        "height": 0.013773
+      },
+      "nearby": [
+        "HoviRuoka",
+        "VIHIS KASVISPIIRAKKA",
+        "115 g",
+        "(7,25/kg)",
+        "Grönsakspirog",
+        "3",
+        "KPL",
+        "0,99/kpl",
+        "Ilman Plussa-korttia",
+        "(8,61/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:pastat 600–650 g:6.49",
+      "page": 4,
+      "title": "PASTAT 600–650 g",
+      "anchor": {
+        "left": 0.72172,
+        "top": 0.400346,
+        "width": 0.099105,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Kokkikartano",
+        "PASTAT 600–650 g",
+        "(9,98–10,82/kg) g",
+        "RS",
+        "7,65/rs",
+        "Ilman Plussa-korttia",
+        "(11,77–12 7,75/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:savustettu kirjolohifilee n. 700 g regnbågsöringsfilé:percent:25",
+      "page": 4,
+      "title": "SAVUSTETTU KIRJOLOHIFILEE n. 700 g Regnbågsöringsfilé",
+      "anchor": {
+        "left": 0.690924,
+        "top": 0.608207,
+        "width": 0.06720400000000004,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Lapin Tulisavu",
+        "SAVUSTETTU",
+        "KIRJOLOHIFILEE",
+        "n 700 g",
+        "Regnbågsöringsfilé",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:hampurilaiset 150 g:2",
+      "page": 4,
+      "title": "HAMPURILAISET 150 g",
+      "anchor": {
+        "left": 0.171087,
+        "top": 0.794735,
+        "width": 0.114317,
+        "height": 0.013773
+      },
+      "nearby": [
+        "  -15% Ilman Plussa-korttia 0,99/kpl (8,61/kg)",
+        "     Kokkikartano",
+        "PASTAT 600–650 g",
+        "(9,98–10,82/kg)",
+        "  -15% Ilman Plussa-korttia 7,65/rs (11,77–12,75/kg)",
+        "    Lapin Tulisavu",
+        "SAVUSTETTU KIRJOLOHIFILEE n. 700 g Regnbågsöringsfilé",
+        "2995",
+        " KG",
+        "             Saarioinen",
+        "HAMPURILAISET 150 g",
+        "-25% Ilman Plussa-korttia 39,95/kg LAKTOOSITON",
+        "  (13,33/kg) Hamburgare -",
+        "KIISSELIT 365 g",
+        "(4,57/kg) Krämer",
+        "RIISIPUURO 300 g",
+        "   -",
+        "4. 5. 4.",
+        "233",
+        "(4,44/kg) Risgrynsgröt",
+        "-",
+        "   KPL",
+        "-14%",
+        "KPL",
+        "-10%",
+        "KPL"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:kiisselit 365 g:1.67",
+      "page": 4,
+      "title": "KIISSELIT 365 g",
+      "anchor": {
+        "left": 0.503989,
+        "top": 0.813988,
+        "width": 0.07851399999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "(9,98–10,82/kg)",
+        "  -15% Ilman Plussa-korttia 7,65/rs (11,77–12,75/kg)",
+        "    Lapin Tulisavu",
+        "SAVUSTETTU KIRJOLOHIFILEE n. 700 g Regnbågsöringsfilé",
+        "2995",
+        " KG",
+        "             Saarioinen",
+        "HAMPURILAISET 150 g",
+        "-25% Ilman Plussa-korttia 39,95/kg LAKTOOSITON",
+        "  (13,33/kg) Hamburgare -",
+        "KIISSELIT 365 g",
+        "(4,57/kg) Krämer",
+        "RIISIPUURO 300 g",
+        "   -",
+        "4. 5. 4.",
+        "233",
+        "(4,44/kg) Risgrynsgröt",
+        "-",
+        "   KPL",
+        "-14%",
+        "KPL",
+        "-10%",
+        "KPL",
+        "Ilman Plussa-korttia 2,15/kpl Ilman Plussa-korttia 1,95/kpl Ilman Plussa-korttia 1,49/kpl",
+        "(14,33/kg)",
+        "(5,34/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:riisipuuro 300 g:4",
+      "page": 4,
+      "title": "RIISIPUURO 300 g",
+      "anchor": {
+        "left": 0.828542,
+        "top": 0.813988,
+        "width": 0.09286899999999998,
+        "height": 0.013773
+      },
+      "nearby": [
+        "    Lapin Tulisavu",
+        "SAVUSTETTU KIRJOLOHIFILEE n. 700 g Regnbågsöringsfilé",
+        "2995",
+        " KG",
+        "             Saarioinen",
+        "HAMPURILAISET 150 g",
+        "-25% Ilman Plussa-korttia 39,95/kg LAKTOOSITON",
+        "  (13,33/kg) Hamburgare -",
+        "KIISSELIT 365 g",
+        "(4,57/kg) Krämer",
+        "RIISIPUURO 300 g",
+        "   -",
+        "4. 5. 4.",
+        "233",
+        "(4,44/kg) Risgrynsgröt",
+        "-",
+        "   KPL",
+        "-14%",
+        "KPL",
+        "-10%",
+        "KPL",
+        "Ilman Plussa-korttia 2,15/kpl Ilman Plussa-korttia 1,95/kpl Ilman Plussa-korttia 1,49/kpl",
+        "(14,33/kg)",
+        "(5,34/kg)",
+        "(4,97/kg)",
+        "   4"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:sillit 210–245 g/:7",
+      "page": 5,
+      "title": "SILLIT 210–245 g/",
+      "anchor": {
+        "left": 0.505499,
+        "top": 0.78016,
+        "width": 0.09332799999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Abba",
+        "SILLIT 210–245 g/",
+        "105–120 g",
+        "(15,22–33,33/kg)",
+        "Sill",
+        "2",
+        "PRK",
+        "3,69/prk",
+        "Ilman Plussa-korttia -",
+        "(16,04–35,14/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:kinkkusuikaleet 300 g:6",
+      "page": 5,
+      "title": "KINKKUSUIKALEET 300 g",
+      "anchor": {
+        "left": 0.81485,
+        "top": 0.807568,
+        "width": 0.12974400000000008,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Snellman",
+        "KINKKUSUIKALEET 300 g",
+        "(10,00/kg) g",
+        "Strimlad skinka",
+        "2",
+        "PS",
+        "3,39/ps",
+        "Ilman Plussa-korttia -",
+        "(11 3,30/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:crispy fish 240 g/2 kpl:2.95",
+      "page": 5,
+      "title": "CRISPY FISH 240 g/2 kpl",
+      "anchor": {
+        "left": 0.037237,
+        "top": 0.846892,
+        "width": 0.125146,
+        "height": 0.013773
+      },
+      "nearby": [
+        "SERTIFIOITU VASTUULLISESTI",
+        "PYYDETTY MSC",
+        "TM",
+        "www msc org",
+        "CRISPY FISH 240 g/2 kpl",
+        "MSC-sertifioitu pakaste",
+        "(12,29/kg)",
+        "Djupfryst produkt",
+        "PKT",
+        "3,49/pkt",
+        "Ilman Plussa-korttia",
+        "(14,54/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:6klassikot 260 g (24,19/kg):6.29",
+      "page": 6,
+      "title": "6KLASSIKOT 260 g (24,19/kg)",
+      "anchor": null,
+      "nearby": [
+        "                             Panda",
+        "RS",
+        "Fazer",
+        "6KLASSIKOT 260 g (24,19/kg)",
+        "Praliner 29",
+        "RS",
+        " JUHLAPÖYDÄN KONVEHTEJA 300 g (16,63/kg)",
+        "Praliner",
+        "4 11",
+        "99 50",
+        "Toblerone",
+        "SUKLAAT 340–360 g",
+        "(15,97–16,91/kg)",
+        "Choklad",
+        "UUTUUS",
+        "Panda",
+        "2",
+        "RS",
+        "   -20% Ilman Plussa-korttia 7,19/rs (19,97–21,15/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:juhlapöydän konvehteja 300 g (16,63/kg):4.99",
+      "page": 6,
+      "title": "JUHLAPÖYDÄN KONVEHTEJA 300 g (16,63/kg)",
+      "anchor": {
+        "left": 0.357442,
+        "top": 0.561835,
+        "width": 0.077594,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Panda",
+        "JUHLAPÖYDÄN",
+        "KONVEHTEJA 300 g",
+        "(16,63/kg) g",
+        "Praliner",
+        "RS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:suklaat 340–360 g:11.5",
+      "page": 6,
+      "title": "SUKLAAT 340–360 g",
+      "anchor": {
+        "left": 0.662883,
+        "top": 0.618926,
+        "width": 0.10672599999999999,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Toblerone",
+        "SUKLAAT 340–360 g",
+        "(15,97–16,91/kg) g",
+        "2",
+        "Choklad",
+        "RS",
+        "7,19/rs",
+        "Ilman Plussa-korttia",
+        "(19,97–21,15/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:hienoja konvehteja 170 g:5.99",
+      "page": 6,
+      "title": "HIENOJA KONVEHTEJA 170 g",
+      "anchor": {
+        "left": 0.85621,
+        "top": 0.796457,
+        "width": 0.11564399999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "UUTUUS",
+        "Panda",
+        "HIENOJA KONVEHTEJA",
+        "170 g",
+        "(35,24/kg)",
+        "Praliner",
+        "RS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:konvehdit 175 g:8.89",
+      "page": 7,
+      "title": "KONVEHDIT 175 g",
+      "anchor": {
+        "left": 0.340576,
+        "top": 0.574746,
+        "width": 0.08930900000000003,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Baci",
+        "KONVEHDIT 175 g",
+        "(50,80/kg) g",
+        "Praliner",
+        "RS",
+        "Lindt"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:suklaapallo 145 g:8.79",
+      "page": 7,
+      "title": "SUKLAAPALLO 145 g",
+      "anchor": {
+        "left": 0.831695,
+        "top": 0.574746,
+        "width": 0.10410900000000001,
+        "height": 0.013773
+      },
+      "nearby": [
+        "  TAHINIKANA",
+        "Katso resepti »",
+        "  PIPARI- KRANSSIKAKKU",
+        "Katso resepti »",
+        "      Baci",
+        "KONVEHDIT 175 g",
+        "Terry’s",
+        "SUKLAAPALLO 145 g",
+        "84",
+        "Lindt",
+        "(50,80/kg) (33,03/kg)",
+        "Praliner 89 Chokladboll 79",
+        "  RS KPL",
+        "           LINDOR SUKLAAKUULAT",
+        "337 g",
+        "(29,64/kg) (7,96/kg) Chokladkulor Skumgodis",
+        "91",
+        "99 99",
+        "Cloetta",
+        "JULESKUM 250 g",
+        "  RS PS",
+        " -22% Ilman Plussa-korttia 12,95/rs (38,43/kg)",
+        "   7"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:juleskum 250 g:9.99",
+      "page": 7,
+      "title": "JULESKUM 250 g",
+      "anchor": {
+        "left": 0.845475,
+        "top": 0.809026,
+        "width": 0.08497700000000008,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Lindt",
+        "(50,80/kg) (33,03/kg)",
+        "Praliner 89 Chokladboll 79",
+        "  RS KPL",
+        "           LINDOR SUKLAAKUULAT",
+        "337 g",
+        "(29,64/kg) (7,96/kg) Chokladkulor Skumgodis",
+        "91",
+        "99 99",
+        "Cloetta",
+        "JULESKUM 250 g",
+        "  RS PS",
+        " -22% Ilman Plussa-korttia 12,95/rs (38,43/kg)",
+        "   7"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:nivea vartalovoiteet 100–400 ml nivea kroppskrämer:percent:30",
+      "page": 8,
+      "title": "NIVEA VARTALOVOITEET 100–400 ml Nivea kroppskrämer",
+      "anchor": {
+        "left": 0.826272,
+        "top": 0.535828,
+        "width": 0.12331400000000003,
+        "height": 0.012961
+      },
+      "nearby": [
+        "NIVEA",
+        "VARTALOVOITEET",
+        "100–400 ml",
+        "Nivea kroppskrämer"
+      ]
+    },
+    {
+      "id": "kcm:spatial:14:tuoppi 0,48 l:5.59",
+      "page": 14,
+      "title": "TUOPPI 0,48 l",
+      "anchor": {
+        "left": 0.834439,
+        "top": 0.383985,
+        "width": 0.07299299999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "ERÄ",
+        "TUOPPI 0 48 l",
+        "Stop",
+        "59",
+        "-30%",
+        "7 99",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:16:kierrätysastia 6 l:5.99",
+      "page": 16,
+      "title": "KIERRÄTYSASTIA 6 l",
+      "anchor": {
+        "left": 0.773468,
+        "top": 0.051162,
+        "width": 0.10396199999999989,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Albula l l",
+        "KIERRÄTYSASTIA 6 l",
+        "Sorteringskärl l",
+        "5 99",
+        "9 99",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:17:nivea vartalovoiteet 100–400 ml nivea kroppskrämer:percent:30",
+      "page": 17,
+      "title": "NIVEA VARTALOVOITEET 100–400 ml Nivea kroppskrämer",
+      "anchor": {
+        "left": 0.657001,
+        "top": 0.384662,
+        "width": 0.147899,
+        "height": 0.016527
+      },
+      "nearby": [
+        "NIVEA VARTALOVOITEET",
+        "100–400 ml",
+        "Nivea kroppskrämer"
+      ]
+    },
+    {
+      "id": "kcm:spatial:18:lv pyykinpesunesteet 750–1500 ml, täyttöpussi 1500 ml, jauheet 750–1600 g, huuhteluaine 750 ml:percent:15",
+      "page": 18,
+      "title": "LV PYYKINPESUNESTEET 750–1500 ml, TÄYTTÖPUSSI 1500 ml, JAUHEET 750–1600 g, HUUHTELUAINE 750 ml",
+      "anchor": {
+        "left": 0.620832,
+        "top": 0.139734,
+        "width": 0.22273699999999996,
+        "height": 0.016527
+      },
+      "nearby": [
+        "LV PYYKINPESUNESTEET",
+        "750–1500 ml TÄYTTÖPUSSI 1500 ml"
+      ]
+    },
+    {
+      "id": "kcm:spatial:18:tai tahranpoistosuihke 150 ml:percent:15",
+      "page": 18,
+      "title": "tai TAHRANPOISTOSUIHKE 150 ml",
+      "anchor": {
+        "left": 0.632861,
+        "top": 0.180328,
+        "width": 0.204179,
+        "height": 0.016527
+      },
+      "nearby": [
+        "HUUHTELUAINE 750 ml",
+        "tai TAHRANPOISTOSUIHKE 150 ml",
+        "LV tvättmedel refill tvättpulver sköljmedel",
+        "eller fläckborttagningsspray"
+      ]
+    },
+    {
+      "id": "kcm:spatial:18:wc-paperi 16 rl:7.29",
+      "page": 18,
+      "title": "WC-PAPERI 16 rl",
+      "anchor": {
+        "left": 0.261047,
+        "top": 0.559331,
+        "width": 0.08334400000000003,
+        "height": 0.013773
+      },
+      "nearby": [
+        "Serla rl talouspaperi",
+        "8 rl valkoinen",
+        "Hellä",
+        "Plussa-kortilla 4,90/pkt",
+        "WC-PAPERI 16 rl",
+        "ilman Plussa-korttia",
+        "0,45/rl rl",
+        "5,75/pkt",
+        "Toalettpapper",
+        "29",
+        "-15%",
+        "PKT",
+        "8,59/pkt (0,54/rl)",
+        "Ilman Plussa-korttia"
+      ]
+    }
+  ]
+}
