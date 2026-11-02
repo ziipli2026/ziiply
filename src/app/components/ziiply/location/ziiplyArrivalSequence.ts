@@ -65,7 +65,24 @@ export function evaluateZiiplyArrival(
   const ambiguous=candidates.length>1&&candidates[1].distance-candidates[0].distance<=sample.accuracyMeters;
   const store=ambiguous?null:candidates[0]?.store??null;
   // GPS location alone determines store presence. No speed, travel history or time delays.
-  const arrivalConfirmed=!!store&&valid&&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS;
+  // A mapped shop coordinate may be at the building centre rather than its entrance.
+  // Only extend the arrival radius for the explicitly selected store after
+  // 20 seconds of stable positioning; do not change selection automatically.
+  const selectedNearby=!!store&&selectedStoreIds.includes(store.id)
+    &&candidates[0].distance<=Math.min(130,ZIIPLY_STORE_RADIUS_METERS+Math.max(40,sample.accuracyMeters*2));
+  const stationary=sample.speedKmh===null||sample.speedKmh<5;
+  const anchor=state.lastStationaryPosition;
+  const stable=!anchor||ziiplyDistanceMeters(anchor,sample)<=Math.max(35,sample.accuracyMeters*1.5);
+  if(!valid||ambiguous||!selectedNearby||!stationary||!stable){
+    state.stoppedAt=null;
+    state.lastStationaryPosition=null;
+  }else{
+    if(state.stoppedAt===null)state.stoppedAt=sample.at;
+    if(!anchor)state.lastStationaryPosition={latitude:sample.latitude,longitude:sample.longitude};
+    state.lastStationarySampleAt=sample.at;
+  }
+  const stationaryArrival=selectedNearby&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=20000;
+  const arrivalConfirmed=!!store&&valid&&(candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS||stationaryArrival);
   const inStore=!!store&&arrivalConfirmed&&valid;
   const showArrivalMessage=!!inStore&&state.arrivalStoreId!==store?.id;
   if(inStore)state.arrivalStoreId=store.id;
