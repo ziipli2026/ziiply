@@ -493,7 +493,7 @@ export default function ZiiplyMobileTopBar({
     }
 
     // Refresh at :01, :16, :31 and :46, not every 15 minutes from page load.
-    let timer: ReturnType<typeof setTimeout>;
+    let timer: number;
     const schedule = () => {
       const now = Date.now();
       const next = Math.floor((now - 60_000) / 900_000 + 1) * 900_000 + 60_000;
