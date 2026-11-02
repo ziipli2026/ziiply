@@ -696,7 +696,7 @@
 "use client";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
-import { evaluateZiiplyArrival, initialZiiplyArrivalState, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
+import { evaluateZiiplyArrival, initialZiiplyArrivalState, ziiplyStoreChainGroup, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { scannerStickerPrice } from "../lib/scannerStickerPrice";
 import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
 import ZiiplyMobileFuelView from "./components/ziiply/mobile/ZiiplyMobileFuelView";
@@ -25393,6 +25393,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         <ZiiplyArrivalNotice
           notice={arrivalNotice.notice}
+          onConfirmStoreChange={(storeId) => {
+            const decision = liveArrivalDecisionRefV864.current;
+            if (!decision?.askStoreChange || !decision.store || decision.store.id !== storeId) return;
+            const target = foundStores.map(normalizeStoreForPickerV320).find(store =>
+              normalize(String(store.name || "")) === storeId &&
+              (store.type === "S" || store.type === "K"));
+            if (!target) return;
+            const mode: StoreMode = isPrisma(target) || isKCitymarket(target) ? "hyper" : "local";
+            const chain = target.type as "S" | "K";
+            if (!(chain === "S" ? selectedChains.s : selectedChains.k)) return;
+            const previousName = chain === "S" ? activeStores.sStoreName : activeStores.kStoreName;
+            if (!previousName || previousName.startsWith("Valitse ensin")) return;
+            const previous = ziiplyStoreChainGroup(previousName);
+            const next = ziiplyStoreChainGroup(target.name);
+            if (!previous || !next || previous.chainId !== next.chainId) return;
+            if (mode !== storeMode) handleStoreModeChange(mode);
+            selectStoreForCurrentMode(target, mode);
+            arrivalNotice.dismiss();
+          }
           onDismiss={arrivalNotice.dismiss}
           onSkip={arrivalNotice.skip}
           onList={() => {
