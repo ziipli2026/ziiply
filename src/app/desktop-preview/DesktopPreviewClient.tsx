@@ -2840,7 +2840,7 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="ml-auto grid w-full min-w-0 translate-x-[12px] grid-cols-5 gap-2">
+          <div className="ml-auto grid w-full min-w-0 translate-x-[12px] grid-cols-4 gap-2">
             {[
               ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
@@ -2890,10 +2890,6 @@ export default function DesktopPreviewPage() {
                 )}
               </button>
             ))}
-            <div aria-label="Ajonopeus" className="relative order-1 flex h-[66px] min-w-0 items-center justify-center gap-1.5 rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-2 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
-              <span className="text-[20px]" aria-hidden="true">🚗</span>
-              <span className="min-w-0"><span className="block whitespace-nowrap text-[9px] font-black tracking-[0.08em] text-[#526b61]">NOPEUS</span><span className={`block whitespace-nowrap text-[19px] font-black leading-tight tabular-nums ${shownSpeed === null || shownSpeed <= 20 ? "text-[#526b61]" : speedOverLimit ? "text-[#cf202a]" : shownSpeedLimit !== null ? "text-[#138441]" : "text-[#102a24]"}`}>{shownSpeed !== null && shownSpeed > 20 ? shownSpeed : "—"} <span className="text-[9px]">km/h</span></span><span className="block whitespace-nowrap text-[9px] font-bold text-[#526b61]">Rajoitus {shownSpeedLimit ?? "—"}</span></span>
-            </div>
             <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative order-5 flex h-[66px] min-w-0 items-center gap-2 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-2 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition ">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
               <span className="min-w-0">
@@ -2905,6 +2901,22 @@ export default function DesktopPreviewPage() {
 
           </div>
         </header>
+        {shownSpeed !== null && shownSpeed > 20 && (
+          <div aria-label="Ajonopeus" className="pointer-events-none absolute left-1/2 top-[100px] z-[60] -translate-x-1/2">
+            <div className="relative flex h-[76px] w-[190px] flex-col items-center justify-center rounded-[19px] border-[3px] border-[#073d32] bg-[#fff5d9] text-center text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18)]">
+              <span className="absolute left-[7px] top-[7px] h-[6px] w-[6px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+              <span className="absolute right-[7px] top-[7px] h-[6px] w-[6px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+              <span className="absolute left-[7px] bottom-[7px] h-[6px] w-[6px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+              <span className="absolute right-[7px] bottom-[7px] h-[6px] w-[6px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+              <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+                <span className="text-[22px]" aria-hidden="true">🚗</span>
+                <span className={`text-[35px] font-black leading-none tabular-nums ${speedOverLimit ? "text-[#cf202a]" : shownSpeedLimit !== null ? "text-[#138441]" : "text-[#173b31]"}`}>{shownSpeed}</span>
+                <span className="text-[11px] font-black">km/h</span>
+              </div>
+              <span className="mt-1 text-[11px] font-black leading-none">Rajoitus {shownSpeedLimit ?? "—"}</span>
+            </div>
+          </div>
+        )}
 
         
 
