@@ -2406,7 +2406,7 @@ export default function DesktopPreviewPage() {
             .filter(Boolean);
           // Recover missing EAN quotes even when another matching product is already priced.
           // Otherwise Jozo salt and Salonen bread can be silently omitted from the visible results.
-          const lookupNames=[...brandLookups,...missingCatalogNames,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
+          const lookupNames=[...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
           if(!lookupNames.length)return;
           const store=batch.store;
           const url=batch.chain==='S'
