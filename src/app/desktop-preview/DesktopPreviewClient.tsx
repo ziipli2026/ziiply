@@ -2806,13 +2806,6 @@ export default function DesktopPreviewPage() {
       <div aria-hidden className="pointer-events-none absolute -right-40 bottom-[-80px] h-[620px] w-[620px] rounded-full bg-[#8ead91]/25 blur-3xl" />
 
       <div className="relative mx-auto flex h-[100dvh] min-h-0 w-full max-w-[1800px] flex-col overflow-hidden px-8 pb-2 pt-3 xl:px-12 xl:pb-2 xl:pt-3">
-            <div aria-label="Ajonopeus" className="absolute left-1/2 top-[12px] z-10 flex w-[136px] -translate-x-1/2 h-[66px] min-w-0 flex-col items-center justify-center rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
-              <span className="flex w-full min-w-0 items-center justify-center gap-1 whitespace-nowrap text-[9px] font-black tracking-[0.06em] text-[#526b61]"><span aria-hidden="true">🚗</span> NOPEUS</span>
-              <span className={`flex w-full min-w-0 items-baseline justify-center gap-1 whitespace-nowrap font-black leading-none tabular-nums ${shownSpeed === null || shownSpeed <= 20 ? "text-[#526b61]" : speedOverLimit ? "text-[#cf202a]" : shownSpeedLimit !== null ? "text-[#138441]" : "text-[#102a24]"}`}>
-                <span className="text-[clamp(22px,2vw,32px)] tracking-tight">{shownSpeed ?? 0}</span><span className="text-[10px]">km/h</span>
-              </span>
-              <span className="whitespace-nowrap text-[9px] font-bold leading-tight text-[#526b61]">Rajoitus {shownSpeedLimit ?? "—"}</span>
-            </div>
         <header ref={desktopHeaderRef} className="grid grid-cols-[minmax(215px,240px)_minmax(265px,300px)_minmax(0,1fr)] items-center gap-3 border-b border-[#64745f]/20 pb-4">
           <div className="flex items-center gap-3">
             <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[66px] w-[66px] object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]" />
@@ -2836,13 +2829,21 @@ export default function DesktopPreviewPage() {
             </button>
           </div>
 
-          <div className="ml-auto grid w-full min-w-0 grid-cols-[repeat(4,minmax(0,136px))] justify-end gap-2">
+          <div className="ml-auto grid w-full min-w-0 grid-cols-[repeat(5,minmax(0,136px))] justify-end gap-2">
+            <div aria-label="Ajonopeus" className="relative order-1 flex w-full h-[66px] min-w-0 flex-col items-center justify-center rounded-[19px] border border-[#a7c1b8] bg-gradient-to-b from-[#f4fff8] to-[#c9e9dc] px-1 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)]">
+              <span className="flex w-full min-w-0 items-center justify-center gap-1 whitespace-nowrap text-[9px] font-black tracking-[0.06em] text-[#526b61]"><span aria-hidden="true">🚗</span> NOPEUS</span>
+              <span className={`flex w-full min-w-0 items-baseline justify-center gap-1 whitespace-nowrap font-black leading-none tabular-nums ${shownSpeed === null || shownSpeed <= 20 ? "text-[#526b61]" : speedOverLimit ? "text-[#cf202a]" : shownSpeedLimit !== null ? "text-[#138441]" : "text-[#102a24]"}`}>
+                <span className="text-[clamp(22px,2vw,32px)] tracking-tight">{shownSpeed ?? 0}</span><span className="text-[10px]">km/h</span>
+              </span>
+              <span className="whitespace-nowrap text-[9px] font-bold leading-tight text-[#526b61]">Rajoitus {shownSpeedLimit ?? "—"}</span>
+            </div>
+
             {[
               ["☀️", "SÄÄ", weather.value, "", "from-[#fffdf0] to-[#ffedb8] border-[#b5cbb4]"],
               ["⚡", "SÄHKÖ", electricity.value, electricity.detail, "from-[#fff6ce] to-[#ffdf75] border-[#d2b363]"],
               ["⛽", "AJOAINE", fuelLoading ? "Haetaan…" : `DI ${fuelClosestPrice("diesel")?.toFixed(3).replace(".", ",") ?? "–"}`, `95 ${fuelClosestPrice("price95")?.toFixed(3).replace(".", ",") ?? "–"} / 98 ${fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "–"}`, "from-[#fff1da] to-[#ffc795] border-[#c78b63]"],
             ].map(([icon, title, value, detail, theme]) => (
-              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "order-3" : title === "SÄHKÖ" ? "order-2" : "order-1"} ${title === "AJOAINE" ? "gap-0 !pl-[65px] !pr-1" : "gap-2 px-2"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
+              <button type="button" key={title} onClick={() => { if (title === "AJOAINE") {setElectricityOpen(false);setFuelSelected(v => !v);setFuelCompared(false);} else if (title === "SÄHKÖ") {setElectricityOpen(true);} }} aria-pressed={title === "AJOAINE" ? fuelSelected : title === "SÄHKÖ" ? electricityOpen : undefined} className={`group relative flex h-[66px] items-center ${title === "AJOAINE" ? "order-4" : title === "SÄHKÖ" ? "order-3" : "order-2"} ${title === "AJOAINE" ? "gap-0 !pl-[65px] !pr-1" : "gap-2 px-2"} rounded-[19px] border bg-gradient-to-b ${theme} text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition  ${title === "AJOAINE" || title === "SÄHKÖ" ? `cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c] ${(title === "AJOAINE" && fuelSelected) || (title === "SÄHKÖ" && electricityOpen) ? "ring-[3px] ring-[#17573c] ring-offset-2" : ""}` : "cursor-default"}`} >
                 {title === "AJOAINE" ? <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : title === "SÄHKÖ" ? (() => {
                   // Compare the next quarter with the current quarter, matching mobile.
                   const color = electricityTrendColor;
@@ -2886,7 +2887,7 @@ export default function DesktopPreviewPage() {
                 )}
               </button>
             ))}
-            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative order-4 flex h-[66px] min-w-0 items-center gap-2 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-2 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition ">
+            <button type="button" onClick={() => { window.open("https://calendar.google.com/calendar/u/0/r", "_blank", "noopener,noreferrer"); }} className="group relative order-5 flex h-[66px] min-w-0 items-center gap-2 rounded-[19px] border border-[#c9a86d] bg-gradient-to-b from-[#fffaf0] to-[#ffe39a] px-2 text-left shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_4px_10px_rgba(52,48,32,.10)] transition ">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] border-2 border-[#8a5b1d] bg-[#fff9e8] text-[21px] font-black text-[#17322a] shadow-sm">{now.getDate()}</span>
               <span className="min-w-0">
                 <span className="block truncate text-[9px] font-black tracking-[0.06em] text-[#625b43]">{month}</span>
