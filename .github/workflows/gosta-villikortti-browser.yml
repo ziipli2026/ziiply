@@ -1,0 +1,43 @@
+name: Gösta villikortti 100 browser UI audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - 'scripts/test-gosta-villikortti-browser.mjs'
+      - '.github/workflows/gosta-villikortti-browser.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false --legacy-peer-deps --no-audit --no-fund playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Start desktop preview locally
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: |
+          npm run dev -- --hostname 127.0.0.1 > /tmp/ziiply-gosta-browser.log 2>&1 &
+          for i in $(seq 1 100); do
+            if curl --silent --fail http://127.0.0.1:3000/desktop-preview >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Exercise Gösta offer dialog with 100 searches
+        run: node scripts/test-gosta-villikortti-browser.mjs
+      - name: Save diagnostics
+        if: always()
+        run: |
+          mkdir -p browser-test-results/gosta-villikortti
+          cp /tmp/ziiply-gosta-browser.log browser-test-results/gosta-villikortti/server.log || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gosta-villikortti-browser-100
+          path: browser-test-results/gosta-villikortti/
