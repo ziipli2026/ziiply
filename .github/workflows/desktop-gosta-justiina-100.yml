@@ -1,0 +1,27 @@
+name: Desktop Gösta and Justiina 100 search regression
+on:
+  workflow_dispatch:
+  push:
+    branches: [preview/legacy-desktop-ui]
+    paths:
+      - 'scripts/test-desktop-gosta-justiina-100.cjs'
+      - '.github/workflows/desktop-gosta-justiina-100.yml'
+      - 'src/app/desktop-preview/DesktopPreviewClient.tsx'
+jobs:
+  search-200:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Run 100 Gösta and 100 Justiina shared-engine queries
+        run: node scripts/test-desktop-gosta-justiina-100.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-gosta-justiina-200-results
+          path: desktop-gosta-justiina-100-report.json
+          if-no-files-found: warn
