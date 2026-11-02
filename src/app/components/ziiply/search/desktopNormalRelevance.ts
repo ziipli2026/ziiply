@@ -312,7 +312,16 @@ export function desktopSearchDecision(query: string, product: Row) {
   const currentSizes=[...catalogPackageSizes(product.name || product.title),...catalogPackageSizes(product.quantity)];
   if(currentSizes.length && requested.some(size=>!currentSizes.includes(size)))return primary;
   for(const alias of product.aliases.slice(0,24)) {
-    if(typeof alias!=='string' || !alias.trim() || !compatibleCatalogNames(product.name || product.title,alias,product.quantity))continue;
+    if(typeof alias!=='string' || !alias.trim())continue;
+    const originalTerms=new Set(searchWords(product.name || product.title).filter(t=>t.length>=5));
+    const aliasTerms=new Set(searchWords(alias).filter(t=>t.length>=5));
+    const sharedDistinctive=[...originalTerms].filter(t=>aliasTerms.has(t));
+    // Permit observed same-EAN alternate naming when the producer's core
+    // identity is supported by several distinctive original-name words.
+    // E.g. "hazel" vs "hasselpähkinä" must not hide an otherwise exact alias.
+    const corroboratedAlias=sharedDistinctive.length>=3 &&
+      searchWords(product.brand || product.brandName).some(t=>searchWords(alias).includes(t));
+    if(!compatibleCatalogNames(product.name || product.title,alias,product.quantity) && !corroboratedAlias)continue;
     const decision=desktopSearchNameDecision(query,{...product,name:alias,aliases:undefined});
     if(decision.accepted)return {...decision,reason:'observed_ean_name:'+decision.reason};
   }
