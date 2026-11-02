@@ -1,0 +1,35 @@
+name: Mobile speed limit retry integration
+on:
+  push:
+    branches:
+      - fix/mobile-speed-limit-retry-20261102
+    paths:
+      - scripts/patch-mobile-speed-limit-retry.py
+      - src/app/api/mobile-speed-limit/route.ts
+      - src/lib/mobile-speed-limit.ts
+      - .github/workflows/mobile-speed-limit-retry.yml
+permissions:
+  contents: write
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Patch existing mobile UI safely
+        run: python3 scripts/patch-mobile-speed-limit-retry.py
+      - name: Install dependencies
+        run: npm ci
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Commit tested UI integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/page.tsx
+          git diff --cached --quiet || (git commit -m "Connect mobile speed-limit display to resilient API" && git push)
