@@ -2724,7 +2724,7 @@ export default function DesktopPreviewPage() {
         if(cancelled)return;
         setElectricityPrices(chartPrices);
         const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end&&item.end-item.start===15*60*1000);
-        setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh"}:{value:"—",detail:"varttihinta ei saatavilla"});
+        setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh · "+new Date(currentWindow.start).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})+"–"+new Date(currentWindow.end).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})}:{value:"—",detail:"varttihinta ei saatavilla"});
       })();
     };
     // Align updates to :01, :16, :31 and :46 every hour.
@@ -2849,10 +2849,10 @@ export default function DesktopPreviewPage() {
                     </span>
                   </>
                 ) : (
-                  <span className="min-w-0">
+                  <span className={title === "SÄHKÖ" ? "flex min-w-0 flex-1 flex-col items-center justify-center text-center" : "min-w-0"}>
                     <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
                     <span className="mt-0.5 block text-[19px] font-black leading-none text-[#102a24]">{value}</span>
-                    <span className="mt-1 block truncate text-[9px] font-black text-[#706a58]">{detail}</span>
+                    <span className={title === "SÄHKÖ" ? "mt-1 block whitespace-nowrap text-[9px] font-black text-[#706a58]" : "mt-1 block truncate text-[9px] font-black text-[#706a58]"}>{detail}</span>
                   </span>
                 )}
               </button>
