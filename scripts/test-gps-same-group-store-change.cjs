@@ -37,4 +37,20 @@ const prompt=reduce(null,{type:'sample',decision:second,at:22000});
 assert.equal(prompt?.phase,'change-store');
 const next=core.evaluateZiiplyArrival(second.state,{...sample,at:29000},[citymarket],['k-supermarket vierema'],[selectedName]);
 assert.equal(reduce(prompt,{type:'sample',decision:next,at:29000})?.phase,'change-store');
+const actualLogSamples=[
+  {at:1793606220907,latitude:60.631593183629526,longitude:24.863967967839802,accuracyMeters:16.779964084269498,speedKmh:null},
+  {at:1793606227902,latitude:60.63160283148443,longitude:24.86395870056551,accuracyMeters:13.945136366758899,speedKmh:null},
+  {at:1793606234832,latitude:60.631602613576995,longitude:24.863965991669147,accuracyMeters:12.17218299008424,speedKmh:null},
+  {at:1793606241668,latitude:60.631604654952596,longitude:24.86396799514512,accuracyMeters:10.950524134320387,speedKmh:null},
+];
+let actualState=core.initialZiiplyArrivalState(),actualNotice=null,asked=false;
+for(const gps of actualLogSamples){
+  const d=core.evaluateZiiplyArrival(actualState,gps,[citymarket],['k-supermarket vierema'],[selectedName]);
+  actualState=d.state;
+  actualNotice=reduce(actualNotice,{type:'sample',decision:d,at:gps.at});
+  asked=asked||d.askStoreChange;
+}
+assert.equal(asked,true,'Exact 2026-11-02 debug samples must trigger store conflict');
+assert.equal(actualNotice?.phase,'change-store','Conflict must be visible on screen');
+console.log('PASS: exact four GPS samples from 2026-11-02 debug JSON, K-Supermarket Vieremä selected, K-Citymarket Hyvinkää detected');
 console.log('PASS: real Hyvinkää 108m GPS mismatch, 20s stationary, selected shop outside GPS pool, persistent prompt');
