@@ -2197,7 +2197,7 @@ function KauppiasMobileTopBar({
     const queryLimit = (position: GeolocationPosition) => {
     const now = Date.now();
     const { latitude, longitude, accuracy, heading } = position.coords;
-    if (accuracy > 60 || now - lastLimitQueryAt < 12000) return;
+    if (accuracy > 100 || now - lastLimitQueryAt < 12000) return;
     lastLimitQueryAt = now;
     const generation = ++limitGeneration;
     const controller = new AbortController();
