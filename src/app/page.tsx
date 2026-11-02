@@ -15006,7 +15006,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       accuracyMeters:position.coords.accuracy,
       speedKmh:typeof position.coords.speed === "number" && Number.isFinite(position.coords.speed) && position.coords.speed >= 0
         ? position.coords.speed * 3.6 : null,
-    }, [...unique.values()], names.map(name => normalize(name)));
+    }, [...unique.values()], names.map(name => normalize(name)), names);
     liveArrivalStateRefV864.current = decision.state;
     liveArrivalDecisionRefV864.current = decision;
     arrivalNotice.update(decision, position.timestamp);
@@ -25406,7 +25406,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           notice={arrivalNotice.notice}
           onConfirmStoreChange={(storeId) => {
             const decision = liveArrivalDecisionRefV864.current;
-            if (!decision?.askStoreChange || !decision.store || decision.store.id !== storeId) return;
+            if (arrivalNotice.notice?.phase !== "change-store" || arrivalNotice.notice.id !== storeId) return;
             const target = foundStores.map(normalizeStoreForPickerV320).find(store =>
               normalize(String(store.name || "")) === storeId &&
               (store.type === "S" || store.type === "K"));
