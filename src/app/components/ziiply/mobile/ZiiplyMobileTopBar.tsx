@@ -497,12 +497,26 @@ export default function ZiiplyMobileTopBar({
       }
     }
 
-    loadElectricity();
-    const interval = window.setInterval(loadElectricity, 5 * 60 * 1000);
+    // Refresh at :01, :16, :31 and :46, not every 15 minutes from page load.
+    let timer: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const now = Date.now();
+      const next = Math.floor((now - 60_000) / 900_000 + 1) * 900_000 + 60_000;
+      timer = window.setTimeout(() => {
+        if (!cancelled) { void loadElectricity(); schedule(); }
+      }, Math.max(100, next - now));
+    };
+    const onFocus = () => { if (!document.hidden) void loadElectricity(); };
+    void loadElectricity();
+    schedule();
+    document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("focus", onFocus);
 
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("focus", onFocus);
     };
   }, [hidden]);
 
