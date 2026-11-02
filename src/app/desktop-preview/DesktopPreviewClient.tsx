@@ -2865,11 +2865,11 @@ export default function DesktopPreviewPage() {
                     <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
                     {title === "SÄHKÖ" ? (
                       <>
-                        <span className="mt-0.5 inline-flex items-center gap-1.5 whitespace-nowrap">
+                        <span className="mt-0.5 grid w-max grid-cols-[max-content_max-content] items-center gap-x-1.5 gap-y-1 whitespace-nowrap">
                           <span className="text-[19px] font-black leading-none text-[#102a24] tabular-nums">{value}</span>
                           <span className="text-[10px] font-black leading-none text-[#706a58]">c/kWh</span>
+                          <span className="col-start-1 row-start-2 block text-center text-[10px] font-black text-[#706a58]">{detail.replace(/^c\/kWh\s*·?\s*/, "")}</span>
                         </span>
-                        <span className="mt-1 block w-full whitespace-nowrap text-center text-[10px] font-black text-[#706a58]">{detail.replace(/^c\/kWh\s*·?\s*/, "")}</span>
                       </>
                     ) : (
                       <>
