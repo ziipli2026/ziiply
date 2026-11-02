@@ -18,7 +18,7 @@ d=run(state,42000,60.6318,24.86349,22);state=d.state;assert.equal(d.status,'in-s
 d=run(state,49000,60.636,24.86349,10);state=d.state;assert.equal(d.status,'checking');assert.equal(d.state.arrivalStoreId,null,'confirmed departure clears arrival');
 d=run(state,56000,60.6318,24.86349,22);state=d.state;assert.equal(d.status,'near-store','reentry needs a fresh confirmation');
 state=init();for(const at of [0,7000,14000,21000,28000]){d=run(state,at,60.6318,24.86349,22,false);state=d.state;}assert.equal(d.status,'near-store','unselected store must not be auto-confirmed outside 50m');
-state=init();d=run(state,0,60.6318,24.86349,22,true,null,[store,{...store,id:'second',latitude:60.63181,longitude:24.86350}]);assert.equal(d.status,'uncertain','ambiguous neighbouring shops must not auto-confirm');
+state=init();d=run(state,0,60.6318,24.86349,22,true,null,[store,{...store,id:'second',latitude:60.63258,longitude:24.86392}]);assert.equal(d.status,'uncertain','ambiguous neighbouring shops must not auto-confirm');
 state=init();
 for(const [at,lat,lon] of [[0,60.634,24.86349],[3000,60.63257,24.863914],[6000,60.6318,24.86349],[9000,60.630,24.86349]]){
  d=run(state,at,lat,lon,8,true,35);state=d.state;
