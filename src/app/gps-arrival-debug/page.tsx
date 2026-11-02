@@ -5,7 +5,7 @@ import {evaluateZiiplyArrival,initialZiiplyArrivalState,ziiplyDistanceMeters,typ
 type LogEntry={time:string;event:string;data:Record<string,unknown>};
 export default function GpsArrivalDebugPage(){
  const [running,setRunning]=useState(false),[logs,setLogs]=useState<LogEntry[]>([]),[status,setStatus]=useState("Ei käynnistetty");
- const [storeName,setStoreName]=useState("Testikauppa"),[lat,setLat]=useState(""),[lon,setLon]=useState("");
+ const [live,setLive]=useState<Record<string,unknown>>({}); const [storeName,setStoreName]=useState("Testikauppa"),[lat,setLat]=useState(""),[lon,setLon]=useState("");
  const watch=useRef<number|null>(null),state=useRef<ZiiplyArrivalState>(initialZiiplyArrivalState()),last=useRef<{latitude:number;longitude:number;at:number}|null>(null),logsRef=useRef<LogEntry[]>([]);
  const log=(event:string,data:Record<string,unknown>={})=>{const item={time:new Date().toISOString(),event,data};logsRef.current.push(item);setLogs([...logsRef.current]);};
  const stop=()=>{if(watch.current!==null){navigator.geolocation.clearWatch(watch.current);watch.current=null;}setRunning(false);log("tracking-stopped",{samples:logsRef.current.length});};
@@ -27,7 +27,7 @@ export default function GpsArrivalDebugPage(){
    const decision=evaluateZiiplyArrival(state.current,sample,store?[store]:[],[]);
    state.current=decision.state;
    const distanceToStore=store?ziiplyDistanceMeters(sample,store):null;
-   log("gps-sample",{...sample,altitude:p.altitude,altitudeAccuracy:p.altitudeAccuracy,heading:p.heading,positionTimestamp:position.timestamp,displacementMeters:displacement,deltaMs,inferredSpeedKmh:inferredSpeed,distanceToStore,decisionStatus:decision.status,decisionStore:decision.store?.name??null,askStoreChange:decision.askStoreChange,showArrivalMessage:decision.showArrivalMessage,radar:decision.radar,visibility:document.visibilityState});
+   setLive({updatedAt:new Date().toLocaleTimeString("fi-FI"),latitude:p.latitude,longitude:p.longitude,accuracyMeters:p.accuracy,speedKmh:speedKmh??inferredSpeed,distanceToStore,decisionStatus:decision.status,decisionStore:decision.store?.name??"Ei tunnistettu",radar:decision.radar,visibility:document.visibilityState}); log("gps-sample",{...sample,altitude:p.altitude,altitudeAccuracy:p.altitudeAccuracy,heading:p.heading,positionTimestamp:position.timestamp,displacementMeters:displacement,deltaMs,inferredSpeedKmh:inferredSpeed,distanceToStore,decisionStatus:decision.status,decisionStore:decision.store?.name??null,askStoreChange:decision.askStoreChange,showArrivalMessage:decision.showArrivalMessage,radar:decision.radar,visibility:document.visibilityState});
    setStatus(decision.status+(distanceToStore!==null?" · "+Math.round(distanceToStore)+" m kauppaan":" · kaupan koordinaatit puuttuvat"));
    last.current={latitude:p.latitude,longitude:p.longitude,at:now};
   },error=>{log("gps-error",{code:error.code,message:error.message,visibility:document.visibilityState});setStatus("GPS-virhe: "+error.message);},{enableHighAccuracy:true,maximumAge:0,timeout:20000});
@@ -49,7 +49,7 @@ export default function GpsArrivalDebugPage(){
    <button onClick={download} disabled={!logs.length} style={{padding:14}}>Lataa JSON-loki</button>
   </div>
   <p role="status"><strong>{status}</strong></p>
-  <p>Tapahtumia: {logs.length}. Viimeisin: {logs.at(-1)?.event??"–"}</p>
+  <section aria-live="polite" style={{border:"2px solid #888",borderRadius:12,padding:16,marginTop:16}}><h2>LIVE GPS-tila</h2><p><strong>Tunnistus:</strong> {String(live.decisionStatus??"Odottaa GPS-tietoa")}</p><p><strong>Kauppa:</strong> {String(live.decisionStore??"–")}</p><p><strong>Etäisyys kauppaan:</strong> {typeof live.distanceToStore==="number"?Math.round(live.distanceToStore)+" m":"–"}</p><p><strong>GPS-tarkkuus:</strong> {typeof live.accuracyMeters==="number"?Math.round(live.accuracyMeters)+" m":"–"}</p><p><strong>Nopeus:</strong> {typeof live.speedKmh==="number"?Number(live.speedKmh).toFixed(1)+" km/h":"–"}</p><p><strong>Koordinaatit:</strong> {live.latitude!==undefined?String(live.latitude)+", "+String(live.longitude):"–"}</p><p><strong>Viimeisin päivitys:</strong> {String(live.updatedAt??"–")}</p><p><strong>Sivun tila:</strong> {String(live.visibility??"–")}</p></section><p>Tapahtumia: {logs.length}. Viimeisin: {logs.at(-1)?.event??"–"}</p>
   <details><summary>Näytä viimeiset 30 tapahtumaa</summary><pre style={{overflowX:"auto",whiteSpace:"pre-wrap",fontSize:11}}>{JSON.stringify(logs.slice(-30),null,2)}</pre></details>
  </main>;
 }
