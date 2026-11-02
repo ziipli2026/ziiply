@@ -1,12 +1,15 @@
 "use client";
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { arrivalNoticeReducer, type ArrivalNotice } from './ziiplyArrivalNotice';
 import type { ZiiplyArrivalDecision } from './ziiplyArrivalSequence';
 
 export function useZiiplyArrivalNotice(enabled: boolean) {
   const [notice, dispatch] = useReducer(arrivalNoticeReducer, null);
+  const [pageActive, setPageActive] = useState(() => typeof document !== 'undefined' && document.visibilityState === 'visible' && document.hasFocus());
+  const deferredDecision = useRef<{ decision: ZiiplyArrivalDecision; at: number } | null>(null);
   const update = useCallback((decision: ZiiplyArrivalDecision, at: number) => {
-    dispatch({ type: 'sample', decision, at });
+    if (document.visibilityState === 'visible' && document.hasFocus()) dispatch({ type: 'sample', decision, at });
+    else deferredDecision.current = { decision, at };
     window.dispatchEvent(new CustomEvent('ziiply-arrival-debug', { detail: {
       source: 'main', at, decision, status: decision.status, store: decision.store?.name ?? null,
       selected: decision.isSelectedStore, arrival: decision.showArrivalMessage, radar: decision.radar,
@@ -14,14 +17,25 @@ export function useZiiplyArrivalNotice(enabled: boolean) {
   }, []);
   useEffect(() => { if (!enabled) dispatch({ type: 'reset' }); }, [enabled]);
   useEffect(() => {
-    const resume = () => { if (document.visibilityState === 'visible') dispatch({ type: 'resume', at: Date.now() }); };
-    document.addEventListener('visibilitychange', resume);
-    return () => document.removeEventListener('visibilitychange', resume);
+    const sync = () => {
+      const active = document.visibilityState === 'visible' && document.hasFocus();
+      setPageActive(active);
+      if (!active) return;
+      const pending = deferredDecision.current;
+      deferredDecision.current = null;
+      if (pending) dispatch({ type: 'sample', decision: pending.decision, at: Date.now() });
+      dispatch({ type: 'resume', at: Date.now() });
+    };
+    document.addEventListener('visibilitychange', sync);
+    window.addEventListener('focus', sync);
+    window.addEventListener('blur', sync);
+    sync();
+    return () => { document.removeEventListener('visibilitychange', sync); window.removeEventListener('focus', sync); window.removeEventListener('blur', sync); };
   }, []);
   useEffect(() => {
     if (!enabled || notice?.deadline == null) return;
     const timer = window.setTimeout(() => {
-      if (document.visibilityState === 'visible') dispatch({ type: 'tick', at: Date.now() });
+      if (document.visibilityState === 'visible' && document.hasFocus()) dispatch({ type: 'tick', at: Date.now() });
     }, Math.max(0, notice.deadline - Date.now()));
     return () => window.clearTimeout(timer);
   }, [enabled, notice?.deadline, notice?.phase]);
@@ -31,7 +45,7 @@ export function useZiiplyArrivalNotice(enabled: boolean) {
       store: notice?.name ?? null, deadline: notice?.deadline ?? null,
     } }));
   }, [enabled, notice?.phase, notice?.name, notice?.deadline]);
-  return { notice: enabled ? notice : null, update,
+  return { notice: enabled && pageActive ? notice : null, update,
     dismiss: () => dispatch({ type: 'dismiss' }),
     skip: () => dispatch({ type: 'skip', at: Date.now() }) };
 }
