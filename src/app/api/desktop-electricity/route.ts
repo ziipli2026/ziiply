@@ -2,26 +2,14 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+// Single canonical source for both mobile and desktop electricity prices.
 export async function GET() {
-  for (const url of [
-    "https://api.porssisahko.net/v1/latest-prices.json",
-    "https://api.porssisahko.net/v2/latest-prices.json",
-  ]) {
-    try {
-      const response = await fetch(url, {
-        cache: "no-store",
-        signal: AbortSignal.timeout(6500),
-        headers: { accept: "application/json" },
-      });
-      if (!response.ok) continue;
-      const data = await response.json();
-      const prices = Array.isArray(data?.prices) ? data.prices : Array.isArray(data) ? data : [];
-      if (prices.length) {
-        return NextResponse.json({ prices }, { headers: { "Cache-Control": "no-store" } });
-      }
-    } catch {
-      // Continue with the backup provider endpoint.
-    }
+  try {
+    const response = await fetch("https://api.porssisahko.net/v1/latest-prices.json", { cache: "no-store" });
+    if (!response.ok) return NextResponse.json({ prices: [] }, { status: 502 });
+    const data = await response.json();
+    return NextResponse.json(data, { headers: { "Cache-Control": "no-store" } });
+  } catch {
+    return NextResponse.json({ prices: [] }, { status: 502 });
   }
-  return NextResponse.json({ prices: [] }, { status: 502, headers: { "Cache-Control": "no-store" } });
 }
