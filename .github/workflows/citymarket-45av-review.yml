@@ -1,0 +1,34 @@
+name: Citymarket 45AV correction review
+on:
+  push:
+    branches: [fix/citymarket-45av-review]
+    paths: ['.github/workflows/citymarket-45av-review.yml', 'scripts/citymarket/review-45av.mjs', 'src/app/components/ziiply/offerSearch/providers/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Capture immutable 45AV source once
+        run: |
+          if [ ! -f diagnostics/45AV/archive-manifest.json ]; then
+            node scripts/citymarket/export-leaflet.mjs https://kcm-tarjouslehdet.k-ruoka.fi/89d635q_tarjouslehti_45AV_KCM/index.html diagnostics/45AV src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js
+          fi
+      - name: Preserve source and parser evidence for correction review
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add diagnostics/45AV
+          git diff --cached --quiet || git commit -m 'Freeze 45AV original source for correction review [skip ci]'
+          git push
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: citymarket-45av-correction-evidence
+          path: diagnostics/45AV
