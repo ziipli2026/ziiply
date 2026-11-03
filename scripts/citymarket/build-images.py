@@ -112,6 +112,13 @@ def build(folder,manifest_path,public_folder,review_path):
   # Audit every unresolved offer in one batch, not only WC-paper examples.
   # Candidate rectangles are evidence, never automatically approved matches.
   unresolved=[]
+  ocr_cache={}
+  def image_words(block):
+   key=id(block)
+   if key not in ocr_cache:
+    try: ocr_cache[key]=sorted(ocr(block))
+    except Exception as error: ocr_cache[key]=['OCR_ERROR',type(error).__name__]
+   return ocr_cache[key]
   for row in rows:
    if accepted[row['id']] or row['id'] in reviewed:continue
    unresolved.append(row)
