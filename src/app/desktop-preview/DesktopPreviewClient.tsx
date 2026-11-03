@@ -2074,6 +2074,7 @@ export default function DesktopPreviewPage() {
     setGostaHomeSearchOpen(true);
     setGostaHomeResults([]);
     setGostaHomeHasSearched(true);
+    setGostaFreshWatchCount(null);
     setGostaHomeLoading(true);
     setGostaHomeError("");
     try{
@@ -3143,8 +3144,8 @@ export default function DesktopPreviewPage() {
               onReportFuel={()=>{setFuelCompared(false);setFuelReportOpen(true);}}
               onGostaDetails={()=>{setGostaHomeSearchOpen(true);setGostaChainPicker(false);}}
               onGostaHomeSearch={()=>{setGostaHomeSearchOpen(true);setGostaDetailsOpen(false);setGostaChainPicker(false);}}
-              gostaWatchCount={gostaFreshWatchCount??gostaWatchOffers.length}
-               gostaWatchActive={gostaSavedWatches.length>0}
+              gostaWatchCount={gostaFreshWatchCount??0}
+               gostaWatchActive={gostaSavedWatches.length>0&&gostaFreshWatchCount!==null&&gostaFreshWatchCount>0&&!gostaHomeLoading}
               onGostaWatchOpen={()=>{setGostaChainPicker(false);void openAllGostaWatchResults();}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
