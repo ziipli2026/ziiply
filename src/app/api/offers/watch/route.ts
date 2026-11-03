@@ -24,7 +24,45 @@ function priceNumber(offer:Record<string,unknown>){
   }
   return Number.POSITIVE_INFINITY;
 }
+// Reuse completed scans and coalesce concurrent requests on a warm server instance.
+// Cache keys include location and watched terms; failed scans are never retained.
+const watchScanCache = new Map<string,{expires:number,promise:Promise<Response>}>();
+const WATCH_CACHE_MS = 5 * 60 * 1000;
+const WATCH_PARTIAL_CACHE_MS = 30 * 1000;
+const WATCH_CACHE_MAX = 80;
+
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const lat = Number(url.searchParams.get("lat"));
+  const lon = Number(url.searchParams.get("lon"));
+  const validLocation = url.searchParams.has("lat") && url.searchParams.has("lon") && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat)<=90 && Math.abs(lon)<=180;
+  if (!validLocation) return runWatch(request);
+  const key = [lat.toFixed(3),lon.toFixed(3),url.searchParams.get("q")||""].join("|");
+  const now = Date.now();
+  const existing = watchScanCache.get(key);
+  if (existing && existing.expires > now) {
+    const response = await existing.promise;
+    return response.clone();
+  }
+  watchScanCache.delete(key);
+  // Only cache successful responses, and expire incomplete store scans quickly.
+  const promise = runWatch(request);
+  watchScanCache.set(key,{expires:now+WATCH_CACHE_MS,promise});
+  try {
+    const response = await promise;
+    if (!response.ok) { watchScanCache.delete(key); return response; }
+    const payload = await response.clone().json() as {ok?:boolean;partial?:boolean};
+    if (!payload.ok) watchScanCache.delete(key);
+    else watchScanCache.set(key,{expires:Date.now()+(payload.partial?WATCH_PARTIAL_CACHE_MS:WATCH_CACHE_MS),promise:Promise.resolve(response.clone())});
+    while(watchScanCache.size>WATCH_CACHE_MAX)watchScanCache.delete(watchScanCache.keys().next().value!);
+    return response;
+  } catch(error) {
+    watchScanCache.delete(key);
+    throw error;
+  }
+}
+
+async function runWatch(request: Request) {
   const started = Date.now();
   const params = new URL(request.url).searchParams;
   const queries = [...new Set((params.get("q") || "").split("|").map(q => q.trim()).filter(q => q.length >= 2 && q.length <= 80))].slice(0, 30);
