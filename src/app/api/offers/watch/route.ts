@@ -89,8 +89,19 @@ export async function GET(request: Request) {
           const kind=category(name,String(store.chain||""));
           const isS=kind==="sHyper"||kind==="sLocal";
           const isCitymarket=/^K-Citymarket/i.test(name);
-          if(isCitymarket){nearbyDiagnostics.push({store:name,count:0,error:"K-Citymarket national already loaded"});continue;}
+          if(isCitymarket){
+            const cityRows=rows.filter(row=>/^K-Citymarket/i.test(String(row.chain)));
+            const cityOffers=cityRows.flatMap(row=>Array.isArray(row.offers)?row.offers as Record<string,unknown>[]:[]);
+            nearbyOffers.push({chain:"K",publication_id:name,offers:cityOffers.map(o=>({...o,storeName:name}))});
+            nearbyDiagnostics.push({store:name,count:cityOffers.length,error:cityOffers.length?undefined:"Citymarket publication unavailable"});continue;
+          }
           try{
+            if(kind==="lidl"){
+              const lidlRows=rows.filter(row=>/^LIDL/i.test(String(row.chain)));
+              const lidlOffers=lidlRows.flatMap(row=>Array.isArray(row.offers)?row.offers as Record<string,unknown>[]:[]);
+              nearbyOffers.push({chain:"LIDL",publication_id:name,offers:lidlOffers.map(o=>({...o,storeName:name}))});
+              nearbyDiagnostics.push({store:name,count:lidlOffers.length,error:lidlOffers.length?undefined:"Lidl publication unavailable"});continue;
+            }
             const context=kind==="lidl"?{lidlStoreKey:String(store.storeKey||id),lidlStoreName:name}:kind==="spar"?(/eurospar/i.test(name+" "+String(store.chain||""))?{eurosparStoreId:id,eurosparStoreName:name,eurosparStoreChain:String(store.chain||"")}:{tokmanniStoreId:id,tokmanniStoreName:name}):isS?{sStoreId:id,sStoreName:name,sStoreIds:[id],sStoreNames:[name]}:{kStoreId:id,kStoreName:name,kStoreIds:[id],kStoreNames:[name]};
             const offers=await Promise.race([
               searchZiiplyOffers("__ziiply_all_offers__",context),
