@@ -42,6 +42,13 @@ export async function GET(request: Request) {
         const data=await response.json();
         return Array.isArray(data)?data:Array.isArray(data.items)?data.items:[];
       }));
+      const origin=new URL(request.url).origin;
+      const independent=await Promise.allSettled(["/api/lidl/store-search","/api/eurospar-stores?lat="+encodeURIComponent(String(lat))+"&lon="+encodeURIComponent(String(lon))].map(async path=>{
+        const response=await fetch(origin+path,{cache:"no-store",signal:AbortSignal.timeout(7000)});
+        if(!response.ok)throw new Error("Store list HTTP "+response.status);
+        const data=await response.json();
+        return Array.isArray(data)?data:Array.isArray(data.items)?data.items:[];
+      }));
       const distance=(store:any)=>{
         const a=Number(store.lat??store.latitude),b=Number(store.long??store.lon??store.lng??store.longitude);
         if(!Number.isFinite(a)||!Number.isFinite(b))return Infinity;
@@ -50,15 +57,17 @@ export async function GET(request: Request) {
         return 12742*Math.asin(Math.min(1,Math.sqrt(h)));
       };
       const seenStores=new Set<string>();
-      const stores=batches.flatMap(b=>b.status==="fulfilled"?b.value:[])
+      const stores=[...batches,...independent].flatMap(b=>b.status==="fulfilled"?b.value:[])
         .filter((store:any)=>{
           const name=String(store.name||"");
-          if(store.delistedAt||!/^(Prisma|S-market|Sale|Alepa|K-Market|K-Supermarket|K-Citymarket)\b/i.test(name))return false;
+          if(store.delistedAt||!(/^(Prisma|S-market|Sale|Alepa|K-Market|K-Supermarket|K-Citymarket|Lidl|Eurospar|Spar|Tokmanni)\b/i.test(name)||/lidl|spar|tokmanni/i.test(String(store.chain||""))))return false;
           if(!Number.isFinite(distance(store)))return false;
           const id=String(store.externalId||store.id||name);
           if(seenStores.has(id))return false;seenStores.add(id);return true;
         }).sort((a:any,b:any)=>distance(a)-distance(b));
-      const category=(name:string)=>{
+      const category=(name:string,chain="")=>{
+        if(/lidl/i.test(name+" "+chain))return "lidl";
+        if(/spar|tokmanni/i.test(name+" "+chain))return "spar";
         if(/^Prisma\b/i.test(name))return "sHyper";
         if(/^K-Citymarket\b/i.test(name))return "kHyper";
         if(/^(S-market|Sale|Alepa)\b/i.test(name))return "sLocal";
@@ -67,7 +76,7 @@ export async function GET(request: Request) {
       };
       const picked=new Set<string>();
       const selectedStores=stores.filter((store:any)=>{
-        const kind=category(String(store.name||""));
+        const kind=category(String(store.name||""),String(store.chain||""));
         if(!kind||picked.has(kind))return false;
         picked.add(kind);return true;
       });
@@ -77,17 +86,18 @@ export async function GET(request: Request) {
           const store=selectedStores[cursor++] as Record<string,unknown>;
           const name=String(store.name||"");
           const id=String(store.externalId||store.id||"");
-          const isS=/^(Prisma|S-market|Sale|Alepa)/i.test(name);
+          const kind=category(name,String(store.chain||""));
+          const isS=kind==="sHyper"||kind==="sLocal";
           const isCitymarket=/^K-Citymarket/i.test(name);
           if(isCitymarket){nearbyDiagnostics.push({store:name,count:0,error:"K-Citymarket national already loaded"});continue;}
           try{
-            const context=isS?{sStoreId:id,sStoreName:name,sStoreIds:[id],sStoreNames:[name]}:{kStoreId:id,kStoreName:name,kStoreIds:[id],kStoreNames:[name]};
+            const context=kind==="lidl"?{lidlStoreKey:String(store.storeKey||id),lidlStoreName:name}:kind==="spar"?(/eurospar/i.test(name+" "+String(store.chain||""))?{eurosparStoreId:id,eurosparStoreName:name,eurosparStoreChain:String(store.chain||"")}:{tokmanniStoreId:id,tokmanniStoreName:name}):isS?{sStoreId:id,sStoreName:name,sStoreIds:[id],sStoreNames:[name]}:{kStoreId:id,kStoreName:name,kStoreIds:[id],kStoreNames:[name]};
             const offers=await Promise.race([
               searchZiiplyOffers("__ziiply_all_offers__",context),
               new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("timeout 10s")),10000))
             ]);
             const normalized=offers as unknown as Record<string,unknown>[];
-            nearbyOffers.push({chain:isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
+            nearbyOffers.push({chain:kind==="lidl"?"LIDL":kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
             nearbyDiagnostics.push({store:name,count:normalized.length});
           }catch(error){nearbyDiagnostics.push({store:name,count:0,error:String(error)});}
         }
@@ -97,7 +107,7 @@ export async function GET(request: Request) {
     const results: Array<Record<string,unknown>> = [];
     const sources: Array<{chain:string;publication:string;count:number}> = [];
     let inspected = 0;
-    for (const row of [...rows.filter(row=>/^LIDL/i.test(String(row.chain))),...nearbyOffers]) {
+    for (const row of nearbyOffers) {
       const offers = Array.isArray(row.offers) ? row.offers as Record<string,unknown>[] : [];
       sources.push({chain:String(row.chain),publication:String(row.publication_id),count:offers.length});
       inspected += offers.length;
