@@ -12,6 +12,17 @@ function scenario(target,selection=[selected.id],all=[selected,sameChain,crossCh
  }
  return {decision,notice};
 }
+// Identity cross-check: a single alternating store fix cannot confirm a visit.
+{
+ let state=initialZiiplyArrivalState();
+ const positions=[selected,selected,sameChain,selected,selected];
+ for(let i=0;i<positions.length;i++){
+  const p=positions[i],at=i*3000;
+  const d=evaluateZiiplyArrival(state,{at,latitude:p.latitude,longitude:p.longitude,accuracyMeters:5,speedKmh:0},[selected,sameChain,crossChain],[selected.id]);
+  state=d.state;
+  assert.equal(d.showArrivalMessage,false,'alternating store identity must not confirm arrival');
+ }
+}
 let x=scenario(selected);
 assert.equal(x.decision.showArrivalMessage,true);
 assert.equal(x.notice.phase,'approach');
