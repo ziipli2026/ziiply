@@ -17,6 +17,12 @@ const proof = loadExports("src/app/components/ziiply/offerSearch/providers/kCity
   ["verifyPrintedTransaction"]);
 const evidence = JSON.parse(fs.readFileSync(path.join(root, "diagnostics/45AV/parser-evidence.json"), "utf8"));
 const byTitle = fragment => evidence.rows.find(row => String(row.title).toLowerCase().includes(fragment));
+test("45AV corrected titles and prices retain the original publisher image card identity", () => {
+  const provider = fs.readFileSync(path.join(root, "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"), "utf8");
+  assert.match(provider, /_45AV_KCM\/i\.test\(leafletUrl\)/);
+  assert.match(provider, /publisherOfferId:"kcm:spatial:"\+page\+":"\+rawTitle\+":"\+suffix/);
+  assert.match(provider, /publisherOfferId:row\.publisherOfferId/);
+});
 test("45AV unresolved image audit retains OCR evidence for manual review", () => {
   const source = fs.readFileSync(path.join(root, "scripts/citymarket/build-images.py"), "utf8");
   assert.match(source, /ocrWords/);
