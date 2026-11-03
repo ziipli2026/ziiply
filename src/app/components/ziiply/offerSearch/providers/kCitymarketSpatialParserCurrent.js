@@ -1693,7 +1693,7 @@ if(out.rows.some(r=>r.page===7&&/VITAMIINIVEDET 1,5 l\/pl/i.test(r.title||''))){
  });
 }
 out.rows=out.rows.map(row=>restoreUniquePublisherClippedTitle(row,publicationWordBoxes.get(row.page)));
-out.rows=out.rows.map(row=>verifyPrintedTransaction(row,publicationWordBoxes.get(row.page)));
+out.rows=out.rows.map(row=>verifyPrintedTransaction(row,[...(publicationWordBoxes.get(row.page)||[]),...(row.debugNearbyBoxes||[])]));
 // Reconcile clipped publisher names only after the regular transaction proofs.
 out.rows=out.rows.map(row=>restoreSplitPublisherCard(row,publicationWordBoxes.get(row.page)));
 return out;
