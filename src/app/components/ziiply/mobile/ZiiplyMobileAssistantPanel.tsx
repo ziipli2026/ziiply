@@ -81,13 +81,15 @@ export default function ZiiplyMobileAssistantPanel({
       const offers=Array.isArray(data?.results)?data.results:[];
       const counts=Object.fromEntries(terms.map(q=>[q,offers.filter((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:[]).some((w:string)=>w.toLocaleLowerCase("fi")===q.toLocaleLowerCase("fi"))).length]));
       if(response.ok&&data?.ok&&Array.isArray(data.results)){
-        const seen=new Set<string>();
-        const matched=offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:terms.filter(query=>matchesGostaWatch(query,offer))).map((query:string)=>({
-          query,title:String(offer.title||offer.name||offer.productName||"Tarjous"),
+        // The API has already deduplicated offers by their product identity.
+        // Never collapse distinct API offers by identical display title and price.
+        const matched=offers.map((offer:any)=>({
+          query:String((Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:terms.filter(query=>matchesGostaWatch(query,offer)))[0]||""),
+          title:String(offer.title||offer.name||offer.productName||"Tarjous"),
           price:String(offer.offerPrice??offer.price??""),
           store:String(offer.storeName||offer.chain||""),
           source:String(offer.source||offer.sourceType||offer.chain||"")
-        }))).filter((offer:any)=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
+        }));
         setWatchOffers(matched);setWatchChecked(true);
         if(!data.partial){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }
@@ -124,13 +126,15 @@ export default function ZiiplyMobileAssistantPanel({
         const {response,data}=await fetchSharedGostaWatch(await gostaWatchUrl(terms));
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahtien API epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
-        const seen=new Set<string>();
-        const matched=offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:terms.filter(query=>matchesGostaWatch(query,offer))).map((query:string)=>({
-          query,title:String(offer.title||offer.name||offer.productName||"Tarjous"),
+        // The API has already deduplicated offers by their product identity.
+        // Never collapse distinct API offers by identical display title and price.
+        const matched=offers.map((offer:any)=>({
+          query:String((Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:terms.filter(query=>matchesGostaWatch(query,offer)))[0]||""),
+          title:String(offer.title||offer.name||offer.productName||"Tarjous"),
           price:String(offer.offerPrice??offer.price??""),
           store:String(offer.storeName||offer.chain||""),
           source:String(offer.source||offer.sourceType||offer.chain||"")
-        }))).filter((offer:any)=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
+        }));
         setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,600)+" | lähikaupat: "+JSON.stringify(data.diagnostic?.nearby||[]).slice(0,1500));
         if(cancelled)return;
         if(data.partial){
