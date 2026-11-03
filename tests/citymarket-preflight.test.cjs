@@ -82,3 +82,11 @@ test('45AV parser success stays yellow when PDF review is pending even with ok f
  const result=status([run],new Date('2026-11-01T14:00:00Z'));
  assert.equal(result.level,'yellow');assert.equal(result.parserOk,true);assert.equal(result.reviewed,false);assert.equal(result.count,32);
 });
+
+test('45AV missing images and categories cannot be green even with a PDF-pass audit log',()=>{
+ const p='2026-11-02-W45-AV';
+ const run={checked_at:'2026-11-01T13:15:00Z',source:'k-citymarket-preflight',ok:false,offer_count:32,outcome:'preflight-awaiting-pdf-review',details:{period:p,pdfReview:'pending',quality:{total:32,missing_images:6,missing_categories:15,unverified_prices:0},errors:[]}};
+ const audit={checked_at:'2026-11-01T13:20:00Z',source:'k-citymarket-source-audit',ok:true,offer_count:32,outcome:'pdf-review-passed',details:{period:p}};
+ const result=status([run,audit],new Date('2026-11-01T14:00:00Z'));
+ assert.equal(result.level,'yellow');assert.equal(result.reviewed,false);
+});
