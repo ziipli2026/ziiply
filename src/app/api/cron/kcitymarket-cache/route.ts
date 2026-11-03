@@ -4,6 +4,7 @@ import { warmKCitymarketOfferCache, persistKCitymarketOfferPublication, getNextK
 import { readActivePublicationOffers } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 import { recordCitymarketPreflight } from "@/app/components/ziiply/offerSearch/citymarketPreflight";
+import { inspectCitymarketOffers } from "@/app/components/ziiply/offerSearch/citymarketQuality";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -46,7 +47,9 @@ export async function GET(request: Request) {
     const preflight = preflightPeriod ? await recordCitymarketPreflight({
       period:preflightPeriod.key,startedAt:startedAt.toISOString(),parsed:result.next,errors:result.errors,
     }) : null;
-    const activeImages = await readActivePublicationOffers<{imageUrl?:string}>("K-Citymarket",startedAt).then(rows=>({total:rows.length,withImage:rows.filter(row=>Boolean(row.imageUrl)).length,missingImage:rows.filter(row=>!row.imageUrl).length})).catch(error=>({error:String(error)}));
+    const activeOffers = await readActivePublicationOffers<Record<string,unknown>>("K-Citymarket",startedAt).catch(() => []);
+    const activeQuality = inspectCitymarketOffers(activeOffers);
+    const activeImages = {total:activeQuality.total,withImage:activeQuality.total-activeQuality.missingImages,missingImage:activeQuality.missingImages};
     // A successful active leaflet must not mask a failed next-period warm-up.
     // warmKCitymarketOfferCache records failures for both attempted periods.
     // The publisher's AV landing page may already redirect to Thursday LV on
@@ -68,7 +71,7 @@ export async function GET(request: Request) {
     const nextAttempted = result.next !== null || result.errors.some((error) => error.startsWith("next "));
     const nextOk = !nextAttempted || Boolean(result.next);
     const blockingErrors = oldAvRolledForward ? [] : result.errors;
-    const ok = activeOk && nextOk && blockingErrors.length === 0 && preflight?.ok !== false;
+    const ok = activeOk && !activeQuality.blocking && nextOk && blockingErrors.length === 0 && preflight?.ok !== false;
     // Audit selected-store campaigns independently of the national leaflet.
     // The leaflet's success must not turn the local-campaign status green.
     if (process.env.DATABASE_URL) {
@@ -89,10 +92,10 @@ export async function GET(request: Request) {
           outcome:"store-campaign-audit-error",details:{error:String(error)}}).catch(()=>undefined);
       }
     }
-    await recordPublicationRun({ chain: "K", source: "k-citymarket-cache", ok, count: result.active?.offers ?? 0, outcome: ok ? (nextAttempted ? "active-and-next-cache-ok" : "active-cache-ok") : "cache-warm-partial-or-failed", details: { activeImages, active: result.active, next: result.next, errors: result.errors.slice(0, 10), activeOk, nextAttempted, nextOk } }).catch(() => undefined);
+    await recordPublicationRun({ chain: "K", source: "k-citymarket-cache", ok, count: result.active?.offers ?? 0, outcome: ok ? (nextAttempted ? "active-and-next-cache-ok" : "active-cache-ok") : "cache-warm-partial-or-failed", details: { activeImages, activeQuality, active: result.active, next: result.next, errors: result.errors.slice(0, 10), activeOk, nextAttempted, nextOk } }).catch(() => undefined);
 
     return NextResponse.json(
-      { ok, activeOk, nextAttempted, nextOk, preflight, startedAt: startedAt.toISOString(), activeImages, ...result },
+      { ok, activeOk, nextAttempted, nextOk, preflight, startedAt: startedAt.toISOString(), activeImages, activeQuality, ...result },
       { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
