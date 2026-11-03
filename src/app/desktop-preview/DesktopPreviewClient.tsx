@@ -2906,8 +2906,7 @@ export default function DesktopPreviewPage() {
                       <span className="block whitespace-nowrap text-[11px] font-black leading-[1.25] text-[#102a24] tabular-nums">98 {fuelClosestPrice("price98")?.toFixed(3).replace(".", ",") ?? "—"}</span>
                     </span>
                   </>
-                ) : (
-                  {title === "SÄÄ" ? (
+                ) : title === "SÄÄ" ? (
                     <>
                       <span className="absolute left-[43px] top-[8px] text-[10px] font-black tracking-[0.08em] leading-none text-[#625b43]">SÄÄ</span>
                       <span className="absolute left-[42px] top-[25px] whitespace-nowrap text-[22px] font-black leading-none text-[#102a24] tabular-nums">{value}</span>
@@ -2937,7 +2936,6 @@ export default function DesktopPreviewPage() {
                       </>
                     )}
                   </span>
-                  )}
                 )}
               </button>
             ))}
