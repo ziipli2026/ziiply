@@ -452,6 +452,12 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b(?:kassler\w*|uunilenk\w*|lenkkimakkara\w*|siskonmakkara\w*|grillimakkara\w*)\b/.test(productTitle)) return "Liha & makkarat";
   if (/\b(?:tortellon\w*|tortellin\w*|raviol\w*|gnocch\w*)\b/.test(productTitle)) return "Kuivatuotteet";
 
+  // Ready-to-eat meat dishes must not be classified as dairy just because
+  // the leaflet description lists cream, cheese or other ingredients.
+  // Prefer the actual product name over long source descriptions.
+  if (/\b(?:lihapull\w*|jauhelihapihv\w*|lihamurek\w*|karjalanpaist\w*|stroganoff\w*|kebab\w*|pyttipann\w*|kanaviillok\w*|broilerikiusau\w*|lihaperunasoselaatik\w*)\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(?:lihapull\w*|jauhelihapihv\w*|lihamurek\w*|kassler\w*|porsaan\w*|naudan\w*|broileri\w*|grillimakkar\w*|lenkkimakkar\w*)\b/.test(productTitle)) return "Liha & makkarat";
+
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
 
