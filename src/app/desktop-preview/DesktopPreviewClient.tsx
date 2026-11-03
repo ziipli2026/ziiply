@@ -2954,7 +2954,6 @@ export default function DesktopPreviewPage() {
                       <span className="absolute left-[7px] top-[5px] inline-flex items-center gap-[2px] whitespace-nowrap text-[9px] font-black leading-none text-[#625b43]" aria-label="Suhteellinen kosteus">
                         <span className="text-[12px]">💧</span>{weatherExtras.humidity == null ? "— %" : `${Math.round(weatherExtras.humidity)} %`}
                       </span>
-                      <span className="absolute left-[56px] top-[6px] text-[10px] font-black tracking-[0.08em] leading-none text-[#625b43]">SÄÄ</span>
                       <span className="absolute left-[43px] top-[24px] whitespace-nowrap text-[22px] font-black leading-none text-[#102a24] tabular-nums">{value}</span>
                       <span className="absolute left-[43px] bottom-[5px] inline-flex items-center gap-[3px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43] tabular-nums" aria-label="Ilmanpaine">
                         <span className="text-[11px]">◉</span>{weatherExtras.pressure == null ? "— hPa" : `${Math.round(weatherExtras.pressure)} hPa`}
