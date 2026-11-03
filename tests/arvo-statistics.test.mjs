@@ -109,3 +109,14 @@ test("Arvo: retrying same meal ID does not create a duplicate",()=>{
  assert.equal(readArvoMeals(storage).length,1);
  assert.equal(arvoNutritionTotals(readArvoMeals(storage)).kcal,200);
 });
+
+test("Arvo: deleting a UUID meal records a sync tombstone",()=>{
+ const state=new Map();
+ const storage={getItem:key=>state.get(key)??null,setItem:(key,value)=>state.set(key,value)};
+ const id="00000000-0000-4000-8000-00000000000a";
+ const entry=meal(id,"2026-11-03T12:00:00.000Z",{kcal:200,protein:10,carbs:20,fat:5});
+ saveArvoMeal(storage,entry);
+ deleteArvoMeal(storage,id);
+ assert.equal(readArvoMeals(storage).length,0);
+ assert.deepEqual(JSON.parse(state.get("ziiply-arvo-deleted-meals-v1")),[id]);
+});
