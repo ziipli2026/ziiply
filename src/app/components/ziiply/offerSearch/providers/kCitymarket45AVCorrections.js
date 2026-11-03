@@ -4,6 +4,7 @@ export function repairCitymarketPrintedTitle(row, rawTitle = row?.title ?? "") {
   const nearby = (row?.nearby ?? []).map(x => typeof x === "string" ? x : String(x?.text ?? x?.raw ?? "")).join(" ");
   if (/^ERIAT\b/i.test(title) && /Mikromåltider/i.test(nearby)) title = title.replace(/^ERIAT/i, "MIKROATERIAT");
   if (/^6KLASSIKOT(?=\s+\d)/i.test(title)) title = title.replace(/^6(?=KLASSIKOT)/i, "");
+  title = title.replace(/\bAUHOINEN PERUNA\b/i, "JAUHOINEN PERUNA");
   return title;
 }
 export function removeDuplicateContinuationRows(rows) {
