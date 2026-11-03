@@ -8,6 +8,7 @@ export function repairCitymarketPrintedTitle(row, rawTitle = row?.title ?? "") {
   if (/^tai\s+TAHRANPOISTOSUIHKE\s+150\s*ml$/i.test(title)) title = title.replace(/^tai\s+/i, "LV ");
   if (/^TÄYSMEHUT\b/i.test(title)) title = "Innocent " + title.replace(/\s+tai\s*$/i, "");
   if (/^SMOOTHIET\b/i.test(title)) title = "Innocent " + title;
+  if (/^SILLIT 210[–-]245 g\/$/i.test(title)) title += "105–120 g";
   return title;
 }
 export function removeDuplicateContinuationRows(rows) {
