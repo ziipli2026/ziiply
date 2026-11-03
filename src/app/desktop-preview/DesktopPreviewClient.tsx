@@ -2959,8 +2959,12 @@ export default function DesktopPreviewPage() {
                       <span className="absolute left-[43px] bottom-[5px] inline-flex items-center gap-[3px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43] tabular-nums" aria-label="Ilmanpaine">
                         <span className="text-[11px]">◉</span>{weatherExtras.pressure == null ? "— hPa" : `${Math.round(weatherExtras.pressure)} hPa`}
                       </span>
-                      <span className="absolute right-[5px] top-[34px] inline-flex items-center gap-[2px] whitespace-nowrap text-[9px] font-black leading-none text-[#102a24] tabular-nums" aria-label="Tuulen suunta ja nopeus">
-                        <span className="inline-block text-[14px] leading-none" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}}>↑</span>
+                      <span className="absolute right-[7px] top-[9px] flex w-[48px] justify-center text-[#102a24]" aria-label="Tuulen puhallussuunta">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}}>
+                          <path d="M12 20V4M5 11l7-7 7 7" />
+                        </svg>
+                      </span>
+                      <span className="absolute right-[7px] top-[30px] w-[48px] whitespace-nowrap text-center text-[11px] font-black leading-none text-[#102a24] tabular-nums" aria-label="Tuulen nopeus">
                         {weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}
                       </span>
                     </>
