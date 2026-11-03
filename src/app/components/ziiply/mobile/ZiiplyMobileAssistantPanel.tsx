@@ -76,15 +76,18 @@ export default function ZiiplyMobileAssistantPanel({
       setWatchLoading(true);
       setWatchError("");
       try{
-        const response=await searchZiiplyGostaOffersV146({query:""});
         const terms=watchKey.split("|");
-        const matched=response.results.flatMap((offer:any)=>terms.filter(query=>matchesGostaWatch(query,offer)).map(query=>({
+        const searches=await Promise.allSettled(terms.map(async query=>({query,results:(await searchZiiplyGostaOffersV146({query})).results})));
+        const master=await searchZiiplyGostaOffersV146({query:""}).catch(()=>null);
+        const offers=[...(master?.results||[]),...searches.flatMap(result=>result.status==="fulfilled"?result.value.results:[])];
+        const seen=new Set<string>();
+        const matched=offers.flatMap((offer:any)=>terms.filter(query=>matchesGostaWatch(query,offer)).map(query=>({
           query,
           title:String(offer.title||offer.name||offer.productName||"Tarjous"),
           price:String(offer.offerPrice??offer.price??""),
           store:String(offer.storeName||offer.chain||""),
           source:String(offer.source||offer.sourceType||offer.offerSource||"")
-        })));
+        }))).filter(offer=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
         if(cancelled)return;
         setWatchOffers(matched);
         setWatchChecked(true);
