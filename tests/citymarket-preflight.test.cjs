@@ -55,8 +55,8 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     quality.total=89;
     assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
     quality.missing_images=1;
-    assert.equal((await record(input)).outcome,'preflight-quality-failed','missing product images must fail preflight');
-    assert.equal(records.at(-1).details.severity,'error');
+    assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review','missing images are enriched asynchronously');
+    assert.equal(records.at(-1).details.severity,'warning');
     quality.missing_images=0;quality.missing_categories=1;
     assert.equal((await record(input)).outcome,'preflight-quality-failed','missing categories must fail preflight');
     assert.equal(records.at(-1).details.severity,'error');
