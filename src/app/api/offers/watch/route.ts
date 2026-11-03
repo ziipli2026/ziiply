@@ -95,22 +95,18 @@ export async function GET(request: Request) {
           const kind=category(name,String(store.chain||""));
           const isS=kind==="sHyper"||kind==="sLocal";
           const isCitymarket=/^K-Citymarket/i.test(name);
-          if(isCitymarket){
-            const cityRows=rows.filter(row=>/^K-Citymarket/i.test(String(row.chain)));
-            const cityOffers=cityRows.flatMap(row=>Array.isArray(row.offers)?row.offers as Record<string,unknown>[]:[]);
-            nearbyOffers.push({chain:"K",publication_id:name,offers:cityOffers.map(o=>({...o,storeName:name}))});
-            nearbyDiagnostics.push({store:name,count:cityOffers.length,error:cityOffers.length?undefined:"Citymarket publication unavailable"});continue;
-          }
           try{
-            if(kind==="lidl"){
-              const lidlRows=rows.filter(row=>/^LIDL/i.test(String(row.chain)));
-              const lidlOffers=lidlRows.flatMap(row=>Array.isArray(row.offers)?row.offers as Record<string,unknown>[]:[]);
-              nearbyOffers.push({chain:"LIDL",publication_id:name,offers:lidlOffers.map(o=>({...o,storeName:name}))});
-              nearbyDiagnostics.push({store:name,count:lidlOffers.length,error:lidlOffers.length?undefined:"Lidl publication unavailable"});continue;
-            }
             // Use the same store-scoped master endpoint and provider dispatch as desktop Gösta.
             const offerParams=new URLSearchParams({q:"__ziiply_all_offers__"});
-            if(kind==="spar"){
+            if(isCitymarket){
+              offerParams.set("provider","kcitymarket");
+              offerParams.set("kStoreId",id);
+              offerParams.set("kStoreName",name);
+            }else if(kind==="lidl"){
+              offerParams.set("provider","lidl");
+              offerParams.set("lidlStoreKey",String(store.storeKey||store.externalId||store.id||""));
+              offerParams.set("lidlStoreName",name);
+            }else if(kind==="spar"){
               if(/eurospar/i.test(name+" "+String(store.chain||""))){
                 offerParams.set("provider","eurospar");
                 offerParams.set("eurosparStoreName",name);
@@ -131,7 +127,7 @@ export async function GET(request: Request) {
             if(!payload.ok)throw new Error(String(payload.error||"Offer source unavailable"));
             const raw=(Array.isArray(payload.results)?payload.results:[]) as Parameters<typeof cleanZiiplyGostaOfferResultsV146>[0];
             const normalized=cleanZiiplyGostaOfferResultsV146(raw).map(mapZiiplyGostaOfferToCardOfferV147) as Record<string,unknown>[];
-            nearbyOffers.push({chain:kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
+            nearbyOffers.push({chain:kind==="lidl"?"LIDL":kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
             nearbyDiagnostics.push({store:name,count:normalized.length});
           }catch(error){nearbyDiagnostics.push({store:name,count:0,error:String(error)});}
         }
