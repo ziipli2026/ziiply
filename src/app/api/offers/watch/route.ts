@@ -7,12 +7,22 @@ function norm(value: unknown) {
   return String(value ?? "").toLocaleLowerCase("fi").normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 }
+// Search the product identity, not offer conditions or store metadata.
 function matches(query: string, offer: Record<string, unknown>) {
-  const words = norm(query).split(/\s+/).filter(Boolean);
-  const title = norm(offer.title || offer.name || offer.productName);
-  const tokens = title.split(/\s+/);
-  return words.length > 0 && words.every(word => tokens.some(token =>
-    token === word || token.startsWith(word) || (word.length >= 5 && token.startsWith(word.slice(0, -1)))));
+  const words=norm(query).split(/\\s+/).filter(Boolean);
+  const identity=String(offer.title||offer.name||offer.productName||"");
+  const tokens=norm(identity).split(/\\s+/).filter(Boolean);
+  if(!words.length||!tokens.length)return false;
+  return words.every(word=>tokens.some(token=>
+    token===word||token.startsWith(word)||
+    (word.length>=5&&token.startsWith(word.slice(0,-1)))));
+}
+function priceNumber(offer:Record<string,unknown>){
+  for(const raw of [offer.offerPrice,offer.price]){
+    const value=String(raw??"").trim().replace(/\\s*€$/,"").replace(",",".");
+    if(/^\\d+(?:\\.\\d+)?$/.test(value)&&Number(value)>0)return Number(value);
+  }
+  return Number.POSITIVE_INFINITY;
 }
 export async function GET(request: Request) {
   const started = Date.now();
@@ -148,7 +158,9 @@ export async function GET(request: Request) {
         results.push({...offer,title,storeName:store,chain:String(row.chain),watchQueries:matchingQueries});
       }
     }
-    return NextResponse.json({ok:true,queries,results,diagnostic:{publications:rows.length,inspected,matched:results.length,sources,nearby:nearbyDiagnostics,durationMs:Date.now()-started}},
+    results.sort((a,b)=>priceNumber(a)-priceNumber(b));
+    const matchesByQuery=Object.fromEntries(queries.map(q=>[q,results.filter(r=>(r.watchQueries as string[]).includes(q)).length]));
+    return NextResponse.json({ok:true,queries,results,diagnostic:{matchesByQuery,publications:rows.length,inspected,matched:results.length,sources,nearby:nearbyDiagnostics,durationMs:Date.now()-started}},
       {headers:{"Cache-Control":"no-store"}});
   } catch(error) {
     return NextResponse.json({ok:false,error:error instanceof Error?error.message:String(error),results:[],diagnostic:{durationMs:Date.now()-started}},{status:500,headers:{"Cache-Control":"no-store"}});
