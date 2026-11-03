@@ -2908,12 +2908,17 @@ export default function DesktopPreviewPage() {
                   </>
                 ) : title === "SÄÄ" ? (
                     <>
+                      <span className="absolute left-[7px] top-[4px] inline-flex items-center gap-[2px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43]" aria-label="Suhteellinen kosteus">
+                        <span className="text-[12px]">💧</span>{weatherExtras.humidity == null ? "— %" : `${Math.round(weatherExtras.humidity)} %`}
+                      </span>
                       <span className="absolute left-[43px] top-[8px] text-[10px] font-black tracking-[0.08em] leading-none text-[#625b43]">SÄÄ</span>
                       <span className="absolute left-[42px] top-[25px] whitespace-nowrap text-[22px] font-black leading-none text-[#102a24] tabular-nums">{value}</span>
-                      <span className="absolute left-[75px] top-[9px] flex flex-col gap-[6px] whitespace-nowrap text-[10px] font-black leading-[1.1] text-[#102a24] tabular-nums">
-                        <span className="inline-flex items-center gap-[3px]"><span className="text-[12px] leading-none" aria-label="Ilmanpaine">◉</span>{weatherExtras.pressure == null ? "— hPa" : `${Math.round(weatherExtras.pressure)} hPa`}</span>
-                        <span className="inline-flex items-center gap-[3px]"><span className="text-[12px] leading-none" aria-label="Suhteellinen kosteus">💧</span>{weatherExtras.humidity == null ? "— %" : `${Math.round(weatherExtras.humidity)} %`}</span>
-                        <span className="inline-flex items-center gap-[3px]"><span className="inline-block text-[13px] leading-none" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}} aria-label="Tuulen puhallussuunta">↑</span>{weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}</span>
+                      <span className="absolute left-[43px] top-[51px] inline-flex items-center gap-[3px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43] tabular-nums" aria-label="Ilmanpaine">
+                        <span className="text-[11px]">◉</span>{weatherExtras.pressure == null ? "— hPa" : `${Math.round(weatherExtras.pressure)} hPa`}
+                      </span>
+                      <span className="absolute left-[87px] top-[30px] inline-flex items-center gap-[2px] whitespace-nowrap text-[10px] font-black leading-none text-[#102a24] tabular-nums" aria-label="Tuulen suunta ja nopeus">
+                        <span className="inline-block text-[14px] leading-none" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}}>↑</span>
+                        {weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}
                       </span>
                     </>
                   ) : (
