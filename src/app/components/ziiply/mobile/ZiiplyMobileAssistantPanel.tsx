@@ -143,7 +143,7 @@ export default function ZiiplyMobileAssistantPanel({
         if(!data.partial){setWatchOffers(matched);setWatchChecked(true);}else{
           // Never replace a previously complete snapshot with a timed-out subset.
           try{const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-            if(previous?.key===watchKey&&Array.isArray(previous.offers)&&Date.now()-Number(previous.at)<30*60*1000){setWatchOffers(previous.offers);setWatchChecked(true);setWatchError("Osa kaupoista jäi tarkistamatta. Näytetään viimeksi onnistuneen täyden tarkistuksen "+previous.offers.length+" osumaa.");}
+            if(previous?.key===watchKey&&Array.isArray(previous.offers)&&Date.now()-Number(previous.at)<30*60*1000&&previous.offers.length>matched.length){setWatchOffers(previous.offers);setWatchChecked(true);setWatchError("Osa kaupoista jäi tarkistamatta. Näytetään aiemman täyden tarkistuksen "+previous.offers.length+" osumaa.");}
             else{setWatchOffers(matched);setWatchChecked(true);}
           }catch{setWatchOffers(matched);setWatchChecked(true);}
         }
