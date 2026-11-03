@@ -5,6 +5,7 @@ export function repairCitymarketPrintedTitle(row, rawTitle = row?.title ?? "") {
   if (/^ERIAT\b/i.test(title) && /Mikromåltider/i.test(nearby)) title = title.replace(/^ERIAT/i, "MIKROATERIAT");
   if (/^6KLASSIKOT(?=\s+\d)/i.test(title)) title = title.replace(/^6(?=KLASSIKOT)/i, "");
   title = title.replace(/\bAUHOINEN PERUNA\b/i, "JAUHOINEN PERUNA");
+  if (/^tai\s+TAHRANPOISTOSUIHKE\s+150\s*ml$/i.test(title) && /\bLV\b/i.test(nearby) && /fläckborttagningsspray/i.test(nearby)) title = title.replace(/^tai\s+/i, "LV ");
   return title;
 }
 export function removeDuplicateContinuationRows(rows) {
