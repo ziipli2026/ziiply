@@ -37,40 +37,51 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
   },[]);
   const watchKey=watchTerms.map(q=>q.trim().toLocaleLowerCase("fi")).join("|");
   React.useEffect(()=>{
-    try {
-      const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-      // Never present cached hits as a fresh completed six-store scan.
-    }catch{}
-    setWatchCount(null);
+    const readShared=()=>{
+      try{
+        const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
+        if(cached?.key===watchKey&&Array.isArray(cached.offers)){
+          setWatchCount(cached.offers.length);
+          return Number(cached.at)||0;
+        }
+      }catch{}
+      return 0;
+    };
     if(!watchKey){setWatchCount(null);return;}
+    let lastScan=readShared();
     let cancelled=false;
     let running=false;
-    let lastScan=0;
+    const sync=()=>{const at=readShared();if(at)lastScan=at;};
     const scan=async()=>{
-      if(cancelled||running)return;
+      if(cancelled||running||document.visibilityState!=="visible")return;
+      if(Date.now()-lastScan<5*60*1000)return;
       running=true;
       setWatchScanning(true);
       try{
         const terms=watchKey.split("|");
-        const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store"});
+        const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store",signal:AbortSignal.timeout(40000)});
         const data=await response.json();
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
-        if(data.partial)return;
         if(!cancelled){
-          const count=offers.length;
-          setWatchCount(count);
+          setWatchCount(offers.length);
           lastScan=Date.now();
+          if(!data.partial){
+            const cached={key:watchKey,offers:offers.map((offer:any)=>({query:String(offer.watchQueries?.[0]||""),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.sourceType||offer.chain||"")})),at:lastScan,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI")};
+            try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify(cached));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}
+          }
         }
-      }catch{/* Keep the last successful count when a refresh fails. */}
+      }catch{/* Preserve confirmed results when refresh fails. */}
       finally{running=false;if(!cancelled)setWatchScanning(false);}
     };
     const timer=window.setTimeout(()=>{void scan();},300);
-    const onResume=()=>{if(document.visibilityState==="visible"&&Date.now()-lastScan>30*60*1000)void scan();};
+    const onResume=()=>{sync();if(Date.now()-lastScan>30*60*1000)void scan();};
     const interval=window.setInterval(onResume,60*1000);
+    window.addEventListener("ziiply-gosta-watch-results-changed",sync);
+    window.addEventListener("storage",sync);
     window.addEventListener("focus",onResume);
     document.addEventListener("visibilitychange",onResume);
-    return()=>{cancelled=true;window.clearTimeout(timer);window.clearInterval(interval);window.removeEventListener("focus",onResume);document.removeEventListener("visibilitychange",onResume);};
+    return()=>{cancelled=true;window.clearTimeout(timer);window.clearInterval(interval);window.removeEventListener("ziiply-gosta-watch-results-changed",sync);window.removeEventListener("storage",sync);window.removeEventListener("focus",onResume);document.removeEventListener("visibilitychange",onResume);};
   },[watchKey,watchRevision]);
   return (
     <main
