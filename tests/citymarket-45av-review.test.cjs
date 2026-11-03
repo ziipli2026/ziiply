@@ -44,6 +44,17 @@ test("45AV corrected titles and prices retain the original publisher image card 
   assert.match(provider, /publisherOfferId:"kcm:spatial:"\+page\+":"\+rawTitle\+":"\+suffix/);
   assert.match(provider, /publisherOfferId:row\.publisherOfferId/);
 });
+test("45AV manual image selections cover the verified meal, potato and LV product groups", () => {
+  const selections = JSON.parse(fs.readFileSync(path.join(root, "scripts/citymarket/reviewed-selections.json"), "utf8"));
+  const publication = selections["65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3"];
+  assert.ok(publication);
+  assert.deepEqual(Object.keys(publication).sort(), [
+    "kcm:spatial:1:eriat 300 g:7",
+    "kcm:spatial:2:kiinteä, yleis ja auhoinen peruna 2 kg:1.29",
+    "kcm:spatial:18:lv pyykinpesunesteet 750–1500 ml, täyttöpussi 1500 ml, jauheet 750–1600 g, huuhteluaine 750 ml:percent:15",
+  ].sort());
+  assert.deepEqual(Object.values(publication).map(item => item.rectangles.length).sort(), [2, 3, 3]);
+});
 test("45AV unresolved image audit retains OCR evidence for manual review", () => {
   const source = fs.readFileSync(path.join(root, "scripts/citymarket/build-images.py"), "utf8");
   assert.match(source, /ocrWords/);
