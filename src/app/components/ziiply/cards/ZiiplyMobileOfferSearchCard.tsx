@@ -523,8 +523,13 @@ function sameKLocalPromotionV1(a: ZiiplyMobileOfferSearchItem, b: ZiiplyMobileOf
   const strip = (v: string) => v.replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|l|kpl)\b/g, " ").replace(/\s+/g, " ").trim();
   const tx = strip(nx).split(" ").filter(Boolean), ty = strip(ny).split(" ").filter(Boolean);
   if (tx.length < 2 || ty.length < 2) return false;
-  // A missing pack size is acceptable only for an otherwise identical title.
-  return strip(nx) === strip(ny);
+  // The Tjek image-crop row often omits pack size and origin. Match only
+  // a sufficiently specific complete product-name prefix, never loose tokens.
+  const left = strip(nx), right = strip(ny);
+  const shorter = left.length <= right.length ? left : right;
+  const longer = left.length <= right.length ? right : left;
+  if (shorter.length < 12 || shorter.split(" ").length < 2) return false;
+  return longer === shorter || longer.startsWith(shorter + " ");
 }
 
 function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
