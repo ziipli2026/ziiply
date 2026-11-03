@@ -46,12 +46,12 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
       setWatchScanning(true);
       try{
         const terms=watchKey.split("|");
-        const searches=await Promise.allSettled(terms.map(query=>searchZiiplyGostaOffersV146({query})));
-        const master=await searchZiiplyGostaOffersV146({query:""}).catch(()=>null);
-        const offers=[...(master?.results||[]),...searches.flatMap(result=>result.status==="fulfilled"?result.value.results:[])];
+        const response=await fetch("/api/offers/watch?q="+encodeURIComponent(terms.join("|")),{cache:"no-store"});
+        const data=await response.json();
+        if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
+        const offers=Array.isArray(data.results)?data.results:[];
         if(!cancelled){
-          const seen=new Set<string>();
-          const count=offers.reduce((sum,offer:any)=>sum+terms.filter(query=>matchesGostaWatch(query,offer)).filter(query=>{const key=[query,offer.title||offer.name,offer.offerPrice??offer.price,offer.storeName||offer.chain].join("|");if(seen.has(key))return false;seen.add(key);return true;}).length,0);
+          const count=offers.length;
           setWatchCount(count);
           lastScan=Date.now();
         }
