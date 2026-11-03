@@ -101,7 +101,7 @@ export default function ZiiplyMobileAssistantPanel({
       const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
       if(cached?.key===watchKey&&Array.isArray(cached.offers)){
         // Show recent confirmed offers immediately while a fresh scan runs.
-        if(Number.isFinite(cached.at)&&Date.now()-cached.at<5*60*1000){
+        if(Number.isFinite(cached.at)&&Date.now()-cached.at<20*1000){
           setWatchOffers(cached.offers);
           setWatchChecked(true);
         }
