@@ -7,11 +7,12 @@ import {normalizeArvoMeal, type ArvoMeal} from "./arvoStatistics.ts";
  */
 const validMealId = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
-export function reconcileArvoMeals(local: readonly ArvoMeal[], remote: readonly ArvoMeal[]) {
+export function reconcileArvoMeals(local: readonly ArvoMeal[], remote: readonly ArvoMeal[], deletedIds: readonly string[] = []) {
+  const deleted = new Set(deletedIds);
   const serverById = new Map<string,ArvoMeal>();
   for (const item of remote) {
     const meal = normalizeArvoMeal(item);
-    if (meal?.id && validMealId(meal.id)) serverById.set(meal.id,meal);
+    if (meal?.id && validMealId(meal.id) && !deleted.has(meal.id)) serverById.set(meal.id,meal);
   }
   const upload: ArvoMeal[] = [];
   const localOnly: ArvoMeal[] = [];
@@ -19,7 +20,7 @@ export function reconcileArvoMeals(local: readonly ArvoMeal[], remote: readonly 
   const seenLocal = new Set<string>();
   for (const item of local) {
     const meal = normalizeArvoMeal(item);
-    if (!meal?.id || seenLocal.has(meal.id)) continue;
+    if (!meal?.id || seenLocal.has(meal.id) || deleted.has(meal.id)) continue;
     seenLocal.add(meal.id);
     if (!validMealId(meal.id)) { localOnly.push(meal); continue; }
     const server = serverById.get(meal.id);
