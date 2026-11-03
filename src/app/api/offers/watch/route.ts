@@ -57,11 +57,14 @@ export async function GET(request: Request) {
           if(distance(store)>30)return false;
           const id=String(store.externalId||store.id||name);
           if(seenStores.has(id))return false;seenStores.add(id);return true;
-        }).sort((a:any,b:any)=>distance(a)-distance(b)).slice(0,35);
+        }).sort((a:any,b:any)=>distance(a)-distance(b));
+      const radius=[30,50,100,200].find(km=>storesWithinRadius(km)>=8)??200;
+      function storesWithinRadius(km:number){return stores.filter((store:any)=>distance(store)<=km).length;}
+      const selectedStores=stores.filter((store:any)=>distance(store)<=radius).slice(0,35);
       let cursor=0;
-      await Promise.all(Array.from({length:Math.min(5,stores.length)},async()=>{
-        while(cursor<stores.length){
-          const store=stores[cursor++] as Record<string,unknown>;
+      await Promise.all(Array.from({length:Math.min(5,selectedStores.length)},async()=>{
+        while(cursor<selectedStores.length){
+          const store=selectedStores[cursor++] as Record<string,unknown>;
           const name=String(store.name||"");
           const id=String(store.externalId||store.id||"");
           const isS=/^(Prisma|S-market|Sale|Alepa)/i.test(name);
