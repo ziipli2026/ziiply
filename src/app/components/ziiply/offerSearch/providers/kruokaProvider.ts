@@ -452,6 +452,11 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b(?:kassler\w*|uunilenk\w*|lenkkimakkara\w*|siskonmakkara\w*|grillimakkara\w*)\b/.test(productTitle)) return "Liha & makkarat";
   if (/\b(?:tortellon\w*|tortellin\w*|raviol\w*|gnocch\w*)\b/.test(productTitle)) return "Kuivatuotteet";
 
+  // Prepared pasta dishes and casseroles are ready meals, regardless of
+  // misleading leaflet department or dairy ingredients in descriptions.
+  if (/\b(?:pastat?|pastaruoa\w*|pastalaatik\w*|makaronilaatik\w*|laatikot|laatikoita)\b/.test(productTitle) && /\b(?:wotkin|wotkin'?s|valmis|ateria|laatik|pasta)\w*/.test(productTitle)) return "Valmisruoka";
+  if (/\bwotkin'?s?\b/.test(productTitle) && /\b(?:pasta\w*|laatik\w*)\b/.test(productTitle)) return "Valmisruoka";
+
   // Ready-to-eat meat dishes must not be classified as dairy just because
   // the leaflet description lists cream, cheese or other ingredients.
   // Prefer the actual product name over long source descriptions.
