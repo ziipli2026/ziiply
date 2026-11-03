@@ -19,11 +19,11 @@ const evidence = JSON.parse(fs.readFileSync(path.join(root, "diagnostics/45AV/pa
 const byTitle = fragment => evidence.rows.find(row => String(row.title).toLowerCase().includes(fragment));
 test("45AV EAN image aliases resolve only matching product names and package sizes", () => {
   const provider = fs.readFileSync(path.join(root, "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"), "utf8");
-  assert.match(provider, /tahranpoistosuihke\\b.*tahranpoistospray/);
-  assert.match(provider, /laktoositon\\|gluteeniton\\|tattaripalaleipä\\|2in1\\|suklaakonvehti\\|fazer/);
-  const norm = value => String(value).toLocaleLowerCase("fi-FI").replace(/\\btahranpoistosuihke\\b/g, "tahranpoistospray").replace(/[^a-z0-9åäö]+/g, " ").trim().replace(/\\s+/g, " ");
-  const nameOnly = value => norm(String(value).replace(/\\b\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\\b/gi, " ").replace(/(?:laktoositon|gluteeniton|tattaripalaleipä|2in1|suklaakonvehti|fazer)/gi, " "));
-  const size = value => String(value).toLowerCase().match(/\\b\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\\b/i)?.[0].replace(/\\s+/g, "").replace(",", ".") || "";
+  assert.match(provider, /tahranpoistosuihke\b.*tahranpoistospray/);
+  assert.match(provider, /laktoositon\|gluteeniton\|tattaripalaleipä\|2in1\|suklaakonvehti\|fazer/);
+  const norm = value => String(value).toLocaleLowerCase("fi-FI").replace(/\btahranpoistosuihke\b/g, "tahranpoistospray").replace(/[^a-z0-9åäö]+/g, " ").trim().replace(/\s+/g, " ");
+  const nameOnly = value => norm(String(value).replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi, " ").replace(/(?:laktoositon|gluteeniton|tattaripalaleipä|2in1|suklaakonvehti|fazer)/gi, " "));
+  const size = value => String(value).toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0].replace(/\s+/g, "").replace(",", ".") || "";
   const pairs = [
     ["Vaasan LAKTOOSITON MOILAS FREE FROM OHUT TUMMA 3 kpl/150 g", "150 g", "Vaasan Moilas Free From Ohut Tumma 3kpl/150g gluteeniton tattaripalaleipä", "150 g"],
     ["LV TAHRANPOISTOSUIHKE 150 ml", "150 ml", "LV 2in1 tahranpoistospray 150ml", null],
