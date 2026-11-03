@@ -1,0 +1,26 @@
+name: Arvo meal synchronization tests
+on:
+  push:
+    branches:
+      - feature/arvo-meal-storage-20261103
+  pull_request:
+    paths:
+      - 'src/app/components/ziiply/arvo/**'
+      - 'tests/arvo-*.test.mjs'
+      - '.github/workflows/arvo-meal-sync-tests.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Arvo existing statistics and reconciliation
+        run: node --experimental-strip-types --test tests/arvo-statistics.test.mjs tests/arvo-meal-reconciliation.test.mjs
+      - name: TypeScript type check
+        run: npx tsc --noEmit
