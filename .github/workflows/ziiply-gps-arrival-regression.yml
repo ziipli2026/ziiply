@@ -1,0 +1,25 @@
+name: GPS arrival regression (test branch)
+on:
+  push:
+    branches:
+      - feature/arrival-state-diagnostics-20261101
+  workflow_dispatch:
+jobs:
+  gps-arrival-simulation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Drive-by, stationary, GPS dropout, departure and ambiguous store
+        run: node scripts/test-ziiply-arrival-sequence.cjs
+      - name: Full GPS arrival scenario regression
+        run: node scripts/test-ziiply-arrival-scenarios.cjs
+      - name: Arrival notice regression
+        run: node --experimental-strip-types scripts/test-gps-arrival-notice.mjs
+      - name: TypeScript check
+        run: npx tsc --noEmit
