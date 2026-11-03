@@ -106,7 +106,6 @@ export default function ZiiplyMobileAssistantButton({
           <span aria-hidden="true">🛍️</span><span>{watchCount}</span>
         </button>
       )}
-      {assistant==="gosta"&&watchScanning&&watchCount===null&&<span className="absolute bottom-[52px] left-1/2 z-20 -translate-x-1/2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold">Haetaan…</span>}
       <button type="button" onClick={onLowerClick || onClick} aria-label={`${name}: ${assistant === "gosta" ? "Tarjousvahti" : assistant === "justiina" ? "Reseptit" : "Muut asetukset"}`} className="relative z-10 mt-auto flex w-full shrink-0 flex-col items-center justify-center border-t border-[#735a34]/25 pt-1">
       <div className="relative z-10 mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#1e2f2a] max-[389px]:text-[9px] max-[389px]:tracking-normal">
         {title}
