@@ -1,4 +1,5 @@
 "use client";
+import { gostaWatchUrl } from "./gostaWatchLocation";
 import { matchesGostaWatch } from "./gostaWatchMatch";
 
 import React from "react";
@@ -46,7 +47,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
       setWatchScanning(true);
       try{
         const terms=watchKey.split("|");
-        const response=await fetch("/api/offers/watch?q="+encodeURIComponent(terms.join("|")),{cache:"no-store"});
+        const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store"});
         const data=await response.json();
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
