@@ -99,3 +99,13 @@ test("Arvo: period filter excludes future and older meals",()=>{
  meal("future","2026-10-30T00:00:00.000Z",{kcal:300,protein:null,carbs:null,fat:null})];
  assert.equal(arvoPeriodStatistics(meals,start,end).kcal,200);
 });
+
+test("Arvo: retrying same meal ID does not create a duplicate",()=>{
+ const state=new Map();
+ const storage={getItem:key=>state.get(key)??null,setItem:(key,value)=>state.set(key,value)};
+ const entry=meal("same","2026-11-03T12:00:00.000Z",{kcal:200,protein:10,carbs:20,fat:5});
+ saveArvoMeal(storage,entry);
+ saveArvoMeal(storage,entry);
+ assert.equal(readArvoMeals(storage).length,1);
+ assert.equal(arvoNutritionTotals(readArvoMeals(storage)).kcal,200);
+});
