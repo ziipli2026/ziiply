@@ -56,7 +56,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
           lastScan=Date.now();
         }
       }catch{if(!cancelled)setWatchCount(0);}
-      }finally{running=false;if(!cancelled)setWatchScanning(false);}
+      finally{running=false;if(!cancelled)setWatchScanning(false);}
     };
     const timer=window.setTimeout(()=>{void scan();},300);
     const onResume=()=>{if(document.visibilityState==="visible"&&Date.now()-lastScan>30*60*1000)void scan();};
