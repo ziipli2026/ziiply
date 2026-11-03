@@ -4790,6 +4790,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [arrivalOfferChain, setArrivalOfferChain] = useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
   const liveArrivalStateRefV864 = useRef(initialZiiplyArrivalState());
   const liveArrivalLastFixAtRefV864 = useRef(0);
+  const liveArrivalPositionRefV864 = useRef<GeolocationPosition | null>(null);
   const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
   const liveArrivalDecisionRefV864 = useRef<ReturnType<typeof evaluateZiiplyArrival> | null>(null);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
@@ -14222,25 +14223,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!usingOwnLocation || !intendedStore || typeof navigator === "undefined" || !navigator.geolocation) {
       return scannerNotInStoreV858();
     }
-    // No additional GPS permission request inside scanner; use shared watcher only.
-    const freshScannerPositionV854 = null as GeolocationPosition | null;
-    /* const freshScannerPositionV854 = await new Promise<GeolocationPosition | null>((resolve) => {
-      let settled = false;
-      const finish = (position: GeolocationPosition | null) => {
-        if (settled) return;
-        settled = true;
-        window.clearTimeout(deadline);
-        resolve(position);
-      };
-      const deadline = window.setTimeout(() => finish(null), 4500);
-      navigator.geolocation.getCurrentPosition(
-        (position) => finish(position),
-        () => finish(null),
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 4000 },
-      );
-    });
-    */
-    liveArrivalHandlerRefV864.current(freshScannerPositionV854);
+    // Scanner reads shared GPS watcher; no additional GPS permission request.
+    const freshScannerPositionV854 = liveArrivalPositionRefV864.current;
     const liveDecisionV864 = liveArrivalDecisionRefV864.current;
     if (liveDecisionV864?.status === "in-store" && liveDecisionV864.isSelectedStore &&
         Date.now() - liveArrivalLastFixAtRefV864.current <= 10000) return true;
@@ -14985,6 +14969,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (position.timestamp - liveArrivalLastFixAtRefV864.current > 30000 && !liveArrivalDecisionRefV864.current?.state.arrivalStoreId)
       liveArrivalStateRefV864.current = initialZiiplyArrivalState();
     liveArrivalLastFixAtRefV864.current = position.timestamp;
+    liveArrivalPositionRefV864.current = position;
     const names = [
       selectedChains.s ? String(activeStores.sStoreName || "").trim() : "",
       selectedChains.k ? String(activeStores.kStoreName || "").trim() : "",
