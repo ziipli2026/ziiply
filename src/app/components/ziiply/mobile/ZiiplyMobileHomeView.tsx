@@ -40,7 +40,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     const readShared=()=>{
       try{
         const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-        if(cached?.key===watchKey&&Array.isArray(cached.offers)){
+        if(cached?.key===watchKey&&Array.isArray(cached.offers)&&Number.isFinite(cached.at)&&Date.now()-cached.at<20*1000){
           setWatchCount(cached.offers.length);
           return Number(cached.at)||0;
         }
@@ -49,12 +49,13 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     };
     if(!watchKey){setWatchCount(null);return;}
     let lastScan=readShared();
+    if(!lastScan)setWatchCount(null);
     let cancelled=false;
     let running=false;
     const sync=()=>{const at=readShared();if(at)lastScan=at;};
     const scan=async()=>{
       if(cancelled||running||document.visibilityState!=="visible")return;
-      if(Date.now()-lastScan<5*60*1000)return;
+      if(lastScan&&Date.now()-lastScan<20*1000)return;
       running=true;
       setWatchScanning(true);
       try{
@@ -75,7 +76,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
       finally{running=false;if(!cancelled)setWatchScanning(false);}
     };
     const timer=window.setTimeout(()=>{void scan();},300);
-    const onResume=()=>{sync();if(Date.now()-lastScan>30*60*1000)void scan();};
+    const onResume=()=>{sync();if(Date.now()-lastScan>5*60*1000)void scan();};
     const interval=window.setInterval(onResume,60*1000);
     window.addEventListener("ziiply-gosta-watch-results-changed",sync);
     window.addEventListener("storage",sync);
