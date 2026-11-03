@@ -102,7 +102,7 @@ export async function GET(request: Request) {
               nearbyOffers.push({chain:"LIDL",publication_id:name,offers:lidlOffers.map(o=>({...o,storeName:name}))});
               nearbyDiagnostics.push({store:name,count:lidlOffers.length,error:lidlOffers.length?undefined:"Lidl publication unavailable"});continue;
             }
-            const context=kind==="lidl"?{lidlStoreKey:String(store.storeKey||id),lidlStoreName:name}:kind==="spar"?(/eurospar/i.test(name+" "+String(store.chain||""))?{eurosparStoreId:id,eurosparStoreName:name,eurosparStoreChain:String(store.chain||"")}:{tokmanniStoreId:id,tokmanniStoreName:name}):isS?{sStoreId:id,sStoreName:name,sStoreIds:[id],sStoreNames:[name]}:{kStoreId:id,kStoreName:name,kStoreIds:[id],kStoreNames:[name]};
+            const context=kind==="spar"?(/eurospar/i.test(name+" "+String(store.chain||""))?{eurosparStoreId:id,eurosparStoreName:name,eurosparStoreChain:String(store.chain||"")}:{tokmanniStoreId:id,tokmanniStoreName:name}):isS?{sStoreId:id,sStoreName:name,sStoreIds:[id],sStoreNames:[name]}:{kStoreId:id,kStoreName:name,kStoreIds:[id],kStoreNames:[name]};
             const offers=await Promise.race([
               searchZiiplyOffers("__ziiply_all_offers__",context),
               new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("timeout 10s")),10000))
