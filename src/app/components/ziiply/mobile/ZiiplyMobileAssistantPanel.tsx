@@ -73,21 +73,15 @@ export default function ZiiplyMobileAssistantPanel({
   const runRawWatchDebug=async()=>{
     setWatchRawLoading(true);
     const terms=savedWatches.length?savedWatches:["kahvi","limsa"];
-    const lines:string[]=[];
-    for(const query of ["",...terms]){
-      const url="/api/offers/search?q="+encodeURIComponent(query||"__ziiply_gosta_master__")+"&_debug="+Date.now();
-      const started=Date.now();
-      try{
-        const response=await fetch(url,{cache:"no-store"});
-        const raw=await response.text();
-        let data:any;
-        try{data=JSON.parse(raw);}catch{data=null;}
-        const rows=Array.isArray(data?.results)?data.results:Array.isArray(data?.offers)?data.offers:[];
-        lines.push("q="+(query||"[MASTER]")+" | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | tuloksia="+rows.length+" | avaimet="+Object.keys(data||{}).slice(0,18).join(",")+" | konteksti="+JSON.stringify(data?.context||{}).slice(0,450)+" | lähdevirheet="+JSON.stringify(data?.sourceFailures||[]).slice(0,700)+" | deploy="+JSON.stringify(data?.deploy||{}).slice(0,250)+" | virhe="+String(data?.error||data?.message||"ei")+" | esimerkki="+JSON.stringify(rows.slice(0,2)).slice(0,600)+" | raakavastaus="+(!data?raw.slice(0,300):"JSON"));
-      }catch(error){lines.push("q="+(query||"[MASTER]")+" | VERKKOVIRHE "+String(error));}
-    }
-    setWatchRawDebug(lines.join("\\n"));
-    setWatchRawLoading(false);
+    const started=Date.now();
+    try{
+      const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store"});
+      const data=await response.json();
+      const offers=Array.isArray(data?.results)?data.results:[];
+      const counts=Object.fromEntries(terms.map(q=>[q,offers.filter((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:[]).some((w:string)=>w.toLocaleLowerCase("fi")===q.toLocaleLowerCase("fi"))).length]));
+      setWatchRawDebug("Tarjousvahdin oikea hakureitti | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | osumia="+offers.length+" | hakusanakohtaiset="+JSON.stringify(counts)+" | tarkistettu="+String(data?.diagnostic?.inspected??"?")+" | lähteet="+JSON.stringify(data?.diagnostic?.sources||[])+" | lähikaupat="+JSON.stringify(data?.diagnostic?.nearby||[])+" | virhe="+String(data?.error||"ei")+" | esimerkki="+JSON.stringify(offers.slice(0,4)).slice(0,1200));
+    }catch(error){setWatchRawDebug("Tarjousvahdin DEBUG-virhe: "+String(error));}
+    finally{setWatchRawLoading(false);}
   };
   const watchKey=savedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
   React.useEffect(()=>{
