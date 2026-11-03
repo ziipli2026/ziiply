@@ -1,0 +1,29 @@
+name: Gosta offer watch regression
+on:
+  push:
+    paths:
+      - "src/lib/gosta/**"
+      - "src/app/api/gosta/watches/**"
+      - "src/app/api/cron/gosta-offer-watches/**"
+      - "tests/gosta-watch-core.test.cjs"
+      - "vercel.json"
+      - ".github/workflows/gosta-offer-watch-regression.yml"
+  pull_request:
+    paths:
+      - "src/lib/gosta/**"
+      - "src/app/api/gosta/watches/**"
+      - "src/app/api/cron/gosta-offer-watches/**"
+      - "tests/gosta-watch-core.test.cjs"
+      - "vercel.json"
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/gosta-watch-core.test.cjs
+      - run: npx tsc --noEmit
