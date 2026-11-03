@@ -102,18 +102,18 @@ export default function ZiiplyMobileAssistantPanel({
       setWatchDebug("Haku käynnissä: "+new Date().toLocaleTimeString("fi-FI")+" | hakusanat: "+watchKey);
       try{
         const terms=watchKey.split("|");
-        const searches=await Promise.allSettled(terms.map(async query=>({query,results:(await searchZiiplyGostaOffersV146({query})).results})));
-        const master=await searchZiiplyGostaOffersV146({query:""}).catch(()=>null);
-        const offers=[...(master?.results||[]),...searches.flatMap(result=>result.status==="fulfilled"?result.value.results:[])];
+        const response=await fetch("/api/offers/watch?q="+encodeURIComponent(terms.join("|")),{cache:"no-store"});
+        const data=await response.json();
+        if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahtien API epäonnistui"));
+        const offers=Array.isArray(data.results)?data.results:[];
         const seen=new Set<string>();
-        const matched=offers.flatMap((offer:any)=>terms.filter(query=>matchesGostaWatch(query,offer)).map(query=>({
-          query,
-          title:String(offer.title||offer.name||offer.productName||"Tarjous"),
+        const matched=offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:terms.filter(query=>matchesGostaWatch(query,offer))).map((query:string)=>({
+          query,title:String(offer.title||offer.name||offer.productName||"Tarjous"),
           price:String(offer.offerPrice??offer.price??""),
           store:String(offer.storeName||offer.chain||""),
-          source:String(offer.source||offer.sourceType||offer.offerSource||"")
-        }))).filter(offer=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
-        setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | hakusanat: "+terms.join(", ")+" | master: "+(master?.results.length??"VIRHE")+" | termihaut: "+searches.map((r,i)=>terms[i]+":"+(r.status==="fulfilled"?r.value.results.length:"VIRHE "+String(r.reason))).join(", ")+" | yhteensä: "+offers.length+" | osumat: "+matched.length+" | kauppavalinnat: ei rajata");
+          source:String(offer.source||offer.sourceType||offer.chain||"")
+        }))).filter((offer:any)=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
+        setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,1200));
         if(cancelled)return;
         setWatchOffers(matched);
         setWatchChecked(true);
