@@ -9,7 +9,9 @@ assert.match(page,/getArrivalDiagnostics\(\)/,'debug download must include recor
 assert.match(page,/recordArrivalDiagnostic\("gps-sample"/,'log real GPS fixes');
 assert.match(notice,/document\.visibilityState==='visible'/,'background app must not show prompt');
 assert.match(notice,/document\.hasFocus\(\)/,'inactive tab must not show prompt');
-assert.match(notice,/arrival-deferred/,'deferred notice must be logged');
+assert.match(notice,/arrival-suppressed-inactive/,'inactive arrival must be suppressed rather than replayed');
+assert.match(notice,/decision.isSelectedStore/,'UI must independently verify selected store');
+assert.match(notice,/type:'pause'/,'inactive timer must pause');
 assert.match(scanner,/storeLocation\.verified \|\| storeLocation\.checking/,'nearby yellow and confirmed green indicators');
 assert.doesNotMatch(page,/if \(!confirmedName\) checkScannerLocationOnOpenV856\(\)/,'scanner opening must not make a second GPS request');
 console.log('PASS arrival source integration: foreground, store confirmation, shared GPS, radar and diagnostics');
