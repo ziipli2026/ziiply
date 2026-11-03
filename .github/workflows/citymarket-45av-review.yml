@@ -2,7 +2,7 @@ name: Citymarket 45AV correction review
 on:
   push:
     branches: [fix/citymarket-45av-review]
-    paths: ['.github/workflows/citymarket-45av-review.yml', 'scripts/citymarket/review-45av.mjs', 'scripts/citymarket/build-images.py', 'scripts/citymarket/reviewed-selections.json', 'src/app/components/ziiply/offerSearch/providers/**', 'tests/citymarket-45av-review.test.cjs', 'tests/citymarket-preflight.test.cjs']
+    paths: ['.github/workflows/citymarket-45av-review.yml', 'scripts/citymarket/review-45av.mjs', 'scripts/citymarket/build-images.py', 'scripts/citymarket/reviewed-selections.json', 'diagnostics/45AV/printed-transaction-fixture.json', 'src/app/components/ziiply/offerSearch/providers/**', 'tests/citymarket-45av-review.test.cjs', 'tests/citymarket-preflight.test.cjs']
   workflow_dispatch:
 permissions:
   contents: write
@@ -19,6 +19,8 @@ jobs:
           if [ ! -f diagnostics/45AV/archive-manifest.json ]; then
             node scripts/citymarket/export-leaflet.mjs https://kcm-tarjouslehdet.k-ruoka.fi/89d635q_tarjouslehti_45AV_KCM/index.html diagnostics/45AV src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js
           fi
+      - name: Replay corrected parser against frozen 45AV publisher responses
+        run: node scripts/citymarket/replay-frozen-parser.mjs diagnostics/45AV diagnostics/45AV/printed-transaction-fixture.json src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js
       - name: Install PDF image audit dependencies
         run: |
           python -m pip install 'PyMuPDF==1.26.6' 'Pillow>=10,<13'
