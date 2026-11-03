@@ -6,7 +6,8 @@ export function repairCitymarketPrintedTitle(row, rawTitle = row?.title ?? "") {
   if (/^6KLASSIKOT(?=\s+\d)/i.test(title)) title = title.replace(/^6(?=KLASSIKOT)/i, "");
   title = title.replace(/\bAUHOINEN PERUNA\b/i, "JAUHOINEN PERUNA");
   if (/^tai\s+TAHRANPOISTOSUIHKE\s+150\s*ml$/i.test(title)) title = title.replace(/^tai\s+/i, "LV ");
-  if (/^TÄYSMEHUT\b/i.test(title)) title = title.replace(/\s+tai\s*$/i, "");
+  if (/^TÄYSMEHUT\b/i.test(title)) title = "Innocent " + title.replace(/\s+tai\s*$/i, "");
+  if (/^SMOOTHIET\b/i.test(title)) title = "Innocent " + title;
   return title;
 }
 export function removeDuplicateContinuationRows(rows) {
@@ -14,7 +15,7 @@ export function removeDuplicateContinuationRows(rows) {
   // The LV 15% discount is one printed offer continued on the next line.
   // Combine the actual products rather than publishing a second orphan row.
   const lvParent = input.find(row => /LV PYYKINPESUNESTEET/i.test(String(row?.title ?? "")));
-  const lvContinuation = input.find(row => /^tai\\s+TAHRANPOISTOSUIHKE\\s+150\\s*ml$/i.test(String(row?.title ?? "")));
+  const lvContinuation = input.find(row => /^(?:tai|LV)\s+TAHRANPOISTOSUIHKE\s+150\s*ml$/i.test(String(row?.title ?? "")));
   if (lvParent && lvContinuation && Number(lvParent.page) === Number(lvContinuation.page)) {
     lvParent.title = String(lvParent.title).replace(/\\s*$/, "") + " tai TAHRANPOISTOSUIHKE 150 ml";
     return input.filter(row => row !== lvContinuation).filter((row, index, retained) => {
