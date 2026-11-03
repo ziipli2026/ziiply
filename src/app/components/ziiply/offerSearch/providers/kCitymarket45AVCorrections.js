@@ -11,6 +11,22 @@ export function repairCitymarketPrintedTitle(row, rawTitle = row?.title ?? "") {
 }
 export function removeDuplicateContinuationRows(rows) {
   const input = Array.isArray(rows) ? rows : [];
+  // The LV 15% discount is one printed offer continued on the next line.
+  // Combine the actual products rather than publishing a second orphan row.
+  const lvParent = input.find(row => /LV PYYKINPESUNESTEET/i.test(String(row?.title ?? "")));
+  const lvContinuation = input.find(row => /^tai\\s+TAHRANPOISTOSUIHKE\\s+150\\s*ml$/i.test(String(row?.title ?? "")));
+  if (lvParent && lvContinuation && Number(lvParent.page) === Number(lvContinuation.page)) {
+    lvParent.title = String(lvParent.title).replace(/\\s*$/, "") + " tai TAHRANPOISTOSUIHKE 150 ml";
+    return input.filter(row => row !== lvContinuation).filter((row, index, retained) => {
+      const title = normalize(row?.title);
+      if (!title || title.length > 42) return true;
+      const page = Number(row?.page) || 0;
+      const price = Number(row?.spatialResolved?.value);
+      return !retained.slice(0,index).some(previous => Number(previous?.page) === page &&
+        normalize(previous?.title).includes(title) && normalize(previous?.title) !== title &&
+        Math.abs(Number(previous?.spatialResolved?.value)-price)<0.005);
+    });
+  }
   return input.filter((row, index) => {
     const title = normalize(row?.title);
     if (!title || title.length > 42) return true;
