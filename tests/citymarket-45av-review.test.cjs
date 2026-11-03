@@ -17,6 +17,10 @@ const proof = loadExports("src/app/components/ziiply/offerSearch/providers/kCity
   ["verifyPrintedTransaction"]);
 const evidence = JSON.parse(fs.readFileSync(path.join(root, "diagnostics/45AV/parser-evidence.json"), "utf8"));
 const byTitle = fragment => evidence.rows.find(row => String(row.title).toLowerCase().includes(fragment));
+test("45AV parser verification receives both page-wide and row-local printed price evidence", () => {
+  const parser = fs.readFileSync(path.join(root, "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js"), "utf8");
+  assert.match(parser, /verifyPrintedTransaction\(row,\[\.\.\.\(publicationWordBoxes\.get\(row\.page\)\|\|\[\]\),\.\.\.\(row\.debugNearbyBoxes\|\|\[\]\)\]\)/);
+});
 test("45AV corrected titles and prices retain the original publisher image card identity", () => {
   const provider = fs.readFileSync(path.join(root, "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"), "utf8");
   assert.match(provider, /_45AV_KCM\/i\.test\(leafletUrl\)/);
