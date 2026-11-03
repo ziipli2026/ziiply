@@ -45,13 +45,17 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
       running=true;
       setWatchScanning(true);
       try{
-        const response=await searchZiiplyGostaOffersV146({query:""});
+        const terms=watchKey.split("|");
+        const searches=await Promise.allSettled(terms.map(query=>searchZiiplyGostaOffersV146({query})));
+        const master=await searchZiiplyGostaOffersV146({query:""}).catch(()=>null);
+        const offers=[...(master?.results||[]),...searches.flatMap(result=>result.status==="fulfilled"?result.value.results:[])];
         if(!cancelled){
-          const terms=watchKey.split("|");
-          const count=response.results.reduce((sum,offer:any)=>sum+terms.filter(query=>matchesGostaWatch(query,offer)).length,0);
+          const seen=new Set<string>();
+          const count=offers.reduce((sum,offer:any)=>sum+terms.filter(query=>matchesGostaWatch(query,offer)).filter(query=>{const key=[query,offer.title||offer.name,offer.offerPrice??offer.price,offer.storeName||offer.chain].join("|");if(seen.has(key))return false;seen.add(key);return true;}).length,0);
           setWatchCount(count);
           lastScan=Date.now();
         }
+      }catch{if(!cancelled)setWatchCount(0);}
       }finally{running=false;if(!cancelled)setWatchScanning(false);}
     };
     const timer=window.setTimeout(()=>{void scan();},300);
