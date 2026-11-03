@@ -80,7 +80,7 @@ def enclosed_cell(page,row,rows):
 def is_continuation_fragment(row,all_rows):
  title=normalized(row.get('title',''))
  if len(title.split())<3:return False
- package=re.search(r'\b\d+\s*kpl\s*/\s*\d+\s*g\b',title)
+ package=re.search(r'\b\d+\s+kpl\s+\d+\s+g\b',title)
  if not package:return False
  price=str(row.get('id','')).rsplit(':',1)[-1]
  for other in all_rows:
