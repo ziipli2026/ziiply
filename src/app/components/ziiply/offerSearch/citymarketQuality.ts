@@ -16,6 +16,7 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
     const category = String(offer.category ?? "").trim();
     const quantity = Number(offer.offerQuantity) || 1;
     const unitPrice = Number(offer.unitPrice);
+    const deposit = Number(offer.depositAmount) || 0;
     const problem = (type: keyof Pick<CitymarketOfferQuality, "missingNames"|"missingPrices"|"missingCategories"|"suspiciousTitles"|"inconsistentUnitPrices">) => {
       result[type]++;
       if (result.examples.length < 12) result.examples.push(type + ": " + (title || "(empty)"));
@@ -28,7 +29,7 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
     const size = title.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i);
     if (price > 0 && unitPrice > 0 && size && !/[–-]\s*\d+/.test(title) && !/\d+\s*kpl\s*\//i.test(title)) {
       const amount = Number(size[1].replace(",", ".")) * (size[2].toLowerCase() === "g" || size[2].toLowerCase() === "ml" ? .001 : 1);
-      const expected = price / (amount * quantity);
+      const expected = (price - deposit) / (amount * quantity);
       if (amount > 0 && Math.abs(expected - unitPrice) > Math.max(.08, expected * .06)) problem("inconsistentUnitPrices");
     }
     if (!String(offer.imageUrl ?? "").trim() && !String(offer.imageData ?? "").trim()) result.missingImages++;
