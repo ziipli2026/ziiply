@@ -1,4 +1,4 @@
-import {normalizeArvoMeal, type ArvoMeal} from "./arvoStatistics";
+import {normalizeArvoMeal, type ArvoMeal} from "./arvoStatistics.ts";
 
 /**
  * Deterministic, non-destructive reconciliation of local and server meals.
