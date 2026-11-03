@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - feature/arrival-state-diagnostics-20261101
+      - integrate/gps-arrival-main-20261103
+      - main
   workflow_dispatch:
 jobs:
   gps-arrival-simulation:
