@@ -1,5 +1,5 @@
-import { matchesGostaWatch } from "./gostaWatchMatch";
 "use client";
+import { matchesGostaWatch } from "./gostaWatchMatch";
 import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
 import ArvoSettingsPanel from "../ArvoSettingsPanel";
 
