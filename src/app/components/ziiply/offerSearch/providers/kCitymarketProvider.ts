@@ -725,14 +725,14 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     const sql=neon(process.env.DATABASE_URL);
     const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC`;
     if(!rows.length)console.warn("[K-Citymarket] EAN bank contains no usable image rows");
-    const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\s+/g," ");
+    const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/\btahranpoistosuihke\b/g,"tahranpoistospray").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\s+/g," ");
     // Do not silently exclude older catalogue images merely because the EAN bank has grown.
     const index=new Map<string,typeof rows>();
     const byProductName=new Map<string,typeof rows>();
     // Leaflet headlines and bank names commonly differ only by package notation.
     // Keep both indexes and require a unique EAN and matching package when available.
     const size=(value:unknown)=>String(value??"").toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
-    const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," "));
+    const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," ").replace(/\b(?:laktoositon|gluteeniton|tattaripalaleipä|2in1)\b/gi," "));
     // Unit prices and explanatory leaflet footnotes are not part of a product
     // identity. Remove them for image matching only, never from offer display.
     const imageIdentity=(value:unknown)=>String(value??"")
