@@ -89,11 +89,13 @@ export default function ZiiplyMobileAssistantPanel({
     try {
       const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
       if(cached?.key===watchKey&&Array.isArray(cached.offers)){
-        setWatchOffers(cached.offers);
-        setWatchChecked(true);
+        // Do not show stale cached offers as current scan results.
+        setWatchOffers([]);
+        setWatchChecked(false);
         if(typeof cached.debug==="string")setWatchDebug(cached.debug);
       }
     }catch{}
+    setWatchOffers([]);setWatchChecked(false);
     if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
     let cancelled=false;
     let running=false;
@@ -120,7 +122,7 @@ export default function ZiiplyMobileAssistantPanel({
         setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,600)+" | lähikaupat: "+JSON.stringify(data.diagnostic?.nearby||[]).slice(0,1500));
         if(cancelled)return;
         if(data.partial){
-          setWatchError("Osa kaupoista ei vastannut. Edelliset täydet hakutulokset säilytetään.");
+          setWatchError("Haku jäi vajaaksi: kaikkien kuuden kaupan tuloksia ei saatu. Osumia ei julkaista.");
           return;
         }
         setWatchOffers(matched);
