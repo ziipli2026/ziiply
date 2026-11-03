@@ -1,3 +1,4 @@
+import {markArvoMealDeleted} from "./arvoMealTombstones.ts";
 export type ArvoMeal = {
   id: string;
   timestamp: string;
@@ -99,6 +100,7 @@ export function deleteArvoMeal(storage: Pick<Storage,"getItem"|"setItem">, id: s
   if (!id) throw new Error("invalid-arvo-meal-id");
   const next = readArvoMeals(storage).filter(meal => meal.id !== id);
   storage.setItem(ARVO_MEALS_KEY, JSON.stringify(next));
+  markArvoMealDeleted(storage,id);
   return next;
 }
 
