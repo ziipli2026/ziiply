@@ -33,6 +33,9 @@ function canonicalWatchQueries(value: string | null): string {
 const watchScanCache = new Map<string,{expires:number,promise:Promise<Response>}>();
 const WATCH_CACHE_MS = 5 * 60 * 1000;
 const WATCH_CACHE_MAX = 80;
+// Keep last successful per-store offers for transient upstream failures.
+const lastGoodStoreOffers=new Map<string,{at:number;offers:Record<string,unknown>[]}>();
+const STORE_FALLBACK_MS=30*60*1000;
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -175,9 +178,17 @@ async function runWatch(request: Request) {
             if(!payload.ok)throw new Error(String(payload.error||"Offer source unavailable"));
             const raw=(Array.isArray(payload.results)?payload.results:[]) as Parameters<typeof cleanZiiplyGostaOfferResultsV146>[0];
             const normalized=cleanZiiplyGostaOfferResultsV146(raw).map(mapZiiplyGostaOfferToCardOfferV147) as Record<string,unknown>[];
+            lastGoodStoreOffers.set(kind+"|"+id,{at:Date.now(),offers:normalized});
+            while(lastGoodStoreOffers.size>120)lastGoodStoreOffers.delete(lastGoodStoreOffers.keys().next().value!);
             nearbyOffers.push({chain:kind==="lidl"?"LIDL":kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
             nearbyDiagnostics.push({store:name,count:normalized.length});
-          }catch(error){nearbyDiagnostics.push({store:name,count:0,error:String(error)});}
+          }catch(error){
+            const fallback=lastGoodStoreOffers.get(kind+"|"+id);
+            if(fallback&&Date.now()-fallback.at<STORE_FALLBACK_MS){
+              nearbyOffers.push({chain:kind==="lidl"?"LIDL":kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:fallback.offers.map(o=>({...o,storeName:name}))});
+              nearbyDiagnostics.push({store:name,count:fallback.offers.length,error:"Tilapäinen lähdevirhe, käytetään viimeksi onnistunutta hakua: "+String(error)});
+            }else nearbyDiagnostics.push({store:name,count:0,error:String(error)});
+          }
         }
       }));
     }
