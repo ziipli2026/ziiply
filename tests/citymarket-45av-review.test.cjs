@@ -46,6 +46,19 @@ test("45AV fallback categories are replaced with product-form categories", () =>
     ["NIVEA VARTALOVOITEET 100–400 ml", "Hygienia & kosmetiikka"],
     ["TUOPPI 0,48 l", "Koti & vapaa-aika"],
     ["KIERRÄTYSASTIA 6 l", "Koti & vapaa-aika"],
+    ["VICHY tai NOVELLE KIVENNÄISVEDET 0,33 l/tlk 6-pack", "Juomat"],
+    ["PAPRIKA 2 kpl/300 g", "Hevi"],
+    ["KIINTEÄ, YLEIS ja AUHOINEN PERUNA 2 kg", "Hevi"],
+    ["PROTEIN RAHKAT 200 g", "Maitotuotteet"],
+    ["TÄYSMEHUT 900 ml/pl tai", "Juomat"],
+    ["SMOOTHIET 750 ml/pl", "Juomat"],
+    ["VITAL HYVINVOINTIMEHUT 1 l", "Juomat"],
+    ["PASTAT 600–650 g", "Kuivatuotteet"],
+    ["SAVUSTETTU KIRJOLOHIFILEE n. 700 g", "Kala"],
+    ["RIISIPUURO 300 g", "Valmisruoka"],
+    ["KINKKUSUIKALEET 300 g", "Liha & makkarat"],
+    ["LV PYYKINPESUNESTEET 750 ml", "Kodinhoito"],
+    ["WC-PAPERI 16 rl", "Kodinhoito"],
   ];
   for (const [title, expected] of cases) assert.equal(fixes.repairCitymarketCategory(title, "Muut"), expected, title);
 });
