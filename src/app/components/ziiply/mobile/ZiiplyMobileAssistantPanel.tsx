@@ -55,6 +55,8 @@ export default function ZiiplyMobileAssistantPanel({
   onOpenStoreSettings,
 }: ZiiplyMobileAssistantPanelProps) {
   const [watchQuery, setWatchQuery] = React.useState("");
+  const [showWatchNotebook,setShowWatchNotebook]=React.useState(false);
+  const [watchFilter,setWatchFilter]=React.useState<string|null>(null);
   const [savedWatches, setSavedWatches] = React.useState<string[]>([]);
   const [watchNotice, setWatchNotice] = React.useState("");
   const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string}>>([]);
@@ -117,6 +119,7 @@ export default function ZiiplyMobileAssistantPanel({
     window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));
     setWatchQuery("");
     setWatchNotice("Tarjousvahti tallennettu vihkoon: " + query);
+    setShowWatchNotebook(false);
   }
   function removeWatch(query: string) {
     const next = savedWatches.filter(item => item !== query);
@@ -176,39 +179,41 @@ export default function ZiiplyMobileAssistantPanel({
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151]">
           {activeAssistant === "justiina" ? <JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} onCameraOpenChange={setRecipeCameraOpen} /> : activeAssistant === "arvo" ? <ArvoSettingsPanel onClose={onClose} /> : (
-            <div className="space-y-4">
-              <h2 className="text-xl font-black text-[#244a28]">Tarjousvahti</h2>
-              <p>Tallenna tuotteet tai hakusanat, joiden tarjouksia haluat seurata.</p>
-              <form onSubmit={(event) => { event.preventDefault(); saveWatch(); }} className="flex gap-2">
-                <input value={watchQuery} onChange={event => { setWatchQuery(event.target.value); setWatchNotice(""); }} placeholder="Tuote tai hakusana" aria-label="Tarjousvahdin hakusana" className="min-w-0 flex-1 rounded-xl border border-[#8bb56d] bg-white px-3 py-3 text-base" />
-                <button type="submit" disabled={!watchQuery.trim()} className="rounded-xl bg-[#17573c] px-4 py-3 font-black text-white disabled:opacity-50">Tallenna</button>
-              </form>
-              {watchNotice && <p role="status" className="text-[#17573c]">{watchNotice}</p>}
-              <h3 className="font-black">Tallennetut tarjousvahdit ({savedWatches.length})</h3>
-              {savedWatches.length === 0 ? <p>Ei vielä tallennettuja tarjousvahteja.</p> : (
-                <ul className="space-y-2">
-                  {savedWatches.map(query => (
-                    <li key={query} className="flex items-center justify-between gap-2 rounded-xl bg-white/80 p-3">
-                      <span className="min-w-0 break-words">{query}</span>
-                      <button type="button" onClick={() => removeWatch(query)} aria-label={`Poista tarjousvahti: ${query}`} className="shrink-0 rounded-lg border border-[#b99d62] px-3 py-2">Poista</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div className="rounded-xl border border-[#b99d62] bg-white/80 p-3" aria-live="polite">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-black">Tarjousosumat {watchChecked?"("+watchOffers.length+")":""}</h3>
-                  <button type="button" disabled={watchLoading} onClick={()=>setWatchRefresh(n=>n+1)} className="rounded-lg border border-[#b99d62] px-3 py-2 text-xs disabled:opacity-50">Päivitä</button>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2 rounded-2xl border-2 border-[#caa15d] bg-[#f7e7bd] px-3 py-2">
+                <h2 className="font-serif text-lg font-black text-[#174c35]">Göstan tarjoushaku</h2>
+                <div className="flex gap-2">
+                  <button type="button" onClick={()=>setShowWatchNotebook(v=>!v)} aria-label="Tallennetut tarjousvahdit" title="Tallennetut tarjousvahdit" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-xl">📒</button>
+                  <button type="button" onClick={()=>setWatchRefresh(n=>n+1)} disabled={watchLoading} aria-label="Päivitä tarjoukset" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-xl disabled:opacity-50">↻</button>
                 </div>
-                {watchLoading&&<p className="mt-2 text-sm">Haetaan tarjouksia…</p>}
-                {watchError&&<p role="alert" className="mt-2 text-sm text-red-700">{watchError}</p>}
-                {watchChecked&&!watchLoading&&watchOffers.length===0&&<p className="mt-2 text-sm">Ei löytyneitä tarjouksia.</p>}
-                {watchOffers.map((offer,index)=><div key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="mt-2 border-t pt-2 text-sm">
-                  <strong>{offer.title}</strong>{offer.price&&<span> · {offer.price} €</span>}
-                  <div className="text-xs font-normal">{offer.store}{offer.source&&" · "+offer.source} · Vahti: {offer.query}</div>
-                </div>)}
               </div>
-              <p className="text-xs font-normal text-[#687285]">Tarjousvahdit tallennetaan tähän selaimeen. Haku käynnistyy sivun latautuessa ja selaimen aktivoituessa. Suljetun selaimen ajastettu haku vaatii palvelinpuolen toteutuksen.</p>
+              {showWatchNotebook&&<div role="region" aria-label="Tallennetut tarjousvahdit" className="rounded-2xl border-2 border-[#b58a46] bg-[#fff9e9] p-3 shadow-md">
+                <div className="mb-2 flex items-center justify-between"><strong className="font-serif text-lg text-[#174c35]">Tallennetut tarjousvahdit</strong><button type="button" onClick={()=>setShowWatchNotebook(false)} aria-label="Sulje vihko">✕</button></div>
+                {savedWatches.length===0?<p className="text-sm">Ei tallennettuja tarjousvahteja.</p>:savedWatches.map(query=><div key={query} className="flex items-center justify-between gap-2 border-t border-[#e3d2ae] py-1">
+                  <button type="button" onClick={()=>{setWatchFilter(query);setShowWatchNotebook(false);}} className="min-w-0 flex-1 break-words rounded-lg px-2 py-2 text-left font-bold">{query}</button>
+                  <button type="button" onClick={()=>removeWatch(query)} className="rounded-lg border border-[#b58a46] px-2 py-1 text-xs">Poista</button>
+                </div>)}
+              </div>}
+              <form onSubmit={event=>{event.preventDefault();saveWatch();}} className="flex items-center gap-2">
+                <input value={watchQuery} onChange={event=>setWatchQuery(event.target.value)} placeholder="Hae tuotetta tai tarjousta" aria-label="Tarjousvahdin hakusana" className="min-w-0 flex-1 rounded-xl border-2 border-[#caa15d] bg-white px-3 py-3 text-base" />
+                <button type="submit" disabled={!watchQuery.trim()} className="rounded-xl border-2 border-[#9c6d36] bg-[#fff4cf] px-3 py-3 font-black text-[#174c35] disabled:opacity-50">Tallenna</button>
+              </form>
+              {watchNotice&&<p role="status" className="text-sm text-[#17573c]">{watchNotice}</p>}
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
+                {watchFilter&&<button type="button" onClick={()=>setWatchFilter(null)} className="rounded-lg border border-[#b58a46] px-2 py-1 text-xs">Kaikki vahdit</button>}
+              </div>
+              {watchLoading&&<p className="text-sm">Haetaan tuoreita tarjouksia…</p>}
+              {watchError&&<p role="alert" className="text-sm text-red-700">{watchError}</p>}
+              {!savedWatches.length&&<p className="rounded-xl bg-white/70 p-4 text-sm">Tallenna ensin hakusana. Löydetyt tarjoukset näkyvät tässä kortteina.</p>}
+              {savedWatches.length>0&&watchChecked&&!watchLoading&&watchOffers.length===0&&<p className="rounded-xl bg-white/70 p-4 text-sm">Tarjouksia ei löytynyt.</p>}
+              <div className="grid grid-cols-1 gap-3">
+                {watchOffers.filter(o=>!watchFilter||o.query===watchFilter).map((offer,index)=><article key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="rounded-2xl border-2 border-[#caa15d] bg-[#fffaf0] p-3 shadow-sm">
+                  <div className="text-xs font-bold text-[#76502b]">{offer.store||"Kauppa"}{offer.source&&" · "+offer.source}</div>
+                  <h4 className="mt-1 text-base font-black text-[#174c35]">{offer.title}</h4>
+                  <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{offer.price} €</strong>}</div>
+                </article>)}
+              </div>
             </div>
           )}
         </div>
