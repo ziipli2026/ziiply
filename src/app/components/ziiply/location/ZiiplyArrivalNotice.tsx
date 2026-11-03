@@ -17,7 +17,10 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
      if(visible()){delivered.current.add(decision.store.id);dispatch({type:'sample',decision,at});}
      else {pending.current={decision,at};recordArrivalDiagnostic('arrival-deferred',{store:decision.store.name});}
    }
-   if(decision.status==='checking'&&!decision.state.arrivalStoreId) delivered.current.clear();
+   if(decision.status==='checking'&&!decision.state.arrivalStoreId){
+     if(delivered.current.size) dispatch({type:'reset'});
+     delivered.current.clear();pending.current=null;
+   }
  },[]);
  useEffect(()=>{if(!enabled){dispatch({type:'reset'});pending.current=null;}},[enabled]);
  useEffect(()=>{
