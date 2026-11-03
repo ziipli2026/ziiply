@@ -1,3 +1,4 @@
+import { repairCitymarketPrintedTitle, removeDuplicateContinuationRows, repairCitymarketCategory } from "./kCitymarket45AVCorrections.js";
 import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kCitymarketProductRows.js";
 import { clean42AVPrintedTitle } from "./kCitymarket42AVTitleCleanup.js";
 import { unstable_cache } from "next/cache";
@@ -494,9 +495,22 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   // Keep the publisher's exact card identity before presentation title cleanup.
   // Reviewed PDF pictures are attached to this source row, never a fuzzy name.
   const sourceRows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
-  const rows:any[]=canonicalCitymarketProductRows(sourceRows.map(row=>/_42AV_KCM/i.test(leafletUrl)&&row?.spatialResolved?.value>0
-    ? {...row,publisherOfferId:row.publisherOfferId??`kcm:spatial:${row?.page??0}:${clean(row.title).toLowerCase()}:${Number(row.spatialResolved.value)}`}
-    : row));
+  const deduplicatedSourceRows=/_45AV_KCM/i.test(String(parsed?.leaflet||ENTRY))?removeDuplicateContinuationRows(sourceRows):sourceRows;
+  const rows:any[]=canonicalCitymarketProductRows(deduplicatedSourceRows.map(row=>{
+    if(row?.publisherOfferId)return row;
+    const page=Number(row?.page)||0;
+    const rawTitle=clean(row?.title||"").toLowerCase();
+    if(/_45AV_KCM/i.test(leafletUrl)){
+      const price=Number(row?.spatialResolved?.value);
+      const percent=Number(row?.percentageOffer?.percent);
+      const suffix=Number.isFinite(price)&&price>0?String(price):percent>0&&percent<100?"percent:"+percent:"";
+      return suffix?{...row,publisherOfferId:"kcm:spatial:"+page+":"+rawTitle+":"+suffix}:row;
+    }
+    if(/_42AV_KCM/i.test(leafletUrl)&&row?.spatialResolved?.value>0){
+      return {...row,publisherOfferId:"kcm:spatial:"+page+":"+rawTitle+":"+Number(row.spatialResolved.value)};
+    }
+    return row;
+  }));
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
@@ -517,7 +531,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       offers.push({id:`kcm:spatial:${row?.page??0}:${campaignTitle.toLowerCase()}:percent:${percent}`,
         title:campaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
         resolutionSource:row.percentageOffer.source,plussa:/plussa/i.test((row.nearby||[]).join(" ")),
-        validFrom:validity?.from??null,validTo:validity?.to??null,category:category(campaignTitle),
+        validFrom:validity?.from??null,validTo:validity?.to??null,category:/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(campaignTitle,category(campaignTitle)):category(campaignTitle),
         chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
       continue;
     }
@@ -532,9 +546,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // decorations; never change the price, quantity, package or unit metadata.
     // Limit to the 42AV archive until older leaflet regressions are verified.
     const rawTitle=clean(row?.title||"");
-    const title=/_42AV_KCM/i.test(leafletUrl)
-      ? clean42AVPrintedTitle(rawTitle)
-      : rawTitle;
+    const title=/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle;
     if(!title || isNoiseLine(title)) continue;
 
     const normalMin=Number(row?.normal?.min);
@@ -586,7 +598,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       campaignType,
       validFrom:row.printedValidity?.from??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
       validTo:row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
-      category:/\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":category(title),
+      category:/\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(title,category(title)):category(title),
       chain:"K",
       storeType:"K-Citymarket",
       source:"K-Citymarket tarjouslehti",
@@ -791,10 +803,10 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   const until=shiftIsoDate(start,active.kind==="AV"?2:3);
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
-  const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
+  const enriched=normalizeKCitymarketOfferImages(offers);
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
-  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v162",validFrom:start,
+  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v163",validFrom:start,
     validUntil:until,parsedAt:new Date().toISOString(),offers:enriched});
 }
 
@@ -810,18 +822,8 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const { correctPreparedCitymarketPrices }=await import("./kCitymarketPreparedPriceCorrections");
     const prepared=normalizeKCitymarketOfferImages(correctPreparedCitymarketPrices(stored));
     if(prepared.every(offer=>Boolean(offer.imageUrl)))return prepared;
-    // Existing approved snapshots must not bypass the image enrichment pipeline.
-    // Only fill image URLs; preserve every original offer, price and metadata.
-    const active=getActiveKCitymarketPeriod();
-    const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(prepared,active));
-    if(enriched.some((offer,i)=>offer.imageUrl && !prepared[i]?.imageUrl)){
-      try{
-        await storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:active.startDate,
-          validUntil:shiftIsoDate(active.startDate,active.kind==="AV"?2:3),
-          parsedAt:new Date().toISOString(),offers:enriched});
-      }catch(error){console.warn("[K-Citymarket] image-only snapshot update failed",error);}
-    }
-    return enriched;
+    // Scheduled background enrichment fills missing images without delaying shoppers.
+    return prepared;
   }
   // Migration safety: do not break desktop or mobile when the first snapshot
   // has not been seeded yet. Recover from the immutable publisher URL once,
