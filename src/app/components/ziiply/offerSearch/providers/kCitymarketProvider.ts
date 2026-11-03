@@ -732,7 +732,7 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     // Leaflet headlines and bank names commonly differ only by package notation.
     // Keep both indexes and require a unique EAN and matching package when available.
     const size=(value:unknown)=>String(value??"").toLowerCase().match(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i)?.[0]?.replace(/\s+/g,"").replace(",",".")||"";
-    const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," ").replace(/(?:laktoositon|gluteeniton|tattaripalaleipä|2in1)/gi," "));
+    const nameOnly=(value:unknown)=>norm(String(value??"").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi," ").replace(/(?:laktoositon|gluteeniton|tattaripalaleipä|2in1|suklaakonvehti|fazer)/gi," "));
     // Unit prices and explanatory leaflet footnotes are not part of a product
     // identity. Remove them for image matching only, never from offer display.
     const imageIdentity=(value:unknown)=>String(value??"")
