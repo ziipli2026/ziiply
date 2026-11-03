@@ -89,13 +89,14 @@ export default function ZiiplyMobileAssistantPanel({
     try {
       const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
       if(cached?.key===watchKey&&Array.isArray(cached.offers)){
-        // Do not show stale cached offers as current scan results.
-        setWatchOffers([]);
-        setWatchChecked(false);
+        // Show recent confirmed offers immediately while a fresh scan runs.
+        if(Number.isFinite(cached.at)&&Date.now()-cached.at<5*60*1000){
+          setWatchOffers(cached.offers);
+          setWatchChecked(true);
+        }
         if(typeof cached.debug==="string")setWatchDebug(cached.debug);
       }
     }catch{}
-    setWatchOffers([]);setWatchChecked(false);
     if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
     let cancelled=false;
     let running=false;
