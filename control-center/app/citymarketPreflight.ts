@@ -43,7 +43,7 @@ export function citymarketPreflightStatus(runs:PreflightRun[],now=new Date(),kin
   const n=object(report?.details.next);
   const active=object(report?.details.active);
   const next=n.period===expected.period?n:active.period===expected.period?active:{};
-  const parserOk=report?.source==="k-citymarket-cache"?next.period===expected.period&&errors.length===0:report?.ok;
+  const parserOk=report?.source==="k-citymarket-cache"?next.period===expected.period&&errors.length===0:report?.source==="k-citymarket-preflight"?report.outcome==="preflight-awaiting-pdf-review":report?.ok;
   const stale=expected.windowToday&&report&&now.getTime()-Date.parse(report.checked_at)>3*3600000;
   const archiveFailed=archive&&!archive.ok;
   // Automatic field checks and source capture do not constitute a manual full-PDF audit.
