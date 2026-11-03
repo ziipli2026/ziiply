@@ -1,3 +1,4 @@
+import { desktopSearchDecision } from "../../../components/ziiply/search/desktopNormalRelevance";
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
@@ -8,14 +9,9 @@ function norm(value: unknown) {
     .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 }
 // Search the product identity, not offer conditions or store metadata.
-function matches(query: string, offer: Record<string, unknown>) {
-  const words=norm(query).split(/\\s+/).filter(Boolean);
-  const identity=String(offer.title||offer.name||offer.productName||"");
-  const tokens=norm(identity).split(/\\s+/).filter(Boolean);
-  if(!words.length||!tokens.length)return false;
-  return words.every(word=>tokens.some(token=>
-    token===word||token.startsWith(word)||
-    (word.length>=5&&token.startsWith(word.slice(0,-1)))));
+function matches(query:string,offer:Record<string,unknown>){
+  const name=String(offer.title||offer.name||offer.productName||"");
+  return desktopSearchDecision(query,{...offer,name,title:name} as Parameters<typeof desktopSearchDecision>[1]).accepted;
 }
 function priceNumber(offer:Record<string,unknown>){
   for(const raw of [offer.offerPrice,offer.price]){
