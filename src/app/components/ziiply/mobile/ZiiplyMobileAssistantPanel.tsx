@@ -3,6 +3,7 @@ import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
 import ArvoSettingsPanel from "../ArvoSettingsPanel";
 
 import React from "react";
+import { searchZiiplyGostaOffersV146 } from "../offerSearch/ziiplyOfferSearchCore";
 import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 
 export type ZiiplyMobileAssistantPanelProps = {
@@ -56,6 +57,51 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchQuery, setWatchQuery] = React.useState("");
   const [savedWatches, setSavedWatches] = React.useState<string[]>([]);
   const [watchNotice, setWatchNotice] = React.useState("");
+  const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string}>>([]);
+  const [watchLoading,setWatchLoading]=React.useState(false);
+  const [watchChecked,setWatchChecked]=React.useState(false);
+  const [watchError,setWatchError]=React.useState("");
+  const [watchRefresh,setWatchRefresh]=React.useState(0);
+  const watchKey=savedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
+  React.useEffect(()=>{
+    if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
+    let cancelled=false;
+    let running=false;
+    const scan=async()=>{
+      if(cancelled||running)return;
+      running=true;
+      setWatchLoading(true);
+      setWatchError("");
+      try{
+        const results=await Promise.allSettled(watchKey.split("|").map(async query=>{
+          const response=await searchZiiplyGostaOffersV146({query,context:{areaLabel:locationLabel||""}});
+          return response.results.map((offer:any)=>({
+            query,
+            title:String(offer.title||offer.name||offer.productName||"Tarjous"),
+            price:String(offer.offerPrice||offer.price||""),
+            store:String(offer.storeName||offer.chain||""),
+            source:String(offer.source||offer.sourceType||offer.offerSource||"")
+          }));
+        }));
+        if(cancelled)return;
+        setWatchOffers(results.flatMap(result=>result.status==="fulfilled"?result.value:[]));
+        setWatchChecked(true);
+        if(results.every(result=>result.status==="rejected"))setWatchError("Tarjousten tarkistus epäonnistui. Yritä uudelleen.");
+        else if(results.some(result=>result.status==="rejected"))setWatchError("Osa tarjoushauista epäonnistui.");
+      }catch{
+        if(!cancelled)setWatchError("Tarjousten tarkistus epäonnistui.");
+      }finally{
+        running=false;
+        if(!cancelled)setWatchLoading(false);
+      }
+    };
+    const initial=window.setTimeout(()=>{void scan();},200);
+    const interval=window.setInterval(()=>{if(document.visibilityState==="visible")void scan();},60*60*1000);
+    const resume=()=>{if(document.visibilityState==="visible")void scan();};
+    document.addEventListener("visibilitychange",resume);
+    return()=>{cancelled=true;window.clearTimeout(initial);window.clearInterval(interval);document.removeEventListener("visibilitychange",resume);};
+  },[watchKey,locationLabel,watchRefresh]);
+
   React.useEffect(() => {
     try {
       const saved = JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1") || "[]");
@@ -147,7 +193,20 @@ export default function ZiiplyMobileAssistantPanel({
                   ))}
                 </ul>
               )}
-              <p className="text-xs font-normal text-[#687285]">Tarjousvahdit tallennetaan tähän selaimeen. Automaattiset tarjousilmoitukset eivät ole vielä käytössä.</p>
+              <div className="rounded-xl border border-[#b99d62] bg-white/80 p-3" aria-live="polite">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-black">Tarjousosumat {watchChecked?"("+watchOffers.length+")":""}</h3>
+                  <button type="button" disabled={watchLoading} onClick={()=>setWatchRefresh(n=>n+1)} className="rounded-lg border border-[#b99d62] px-3 py-2 text-xs disabled:opacity-50">Päivitä</button>
+                </div>
+                {watchLoading&&<p className="mt-2 text-sm">Haetaan tarjouksia…</p>}
+                {watchError&&<p role="alert" className="mt-2 text-sm text-red-700">{watchError}</p>}
+                {watchChecked&&!watchLoading&&watchOffers.length===0&&<p className="mt-2 text-sm">Ei löytyneitä tarjouksia.</p>}
+                {watchOffers.map((offer,index)=><div key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="mt-2 border-t pt-2 text-sm">
+                  <strong>{offer.title}</strong>{offer.price&&<span> · {offer.price} €</span>}
+                  <div className="text-xs font-normal">{offer.store}{offer.source&&" · "+offer.source} · Vahti: {offer.query}</div>
+                </div>)}
+              </div>
+              <p className="text-xs font-normal text-[#687285]">Tarjousvahdit tallennetaan tähän selaimeen. Haku käynnistyy sivun latautuessa ja selaimen aktivoituessa. Suljetun selaimen ajastettu haku vaatii palvelinpuolen toteutuksen.</p>
             </div>
           )}
         </div>
