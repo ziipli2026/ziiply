@@ -44,7 +44,7 @@ export function repairCitymarketCategory(title, fallback = "Muut") {
   if (/(?:hampurilaiset)/.test(s)) return "Liha & makkarat";
   if (/(?:sillit|silli)/.test(s)) return "Kala";
   if (/(?:crispy fish)/.test(s)) return "Pakasteet";
-  if (/(?:klassikot|konveht|juleskum|suklaat|suklaapallo)/.test(s)) return "Makeiset & keksit";
+  if (/(?:klassikot|konveh|juleskum|suklaat|suklaapallo)/.test(s)) return "Makeiset & keksit";
   if (/(?:nivea|vartalovoiteet|kroppskrämer)/.test(s)) return "Hygienia & kosmetiikka";
   if (/(?:tuoppi|kierrätysastia)/.test(s)) return "Koti & vapaa-aika";
   return fallback;
