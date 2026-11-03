@@ -9,7 +9,7 @@ export const ZIIPLY_PARKED_SAMPLE_MS = 5000;
 const DEPARTURE_RADIUS_METERS = 200;
 const DEPARTURE_SAMPLES = 3;
 export type ZiiplyArrivalSample = { at:number; latitude:number; longitude:number; accuracyMeters:number; speedKmh:number|null };
-export type ZiiplyArrivalStore = { id:string; name:string; latitude:number; longitude:number };
+export type ZiiplyArrivalStore = { id:string; name:string; latitude:number; longitude:number; chain?:string };
 export type ZiiplyArrivalState = {
  tripStartedAt:number|null; stoppedAt:number|null; lastStationarySampleAt:number|null;
  lastStationaryPosition:{latitude:number;longitude:number}|null; tripConfirmed:boolean; lastAcceptedSample?:ZiiplyArrivalSample|null; stationarySamples?:number;
@@ -47,6 +47,13 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
    .filter(x=>x.distance<=ZIIPLY_APPROACH_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
  const ambiguous=candidates.length>1&&candidates[1].distance-candidates[0].distance<=sample.accuracyMeters;
  const candidate=ambiguous?null:candidates[0]?.store??null;
+ // No selection means no automatic arrival. A mismatched chain must never trigger a notice.
+ const selectedStores=stores.filter(store=>selectedStoreIds.includes(store.id));
+ const selectedChains=new Set(selectedStores.map(store=>store.chain).filter((chain):chain is string=>!!chain));
+ const selectionExists=selectedStoreIds.length>0;
+ const sameChain=!!candidate&&!!candidate.chain&&selectedChains.has(candidate.chain);
+ const selectedCandidate=!!candidate&&selectedStoreIds.includes(candidate.id);
+ const eligibleCandidate=!!candidate&&selectionExists&&(selectedCandidate||sameChain);
  const latched=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
  const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
  const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
@@ -68,15 +75,15 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
    }
  }
  const retained=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
- const arrivalConfirmed=!retained&&valid&&!ambiguous&&!!candidate
+ const arrivalConfirmed=!retained&&valid&&!ambiguous&&eligibleCandidate
    &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable;
- const showArrivalMessage=!!arrivalConfirmed;
+ const showArrivalMessage=!!arrivalConfirmed&&selectedCandidate;
  if(arrivalConfirmed){state.arrivalStoreId=candidate!.id;state.tripConfirmed=true;state.departureSamples=0;}
  const inStore=!!state.arrivalStoreId;
  const store=inStore?stores.find(s=>s.id===state.arrivalStoreId)??candidate:candidate;
  const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
  return {state,status:inStore?'in-store':!valid||ambiguous?'uncertain':candidate?(driving?'moving':'near-store'):'checking',
-   store,isSelectedStore,askStoreChange:showArrivalMessage&&!isSelectedStore,
+   store,isSelectedStore,askStoreChange:!!arrivalConfirmed&&!isSelectedStore&&sameChain,
    showArrivalMessage,radar:inStore?'green':candidate?'yellow':'white'};
 }
 export function confirmZiiplyStorePresence(previous:ZiiplyArrivalState,storeId:string):ZiiplyArrivalState {
