@@ -26,8 +26,8 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
  },[enabled]);
  useEffect(()=>{if(!enabled){dispatch({type:'reset'});pending.current=null;}},[enabled]);
  useEffect(()=>{
-  const activity=()=>{lastInteraction.current=Date.now();activeRef.current=true;setActive(true);};
-  const inactive=()=>{activeRef.current=false;setActive(false);pending.current=null;};
+  const activity=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())return;lastInteraction.current=Date.now();activeRef.current=true;setActive(true);dispatch({type:'resume',at:Date.now()});};
+  const inactive=()=>{dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);pending.current=null;};
   const visibility=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())inactive();};
   document.addEventListener('pointerdown',activity,true);
   document.addEventListener('keydown',activity,true);
@@ -45,7 +45,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
  useEffect(()=>{
   if(!enabled||!active||!notice||notice.phase==='done')return;
   const timer=window.setInterval(()=>{
-   if(!visible()){activeRef.current=false;setActive(false);return;}
+   if(!visible()){dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);return;}
    dispatch({type:'tick',at:Date.now()});
   },250);
   return ()=>window.clearInterval(timer);
