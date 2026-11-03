@@ -4,6 +4,9 @@ import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
 export const dynamic = "force-dynamic";
+// The watcher aggregates six independent retail providers; allow slow upstream
+// weekly-offer pages to finish instead of terminating the whole scan at 10s.
+export const maxDuration = 60;
 
 function norm(value: unknown) {
   return String(value ?? "").toLocaleLowerCase("fi").normalize("NFD")
@@ -87,7 +90,7 @@ export async function GET(request: Request) {
         picked.add(kind);return true;
       });
       let cursor=0;
-      await Promise.all(Array.from({length:Math.min(5,selectedStores.length)},async()=>{
+      await Promise.all(Array.from({length:Math.min(6,selectedStores.length)},async()=>{
         while(cursor<selectedStores.length){
           const store=selectedStores[cursor++] as Record<string,unknown>;
           const name=String(store.name||"");
@@ -121,7 +124,7 @@ export async function GET(request: Request) {
               offerParams.set("kStoreId",id);
               offerParams.set("kStoreName",name);
             }
-            const response=await fetch(origin+"/api/offers/search?"+offerParams.toString(),{cache:"no-store",signal:AbortSignal.timeout(12000)});
+            const response=await fetch(origin+"/api/offers/search?"+offerParams.toString(),{cache:"no-store",signal:AbortSignal.timeout(25000)});
             if(!response.ok)throw new Error("Offer source HTTP "+response.status);
             const payload=await response.json();
             if(!payload.ok)throw new Error(String(payload.error||"Offer source unavailable"));
