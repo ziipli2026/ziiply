@@ -140,6 +140,36 @@ export function verifyPrintedTransaction(row,rawBoxes){
   const verified=unique(found);
   if(verified.length===1){proof=verified[0].proof;rate=verified[0].rate;}
  }
+ // Reconcile a misread euro glyph only when the same card has an exact package,
+ // its own printed unit rate, and an explicit same-card quantity (or single unit).
+ // Arithmetic only corrects an independently detected large euro/cents glyph;
+ // it is never used to invent a price when no glyph exists.
+ const exactUnit = row.unitPrice && Number(row.unitPrice.min) > 0 &&
+   Math.abs(Number(row.unitPrice.max) - Number(row.unitPrice.min)) < 0.000001
+   ? Number(row.unitPrice.min) : null;
+ const packageUnit = String(pk?.raw || '').match(/(kg|g|ml|cl|dl|l)\\b/i)?.[1]?.toLowerCase();
+ const rateUnit = packageUnit === 'kg' || packageUnit === 'g' ? 'kg' :
+   packageUnit === 'l' || packageUnit === 'ml' || packageUnit === 'cl' || packageUnit === 'dl' ? 'l' : null;
+ const ownRates = rates.filter(r => r.unit === rateUnit &&
+   exactUnit !== null && Math.abs(r.min - exactUnit) < 0.015 &&
+   Math.abs(r.max - exactUnit) < 0.015);
+ const quantity = Math.max(1, Number(card?.quantity || current?.quantity || 1));
+ const sameCardGlyph = card?.parts?.length === 2 && card.anchor &&
+   Math.abs(card.anchor.left - anchor.left) < 0.025 &&
+   card.anchor.top >= anchor.top - 0.01 && card.anchor.top - anchor.top < 0.10 &&
+   /^\\d{1,2}$/.test(String(card.parts[0].text)) &&
+   /^\\d{2}$/.test(String(card.parts[1].text));
+ if (pk && pk.min > 0 && Math.abs(pk.max - pk.min) < 0.000001 &&
+     exactUnit !== null && ownRates.length === 1 && sameCardGlyph &&
+     quantity <= 5 && rateUnit) {
+   const expectedTotal = Number((pk.min * exactUnit * quantity).toFixed(2));
+   if (expectedTotal >= 0.05 && expectedTotal < 1000 &&
+       Math.abs(Number(card.value) - expectedTotal) > 0.04) {
+     proof = {value:expectedTotal,quantity:quantity > 1 ? quantity : null,
+       unit:quantity > 1 ? (card.unit || current?.unit || null) : null,
+       source:'printed-unitrate-quantity-reconciled'};
+   }
+ }
  // Compare pant-free unit rates only when a uniquely printed total deposit
  // belongs to this title column and the transaction has a known pack count.
  const transaction=proof||current,depositProofs=[];
@@ -162,7 +192,7 @@ export function verifyPrintedTransaction(row,rawBoxes){
  }
  if(!proof)return correctedRate?{...row,unitPrice:correctedRate}:row;
  if(current&&Math.abs(current.value-proof.value)<.005&&(current.quantity||1)===(proof.quantity||1))return correctedRate?{...row,unitPrice:correctedRate}:row;
- return {...row,spatialResolved:{...proof,source:'printed-transaction-independent-proof',sanity:'pass',confidence:'high'},
+ return {...row,spatialResolved:{...proof,source:proof.source||'printed-transaction-independent-proof',sanity:'pass',confidence:'high'},
   percentageOffer:null,...(correctedRate?{unitPrice:correctedRate}:rate?{unitPrice:{min:rate.min,max:rate.max,raw:'verified-printed/'+rate.unit}}:{}),
   debugReplacedUnprovenTransaction:current};
 }
