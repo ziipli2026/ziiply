@@ -2026,7 +2026,12 @@ export default function DesktopPreviewPage() {
       const nearest=byDistance(known.filter(store=>storeKind(store)===kind))[0];
       if(nearest)chosen.set(storeId(nearest),nearest);
     }
-    // Explicit four-field and within-chain selections are always warmed as well.
+    // Offer watches must cover nearby K/S supermarkets too, not only the single nearest store per category.
+    // The previous nearest-only rule silently excluded stores such as K-Supermarket Jokela.
+    for(const store of byDistance(known.filter(store=>storeKind(store)&&Number.isFinite(distanceKm(store))&&distanceKm(store)<=30)).slice(0,35)){
+      if(storeId(store))chosen.set(storeId(store),store);
+    }
+    // Explicit four-field and within-chain selections are always included regardless of distance.
     for(const store of manuallySelected){if(storeKind(store)&&storeId(store))chosen.set(storeId(store),store);}
     return [...chosen.values()];
   }
