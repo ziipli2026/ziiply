@@ -77,6 +77,7 @@ export default function ZiiplyMobileAssistantPanel({
     const started=Date.now();
     try{
       const {response,data}=await fetchSharedGostaWatch(await gostaWatchUrl(terms));
+      const diagnostic=(data?.diagnostic??{}) as {inspected?:number;sources?:unknown[];nearby?:unknown[]};
       const offers=Array.isArray(data?.results)?data.results:[];
       const counts=Object.fromEntries(terms.map(q=>[q,offers.filter((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:[]).some((w:string)=>w.toLocaleLowerCase("fi")===q.toLocaleLowerCase("fi"))).length]));
       if(response.ok&&data?.ok&&Array.isArray(data.results)){
@@ -90,7 +91,7 @@ export default function ZiiplyMobileAssistantPanel({
         setWatchOffers(matched);setWatchChecked(true);
         if(!data.partial){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }
-      setWatchRawDebug("Tarjousvahdin oikea hakureitti | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | osumia="+offers.length+" | hakusanakohtaiset="+JSON.stringify(counts)+" | tarkistettu="+String(data?.diagnostic?.inspected??"?")+" | lähteet="+JSON.stringify(data?.diagnostic?.sources||[])+" | lähikaupat="+JSON.stringify(data?.diagnostic?.nearby||[])+" | virhe="+String(data?.error||"ei")+" | esimerkki="+JSON.stringify(offers.slice(0,4)).slice(0,1200));
+      setWatchRawDebug("Tarjousvahdin oikea hakureitti | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | osumia="+offers.length+" | hakusanakohtaiset="+JSON.stringify(counts)+" | tarkistettu="+String(diagnostic.inspected??"?")+" | lähteet="+JSON.stringify(diagnostic.sources||[])+" | lähikaupat="+JSON.stringify(diagnostic.nearby||[])+" | virhe="+String(data?.error||"ei")+" | esimerkki="+JSON.stringify(offers.slice(0,4)).slice(0,1200));
     }catch(error){setWatchRawDebug("Tarjousvahdin DEBUG-virhe: "+String(error));}
     finally{setWatchRawLoading(false);}
   };
