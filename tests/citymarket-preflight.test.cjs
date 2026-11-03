@@ -55,6 +55,7 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     quality.total=89;
     assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
     assert.equal(records.at(-1).details.pdfReview,'pending');
+    assert.equal(records.at(-1).ok,false,'PDF review pending must never be logged as approved');
   }finally{if(previous===undefined)delete process.env.DATABASE_URL;else process.env.DATABASE_URL=previous;}
 });
 
@@ -73,4 +74,11 @@ test('Thursday active-period errors update the same Wednesday row after rollover
  const result=schedule([active,first],new Date('2026-10-22T02:00:00Z'))[1];
  assert.equal(result.level,'red');assert.equal(result.first,first.checked_at);
  assert.equal(result.latest,active.checked_at);assert.match(result.errors[0],/^active /);
+});
+
+test('45AV parser success stays yellow when PDF review is pending even with ok false',()=>{
+ const p='2026-11-02-W45-AV';
+ const run={checked_at:'2026-11-01T13:15:00Z',source:'k-citymarket-preflight',ok:false,offer_count:32,outcome:'preflight-awaiting-pdf-review',details:{period:p,pdfReview:'pending',quality:{total:32,missing_images:6,missing_categories:15},errors:[]}};
+ const result=status([run],new Date('2026-11-01T14:00:00Z'));
+ assert.equal(result.level,'yellow');assert.equal(result.parserOk,true);assert.equal(result.reviewed,false);assert.equal(result.count,32);
 });
