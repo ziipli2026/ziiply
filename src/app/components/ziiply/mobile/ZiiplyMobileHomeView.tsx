@@ -37,6 +37,10 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
   },[]);
   const watchKey=watchTerms.map(q=>q.trim().toLocaleLowerCase("fi")).join("|");
   React.useEffect(()=>{
+    try {
+      const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
+      if(cached?.key===watchKey&&Array.isArray(cached.offers))setWatchCount(cached.offers.length);
+    }catch{}
     if(!watchKey){setWatchCount(null);return;}
     let cancelled=false;
     let running=false;
@@ -56,7 +60,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
           setWatchCount(count);
           lastScan=Date.now();
         }
-      }catch{if(!cancelled)setWatchCount(0);}
+      }catch{/* Keep the last successful count when a refresh fails. */}
       finally{running=false;if(!cancelled)setWatchScanning(false);}
     };
     const timer=window.setTimeout(()=>{void scan();},300);
