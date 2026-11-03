@@ -1,3 +1,4 @@
+import { cleanZiiplyGostaOfferResultsV146, mapZiiplyGostaOfferToCardOfferV147 } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { desktopSearchDecision } from "../../../components/ziiply/search/desktopNormalRelevance";
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
@@ -128,7 +129,8 @@ export async function GET(request: Request) {
             if(!response.ok)throw new Error("Offer source HTTP "+response.status);
             const payload=await response.json();
             if(!payload.ok)throw new Error(String(payload.error||"Offer source unavailable"));
-            const normalized=(Array.isArray(payload.results)?payload.results:[]) as Record<string,unknown>[];
+            const raw=(Array.isArray(payload.results)?payload.results:[]) as Parameters<typeof cleanZiiplyGostaOfferResultsV146>[0];
+            const normalized=cleanZiiplyGostaOfferResultsV146(raw).map(mapZiiplyGostaOfferToCardOfferV147) as Record<string,unknown>[];
             nearbyOffers.push({chain:kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
             nearbyDiagnostics.push({store:name,count:normalized.length});
           }catch(error){nearbyDiagnostics.push({store:name,count:0,error:String(error)});}
