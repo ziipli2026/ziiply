@@ -3,7 +3,7 @@
  * Pure logic: the caller owns geolocation permission, polling, UI and persistence.
  * Never changes a store selection or a cart price by itself.
  */
-export const ZIIPLY_STORE_RADIUS_METERS = 50;
+export const ZIIPLY_STORE_RADIUS_METERS = 100;
 export const ZIIPLY_APPROACH_RADIUS_METERS = 100;
 export const ZIIPLY_PARKED_SAMPLE_MS = 5000;
 const DEPARTURE_RADIUS_METERS = 200;
@@ -41,6 +41,8 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const latched=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
  const moving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>3;
  const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
+ // Never confirm an arrival from a single stationary GPS fix or without observed travel.
+ const observedTravel=state.tripConfirmed===false&&state.tripStartedAt!==null;
  if(valid&&!moving) {
    if(state.stoppedAt===null)state.stoppedAt=sample.at;
    state.lastStationarySampleAt=sample.at;
@@ -59,7 +61,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  }
  const retained=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
  const arrivalConfirmed=!retained&&valid&&!ambiguous&&!!candidate
-   &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable;
+   &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable&&observedTravel;
  const showArrivalMessage=!!arrivalConfirmed;
  if(arrivalConfirmed){state.arrivalStoreId=candidate!.id;state.tripConfirmed=true;state.departureSamples=0;}
  const inStore=!!state.arrivalStoreId;
