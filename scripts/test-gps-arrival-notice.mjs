@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
-import {arrivalNoticeReducer as reduce} from '../src/app/components/ziiply/location/ziiplyArrivalNotice.ts';
-import {evaluateZiiplyArrival,initialZiiplyArrivalState} from '../src/app/components/ziiply/location/ziiplyArrivalSequence.ts';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+const load=path=>{
+ const mod={exports:{}};
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{
+  compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}
+ }).outputText,{module:mod,exports:mod.exports,require:()=>({}),console});
+ return mod.exports;
+};
+const {arrivalNoticeReducer:reduce}=load('src/app/components/ziiply/location/ziiplyArrivalNotice.ts');
+const {evaluateZiiplyArrival,initialZiiplyArrivalState}=load('src/app/components/ziiply/location/ziiplyArrivalSequence.ts');
 const selected={id:'k1',name:'K-Supermarket Jokela',chain:'K',latitude:60,longitude:25};
 const sameChain={id:'k2',name:'K-Citymarket',chain:'K',latitude:60.01,longitude:25};
 const crossChain={id:'s1',name:'S-market',chain:'S',latitude:60.02,longitude:25};
