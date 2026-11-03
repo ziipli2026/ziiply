@@ -108,7 +108,7 @@ export async function GET(request: Request) {
               new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("timeout 10s")),10000))
             ]);
             const normalized=offers as unknown as Record<string,unknown>[];
-            nearbyOffers.push({chain:kind==="lidl"?"LIDL":kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
+            nearbyOffers.push({chain:kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
             nearbyDiagnostics.push({store:name,count:normalized.length});
           }catch(error){nearbyDiagnostics.push({store:name,count:0,error:String(error)});}
         }
