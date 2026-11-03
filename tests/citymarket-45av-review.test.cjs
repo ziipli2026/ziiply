@@ -35,7 +35,10 @@ test("45AV unresolved image audit retains OCR evidence for manual review", () =>
 test("45AV clipped Mikroateriat title is reconstructed from the bilingual publisher line", () => {
   assert.equal(fixes.repairCitymarketPrintedTitle(byTitle("eriat 300 g")), "MIKROATERIAT 300 g");
 });
-test("45AV LV stain-remover continuation restores its printed brand context", () => {\n  const row = byTitle("tahranpoistosuihke 150 ml");\n  assert.equal(fixes.repairCitymarketPrintedTitle(row), "LV TAHRANPOISTOSUIHKE 150 ml");\n});\ntest("45AV clipped J in JAUHOINEN PERUNA is restored", () => {
+test("45AV LV stain-remover continuation restores its printed brand context", () => {
+  const row = byTitle("tahranpoistosuihke 150 ml");
+  assert.equal(fixes.repairCitymarketPrintedTitle(row), "LV TAHRANPOISTOSUIHKE 150 ml");
+});\ntest("45AV clipped J in JAUHOINEN PERUNA is restored", () => {
   const row = byTitle("auhoinen peruna");
   assert.equal(fixes.repairCitymarketPrintedTitle(row), "KIINTEÄ, YLEIS ja JAUHOINEN PERUNA 2 kg");
 });
