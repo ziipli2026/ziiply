@@ -803,10 +803,10 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   const until=shiftIsoDate(start,active.kind==="AV"?2:3);
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
-  const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
+  const enriched=normalizeKCitymarketOfferImages(offers);
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
-  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v162",validFrom:start,
+  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v163",validFrom:start,
     validUntil:until,parsedAt:new Date().toISOString(),offers:enriched});
 }
 
@@ -822,18 +822,8 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const { correctPreparedCitymarketPrices }=await import("./kCitymarketPreparedPriceCorrections");
     const prepared=normalizeKCitymarketOfferImages(correctPreparedCitymarketPrices(stored));
     if(prepared.every(offer=>Boolean(offer.imageUrl)))return prepared;
-    // Existing approved snapshots must not bypass the image enrichment pipeline.
-    // Only fill image URLs; preserve every original offer, price and metadata.
-    const active=getActiveKCitymarketPeriod();
-    const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(prepared,active));
-    if(enriched.some((offer,i)=>offer.imageUrl && !prepared[i]?.imageUrl)){
-      try{
-        await storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:active.startDate,
-          validUntil:shiftIsoDate(active.startDate,active.kind==="AV"?2:3),
-          parsedAt:new Date().toISOString(),offers:enriched});
-      }catch(error){console.warn("[K-Citymarket] image-only snapshot update failed",error);}
-    }
-    return enriched;
+    // Missing images are completed by the scheduled image enrichment job.
+    return prepared;
   }
   // Migration safety: do not break desktop or mobile when the first snapshot
   // has not been seeded yet. Recover from the immutable publisher URL once,
