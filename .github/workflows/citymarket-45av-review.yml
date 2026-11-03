@@ -2,7 +2,7 @@ name: Citymarket 45AV correction review
 on:
   push:
     branches: [fix/citymarket-45av-review]
-    paths: ['.github/workflows/citymarket-45av-review.yml', 'scripts/citymarket/review-45av.mjs', 'scripts/citymarket/build-images.py', 'scripts/citymarket/reviewed-selections.json', 'src/app/components/ziiply/offerSearch/providers/**', 'tests/citymarket-45av-review.test.cjs']
+    paths: ['.github/workflows/citymarket-45av-review.yml', 'scripts/citymarket/review-45av.mjs', 'scripts/citymarket/build-images.py', 'scripts/citymarket/reviewed-selections.json', 'src/app/components/ziiply/offerSearch/providers/**', 'tests/citymarket-45av-review.test.cjs', 'tests/citymarket-preflight.test.cjs']
   workflow_dispatch:
 permissions:
   contents: write
@@ -32,7 +32,7 @@ jobs:
           node scripts/citymarket/verify-images.mjs
           node -e 'const fs=require("fs");const r=JSON.parse(fs.readFileSync("diagnostics/45AV/image-report.json"));const offers=r.filter(x=>Object.hasOwn(x,"images"));const missing=offers.filter(x=>x.images===0);console.log(JSON.stringify({matched:offers.length-missing.length,total:offers.length,unresolved:missing.length,unresolvedTitles:missing.map(x=>x.title)},null,2));if(missing.length)process.exit(1);'
       - name: Run 45AV source-backed parser regression tests
-        run: node --test tests/citymarket-45av-review.test.cjs
+        run: node --test tests/citymarket-45av-review.test.cjs tests/citymarket-preflight.test.cjs
       - name: Preserve source and parser evidence for correction review
         if: always()
         run: |
