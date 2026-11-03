@@ -496,9 +496,21 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   // Reviewed PDF pictures are attached to this source row, never a fuzzy name.
   const sourceRows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
   const deduplicatedSourceRows=/_45AV_KCM/i.test(String(parsed?.leaflet||ENTRY))?removeDuplicateContinuationRows(sourceRows):sourceRows;
-  const rows:any[]=canonicalCitymarketProductRows(deduplicatedSourceRows.map(row=>/_42AV_KCM/i.test(leafletUrl)&&row?.spatialResolved?.value>0
-    ? {...row,publisherOfferId:row.publisherOfferId??`kcm:spatial:${row?.page??0}:${clean(row.title).toLowerCase()}:${Number(row.spatialResolved.value)}`}
-    : row));
+  const rows:any[]=canonicalCitymarketProductRows(deduplicatedSourceRows.map(row=>{
+    if(row?.publisherOfferId)return row;
+    const page=Number(row?.page)||0;
+    const rawTitle=clean(row?.title||"").toLowerCase();
+    if(/_45AV_KCM/i.test(leafletUrl)){
+      const price=Number(row?.spatialResolved?.value);
+      const percent=Number(row?.percentageOffer?.percent);
+      const suffix=Number.isFinite(price)&&price>0?String(price):percent>0&&percent<100?"percent:"+percent:"";
+      return suffix?{...row,publisherOfferId:"kcm:spatial:"+page+":"+rawTitle+":"+suffix}:row;
+    }
+    if(/_42AV_KCM/i.test(leafletUrl)&&row?.spatialResolved?.value>0){
+      return {...row,publisherOfferId:"kcm:spatial:"+page+":"+rawTitle+":"+Number(row.spatialResolved.value)};
+    }
+    return row;
+  }));
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
