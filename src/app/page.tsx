@@ -2160,6 +2160,7 @@ function topbarPanelClassV717(kind: "weather" | "electricity" | "fuel" | "calend
 
 function KauppiasMobileTopBar({
   hidden = false,
+  showSpeedIndicator = false,
   areaLabel = "Hyvinkää",
   gpsCoords = null,
   weatherEnabled = false,
@@ -2170,6 +2171,7 @@ function KauppiasMobileTopBar({
   fuelModeActive = false,
 }: {
   hidden?: boolean;
+  showSpeedIndicator?: boolean;
   areaLabel?: string;
   gpsCoords?: { latitude: number; longitude: number } | null;
   weatherEnabled?: boolean;
@@ -3097,7 +3099,7 @@ function KauppiasMobileTopBar({
       </div>
     </div>
       {/* Compact mobile speed sign — fixed 0 preview, space reserved for three digits. */}
-      {mobileDrivingSpeed !== null && <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+84px)] z-[299] -translate-x-1/2 sm:hidden">
+      {showSpeedIndicator && !hidden && !mobileFuelMenuOpen && !mobileFuelReportOpen && !electricityChartOpen && mobileDrivingSpeed !== null && <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+84px)] z-[299] -translate-x-1/2 sm:hidden">
         <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[0.9rem] border-[3px] border-[#073d32] bg-[#fff5d9] text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
           <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
@@ -23478,6 +23480,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
 <KauppiasMobileTopBar
             hidden={searchFullscreenOpenV621}
+            showSpeedIndicator={!showLaunchScreen && !searchFullscreenOpenV621 && !shopsPanelOpen && !searchPanelOpen && !notebookOpen && !cartModalOpen && !eanModalOpen && !cartSavePanelOpen && !mobileComparePickingOpenV733 && !mobileFuelMode && !mobileFuelCompareOpen && !mapStoresOverlayOpenV433 && !mapRouteOverlayOpenV428 && !initialStoreNavPrompt && !arvoNutritionScannerOpen && activeAssistant === null && activeResult === "none"}
             areaLabel={gpsCoordsV320 || locationInput.trim() ? activeArea.label : "Paikannetaan..."}
             gpsCoords={gpsCoordsV320}
             fuelModeActive={mobileFuelMode}
