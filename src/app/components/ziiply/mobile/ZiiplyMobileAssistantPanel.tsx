@@ -72,13 +72,24 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchRawLoading,setWatchRawLoading]=React.useState(false);
   const runRawWatchDebug=async()=>{
     setWatchRawLoading(true);
-    const terms=savedWatches.length?savedWatches:["kahvi","limsa"];
+    const terms=watchKey?watchKey.split("|"):["kahvi","limsa"];
     const started=Date.now();
     try{
       const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store"});
       const data=await response.json();
       const offers=Array.isArray(data?.results)?data.results:[];
       const counts=Object.fromEntries(terms.map(q=>[q,offers.filter((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:[]).some((w:string)=>w.toLocaleLowerCase("fi")===q.toLocaleLowerCase("fi"))).length]));
+      if(response.ok&&data?.ok&&Array.isArray(data.results)){
+        const seen=new Set<string>();
+        const matched=offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:terms.filter(query=>matchesGostaWatch(query,offer))).map((query:string)=>({
+          query,title:String(offer.title||offer.name||offer.productName||"Tarjous"),
+          price:String(offer.offerPrice??offer.price??""),
+          store:String(offer.storeName||offer.chain||""),
+          source:String(offer.source||offer.sourceType||offer.chain||"")
+        }))).filter((offer:any)=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
+        setWatchOffers(matched);setWatchChecked(true);
+        if(!data.partial){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));}catch{}}
+      }
       setWatchRawDebug("Tarjousvahdin oikea hakureitti | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | osumia="+offers.length+" | hakusanakohtaiset="+JSON.stringify(counts)+" | tarkistettu="+String(data?.diagnostic?.inspected??"?")+" | lähteet="+JSON.stringify(data?.diagnostic?.sources||[])+" | lähikaupat="+JSON.stringify(data?.diagnostic?.nearby||[])+" | virhe="+String(data?.error||"ei")+" | esimerkki="+JSON.stringify(offers.slice(0,4)).slice(0,1200));
     }catch(error){setWatchRawDebug("Tarjousvahdin DEBUG-virhe: "+String(error));}
     finally{setWatchRawLoading(false);}
@@ -127,7 +138,7 @@ export default function ZiiplyMobileAssistantPanel({
         }
         setWatchOffers(matched);
         setWatchChecked(true);
-        try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));}catch{}
+        if(!data.partial){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));}catch{}}
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
         if(!cancelled)setWatchError("Tarjousten tarkistus epäonnistui tai kesti yli 40 sekuntia. Yritä uudelleen päivityspainikkeella.");
