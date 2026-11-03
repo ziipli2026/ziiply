@@ -2892,7 +2892,7 @@ export default function DesktopPreviewPage() {
                   // Compare the next quarter with the current quarter, matching mobile.
                   const color = electricityTrendColor;
                   return <svg viewBox="0 0 64 64" className="h-[29px] w-[29px] shrink-0 drop-shadow-sm" aria-hidden="true"><path d="M37 3 14 36h18L25 61l25-36H32L37 3Z" fill={color} stroke={color} strokeWidth="3" strokeLinejoin="round" /></svg>;
-                })() : title === "SÄÄ" ? <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
+                })() : title === "SÄÄ" ? <span className="absolute left-[8px] top-[23px] text-[27px] leading-none drop-shadow-sm">{icon}</span> : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
                 {title === "AJOAINE" ? (
                   <>
                     <span className="absolute left-[29px] top-[6px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
@@ -2910,15 +2910,15 @@ export default function DesktopPreviewPage() {
                   </>
                 ) : title === "SÄÄ" ? (
                     <>
-                      <span className="absolute left-[7px] top-[4px] inline-flex items-center gap-[2px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43]" aria-label="Suhteellinen kosteus">
+                      <span className="absolute left-[7px] top-[5px] inline-flex items-center gap-[2px] whitespace-nowrap text-[9px] font-black leading-none text-[#625b43]" aria-label="Suhteellinen kosteus">
                         <span className="text-[12px]">💧</span>{weatherExtras.humidity == null ? "— %" : `${Math.round(weatherExtras.humidity)} %`}
                       </span>
-                      <span className="absolute left-[43px] top-[8px] text-[10px] font-black tracking-[0.08em] leading-none text-[#625b43]">SÄÄ</span>
-                      <span className="absolute left-[42px] top-[25px] whitespace-nowrap text-[22px] font-black leading-none text-[#102a24] tabular-nums">{value}</span>
-                      <span className="absolute left-[43px] top-[51px] inline-flex items-center gap-[3px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43] tabular-nums" aria-label="Ilmanpaine">
+                      <span className="absolute left-[56px] top-[6px] text-[10px] font-black tracking-[0.08em] leading-none text-[#625b43]">SÄÄ</span>
+                      <span className="absolute left-[43px] top-[24px] whitespace-nowrap text-[22px] font-black leading-none text-[#102a24] tabular-nums">{value}</span>
+                      <span className="absolute left-[43px] bottom-[5px] inline-flex items-center gap-[3px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43] tabular-nums" aria-label="Ilmanpaine">
                         <span className="text-[11px]">◉</span>{weatherExtras.pressure == null ? "— hPa" : `${Math.round(weatherExtras.pressure)} hPa`}
                       </span>
-                      <span className="absolute left-[87px] top-[30px] inline-flex items-center gap-[2px] whitespace-nowrap text-[10px] font-black leading-none text-[#102a24] tabular-nums" aria-label="Tuulen suunta ja nopeus">
+                      <span className="absolute right-[5px] top-[34px] inline-flex items-center gap-[2px] whitespace-nowrap text-[9px] font-black leading-none text-[#102a24] tabular-nums" aria-label="Tuulen suunta ja nopeus">
                         <span className="inline-block text-[14px] leading-none" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}}>↑</span>
                         {weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}
                       </span>
