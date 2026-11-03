@@ -55,7 +55,9 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     quality.total=89;
     quality.missing_images=6;quality.missing_categories=15;
     assert.equal((await record(input)).outcome,'preflight-quality-failed','45AV incomplete images and categories must fail');
-    quality.missing_images=0;quality.missing_categories=0;
+    quality.missing_images=0;quality.missing_categories=0;quality.unverified_prices=4;
+    assert.equal((await record(input)).outcome,'preflight-quality-failed','unverified prices must block approval');
+    quality.unverified_prices=0;
     assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
     assert.equal(records.at(-1).details.pdfReview,'pending');
     assert.equal(records.at(-1).ok,false,'PDF review pending must never be logged as approved');
