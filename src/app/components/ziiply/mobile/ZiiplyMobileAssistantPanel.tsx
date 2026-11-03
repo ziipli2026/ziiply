@@ -82,7 +82,7 @@ export default function ZiiplyMobileAssistantPanel({
         let data:any;
         try{data=JSON.parse(raw);}catch{data=null;}
         const rows=Array.isArray(data?.results)?data.results:Array.isArray(data?.offers)?data.offers:[];
-        lines.push("q="+(query||"[MASTER]")+" | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | tuloksia="+rows.length+" | avaimet="+Object.keys(data||{}).slice(0,18).join(",")+" | virhe="+String(data?.error||data?.message||"ei")+" | esimerkki="+JSON.stringify(rows.slice(0,2)).slice(0,600)+" | raakavastaus="+(!data?raw.slice(0,300):"JSON"));
+        lines.push("q="+(query||"[MASTER]")+" | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | tuloksia="+rows.length+" | avaimet="+Object.keys(data||{}).slice(0,18).join(",")+" | konteksti="+JSON.stringify(data?.context||{}).slice(0,450)+" | lähdevirheet="+JSON.stringify(data?.sourceFailures||[]).slice(0,700)+" | deploy="+JSON.stringify(data?.deploy||{}).slice(0,250)+" | virhe="+String(data?.error||data?.message||"ei")+" | esimerkki="+JSON.stringify(rows.slice(0,2)).slice(0,600)+" | raakavastaus="+(!data?raw.slice(0,300):"JSON"));
       }catch(error){lines.push("q="+(query||"[MASTER]")+" | VERKKOVIRHE "+String(error));}
     }
     setWatchRawDebug(lines.join("\\n"));
