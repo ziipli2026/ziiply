@@ -1,18 +1,30 @@
 import assert from 'node:assert/strict';
 import {arrivalNoticeReducer as reduce} from '../src/app/components/ziiply/location/ziiplyArrivalNotice.ts';
 import {evaluateZiiplyArrival,initialZiiplyArrivalState} from '../src/app/components/ziiply/location/ziiplyArrivalSequence.ts';
-const store={id:'sale',name:'Sale Monninkylä',latitude:60.49385,longitude:25.5413};
-let notice=null,engine=initialZiiplyArrivalState();
-const sample=(at,offset=0,speed=0,selected=false)=>{
- const d=evaluateZiiplyArrival(engine,{at,latitude:store.latitude+offset,longitude:store.longitude,accuracyMeters:5,speedKmh:speed},[store],selected?[store.id]:[]);
- engine=d.state;notice=reduce(notice,{type:'sample',decision:d,at});return d;
-};
-assert.equal(sample(0,.0013).showArrivalMessage,false);assert.equal(notice,null);
-assert.equal(sample(1000,0,42).showArrivalMessage,false);assert.equal(notice,null);
-sample(2000,0,0);assert.equal(notice,null);
-const confirmed=sample(7000,0,0);assert.equal(confirmed.showArrivalMessage,true);assert.equal(confirmed.askStoreChange,true);
-assert.equal(notice.phase,'list');assert.equal(notice.selected,false);
-notice=reduce(notice,{type:'tick',at:20000});assert.equal(notice.phase,'list');
-notice=reduce(notice,{type:'dismiss'});assert.equal(notice.phase,'done');
-sample(9000,0,0);assert.equal(notice.phase,'done');
-console.log('PASS arrival notice: no drive-by prompts, explicit confirmation, mismatch and no timer auto-navigation');
+const selected={id:'k1',name:'K-Supermarket Jokela',chain:'K',latitude:60,longitude:25};
+const sameChain={id:'k2',name:'K-Citymarket',chain:'K',latitude:60.01,longitude:25};
+const crossChain={id:'s1',name:'S-market',chain:'S',latitude:60.02,longitude:25};
+function scenario(target,selection=[selected.id],all=[selected,sameChain,crossChain]){
+ let state=initialZiiplyArrivalState(),notice=null,decision;
+ for(const at of [0,3000,6000]){
+  decision=evaluateZiiplyArrival(state,{at,latitude:target.latitude,longitude:target.longitude,accuracyMeters:5,speedKmh:0},all,selection);
+  state=decision.state;notice=reduce(notice,{type:'sample',decision,at});
+ }
+ return {decision,notice};
+}
+let x=scenario(selected);
+assert.equal(x.decision.showArrivalMessage,true);
+assert.equal(x.notice.phase,'approach');
+let n=reduce(x.notice,{type:'tick',at:9999});assert.equal(n.phase,'list');
+n=reduce(n,{type:'tick',at:14999});assert.equal(n.phase,'offers');
+n=reduce(n,{type:'tick',at:19999});assert.equal(n.phase,'done');
+assert.equal(reduce(n,{type:'sample',decision:x.decision,at:22000}).phase,'done');
+x=scenario(selected,[]);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.notice,null);
+x=scenario(sameChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,true);assert.equal(x.notice,null);
+x=scenario(crossChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,false);assert.equal(x.notice,null);
+x=scenario(selected);n=reduce(x.notice,{type:'tick',at:2000});assert.equal(n.phase,'approach');
+n=reduce(n,{type:'pause',at:2500});assert.equal(n.remainingMs,1500);assert.equal(n.deadline,null);
+n=reduce(n,{type:'tick',at:600000});assert.equal(n.phase,'approach');
+n=reduce(n,{type:'resume',at:600000});assert.equal(n.deadline,601500);
+n=reduce(n,{type:'tick',at:601500});assert.equal(n.phase,'list');
+console.log('PASS arrival: selected-only, same-chain mismatch, cross-chain suppression, once, 4+5+5 timers, pause/resume');
