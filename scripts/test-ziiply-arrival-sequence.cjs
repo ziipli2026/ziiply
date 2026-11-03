@@ -22,9 +22,9 @@ assert.equal(inside.status,'in-store');assert.equal(inside.radar,'green');assert
 assert.equal(notice.phase,'approach');
 notice=reduce(notice,{type:'tick',at:20000});assert.equal(notice.phase,'list','timer advances notice');
 sample(16000,0,0,100);assert.equal(state.arrivalStoreId,'sale','bad GPS must not clear confirmed presence');
-sample(20000,.003,35);assert.equal(state.arrivalStoreId,'sale','one outlier cannot clear presence');
-sample(26000,.003,35);assert.equal(state.arrivalStoreId,'sale','two outliers cannot clear presence');
-sample(32000,.003,35);assert.equal(state.arrivalStoreId,null,'three reliable departures clear presence');
+sample(20000,.003,5);assert.equal(state.arrivalStoreId,'sale','one outlier cannot clear presence');
+sample(26000,.003,5);assert.equal(state.arrivalStoreId,'sale','two outliers cannot clear presence');
+sample(32000,.003,5);assert.equal(state.arrivalStoreId,null,'three reliable departures clear presence');
 assert.equal(notice.phase,'list','departure does not navigate UI');
 state=core.initialZiiplyArrivalState();notice=null;
 assert.equal(sample(0,0,0,5,[shop,{...shop,id:'other',latitude:60.00001}]).status,'uncertain');
