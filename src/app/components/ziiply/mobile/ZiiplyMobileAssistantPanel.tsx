@@ -1,4 +1,5 @@
 "use client";
+import { gostaWatchUrl } from "./gostaWatchLocation";
 import { matchesGostaWatch } from "./gostaWatchMatch";
 import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
 import ArvoSettingsPanel from "../ArvoSettingsPanel";
@@ -102,7 +103,7 @@ export default function ZiiplyMobileAssistantPanel({
       setWatchDebug("Haku käynnissä: "+new Date().toLocaleTimeString("fi-FI")+" | hakusanat: "+watchKey);
       try{
         const terms=watchKey.split("|");
-        const response=await fetch("/api/offers/watch?q="+encodeURIComponent(terms.join("|")),{cache:"no-store"});
+        const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store"});
         const data=await response.json();
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahtien API epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
@@ -113,7 +114,7 @@ export default function ZiiplyMobileAssistantPanel({
           store:String(offer.storeName||offer.chain||""),
           source:String(offer.source||offer.sourceType||offer.chain||"")
         }))).filter((offer:any)=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
-        setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,1200));
+        setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,600)+" | lähikaupat: "+JSON.stringify(data.diagnostic?.nearby||[]).slice(0,1500));
         if(cancelled)return;
         setWatchOffers(matched);
         setWatchChecked(true);
