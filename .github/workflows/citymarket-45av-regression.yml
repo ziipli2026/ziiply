@@ -1,0 +1,21 @@
+name: Citymarket 45AV regressions
+on:
+  push:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarket45AVCorrections.js'
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
+      - 'src/app/components/ziiply/offerSearch/citymarketQuality.ts'
+      - 'tests/citymarket-45av-continuation.test.cjs'
+      - '.github/workflows/citymarket-45av-regression.yml'
+  workflow_dispatch:
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Citymarket 45AV regression tests
+        run: node --test tests/citymarket-45av-continuation.test.cjs
