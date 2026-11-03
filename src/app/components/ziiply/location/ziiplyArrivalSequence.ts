@@ -14,7 +14,7 @@ export type ZiiplyArrivalState = {
  tripStartedAt:number|null; stoppedAt:number|null; lastStationarySampleAt:number|null;
  lastStationaryPosition:{latitude:number;longitude:number}|null; tripConfirmed:boolean; lastAcceptedSample?:ZiiplyArrivalSample|null; stationarySamples?:number;
  arrivalStoreId:string|null; departureSamples?:number; recoveringFromBadGps?:boolean;
- candidateStoreId?:string|null; candidateSamples?:number;
+ candidateStoreId?:string|null; candidateSamples?:number; mismatchPromptedStoreId?:string|null;
 };
 export type ZiiplyArrivalDecision = {
  state:ZiiplyArrivalState; status:'moving'|'checking'|'near-store'|'in-store'|'uncertain';
@@ -23,7 +23,7 @@ export type ZiiplyArrivalDecision = {
 };
 export const initialZiiplyArrivalState=():ZiiplyArrivalState=>({
  tripStartedAt:null,stoppedAt:null,lastStationarySampleAt:null,lastStationaryPosition:null,
- tripConfirmed:false,arrivalStoreId:null,departureSamples:0,recoveringFromBadGps:false,lastAcceptedSample:null,stationarySamples:0,candidateStoreId:null,candidateSamples:0
+ tripConfirmed:false,arrivalStoreId:null,departureSamples:0,recoveringFromBadGps:false,lastAcceptedSample:null,stationarySamples:0,candidateStoreId:null,candidateSamples:0,mismatchPromptedStoreId:null
 });
 const rad=(n:number)=>n*Math.PI/180;
 export function ziiplyDistanceMeters(a:{latitude:number;longitude:number},b:{latitude:number;longitude:number}) {
@@ -63,6 +63,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const eligibleCandidate=!!candidate&&selectionExists&&(selectedCandidate||sameChain);
  // Cross-check that successive reliable fixes identify the SAME physical store.
  if(!candidate||!eligibleCandidate){state.candidateStoreId=null;state.candidateSamples=0;}
+ if(!candidate||candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
  else if(state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
  else {state.candidateStoreId=candidate.id;state.candidateSamples=1;}
  const latched=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
@@ -89,12 +90,15 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const arrivalConfirmed=!retained&&valid&&!ambiguous&&eligibleCandidate
    &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable&&(state.candidateSamples??0)>=3;
  const showArrivalMessage=!!arrivalConfirmed&&selectedCandidate;
- if(arrivalConfirmed){state.arrivalStoreId=candidate!.id;state.tripConfirmed=true;state.departureSamples=0;}
+ const askStoreChange=!!arrivalConfirmed&&!selectedCandidate&&sameChain&&state.mismatchPromptedStoreId!==candidate!.id;
+ if(askStoreChange)state.mismatchPromptedStoreId=candidate!.id;
+ // A mismatch is only a question; it must never mark the user as present in an unselected shop.
+ if(showArrivalMessage){state.arrivalStoreId=candidate!.id;state.tripConfirmed=true;state.departureSamples=0;}
  const inStore=!!state.arrivalStoreId;
  const store=inStore?stores.find(s=>s.id===state.arrivalStoreId)??candidate:candidate;
  const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
  return {state,status:inStore?'in-store':!valid||ambiguous?'uncertain':candidate?(driving?'moving':'near-store'):'checking',
-   store,isSelectedStore,askStoreChange:!!arrivalConfirmed&&!isSelectedStore&&sameChain,
+   store,isSelectedStore,askStoreChange,
    showArrivalMessage,radar:inStore&&isSelectedStore?'green':candidate&&selectedCandidate?'yellow':'white'};
 }
 export function confirmZiiplyStorePresence(previous:ZiiplyArrivalState,storeId:string):ZiiplyArrivalState {
