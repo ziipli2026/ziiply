@@ -31,7 +31,14 @@ export function removeDuplicateContinuationRows(rows) {
 }
 export function repairCitymarketCategory(title, fallback = "Muut") {
   const s = normalize(title);
-  if (/(?:mikroateriat|mikromåltider|kasvispiirakka|vihis|kiisselit)/.test(s)) return "Valmisruoka";
+  if (/(?:mikroateriat|mikromåltider|kasvispiirakka|vihis|kiisselit|riisipuuro)/.test(s)) return "Valmisruoka";
+  if (/(?:paprika|peruna|arrufatina|klementiin|mandariin|clementine)/.test(s)) return "Hevi";
+  if (/(?:protein rahka|rahkat)/.test(s)) return "Maitotuotteet";
+  if (/(?:täysmehut|smoothiet|vital hyvinvointimehut|kivennäisvedet)/.test(s)) return "Juomat";
+  if (/(?:pastat)/.test(s)) return "Kuivatuotteet";
+  if (/(?:savustettu kirjolohifilee|sillit|silli)/.test(s)) return "Kala";
+  if (/(?:kinkkusuikaleet|hampurilaiset)/.test(s)) return "Liha & makkarat";
+  if (/(?:pyykinpesunesteet|täyttöpussi|tahranpoistosuihke|wc-paperi)/.test(s)) return "Kodinhoito";
   if (/(?:arrufatina|klementiin|mandariin|clementine)/.test(s)) return "Hevi";
   if (/(?:moilas|rieskat|ruisleip|ohut tumma)/.test(s)) return "Leipomo";
   if (/(?:hampurilaiset)/.test(s)) return "Liha & makkarat";
