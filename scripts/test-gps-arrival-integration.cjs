@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const page=fs.readFileSync('src/app/page.tsx','utf8');
+const notice=fs.readFileSync('src/app/components/ziiply/location/ZiiplyArrivalNotice.tsx','utf8');
+const scanner=fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileScannerCard.tsx','utf8');
+assert.match(page,/confirmZiiplyStorePresence\(/,'explicit confirmation must update shared state');
+assert.match(page,/liveArrivalPositionRefV864\.current/,'scanner must reuse shared position');
+assert.match(page,/getArrivalDiagnostics\(\)/,'debug download must include recorded events');
+assert.match(page,/recordArrivalDiagnostic\("gps-sample"/,'log real GPS fixes');
+assert.match(notice,/document\.visibilityState==='visible'/,'background app must not show prompt');
+assert.match(notice,/document\.hasFocus\(\)/,'inactive tab must not show prompt');
+assert.match(notice,/arrival-deferred/,'deferred notice must be logged');
+assert.match(scanner,/storeLocation\.verified \|\| storeLocation\.checking/,'nearby yellow and confirmed green indicators');
+assert.doesNotMatch(page,/if \(!confirmedName\) checkScannerLocationOnOpenV856\(\)/,'scanner opening must not make a second GPS request');
+console.log('PASS arrival source integration: foreground, store confirmation, shared GPS, radar and diagnostics');
