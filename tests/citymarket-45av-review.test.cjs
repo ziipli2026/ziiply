@@ -20,6 +20,10 @@ const byTitle = fragment => evidence.rows.find(row => String(row.title).toLowerC
 test("45AV clipped Mikroateriat title is reconstructed from the bilingual publisher line", () => {
   assert.equal(fixes.repairCitymarketPrintedTitle(byTitle("eriat 300 g")), "MIKROATERIAT 300 g");
 });
+test("45AV clipped J in JAUHOINEN PERUNA is restored", () => {
+  const row = byTitle("auhoinen peruna");
+  assert.equal(fixes.repairCitymarketPrintedTitle(row), "KIINTEÄ, YLEIS ja JAUHOINEN PERUNA 2 kg");
+});
 test("45AV leading price glyph is not retained as part of Fazer KLASSIKOT", () => {
   assert.equal(fixes.repairCitymarketPrintedTitle(byTitle("6klassikot")), "KLASSIKOT 260 g (24,19/kg)");
 });
@@ -33,6 +37,7 @@ test("duplicate TUMMA continuation is removed without dropping the complete Vaas
 test("45AV fallback categories are replaced with product-form categories", () => {
   const cases = [
     ["MIKROATERIAT 300 g", "Valmisruoka"],
+    ["VIHIS KASVISPIIRAKKA 115 g", "Valmisruoka"],
     ["ARRUFATINA KLEMENTIINI 1,5 kg", "Hevi"],
     ["Vaasan LAKTOOSITON MOILAS FREE FROM OHUT TUMMA 3 kpl/150 g", "Leipomo"],
     ["HAMPURILAISET 150 g", "Liha & makkarat"],
