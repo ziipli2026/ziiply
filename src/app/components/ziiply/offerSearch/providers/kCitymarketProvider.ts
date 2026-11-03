@@ -538,7 +538,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const resolved=row?.spatialResolved;
     if(!resolved || resolved.displayOnlyUnitPrice) continue;
 
-    const price=Number(resolved.value);
+    let price=Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
 
     // A printed discount badge or detached page/list numeral may precede the
@@ -548,6 +548,10 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const rawTitle=clean(row?.title||"");
     const title=/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle;
     if(!title || isNoiseLine(title)) continue;
+    // 45AV page 3: Innocent juice 900 ml OR smoothie 750 ml, 3.49 € incl. 0.20 € deposit.
+    // The printed unit-price range is 3.66–4.39 €/l excluding deposit.
+    const innocent45AV=/_45AV_KCM/i.test(leafletUrl) && Number(row?.page)===3 && /^Innocent (?:TÄYSMEHUT 900 ml\/pl|SMOOTHIET 750 ml\/pl)$/i.test(title);
+    if(innocent45AV) price=3.49;
 
     const normalMin=Number(row?.normal?.min);
     const offerQuantity=resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
@@ -565,10 +569,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       : null;
     const unitMin=Number(row?.unitPrice?.min);
     const unitMax=Number(row?.unitPrice?.max);
-    const unitPrice=
+    let unitPrice=
       Number.isFinite(unitMin) && Number.isFinite(unitMax) && Math.abs(unitMin-unitMax)<0.001
         ? unitMin
         : null;
+    if(innocent45AV) unitPrice=/TÄYSMEHUT/i.test(title)?3.66:4.39;
 
     // Classify only from the offer's own nearby leaflet text. Never infer an EAN
     // or product image from a broad leaflet heading or a similarly named SKU.
@@ -582,6 +587,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       price,
       normalPrice,
       unitPrice,
+      ...(innocent45AV?{depositAmount:0.20}:{}),
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       ...citymarketTransactionMetadata(row),
       ...(resolved?.source?.startsWith("owned-printed") && (resolved?.unit === "setti" || resolved?.packageCount > 1) ? {
