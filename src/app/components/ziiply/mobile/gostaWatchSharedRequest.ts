@@ -1,6 +1,6 @@
 // A single in-tab request and response for the home badge, Gösta panel and DEBUG.
 // Never allow independent consumers to overwrite each other with different scans.
-type WatchResponse = {ok?:boolean;partial?:boolean;results?:unknown[];error?:string;diagnostic?:unknown};
+type WatchResponse = {ok?:boolean;partial?:boolean;results?:unknown[];error?:string;diagnostic?:{inspected?:number;publications?:number;sources?:unknown[];nearby?:unknown[]}};
 const requests=new Map<string,{at:number;promise:Promise<{response:Response;data:WatchResponse}>}>();
 export function fetchSharedGostaWatch(url:string,force=false):Promise<{response:Response;data:WatchResponse}>{
   const now=Date.now();
