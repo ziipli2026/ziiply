@@ -24,7 +24,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
           CASE WHEN COALESCE(o->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?$' THEN (o->>'discountPercent')::numeric>0 AND (o->>'discountPercent')::numeric<100 ELSE false END)) AS missing_prices,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'imageUrl','')='') AS missing_images,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'category','') IN ('','Muut')) AS missing_categories,
-      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'resolutionSanity','pass')<>'pass') AS unverified_prices
+      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'resolutionSanity','')<>'pass') AS unverified_prices
       FROM ziiply_offer_publications WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state='approved' ORDER BY parsed_at DESC LIMIT 1`;
     quality = rows[0] as Record<string, number> ?? null;
   }
