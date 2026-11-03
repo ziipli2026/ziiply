@@ -1,3 +1,4 @@
+import { matchesGostaWatch } from "./gostaWatchMatch";
 "use client";
 import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
 import ArvoSettingsPanel from "../ArvoSettingsPanel";
@@ -75,21 +76,18 @@ export default function ZiiplyMobileAssistantPanel({
       setWatchLoading(true);
       setWatchError("");
       try{
-        const results=await Promise.allSettled(watchKey.split("|").map(async query=>{
-          const response=await searchZiiplyGostaOffersV146({query});
-          return response.results.map((offer:any)=>({
-            query,
-            title:String(offer.title||offer.name||offer.productName||"Tarjous"),
-            price:String(offer.offerPrice||offer.price||""),
-            store:String(offer.storeName||offer.chain||""),
-            source:String(offer.source||offer.sourceType||offer.offerSource||"")
-          }));
-        }));
+        const response=await searchZiiplyGostaOffersV146({query:""});
+        const terms=watchKey.split("|");
+        const matched=response.results.flatMap((offer:any)=>terms.filter(query=>matchesGostaWatch(query,offer)).map(query=>({
+          query,
+          title:String(offer.title||offer.name||offer.productName||"Tarjous"),
+          price:String(offer.offerPrice??offer.price??""),
+          store:String(offer.storeName||offer.chain||""),
+          source:String(offer.source||offer.sourceType||offer.offerSource||"")
+        })));
         if(cancelled)return;
-        setWatchOffers(results.flatMap(result=>result.status==="fulfilled"?result.value:[]));
+        setWatchOffers(matched);
         setWatchChecked(true);
-        if(results.every(result=>result.status==="rejected"))setWatchError("Tarjousten tarkistus epäonnistui. Yritä uudelleen.");
-        else if(results.some(result=>result.status==="rejected"))setWatchError("Osa tarjoushauista epäonnistui.");
       }catch{
         if(!cancelled)setWatchError("Tarjousten tarkistus epäonnistui.");
       }finally{
