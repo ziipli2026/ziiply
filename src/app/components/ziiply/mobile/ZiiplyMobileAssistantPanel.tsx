@@ -136,8 +136,13 @@ export default function ZiiplyMobileAssistantPanel({
         if(data.partial){
           setWatchError("Osa kaupoista jäi tarkistamatta. Näytetään "+matched.length+" vahvistettua osumaa onnistuneista kaupoista.");
         }
-        setWatchOffers(matched);
-        setWatchChecked(true);
+        if(!data.partial){setWatchOffers(matched);setWatchChecked(true);}else{
+          // Never replace a previously complete snapshot with a timed-out subset.
+          try{const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
+            if(previous?.key===watchKey&&Array.isArray(previous.offers)&&Date.now()-Number(previous.at)<30*60*1000){setWatchOffers(previous.offers);setWatchChecked(true);setWatchError("Osa kaupoista jäi tarkistamatta. Näytetään viimeksi onnistuneen täyden tarkistuksen "+previous.offers.length+" osumaa.");}
+            else{setWatchOffers(matched);setWatchChecked(true);}
+          }catch{setWatchOffers(matched);setWatchChecked(true);}
+        }
         if(!data.partial){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
