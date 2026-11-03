@@ -91,6 +91,15 @@ export default function ZiiplyMobileAssistantPanel({
   };
   const watchKey=savedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
   React.useEffect(()=>{
+    // Restore the latest successful scan when this panel is remounted.
+    try {
+      const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
+      if(cached?.key===watchKey&&Array.isArray(cached.offers)){
+        setWatchOffers(cached.offers);
+        setWatchChecked(true);
+        if(typeof cached.debug==="string")setWatchDebug(cached.debug);
+      }
+    }catch{}
     if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
     let cancelled=false;
     let running=false;
@@ -118,6 +127,7 @@ export default function ZiiplyMobileAssistantPanel({
         if(cancelled)return;
         setWatchOffers(matched);
         setWatchChecked(true);
+        try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));}catch{}
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
         if(!cancelled)setWatchError("Tarjousten tarkistus epäonnistui.");
