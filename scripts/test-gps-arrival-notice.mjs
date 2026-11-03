@@ -41,7 +41,16 @@ n=reduce(n,{type:'tick',at:15000});assert.equal(n.phase,'offers');
 n=reduce(n,{type:'tick',at:70000});assert.equal(n.phase,'done');
 assert.equal(reduce(n,{type:'sample',decision:x.decision,at:22000}).phase,'done');
 x=scenario(selected,[]);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.notice,null);
-x=scenario(sameChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,true);assert.equal(x.notice,null);
+x=scenario(sameChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,false,'mismatch prompt must only appear once per continuous encounter');assert.equal(x.decision.state.arrivalStoreId,null,'mismatched store must not latch presence');assert.equal(x.notice,null);
+{
+ let state=initialZiiplyArrivalState(), prompts=0;
+ for(const at of [0,3000,6000,9000,12000]){
+  const d=evaluateZiiplyArrival(state,{at,latitude:sameChain.latitude,longitude:sameChain.longitude,accuracyMeters:5,speedKmh:0},[selected,sameChain,crossChain],[selected.id]);
+  state=d.state;prompts+=Number(d.askStoreChange);
+  assert.equal(d.state.arrivalStoreId,null,'wrong same-chain store must not confirm presence');
+ }
+ assert.equal(prompts,1,'one mismatch prompt per encounter');
+}
 x=scenario(crossChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,false);assert.equal(x.notice,null);
 x=scenario(selected);n=reduce(x.notice,{type:'tick',at:2000});assert.equal(n.phase,'approach');
 n=reduce(n,{type:'pause',at:8500});assert.equal(n.remainingMs,1500);assert.equal(n.deadline,null);
