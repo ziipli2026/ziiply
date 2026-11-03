@@ -1233,6 +1233,7 @@ export default function ZiiplyMobileOfferSearchCard({
     automaticCategoryAuditV235: (() => {
       const counts: Record<string, number> = {};
       const missingFields: Array<{ ean: string; missing: string[] }> = [];
+      const missingEans: string[] = [];
       const seenEans = new Set<string>();
       const duplicateEans: string[] = [];
       for (const offer of items) {
@@ -1240,12 +1241,13 @@ export default function ZiiplyMobileOfferSearchCard({
         counts[category] = (counts[category] || 0) + 1;
         const ean = String((offer as any).ean || "").trim();
         const missing = [
-          ...(!ean ? ["ean"] : []),
+
           ...(!(offer as any).title && !(offer as any).name ? ["name"] : []),
           ...(!(offer as any).price && !(offer as any).priceText ? ["price"] : []),
           ...(!(offer as any).imageUrl && !(offer as any).image ? ["image"] : []),
           ...(category === "(puuttuu)" ? ["category"] : []),
         ];
+        if (!ean) missingEans.push(String((offer as any).title || (offer as any).name || ""));
         if (missing.length) missingFields.push({ ean, missing });
         if (ean && seenEans.has(ean)) duplicateEans.push(ean);
         if (ean) seenEans.add(ean);
@@ -1264,6 +1266,7 @@ export default function ZiiplyMobileOfferSearchCard({
         checkedRows: items.length,
         categoryCounts: counts,
         missingFields,
+        missingEans, // Leaflet/group offers may legitimately have no single EAN.
         duplicateEans,
         categoryCountMismatches,
         passed: !loading && missingFields.length === 0 && duplicateEans.length === 0 && categoryCountMismatches.length === 0,
