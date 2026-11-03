@@ -543,7 +543,15 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
       (item as any)?.ean || source?.ean || source?.gtin || source?.barcode || "",
     );
     const key = getOfferCardDedupeKeyV13(item);
-    if (unique.some(previous => sameKLocalPromotionV1(previous, item))) continue;
+    const duplicateIndex = unique.findIndex(previous => sameKLocalPromotionV1(previous, item));
+    if (duplicateIndex >= 0) {
+      // Keep the fuller leaflet title (usually the row with package size/origin).
+      const previous = unique[duplicateIndex];
+      const previousName = String((previous as any).__sourceOfferSearchResult?.title || previous.title || previous.name || "");
+      const currentName = String(source?.title || item.title || item.name || "");
+      if (currentName.length > previousName.length) unique[duplicateIndex] = item;
+      continue;
+    }
 
     if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
       if (seen.has(key)) continue;
