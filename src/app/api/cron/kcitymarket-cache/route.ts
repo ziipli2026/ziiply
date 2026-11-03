@@ -16,7 +16,10 @@ export async function GET(request: Request) {
 
   const startedAt = new Date();
   try {
-    // Desktop preview consumes the same approved Neon snapshot as mobile main.\n    // Never reparse or overwrite the shared publication with an older desktop parser.\n    const offers = await readActivePublicationOffers("K-Citymarket");\n    const result = { active: offers.length ? { period: "approved-neon", offers: offers.length, cachedAt: startedAt.toISOString() } : null, next: null, errors: offers.length ? [] : ["approved Citymarket snapshot missing"] };
+    // Desktop preview consumes the same approved Neon snapshot as mobile main.
+    // Never reparse or overwrite the shared publication with an older desktop parser.
+    const offers = await readActivePublicationOffers("K-Citymarket");
+    const result = { active: offers.length ? { period: "approved-neon", offers: offers.length, cachedAt: startedAt.toISOString() } : null, next: null, errors: offers.length ? [] : ["approved Citymarket snapshot missing"] };
     // A successful active leaflet must not mask a failed next-period warm-up.
     // warmKCitymarketOfferCache records failures for both attempted periods.
     const activeOk = Boolean(result.active);
