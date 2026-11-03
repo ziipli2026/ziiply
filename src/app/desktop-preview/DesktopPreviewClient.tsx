@@ -2062,61 +2062,70 @@ export default function DesktopPreviewPage() {
     const unique=matching.filter((offer:any)=>{const key=String(offer.__gostaHomeStore||"")+"|"+String(offer.id||offer.ean||offer.title||offer.name||"")+"|"+String(offer.price||offer.offerPrice||"");if(seen.has(key))return false;seen.add(key);return true;});
     return {offers:unique,partial:batches.some(batch=>batch.status==="rejected")};
   }
-  const gostaWatchAutoRequest=useRef(0);
   const gostaWatchQueryKey=gostaSavedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
   const gostaWatchLastScan=useRef(0);
-  const gostaWatchScanning=useRef(false);
+  const gostaWatchScanStarted=useRef(0);
+  const gostaWatchScanGeneration=useRef(0);
   useEffect(()=>{
     if(!gostaHomeHydrated||!gostaWatchQueryKey||(!stores.length&&!lidlStores.length&&!sparStores.length)){
       if(!gostaWatchQueryKey)setGostaFreshWatchCount(null);
       return;
     }
     let cancelled=false;
-    const request=++gostaWatchAutoRequest.current;
-    // A reload always fetches fresh offers; a background refresh must not hide the last valid badge.
+    const generation=++gostaWatchScanGeneration.current;
+    const key=gostaWatchQueryKey;
     const scan=async()=>{
-      if(cancelled||gostaWatchScanning.current)return;
-      gostaWatchScanning.current=true;
+      if(cancelled)return;
+      // A suspended browser may leave an old request unresolved. A new scan may replace it after 90 s.
+      if(gostaWatchScanStarted.current&&Date.now()-gostaWatchScanStarted.current<90000)return;
+      const started=Date.now();
+      gostaWatchScanStarted.current=started;
       try{
-        const result=await fetchFreshGostaWatchOffers(gostaWatchQueryKey.split("|"));
-        if(!cancelled&&request===gostaWatchAutoRequest.current){
+        const result=await fetchFreshGostaWatchOffers(key.split("|"));
+        if(!cancelled&&generation===gostaWatchScanGeneration.current&&gostaWatchScanStarted.current===started){
           setGostaFreshWatchCount(result.offers.length);
           gostaWatchLastScan.current=Date.now();
         }
       }catch{
-        // Retain the last successful count on a transient network or suspended-tab failure.
-      }finally{gostaWatchScanning.current=false;}
+        // Keep the previous successful count if a background request fails.
+      }finally{
+        if(gostaWatchScanStarted.current===started)gostaWatchScanStarted.current=0;
+      }
     };
-    const initial=window.setTimeout(()=>{void scan();},1200);
+    // Always scan on reload once saved watches and store data have loaded.
+    const initial=window.setTimeout(()=>{void scan();},250);
     const checkSchedule=()=>{
       if(document.visibilityState!=="visible")return;
-      const now=new Date();
-      const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).formatToParts(now);
+      const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
       const get=(type:string)=>parts.find(part=>part.type===type)?.value||"";
       const hour=Number(get("hour"));
       const slotStart=[7,13,19].filter(h=>h<=hour).pop();
       if(slotStart===undefined)return;
       const slot=[get("year"),get("month"),get("day"),slotStart].join("-");
-      const lastSlot=window.sessionStorage.getItem("ziiply-gosta-watch-slot-v1");
-      if(lastSlot===slot||gostaWatchScanning.current)return;
+      if(window.sessionStorage.getItem("ziiply-gosta-watch-slot-v1")===slot)return;
+      if(gostaWatchScanStarted.current&&Date.now()-gostaWatchScanStarted.current<90000)return;
       window.sessionStorage.setItem("ziiply-gosta-watch-slot-v1",slot);
       void scan();
     };
     const onResume=()=>{
       if(document.visibilityState!=="visible")return;
-      if(Date.now()-gostaWatchLastScan.current>30*60*1000)void scan();
+      // A reload left idle must resume a missed initial scan, not wait for the next scheduled hour.
+      if(!gostaWatchLastScan.current||Date.now()-gostaWatchLastScan.current>30*60*1000)void scan();
       checkSchedule();
     };
     const interval=window.setInterval(checkSchedule,60*1000);
     document.addEventListener("visibilitychange",onResume);
     window.addEventListener("focus",onResume);
+    window.addEventListener("pageshow",onResume);
     return()=>{
       cancelled=true;
       window.clearTimeout(initial);
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange",onResume);
       window.removeEventListener("focus",onResume);
-      gostaWatchAutoRequest.current++;
+      window.removeEventListener("pageshow",onResume);
+      gostaWatchScanGeneration.current++;
+      gostaWatchScanStarted.current=0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[gostaHomeHydrated,gostaWatchQueryKey,stores.length,lidlStores.length,sparStores.length]);
