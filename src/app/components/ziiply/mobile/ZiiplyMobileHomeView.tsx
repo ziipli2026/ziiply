@@ -39,8 +39,9 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
   React.useEffect(()=>{
     try {
       const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-      if(cached?.key===watchKey&&Array.isArray(cached.offers))setWatchCount(cached.offers.length);
+      // Never present cached hits as a fresh completed six-store scan.
     }catch{}
+    setWatchCount(null);
     if(!watchKey){setWatchCount(null);return;}
     let cancelled=false;
     let running=false;
