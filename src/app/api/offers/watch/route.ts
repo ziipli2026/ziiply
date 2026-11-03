@@ -26,6 +26,10 @@ function priceNumber(offer:Record<string,unknown>){
 }
 // Reuse completed scans and coalesce concurrent requests on a warm server instance.
 // Cache keys include location and watched terms; failed scans are never retained.
+function canonicalWatchQueries(value: string | null): string {
+  return [...new Set((value || "").split("|").map(q => q.trim().toLocaleLowerCase("fi")).filter(q => q.length >= 2 && q.length <= 80))].sort((a,b)=>a.localeCompare(b,"fi")).slice(0,30).join("|");
+}
+
 const watchScanCache = new Map<string,{expires:number,promise:Promise<Response>}>();
 const WATCH_CACHE_MS = 5 * 60 * 1000;
 const WATCH_PARTIAL_CACHE_MS = 30 * 1000;
@@ -37,7 +41,7 @@ export async function GET(request: Request) {
   const lon = Number(url.searchParams.get("lon"));
   const validLocation = url.searchParams.has("lat") && url.searchParams.has("lon") && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat)<=90 && Math.abs(lon)<=180;
   if (!validLocation) return runWatch(request);
-  const key = [lat.toFixed(3),lon.toFixed(3),url.searchParams.get("q")||""].join("|");
+  const key = [lat.toFixed(3),lon.toFixed(3),canonicalWatchQueries(url.searchParams.get("q"))].join("|");
   const now = Date.now();
   const existing = watchScanCache.get(key);
   if (existing && existing.expires > now) {
@@ -65,7 +69,7 @@ export async function GET(request: Request) {
 async function runWatch(request: Request) {
   const started = Date.now();
   const params = new URL(request.url).searchParams;
-  const queries = [...new Set((params.get("q") || "").split("|").map(q => q.trim()).filter(q => q.length >= 2 && q.length <= 80))].slice(0, 30);
+  const queries = canonicalWatchQueries(params.get("q")).split("|").filter(Boolean);
   if (!queries.length) return NextResponse.json({ok:false,error:"Hakusanat puuttuvat",results:[]},{status:400});
   if (!process.env.DATABASE_URL) return NextResponse.json({ok:false,error:"DATABASE_URL puuttuu",results:[]},{status:503});
   try {
