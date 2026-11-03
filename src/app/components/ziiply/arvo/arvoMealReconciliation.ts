@@ -14,12 +14,14 @@ export function reconcileArvoMeals(local: readonly ArvoMeal[], remote: readonly 
     if (meal?.id && validMealId(meal.id)) serverById.set(meal.id,meal);
   }
   const upload: ArvoMeal[] = [];
+  const localOnly: ArvoMeal[] = [];
   const conflicts: string[] = [];
   const seenLocal = new Set<string>();
   for (const item of local) {
     const meal = normalizeArvoMeal(item);
-    if (!meal?.id || !validMealId(meal.id) || seenLocal.has(meal.id)) continue;
+    if (!meal?.id || seenLocal.has(meal.id)) continue;
     seenLocal.add(meal.id);
+    if (!validMealId(meal.id)) { localOnly.push(meal); continue; }
     const server = serverById.get(meal.id);
     if (!server) { upload.push(meal); continue; }
     if (JSON.stringify(server) !== JSON.stringify(meal)) conflicts.push(meal.id);
@@ -27,8 +29,9 @@ export function reconcileArvoMeals(local: readonly ArvoMeal[], remote: readonly 
   // Server wins only for display of already-uploaded IDs. Conflicts are
   // explicitly reported, never silently overwritten or re-uploaded.
   return {
-    merged: [...serverById.values(),...upload].sort((a,b)=>b.timestamp.localeCompare(a.timestamp)),
+    merged: [...serverById.values(),...upload,...localOnly].sort((a,b)=>b.timestamp.localeCompare(a.timestamp)),
     upload,
+    localOnly,
     conflicts,
   };
 }
