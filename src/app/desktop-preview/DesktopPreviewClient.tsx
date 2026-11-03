@@ -3093,7 +3093,7 @@ export default function DesktopPreviewPage() {
               onGostaHomeSearch={()=>{setGostaHomeSearchOpen(true);setGostaDetailsOpen(false);setGostaChainPicker(false);}}
               gostaWatchCount={gostaWatchOffers.length}
                gostaWatchActive={gostaSavedWatches.length>0}
-              onGostaWatchOpen={()=>{setGostaChainPicker(false);if(gostaSavedWatches.length===1){openGostaWatchResults(gostaSavedWatches[0]);}else{setGostaHomeSearchOpen(true);setGostaShowSavedWatches(true);}}}
+              onGostaWatchOpen={()=>{setGostaChainPicker(false);if(gostaSavedWatches.length===1){openGostaWatchResults(gostaSavedWatches[0]);}else{gostaHomeRequestId.current++;setGostaHomeQuery("");setGostaHomeDebouncedQuery("");setGostaExpandedOfferGroup(null);setGostaSelectedOfferKeys([]);setGostaShowSavedWatches(false);setGostaHomeSearchOpen(true);const offers=gostaSavedWatches.flatMap(query=>{const entry=readGostaCache(query);return entry?.results||[];});const seen=new Set<string>();const unique=offers.filter((offer:any)=>{const key=String(offer.__gostaHomeStore||"")+"|"+String(offer.id||offer.ean||offer.title||offer.name||"")+"|"+String(offer.price||offer.offerPrice||"");if(seen.has(key))return false;seen.add(key);return true;});setGostaHomeResults(unique);setGostaHomeHasSearched(true);setGostaHomeLoading(false);setGostaHomeError(unique.length?"":"Tallennettujen vahtien tarjouksia ei ole välimuistissa. Avaa vahti vihkosta ja hae tarjoukset.");}}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
               chooseStoresNoticeFor={chooseStoresNoticeFor}
