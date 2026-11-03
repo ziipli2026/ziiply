@@ -689,7 +689,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-printed-transactions-v162-20261029-split-card-reviewed"],
+  ["ziiply-kcitymarket-printed-transactions-v163-20261103-45av-verified"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
