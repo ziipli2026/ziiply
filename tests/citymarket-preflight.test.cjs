@@ -54,6 +54,14 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     assert.equal((await record(input)).outcome,'preflight-quality-failed');
     quality.total=89;
     assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
+    quality.missing_images=1;
+    assert.equal((await record(input)).outcome,'preflight-quality-failed','missing product images must fail preflight');
+    assert.equal(records.at(-1).details.severity,'error');
+    quality.missing_images=0;quality.missing_categories=1;
+    assert.equal((await record(input)).outcome,'preflight-quality-failed','missing categories must fail preflight');
+    assert.equal(records.at(-1).details.severity,'error');
+    quality.missing_categories=0;
+    assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
     assert.equal(records.at(-1).details.pdfReview,'pending');
   }finally{if(previous===undefined)delete process.env.DATABASE_URL;else process.env.DATABASE_URL=previous;}
 });
