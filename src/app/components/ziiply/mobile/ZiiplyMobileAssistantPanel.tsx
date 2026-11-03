@@ -119,6 +119,10 @@ export default function ZiiplyMobileAssistantPanel({
         }))).filter((offer:any)=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
         setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,600)+" | lähikaupat: "+JSON.stringify(data.diagnostic?.nearby||[]).slice(0,1500));
         if(cancelled)return;
+        if(data.partial){
+          setWatchError("Osa kaupoista ei vastannut. Edelliset täydet hakutulokset säilytetään.");
+          return;
+        }
         setWatchOffers(matched);
         setWatchChecked(true);
         try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));}catch{}
