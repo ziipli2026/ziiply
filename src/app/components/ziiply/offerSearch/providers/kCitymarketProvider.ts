@@ -6,6 +6,7 @@ import citymarketPublisherImageRegistry from "./data/kCitymarketLeafletImages.js
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 import { getKCitymarketPublisherImage, auditKCitymarketPublisherImages } from "./kCitymarketPublisherImages";
+import { repairCitymarketPrintedTitle, removeDuplicateContinuationRows, repairCitymarketCategory } from "./kCitymarket45AVCorrections.js";
 
 // ============================================================================
 // ZIIPLY K-CITYMARKET PROVIDER V14
@@ -494,7 +495,8 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   // Keep the publisher's exact card identity before presentation title cleanup.
   // Reviewed PDF pictures are attached to this source row, never a fuzzy name.
   const sourceRows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
-  const rows:any[]=canonicalCitymarketProductRows(sourceRows.map(row=>/_42AV_KCM/i.test(leafletUrl)&&row?.spatialResolved?.value>0
+  const deduplicatedSourceRows=removeDuplicateContinuationRows(sourceRows);
+  const rows:any[]=canonicalCitymarketProductRows(deduplicatedSourceRows.map(row=>/_42AV_KCM/i.test(leafletUrl)&&row?.spatialResolved?.value>0
     ? {...row,publisherOfferId:row.publisherOfferId??`kcm:spatial:${row?.page??0}:${clean(row.title).toLowerCase()}:${Number(row.spatialResolved.value)}`}
     : row));
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
@@ -517,7 +519,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       offers.push({id:`kcm:spatial:${row?.page??0}:${campaignTitle.toLowerCase()}:percent:${percent}`,
         title:campaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
         resolutionSource:row.percentageOffer.source,plussa:/plussa/i.test((row.nearby||[]).join(" ")),
-        validFrom:validity?.from??null,validTo:validity?.to??null,category:category(campaignTitle),
+        validFrom:validity?.from??null,validTo:validity?.to??null,category:repairCitymarketCategory(campaignTitle,category(campaignTitle)),
         chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
       continue;
     }
@@ -532,9 +534,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // decorations; never change the price, quantity, package or unit metadata.
     // Limit to the 42AV archive until older leaflet regressions are verified.
     const rawTitle=clean(row?.title||"");
-    const title=/_42AV_KCM/i.test(leafletUrl)
-      ? clean42AVPrintedTitle(rawTitle)
-      : rawTitle;
+    const title=repairCitymarketPrintedTitle(row, rawTitle);
     if(!title || isNoiseLine(title)) continue;
 
     const normalMin=Number(row?.normal?.min);
@@ -586,7 +586,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       campaignType,
       validFrom:row.printedValidity?.from??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
       validTo:row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
-      category:/\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":category(title),
+      category:/\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":repairCitymarketCategory(title,category(title)),
       chain:"K",
       storeType:"K-Citymarket",
       source:"K-Citymarket tarjouslehti",
