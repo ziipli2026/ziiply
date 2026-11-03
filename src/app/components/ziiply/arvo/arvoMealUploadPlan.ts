@@ -17,10 +17,11 @@ export function planArvoMealUpload(
   local: readonly ArvoMeal[],
   remote: readonly ArvoMeal[],
   permission: ArvoMealSyncPermission,
+  deletedIds: readonly string[] = [],
 ): ArvoMealUploadPlan {
   if (!canSyncArvoMeals(permission)) {
-    return {allowed:false,upload:[],localOnly:local.map(normalizeArvoMeal).filter((m):m is ArvoMeal=>m!==null),conflicts:[]};
+    return {allowed:false,upload:[],localOnly:local.map(normalizeArvoMeal).filter((m):m is ArvoMeal=>m!==null&&!deletedIds.includes(m.id)),conflicts:[]};
   }
-  const {upload,localOnly,conflicts}=reconcileArvoMeals(local,remote);
+  const {upload,localOnly,conflicts}=reconcileArvoMeals(local,remote,deletedIds);
   return {allowed:true,upload,localOnly,conflicts};
 }
