@@ -456,58 +456,61 @@ export default function ZiiplyMobileTopBar({
       return price;
     }
 
-    async function loadElectricity() {
-      if (cancelled) return;
-      setAutoElectricityText("haetaan");
+    type PriceWindow = { start: number; end: number; price: number };
+    let cachedPrices: PriceWindow[] = [];
+    let requestSequence = 0;
+    let timer: number;
 
-      try {
-        // Use the same API, current time window and price field as desktop.
-        const data = await fetchJson("/api/desktop-electricity");
-        const prices = Array.isArray(data?.prices) ? data.prices : [];
-        const now = Date.now();
-        const current = prices.find((item: any) => {
-          const start = new Date(item.startDate ?? item.start).getTime();
-          const end = new Date(item.endDate ?? item.end).getTime();
-          return Number.isFinite(start) && Number.isFinite(end) && start <= now && now < end;
-        });
-        if (!current) throw new Error("ei nykyhetkeä");
-        const price = readPrice(current);
-        if (price == null) throw new Error("ei hintaa");
-
-        if (cancelled) return;
-
-        const end = new Date(current.endDate ?? current.end).getTime();
-        const next = prices.find((item: any) => new Date(item.startDate ?? item.start).getTime() === end);
-        const nextPrice = next ? readPrice(next) : null;
-        setAutoElectricityTrend(electricityTrend(price, nextPrice));
-        setAutoElectricityValue(fmtFi(price, 1));
+    function displayElectricity() {
+      const now = Date.now();
+      const current = cachedPrices.find(item => item.start <= now && now < item.end && item.end - item.start === 900000);
+      const next = current ? cachedPrices.find(item => item.start === current.end && item.end - item.start === 900000) : undefined;
+      if (current) {
+        setAutoElectricityTrend(electricityTrend(current.price, next?.price ?? null));
+        setAutoElectricityValue(fmtFi(current.price, 1));
         setAutoElectricityText("c/kWh");
-      } catch (error) {
-        if (cancelled) return;
-
-        const message = error instanceof Error ? error.message : "api virhe";
+      } else {
         setAutoElectricityValue("—");
         setAutoElectricityTrend("unknown");
-
-        if (message.includes("Failed to fetch")) setAutoElectricityText("fetch");
-        else if (message.includes("HTTP")) setAutoElectricityText(message.slice(0, 10));
-        else if (message.includes("ei nykyhetkeä")) setAutoElectricityText("ei nyt");
-        else if (message.includes("tyhjä lista")) setAutoElectricityText("ei listaa");
-        else if (message.includes("ei hintaa")) setAutoElectricityText("ei hintaa");
-        else setAutoElectricityText("api");
+        setAutoElectricityText("ei nyt");
       }
     }
 
-    // Refresh at :01, :16, :31 and :46, not every 15 minutes from page load.
-    let timer: number;
+    async function loadElectricity() {
+      if (cancelled) return;
+      const sequence = ++requestSequence;
+      try {
+        const data = await fetchJson("/api/desktop-electricity");
+        const raw = Array.isArray(data?.prices) ? data.prices : Array.isArray(data) ? data : [];
+        const fetched: PriceWindow[] = raw.map((item: any) => {
+          const price = readPrice(item);
+          const start = readTime(item.startDate, item.start, item.StartDate, item.time_start, item.date, item.Date);
+          const end = readTime(item.endDate, item.end, item.EndDate, item.time_end);
+          return price != null && start != null && end != null && end > start ? { start, end, price } : null;
+        }).filter((item: PriceWindow | null): item is PriceWindow => item !== null);
+        if (cancelled || sequence !== requestSequence) return;
+        if (fetched.length) {
+          const merged = new Map(cachedPrices.map(item => [item.start, item] as const));
+          for (const item of fetched) merged.set(item.start, item);
+          cachedPrices = [...merged.values()].filter(item => item.end > Date.now() - 86400000).sort((x, y) => x.start - y.start);
+        }
+      } catch {
+        // Keep previously fetched quarter-hour prices on network/API errors.
+      }
+      if (!cancelled && sequence === requestSequence) displayElectricity();
+    }
+
+    // Price changes at :00/:15/:30/:45 from prefetched quarter-hour data.
     const schedule = () => {
       const now = Date.now();
-      const next = Math.floor((now - 60_000) / 900_000 + 1) * 900_000 + 60_000;
+      const next = (Math.floor(now / 900000) + 1) * 900000;
       timer = window.setTimeout(() => {
-        if (!cancelled) { void loadElectricity(); schedule(); }
-      }, Math.max(100, next - now));
+        if (!cancelled) { displayElectricity(); void loadElectricity(); schedule(); }
+      }, Math.max(1, next - now));
     };
-    const onFocus = () => { if (!document.hidden) void loadElectricity(); };
+    const onFocus = () => {
+      if (!document.hidden) { displayElectricity(); void loadElectricity(); }
+    };
     void loadElectricity();
     schedule();
     document.addEventListener("visibilitychange", onFocus);
