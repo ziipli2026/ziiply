@@ -599,6 +599,7 @@ export default function DesktopPreviewPage() {
   }, [gpsCoords?.latitude, gpsCoords?.longitude,fuelLocationCoords?.latitude,fuelLocationCoords?.longitude]);
 
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
+  const [weatherExtras, setWeatherExtras] = useState<{pressure:number|null;humidity:number|null;windSpeed:number|null;windDirection:number|null}>({pressure:null,humidity:null,windSpeed:null,windDirection:null});
   const [electricity, setElectricity] = useState({ value: "—", detail: "haetaan" });
   const [electricityTrendColor, setElectricityTrendColor] = useState("#888888");
   const [electricityOpen, setElectricityOpen] = useState(false);
@@ -2775,9 +2776,11 @@ export default function DesktopPreviewPage() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(async ({coords}) => {
       try {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current=temperature_2m,weather_code&timezone=auto`, {cache:"no-store"});
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.latitude}&longitude=${coords.longitude}&current=temperature_2m,weather_code,pressure_msl,relative_humidity_2m,wind_speed_10m,wind_direction_10m&wind_speed_unit=ms&timezone=auto`, {cache:"no-store"});
         const d = await r.json(); const temp = Number(d?.current?.temperature_2m);
         if (Number.isFinite(temp)) setWeather({value:`${temp >= 0 ? "+" : ""}${Math.round(temp)}°`,detail: appliedLocation});
+        const valid = (v:unknown) => v !== null && v !== undefined && Number.isFinite(Number(v)) ? Number(v) : null;
+        setWeatherExtras({pressure:valid(d?.current?.pressure_msl),humidity:valid(d?.current?.relative_humidity_2m),windSpeed:valid(d?.current?.wind_speed_10m),windDirection:valid(d?.current?.wind_direction_10m)});
       } catch {}
     }, () => setWeather({value:"—",detail:appliedLocation}), {maximumAge:300000,timeout:5500});
   }, [appliedLocation]);
@@ -2891,7 +2894,13 @@ export default function DesktopPreviewPage() {
                 ) : (
                   <span className="relative -top-[6px] min-w-0">
                     <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
-                    {title === "SÄHKÖ" ? (
+                    {title === "SÄÄ" ? (
+                      <span className="mt-[1px] flex flex-col gap-[1px] whitespace-nowrap font-black leading-none text-[#102a24]">
+                        <span className="text-[19px]">{value}</span>
+                        <span className="text-[8px] text-[#625b43]">◉ {weatherExtras.pressure == null ? "—" : Math.round(weatherExtras.pressure)} hPa · 💧 {weatherExtras.humidity == null ? "—" : Math.round(weatherExtras.humidity)} %</span>
+                        <span className="inline-flex items-center gap-1 text-[9px] text-[#625b43]"><span className="inline-block text-[12px]" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}} aria-label="Tuulen puhallussuunta">↑</span>{weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}</span>
+                      </span>
+                    ) : title === "SÄHKÖ" ? (
                       <>
                         <span className="mt-0.5 inline-flex items-center gap-0 whitespace-nowrap">
                           <span className="relative block text-[19px] font-black leading-none text-[#102a24] tabular-nums">
