@@ -12,7 +12,7 @@ export type ZiiplyArrivalSample = { at:number; latitude:number; longitude:number
 export type ZiiplyArrivalStore = { id:string; name:string; latitude:number; longitude:number };
 export type ZiiplyArrivalState = {
  tripStartedAt:number|null; stoppedAt:number|null; lastStationarySampleAt:number|null;
- lastStationaryPosition:{latitude:number;longitude:number}|null; tripConfirmed:boolean;
+ lastStationaryPosition:{latitude:number;longitude:number}|null; tripConfirmed:boolean; lastAcceptedSample?:ZiiplyArrivalSample|null; stationarySamples?:number;
  arrivalStoreId:string|null; departureSamples?:number; recoveringFromBadGps?:boolean;
 };
 export type ZiiplyArrivalDecision = {
@@ -22,7 +22,7 @@ export type ZiiplyArrivalDecision = {
 };
 export const initialZiiplyArrivalState=():ZiiplyArrivalState=>({
  tripStartedAt:null,stoppedAt:null,lastStationarySampleAt:null,lastStationaryPosition:null,
- tripConfirmed:false,arrivalStoreId:null,departureSamples:0,recoveringFromBadGps:false
+ tripConfirmed:false,arrivalStoreId:null,departureSamples:0,recoveringFromBadGps:false,lastAcceptedSample:null,stationarySamples:0
 });
 const rad=(n:number)=>n*Math.PI/180;
 export function ziiplyDistanceMeters(a:{latitude:number;longitude:number},b:{latitude:number;longitude:number}) {
@@ -32,22 +32,31 @@ export function ziiplyDistanceMeters(a:{latitude:number;longitude:number},b:{lat
 }
 export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyArrivalSample,stores:ZiiplyArrivalStore[],selectedStoreIds:string[]):ZiiplyArrivalDecision {
  const state={...previous};
- const valid=Number.isFinite(sample.latitude)&&Number.isFinite(sample.longitude)
-   &&Number.isFinite(sample.accuracyMeters)&&sample.accuracyMeters>0&&sample.accuracyMeters<=50;
+ const finite=Number.isFinite(sample.latitude)&&Number.isFinite(sample.longitude)&&Math.abs(sample.latitude)<=90&&Math.abs(sample.longitude)<=180;
+ const accurate=Number.isFinite(sample.accuracyMeters)&&sample.accuracyMeters>0&&sample.accuracyMeters<=30;
+ const chronological=!state.lastAcceptedSample||sample.at>state.lastAcceptedSample.at;
+ const dt=state.lastAcceptedSample?(sample.at-state.lastAcceptedSample.at)/1000:0;
+ const displacement=state.lastAcceptedSample?ziiplyDistanceMeters(sample,state.lastAcceptedSample):0;
+ // Reject impossible jumps and stale/duplicated timestamps; never infer arrival from missing GPS.
+ const plausible=!state.lastAcceptedSample||(dt>0&&displacement/dt<=55+sample.accuracyMeters/dt);
+ const valid=finite&&accurate&&chronological&&plausible&&Number.isFinite(sample.at);
+ if(!valid)return {state,status:'uncertain',store:null,isSelectedStore:false,askStoreChange:false,showArrivalMessage:false,radar:state.arrivalStoreId?'green':'white'};
+ state.lastAcceptedSample=sample;
  const candidates=valid?stores.map(store=>({store,distance:ziiplyDistanceMeters(sample,store)}))
    .filter(x=>x.distance<=ZIIPLY_APPROACH_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
  const ambiguous=candidates.length>1&&candidates[1].distance-candidates[0].distance<=sample.accuracyMeters;
  const candidate=ambiguous?null:candidates[0]?.store??null;
  const latched=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
- const moving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>3;
+ const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
  const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
  if(valid&&!moving) {
    if(state.stoppedAt===null)state.stoppedAt=sample.at;
    state.lastStationarySampleAt=sample.at;
    state.lastStationaryPosition={latitude:sample.latitude,longitude:sample.longitude};
- } else if(valid&&moving) {state.stoppedAt=null;state.lastStationarySampleAt=null;state.lastStationaryPosition=null;}
+   state.stationarySamples=(state.stationarySamples??0)+1;
+ } else if(valid&&moving) {state.stoppedAt=null;state.lastStationarySampleAt=null;state.lastStationaryPosition=null;state.stationarySamples=0;}
  if(valid&&moving&&state.tripStartedAt===null)state.tripStartedAt=sample.at;
- const stable=valid&&!moving&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=ZIIPLY_PARKED_SAMPLE_MS;
+ const stable=!moving&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=ZIIPLY_PARKED_SAMPLE_MS&&sample.at-state.stoppedAt<=30000&&(state.stationarySamples??0)>=3&&dt<=10;
  // A confirmed visit is sticky across GPS loss and isolated outliers.
  if(latched&&valid) {
    const distance=ziiplyDistanceMeters(sample,latched);
