@@ -28,3 +28,15 @@ test("Arvo reconciliation ignores invalid entries",()=>{
  const result=reconcileArvoMeals([{...meal("a"),grams:-1}],[]);
  assert.equal(result.upload.length,0);
 });
+
+test("Arvo reconciliation rejects malformed UUID even if length looks valid",()=>{
+ const invalid={...meal("a"),id:"00000000-0000-4000-8000-00000000000z"};
+ const result=reconcileArvoMeals([invalid],[]);
+ assert.equal(result.upload.length,0);
+ assert.equal(result.merged.length,0);
+});
+test("Arvo reconciliation rejects invalid remote IDs",()=>{
+ const invalid={...meal("a"),id:"not-a-uuid"};
+ const result=reconcileArvoMeals([], [invalid]);
+ assert.equal(result.merged.length,0);
+});
