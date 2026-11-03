@@ -154,11 +154,12 @@ export function verifyPrintedTransaction(row,rawBoxes){
    exactUnit !== null && Math.abs(r.min - exactUnit) < 0.015 &&
    Math.abs(r.max - exactUnit) < 0.015);
  const quantity = Math.max(1, Number(card?.quantity || current?.quantity || 1));
- const sameCardGlyph = card?.parts?.length === 2 && card.anchor &&
+ const sameCardGlyph = (card?.parts?.length === 2 || card?.parts?.length === 3) && card.anchor &&
    Math.abs(card.anchor.left - anchor.left) < 0.025 &&
    card.anchor.top >= anchor.top - 0.01 && card.anchor.top - anchor.top < 0.10 &&
    /^\d{1,2}$/.test(String(card.parts[0].text)) &&
-   /^\d{2}$/.test(String(card.parts[1].text));
+   /^\d{2}$/.test(String(card.parts[1].text)) &&
+   (card.parts.length !== 3 || /^([2-5])$/.test(String(card.parts[2].text)) && Number(card.parts[2].text) === quantity);
  if (pk && pk.min > 0 && Math.abs(pk.max - pk.min) < 0.000001 &&
      exactUnit !== null && ownRates.length === 1 && sameCardGlyph &&
      quantity <= 5 && rateUnit) {
