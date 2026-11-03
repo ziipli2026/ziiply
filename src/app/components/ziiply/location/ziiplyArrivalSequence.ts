@@ -84,7 +84,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
  return {state,status:inStore?'in-store':!valid||ambiguous?'uncertain':candidate?(driving?'moving':'near-store'):'checking',
    store,isSelectedStore,askStoreChange:!!arrivalConfirmed&&!isSelectedStore&&sameChain,
-   showArrivalMessage,radar:inStore?'green':candidate?'yellow':'white'};
+   showArrivalMessage,radar:inStore&&isSelectedStore?'green':candidate&&selectedCandidate?'yellow':'white'};
 }
 export function confirmZiiplyStorePresence(previous:ZiiplyArrivalState,storeId:string):ZiiplyArrivalState {
  return {...previous,arrivalStoreId:storeId,tripConfirmed:true,departureSamples:0};
