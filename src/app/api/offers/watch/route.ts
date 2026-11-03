@@ -32,7 +32,6 @@ function canonicalWatchQueries(value: string | null): string {
 
 const watchScanCache = new Map<string,{expires:number,promise:Promise<Response>}>();
 const WATCH_CACHE_MS = 5 * 60 * 1000;
-const WATCH_PARTIAL_CACHE_MS = 30 * 1000;
 const WATCH_CACHE_MAX = 80;
 
 export async function GET(request: Request) {
@@ -56,8 +55,8 @@ export async function GET(request: Request) {
     const response = await promise;
     if (!response.ok) { watchScanCache.delete(key); return response; }
     const payload = await response.clone().json() as {ok?:boolean;partial?:boolean};
-    if (!payload.ok) watchScanCache.delete(key);
-    else watchScanCache.set(key,{expires:Date.now()+(payload.partial?WATCH_PARTIAL_CACHE_MS:WATCH_CACHE_MS),promise:Promise.resolve(response.clone())});
+    if (!payload.ok || payload.partial) watchScanCache.delete(key);
+    else watchScanCache.set(key,{expires:Date.now()+WATCH_CACHE_MS,promise:Promise.resolve(response.clone())});
     while(watchScanCache.size>WATCH_CACHE_MAX)watchScanCache.delete(watchScanCache.keys().next().value!);
     return response;
   } catch(error) {
