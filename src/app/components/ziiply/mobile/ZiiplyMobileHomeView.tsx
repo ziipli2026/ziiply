@@ -55,6 +55,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
         const data=await response.json();
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
+        if(data.partial)return;
         if(!cancelled){
           const count=offers.length;
           setWatchCount(count);
