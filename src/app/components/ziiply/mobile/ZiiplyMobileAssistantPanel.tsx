@@ -1,5 +1,6 @@
 "use client";
 import { gostaWatchUrl } from "./gostaWatchLocation";
+import { fetchSharedGostaWatch } from "./gostaWatchSharedRequest";
 import { matchesGostaWatch } from "./gostaWatchMatch";
 import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
 import ArvoSettingsPanel from "../ArvoSettingsPanel";
@@ -75,8 +76,7 @@ export default function ZiiplyMobileAssistantPanel({
     const terms=watchKey?watchKey.split("|"):["kahvi","limsa"];
     const started=Date.now();
     try{
-      const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store"});
-      const data=await response.json();
+      const {response,data}=await fetchSharedGostaWatch(await gostaWatchUrl(terms));
       const offers=Array.isArray(data?.results)?data.results:[];
       const counts=Object.fromEntries(terms.map(q=>[q,offers.filter((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:[]).some((w:string)=>w.toLocaleLowerCase("fi")===q.toLocaleLowerCase("fi"))).length]));
       if(response.ok&&data?.ok&&Array.isArray(data.results)){
@@ -120,8 +120,7 @@ export default function ZiiplyMobileAssistantPanel({
       setWatchDebug("Haku käynnissä: "+new Date().toLocaleTimeString("fi-FI")+" | hakusanat: "+watchKey);
       try{
         const terms=watchKey.split("|");
-        const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store",signal:AbortSignal.timeout(40000)});
-        const data=await response.json();
+        const {response,data}=await fetchSharedGostaWatch(await gostaWatchUrl(terms));
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahtien API epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
         const seen=new Set<string>();
