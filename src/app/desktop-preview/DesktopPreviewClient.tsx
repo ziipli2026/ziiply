@@ -2890,7 +2890,7 @@ export default function DesktopPreviewPage() {
                   // Compare the next quarter with the current quarter, matching mobile.
                   const color = electricityTrendColor;
                   return <svg viewBox="0 0 64 64" className="h-[29px] w-[29px] shrink-0 drop-shadow-sm" aria-hidden="true"><path d="M37 3 14 36h18L25 61l25-36H32L37 3Z" fill={color} stroke={color} strokeWidth="3" strokeLinejoin="round" /></svg>;
-                })() : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
+                })() : title === "SÄÄ" ? <span className="absolute left-[8px] top-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm">{icon}</span> : <span className="text-[27px] drop-shadow-sm">{icon}</span>}
                 {title === "AJOAINE" ? (
                   <>
                     <span className="absolute left-[29px] top-[6px] -translate-x-1/2 whitespace-nowrap text-center text-[10px] font-black leading-none text-[#625b43]">
@@ -2907,15 +2907,20 @@ export default function DesktopPreviewPage() {
                     </span>
                   </>
                 ) : (
+                  {title === "SÄÄ" ? (
+                    <>
+                      <span className="absolute left-[43px] top-[8px] text-[10px] font-black tracking-[0.08em] leading-none text-[#625b43]">SÄÄ</span>
+                      <span className="absolute left-[42px] top-[25px] whitespace-nowrap text-[22px] font-black leading-none text-[#102a24] tabular-nums">{value}</span>
+                      <span className="absolute left-[75px] top-[9px] flex flex-col gap-[6px] whitespace-nowrap text-[10px] font-black leading-[1.1] text-[#102a24] tabular-nums">
+                        <span className="inline-flex items-center gap-[3px]"><span className="text-[12px] leading-none" aria-label="Ilmanpaine">◉</span>{weatherExtras.pressure == null ? "— hPa" : `${Math.round(weatherExtras.pressure)} hPa`}</span>
+                        <span className="inline-flex items-center gap-[3px]"><span className="text-[12px] leading-none" aria-label="Suhteellinen kosteus">💧</span>{weatherExtras.humidity == null ? "— %" : `${Math.round(weatherExtras.humidity)} %`}</span>
+                        <span className="inline-flex items-center gap-[3px]"><span className="inline-block text-[13px] leading-none" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}} aria-label="Tuulen puhallussuunta">↑</span>{weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}</span>
+                      </span>
+                    </>
+                  ) : (
                   <span className="relative -top-[6px] min-w-0">
                     <span className="block text-[9px] font-black tracking-[0.12em] text-[#625b43]">{title}</span>
-                    {title === "SÄÄ" ? (
-                      <span className="mt-[1px] flex flex-col gap-[1px] whitespace-nowrap font-black leading-none text-[#102a24]">
-                        <span className="text-[19px]">{value}</span>
-                        <span className="text-[8px] text-[#625b43]">◉ {weatherExtras.pressure == null ? "—" : Math.round(weatherExtras.pressure)} hPa · 💧 {weatherExtras.humidity == null ? "—" : Math.round(weatherExtras.humidity)} %</span>
-                        <span className="inline-flex items-center gap-1 text-[9px] text-[#625b43]"><span className="inline-block text-[12px]" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}} aria-label="Tuulen puhallussuunta">↑</span>{weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}</span>
-                      </span>
-                    ) : title === "SÄHKÖ" ? (
+                    {title === "SÄHKÖ" ? (
                       <>
                         <span className="mt-0.5 inline-flex items-center gap-0 whitespace-nowrap">
                           <span className="relative block text-[19px] font-black leading-none text-[#102a24] tabular-nums">
@@ -2932,6 +2937,7 @@ export default function DesktopPreviewPage() {
                       </>
                     )}
                   </span>
+                  )}
                 )}
               </button>
             ))}
