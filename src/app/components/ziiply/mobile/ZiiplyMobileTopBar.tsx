@@ -529,7 +529,7 @@ export default function ZiiplyMobileTopBar({
     let cancelled = false;
     setChartLoading(true);
     setChartError("");
-    fetch("https://api.porssisahko.net/v1/latest-prices.json", { cache: "no-store" })
+    fetch("/api/desktop-electricity", { cache: "no-store" })
       .then(async response => { if (!response.ok) throw new Error("Hintatietojen lataus epäonnistui"); return response.json(); })
       .then(data => {
         if (cancelled) return;
@@ -542,11 +542,15 @@ export default function ZiiplyMobileTopBar({
         })).filter((item: {start: string; price: number}) => {
           const time = Date.parse(item.start);
           return Number.isFinite(time) && time >= now - 60 * 60 * 1000 && time < end && Number.isFinite(item.price);
-        }).sort((a: {start: string}, b: {start: string}) => Date.parse(a.start) - Date.parse(b.start)).slice(0, 24);
-        setChartPrices(rows);
-        if (!rows.length) setChartError("Seuraavan 24 tunnin hintatietoja ei ole saatavilla.");
+        }).sort((a: {start: string}, b: {start: string}) => Date.parse(a.start) - Date.parse(b.start)).slice(0, 96);
+        if (rows.length) {
+          setChartPrices(rows);
+          setChartError("");
+        } else {
+          setChartError("Uusia hintatietoja ei saatu; aiemmin ladatut hinnat säilyvät.");
+        }
       })
-      .catch(() => { if (!cancelled) setChartError("Hintakäyrän lataus epäonnistui."); })
+      .catch(() => { if (!cancelled) setChartError("Hintakäyrän päivitys epäonnistui; aiemmat hinnat säilyvät."); })
       .finally(() => { if (!cancelled) setChartLoading(false); });
     return () => { cancelled = true; };
   }, [chartOpen]);
