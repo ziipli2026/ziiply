@@ -2062,29 +2062,42 @@ export default function DesktopPreviewPage() {
     const unique=matching.filter((offer:any)=>{const key=String(offer.__gostaHomeStore||"")+"|"+String(offer.id||offer.ean||offer.title||offer.name||"")+"|"+String(offer.price||offer.offerPrice||"");if(seen.has(key))return false;seen.add(key);return true;});
     return {offers:unique,partial:batches.some(batch=>batch.status==="rejected")};
   }
-  const gostaWatchAutoRun=useRef("");
   const gostaWatchAutoRequest=useRef(0);
   const gostaWatchQueryKey=gostaSavedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
+  const gostaWatchLastSlot=useRef("");
+  const gostaWatchScanning=useRef(false);
   useEffect(()=>{
     if(!gostaHomeHydrated||!gostaWatchQueryKey||(!stores.length&&!lidlStores.length&&!sparStores.length)){
       if(!gostaWatchQueryKey)setGostaFreshWatchCount(null);
       return;
     }
-    const key=gostaWatchQueryKey;
-    if(gostaWatchAutoRun.current===key)return;
-    gostaWatchAutoRun.current=key;
+    let cancelled=false;
     const request=++gostaWatchAutoRequest.current;
-    setGostaFreshWatchCount(null);
-    const timer=window.setTimeout(()=>{
-      void fetchFreshGostaWatchOffers(key.split("|")).then(result=>{
-        if(request===gostaWatchAutoRequest.current)setGostaFreshWatchCount(result.offers.length);
-      }).catch(()=>{
-        if(request===gostaWatchAutoRequest.current)setGostaFreshWatchCount(null);
-        gostaWatchAutoRun.current="";
-      });
-    },1200);
-    return()=>{window.clearTimeout(timer);if(gostaWatchAutoRun.current===key&&request===gostaWatchAutoRequest.current){gostaWatchAutoRun.current="";gostaWatchAutoRequest.current++;}};
-    // If store data changes during the debounce, cancel and re-arm the scan instead of permanently marking it complete.
+    const scan=async()=>{
+      if(cancelled||gostaWatchScanning.current)return;
+      gostaWatchScanning.current=true;
+      setGostaFreshWatchCount(null);
+      try{
+        const result=await fetchFreshGostaWatchOffers(gostaWatchQueryKey.split("|"));
+        if(!cancelled&&request===gostaWatchAutoRequest.current)setGostaFreshWatchCount(result.offers.length);
+      }catch{
+        if(!cancelled&&request===gostaWatchAutoRequest.current)setGostaFreshWatchCount(null);
+      }finally{gostaWatchScanning.current=false;}
+    };
+    // Every page load starts a fresh scan; no saved browser-cache snapshot can suppress it.
+    const initial=window.setTimeout(()=>{void scan();},1200);
+    const checkSchedule=()=>{
+      const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
+      const get=(type:string)=>parts.find(part=>part.type===type)?.value||"";
+      const hour=Number(get("hour"));
+      if(![7,13,19].includes(hour))return;
+      const slot=[get("year"),get("month"),get("day"),hour].join("-");
+      if(gostaWatchLastSlot.current===slot||gostaWatchScanning.current)return;
+      gostaWatchLastSlot.current=slot;
+      void scan();
+    };
+    const interval=window.setInterval(checkSchedule,60*1000);
+    return()=>{cancelled=true;window.clearTimeout(initial);window.clearInterval(interval);gostaWatchAutoRequest.current++;};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[gostaHomeHydrated,gostaWatchQueryKey,stores.length,lidlStores.length,sparStores.length]);
   async function openAllGostaWatchResults(){
