@@ -1,3 +1,4 @@
+import { matchesGostaWatch } from "./gostaWatchMatch";
 "use client";
 
 import React from "react";
@@ -44,9 +45,10 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
       running=true;
       setWatchScanning(true);
       try{
-        const searches=await Promise.allSettled(watchKey.split("|").map(query=>searchZiiplyGostaOffersV146({query})));
-        if(!cancelled&&searches.some(result=>result.status==="fulfilled")){
-          const count=searches.reduce((sum,result)=>sum+(result.status==="fulfilled"?result.value.results.length:0),0);
+        const response=await searchZiiplyGostaOffersV146({query:""});
+        if(!cancelled){
+          const terms=watchKey.split("|");
+          const count=response.results.reduce((sum,offer:any)=>sum+terms.filter(query=>matchesGostaWatch(query,offer)).length,0);
           setWatchCount(count);
           lastScan=Date.now();
         }
