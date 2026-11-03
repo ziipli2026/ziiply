@@ -44,6 +44,14 @@ test("45AV corrected titles and prices retain the original publisher image card 
   assert.match(provider, /publisherOfferId:"kcm:spatial:"\+page\+":"\+rawTitle\+":"\+suffix/);
   assert.match(provider, /publisherOfferId:row\.publisherOfferId/);
 });
+test("45AV frozen parser baseline contains the corrected printed Juleskum and Vital prices", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(root, "diagnostics/45AV/printed-transaction-fixture.json"), "utf8"));
+  const keys = new Set(fixture.offers.map(offer => offer.key));
+  assert.equal(fixture.pageCount, 20);
+  assert.equal(fixture.offers.length, 33);
+  assert.ok(keys.has("kcm:spatial:7:juleskum 250 g:1.99"));
+  assert.ok(keys.has("kcm:spatial:3:vital hyvinvointimehut 1 l:4.7"));
+});
 test("45AV manual image selections cover the verified meal, potato and LV product groups", () => {
   const selections = JSON.parse(fs.readFileSync(path.join(root, "scripts/citymarket/reviewed-selections.json"), "utf8"));
   const publication = selections["65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3"];
