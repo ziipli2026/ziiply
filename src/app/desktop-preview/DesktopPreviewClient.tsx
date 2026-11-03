@@ -3006,7 +3006,7 @@ export default function DesktopPreviewPage() {
                         </svg>
                       </span>
                       <span className="absolute left-1/2 top-[27px] -translate-x-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm" aria-label="Säätila">{icon}</span>
-                      <span className={`absolute top-[25px] whitespace-nowrap font-black leading-none tabular-nums ${/[-+−]?\d{2,}/.test(value) ? "left-[8px] text-[16px] tracking-[-0.06em]" : "left-[10px] text-[20px]"}`}>{value}</span>
+                      <span className={`absolute top-[25px] whitespace-nowrap font-black leading-none tabular-nums ${/[-+−]?\d{2,}/.test(value) ? "left-[7px] text-[15px] tracking-[-0.06em]" : "left-[10px] text-[20px]"}`}>{value}</span>
                       <span className="absolute right-[7px] top-[28px] whitespace-nowrap text-[10px] font-black leading-none tabular-nums" aria-label="Tuulen nopeus">
                         {weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}
                       </span>
