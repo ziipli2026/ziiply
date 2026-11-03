@@ -152,9 +152,10 @@ export async function GET(request: Request) {
         results.push({...offer,title,storeName:store,chain:String(row.chain),watchQueries:matchingQueries});
       }
     }
+    const partial=nearbyDiagnostics.length!==6||nearbyDiagnostics.some(item=>Boolean(item.error));
     results.sort((a,b)=>priceNumber(a)-priceNumber(b));
     const matchesByQuery=Object.fromEntries(queries.map(q=>[q,results.filter(r=>(r.watchQueries as string[]).includes(q)).length]));
-    return NextResponse.json({ok:true,queries,results,diagnostic:{matchesByQuery,publications:rows.length,inspected,matched:results.length,sources,nearby:nearbyDiagnostics,durationMs:Date.now()-started}},
+    return NextResponse.json({ok:true,partial,queries,results,diagnostic:{partial,matchesByQuery,publications:rows.length,inspected,matched:results.length,sources,nearby:nearbyDiagnostics,durationMs:Date.now()-started}},
       {headers:{"Cache-Control":"no-store"}});
   } catch(error) {
     return NextResponse.json({ok:false,error:error instanceof Error?error.message:String(error),results:[],diagnostic:{durationMs:Date.now()-started}},{status:500,headers:{"Cache-Control":"no-store"}});
