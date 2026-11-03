@@ -23,8 +23,9 @@ export function removeDuplicateContinuationRows(rows) {
           Math.abs(Number(size.max) - Number(previousSize.max)) > 0.000001) return false;
       const previousTitle = normalize(previous?.title);
       const isContainedFragment = previousTitle.includes(title) && previousTitle !== title;
-      const nearbyConfirms = (previous?.nearby ?? []).some(x => normalize(typeof x === "string" ? x : x?.text ?? x?.raw).includes(title));
-      return isContainedFragment && nearbyConfirms;
+      // The clipped row must be a strict title fragment of the complete
+      // same-page, same-package, same-price product. Nearby OCR can itself be clipped.
+      return isContainedFragment;
     });
   });
 }
