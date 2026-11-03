@@ -147,7 +147,8 @@ def build(folder,manifest_path,public_folder,review_path):
     distance=(math.hypot((cx-(anchor['left']+anchor['width']/2))*1.4,
                          (cy-anchor['top'])*1.3) if anchor else None)
     candidates.append({'rectangle':list(block['bbox']),'distance':round(distance,4) if distance is not None else None,
-                       'blocked':blocked(page,anchor,block['bbox']) if anchor else None})
+                       'blocked':blocked(page,anchor,block['bbox']) if anchor else None,
+                       'ocrWords':image_words(block)[:24]})
    candidates.sort(key=lambda c:c['distance'] if c['distance'] is not None else 999)
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
                   'candidateImageRectangles':candidates[:15],
