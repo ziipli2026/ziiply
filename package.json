@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:citymarket": "node --test tests/citymarket-45av-continuation.test.cjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
