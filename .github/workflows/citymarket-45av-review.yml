@@ -19,6 +19,18 @@ jobs:
           if [ ! -f diagnostics/45AV/archive-manifest.json ]; then
             node scripts/citymarket/export-leaflet.mjs https://kcm-tarjouslehdet.k-ruoka.fi/89d635q_tarjouslehti_45AV_KCM/index.html diagnostics/45AV src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js
           fi
+      - name: Install PDF image audit dependencies
+        run: |
+          python -m pip install 'PyMuPDF==1.26.6' 'Pillow>=10,<13'
+          sudo apt-get update -qq
+          sudo apt-get install -y tesseract-ocr
+      - name: Extract only publisher-verified 45AV product images
+        run: |
+          python scripts/citymarket/build-images.py diagnostics/45AV --manifest src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json --public public/citymarket-leaflets --reviewed scripts/citymarket/reviewed-selections.json
+      - name: Verify 45AV image manifest and report unresolved image cards
+        run: |
+          node scripts/citymarket/verify-images.mjs
+          node -e "const fs=require('fs');const r=JSON.parse(fs.readFileSync('diagnostics/45AV/image-report.json'));const u=r.filter(x=>x.status==='manual-review-needed');console.log(JSON.stringify({matched:r.filter(x=>x.images>0).length,unresolved:u.length,unresolvedTitles:u.map(x=>x.title)},null,2));"
       - name: Run 45AV source-backed parser regression tests
         run: node --test tests/citymarket-45av-review.test.cjs
       - name: Preserve source and parser evidence for correction review
@@ -26,11 +38,13 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add diagnostics/45AV
+          git add diagnostics/45AV public/citymarket-leaflets src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json
           git diff --cached --quiet || git commit -m 'Freeze 45AV original source for correction review [skip ci]'
           git push
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: citymarket-45av-correction-evidence
-          path: diagnostics/45AV
+          path: |
+            diagnostics/45AV
+            public/citymarket-leaflets
