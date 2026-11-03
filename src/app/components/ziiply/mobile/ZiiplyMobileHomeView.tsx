@@ -67,7 +67,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
           setWatchCount(offers.length);
           lastScan=Date.now();
           if(!data.partial){
-            const cached={key:watchKey,offers:offers.map((offer:any)=>({query:String(offer.watchQueries?.[0]||""),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.sourceType||offer.chain||"")})),at:lastScan,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI")};
+            const cached={key:watchKey,offers:offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((query:string)=>({query:String(query),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.sourceType||offer.chain||"")}))),at:lastScan,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI")};
             try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify(cached));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}
           }
         }
