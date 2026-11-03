@@ -2064,7 +2064,7 @@ export default function DesktopPreviewPage() {
   }
   const gostaWatchAutoRequest=useRef(0);
   const gostaWatchQueryKey=gostaSavedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
-  const gostaWatchLastSlot=useRef("");
+  const gostaWatchLastScan=useRef(0);
   const gostaWatchScanning=useRef(false);
   useEffect(()=>{
     if(!gostaHomeHydrated||!gostaWatchQueryKey||(!stores.length&&!lidlStores.length&&!sparStores.length)){
@@ -2073,31 +2073,51 @@ export default function DesktopPreviewPage() {
     }
     let cancelled=false;
     const request=++gostaWatchAutoRequest.current;
+    // A reload always fetches fresh offers; a background refresh must not hide the last valid badge.
     const scan=async()=>{
       if(cancelled||gostaWatchScanning.current)return;
       gostaWatchScanning.current=true;
-      setGostaFreshWatchCount(null);
       try{
         const result=await fetchFreshGostaWatchOffers(gostaWatchQueryKey.split("|"));
-        if(!cancelled&&request===gostaWatchAutoRequest.current)setGostaFreshWatchCount(result.offers.length);
+        if(!cancelled&&request===gostaWatchAutoRequest.current){
+          setGostaFreshWatchCount(result.offers.length);
+          gostaWatchLastScan.current=Date.now();
+        }
       }catch{
-        if(!cancelled&&request===gostaWatchAutoRequest.current)setGostaFreshWatchCount(null);
+        // Retain the last successful count on a transient network or suspended-tab failure.
       }finally{gostaWatchScanning.current=false;}
     };
-    // Every page load starts a fresh scan; no saved browser-cache snapshot can suppress it.
     const initial=window.setTimeout(()=>{void scan();},1200);
     const checkSchedule=()=>{
-      const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
+      if(document.visibilityState!=="visible")return;
+      const now=new Date();
+      const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).formatToParts(now);
       const get=(type:string)=>parts.find(part=>part.type===type)?.value||"";
       const hour=Number(get("hour"));
-      if(![7,13,19].includes(hour))return;
-      const slot=[get("year"),get("month"),get("day"),hour].join("-");
-      if(gostaWatchLastSlot.current===slot||gostaWatchScanning.current)return;
-      gostaWatchLastSlot.current=slot;
+      const slotStart=[7,13,19].filter(h=>h<=hour).pop();
+      if(slotStart===undefined)return;
+      const slot=[get("year"),get("month"),get("day"),slotStart].join("-");
+      const lastSlot=window.sessionStorage.getItem("ziiply-gosta-watch-slot-v1");
+      if(lastSlot===slot||gostaWatchScanning.current)return;
+      window.sessionStorage.setItem("ziiply-gosta-watch-slot-v1",slot);
       void scan();
     };
+    const onResume=()=>{
+      if(document.visibilityState!=="visible")return;
+      if(Date.now()-gostaWatchLastScan.current>30*60*1000)void scan();
+      checkSchedule();
+    };
     const interval=window.setInterval(checkSchedule,60*1000);
-    return()=>{cancelled=true;window.clearTimeout(initial);window.clearInterval(interval);gostaWatchAutoRequest.current++;};
+    document.addEventListener("visibilitychange",onResume);
+    window.addEventListener("focus",onResume);
+    return()=>{
+      cancelled=true;
+      window.clearTimeout(initial);
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange",onResume);
+      window.removeEventListener("focus",onResume);
+      gostaWatchAutoRequest.current++;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[gostaHomeHydrated,gostaWatchQueryKey,stores.length,lidlStores.length,sparStores.length]);
   async function openAllGostaWatchResults(){
@@ -3185,7 +3205,7 @@ export default function DesktopPreviewPage() {
               onGostaDetails={()=>{setGostaHomeSearchOpen(true);setGostaChainPicker(false);}}
               onGostaHomeSearch={()=>{setGostaHomeSearchOpen(true);setGostaDetailsOpen(false);setGostaChainPicker(false);}}
               gostaWatchCount={gostaFreshWatchCount??0}
-               gostaWatchActive={gostaSavedWatches.length>0&&gostaFreshWatchCount!==null&&gostaFreshWatchCount>0&&!gostaHomeLoading}
+               gostaWatchActive={gostaSavedWatches.length>0&&gostaFreshWatchCount!==null&&gostaFreshWatchCount>0}
               onGostaWatchOpen={()=>{setGostaChainPicker(false);void openAllGostaWatchResults();}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
