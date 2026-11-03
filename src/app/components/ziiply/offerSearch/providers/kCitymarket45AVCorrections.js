@@ -12,29 +12,29 @@ export function repairCitymarketPrintedTitle(row, rawTitle = row?.title ?? "") {
 }
 export function removeDuplicateContinuationRows(rows) {
   const input = Array.isArray(rows) ? rows : [];
-  // The LV 15% discount is one printed offer continued on the next line.
-  // Combine the actual products rather than publishing a second orphan row.
-  const lvParent = input.find(row => /LV PYYKINPESUNESTEET/i.test(String(row?.title ?? "")));
-  const lvContinuation = input.find(row => /^(?:tai|LV)\s+TAHRANPOISTOSUIHKE\s+150\s*ml$/i.test(String(row?.title ?? "")));
-  if (lvParent && lvContinuation && Number(lvParent.page) === Number(lvContinuation.page)) {
-    lvParent.title = String(lvParent.title).replace(/\\s*$/, "") + " tai TAHRANPOISTOSUIHKE 150 ml";
-    return input.filter(row => row !== lvContinuation).filter((row, index, retained) => {
-      const title = normalize(row?.title);
-      if (!title || title.length > 42) return true;
-      const page = Number(row?.page) || 0;
-      const price = Number(row?.spatialResolved?.value);
-      return !retained.slice(0,index).some(previous => Number(previous?.page) === page &&
-        normalize(previous?.title).includes(title) && normalize(previous?.title) !== title &&
-        Math.abs(Number(previous?.spatialResolved?.value)-price)<0.005);
-    });
+  // Join only a same-page, same-discount LV continuation; do not mutate
+  // source parser rows or collapse unrelated products sharing a price.
+  const parentIndex = input.findIndex(row => /^LV PYYKINPESUNESTEET/i.test(String(row?.title ?? "")));
+  const continuationIndex = input.findIndex(row => /^(?:tai|LV)\s+TAHRANPOISTOSUIHKE\s+150\s*ml$/i.test(String(row?.title ?? "")));
+  let merged = input;
+  if (parentIndex >= 0 && continuationIndex >= 0 && parentIndex !== continuationIndex) {
+    const parent = input[parentIndex];
+    const continuation = input[continuationIndex];
+    const parentDiscount = Number(parent?.percentageOffer?.percent);
+    const continuationDiscount = Number(continuation?.percentageOffer?.percent);
+    if (Number(parent?.page) === Number(continuation?.page) &&
+        parentDiscount > 0 && parentDiscount === continuationDiscount) {
+      merged = input.filter((_, index) => index !== continuationIndex).map((row, index) =>
+        row === parent ? { ...row, title: String(parent.title).trimEnd() + " tai TAHRANPOISTOSUIHKE 150 ml" } : row);
+    }
   }
-  return input.filter((row, index) => {
+  return merged.filter((row, index) => {
     const title = normalize(row?.title);
     if (!title || title.length > 42) return true;
     const page = Number(row?.page) || 0;
     const size = row?.package;
     const price = Number(row?.spatialResolved?.value);
-    return !input.slice(0, index).some(previous => {
+    return !merged.slice(0, index).some(previous => {
       if ((Number(previous?.page) || 0) !== page) return false;
       const previousPrice = Number(previous?.spatialResolved?.value);
       if (!Number.isFinite(price) || !Number.isFinite(previousPrice) || Math.abs(price - previousPrice) > 0.005) return false;
@@ -42,10 +42,7 @@ export function removeDuplicateContinuationRows(rows) {
       if (!size || !previousSize || Math.abs(Number(size.min) - Number(previousSize.min)) > 0.000001 ||
           Math.abs(Number(size.max) - Number(previousSize.max)) > 0.000001) return false;
       const previousTitle = normalize(previous?.title);
-      const isContainedFragment = previousTitle.includes(title) && previousTitle !== title;
-      // The clipped row must be a strict title fragment of the complete
-      // same-page, same-package, same-price product. Nearby OCR can itself be clipped.
-      return isContainedFragment;
+      return previousTitle.includes(title) && previousTitle !== title;
     });
   });
 }
