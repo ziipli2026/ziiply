@@ -2047,7 +2047,7 @@ export default function DesktopPreviewPage() {
     const batches=await Promise.allSettled(stores.map(async store=>{
       const kind=storeKind(store);
       const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";
-      const results=await warmOffers(chain,store);
+      const results=await warmOffers(chain,store,true);
       return results.map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeChain:chain==="LIDL"?"Lidl":chain==="EUROSPAR"?"Eurospar":chain==="TOKMANNI"?"Tokmanni":chain==="S"?"S-ryhmä":"K-ryhmä",__gostaHomeCity:String(store?.city||store?.municipality||store?.locality||""),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
     }));
     if(batches.every(batch=>batch.status==="rejected"))throw new Error("Tarjousten lataus epäonnistui.");
@@ -3137,7 +3137,7 @@ export default function DesktopPreviewPage() {
               onReportFuel={()=>{setFuelCompared(false);setFuelReportOpen(true);}}
               onGostaDetails={()=>{setGostaHomeSearchOpen(true);setGostaChainPicker(false);}}
               onGostaHomeSearch={()=>{setGostaHomeSearchOpen(true);setGostaDetailsOpen(false);setGostaChainPicker(false);}}
-              gostaWatchCount={gostaFreshWatchCount??0}
+              gostaWatchCount={gostaFreshWatchCount??gostaWatchOffers.length}
                gostaWatchActive={gostaSavedWatches.length>0}
               onGostaWatchOpen={()=>{setGostaChainPicker(false);void openAllGostaWatchResults();}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
