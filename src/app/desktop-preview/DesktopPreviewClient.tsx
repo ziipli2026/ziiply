@@ -2040,6 +2040,45 @@ export default function DesktopPreviewPage() {
     },1200);
     return ()=>{cancelled=true;window.clearTimeout(timer);};
   },[stores,lidlStores,sparStores,allStoreSelections,selectedStores,withinStoreSlots,gpsCoords,appliedLocation]);
+  async function fetchFreshGostaWatchOffers(queries:string[]){
+    const stores=gostaNearbyOfferStores();
+    if(!stores.length)throw new Error("Lähialueen kauppoja ei löytynyt.");
+    const batches=await Promise.allSettled(stores.map(async store=>{
+      const kind=storeKind(store);
+      const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";
+      const results=await warmOffers(chain,store);
+      return results.map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeChain:chain==="LIDL"?"Lidl":chain==="EUROSPAR"?"Eurospar":chain==="TOKMANNI"?"Tokmanni":chain==="S"?"S-ryhmä":"K-ryhmä",__gostaHomeCity:String(store?.city||store?.municipality||store?.locality||""),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
+    }));
+    if(batches.every(batch=>batch.status==="rejected"))throw new Error("Tarjousten lataus epäonnistui.");
+    const all=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]);
+    const matching=queries.flatMap(query=>all.filter((offer:any)=>desktopSearchDecision(query,{...offer,name:String(offer.title||offer.name||"")}).accepted).map((offer:any)=>({...offer,__gostaWatchQuery:query})));
+    const seen=new Set<string>();
+    const unique=matching.filter((offer:any)=>{const key=String(offer.__gostaHomeStore||"")+"|"+String(offer.id||offer.ean||offer.title||offer.name||"")+"|"+String(offer.price||offer.offerPrice||"");if(seen.has(key))return false;seen.add(key);return true;});
+    return {offers:unique,partial:batches.some(batch=>batch.status==="rejected")};
+  }
+  async function openAllGostaWatchResults(){
+    const queries=[...gostaSavedWatches];
+    const request=++gostaHomeRequestId.current;
+    setGostaWatchResultsMode(true);
+    setGostaHomeQuery("");
+    setGostaHomeDebouncedQuery("");
+    setGostaExpandedOfferGroup(null);
+    setGostaSelectedOfferKeys([]);
+    setGostaShowSavedWatches(false);
+    setGostaHomeSearchOpen(true);
+    setGostaHomeResults([]);
+    setGostaHomeHasSearched(true);
+    setGostaHomeLoading(true);
+    setGostaHomeError("");
+    try{
+      const result=await fetchFreshGostaWatchOffers(queries);
+      if(request!==gostaHomeRequestId.current)return;
+      setGostaHomeResults(result.offers);
+      setGostaHomeError(result.partial?"Osa kaupoista ei vastannut; näytetään saadut tarjoukset.":result.offers.length?"":"Tallennetuilla hakusanoilla ei löytynyt voimassa olevia tarjouksia.");
+    }catch(error){
+      if(request===gostaHomeRequestId.current)setGostaHomeError(error instanceof Error?error.message:"Tarjousten haku epäonnistui.");
+    }finally{if(request===gostaHomeRequestId.current)setGostaHomeLoading(false);}
+  }
   async function searchGostaHomepageOffers(forceRefresh=false) {
     const query=gostaHomeQuery.trim().toLocaleLowerCase("fi");
     if(!query){setGostaHomeResults([]);setGostaHomeError("Kirjoita ensin hakusana.");return;}
@@ -3095,7 +3134,7 @@ export default function DesktopPreviewPage() {
               onGostaHomeSearch={()=>{setGostaHomeSearchOpen(true);setGostaDetailsOpen(false);setGostaChainPicker(false);}}
               gostaWatchCount={gostaWatchOffers.length}
                gostaWatchActive={gostaSavedWatches.length>0}
-              onGostaWatchOpen={()=>{setGostaChainPicker(false);if(gostaSavedWatches.length===1){openGostaWatchResults(gostaSavedWatches[0]);}else{gostaHomeRequestId.current++;setGostaWatchResultsMode(true);setGostaHomeQuery("");setGostaHomeDebouncedQuery("");setGostaExpandedOfferGroup(null);setGostaSelectedOfferKeys([]);setGostaShowSavedWatches(false);setGostaHomeSearchOpen(true);const offers=gostaWatchOffers.map(item=>item.offer);const seen=new Set<string>();const unique=offers.filter((offer:any)=>{const key=String(offer.__gostaHomeStore||"")+"|"+String(offer.id||offer.ean||offer.title||offer.name||"")+"|"+String(offer.price||offer.offerPrice||"");if(seen.has(key))return false;seen.add(key);return true;});setGostaHomeResults(unique);setGostaHomeHasSearched(true);setGostaHomeLoading(false);setGostaHomeError(unique.length?"":"Tallennettujen vahtien tarjouksia ei ole välimuistissa. Avaa vahti vihkosta ja hae tarjoukset.");}}}
+              onGostaWatchOpen={()=>{setGostaChainPicker(false);void openAllGostaWatchResults();}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
               chooseStoresNoticeFor={chooseStoresNoticeFor}
