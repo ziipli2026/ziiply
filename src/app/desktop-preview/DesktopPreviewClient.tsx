@@ -3083,6 +3083,7 @@ export default function DesktopPreviewPage() {
               onGostaDetails={()=>{setGostaHomeSearchOpen(true);setGostaChainPicker(false);}}
               onGostaHomeSearch={()=>{setGostaHomeSearchOpen(true);setGostaDetailsOpen(false);setGostaChainPicker(false);}}
               gostaWatchCount={gostaWatchOffers.length}
+               gostaWatchActive={gostaSavedWatches.length>0}
               onGostaWatchOpen={()=>{setGostaChainPicker(false);if(gostaSavedWatches.length===1){openGostaWatchResults(gostaSavedWatches[0]);}else{setGostaHomeSearchOpen(true);setGostaShowSavedWatches(true);}}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
