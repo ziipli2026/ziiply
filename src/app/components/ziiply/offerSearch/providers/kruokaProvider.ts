@@ -452,6 +452,11 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b(?:kassler\w*|uunilenk\w*|lenkkimakkara\w*|siskonmakkara\w*|grillimakkara\w*)\b/.test(productTitle)) return "Liha & makkarat";
   if (/\b(?:tortellon\w*|tortellin\w*|raviol\w*|gnocch\w*)\b/.test(productTitle)) return "Kuivatuotteet";
 
+  // Product identity precedes source department: the same Tjek leaflet can
+  // misleadingly tag pizza and prepared meals as dairy.
+  if (/\bpizz\w*\b/.test(productTitle)) return /\b(?:pakaste\w*|grandiosa)\b/.test(productTitle) ? "Pakasteet" : "Valmisruoka";
+  if (/\b(?:margariin\w*|levite\w*)\b/.test(productTitle)) return "Maitotuotteet";
+  if (/\b(?:lihapyor\w*|lihapull\w*|jauhelihapihv\w*)\b/.test(productTitle) && /\b(?:tamminen|valmis\w*)\b/.test(productTitle)) return "Valmisruoka";
   // Prepared pasta dishes and casseroles are ready meals, regardless of
   // misleading leaflet department or dairy ingredients in descriptions.
   if (/\b(?:pastat?|pastaruoa\w*|pastalaatik\w*|makaronilaatik\w*|laatikot|laatikoita)\b/.test(productTitle) && /\b(?:wotkin|wotkin'?s|valmis|ateria|laatik|pasta)\w*/.test(productTitle)) return "Valmisruoka";
