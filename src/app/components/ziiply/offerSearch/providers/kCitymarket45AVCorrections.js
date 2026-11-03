@@ -1,9 +1,9 @@
-const normalize = value => String(value ?? "").normalize("NFKC").toLowerCase().replace(/\\s+/g, " ").trim();
+const normalize = value => String(value ?? "").normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
 export function repairCitymarketPrintedTitle(row, rawTitle = row?.title ?? "") {
   let title = String(rawTitle ?? "").trim();
   const nearby = (row?.nearby ?? []).map(x => typeof x === "string" ? x : String(x?.text ?? x?.raw ?? "")).join(" ");
-  if (/^ERIAT\\b/i.test(title) && /Mikromåltider/i.test(nearby)) title = title.replace(/^ERIAT/i, "MIKROATERIAT");
-  if (/^6KLASSIKOT(?=\\s+\\d)/i.test(title)) title = title.replace(/^6(?=KLASSIKOT)/i, "");
+  if (/^ERIAT\b/i.test(title) && /Mikromåltider/i.test(nearby)) title = title.replace(/^ERIAT/i, "MIKROATERIAT");
+  if (/^6KLASSIKOT(?=\s+\d)/i.test(title)) title = title.replace(/^6(?=KLASSIKOT)/i, "");
   return title;
 }
 export function removeDuplicateContinuationRows(rows) {
