@@ -21,5 +21,7 @@ jobs:
         run: node scripts/test-ziiply-arrival-scenarios.cjs
       - name: Arrival notice regression
         run: node --experimental-strip-types scripts/test-gps-arrival-notice.mjs
+      - name: Scanner and arrival UI integration audit
+        run: node scripts/test-gps-arrival-integration.cjs
       - name: TypeScript check
         run: npx tsc --noEmit
