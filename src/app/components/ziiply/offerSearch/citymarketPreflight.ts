@@ -34,7 +34,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
     failed ? "preflight-quality-failed" : "preflight-awaiting-pdf-review";
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
     quality, errors, severity: failed ? "error" : "warning", pdfReview: "pending" };
-  await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:!failed,
+  await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:false,
     count:quality?.total??input.parsed?.offers??0,outcome,details });
-  return {ok:!failed,outcome,...details};
+  return {ok:false,parserOk:!failed,outcome,...details};
 }
