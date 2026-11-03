@@ -161,9 +161,9 @@ export async function GET(request: Request) {
     }
     const partial=selectedStoreCount!==6||nearbyDiagnostics.length!==6||nearbyDiagnostics.some(item=>Boolean(item.error));
     results.sort((a,b)=>priceNumber(a)-priceNumber(b));
-    const publishedResults=partial?[]:results;
+    const publishedResults=results;
     const matchesByQuery=Object.fromEntries(queries.map(q=>[q,publishedResults.filter(r=>(r.watchQueries as string[]).includes(q)).length]));
-    return NextResponse.json({ok:!partial,partial, error:partial?"Kuuden kaupan tarjoushaku jäi vajaaksi; osumia ei julkaista.":undefined,queries,results:publishedResults,diagnostic:{partial,expectedStores:6,selectedStores:selectedStores.length,completedStores:nearbyDiagnostics.length,matchesByQuery,publications:rows.length,inspected,matched:publishedResults.length,sources,nearby:nearbyDiagnostics,durationMs:Date.now()-started}},
+    return NextResponse.json({ok:true,partial, warning:partial?"Osa kaupoista jäi tarkistamatta; näytetään vain onnistuneiden kauppojen vahvistetut tarjoukset.":undefined,queries,results:publishedResults,diagnostic:{partial,expectedStores:6,selectedStores:selectedStoreCount,completedStores:nearbyDiagnostics.length,matchesByQuery,publications:rows.length,inspected,matched:publishedResults.length,sources,nearby:nearbyDiagnostics,durationMs:Date.now()-started}},
       {headers:{"Cache-Control":"no-store"}});
   } catch(error) {
     return NextResponse.json({ok:false,error:error instanceof Error?error.message:String(error),results:[],diagnostic:{durationMs:Date.now()-started}},{status:500,headers:{"Cache-Control":"no-store"}});
