@@ -54,13 +54,23 @@ export async function GET(request: Request) {
         .filter((store:any)=>{
           const name=String(store.name||"");
           if(store.delistedAt||!/^(Prisma|S-market|Sale|Alepa|K-Market|K-Supermarket|K-Citymarket)\b/i.test(name))return false;
-          if(distance(store)>30)return false;
+          if(!Number.isFinite(distance(store)))return false;
           const id=String(store.externalId||store.id||name);
           if(seenStores.has(id))return false;seenStores.add(id);return true;
         }).sort((a:any,b:any)=>distance(a)-distance(b));
-      const radius=[30,50,100,200].find(km=>storesWithinRadius(km)>=8)??200;
-      function storesWithinRadius(km:number){return stores.filter((store:any)=>distance(store)<=km).length;}
-      const selectedStores=stores.filter((store:any)=>distance(store)<=radius).slice(0,35);
+      const category=(name:string)=>{
+        if(/^Prisma\b/i.test(name))return "sHyper";
+        if(/^K-Citymarket\b/i.test(name))return "kHyper";
+        if(/^(S-market|Sale|Alepa)\b/i.test(name))return "sLocal";
+        if(/^(K-Market|K-Supermarket)\b/i.test(name))return "kLocal";
+        return "";
+      };
+      const picked=new Set<string>();
+      const selectedStores=stores.filter((store:any)=>{
+        const kind=category(String(store.name||""));
+        if(!kind||picked.has(kind))return false;
+        picked.add(kind);return true;
+      });
       let cursor=0;
       await Promise.all(Array.from({length:Math.min(5,selectedStores.length)},async()=>{
         while(cursor<selectedStores.length){
@@ -87,7 +97,7 @@ export async function GET(request: Request) {
     const results: Array<Record<string,unknown>> = [];
     const sources: Array<{chain:string;publication:string;count:number}> = [];
     let inspected = 0;
-    for (const row of [...rows,...nearbyOffers]) {
+    for (const row of [...rows.filter(row=>/^LIDL/i.test(String(row.chain))),...nearbyOffers]) {
       const offers = Array.isArray(row.offers) ? row.offers as Record<string,unknown>[] : [];
       sources.push({chain:String(row.chain),publication:String(row.publication_id),count:offers.length});
       inspected += offers.length;
