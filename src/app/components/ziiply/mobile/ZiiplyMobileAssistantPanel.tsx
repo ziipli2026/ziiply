@@ -108,7 +108,7 @@ export default function ZiiplyMobileAssistantPanel({
       setWatchDebug("Haku käynnissä: "+new Date().toLocaleTimeString("fi-FI")+" | hakusanat: "+watchKey);
       try{
         const terms=watchKey.split("|");
-        const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store"});
+        const response=await fetch(await gostaWatchUrl(terms),{cache:"no-store",signal:AbortSignal.timeout(40000)});
         const data=await response.json();
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahtien API epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
@@ -122,15 +122,14 @@ export default function ZiiplyMobileAssistantPanel({
         setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,600)+" | lähikaupat: "+JSON.stringify(data.diagnostic?.nearby||[]).slice(0,1500));
         if(cancelled)return;
         if(data.partial){
-          setWatchError("Haku jäi vajaaksi: kaikkien kuuden kaupan tuloksia ei saatu. Osumia ei julkaista.");
-          return;
+          setWatchError("Osa kaupoista jäi tarkistamatta. Näytetään "+matched.length+" vahvistettua osumaa onnistuneista kaupoista.");
         }
         setWatchOffers(matched);
         setWatchChecked(true);
         try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));}catch{}
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
-        if(!cancelled)setWatchError("Tarjousten tarkistus epäonnistui.");
+        if(!cancelled)setWatchError("Tarjousten tarkistus epäonnistui tai kesti yli 40 sekuntia. Yritä uudelleen päivityspainikkeella.");
       }finally{
         running=false;
         if(!cancelled)setWatchLoading(false);
