@@ -19,8 +19,8 @@ assert.equal(sample(3000,0,0).showArrivalMessage,false);
 assert.equal(sample(7000,0,0).showArrivalMessage,false);
 let inside=sample(8000,0,0);
 assert.equal(inside.status,'in-store');assert.equal(inside.radar,'green');assert.equal(inside.showArrivalMessage,true);
-assert.equal(notice.phase,'list');
-notice=reduce(notice,{type:'tick',at:20000});assert.equal(notice.phase,'list','timer cannot advance notice');
+assert.equal(notice.phase,'approach');
+notice=reduce(notice,{type:'tick',at:20000});assert.equal(notice.phase,'list','timer advances notice');
 sample(9000,0,0,100);assert.equal(state.arrivalStoreId,'sale','bad GPS must not clear confirmed presence');
 sample(10000,.003,35);assert.equal(state.arrivalStoreId,'sale','one outlier cannot clear presence');
 sample(11000,.003,35);assert.equal(state.arrivalStoreId,'sale','two outliers cannot clear presence');
@@ -31,4 +31,4 @@ assert.equal(sample(0,0,0,5,[shop,{...shop,id:'other',latitude:60.00001}]).statu
 assert.equal(notice,null);
 assert.equal(core.shouldFetchZiiplyCartPrice({hasPrice:true,event:'cart-open',inStore:false,storeConfirmed:false}),false);
 assert.equal(core.shouldFetchZiiplyCartPrice({hasPrice:true,event:'ttl-expired',inStore:false,storeConfirmed:false}),false);
-console.log('PASS GPS arrival: 100m radius, drive-by suppression, 5s stop, no timer navigation, GPS dropout, departure hysteresis, ambiguity');
+console.log('PASS GPS arrival: 100m radius, drive-by suppression, 5s stop, timed notice sequence, GPS dropout, departure hysteresis, ambiguity');
