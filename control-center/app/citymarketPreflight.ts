@@ -47,8 +47,10 @@ export function citymarketPreflightStatus(runs:PreflightRun[],now=new Date(),kin
   const stale=expected.windowToday&&report&&now.getTime()-Date.parse(report.checked_at)>3*3600000;
   const archiveFailed=archive&&!archive.ok;
   // Automatic field checks and source capture do not constitute a manual full-PDF audit.
-  const metadataClean=report?.source!=="k-citymarket-preflight" || (Number(quality.missing_images??0)===0&&Number(quality.missing_categories??0)===0&&Number(quality.unverified_prices??0)===0);
-  const reviewed=archive?.outcome==="pdf-review-passed"&&archive.ok&&parserOk&&metadataClean;
+  const preflightQuality=object(preflight?.details.quality);
+  const metadataClean=Boolean(preflight)&&Number(preflightQuality.total??0)>0&&["missing_names","missing_prices","missing_images","missing_categories","unverified_prices"].every(key=>Number(preflightQuality[key]??NaN)===0);
+  const auditIsNewer=Boolean(archive&&preflight&&Date.parse(archive.checked_at)>=Date.parse(preflight.checked_at));
+  const reviewed=archive?.outcome==="pdf-review-passed"&&archive.ok&&parserOk&&metadataClean&&auditIsNewer;
   const missingOverdue=!report&&now.getTime()>Date.parse(expected.expectedAt)+30*60000;
   const level=!report?(missingOverdue?"red":"gray"):!parserOk||archiveFailed?"red":stale||!reviewed?"yellow":"green";
   const label=!report?(missingOverdue?"ENNAKKOPARSERIN AJO PUUTTUU":"ODOTTAA ENSIMMÄISTÄ AJOA"):!parserOk?"PARSERIN ESITARKASTUS EPÄONNISTUI":archiveFailed?(archive.outcome==="source-archive-review-needed"?"LÄHDEAINEISTOSSA TARKISTETTAVAA":"LÄHDEARKISTON TARKISTUS EPÄONNISTUI"):stale?"TARKISTUS VANHENEE":reviewed?"PDF-TARKISTUS HYVÄKSYTTY":"AUTOMAATTITARKISTUS TEHTY · PDF-VERTAILU ODOTTAA";
