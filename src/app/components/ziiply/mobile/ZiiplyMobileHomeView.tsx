@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { searchZiiplyGostaOffersV146 } from "../offerSearch/ziiplyOfferSearchCore";
 import ZiiplyMobileAssistantButton from "./ZiiplyMobileAssistantButton";
 import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 
@@ -16,6 +17,48 @@ type Props = {
  * distributes the available space between the brand header and assistant cards.
  */
 export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant, onUpperAction }: Props) {
+  const [watchCount,setWatchCount]=React.useState<number|null>(null);
+  const [watchTerms,setWatchTerms]=React.useState<string[]>([]);
+  const [watchScanning,setWatchScanning]=React.useState(false);
+  const [watchRevision,setWatchRevision]=React.useState(0);
+  React.useEffect(()=>{
+    const read=()=>{
+      try{
+        const terms=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");
+        setWatchTerms(Array.isArray(terms)?terms.filter((q:unknown):q is string=>typeof q==="string"&&!!q.trim()).slice(0,30):[]);
+      }catch{setWatchTerms([]);}
+    };
+    read();
+    window.addEventListener("storage",read);
+    window.addEventListener("ziiply-gosta-watch-changed",read);
+    return()=>{window.removeEventListener("storage",read);window.removeEventListener("ziiply-gosta-watch-changed",read);};
+  },[]);
+  const watchKey=watchTerms.map(q=>q.trim().toLocaleLowerCase("fi")).join("|");
+  React.useEffect(()=>{
+    if(!watchKey){setWatchCount(null);return;}
+    let cancelled=false;
+    let running=false;
+    let lastScan=0;
+    const scan=async()=>{
+      if(cancelled||running)return;
+      running=true;
+      setWatchScanning(true);
+      try{
+        const searches=await Promise.allSettled(watchKey.split("|").map(query=>searchZiiplyGostaOffersV146({query})));
+        if(!cancelled&&searches.some(result=>result.status==="fulfilled")){
+          const count=searches.reduce((sum,result)=>sum+(result.status==="fulfilled"?result.value.results.length:0),0);
+          setWatchCount(count);
+          lastScan=Date.now();
+        }
+      }finally{running=false;if(!cancelled)setWatchScanning(false);}
+    };
+    const timer=window.setTimeout(()=>{void scan();},300);
+    const onResume=()=>{if(document.visibilityState==="visible"&&Date.now()-lastScan>30*60*1000)void scan();};
+    const interval=window.setInterval(onResume,60*1000);
+    window.addEventListener("focus",onResume);
+    document.addEventListener("visibilitychange",onResume);
+    return()=>{cancelled=true;window.clearTimeout(timer);window.clearInterval(interval);window.removeEventListener("focus",onResume);document.removeEventListener("visibilitychange",onResume);};
+  },[watchKey,watchRevision]);
   return (
     <main
       className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 max-[389px]:overflow-y-auto max-[389px]:pb-[calc(env(safe-area-inset-bottom)+120px)] sm:hidden"
@@ -55,6 +98,8 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
             active={activeAssistant === "gosta"}
             onClick={() => (onUpperAction || onSelectAssistant)("gosta")}
             onLowerClick={() => onSelectAssistant("gosta")}
+            watchCount={watchCount}
+            watchScanning={watchScanning}
           />
           <ZiiplyMobileAssistantButton
             assistant="justiina"
