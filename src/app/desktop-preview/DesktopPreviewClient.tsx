@@ -2965,12 +2965,12 @@ export default function DesktopPreviewPage() {
                           <path d="M12 20V4M5 11l7-7 7 7" />
                         </svg>
                       </span>
-                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[29px] leading-none drop-shadow-sm" aria-label="Säätila">{icon}</span>
-                      <span className="absolute left-[5px] top-[27px] whitespace-nowrap text-[19px] font-black leading-none tabular-nums">{value}</span>
-                      <span className="absolute right-[5px] top-[31px] whitespace-nowrap text-[10px] font-black leading-none tabular-nums" aria-label="Tuulen nopeus">
+                      <span className="absolute left-1/2 top-[27px] -translate-x-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm" aria-label="Säätila">{icon}</span>
+                      <span className="absolute left-[7px] top-[25px] whitespace-nowrap text-[20px] font-black leading-none tabular-nums">{value}</span>
+                      <span className="absolute right-[7px] top-[28px] whitespace-nowrap text-[10px] font-black leading-none tabular-nums" aria-label="Tuulen nopeus">
                         {weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}
                       </span>
-                      <span className="absolute bottom-[5px] left-1/2 -translate-x-1/2 inline-flex items-center gap-[3px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43] tabular-nums" aria-label="Ilmanpaine">
+                      <span className="absolute bottom-[3px] left-1/2 -translate-x-1/2 inline-flex items-center gap-[3px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43] tabular-nums" aria-label="Ilmanpaine">
                         <span className="text-[11px]">◉</span>{weatherExtras.pressure == null ? "— hPa" : `${Math.round(weatherExtras.pressure)} hPa`}
                       </span>
                     </span>
