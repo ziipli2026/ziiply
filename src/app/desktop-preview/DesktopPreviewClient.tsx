@@ -2018,21 +2018,13 @@ export default function DesktopPreviewPage() {
 
   function gostaNearbyOfferStores(){
     const known=[...stores,...lidlStores,...sparStores].filter(Boolean) as any[];
-    const manuallySelected=[...Object.values(allStoreSelections.hyper),...Object.values(allStoreSelections.local),...Object.values(selectedStores),...withinStoreSlots.S,...withinStoreSlots.K].filter(Boolean) as any[];
-    const storeId=(store:any)=>String(store?.externalId||store?.id||store?.storeKey||store?.name||"");
     const chosen=new Map<string,any>();
-    // Default: nearest store per S/K hypermarket, S/K local, Lidl and Spar/Tokmanni.
+    const storeId=(store:any)=>String(store?.externalId||store?.id||store?.storeKey||store?.name||"");
+    // Exactly one nearest store per category, no fixed radius or selected-store extras.
     for(const kind of ["sHyper","kHyper","sLocal","kLocal","lidl","spar"]){
-      const nearest=byDistance(known.filter(store=>storeKind(store)===kind))[0];
+      const nearest=byDistance(known.filter(store=>storeKind(store)===kind&&Number.isFinite(distanceKm(store))))[0];
       if(nearest)chosen.set(storeId(nearest),nearest);
     }
-    // Offer watches must cover nearby K/S supermarkets too, not only the single nearest store per category.
-    // The previous nearest-only rule silently excluded stores such as K-Supermarket Jokela.
-    for(const store of byDistance(known.filter(store=>storeKind(store)&&Number.isFinite(distanceKm(store))&&distanceKm(store)<=30)).slice(0,35)){
-      if(storeId(store))chosen.set(storeId(store),store);
-    }
-    // Explicit four-field and within-chain selections are always included regardless of distance.
-    for(const store of manuallySelected){if(storeKind(store)&&storeId(store))chosen.set(storeId(store),store);}
     return [...chosen.values()];
   }
   useEffect(()=>{
