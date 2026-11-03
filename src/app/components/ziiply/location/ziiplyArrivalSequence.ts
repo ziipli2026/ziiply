@@ -50,9 +50,15 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const candidate=ambiguous?null:candidates[0]?.store??null;
  // No selection means no automatic arrival. A mismatched chain must never trigger a notice.
  const selectedStores=stores.filter(store=>selectedStoreIds.includes(store.id));
- const selectedChains=new Set(selectedStores.map(store=>store.chain).filter((chain):chain is string=>!!chain));
+ const normalizedChain=(store:ZiiplyArrivalStore):string|null=>{
+  const explicit=store.chain?.trim().toUpperCase();
+  if(explicit==='K'||explicit==='S')return explicit;
+  // Fail closed: never infer a chain from a name or a missing chain field.
+  return null;
+ };
+ const selectedChains=new Set(selectedStores.map(normalizedChain).filter((chain):chain is string=>!!chain));
  const selectionExists=selectedStoreIds.length>0;
- const sameChain=!!candidate&&!!candidate.chain&&selectedChains.has(candidate.chain);
+ const sameChain=!!candidate&&!!normalizedChain(candidate)&&selectedChains.has(normalizedChain(candidate)!);
  const selectedCandidate=!!candidate&&selectedStoreIds.includes(candidate.id);
  const eligibleCandidate=!!candidate&&selectionExists&&(selectedCandidate||sameChain);
  // Cross-check that successive reliable fixes identify the SAME physical store.
