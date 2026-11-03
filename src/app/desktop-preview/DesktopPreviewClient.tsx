@@ -2985,13 +2985,15 @@ export default function DesktopPreviewPage() {
                       <span className="absolute left-[7px] top-[7px] inline-flex items-center gap-[2px] whitespace-nowrap text-[10px] font-black leading-none text-[#625b43]" aria-label="Suhteellinen kosteus">
                         <span className="text-[12px]">💧</span>{weatherExtras.humidity == null ? "— %" : `${Math.round(weatherExtras.humidity)} %`}
                       </span>
-                      <span className="absolute right-[13px] top-[5px] flex h-[19px] w-[19px] items-center justify-center" aria-label="Tuulen puhallussuunta">
-                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}}>
-                          <path d="M12 20V4M5 11l7-7 7 7" />
+                      <span className="absolute right-[11px] top-[3px] flex h-[23px] w-[23px] items-center justify-center" aria-label="Tuulen puhallussuunta">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="drop-shadow-[0_1px_1px_rgba(15,52,42,0.4)]" style={{transform:`rotate(${weatherExtras.windDirection == null ? 0 : (weatherExtras.windDirection + 180) % 360}deg)`}}>
+                          <defs><linearGradient id="weather-wind-arrow" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#67c7c5"/><stop offset="45%" stopColor="#168b91"/><stop offset="100%" stopColor="#07535b"/></linearGradient></defs>
+                          <path d="M12 1.5 21 12l-5.2 1.3-1.5-3.2V22h-4.6V10.1l-1.5 3.2L3 12Z" fill="url(#weather-wind-arrow)" stroke="#06464b" strokeWidth="0.8" strokeLinejoin="round"/>
+                          <path d="M11 5.5 7.2 11" stroke="#d9fffb" strokeWidth="1.1" strokeLinecap="round" opacity=".85"/>
                         </svg>
                       </span>
                       <span className="absolute left-1/2 top-[27px] -translate-x-1/2 -translate-y-1/2 text-[27px] leading-none drop-shadow-sm" aria-label="Säätila">{icon}</span>
-                      <span className="absolute left-[7px] top-[25px] whitespace-nowrap text-[20px] font-black leading-none tabular-nums">{value}</span>
+                      <span className={`absolute top-[25px] whitespace-nowrap font-black leading-none tabular-nums ${/[-+−]?\d{2,}/.test(value) ? "left-[8px] text-[16px] tracking-[-0.06em]" : "left-[10px] text-[20px]"}`}>{value}</span>
                       <span className="absolute right-[7px] top-[28px] whitespace-nowrap text-[10px] font-black leading-none tabular-nums" aria-label="Tuulen nopeus">
                         {weatherExtras.windSpeed == null ? "— m/s" : `${weatherExtras.windSpeed.toLocaleString("fi-FI",{maximumFractionDigits:1})} m/s`}
                       </span>
