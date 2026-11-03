@@ -147,7 +147,7 @@ export function verifyPrintedTransaction(row,rawBoxes){
  const exactUnit = row.unitPrice && Number(row.unitPrice.min) > 0 &&
    Math.abs(Number(row.unitPrice.max) - Number(row.unitPrice.min)) < 0.000001
    ? Number(row.unitPrice.min) : null;
- const packageUnit = String(pk?.raw || '').match(/(kg|g|ml|cl|dl|l)\\b/i)?.[1]?.toLowerCase();
+ const packageUnit = String(pk?.raw || '').match(/(kg|g|ml|cl|dl|l)\b/i)?.[1]?.toLowerCase();
  const rateUnit = packageUnit === 'kg' || packageUnit === 'g' ? 'kg' :
    packageUnit === 'l' || packageUnit === 'ml' || packageUnit === 'cl' || packageUnit === 'dl' ? 'l' : null;
  const ownRates = rates.filter(r => r.unit === rateUnit &&
@@ -157,8 +157,8 @@ export function verifyPrintedTransaction(row,rawBoxes){
  const sameCardGlyph = card?.parts?.length === 2 && card.anchor &&
    Math.abs(card.anchor.left - anchor.left) < 0.025 &&
    card.anchor.top >= anchor.top - 0.01 && card.anchor.top - anchor.top < 0.10 &&
-   /^\\d{1,2}$/.test(String(card.parts[0].text)) &&
-   /^\\d{2}$/.test(String(card.parts[1].text));
+   /^\d{1,2}$/.test(String(card.parts[0].text)) &&
+   /^\d{2}$/.test(String(card.parts[1].text));
  if (pk && pk.min > 0 && Math.abs(pk.max - pk.min) < 0.000001 &&
      exactUnit !== null && ownRates.length === 1 && sameCardGlyph &&
      quantity <= 5 && rateUnit) {
