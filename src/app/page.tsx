@@ -696,7 +696,8 @@
 "use client";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
-import { evaluateZiiplyArrival, initialZiiplyArrivalState, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
+import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
+import { recordArrivalDiagnostic, getArrivalDiagnostics, clearArrivalDiagnostics } from "./components/ziiply/location/ziiplyArrivalDiagnostics";
 import { scannerStickerPrice } from "../lib/scannerStickerPrice";
 import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
 import ZiiplyMobileFuelView from "./components/ziiply/mobile/ZiiplyMobileFuelView";
@@ -4727,8 +4728,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     setScannerStorePromptV828(null);
     scannerStoreCheckDoneRefV791.current = false;
-    scannerInStoreRefV828.current = false;
-    scannerConfirmedStoreNameRefV828.current = "";
+    // GPS presence is shared across scanner sessions; closing scanner must not clear it.
     queuedPhysicalScanRefV837.current = null;
   }, [eanModalOpen]);
 
@@ -4949,9 +4949,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerLocationStatusV855, setScannerLocationStatusV855] = useState<{name:string;verified:boolean;checking?:boolean}|null>(null);
   const scannerLocationSessionV856 = useRef(0);
   const arrivalNotice = useZiiplyArrivalNotice(usingOwnLocation);
+  const [arrivalDebugVisible,setArrivalDebugVisible]=useState(false);
   const [arrivalOfferChain, setArrivalOfferChain] = useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
   const liveArrivalStateRefV864 = useRef(initialZiiplyArrivalState());
   const liveArrivalLastFixAtRefV864 = useRef(0);
+  const liveArrivalPositionRefV864 = useRef<GeolocationPosition | null>(null);
   const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
   const liveArrivalDecisionRefV864 = useRef<ReturnType<typeof evaluateZiiplyArrival> | null>(null);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
@@ -14316,6 +14318,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       selectedChains.lidl ? String(selectedLidlStoreV750?.name || "").trim() : "",
       selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
     ].filter((name) => name && !name.startsWith("Valitse ensin"));
+    const sharedVisit=liveArrivalDecisionRefV864.current;
+    if(sharedVisit?.status==="in-store"&&sharedVisit.isSelectedStore){
+      scannerStoreCheckDoneRefV791.current=true;
+      scannerInStoreRefV828.current=true;
+      scannerConfirmedStoreNameRefV828.current=sharedVisit.store?.name||"";
+      return true;
+    }
     if (scannerStoreCheckDoneRefV791.current) {
       const confirmedName = normalize(scannerConfirmedStoreNameRefV828.current);
       const stillMatchesCurrentStore = !confirmedName || currentSelectedScannerNamesV832.some((name) => normalize(name) === confirmedName);
@@ -14377,22 +14386,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!usingOwnLocation || !intendedStore || typeof navigator === "undefined" || !navigator.geolocation) {
       return scannerNotInStoreV858();
     }
-    const freshScannerPositionV854 = await new Promise<GeolocationPosition | null>((resolve) => {
-      let settled = false;
-      const finish = (position: GeolocationPosition | null) => {
-        if (settled) return;
-        settled = true;
-        window.clearTimeout(deadline);
-        resolve(position);
-      };
-      const deadline = window.setTimeout(() => finish(null), 4500);
-      navigator.geolocation.getCurrentPosition(
-        (position) => finish(position),
-        () => finish(null),
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 4000 },
-      );
-    });
-    liveArrivalHandlerRefV864.current(freshScannerPositionV854);
+    // Scanner reads shared GPS watcher; no additional GPS permission request.
+    const freshScannerPositionV854 = liveArrivalPositionRefV864.current;
     const liveDecisionV864 = liveArrivalDecisionRefV864.current;
     if (liveDecisionV864?.status === "in-store" && liveDecisionV864.isSelectedStore &&
         Date.now() - liveArrivalLastFixAtRefV864.current <= 10000) return true;
@@ -15049,8 +15044,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     setScannerStorePromptV828(null);
     scannerStoreCheckDoneRefV791.current = false;
-    scannerInStoreRefV828.current = false;
-    scannerConfirmedStoreNameRefV828.current = "";
+    // Preserve GPS presence when scanner closes.
     // V839: a queued physical scan belongs to this scanner session only.
     // Closing the scanner must discard it so an old lookup cannot release it later.
     queuedPhysicalScanRefV837.current = null;
@@ -15130,7 +15124,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         liveArrivalDecisionRefV864.current = null;
       }
       scannerStoreCheckDoneRefV791.current = false;
-      scannerInStoreRefV828.current = false;
+      // Bad GPS never revokes an already confirmed store visit.
       if (eanScannerOpen) setScannerLocationStatusV855(current => current ? {...current, verified:false, checking:true} : null);
       return;
     }
@@ -15143,6 +15137,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (position.timestamp - liveArrivalLastFixAtRefV864.current > 30000 && !liveArrivalDecisionRefV864.current?.state.arrivalStoreId)
       liveArrivalStateRefV864.current = initialZiiplyArrivalState();
     liveArrivalLastFixAtRefV864.current = position.timestamp;
+    liveArrivalPositionRefV864.current = position;
     const names = [
       selectedChains.s ? String(activeStores.sStoreName || "").trim() : "",
       selectedChains.k ? String(activeStores.kStoreName || "").trim() : "",
@@ -15173,6 +15168,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setGpsCoordsV320(coords);
     if (!eanScannerOpen) return;
     const verified = decision.status === "in-store" && decision.isSelectedStore;
+    recordArrivalDiagnostic("gps-sample",{latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy,speedKmh:position.coords.speed == null?null:position.coords.speed*3.6,store:decision.store?.name??null,status:decision.status,selected:decision.isSelectedStore});
     scannerStoreCheckDoneRefV791.current = verified;
     scannerInStoreRefV828.current = verified;
     scannerConfirmedStoreNameRefV828.current = verified ? (decision.store?.name || names.find(name => normalize(name) === decision.state.arrivalStoreId) || "") : "";
@@ -15213,7 +15209,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     scannerInStoreRefV828.current = !!confirmedName;
     scannerConfirmedStoreNameRefV828.current = confirmedName || "";
     setScannerLocationStatusV855(confirmedName ? {name:confirmedName,verified:true,checking:false} : null);
-    if (!confirmedName) checkScannerLocationOnOpenV856();
+    // Shared GPS watcher already supplies fixes; scanner must not issue redundant GPS requests.
     // Mobiilin SCAN-nappi avaa aina uuden ZiiplyMobileScannerCard-näkymän heti.
     // Kamera käynnistetään perässä, mutta renderi ei saa jäädä riippumaan
     // startEanCameraScannerin asynkronisesta onnistumisesta.
@@ -25559,10 +25555,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
+        {arrivalDebugVisible && <div style={{position:"fixed",bottom:80,right:12,zIndex:2147483647,background:"#fff",color:"#111",padding:12,borderRadius:12}}><button type="button" onClick={()=>{const blob=new Blob([JSON.stringify({events:getArrivalDiagnostics()},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-gps-debug.json";a.click();URL.revokeObjectURL(url);}}>Lataa GPS-loki</button><button type="button" onClick={()=>clearArrivalDiagnostics()}>Tyhjennä</button><button type="button" onClick={()=>setArrivalDebugVisible(false)}>Sulje</button></div>}
+        <button type="button" style={{position:"fixed",bottom:12,right:12,zIndex:2147483645,padding:8,borderRadius:12,background:"#174b36",color:"#fff"}} onClick={()=>setArrivalDebugVisible(v=>!v)}>GPS debug</button>
         <ZiiplyArrivalNotice
           notice={arrivalNotice.notice}
           onDismiss={arrivalNotice.dismiss}
           onSkip={arrivalNotice.skip}
+          onConfirm={() => {
+            const decision=liveArrivalDecisionRefV864.current;
+            if(!decision?.store)return;
+            liveArrivalStateRefV864.current=confirmZiiplyStorePresence(liveArrivalStateRefV864.current,decision.store.id);
+            const confirmed={...decision,state:liveArrivalStateRefV864.current,status:"in-store" as const,radar:"green" as const};
+            liveArrivalDecisionRefV864.current=confirmed;
+            const matchesSelected=decision.isSelectedStore;
+            scannerInStoreRefV828.current=matchesSelected;
+            scannerStoreCheckDoneRefV791.current=matchesSelected;
+            scannerConfirmedStoreNameRefV828.current=matchesSelected?decision.store.name:"";
+            recordArrivalDiagnostic("arrival-explicit-confirm",{store:decision.store.name,selected:matchesSelected});
+          }}
           onList={() => {
             arrivalNotice.dismiss();
             setArrivalNotebookPage("lists");
