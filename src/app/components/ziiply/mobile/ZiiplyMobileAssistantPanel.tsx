@@ -76,7 +76,7 @@ export default function ZiiplyMobileAssistantPanel({
       setWatchError("");
       try{
         const results=await Promise.allSettled(watchKey.split("|").map(async query=>{
-          const response=await searchZiiplyGostaOffersV146({query,context:{areaLabel:locationLabel||""}});
+          const response=await searchZiiplyGostaOffersV146({query});
           return response.results.map((offer:any)=>({
             query,
             title:String(offer.title||offer.name||offer.productName||"Tarjous"),
@@ -102,7 +102,7 @@ export default function ZiiplyMobileAssistantPanel({
     const resume=()=>{if(document.visibilityState==="visible")void scan();};
     document.addEventListener("visibilitychange",resume);
     return()=>{cancelled=true;window.clearTimeout(initial);window.clearInterval(interval);document.removeEventListener("visibilitychange",resume);};
-  },[watchKey,locationLabel,watchRefresh]);
+  },[watchKey,watchRefresh]);
 
   React.useEffect(() => {
     try {
