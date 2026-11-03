@@ -91,7 +91,7 @@ export function arvoNutrientValues(nutrition: Record<string,unknown> | null, gra
 export function saveArvoMeal(storage: Pick<Storage,"getItem"|"setItem">, meal: ArvoMeal): ArvoMeal[] {
   const normalized = normalizeArvoMeal(meal);
   if (!normalized || !normalized.id) throw new Error("invalid-arvo-meal");
-  const next = [...readArvoMeals(storage), normalized];
+  const next = [...readArvoMeals(storage).filter(existing => existing.id !== normalized.id), normalized];
   storage.setItem(ARVO_MEALS_KEY, JSON.stringify(next));
   return next;
 }
