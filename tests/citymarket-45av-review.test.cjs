@@ -17,6 +17,11 @@ const proof = loadExports("src/app/components/ziiply/offerSearch/providers/kCity
   ["verifyPrintedTransaction"]);
 const evidence = JSON.parse(fs.readFileSync(path.join(root, "diagnostics/45AV/parser-evidence.json"), "utf8"));
 const byTitle = fragment => evidence.rows.find(row => String(row.title).toLowerCase().includes(fragment));
+test("45AV unresolved image audit retains OCR evidence for manual review", () => {
+  const source = fs.readFileSync(path.join(root, "scripts/citymarket/build-images.py"), "utf8");
+  assert.match(source, /ocrWords/);
+  assert.match(source, /manual-review-needed/);
+});
 test("45AV clipped Mikroateriat title is reconstructed from the bilingual publisher line", () => {
   assert.equal(fixes.repairCitymarketPrintedTitle(byTitle("eriat 300 g")), "MIKROATERIAT 300 g");
 });
