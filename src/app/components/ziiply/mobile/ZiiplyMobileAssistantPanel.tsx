@@ -114,6 +114,7 @@ export default function ZiiplyMobileAssistantPanel({
     const next = [query, ...savedWatches.filter(item => item.toLocaleLowerCase("fi") !== query.toLocaleLowerCase("fi"))].slice(0, 30);
     try { window.localStorage.setItem("ziiply-gosta-offer-watches-v1", JSON.stringify(next)); } catch {}
     setSavedWatches(next);
+    window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));
     setWatchQuery("");
     setWatchNotice("Tarjousvahti tallennettu vihkoon: " + query);
   }
@@ -121,6 +122,7 @@ export default function ZiiplyMobileAssistantPanel({
     const next = savedWatches.filter(item => item !== query);
     try { window.localStorage.setItem("ziiply-gosta-offer-watches-v1", JSON.stringify(next)); } catch {}
     setSavedWatches(next);
+    window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));
     setWatchNotice("Tarjousvahti poistettu: " + query);
   }
   const [recipeCameraOpen,setRecipeCameraOpen]=React.useState(false);
