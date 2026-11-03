@@ -14,6 +14,7 @@ export type ZiiplyArrivalState = {
  tripStartedAt:number|null; stoppedAt:number|null; lastStationarySampleAt:number|null;
  lastStationaryPosition:{latitude:number;longitude:number}|null; tripConfirmed:boolean; lastAcceptedSample?:ZiiplyArrivalSample|null; stationarySamples?:number;
  arrivalStoreId:string|null; departureSamples?:number; recoveringFromBadGps?:boolean;
+ candidateStoreId?:string|null; candidateSamples?:number;
 };
 export type ZiiplyArrivalDecision = {
  state:ZiiplyArrivalState; status:'moving'|'checking'|'near-store'|'in-store'|'uncertain';
@@ -22,7 +23,7 @@ export type ZiiplyArrivalDecision = {
 };
 export const initialZiiplyArrivalState=():ZiiplyArrivalState=>({
  tripStartedAt:null,stoppedAt:null,lastStationarySampleAt:null,lastStationaryPosition:null,
- tripConfirmed:false,arrivalStoreId:null,departureSamples:0,recoveringFromBadGps:false,lastAcceptedSample:null,stationarySamples:0
+ tripConfirmed:false,arrivalStoreId:null,departureSamples:0,recoveringFromBadGps:false,lastAcceptedSample:null,stationarySamples:0,candidateStoreId:null,candidateSamples:0
 });
 const rad=(n:number)=>n*Math.PI/180;
 export function ziiplyDistanceMeters(a:{latitude:number;longitude:number},b:{latitude:number;longitude:number}) {
@@ -41,7 +42,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const plausible=!state.lastAcceptedSample||(dt>0&&displacement/dt<=55+sample.accuracyMeters/dt);
  const valid=finite&&accurate&&chronological&&plausible&&Number.isFinite(sample.at);
  if(!valid)return {state,status:'uncertain',store:null,isSelectedStore:false,askStoreChange:false,showArrivalMessage:false,radar:state.arrivalStoreId?'green':'white'};
- if(dt>10){state.stoppedAt=null;state.stationarySamples=0;state.lastStationarySampleAt=null;}
+ if(dt>10){state.stoppedAt=null;state.stationarySamples=0;state.lastStationarySampleAt=null;state.candidateStoreId=null;state.candidateSamples=0;}
  state.lastAcceptedSample=sample;
  const candidates=valid?stores.map(store=>({store,distance:ziiplyDistanceMeters(sample,store)}))
    .filter(x=>x.distance<=ZIIPLY_APPROACH_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
@@ -54,6 +55,10 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const sameChain=!!candidate&&!!candidate.chain&&selectedChains.has(candidate.chain);
  const selectedCandidate=!!candidate&&selectedStoreIds.includes(candidate.id);
  const eligibleCandidate=!!candidate&&selectionExists&&(selectedCandidate||sameChain);
+ // Cross-check that successive reliable fixes identify the SAME physical store.
+ if(!candidate||!eligibleCandidate){state.candidateStoreId=null;state.candidateSamples=0;}
+ else if(state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
+ else {state.candidateStoreId=candidate.id;state.candidateSamples=1;}
  const latched=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
  const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
  const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
@@ -76,7 +81,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  }
  const retained=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
  const arrivalConfirmed=!retained&&valid&&!ambiguous&&eligibleCandidate
-   &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable;
+   &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable&&(state.candidateSamples??0)>=3;
  const showArrivalMessage=!!arrivalConfirmed&&selectedCandidate;
  if(arrivalConfirmed){state.arrivalStoreId=candidate!.id;state.tripConfirmed=true;state.departureSamples=0;}
  const inStore=!!state.arrivalStoreId;
