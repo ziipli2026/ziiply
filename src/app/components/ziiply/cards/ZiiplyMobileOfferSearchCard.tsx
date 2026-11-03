@@ -495,6 +495,38 @@ function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
   return root ? `root:${sourceIdentity}:${root}` : "";
 }
 
+// Merge duplicate K-local offers from overlapping Tjek publications only when
+// product identity, price and validity agree. Preserve distinct variants.
+function sameKLocalPromotionV1(a: ZiiplyMobileOfferSearchItem, b: ZiiplyMobileOfferSearchItem): boolean {
+  const x: any = (a as any).__sourceOfferSearchResult || a;
+  const y: any = (b as any).__sourceOfferSearchResult || b;
+  if (x.source !== "etarjouslehdet" || y.source !== "etarjouslehdet") return false;
+  if (String(x.storeId || x.storeName || "") !== String(y.storeId || y.storeName || "")) return false;
+  if (String(x.validUntil || "") !== String(y.validUntil || "") ||
+      String(x.validFrom || "") !== String(y.validFrom || "")) return false;
+  if (String(x.campaignType || "") !== String(y.campaignType || "")) return false;
+  const price = (v: any) => Number(String(v.bundleTotalPrice ?? v.price ?? v.offerPrice ?? "").replace(",", "."));
+  const px = price(x), py = price(y);
+  if (!Number.isFinite(px) || !Number.isFinite(py) || px !== py) return false;
+  const name = (v: any) => normalizeOfferCardKeyV13(v.title || v.name || v.productName || "")
+    .replace(/\b(?:kanan|kananpojan)\b/g, "kana")
+    .replace(/\b(?:fileesuikaleet|fileesuikale)\b/g, "fileesuikale")
+    .replace(/\b(?:jauhelihat|jauheliha)\b/g, "jauheliha")
+    .replace(/\b(?:nakit|nakki)\b/g, "nakki")
+    .replace(/\b(?:pizzat|pizza)\b/g, "pizza")
+    .replace(/\s+/g, " ").trim();
+  const nx = name(x), ny = name(y);
+  if (!nx || !ny) return false;
+  const packs = (v: string) => [...v.matchAll(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|l|kpl)\b/g)].map(m => m[0].replace(/\s+/g, "")).sort();
+  const ax = packs(nx), ay = packs(ny);
+  if (ax.length && ay.length && ax.join("|") !== ay.join("|")) return false;
+  const strip = (v: string) => v.replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|l|kpl)\b/g, " ").replace(/\s+/g, " ").trim();
+  const tx = strip(nx).split(" ").filter(Boolean), ty = strip(ny).split(" ").filter(Boolean);
+  if (tx.length < 2 || ty.length < 2) return false;
+  // A missing pack size is acceptable only for an otherwise identical title.
+  return strip(nx) === strip(ny);
+}
+
 function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
   const seen = new Set<string>();
   const seenRoots = new Set<string>();
@@ -506,6 +538,7 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
       (item as any)?.ean || source?.ean || source?.gtin || source?.barcode || "",
     );
     const key = getOfferCardDedupeKeyV13(item);
+    if (unique.some(previous => sameKLocalPromotionV1(previous, item))) continue;
 
     if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
       if (seen.has(key)) continue;
