@@ -55,7 +55,8 @@ test("45AV clipped Mikroateriat title is reconstructed from the bilingual publis
 test("45AV LV stain-remover continuation restores its printed brand context", () => {
   const row = byTitle("tahranpoistosuihke 150 ml");
   assert.equal(fixes.repairCitymarketPrintedTitle(row), "LV TAHRANPOISTOSUIHKE 150 ml");
-});\ntest("45AV clipped J in JAUHOINEN PERUNA is restored", () => {
+});
+test("45AV clipped J in JAUHOINEN PERUNA is restored", () => {
   const row = byTitle("auhoinen peruna");
   assert.equal(fixes.repairCitymarketPrintedTitle(row), "KIINTEÄ, YLEIS ja JAUHOINEN PERUNA 2 kg");
 });
