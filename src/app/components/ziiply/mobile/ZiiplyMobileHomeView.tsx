@@ -1,5 +1,5 @@
-import { matchesGostaWatch } from "./gostaWatchMatch";
 "use client";
+import { matchesGostaWatch } from "./gostaWatchMatch";
 
 import React from "react";
 import { searchZiiplyGostaOffersV146 } from "../offerSearch/ziiplyOfferSearchCore";
