@@ -65,6 +65,8 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchChecked,setWatchChecked]=React.useState(false);
   const [watchError,setWatchError]=React.useState("");
   const [watchRefresh,setWatchRefresh]=React.useState(0);
+  const [showWatchDebug,setShowWatchDebug]=React.useState(false);
+  const [watchDebug,setWatchDebug]=React.useState("Ei tarkistusta vielä");
   const watchKey=savedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
   React.useEffect(()=>{
     if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
@@ -75,6 +77,8 @@ export default function ZiiplyMobileAssistantPanel({
       running=true;
       setWatchLoading(true);
       setWatchError("");
+      const started=Date.now();
+      setWatchDebug("Haku käynnissä: "+new Date().toLocaleTimeString("fi-FI")+" | hakusanat: "+watchKey);
       try{
         const terms=watchKey.split("|");
         const searches=await Promise.allSettled(terms.map(async query=>({query,results:(await searchZiiplyGostaOffersV146({query})).results})));
@@ -88,10 +92,12 @@ export default function ZiiplyMobileAssistantPanel({
           store:String(offer.storeName||offer.chain||""),
           source:String(offer.source||offer.sourceType||offer.offerSource||"")
         }))).filter(offer=>{const key=[offer.query,offer.title,offer.price,offer.store,offer.source].join("|");if(seen.has(key))return false;seen.add(key);return true;});
+        setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | hakusanat: "+terms.join(", ")+" | master: "+(master?.results.length??"VIRHE")+" | termihaut: "+searches.map((r,i)=>terms[i]+":"+(r.status==="fulfilled"?r.value.results.length:"VIRHE "+String(r.reason))).join(", ")+" | yhteensä: "+offers.length+" | osumat: "+matched.length+" | kauppavalinnat: ei rajata");
         if(cancelled)return;
         setWatchOffers(matched);
         setWatchChecked(true);
-      }catch{
+      }catch(error){
+        setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
         if(!cancelled)setWatchError("Tarjousten tarkistus epäonnistui.");
       }finally{
         running=false;
@@ -185,6 +191,7 @@ export default function ZiiplyMobileAssistantPanel({
                 <h2 className="font-serif text-lg font-black text-[#174c35]">Göstan tarjoushaku</h2>
                 <div className="flex gap-2">
                   <button type="button" onClick={()=>setShowWatchNotebook(v=>!v)} aria-label="Tallennetut tarjousvahdit" title="Tallennetut tarjousvahdit" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-xl">📒</button>
+                  <button type="button" onClick={()=>setShowWatchDebug(v=>!v)} aria-label="Tarjousvahdin debuggeri" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-2 py-2 text-xs font-bold">DEBUG</button>
                   <button type="button" onClick={()=>setWatchRefresh(n=>n+1)} disabled={watchLoading} aria-label="Päivitä tarjoukset" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-xl disabled:opacity-50">↻</button>
                 </div>
               </div>
@@ -199,6 +206,7 @@ export default function ZiiplyMobileAssistantPanel({
                 <input value={watchQuery} onChange={event=>setWatchQuery(event.target.value)} placeholder="Hae tuotetta tai tarjousta" aria-label="Tarjousvahdin hakusana" className="min-w-0 flex-1 rounded-xl border-2 border-[#caa15d] bg-white px-3 py-3 text-base" />
                 <button type="submit" disabled={!watchQuery.trim()} className="rounded-xl border-2 border-[#9c6d36] bg-[#fff4cf] px-3 py-3 font-black text-[#174c35] disabled:opacity-50">Tallenna</button>
               </form>
+              {showWatchDebug&&<div className="rounded-xl border-2 border-red-600 bg-white p-3 text-xs font-mono text-slate-900 break-words"><strong>Göstan tarjousvahti – diagnostiikka</strong><p>Tallennettuja vahteja: {savedWatches.length} | {savedWatches.join(", ")||"ei yhtään"}</p><p>{watchDebug}</p><p>Haku käynnissä: {String(watchLoading)} | tarkistettu: {String(watchChecked)} | virhe: {watchError||"ei"}</p><button type="button" className="mt-2 rounded border p-2" onClick={()=>navigator.clipboard?.writeText(watchDebug)}>Kopioi diagnostiikka</button></div>}
               {watchNotice&&<p role="status" className="text-sm text-[#17573c]">{watchNotice}</p>}
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
