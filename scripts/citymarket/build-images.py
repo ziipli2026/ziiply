@@ -100,7 +100,7 @@ def build(folder,manifest_path,public_folder,review_path):
  reviews=json.loads(Path(review_path).read_text()) if Path(review_path).exists() else {}
  reviewed=reviews.get(digest,{});mapping={};report=[];cells=[]
  for number in range(len(doc)):
-  page=doc[number];rows=[r for r in rows if r['page']==number+1];blocks=pictures(page);accepted={r['id']:[] for r in rows}
+  page=doc[number];rows=[r for r in all_rows if r['page']==number+1];blocks=pictures(page);accepted={r['id']:[] for r in rows}
   if not rows:continue
   # Independent package-label text proof must accompany spatial ownership.
   # A distinctive word must occur in only one offer context on this page.
@@ -172,7 +172,7 @@ def build(folder,manifest_path,public_folder,review_path):
  svg=f'<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">'+''.join(cells)+'</svg>'
  (target/'images.svg').write_text(svg)
  manifest_path=Path(manifest_path);manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else {'revision':1,'publications':{}}
- manifest['publications'][meta['leaflet']]={'pdfSha256':digest,'pageCount':len(doc),'offerCount':len(rows),'images':mapping}
+ manifest['publications'][meta['leaflet']]={'pdfSha256':digest,'pageCount':len(doc),'offerCount':len(all_rows),'images':mapping}
  manifest_path.parent.mkdir(parents=True,exist_ok=True);manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
  (folder/'image-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
  print(f"Publisher images: {len(mapping)}/{len(meta['rows'])}; unresolved: {len(meta['rows'])-len(mapping)}; PDF {digest}")
