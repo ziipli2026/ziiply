@@ -2693,7 +2693,19 @@ export default function DesktopPreviewPage() {
 
   useEffect(() => {
     let cancelled = false;
+    let requestSequence = 0;
+    let cachedPrices: {start:number;end:number;price:number}[] = [];
+    const displayPrices = () => {
+      const now = Date.now();
+      const currentWindow = cachedPrices.find(item=>item.start<=now&&now<item.end&&item.end-item.start===900000);
+      const nextWindow = currentWindow ? cachedPrices.find(item=>item.start===currentWindow.end&&item.end-item.start===900000) : undefined;
+      const delta = currentWindow && nextWindow ? nextWindow.price-currentWindow.price : null;
+      setElectricityTrendColor(delta==null?"#888888":delta>0.5?"#c93632":delta< -0.5?"#159447":"#888888");
+      const interval = currentWindow ? " · "+new Date(currentWindow.start).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})+"–"+new Date(currentWindow.end).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"}) : "";
+      setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh"+interval}:{value:"—",detail:"ei ajantasaista hintaa"});
+    };
     const loadElectricity = () => {
+      const sequence = ++requestSequence;
       // Use the same current-price source and fallback sequence as the mobile topbar.
       const readPrice=(item:any)=>{
         for(const key of ["price","value","priceWithTax","PriceWithTax","spotPrice","SpotPrice","centsPerKwh","cents_per_kwh"]){
@@ -2720,40 +2732,36 @@ export default function DesktopPreviewPage() {
         return response.json();
       };
       void (async()=>{
-        let price:number|null=null;
-        let chartPrices:{start:number;end:number;price:number}[]=[];
-        try{
-          // Same-origin server proxy: browser calls to the external provider can be blocked by CORS.
+        try {
           const data=await fetchJson("/api/desktop-electricity");
           const raw=Array.isArray(data?.prices)?data.prices:Array.isArray(data)?data:[];
-          chartPrices=raw.map((item:any)=>{
-            const p=readPrice(item);
+          const fetched:{start:number;end:number;price:number}[]=raw.map((item:any)=>{
+            const price=readPrice(item);
             const start=readTime(item.startDate,item.start,item.StartDate,item.time_start,item.date,item.Date);
             const end=readTime(item.endDate,item.end,item.EndDate,item.time_end);
-            return p!=null&&start!=null&&end!=null&&end>start?{start,end,price:p}:null;
+            return price!=null&&start!=null&&end!=null&&end>start?{start,end,price}:null;
           }).filter((item:any)=>item!=null).sort((x:any,y:any)=>x.start-y.start);
-          const now=Date.now();
-          price=chartPrices.find(item=>item.start<=now&&now<item.end)?.price??null;
-        }catch{}
-        if(cancelled)return;
-        setElectricityPrices(chartPrices);
-        // Match mobile main: use the price for the interval containing the current instant.
-        // Only label an interval as a quarter-hour when the provider actually supplies 15 minutes.
-        const currentWindow=chartPrices.find(item=>item.start<=Date.now()&&Date.now()<item.end&&item.end-item.start===15*60*1000);
-        const nextWindow=currentWindow?chartPrices.find(item=>item.start===currentWindow.end&&item.end-item.start===15*60*1000):undefined;
-        const delta=currentWindow&&nextWindow?nextWindow.price-currentWindow.price:null;
-        setElectricityTrendColor(delta==null?"#888888":delta>0.5?"#c93632":delta< -0.5?"#159447":"#888888");
-        const quarter=currentWindow&&currentWindow.end-currentWindow.start===15*60*1000;
-        const interval=quarter?" · "+new Date(currentWindow.start).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"})+"–"+new Date(currentWindow.end).toLocaleTimeString("fi-FI",{hour:"2-digit",minute:"2-digit"}):"";
-        setElectricity(currentWindow?{value:currentWindow.price.toLocaleString("fi-FI",{maximumFractionDigits:1}),detail:"c/kWh"+interval}:{value:"—",detail:"ei ajantasaista hintaa"});
+          if(cancelled||sequence!==requestSequence)return;
+          if(fetched.length){
+            const merged=new Map(cachedPrices.map(item=>[item.start,item]));
+            for(const item of fetched)merged.set(item.start,item);
+            cachedPrices=[...merged.values()].filter(item=>item.end>Date.now()-86400000).sort((x,y)=>x.start-y.start);
+            setElectricityPrices(cachedPrices);
+          }
+        }catch{
+          // Failed requests must never erase the chart or a valid current quarter.
+        }
+        if(!cancelled&&sequence===requestSequence)displayPrices();
       })();
     };
-    // Align updates to :01, :16, :31 and :46 every hour.
+    // Switch the displayed price at each quarter boundary from prefetched prices.
     let timer: number;
     const schedule = () => {
       const now = Date.now();
-      const next = Math.floor((now - 60_000) / 900_000 + 1) * 900_000 + 60_000;
-      timer = window.setTimeout(() => { if(!cancelled){ loadElectricity(); schedule(); } }, Math.max(100,next-now));
+      const next = (Math.floor(now / 900000) + 1) * 900000;
+      timer = window.setTimeout(() => {
+        if(!cancelled){ displayPrices(); loadElectricity(); schedule(); }
+      }, Math.max(1,next-now));
     };
     const onFocus = () => { if(!document.hidden) loadElectricity(); };
     loadElectricity();
