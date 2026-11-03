@@ -42,6 +42,9 @@ export async function GET(request: Request) {
         ORDER BY chain, valid_from, valid_until, parsed_at DESC, publication_id DESC) latest`;
     const nearbyDiagnostics: Array<{store:string;count:number;error?:string}> = [];
     const nearbyOffers: Array<{chain:string;publication_id:string;offers:Record<string,unknown>[]}> = [];
+    let selectedStoreCount = 0;
+    const hasValidLocation = params.has("lat") && params.has("lon") && Number.isFinite(Number(params.get("lat"))) && Number.isFinite(Number(params.get("lon"))) && Math.abs(Number(params.get("lat"))) <= 90 && Math.abs(Number(params.get("lon"))) <= 180;
+    if (!hasValidLocation) return NextResponse.json({ok:false,error:"Tarjousvahdin lähikauppahaku tarvitsee sallitun sijaintitiedon.",results:[],diagnostic:{partial:true,expectedStores:6,selectedStores:0,completedStores:0,publications:rows.length,durationMs:Date.now()-started}},{status:422,headers:{"Cache-Control":"no-store"}});
     const lat=Number(params.get("lat")),lon=Number(params.get("lon"));
     if(params.has("lat")&&params.has("lon")&&Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180){
       const names=["S-market","Sale","Alepa","K-Market","K-Supermarket","Prisma","K-Citymarket"];
@@ -89,6 +92,7 @@ export async function GET(request: Request) {
         if(!kind||picked.has(kind))return false;
         picked.add(kind);return true;
       });
+      selectedStoreCount = selectedStores.length;
       let cursor=0;
       await Promise.all(Array.from({length:Math.min(6,selectedStores.length)},async()=>{
         while(cursor<selectedStores.length){
@@ -155,7 +159,7 @@ export async function GET(request: Request) {
         results.push({...offer,title,storeName:store,chain:String(row.chain),watchQueries:matchingQueries});
       }
     }
-    const partial=selectedStores.length!==6||nearbyDiagnostics.length!==6||nearbyDiagnostics.some(item=>Boolean(item.error));
+    const partial=selectedStoreCount!==6||nearbyDiagnostics.length!==6||nearbyDiagnostics.some(item=>Boolean(item.error));
     results.sort((a,b)=>priceNumber(a)-priceNumber(b));
     const publishedResults=partial?[]:results;
     const matchesByQuery=Object.fromEntries(queries.map(q=>[q,publishedResults.filter(r=>(r.watchQueries as string[]).includes(q)).length]));
