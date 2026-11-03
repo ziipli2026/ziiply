@@ -67,6 +67,27 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchRefresh,setWatchRefresh]=React.useState(0);
   const [showWatchDebug,setShowWatchDebug]=React.useState(false);
   const [watchDebug,setWatchDebug]=React.useState("Ei tarkistusta vielä");
+  const [watchRawDebug,setWatchRawDebug]=React.useState("Raakaa API-tarkistusta ei ole tehty");
+  const [watchRawLoading,setWatchRawLoading]=React.useState(false);
+  const runRawWatchDebug=async()=>{
+    setWatchRawLoading(true);
+    const terms=savedWatches.length?savedWatches:["kahvi","limsa"];
+    const lines:string[]=[];
+    for(const query of ["",...terms]){
+      const url="/api/offers/search?q="+encodeURIComponent(query||"__ziiply_gosta_master__")+"&_debug="+Date.now();
+      const started=Date.now();
+      try{
+        const response=await fetch(url,{cache:"no-store"});
+        const raw=await response.text();
+        let data:any;
+        try{data=JSON.parse(raw);}catch{data=null;}
+        const rows=Array.isArray(data?.results)?data.results:Array.isArray(data?.offers)?data.offers:[];
+        lines.push("q="+(query||"[MASTER]")+" | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | tuloksia="+rows.length+" | avaimet="+Object.keys(data||{}).slice(0,18).join(",")+" | virhe="+String(data?.error||data?.message||"ei")+" | esimerkki="+JSON.stringify(rows.slice(0,2)).slice(0,600)+" | raakavastaus="+(!data?raw.slice(0,300):"JSON"));
+      }catch(error){lines.push("q="+(query||"[MASTER]")+" | VERKKOVIRHE "+String(error));}
+    }
+    setWatchRawDebug(lines.join("\\n"));
+    setWatchRawLoading(false);
+  };
   const watchKey=savedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
   React.useEffect(()=>{
     if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
@@ -206,7 +227,7 @@ export default function ZiiplyMobileAssistantPanel({
                 <input value={watchQuery} onChange={event=>setWatchQuery(event.target.value)} placeholder="Hae tuotetta tai tarjousta" aria-label="Tarjousvahdin hakusana" className="min-w-0 flex-1 rounded-xl border-2 border-[#caa15d] bg-white px-3 py-3 text-base" />
                 <button type="submit" disabled={!watchQuery.trim()} className="rounded-xl border-2 border-[#9c6d36] bg-[#fff4cf] px-3 py-3 font-black text-[#174c35] disabled:opacity-50">Tallenna</button>
               </form>
-              {showWatchDebug&&<div className="rounded-xl border-2 border-red-600 bg-white p-3 text-xs font-mono text-slate-900 break-words"><strong>Göstan tarjousvahti – diagnostiikka</strong><p>Tallennettuja vahteja: {savedWatches.length} | {savedWatches.join(", ")||"ei yhtään"}</p><p>{watchDebug}</p><p>Haku käynnissä: {String(watchLoading)} | tarkistettu: {String(watchChecked)} | virhe: {watchError||"ei"}</p><button type="button" className="mt-2 rounded border p-2" onClick={()=>navigator.clipboard?.writeText(watchDebug)}>Kopioi diagnostiikka</button></div>}
+              {showWatchDebug&&<div className="rounded-xl border-2 border-red-600 bg-white p-3 text-xs font-mono text-slate-900 break-words"><strong>Göstan tarjousvahti – diagnostiikka</strong><p>Tallennettuja vahteja: {savedWatches.length} | {savedWatches.join(", ")||"ei yhtään"}</p><p>{watchDebug}</p><button type="button" disabled={watchRawLoading} className="my-2 rounded border border-red-700 bg-red-50 p-2" onClick={()=>{void runRawWatchDebug();}}>{watchRawLoading?"Tarkistetaan API...":"TUTKI RAAKA API"}</button><pre className="whitespace-pre-wrap break-all">{watchRawDebug}</pre><p>Haku käynnissä: {String(watchLoading)} | tarkistettu: {String(watchChecked)} | virhe: {watchError||"ei"}</p><button type="button" className="mt-2 rounded border p-2" onClick={()=>navigator.clipboard?.writeText(watchDebug+"\\n"+watchRawDebug)}>Kopioi diagnostiikka</button></div>}
               {watchNotice&&<p role="status" className="text-sm text-[#17573c]">{watchNotice}</p>}
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
