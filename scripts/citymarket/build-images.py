@@ -148,10 +148,13 @@ def build(folder,manifest_path,public_folder,review_path):
                          (cy-anchor['top'])*1.3) if anchor else None)
     candidates.append({'rectangle':list(block['bbox']),'distance':round(distance,4) if distance is not None else None,
                        'blocked':blocked(page,anchor,block['bbox']) if anchor else None,
-                       'ocrWords':image_words(block)[:24]})
+                       '_block':block})
    candidates.sort(key=lambda c:c['distance'] if c['distance'] is not None else 999)
+   reviewed_candidates=candidates[:8]
+   for candidate in reviewed_candidates:
+    candidate['ocrWords']=image_words(candidate.pop('_block'))[:24]
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
-                  'candidateImageRectangles':candidates[:15],
+                  'candidateImageRectangles':reviewed_candidates,
                   'status':'manual-review-needed'})
   if unresolved:
    sheet=page.get_pixmap(matrix=fitz.Matrix(1.4,1.4),alpha=False)
