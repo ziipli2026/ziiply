@@ -9,14 +9,14 @@ export function reconcileArvoMeals(local: readonly ArvoMeal[], remote: readonly 
   const serverById = new Map<string,ArvoMeal>();
   for (const item of remote) {
     const meal = normalizeArvoMeal(item);
-    if (meal?.id) serverById.set(meal.id,meal);
+    if (meal?.id && /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(meal.id)) serverById.set(meal.id,meal);
   }
   const upload: ArvoMeal[] = [];
   const conflicts: string[] = [];
   const seenLocal = new Set<string>();
   for (const item of local) {
     const meal = normalizeArvoMeal(item);
-    if (!meal?.id || seenLocal.has(meal.id)) continue;
+    if (!meal?.id || !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(meal.id) || seenLocal.has(meal.id)) continue;
     seenLocal.add(meal.id);
     const server = serverById.get(meal.id);
     if (!server) { upload.push(meal); continue; }
