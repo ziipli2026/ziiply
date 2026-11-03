@@ -41,23 +41,33 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
     ON CONFLICT (chain, publication_id) DO UPDATE SET offers = (
       SELECT COALESCE(jsonb_agg(
         CASE
-          WHEN COALESCE(existing.value->>'imageUrl','') !~* '^https://[^ /?#]+\\.[^ /?#]+'
-            AND length(COALESCE(existing.value->>'imageData','')) <= 100
-            AND COALESCE(incoming.value->>'imageUrl','') ~* '^https://[^ /?#]+\\.[^ /?#]+'
-          THEN jsonb_set(existing.value, '{imageUrl}', incoming.value->'imageUrl', true)
-          ELSE existing.value
-        END ORDER BY existing.ordinality), '[]'::jsonb)
-      FROM jsonb_array_elements(ziiply_offer_publications.offers)
-        WITH ORDINALITY AS existing(value, ordinality)
+          WHEN EXCLUDED.chain = 'K-Citymarket'
+            AND COALESCE(incoming.value->>'imageUrl','') = ''
+            AND COALESCE(previous.value->>'imageUrl','') ~* '^https://'
+          THEN jsonb_set(incoming.value, '{imageUrl}', previous.value->'imageUrl', true)
+          WHEN EXCLUDED.chain = 'K-Citymarket' THEN incoming.value
+          WHEN COALESCE(previous.value->>'imageUrl','') !~* '^https://'
+            AND COALESCE(incoming.value->>'imageUrl','') ~* '^https://'
+          THEN jsonb_set(previous.value, '{imageUrl}', incoming.value->'imageUrl', true)
+          ELSE COALESCE(previous.value, incoming.value)
+        END ORDER BY incoming.ordinality), '[]'::jsonb)
+      FROM jsonb_array_elements(EXCLUDED.offers) WITH ORDINALITY AS incoming(value, ordinality)
       LEFT JOIN LATERAL (
-        SELECT candidate.value
-        FROM jsonb_array_elements(EXCLUDED.offers) AS candidate(value)
-        WHERE COALESCE(candidate.value->>'id',candidate.value->>'offerId',candidate.value->>'productId','')
-          = COALESCE(existing.value->>'id',existing.value->>'offerId',existing.value->>'productId','')
-          AND COALESCE(existing.value->>'id',existing.value->>'offerId',existing.value->>'productId','') <> ''
+        SELECT old.value FROM jsonb_array_elements(ziiply_offer_publications.offers) AS old(value)
+        WHERE (
+          COALESCE(old.value->>'id',old.value->>'offerId',old.value->>'productId','') =
+          COALESCE(incoming.value->>'id',incoming.value->>'offerId',incoming.value->>'productId','')
+          AND COALESCE(incoming.value->>'id',incoming.value->>'offerId',incoming.value->>'productId','') <> ''
+        ) OR (
+          EXCLUDED.chain = 'K-Citymarket'
+          AND old.value->>'title' = incoming.value->>'title'
+          AND COALESCE(incoming.value->>'title','') <> ''
+        )
+        ORDER BY CASE WHEN old.value->>'id'=incoming.value->>'id' THEN 0 ELSE 1 END
         LIMIT 1
-      ) incoming ON true
-    )
+      ) previous ON true
+    ),
+    parsed_at = EXCLUDED.parsed_at
     RETURNING (xmax = 0) AS inserted`;
   const outcome = result[0]?.inserted ? "stored" : "unchanged";
   if (outcome === "stored") {
