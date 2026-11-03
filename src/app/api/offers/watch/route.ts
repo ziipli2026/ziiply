@@ -1,4 +1,3 @@
-import { searchZiiplyOffers } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchSources";
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
@@ -102,12 +101,28 @@ export async function GET(request: Request) {
               nearbyOffers.push({chain:"LIDL",publication_id:name,offers:lidlOffers.map(o=>({...o,storeName:name}))});
               nearbyDiagnostics.push({store:name,count:lidlOffers.length,error:lidlOffers.length?undefined:"Lidl publication unavailable"});continue;
             }
-            const context=kind==="spar"?(/eurospar/i.test(name+" "+String(store.chain||""))?{eurosparStoreId:id,eurosparStoreName:name,eurosparStoreChain:String(store.chain||"")}:{tokmanniStoreId:id,tokmanniStoreName:name}):isS?{sStoreId:id,sStoreName:name,sStoreIds:[id],sStoreNames:[name]}:{kStoreId:id,kStoreName:name,kStoreIds:[id],kStoreNames:[name]};
-            const offers=await Promise.race([
-              searchZiiplyOffers("__ziiply_all_offers__",context),
-              new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("timeout 10s")),10000))
-            ]);
-            const normalized=offers as unknown as Record<string,unknown>[];
+            // Use the same store-scoped master endpoint and provider dispatch as desktop Gösta.
+            const offerParams=new URLSearchParams({q:"__ziiply_all_offers__"});
+            if(kind==="spar"){
+              if(/eurospar/i.test(name+" "+String(store.chain||""))){
+                offerParams.set("provider","eurospar");
+                offerParams.set("eurosparStoreName",name);
+              }else{
+                offerParams.set("provider","tokmanni");
+                offerParams.set("tokmanniStoreName",name);
+              }
+            }else if(isS){
+              offerParams.set("sStoreId",id);
+              offerParams.set("sStoreName",name);
+            }else{
+              offerParams.set("kStoreId",id);
+              offerParams.set("kStoreName",name);
+            }
+            const response=await fetch(origin+"/api/offers/search?"+offerParams.toString(),{cache:"no-store",signal:AbortSignal.timeout(12000)});
+            if(!response.ok)throw new Error("Offer source HTTP "+response.status);
+            const payload=await response.json();
+            if(!payload.ok)throw new Error(String(payload.error||"Offer source unavailable"));
+            const normalized=(Array.isArray(payload.results)?payload.results:[]) as Record<string,unknown>[];
             nearbyOffers.push({chain:kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
             nearbyDiagnostics.push({store:name,count:normalized.length});
           }catch(error){nearbyDiagnostics.push({store:name,count:0,error:String(error)});}
