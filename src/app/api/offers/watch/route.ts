@@ -172,7 +172,7 @@ async function runWatch(request: Request) {
               offerParams.set("kStoreId",id);
               offerParams.set("kStoreName",name);
             }
-            const response=await fetch(origin+"/api/offers/search?"+offerParams.toString(),{cache:"no-store",signal:AbortSignal.timeout(25000)});
+            const response=await fetch(origin+"/api/offers/search?"+offerParams.toString(),{cache:"no-store",signal:AbortSignal.timeout(42000)});
             if(!response.ok)throw new Error("Offer source HTTP "+response.status);
             const payload=await response.json();
             if(!payload.ok)throw new Error(String(payload.error||"Offer source unavailable"));
