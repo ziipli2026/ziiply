@@ -2083,8 +2083,8 @@ export default function DesktopPreviewPage() {
         gostaWatchAutoRun.current="";
       });
     },1200);
-    return()=>window.clearTimeout(timer);
-    // The scan starts once after stores and saved watch terms are hydrated; store objects may refresh independently.
+    return()=>{window.clearTimeout(timer);if(gostaWatchAutoRun.current===key&&request===gostaWatchAutoRequest.current){gostaWatchAutoRun.current="";gostaWatchAutoRequest.current++;}};
+    // If store data changes during the debounce, cancel and re-arm the scan instead of permanently marking it complete.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[gostaHomeHydrated,gostaWatchQueryKey,stores.length,lidlStores.length,sparStores.length]);
   async function openAllGostaWatchResults(){
