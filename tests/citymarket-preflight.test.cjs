@@ -90,3 +90,14 @@ test('45AV missing images and categories cannot be green even with a PDF-pass au
  const result=status([run,audit],new Date('2026-11-01T14:00:00Z'));
  assert.equal(result.level,'yellow');assert.equal(result.reviewed,false);
 });
+
+test('45AV passes only after a newer PDF audit and complete quality metadata',()=>{
+ const p='2026-11-02-W45-AV';
+ const run={checked_at:'2026-11-01T13:15:00Z',source:'k-citymarket-preflight',ok:false,offer_count:32,outcome:'preflight-awaiting-pdf-review',details:{period:p,pdfReview:'pending',quality:{total:32,missing_names:0,missing_prices:0,missing_images:0,missing_categories:0,unverified_prices:0},errors:[]}};
+ const audit={checked_at:'2026-11-01T13:20:00Z',source:'k-citymarket-source-audit',ok:true,offer_count:32,outcome:'pdf-review-passed',details:{period:p}};
+ const now=new Date('2026-11-01T14:00:00Z');
+ assert.equal(status([run,audit],now).level,'green');
+ assert.equal(status([run,{...audit,checked_at:'2026-11-01T13:10:00Z'}],now).level,'yellow');
+ const incomplete={...run,details:{...run.details,quality:{total:32,missing_images:0,missing_categories:0}}};
+ assert.equal(status([incomplete,audit],now).level,'yellow');
+});
