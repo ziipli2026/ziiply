@@ -300,6 +300,8 @@
       "pageCount": 20,
       "offerCount": 33,
       "images": {
+        "kcm:spatial:1:eriat 300 g:7": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#ab471c7d4d9b7610a9f1",
+        "kcm:spatial:2:kiinteä, yleis ja auhoinen peruna 2 kg:1.29": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#7fef1443306d34a84775",
         "kcm:spatial:3:protein rahkat 200 g:3.5": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#506b72f6001e7aa5eff7",
         "kcm:spatial:3:vital hyvinvointimehut 1 l:3.7": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#c231d7e73a693a11e4c1",
         "kcm:spatial:4:hampurilaiset 150 g:2": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#8bcf00c5f47917ea4623",
@@ -315,6 +317,7 @@
         "kcm:spatial:7:suklaapallo 145 g:8.79": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#8ca0f40743f51ceda741",
         "kcm:spatial:7:juleskum 250 g:9.99": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#5d5493c6cf5b4d75385c",
         "kcm:spatial:8:nivea vartalovoiteet 100–400 ml nivea kroppskrämer:percent:30": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#8ade6441b049f1370d23",
+        "kcm:spatial:18:lv pyykinpesunesteet 750–1500 ml, täyttöpussi 1500 ml, jauheet 750–1600 g, huuhteluaine 750 ml:percent:15": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#376f87831300d5da4c11",
         "kcm:spatial:18:wc-paperi 16 rl:7.29": "/citymarket-leaflets/65018563df6eb0c229d6379216874f01fb77864c4a421b97813a7d6edad5d1b3/images.svg#30d3823ae40f94595ff5"
       }
     }
