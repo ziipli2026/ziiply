@@ -77,13 +77,30 @@ def enclosed_cell(page,row,rows):
  inside=[r for r in rows if r.get('anchor') and box[0]<r['anchor']['left']+r['anchor']['width']/2<box[2] and box[1]<=r['anchor']['top']<=box[3]]
  return box if len(inside)==1 else None
 
+def is_continuation_fragment(row,all_rows):
+ title=normalized(row.get('title',''))
+ if len(title.split())<3:return False
+ package=re.search(r'\b\d+\s*kpl\s*/\s*\d+\s*g\b',title)
+ if not package:return False
+ price=str(row.get('id','')).rsplit(':',1)[-1]
+ for other in all_rows:
+  if other is row or other.get('page')!=row.get('page'):continue
+  other_title=normalized(other.get('title',''))
+  if not other_title.endswith(' '+title):continue
+  if str(other.get('id','')).rsplit(':',1)[-1]!=price:continue
+  if normalized(other.get('title',''))==title:continue
+  return True
+ return False
+
 def build(folder,manifest_path,public_folder,review_path):
  folder=Path(folder);meta=json.loads((folder/'leaflet.json').read_text());pdf=(folder/'leaflet.pdf').read_bytes();digest=hashlib.sha256(pdf).hexdigest();doc=fitz.open(stream=pdf,filetype='pdf')
+ all_rows=meta['rows']
+ rows=[row for row in all_rows if not is_continuation_fragment(row,all_rows)]
  if len(doc)!=meta['pageCount']:raise ValueError('PDF page count differs from the parsed publication')
  reviews=json.loads(Path(review_path).read_text()) if Path(review_path).exists() else {}
  reviewed=reviews.get(digest,{});mapping={};report=[];cells=[]
  for number in range(len(doc)):
-  page=doc[number];rows=[r for r in meta['rows'] if r['page']==number+1];blocks=pictures(page);accepted={r['id']:[] for r in rows}
+  page=doc[number];rows=[r for r in rows if r['page']==number+1];blocks=pictures(page);accepted={r['id']:[] for r in rows}
   if not rows:continue
   # Independent package-label text proof must accompany spatial ownership.
   # A distinctive word must occur in only one offer context on this page.
@@ -155,7 +172,7 @@ def build(folder,manifest_path,public_folder,review_path):
  svg=f'<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">'+''.join(cells)+'</svg>'
  (target/'images.svg').write_text(svg)
  manifest_path=Path(manifest_path);manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else {'revision':1,'publications':{}}
- manifest['publications'][meta['leaflet']]={'pdfSha256':digest,'pageCount':len(doc),'offerCount':len(meta['rows']),'images':mapping}
+ manifest['publications'][meta['leaflet']]={'pdfSha256':digest,'pageCount':len(doc),'offerCount':len(rows),'images':mapping}
  manifest_path.parent.mkdir(parents=True,exist_ok=True);manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
  (folder/'image-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
  print(f"Publisher images: {len(mapping)}/{len(meta['rows'])}; unresolved: {len(meta['rows'])-len(mapping)}; PDF {digest}")
