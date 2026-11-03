@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {reconcileArvoMeals} from "../src/app/components/ziiply/arvo/arvoMealReconciliation.ts";
 
-const meal=(id,kcal=100)=>({id,timestamp:"2026-11-03T12:00:00.000Z",ean:"6411234567890",name:"Testituote",grams:100,nutrition:{kcal,protein:null,carbs:null,fat:null}});
+const meal=(id,kcal=100)=>({id:`00000000-0000-4000-8000-00000000000${id}`,timestamp:"2026-11-03T12:00:00.000Z",ean:"6411234567890",name:"Testituote",grams:100,nutrition:{kcal,protein:null,carbs:null,fat:null}});
 
 test("Arvo reconciliation preserves local-only meals and queues upload",()=>{
  const result=reconcileArvoMeals([meal("a")],[]);
- assert.deepEqual(result.upload.map(m=>m.id),["a"]);
+ assert.deepEqual(result.upload.map(m=>m.id),["00000000-0000-4000-8000-00000000000a"]);
  assert.equal(result.merged.length,1);
 });
 test("Arvo reconciliation does not duplicate already synced meals",()=>{
@@ -16,7 +16,7 @@ test("Arvo reconciliation does not duplicate already synced meals",()=>{
 });
 test("Arvo reconciliation reports conflicts rather than overwriting server",()=>{
  const result=reconcileArvoMeals([meal("a",200)],[meal("a",100)]);
- assert.deepEqual(result.conflicts,["a"]);
+ assert.deepEqual(result.conflicts,["00000000-0000-4000-8000-00000000000a"]);
  assert.equal(result.upload.length,0);
  assert.equal(result.merged[0].nutrition.kcal,100);
 });
