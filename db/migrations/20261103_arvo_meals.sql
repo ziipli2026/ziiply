@@ -11,10 +11,17 @@ CREATE TABLE IF NOT EXISTS public.ziiply_arvo_meals (
   protein_g numeric(12,2) CHECK (protein_g >= 0),
   carbs_g numeric(12,2) CHECK (carbs_g >= 0),
   fat_g numeric(12,2) CHECK (fat_g >= 0),
+  deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id,meal_id)
 );
 CREATE INDEX IF NOT EXISTS ziiply_arvo_meals_user_consumed_idx
   ON public.ziiply_arvo_meals(user_id,consumed_at DESC);
 -- The API must derive user_id from a validated server-side session.
 -- Never grant anonymous INSERT/SELECT/UPDATE/DELETE on this table.
+
+-- A soft-delete tombstone survives a retry and prevents an older device
+-- from resurrecting a meal. The API must exclude deleted_at IS NOT NULL
+-- from statistics, and reject stale re-uploads until explicitly restored.
+-- Never trust client-provided user_id, consent or timestamps as authorization.
