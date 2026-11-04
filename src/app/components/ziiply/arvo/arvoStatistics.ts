@@ -38,7 +38,8 @@ export function normalizeArvoMeal(raw: unknown): ArvoMeal | null {
 export function readArvoMeals(storage: Pick<Storage,"getItem">): ArvoMeal[] {
   try {
     const rows = JSON.parse(storage.getItem(ARVO_MEALS_KEY) || "[]");
-    return Array.isArray(rows) ? rows.map(normalizeArvoMeal).filter((row):row is ArvoMeal=>!!row) : [];
+    const deleted = new Set(readArvoDeletedMealIds(storage));
+    return Array.isArray(rows) ? rows.map(normalizeArvoMeal).filter((row):row is ArvoMeal=>!!row && !deleted.has(row.id)) : [];
   } catch { return []; }
 }
 export function arvoNutritionTotals(meals: readonly ArvoMeal[]): ArvoNutritionTotals {
