@@ -294,6 +294,45 @@
         "kcm:spatial:13:wc-raikastintikut 5 x 9,5 g:5.5": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#9ea101ba2fc19f94f315",
         "kcm:spatial:13:foliovuoat kansineen 0,4–1,5 l:3": "/citymarket-leaflets/93728a49019dcbf3b62d6c1b4ff90a604a4d84b4afa751d787cf01a2aa865c6b/images.svg#8e8f230f6c1067efe3ac"
       }
+    },
+    "https://kcm-tarjouslehdet.k-ruoka.fi/90e9db1_tarjouslehti_45LV_KCM/index.html": {
+      "pdfSha256": "e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8",
+      "pageCount": 19,
+      "offerCount": 44,
+      "images": {
+        "kcm:spatial:1:suodatin- tai papukahvit 400–500 g ei next generation,:5.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#cad41f5dc73a55faee8d",
+        "kcm:spatial:1:jäätelöt 425 ml - erä:10": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#771831b4d39c8f40750c",
+        "kcm:spatial:1:suklaa-vadelma- moussekakku 400 g (22,38/kg):8.95": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#3329bc1c19c6f00c1939",
+        "kcm:spatial:2:mansikka 500 g:4.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#2b883351c6aea066ba24",
+        "kcm:spatial:2:tai maustekurkut 2 kpl/180 g:2.29": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#3db7e6ac10ad71af10f1",
+        "kcm:spatial:2:jääsalaatti 100 g:0.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#5bc1ad08ca41bf2668f5",
+        "kcm:spatial:3:homejuustot 150 g:5": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#a92b7106b05e725a902e",
+        "kcm:spatial:3:apetina original salaattijuustopala 200 g:6.3": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#d320e634bd79ce8a5fe7",
+        "kcm:spatial:3:cream cracker 200 g:1.3": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#e5dab6e39e3165a3736c",
+        "kcm:spatial:4:voicroissant 6 kpl/330 g:5.5": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#abc654b79756e1642061",
+        "kcm:spatial:4:ylikypsä saunapalvi ja palvikylki pala 300–400 g (8,75–11,67/kg) basturökt skinka eller extramör rökt sida i bit:7": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#80b96614938213ba8e20",
+        "kcm:spatial:4:kuuden hedelmän nektari 1 l:5": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#7c7ca3f307d95a5bbc0c",
+        "kcm:spatial:5:suomalainen viipaloitu graavi- ja kylmäsavu- kirjolohifilee 150 g (28,33/kg) 2:8.5": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#a3f320c28cb0fdcf8097",
+        "kcm:spatial:5:kuoritut katkaravut 250–350 kpl /180 g:8": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#573b02c92d6687048028",
+        "kcm:spatial:5:kirjolohifilee n. 700 g regnbågsöringsfilé:29.95": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#52aa8d65381159ad68fb",
+        "kcm:spatial:6:wanhanajan nakki 380 g (10,50/kg):3.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#ec9b6336b2a2797f4964",
+        "kcm:spatial:6:kanan rintafileet 600 g kanan pikkufileet 340 g:6.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#aa372bf073433fe02da3",
+        "kcm:spatial:6:kermaperunat 700 g:2.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#671054ec72f0f7eb9d94",
+        "kcm:spatial:7:jäätelökakut 650 ml:2": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#e295215b3604b8bcb97b",
+        "kcm:spatial:7:mantelikakut 400–420 g:6.49": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#4dc8cf6820490dd60129",
+        "kcm:spatial:7:korvapuustikranssi 400 g:3.49": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#e99a6332ab6946af5175",
+        "kcm:spatial:7:rommikeksi 144 g:4": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#49eb54ca8a621bd359eb",
+        "kcm:spatial:8:marsipaanimakeiset 175–220 g (27,23–34,23/kg) marsipangodis:5.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#cff694f9bfd556831cd0",
+        "kcm:spatial:8:wienernougat 210 g:7.49": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#ef0ad2c78cce59ffa15f",
+        "kcm:spatial:9:extra dry 8 % 0,2 l/pl:2.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#101a6a7db9e9ded4d96f",
+        "kcm:spatial:9:kuohujuomat 0 % 0,75 l/pl:12.99": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#f20be05a898b21870170",
+        "kcm:spatial:9:luomuglögit 0,75 l/pl:5.29": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#9450dcd7f4d5a5834ea6",
+        "kcm:spatial:9:glühwein 8 % 0,75 l/pl:9.79": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#0385b3c2af5d4e47babb",
+        "kcm:spatial:16:hiustenhoito- ja muotoilutuotteet 30–300 ml hårvårds- och stylingprodukter:percent:15": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#7fb395e0a7e33944fa82",
+        "kcm:spatial:16:icepower, magnesium in, ice n’ hot ja fysioactive tuotteet 75–500 ml icepower, magnesium in, ice n’ hot och fysioactive produkter:2": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#157c4d507c4c475b0742",
+        "kcm:spatial:17:nike roll-on:t ja deosprayt 50–200 ml:2.27": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#3ca742c546f592733759",
+        "kcm:spatial:17:herbina ja xz hiustenmuotoilu- tuotteet 50–250 ml stylingprodukter:percent:20": "/citymarket-leaflets/e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8/images.svg#34267295033b0daee9b8"
+      }
     }
   }
 }
