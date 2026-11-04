@@ -35,3 +35,11 @@ test("Arvo guard accepts database Date objects for valid timestamps",()=>{
  assert.equal(canAccessArvoCloudMeals({...valid,sessionExpiresAt:new Date(valid.sessionExpiresAt),cloudMealGrantedAt:new Date(valid.cloudMealGrantedAt)},now),true);
  assert.equal(canAccessArvoCloudMeals({...valid,sessionExpiresAt:new Date("invalid")},now),false);
 });
+
+test("Arvo cloud access fails closed when nullable database columns are omitted",()=>{
+ for (const field of ["sessionRevokedAt","userDisabledAt","cloudMealRevokedAt"]) {
+  const incomplete={...valid};
+  delete incomplete[field];
+  assert.equal(canAccessArvoCloudMeals(incomplete,now),false,field);
+ }
+});
