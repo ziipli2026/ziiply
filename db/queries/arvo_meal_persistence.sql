@@ -18,11 +18,11 @@ FROM public.ziiply_arvo_meals
 WHERE user_id=$1 AND deleted_at IS NULL
 ORDER BY consumed_at DESC,meal_id DESC LIMIT $2;
 
--- Fetch deleted identifiers separately so other devices do not resurrect them.
+-- Fetch durable deletion identifiers, including delete-before-insert records.
 -- $1 user_id, $2 limit
 SELECT meal_id,deleted_at
-FROM public.ziiply_arvo_meals
-WHERE user_id=$1 AND deleted_at IS NOT NULL
+FROM public.ziiply_arvo_meal_deletions
+WHERE user_id=$1
 ORDER BY deleted_at DESC,meal_id DESC LIMIT $2;
 
 -- Out-of-order-safe deletion, executed in a transaction with the UPDATE:
@@ -48,7 +48,7 @@ ON CONFLICT (user_id,meal_id) DO NOTHING;
 -- The lock is scoped to user_id and meal_id; all writers must use it.
 -- PostgreSQL hash collisions only cause extra serialization, not data leakage.
 
--- Guarded insert; use instead of the unguarded INSERT above in production.
+-- Guarded insert; execute inside the per-meal transaction above.
 -- $1 user_id, $2 meal_id, $3 consumed_at, $4 ean, $5 product_name,
 -- $6 grams, $7 kcal, $8 protein_g, $9 carbs_g, $10 fat_g
 INSERT INTO public.ziiply_arvo_meals
