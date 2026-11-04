@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {reconcileArvoMeals} from "../src/app/components/ziiply/arvo/arvoMealReconciliation.ts";
+import {mergeArvoDeletedIds,reconcileArvoMeals} from "../src/app/components/ziiply/arvo/arvoMealReconciliation.ts";
 
 const meal=(id,kcal=100)=>({id:`00000000-0000-4000-8000-00000000000${id}`,timestamp:"2026-11-03T12:00:00.000Z",ean:"6411234567890",name:"Testituote",grams:100,nutrition:{kcal,protein:null,carbs:null,fat:null}});
 
@@ -41,4 +41,13 @@ test("Arvo reconciliation rejects invalid remote IDs",()=>{
  const invalid={...meal("a"),id:"not-a-uuid"};
  const result=reconcileArvoMeals([], [invalid]);
  assert.equal(result.merged.length,0);
+});
+
+test("Arvo server tombstones prevent offline meal resurrection",()=>{
+ const id=meal("a").id;
+ const tombstones=mergeArvoDeletedIds([], [id,id,"invalid"]);
+ assert.deepEqual(tombstones,[id]);
+ const result=reconcileArvoMeals([meal("a")],[meal("a")],tombstones);
+ assert.deepEqual(result.merged,[]);
+ assert.deepEqual(result.upload,[]);
 });
