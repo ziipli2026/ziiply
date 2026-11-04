@@ -21,13 +21,6 @@ export function excludeArvoDeletedMeals(meals:readonly ArvoMeal[],deletedIds:rea
   return meals.filter(meal=>!deleted.has(meal.id));
 }
 
-/** A newly saved meal supersedes a pending deletion of the same identifier. */
-export function clearArvoMealDeleted(storage:Pick<Storage,"getItem"|"setItem">,id:string):string[] {
-  const next=readArvoDeletedMealIds(storage).filter(existing=>existing!==id);
-  storage.setItem(ARVO_DELETED_MEALS_KEY,JSON.stringify(next));
-  return next;
-}
-
 /** Persist server tombstones before reconciling offline meals. */
 export function persistArvoRemoteDeletedIds(
   storage:Pick<Storage,"getItem"|"setItem">,
