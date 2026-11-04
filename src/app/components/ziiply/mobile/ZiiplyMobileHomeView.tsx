@@ -41,7 +41,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     const readShared=()=>{
       try{
         const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-        if(cached?.key===watchKey&&Array.isArray(cached.offers)&&Number.isFinite(cached.at)&&Date.now()-cached.at<20*1000){
+        if(cached?.key===watchKey&&Array.isArray(cached.offers)&&Number.isFinite(cached.at)&&Date.now()-cached.at<5*60*1000){
           setWatchCount(cached.offers.length);
           return Number(cached.at)||0;
         }
