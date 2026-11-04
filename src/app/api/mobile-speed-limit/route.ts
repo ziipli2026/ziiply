@@ -3,11 +3,15 @@ import { matchRoadSpeedLimit, type OsmRoad } from "@/lib/mobile-speed-limit";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const endpoints = [
-  "https://overpass.nchc.org.tw/api/interpreter",
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass.osm.ch/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
   "https://overpass.openstreetmap.ru/api/interpreter",
-  "https://overpass.osm.jp/api/interpreter",
 ];
+const providerCooldown=new Map<string,number>();
+const roadResultCache=new Map<string,{until:number;body:Record<string,unknown>;status:number}>();
+const MAX_ROAD_CACHE=400;
 type Attempt = { provider: string; ms: number; status: number | null; outcome: string; candidates?: number; limit?: number | null };
 export async function GET(request: NextRequest) {
   const p = request.nextUrl.searchParams;
@@ -24,11 +28,15 @@ export async function GET(request: NextRequest) {
       (heading !== null && (!Number.isFinite(heading) || heading < 0 || heading >= 360))) {
     return respond({ limit: null, reason: "invalid_gps" }, 400);
   }
+  const cacheKey=[latitude.toFixed(3),longitude.toFixed(3),heading===null?"-":Math.round(heading/30),Math.round(accuracy/10)].join("|");
+  const cached=roadResultCache.get(cacheKey);
+  if(cached&&cached.until>Date.now())return respond({...cached.body,...(debug?{}:{diagnostics:undefined})},cached.status);
   const radius = Math.min(180, Math.max(90, Math.ceil(accuracy * 2 + 35)));
   const query = `[out:json][timeout:6];way(around:${radius},${latitude},${longitude})["highway"]["maxspeed"];out geom;`;
   const attempts: Attempt[] = await Promise.all(endpoints.map(async endpoint => {
     const provider = new URL(endpoint).hostname;
     const started = Date.now();
+    if((providerCooldown.get(provider)||0)>started)return {provider,ms:0,status:null,outcome:"cooldown"};
     let status: number | null = null;
     try {
       const response = await fetch(endpoint + "?data=" + encodeURIComponent(query), {
@@ -38,12 +46,17 @@ export async function GET(request: NextRequest) {
         cache: "no-store",
       });
       status = response.status;
-      if (!response.ok) return { provider, ms: Date.now() - started, status, outcome: "http_error" };
+      if (!response.ok) {
+        if(response.status===429||response.status===503||response.status===504)providerCooldown.set(provider,Date.now()+(response.status===429?5*60*1000:60*1000));
+        return { provider, ms: Date.now() - started, status, outcome: "http_error" };
+      }
+      providerCooldown.delete(provider);
       const payload: { elements?: OsmRoad[] } = await response.json();
       if (!Array.isArray(payload.elements)) return { provider, ms: Date.now() - started, status, outcome: "invalid_json" };
       const match = matchRoadSpeedLimit(payload.elements, { latitude, longitude, accuracy, heading });
       return { provider, ms: Date.now() - started, status, outcome: match ? "matched" : "no_reliable_match", candidates: payload.elements.length, limit: match?.limit ?? null };
     } catch (error) {
+      providerCooldown.set(provider,Date.now()+60*1000);
       return { provider, ms: Date.now() - started, status, outcome: error instanceof Error ? error.name + ": " + error.message.slice(0, 100) : "unknown_error" };
     }
   }));
@@ -52,8 +65,9 @@ export async function GET(request: NextRequest) {
   const reason = matched ? "matched" : usable ? "no_reliable_match" : "no_road_data";
   const details = attempts.map(({provider, ms, status, outcome, candidates}) => ({provider, ms, status, outcome, candidates}));
   console.info("[mobile-speed-limit] diagnostics", JSON.stringify({reason, attempts: details, accuracy: Math.round(accuracy)}));
-  return respond({
-    limit: matched?.limit ?? null, reason,
-    ...(debug ? { diagnostics: { accuracy: Math.round(accuracy), radius, providers: details } } : {}),
-  }, usable ? 200 : 503);
+  const body:Record<string,unknown>={limit:matched?.limit??null,reason,diagnostics:{accuracy:Math.round(accuracy),radius,providers:details}};
+  const status=matched||usable?200:503;
+  roadResultCache.set(cacheKey,{until:Date.now()+(matched?120000:usable?30000:20000),body,status});
+  while(roadResultCache.size>MAX_ROAD_CACHE)roadResultCache.delete(roadResultCache.keys().next().value!);
+  return respond(debug?body:{limit:body.limit,reason:body.reason},status);
 }
