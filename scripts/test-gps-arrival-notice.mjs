@@ -25,10 +25,11 @@ function scenario(target,selection=[selected.id],all=[selected,sameChain,crossCh
 // Identity cross-check: a single alternating store fix cannot confirm a visit.
 {
  let state=initialZiiplyArrivalState();
- const positions=[selected,selected,sameChain,selected,selected];
+ const nearbyOther={...sameChain,latitude:60.00072};
+ const positions=[selected,selected,nearbyOther,selected,selected];
  for(let i=0;i<positions.length;i++){
   const p=positions[i],at=i*3000;
-  const d=evaluateZiiplyArrival(state,{at,latitude:p.latitude,longitude:p.longitude,accuracyMeters:5,speedKmh:0},[selected,sameChain,crossChain],[selected.id]);
+  const d=evaluateZiiplyArrival(state,{at,latitude:p.latitude,longitude:p.longitude,accuracyMeters:5,speedKmh:0},[selected,nearbyOther,crossChain],[selected.id]);
   state=d.state;
   assert.equal(d.showArrivalMessage,false,'alternating store identity must not confirm arrival');
  }
