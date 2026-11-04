@@ -21,9 +21,9 @@ assert.equal(inside.status,'in-store');assert.equal(inside.radar,'green');assert
 assert.equal(notice.phase,'approach');
 notice=reduce(notice,{type:'tick',at:20000});assert.equal(notice.phase,'list');
 sample(16000,0,0,100);assert.equal(state.arrivalStoreId,'sale');
-sample(20000,.003,5);assert.equal(state.arrivalStoreId,'sale');
-sample(26000,.003,5);assert.equal(state.arrivalStoreId,'sale');
-sample(32000,.003,5);assert.equal(state.arrivalStoreId,null);
+sample(24000,.003,5);assert.equal(state.arrivalStoreId,'sale');
+sample(30000,.003,5);assert.equal(state.arrivalStoreId,'sale');
+sample(36000,.003,5);assert.equal(state.arrivalStoreId,null);
 state=core.initialZiiplyArrivalState();notice=null;
 assert.equal(sample(0,0,0,5,[shop,{...shop,id:'other',latitude:60.00001}]).status,'uncertain');
 assert.equal(notice,null);
