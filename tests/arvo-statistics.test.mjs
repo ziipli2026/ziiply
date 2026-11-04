@@ -144,3 +144,16 @@ test("Arvo: deleted meal identifier cannot be reused by stale offline save",()=>
  assert.throws(()=>saveArvoMeal(storage,entry),/arvo-meal-deleted-id/);
  assert.deepEqual(readArvoMeals(storage),[]);
 });
+
+test("Arvo: tombstoned meal stays hidden when meal-list write fails",()=>{
+ const data=new Map();
+ const a=meal("a","2026-10-29T12:00:00.000Z",{kcal:100,protein:5,carbs:10,fat:2});
+ data.set(ARVO_MEALS_KEY,JSON.stringify([a]));
+ const storage={
+  getItem:key=>data.get(key)??null,
+  setItem:(key,value)=>{if(key===ARVO_MEALS_KEY) throw Error("meal-list-write-failed");data.set(key,value);}
+ };
+ assert.throws(()=>deleteArvoMeal(storage,"a"),/meal-list-write-failed/);
+ assert.equal(readArvoMeals(storage).length,0);
+ assert.ok(JSON.parse(data.get(ARVO_MEALS_KEY)).length===1);
+});
