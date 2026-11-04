@@ -35,3 +35,13 @@ test("Arvo reader rejects truncated result sets instead of silently losing sync 
  const read=createArvoNeonMealReader({query:async(sql)=>({rows:sql.includes("ziiply_arvo_meal_deletions")?rows:[]})});
  await assert.rejects(read(user),/result-limit-exceeded/);
 });
+
+test("Arvo reader rejects corrupted Neon nutrition rather than showing incorrect statistics",async()=>{
+ const read=createArvoNeonMealReader({query:async(sql)=>({
+  rows:sql.includes("ziiply_arvo_meal_deletions")?[]:[{
+   meal_id:id,consumed_at:"2026-11-04T10:00:00.000Z",ean:"6411234567890",
+   product_name:"Testi",grams:"100.00",kcal:"-20.00",protein_g:null,carbs_g:"20.00",fat_g:"5.00"
+  }]
+ })});
+ await assert.rejects(read(user),/invalid-cloud-meal/);
+});
