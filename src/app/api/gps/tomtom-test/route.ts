@@ -40,16 +40,16 @@ export async function GET(request: Request) {
         // Never echo raw upstream responses: some errors may contain the API key.
       }, { status: 502 });
     }
-    const data = payload as { route?: { properties?: { id?: string; speedLimits?: Array<{ value?: number; unit?: string; type?: string }> } }[] } | null;
+    const data = payload as { route?: { properties?: { id?: string; speedLimits?: { value?: number; unit?: string; type?: string } } }[] } | null;
     const roads = Array.isArray(data?.route) ? data.route.map((segment) => ({
       id: segment.properties?.id ?? null,
-      speedLimits: segment.properties?.speedLimits ?? [],
+      speedLimits: segment.properties?.speedLimits ?? null,
     })) : [];
     return NextResponse.json({
       ok: true,
       location: "Helsinki, Mannerheimintie (two static test points)",
       roadSegments: roads,
-      hasSpeedLimits: roads.some((segment) => segment.speedLimits.length > 0),
+      hasSpeedLimits: roads.some((segment) => typeof segment.speedLimits?.value === "number"),
     }, { headers: { "Cache-Control": "private, no-store" } });
   } catch {
     return NextResponse.json({ ok: false, error: "TomTom connection timed out or failed" }, { status: 502 });
