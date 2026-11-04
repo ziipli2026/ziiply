@@ -28,6 +28,31 @@ export async function GET(request: NextRequest) {
       (heading !== null && (!Number.isFinite(heading) || heading < 0 || heading >= 360))) {
     return respond({ limit: null, reason: "invalid_gps" }, 400);
   }
+  // TomTom is enabled only with a commercial-production key and explicit feature flag.
+  // Evaluation keys must never be used for commercial production traffic.
+  if(process.env.TOMTOM_COMMERCIAL_ENABLED==="true" && process.env.TOMTOM_API_KEY){
+    try {
+      const points=[latitude,longitude].every(Number.isFinite) ? `${longitude},${latitude};${longitude},${latitude}` : "";
+      const params=new URLSearchParams({
+        key:process.env.TOMTOM_API_KEY,points,
+        fields:"{projectedPoints{properties{routeIndex,snapResult}},route{properties{speedLimits{value,unit,type},confidence,formOfWay}}}",
+        vehicleType:"PassengerCar",measurementSystem:"metric",
+      });
+      if(heading!==null)params.set("headings",`${heading};${heading}`);
+      const upstream=await fetch(`https://api.tomtom.com/snapToRoads/1?${params}`,{signal:AbortSignal.timeout(4500),cache:"no-store"});
+      if(upstream.ok){
+        const data=await upstream.json() as {projectedPoints?:Array<{properties?:{routeIndex?:number;snapResult?:string}}>;route?:Array<{properties?:{speedLimits?:{value?:number;unit?:string;type?:string};confidence?:number;formOfWay?:string}}>};
+        const index=data.projectedPoints?.filter(p=>p.properties?.snapResult==="Matched").at(-1)?.properties?.routeIndex;
+        const road=typeof index==="number"?data.route?.[index]?.properties:undefined;
+        const speed=road?.speedLimits;
+        if(road&&speed&&speed.type==="Maximum"&&typeof speed.value==="number"&&
+          (road.confidence??0)>=0.5&&road.formOfWay!=="ETAParkingBuilding"&&road.formOfWay!=="ETAParkingArea"){
+          const limit=speed.unit==="mph"?Math.round(speed.value*1.609344):speed.value;
+          if(limit>0&&limit<=140)return respond({limit,reason:"matched",source:"tomtom",...(debug?{diagnostics:{confidence:road.confidence,formOfWay:road.formOfWay}}:{})});
+        }
+      }
+    }catch{ /* Use existing OSM fallback without exposing credentials. */ }
+  }
   const cacheKey=[latitude.toFixed(3),longitude.toFixed(3),heading===null?"-":Math.round(heading/30),Math.round(accuracy/10)].join("|");
   const cached=roadResultCache.get(cacheKey);
   if(cached&&cached.until>Date.now())return respond({...cached.body,...(debug?{}:{diagnostics:undefined})},cached.status);
