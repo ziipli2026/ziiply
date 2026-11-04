@@ -1,5 +1,6 @@
 import type {ArvoSqlExecutor} from "./arvoNeonMealWriter.server.ts";
 import type {ArvoMeal} from "./arvoStatistics.ts";
+import {validateArvoMealPayload} from "./arvoMealPayload.server.ts";
 
 /** Fetch only the authenticated user's active meals and durable deletion IDs. */
 export function createArvoNeonMealReader(db:ArvoSqlExecutor){
@@ -11,11 +12,15 @@ export function createArvoNeonMealReader(db:ArvoSqlExecutor){
   if(active.rows.length>5000||deleted.rows.length>5000)throw Error("arvo-sync-result-limit-exceeded");
   const deletedIds=deleted.rows.map(row=>String(row.meal_id));
   const deletedSet=new Set(deletedIds);
-  const meals=active.rows.filter(row=>!deletedSet.has(String(row.meal_id))).map(row=>({
+  const meals:ArvoMeal[]=active.rows.filter(row=>!deletedSet.has(String(row.meal_id))).map(row=>({
    id:String(row.meal_id),timestamp:new Date(String(row.consumed_at)).toISOString(),
    ean:String(row.ean),name:String(row.product_name),grams:Number(row.grams),
    nutrition:{kcal:row.kcal===null?null:Number(row.kcal),protein:row.protein_g===null?null:Number(row.protein_g),carbs:row.carbs_g===null?null:Number(row.carbs_g),fat:row.fat_g===null?null:Number(row.fat_g)}
-  }));
+  })).map(meal=>{
+   const valid=validateArvoMealPayload(meal);
+   if(!valid)throw Error("arvo-invalid-cloud-meal");
+   return valid;
+  });
   return {meals,deletedIds};
  };
 }
