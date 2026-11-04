@@ -9,6 +9,7 @@ const validMealId = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[
 
 export function reconcileArvoMeals(local: readonly ArvoMeal[], remote: readonly ArvoMeal[], deletedIds: readonly string[] = []) {
   const deleted = new Set(deletedIds);
+  // Remote tombstones must be included by the caller before reconciliation.
   const serverById = new Map<string,ArvoMeal>();
   for (const item of remote) {
     const meal = normalizeArvoMeal(item);
@@ -35,4 +36,9 @@ export function reconcileArvoMeals(local: readonly ArvoMeal[], remote: readonly 
     localOnly,
     conflicts,
   };
+}
+
+/** Merge locally and remotely deleted IDs before any meal reconciliation. */
+export function mergeArvoDeletedIds(localIds:readonly string[],remoteIds:readonly string[]):string[] {
+  return [...new Set([...localIds,...remoteIds].filter(validMealId))];
 }
