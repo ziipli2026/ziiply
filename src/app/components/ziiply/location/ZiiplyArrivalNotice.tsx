@@ -2,10 +2,41 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { arrivalNoticeReducer, type ArrivalNotice } from './ziiplyArrivalNotice';
 import type { ZiiplyArrivalDecision } from './ziiplyArrivalSequence';
-import { recordArrivalDiagnostic } from './ziiplyArrivalDiagnostics';
+import { getArrivalDiagnostics, recordArrivalDiagnostic } from './ziiplyArrivalDiagnostics';
 
 export function useZiiplyArrivalNotice(enabled:boolean) {
  const [notice,dispatch]=useReducer(arrivalNoticeReducer,null);
+ useEffect(()=>{
+  const onDebugClick=(event:MouseEvent)=>{
+   const target=event.target as Element|null;
+   const button=target?.closest('button,[role="button"]');
+   if(!button || !/GPS\\s*debug/i.test(button.textContent||''))return;
+   event.preventDefault();
+   event.stopPropagation();
+   let panel=document.getElementById('ziiply-unified-gps-debug') as HTMLDivElement|null;
+   if(panel){panel.remove();return;}
+   panel=document.createElement('div');
+   panel.id='ziiply-unified-gps-debug';
+   panel.style.cssText='position:fixed;inset:8% 3% 9%;z-index:2147483647;background:#101614;color:#b8ffcb;border:2px solid white;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;font:12px/1.4 monospace;box-shadow:0 0 0 100vmax rgba(0,0,0,.5)';
+   const toolbar=document.createElement('div');toolbar.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+   const title=document.createElement('strong');title.textContent='GPS DEBUG – kauppaan saapuminen + nopeusrajoitus';toolbar.appendChild(title);
+   const makeButton=(label:string,action:()=>void)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='padding:8px;background:#fff;color:#111;border-radius:7px';b.onclick=action;toolbar.appendChild(b);return b;};
+   const output=document.createElement('pre');output.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;flex:1;margin:0';
+   const collect=()=>{
+    const arrival=getArrivalDiagnostics().map(e=>new Date(e.at).toLocaleTimeString('fi-FI')+' '+e.event+' '+JSON.stringify(e.detail)).join('\\n');
+    const speed=document.getElementById('mobile-speed-limit-debug-history')?.textContent||'Ei nopeusrajoituslokia';
+    return 'KAUPPAAN SAAPUMINEN\\n'+(arrival||'Ei saapumistapahtumia – tarkista että saapumisseuranta on käytössä')+'\\n\\nNOPEUSRAJOITUS\\n'+speed;
+   };
+   const refresh=()=>{output.textContent=collect();};
+   makeButton('Päivitä',refresh);
+   const copy=makeButton('Kopioi koko loki',()=>{void navigator.clipboard.writeText(collect()).then(()=>{copy.textContent='Kopioitu';}).catch(()=>{copy.textContent='Kopiointi epäonnistui';});});
+   makeButton('Sulje',()=>panel?.remove());
+   panel.append(toolbar,output);document.body.appendChild(panel);refresh();
+  };
+  document.addEventListener('click',onDebugClick,true);
+  return ()=>document.removeEventListener('click',onDebugClick,true);
+ },[]);
+
  const pending=useRef<{decision:ZiiplyArrivalDecision;at:number}|null>(null);
  const [active,setActive]=useReducer((_:boolean,next:boolean)=>next,false);
  const activeRef=useRef(false);
