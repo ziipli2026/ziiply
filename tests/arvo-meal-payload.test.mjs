@@ -15,3 +15,14 @@ test("Arvo cloud payload rejects malformed identifiers and nutrition",()=>{
   {...valid,nutrition:{...valid.nutrition,fat:NaN}}
  ])assert.equal(validateArvoMealPayload(changed),null);
 });
+
+test("Arvo cloud timestamps require real calendar dates and explicit timezone",()=>{
+ for(const timestamp of [
+  "2026-02-30T10:00:00.000Z",
+  "2026-11-04T10:00:00",
+  "2026-11-04T25:00:00Z",
+  "2026-11-04T10:00:00+15:00",
+  "2026-11-04T10:00:00.000+02:99"
+ ])assert.equal(validateArvoMealPayload({...valid,timestamp}),null,timestamp);
+ assert.equal(validateArvoMealPayload({...valid,timestamp:"2026-11-04T12:00:00+02:00"})?.timestamp,"2026-11-04T10:00:00.000Z");
+});
