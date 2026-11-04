@@ -14,6 +14,7 @@ export type ArvoServerAccess = {
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function canAccessArvoCloudMeals(access: ArvoServerAccess, now: Date = new Date()): boolean {
   if (!access.sessionUserId || !uuid.test(access.sessionUserId)) return false;
+  if (!Number.isFinite(now.getTime())) return false;
   if (!access.sessionExpiresAt || !Number.isFinite(Date.parse(access.sessionExpiresAt))) return false;
   if (Date.parse(access.sessionExpiresAt) <= now.getTime()) return false;
   if (access.sessionRevokedAt !== null || access.userDisabledAt !== null) return false;
