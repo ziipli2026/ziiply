@@ -28,16 +28,8 @@ export default function DesktopGostaWatch(){
    running=true;setLoading(true);
    try{
     const params=new URLSearchParams({q:key});
-    if(navigator.geolocation){
-     try{
-      const permission=await navigator.permissions?.query({name:"geolocation"});
-      if(permission?.state==="granted"){
-       const pos=await new Promise<GeolocationPosition>((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{maximumAge:300000,timeout:3500}));
-       params.set("lat",String(pos.coords.latitude));params.set("lon",String(pos.coords.longitude));
-      }
-     }catch{}
-    }
-    const response=await fetch("/api/offers/watch?"+params.toString(),{cache:"no-store",signal:AbortSignal.timeout(65000)});
+    // The watcher reads stored offers only; GPS must not delay the request.
+    const response=await fetch("/api/offers/watch?"+params.toString(),{cache:"no-store",signal:AbortSignal.timeout(12000)});
     const data=await response.json();
     if(!response.ok||!data.ok||!Array.isArray(data.results))throw Error(String(data.error||"Tarjoushaku epäonnistui"));
     const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
@@ -50,7 +42,7 @@ export default function DesktopGostaWatch(){
    }catch(e){if(!cancelled)setError("Päivitys epäonnistui; aiemmat tulokset säilyvät.");}
    finally{running=false;if(!cancelled)setLoading(false);}
   };
-  const timer=window.setTimeout(()=>{void scan();},300);
+  const timer=window.setTimeout(()=>{void scan();},0);
   const resume=()=>{if(document.visibilityState==="visible"&&Date.now()-last>5*60*1000)void scan();};
   const interval=window.setInterval(resume,60*1000);
   window.addEventListener("focus",resume);document.addEventListener("visibilitychange",resume);
