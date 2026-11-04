@@ -20,6 +20,7 @@ export default function DesktopGostaWatch(){
  },[]);
  React.useEffect(()=>{
   setReady(false);setOffers([]);setError("");
+  try{const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===key&&Array.isArray(cached.offers)){setOffers(cached.offers);setReady(true);}}catch{}
   if(!key)return;
   let cancelled=false,running=false,last=0;
   const scan=async()=>{
@@ -36,7 +37,7 @@ export default function DesktopGostaWatch(){
       }
      }catch{}
     }
-    const response=await fetch("/api/offers/watch?"+params.toString(),{cache:"no-store",signal:AbortSignal.timeout(45000)});
+    const response=await fetch("/api/offers/watch?"+params.toString(),{cache:"no-store",signal:AbortSignal.timeout(65000)});
     const data=await response.json();
     if(!response.ok||!data.ok||!Array.isArray(data.results))throw Error(String(data.error||"Tarjoushaku epäonnistui"));
     const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
