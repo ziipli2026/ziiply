@@ -7,6 +7,7 @@ export type ArvoMealUploadPlan = {
   upload: ArvoMeal[];
   localOnly: ArvoMeal[];
   conflicts: string[];
+  deleteRemoteIds: string[];
 };
 
 /**
@@ -20,8 +21,10 @@ export function planArvoMealUpload(
   deletedIds: readonly string[] = [],
 ): ArvoMealUploadPlan {
   if (!canSyncArvoMeals(permission)) {
-    return {allowed:false,upload:[],localOnly:local.map(normalizeArvoMeal).filter((m):m is ArvoMeal=>m!==null&&!deletedIds.includes(m.id)),conflicts:[]};
+    return {allowed:false,upload:[],localOnly:local.map(normalizeArvoMeal).filter((m):m is ArvoMeal=>m!==null&&!deletedIds.includes(m.id)),conflicts:[],deleteRemoteIds:[]};
   }
   const {upload,localOnly,conflicts}=reconcileArvoMeals(local,remote,deletedIds);
-  return {allowed:true,upload,localOnly,conflicts};
+  const remoteIds = new Set(remote.map(meal=>meal.id));
+  const deleteRemoteIds = [...new Set(deletedIds)].filter(id=>remoteIds.has(id));
+  return {allowed:true,upload,localOnly,conflicts,deleteRemoteIds};
 }
