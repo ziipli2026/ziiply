@@ -12,7 +12,7 @@ export function validateArvoMealPayload(input:unknown):ArvoMeal|null {
  if(typeof m.ean!=="string"||!ean.test(m.ean))return null;
  if(typeof m.name!=="string"||!m.name.trim()||m.name.length>500)return null;
  if(typeof m.grams!=="number"||!Number.isFinite(m.grams)||m.grams<=0||m.grams>1000000)return null;
- if(typeof m.timestamp!=="string"||!/^\\d{4}-\\d{2}-\\d{2}T/.test(m.timestamp)||!Number.isFinite(Date.parse(m.timestamp)))return null;
+ if(typeof m.timestamp!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}T/.test(m.timestamp)||!Number.isFinite(Date.parse(m.timestamp)))return null;
  if(!m.nutrition||typeof m.nutrition!=="object"||Array.isArray(m.nutrition))return null;
  const n=m.nutrition as Record<string,unknown>;
  if(!["kcal","protein","carbs","fat"].every(key=>Object.hasOwn(n,key)&&nutrient(n[key])))return null;
