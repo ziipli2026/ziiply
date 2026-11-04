@@ -45,7 +45,10 @@ BEGIN
 END;
 $$;
 
--- These functions must be callable ONLY by the trusted server database role.
--- Explicit grants and role separation must be reviewed before deployment.
+-- Functions use SECURITY INVOKER (PostgreSQL default), so the calling role
+-- must also have table privileges. PUBLIC execution is explicitly revoked.
+-- Before deployment, verify role ownership, existing grants, and that only
+-- the trusted server role has EXECUTE and required table privileges.
+-- REVOKE from PUBLIC does not revoke privileges granted to named roles.
 REVOKE ALL ON FUNCTION public.ziiply_arvo_insert_meal(uuid,uuid,timestamptz,text,text,numeric,numeric,numeric,numeric,numeric) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.ziiply_arvo_delete_meal(uuid,uuid) FROM PUBLIC;
