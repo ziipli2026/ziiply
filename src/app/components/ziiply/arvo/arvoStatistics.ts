@@ -100,8 +100,10 @@ export function saveArvoMeal(storage: Pick<Storage,"getItem"|"setItem">, meal: A
 export function deleteArvoMeal(storage: Pick<Storage,"getItem"|"setItem">, id: string): ArvoMeal[] {
   if (!id) throw new Error("invalid-arvo-meal-id");
   const next = readArvoMeals(storage).filter(meal => meal.id !== id);
-  storage.setItem(ARVO_MEALS_KEY, JSON.stringify(next));
+  // Persist the deletion marker first: a storage write failure must not
+  // remove the meal locally without recording that it must stay deleted.
   markArvoMealDeleted(storage,id);
+  storage.setItem(ARVO_MEALS_KEY, JSON.stringify(next));
   return next;
 }
 
