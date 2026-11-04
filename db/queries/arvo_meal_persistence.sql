@@ -30,3 +30,18 @@ SELECT meal_id,deleted_at
 FROM public.ziiply_arvo_meals
 WHERE user_id=$1 AND deleted_at IS NOT NULL
 ORDER BY deleted_at DESC,meal_id DESC LIMIT $2;
+
+-- Out-of-order-safe deletion, executed in a transaction with the UPDATE:
+-- $1 user_id, $2 meal_id. This creates a tombstone even if no meal exists.
+INSERT INTO public.ziiply_arvo_meal_deletions (user_id,meal_id)
+VALUES ($1,$2)
+ON CONFLICT (user_id,meal_id) DO NOTHING;
+
+-- Guard new inserts by checking the durable deletion ledger.
+-- The API must serialize insert/delete for the same (user_id,meal_id),
+-- e.g. a transaction-scoped advisory lock, to avoid a concurrent race.
+-- Example guarded insert predicate to use with INSERT ... SELECT:
+-- WHERE NOT EXISTS (
+--   SELECT 1 FROM public.ziiply_arvo_meal_deletions
+--   WHERE user_id=$1 AND meal_id=$2
+-- );
