@@ -22,3 +22,9 @@ test("Arvo session resolver rejects missing, malformed, revoked and consentless 
  assert.equal(await resolveArvoCloudSession(token,async()=>({...valid,sessionRevokedAt:now.toISOString()}),hash,now),null);
  assert.equal(await resolveArvoCloudSession(token,async()=>({...valid,cloudMealGrantedAt:null}),hash,now),null);
 });
+
+test("Arvo session resolver denies access when hashing or lookup fails",async()=>{
+ assert.equal(await resolveArvoCloudSession(token,async()=>valid,()=>{throw Error("hash failure")},now),null);
+ assert.equal(await resolveArvoCloudSession(token,async()=>valid,()=>undefined,now),null);
+ assert.equal(await resolveArvoCloudSession(token,async()=>{throw Error("db unavailable")},hash,now),null);
+});
