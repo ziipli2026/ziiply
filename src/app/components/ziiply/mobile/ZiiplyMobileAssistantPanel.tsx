@@ -177,7 +177,8 @@ export default function ZiiplyMobileAssistantPanel({
     setSavedWatches(next);
     window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));
     setWatchQuery("");
-    setWatchNotice("Tarjousvahti tallennettu vihkoon: " + query);
+    setWatchChecked(false);
+    setWatchNotice("Vahti tallennettu. Tarjoukset ilmoitetaan haun valmistuttua, mikäli niitä on.");
     setShowWatchNotebook(false);
   }
   function removeWatch(query: string) {
