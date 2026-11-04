@@ -30,3 +30,11 @@ test("Arvo cloud deletion is planned only with consent and an existing remote me
  const absent=planArvoMealUpload([],[],{authenticated:true,cloudMealConsent:true},[meal.id]);
  assert.deepEqual(absent.deleteRemoteIds,[]);
 });
+
+test("Arvo upload plan excludes meals already tombstoned on server",()=>{
+ const item={id:"00000000-0000-4000-8000-00000000000a",timestamp:"2026-11-03T12:00:00.000Z",ean:"6411234567890",name:"Testituote",grams:100,nutrition:{kcal:100,protein:null,carbs:null,fat:null}};
+ const plan=planArvoMealUpload([item],[],{authenticated:true,cloudMealConsent:true},[],[item.id]);
+ assert.equal(plan.allowed,true);
+ assert.deepEqual(plan.upload,[]);
+ assert.deepEqual(plan.localOnly,[]);
+});
