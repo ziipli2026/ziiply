@@ -259,7 +259,8 @@ export default function ZiiplyMobileAssistantPanel({
                 <input value={watchQuery} onChange={event=>setWatchQuery(event.target.value)} placeholder="Hae tuotetta tai tarjousta" aria-label="Tarjousvahdin hakusana" className="min-w-0 flex-1 rounded-xl border-2 border-[#caa15d] bg-white px-3 py-3 text-base" />
                 <button type="submit" disabled={!watchQuery.trim()} className="rounded-xl border-2 border-[#9c6d36] bg-[#fff4cf] px-3 py-3 font-black text-[#174c35] disabled:opacity-50">Tallenna</button>
               </form>
-              {showWatchDebug&&<div className="rounded-xl border-2 border-red-600 bg-white p-3 text-xs font-mono text-slate-900 break-words"><strong>Göstan tarjousvahti – diagnostiikka</strong><p>Tallennettuja vahte="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
+              {watchNotice&&<p role="status" className="rounded-xl bg-white/70 p-3 text-sm text-[#174c35]">{watchNotice}</p>}
+              <div className="flex items-center justify-between gap-2"><h3 className="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
                 {watchFilter&&<button type="button" onClick={()=>setWatchFilter(null)} className="rounded-lg border border-[#b58a46] px-2 py-1 text-xs">Kaikki vahdit</button>}
               </div>
               {watchLoading&&<p className="text-sm">Haetaan tuoreita tarjouksia…</p>}
