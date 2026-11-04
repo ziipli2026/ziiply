@@ -21,3 +21,11 @@ Status: **design only**. Do not expose this API or apply migration until verifie
 2. Verify database schema and identify where explicit consent is durably recorded and revoked.
 3. Add server integration tests for unauthorized requests, cross-user isolation, revoked sessions, consent withdrawal, duplicate uploads, and deleted-meal resurrection.
 4. Apply migration in a controlled environment, test and review before any production change.
+
+## Persistence queries
+
+The reviewed SQL templates are in `db/queries/arvo_meal_persistence.sql`.
+- Insert uses `ON CONFLICT DO NOTHING` to prevent silent overwrite and tombstone resurrection.
+- Delete uses an idempotent `deleted_at` update scoped to the authenticated user.
+- Visible meals and deletion tombstones are queried separately and must be paginated.
+- A deletion that arrives before the original insert is not yet preserved by these templates. The API must address out-of-order delete-before-insert (e.g. an authenticated tombstone upsert with a durable deletion ledger) before multi-device sync is enabled.
