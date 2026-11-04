@@ -26,3 +26,7 @@ test("Arvo server cloud access requires a valid session and explicit consent",()
   assert.equal(canAccessArvoCloudMeals({...valid,...patch},now),false,JSON.stringify(patch));
  }
 });
+
+test("Arvo cloud guard rejects an invalid server clock",()=>{
+ assert.equal(canAccessArvoCloudMeals(valid,new Date("invalid")),false);
+});
