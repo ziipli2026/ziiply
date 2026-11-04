@@ -63,9 +63,9 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const eligibleCandidate=!!candidate&&selectionExists&&(selectedCandidate||sameChain);
  // Cross-check that successive reliable fixes identify the SAME physical store.
  if(!candidate||!eligibleCandidate){state.candidateStoreId=null;state.candidateSamples=0;}
- if(!candidate||candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
  else if(state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
  else {state.candidateStoreId=candidate.id;state.candidateSamples=1;}
+ if(!candidate||candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
  const latched=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
  const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
  const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
