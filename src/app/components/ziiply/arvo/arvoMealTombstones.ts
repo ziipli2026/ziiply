@@ -27,3 +27,13 @@ export function clearArvoMealDeleted(storage:Pick<Storage,"getItem"|"setItem">,i
   storage.setItem(ARVO_DELETED_MEALS_KEY,JSON.stringify(next));
   return next;
 }
+
+/** Persist server tombstones before reconciling offline meals. */
+export function persistArvoRemoteDeletedIds(
+  storage:Pick<Storage,"getItem"|"setItem">,
+  remoteIds:readonly string[],
+):string[] {
+  const next=[...new Set([...readArvoDeletedMealIds(storage),...remoteIds.filter(validId)])];
+  storage.setItem(ARVO_DELETED_MEALS_KEY,JSON.stringify(next));
+  return next;
+}
