@@ -812,8 +812,8 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   const enriched=normalizeKCitymarketOfferImages(offers);
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
-  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v164",validFrom:start,
-    validUntil:until,parsedAt:new Date().toISOString(),offers:enriched});
+  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v165",validFrom:start,
+    validUntil:until,parsedAt:new Date().toISOString(),offers:enriched}, {approvalState:"candidate"});
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
