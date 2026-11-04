@@ -1291,14 +1291,19 @@ export default function ZiiplyMobileOfferSearchCard({
         if (ean && seenEans.has(ean)) duplicateEans.push(ean);
         if (ean) seenEans.add(ean);
       }
+      // Compare against the counts actually rendered on category chips.
+      // Parent categoryOfferCounts is pre-dedupe and is not the UI truth.
       const expected = categoryOfferCounts || {};
-      // Counts describe all loaded categories, but items may contain only the
-      // selected category. Never compare other categories against a filtered set.
       const isCategoryFiltered = Boolean(shownFilter);
-      const categoryCountMismatches = Object.entries(expected).flatMap(([category, count]) => {
+      const categoryCountMismatches = Object.entries(counts).flatMap(([category, actual]) => {
+        const displayed = getVisibleCategoryCountV32(category);
+        return displayed !== actual ? [{ category, expected: displayed, actual }] : [];
+      });
+      // Retain upstream discrepancies as diagnostics, not false UI failures.
+      const sourceCategoryCountMismatches = Object.entries(expected).flatMap(([category, sourceCount]) => {
         if (isCategoryFiltered && normalizeCategoryKey(category) !== normalizeCategoryKey(shownFilter)) return [];
         const actual = Object.entries(counts).filter(([key]) => normalizeCategoryKey(key) === normalizeCategoryKey(category)).reduce((sum, [, n]) => sum + n, 0);
-        return typeof count === "number" && actual !== count ? [{ category, expected: count, actual }] : [];
+        return typeof sourceCount === "number" && actual !== sourceCount ? [{ category, sourceCount, actual }] : [];
       });
       return {
         status: loading ? "loading" : showLandingView ? "landing_data_audit" : "filtered_data_audit",
@@ -1308,6 +1313,7 @@ export default function ZiiplyMobileOfferSearchCard({
         missingEans, // Leaflet/group offers may legitimately have no single EAN.
         duplicateEans,
         categoryCountMismatches,
+        sourceCategoryCountMismatches,
         passed: !loading && missingFields.length === 0 && duplicateEans.length === 0 && categoryCountMismatches.length === 0,
       };
     })(),
