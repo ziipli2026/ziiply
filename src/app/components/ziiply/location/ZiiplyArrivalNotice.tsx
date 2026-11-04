@@ -60,7 +60,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
    window.dispatchEvent(new CustomEvent('ziiply-arrival-debug',{detail:{source:'main',status:decision.status,store:decision.store?.name??null,selected:decision.isSelectedStore,arrival:decision.showArrivalMessage,radar:decision.radar}}));
    if(enabled&&decision.showArrivalMessage&&decision.isSelectedStore&&decision.store&&!delivered.current.has(decision.store.id)){
      if(visible()){delivered.current.add(decision.store.id);recordArrivalDiagnostic('arrival-notification-start',{storeId:decision.store.id,store:decision.store.name,phase:'approach'});dispatch({type:'sample',decision,at});}
-     else {pending.current=null;recordArrivalDiagnostic('arrival-suppressed-inactive',{store:decision.store.name,storeId:decision.store.id,visibility:document.visibilityState,focused:document.hasFocus(),active:activeRef.current,interactionAgeMs:Date.now()-lastInteraction.current});}
+     else {pending.current={decision,at};recordArrivalDiagnostic('arrival-suppressed-inactive',{store:decision.store.name,storeId:decision.store.id,visibility:document.visibilityState,focused:document.hasFocus(),active:activeRef.current,interactionAgeMs:Date.now()-lastInteraction.current});}
    }
    if(decision.status==='checking'&&!decision.state.arrivalStoreId){
      if(delivered.current.size){recordArrivalDiagnostic('arrival-notification-reset',{reason:'outside-store',deliveredCount:delivered.current.size});dispatch({type:'reset'});}
@@ -69,8 +69,8 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
  },[enabled]);
  useEffect(()=>{if(!enabled){recordArrivalDiagnostic('arrival-notification-reset',{reason:'disabled'});dispatch({type:'reset'});pending.current=null;}},[enabled]);
  useEffect(()=>{
-  const activity=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())return;lastInteraction.current=Date.now();activeRef.current=true;setActive(true);recordArrivalDiagnostic('arrival-notification-resume',{reason:'user-activity'});dispatch({type:'resume',at:Date.now()});};
-  const inactive=()=>{recordArrivalDiagnostic('arrival-notification-pause',{visibility:document.visibilityState,focused:document.hasFocus()});dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);pending.current=null;};
+  const activity=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())return;lastInteraction.current=Date.now();activeRef.current=true;setActive(true);recordArrivalDiagnostic('arrival-notification-resume',{reason:'user-activity'});dispatch({type:'resume',at:Date.now()});const queued=pending.current;if(queued&&enabled&&queued.decision.isSelectedStore&&queued.decision.store&&!delivered.current.has(queued.decision.store.id)){pending.current=null;delivered.current.add(queued.decision.store.id);recordArrivalDiagnostic('arrival-notification-start',{storeId:queued.decision.store.id,store:queued.decision.store.name,phase:'approach',reason:'resumed'});dispatch({type:'sample',decision:queued.decision,at:Date.now()});}};
+  const inactive=()=>{recordArrivalDiagnostic('arrival-notification-pause',{visibility:document.visibilityState,focused:document.hasFocus()});dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);};
   const visibility=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())inactive();};
   document.addEventListener('pointerdown',activity,true);
   document.addEventListener('keydown',activity,true);
