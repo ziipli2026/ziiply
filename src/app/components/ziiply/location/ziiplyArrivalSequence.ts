@@ -68,9 +68,12 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const eligibleCandidate=!!candidate&&selectionExists&&(selectedCandidate||sameChain);
  // Cross-check three consecutive stationary fixes for the SAME physical store.
  // Driving and unknown speed must not contribute to stationary confirmation.
- const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
+ const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>5;
+ // GPS speed often spikes to 2–4 km/h while walking or standing still.
+ // A brief spike must not erase a previously established arrival candidate.
  const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
- if(moving||!candidate||!eligibleCandidate){state.candidateStoreId=null;state.candidateSamples=0;}
+ if(!candidate||!eligibleCandidate||driving){state.candidateStoreId=null;state.candidateSamples=0;}
+ else if(moving){ /* Keep candidate through brief walking/GPS speed spikes, but do not count it as stationary. */ }
  else if(state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
  else {state.candidateStoreId=candidate.id;state.candidateSamples=1;}
  if(!candidate||candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
@@ -80,9 +83,9 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
    state.lastStationarySampleAt=sample.at;
    state.lastStationaryPosition={latitude:sample.latitude,longitude:sample.longitude};
    state.stationarySamples=(state.stationarySamples??0)+1;
- } else if(valid&&moving) {state.stoppedAt=null;state.lastStationarySampleAt=null;state.lastStationaryPosition=null;state.stationarySamples=0;}
+ } else if(valid&&moving) { /* Preserve dwell time through isolated GPS speed spikes; stationary samples only advance when still. */ }
  if(valid&&moving&&state.tripStartedAt===null)state.tripStartedAt=sample.at;
- const stable=!moving&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=ZIIPLY_PARKED_SAMPLE_MS&&sample.at-state.stoppedAt<=30000&&(state.stationarySamples??0)>=3&&dt<=10;
+ const stable=!moving&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=ZIIPLY_PARKED_SAMPLE_MS&&(state.stationarySamples??0)>=3&&dt<=10;
  // A confirmed visit is sticky across GPS loss and isolated outliers.
  if(latched&&valid) {
    const distance=ziiplyDistanceMeters(sample,latched);
