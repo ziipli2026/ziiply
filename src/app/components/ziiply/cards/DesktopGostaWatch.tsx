@@ -20,9 +20,9 @@ export default function DesktopGostaWatch(){
   return()=>{window.removeEventListener("storage",read);window.removeEventListener("ziiply-gosta-watch-changed",read);};
  },[]);
  React.useEffect(()=>{
-  setReady(false);setOffers([]);setError("");
+  setError("");
   try{const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===key&&Array.isArray(cached.offers)){setOffers(cached.offers);setReady(true);}}catch{}
-  if(!key)return;
+  if(!key){setOffers([]);setReady(false);return;}
   let cancelled=false,running=false,last=0;
   const scan=async()=>{
    if(cancelled||running||document.visibilityState!=="visible")return;
@@ -34,7 +34,7 @@ export default function DesktopGostaWatch(){
     if(!response.ok||!data.ok||!Array.isArray(data.results))throw Error(String(data.error||"Tarjoushaku epäonnistui"));
     const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
     if(!cancelled){
-     setOffers(current=>data.partial&&current.length>next.length?current:next);
+     setOffers(current=>{const old=current.filter(o=>!key.split("|").includes(o.query.toLocaleLowerCase("fi")));return data.partial&&current.length>next.length?current:[...old,...next];});
      setReady(true);setError(data.partial?"Osa kaupoista jäi tarkistamatta.":"");
      if(!data.partial){try{localStorage.setItem(RESULTS,JSON.stringify({key,offers:next,at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
      last=Date.now();
@@ -42,7 +42,7 @@ export default function DesktopGostaWatch(){
    }catch(e){if(!cancelled)setError("Päivitys epäonnistui; aiemmat tulokset säilyvät.");}
    finally{running=false;if(!cancelled)setLoading(false);}
   };
-  const timer=window.setTimeout(()=>{void scan();},0);
+  const timer=window.setTimeout(()=>{void scan();},0); // Every newly saved term changes key and triggers this immediately.
   const resume=()=>{if(document.visibilityState==="visible"&&Date.now()-last>5*60*1000)void scan();};
   const interval=window.setInterval(resume,60*1000);
   window.addEventListener("focus",resume);document.addEventListener("visibilitychange",resume);
