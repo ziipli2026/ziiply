@@ -33,20 +33,8 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
    makeButton('Sulje',()=>panel?.remove());
    panel.append(toolbar,output);document.body.appendChild(panel);refresh();
   };
-  // The speed-limit details overlay must never cover the bottom navigation's GPS debug button.
-  // It is dynamically created by the speed watcher, so apply this on creation and re-render.
-  const keepSpeedPanelClear=()=>{
-   const speedPanel=document.getElementById('mobile-speed-limit-debug') as HTMLElement|null;
-   if(!speedPanel)return;
-   speedPanel.style.bottom='190px';
-   speedPanel.style.maxHeight='32vh';
-   speedPanel.style.zIndex='2147483645';
-  };
-  const observer=new MutationObserver(keepSpeedPanelClear);
-  observer.observe(document.body,{childList:true,subtree:false});
-  keepSpeedPanelClear();
   document.addEventListener('click',onDebugClick,true);
-  return ()=>{observer.disconnect();document.removeEventListener('click',onDebugClick,true);};
+  return ()=>document.removeEventListener('click',onDebugClick,true);
  },[]);
 
  const pending=useRef<{decision:ZiiplyArrivalDecision;at:number}|null>(null);
