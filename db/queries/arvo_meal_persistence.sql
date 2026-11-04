@@ -59,3 +59,15 @@ WHERE NOT EXISTS (
  WHERE user_id=$1 AND meal_id=$2
 )
 ON CONFLICT (user_id,meal_id) DO NOTHING;
+
+-- Atomic delete protocol: perform both writes under the same connection
+-- and the same transaction. Parameter placeholders are illustrative.
+-- BEGIN;
+-- SELECT pg_advisory_xact_lock(hashtextextended($1::text || ':' || $2::text,0));
+-- INSERT INTO public.ziiply_arvo_meal_deletions(user_id,meal_id)
+-- VALUES($1,$2) ON CONFLICT(user_id,meal_id) DO NOTHING;
+-- UPDATE public.ziiply_arvo_meals
+-- SET deleted_at=COALESCE(deleted_at,now()),updated_at=now()
+-- WHERE user_id=$1 AND meal_id=$2;
+-- COMMIT;
+-- Never commit the ledger insert separately from the meal update.
