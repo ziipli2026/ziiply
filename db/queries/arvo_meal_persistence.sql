@@ -3,13 +3,7 @@
 -- All queries scope records to the authenticated user ID ($1).
 -- These are templates, not exposed endpoints or applied migrations.
 
--- Insert a new meal without replacing existing records or reviving tombstones.
--- $1 user_id, $2 meal_id, $3 consumed_at, $4 ean, $5 product_name,
--- $6 grams, $7 kcal, $8 protein_g, $9 carbs_g, $10 fat_g
-INSERT INTO public.ziiply_arvo_meals
- (user_id,meal_id,consumed_at,ean,product_name,grams,kcal,protein_g,carbs_g,fat_g)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-ON CONFLICT (user_id,meal_id) DO NOTHING;
+-- Insert statements below use the durable deletion ledger guard.
 
 -- Soft-delete an existing meal. A retry is idempotent.
 -- $1 user_id, $2 meal_id
