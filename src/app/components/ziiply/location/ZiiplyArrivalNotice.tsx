@@ -8,7 +8,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
  const [notice,dispatch]=useReducer(arrivalNoticeReducer,null);
  useEffect(()=>{
   const onDebugClick=(event:MouseEvent)=>{
-   const target=event.target as Element|null;
+   const target=event.target instanceof Element ? event.target : null;
    const button=target?.closest('button,[role="button"]');
    if(!button || !/GPS\\s*debug/i.test(button.textContent||''))return;
    event.preventDefault();
@@ -33,8 +33,20 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
    makeButton('Sulje',()=>panel?.remove());
    panel.append(toolbar,output);document.body.appendChild(panel);refresh();
   };
+  // Keep the legacy speed logger collecting events, but never show its separate floating panel.
+  // Its history remains available to the single GPS debug window.
+  const hideLegacySpeedPanel=()=>{
+   const legacy=document.getElementById('mobile-speed-limit-debug') as HTMLElement|null;
+   if(legacy&&legacy.style.visibility!=='hidden'){
+    legacy.style.visibility='hidden';
+    legacy.style.pointerEvents='none';
+   }
+  };
+  const legacyObserver=new MutationObserver(hideLegacySpeedPanel);
+  legacyObserver.observe(document.body,{childList:true,subtree:true});
+  hideLegacySpeedPanel();
   document.addEventListener('click',onDebugClick,true);
-  return ()=>document.removeEventListener('click',onDebugClick,true);
+  return ()=>{legacyObserver.disconnect();document.removeEventListener('click',onDebugClick,true);};
  },[]);
 
  const pending=useRef<{decision:ZiiplyArrivalDecision;at:number}|null>(null);
