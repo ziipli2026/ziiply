@@ -45,3 +45,23 @@ ON CONFLICT (user_id,meal_id) DO NOTHING;
 --   SELECT 1 FROM public.ziiply_arvo_meal_deletions
 --   WHERE user_id=$1 AND meal_id=$2
 -- );
+
+-- REQUIRED transaction protocol for each single-meal insert or delete:
+-- BEGIN;
+-- SELECT pg_advisory_xact_lock(hashtextextended($1::text || ':' || $2::text, 0));
+-- [execute the insert or delete below]
+-- COMMIT;
+-- The lock is scoped to user_id and meal_id; all writers must use it.
+-- PostgreSQL hash collisions only cause extra serialization, not data leakage.
+
+-- Guarded insert; use instead of the unguarded INSERT above in production.
+-- $1 user_id, $2 meal_id, $3 consumed_at, $4 ean, $5 product_name,
+-- $6 grams, $7 kcal, $8 protein_g, $9 carbs_g, $10 fat_g
+INSERT INTO public.ziiply_arvo_meals
+ (user_id,meal_id,consumed_at,ean,product_name,grams,kcal,protein_g,carbs_g,fat_g)
+SELECT $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+WHERE NOT EXISTS (
+ SELECT 1 FROM public.ziiply_arvo_meal_deletions
+ WHERE user_id=$1 AND meal_id=$2
+)
+ON CONFLICT (user_id,meal_id) DO NOTHING;
