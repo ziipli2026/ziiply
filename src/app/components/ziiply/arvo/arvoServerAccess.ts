@@ -15,6 +15,7 @@ const toMillis=(value:string | Date | null):number=>value instanceof Date ? valu
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function canAccessArvoCloudMeals(access: ArvoServerAccess, now: Date = new Date()): boolean {
   if (!access.sessionUserId || !uuid.test(access.sessionUserId)) return false;
+  // Undefined nullable fields fail closed; only explicit database NULL is accepted.
   if (!Number.isFinite(now.getTime())) return false;
   if (!access.sessionExpiresAt || !Number.isFinite(toMillis(access.sessionExpiresAt))) return false;
   if (toMillis(access.sessionExpiresAt) <= now.getTime()) return false;
