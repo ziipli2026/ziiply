@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       typeof limit?.value === "number" && limit.type === "Maximum" && (road.confidence ?? 0) >= 0.5;
     return NextResponse.json({
       ok: true, matched: matched.length, totalPoints: points.length,
-      limitKmh: safe ? (limit!.unit === "mph" ? Math.round(limit!.value * 1.609344) : limit!.value) : null,
+      limitKmh: safe ? (limit!.unit === "mph" ? Math.round((limit?.value ?? 0) * 1.609344) : (limit?.value ?? null)) : null,
       roadName: road?.address?.roadName ?? null, municipality: road?.address?.municipality ?? null,
       confidence: road?.confidence ?? null, formOfWay: road?.formOfWay ?? null,
       reason: !road ? "no_match" : !limit ? "no_speed_limit" : !safe ? "uncertain" : "matched",
