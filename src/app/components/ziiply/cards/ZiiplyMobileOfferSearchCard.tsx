@@ -1142,23 +1142,16 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const getVisibleCategoryCountV32 = (category: string) => {
     const wanted = normalizeCategoryKey(category);
-
-    // F: Landing-näkymässä määrä lasketaan aina samasta dedupatusta items-listasta,
-    // josta käyttäjälle näytettävät tuotteet muodostuvat. Parentilta tuleva
-    // categoryOfferCounts perustuu raakempaan listaan ja voi sisältää vielä
-    // myöhemmin poistuvia duplikaatteja (erityisesti ensimmäinen Kahvi-kategoria).
-    // Use the parent master counts for the landing category chips as well.
-    // These counts are resolved by the shared offer-category core (including
-    // verified Neon categories); raw card.category can still carry a legacy
-    // provider label and would incorrectly show zero for a populated chip.
-    // The parent also keeps counts for categories not present in a filtered tab.
+    if (!wanted) return 0;
+    // Landing has the complete set: count the same deduplicated cards shown
+    // after category selection, not the pre-dedupe parent totals.
+    if (showLandingView && !shownFilter && !shownQuery) {
+      return items.filter(item => normalizeCategoryKey(String(item.category || "")) === wanted).length;
+    }
+    // Filtered results may contain only one category; retain parent totals.
     const mappedCount = getCategoryCountWithAliases(category);
     if (typeof mappedCount === "number") return mappedCount;
-
-    if (!wanted) return 0;
-    return items.filter((item) =>
-      normalizeCategoryKey(String(item.category || "")) === wanted
-    ).length;
+    return items.filter(item => normalizeCategoryKey(String(item.category || "")) === wanted).length;
   };
 
   const getCategoryDisplayLabelV38 = (category: string) => {
