@@ -41,7 +41,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  // Reject impossible jumps and stale/duplicated timestamps; never infer arrival from missing GPS.
  const plausible=!state.lastAcceptedSample||(dt>0&&displacement/dt<=55+sample.accuracyMeters/dt);
  const valid=finite&&accurate&&chronological&&plausible&&Number.isFinite(sample.at);
- if(!valid)return {state,status:'uncertain',store:null,isSelectedStore:false,askStoreChange:false,showArrivalMessage:false,radar:state.arrivalStoreId?'green':'white'};
+ if(!valid)return {state,status:'uncertain',store:null,isSelectedStore:false,askStoreChange:false,showArrivalMessage:false,radar:state.arrivalStoreId&&selectedStoreIds.includes(state.arrivalStoreId)?'green':'white'};
  if(dt>10){state.stoppedAt=null;state.stationarySamples=0;state.lastStationarySampleAt=null;state.candidateStoreId=null;state.candidateSamples=0;}
  state.lastAcceptedSample=sample;
  const candidates=valid?stores.map(store=>({store,distance:ziiplyDistanceMeters(sample,store)}))
