@@ -1658,6 +1658,7 @@ import {
 import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarResponsiveCard";
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
+import DesktopGostaWatch from "./components/ziiply/cards/DesktopGostaWatch";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
@@ -21738,6 +21739,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   />
                 </div>
 
+                <DesktopGostaWatch />
                 <ZiiplySearchCard
                   className="z-20"
                   value={input}
