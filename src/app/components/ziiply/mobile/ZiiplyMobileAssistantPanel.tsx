@@ -67,7 +67,7 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchChecked,setWatchChecked]=React.useState(false);
   const [watchError,setWatchError]=React.useState("");
   const [watchRefresh,setWatchRefresh]=React.useState(0);
-  const [showWatchDebug,setShowWatchDebug]=React.useState(false);
+
   const [watchDebug,setWatchDebug]=React.useState("Ei tarkistusta vielä");
   const [watchRawDebug,setWatchRawDebug]=React.useState("Raakaa API-tarkistusta ei ole tehty");
   const [watchRawLoading,setWatchRawLoading]=React.useState(false);
@@ -243,7 +243,7 @@ export default function ZiiplyMobileAssistantPanel({
                 <h2 className="font-serif text-lg font-black text-[#174c35]">Göstan tarjoushaku</h2>
                 <div className="flex gap-2">
                   <button type="button" onClick={()=>setShowWatchNotebook(v=>!v)} aria-label="Tallennetut tarjousvahdit" title="Tallennetut tarjousvahdit" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-xl">📒</button>
-                  <button type="button" onClick={()=>setShowWatchDebug(v=>!v)} aria-label="Tarjousvahdin debuggeri" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-2 py-2 text-xs font-bold">DEBUG</button>
+                  
                   <button type="button" onClick={()=>setWatchRefresh(n=>n+1)} disabled={watchLoading} aria-label="Päivitä tarjoukset" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-xl disabled:opacity-50">↻</button>
                 </div>
               </div>
@@ -258,10 +258,7 @@ export default function ZiiplyMobileAssistantPanel({
                 <input value={watchQuery} onChange={event=>setWatchQuery(event.target.value)} placeholder="Hae tuotetta tai tarjousta" aria-label="Tarjousvahdin hakusana" className="min-w-0 flex-1 rounded-xl border-2 border-[#caa15d] bg-white px-3 py-3 text-base" />
                 <button type="submit" disabled={!watchQuery.trim()} className="rounded-xl border-2 border-[#9c6d36] bg-[#fff4cf] px-3 py-3 font-black text-[#174c35] disabled:opacity-50">Tallenna</button>
               </form>
-              {showWatchDebug&&<div className="rounded-xl border-2 border-red-600 bg-white p-3 text-xs font-mono text-slate-900 break-words"><strong>Göstan tarjousvahti – diagnostiikka</strong><p>Tallennettuja vahteja: {savedWatches.length} | {savedWatches.join(", ")||"ei yhtään"}</p><p>{watchDebug}</p><button type="button" disabled={watchRawLoading} className="my-2 rounded border border-red-700 bg-red-50 p-2" onClick={()=>{void runRawWatchDebug();}}>{watchRawLoading?"Tarkistetaan API...":"TUTKI RAAKA API"}</button><pre className="whitespace-pre-wrap break-all">{watchRawDebug}</pre><p>Haku käynnissä: {String(watchLoading)} | tarkistettu: {String(watchChecked)} | virhe: {watchError||"ei"}</p><button type="button" className="mt-2 rounded border p-2" onClick={()=>navigator.clipboard?.writeText(watchDebug+"\\n"+watchRawDebug)}>Kopioi diagnostiikka</button></div>}
-              {watchNotice&&<p role="status" className="text-sm text-[#17573c]">{watchNotice}</p>}
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
+              {showWatchDebug&&<div className="rounded-xl border-2 border-red-600 bg-white p-3 text-xs font-mono text-slate-900 break-words"><strong>Göstan tarjousvahti – diagnostiikka</strong><p>Tallennettuja vahte="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
                 {watchFilter&&<button type="button" onClick={()=>setWatchFilter(null)} className="rounded-lg border border-[#b58a46] px-2 py-1 text-xs">Kaikki vahdit</button>}
               </div>
               {watchLoading&&<p className="text-sm">Haetaan tuoreita tarjouksia…</p>}
