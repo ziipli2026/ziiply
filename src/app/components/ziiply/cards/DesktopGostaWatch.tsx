@@ -13,6 +13,8 @@ export default function DesktopGostaWatch(){
  const [loading,setLoading]=React.useState(false);
  const [open,setOpen]=React.useState(false);
  const [error,setError]=React.useState("");
+ const [notice,setNotice]=React.useState("");
+ const [checkedKey,setCheckedKey]=React.useState("");
  const key=terms.map(x=>x.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
  React.useEffect(()=>{
   const read=()=>{try{const v=JSON.parse(localStorage.getItem(TERMS)||"[]");setTerms(Array.isArray(v)?v.filter((x:unknown):x is string=>typeof x==="string"&&!!x.trim()).slice(0,30):[]);}catch{setTerms([]);}};
@@ -36,7 +38,7 @@ export default function DesktopGostaWatch(){
     const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
     if(!cancelled){
      setOffers(current=>data.partial&&current.length>next.length?current:next);
-     setReady(true);setError(data.partial?"Osa kaupoista jäi tarkistamatta.":"");
+     setReady(true);setCheckedKey(key);setError(data.partial?"Osa kaupoista jäi tarkistamatta.":"");
      if(!data.partial){try{localStorage.setItem(RESULTS,JSON.stringify({key,offers:next,at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
      last=Date.now();
     }
@@ -49,7 +51,7 @@ export default function DesktopGostaWatch(){
   window.addEventListener("focus",resume);document.addEventListener("visibilitychange",resume);
   return()=>{cancelled=true;clearTimeout(timer);clearInterval(interval);window.removeEventListener("focus",resume);document.removeEventListener("visibilitychange",resume);};
  },[key]);
- const save=(next:string[])=>{const previous=new Set(terms.map(t=>t.toLocaleLowerCase("fi")));const added=next.some(t=>!previous.has(t.toLocaleLowerCase("fi")));localStorage.setItem(TERMS,JSON.stringify(next));setTerms(next);if(added)setError("");window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));};
+ const save=(next:string[])=>{const previous=new Set(terms.map(t=>t.toLocaleLowerCase("fi")));const added=next.find(t=>!previous.has(t.toLocaleLowerCase("fi")));localStorage.setItem(TERMS,JSON.stringify(next));setTerms(next);setCheckedKey("");setNotice(added?`Vahti ”${added}” tallennettu. Tarjoukset tarkistetaan heti.`:"Vahtilista päivitetty.");setError("");window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));};
  return <section className="rounded-xl border border-amber-300 bg-amber-50/90 px-3 py-2 text-sm text-slate-900" aria-label="Göstan tarjousvahti">
   <div className="flex items-center justify-between gap-2">
    <strong>Göstan tarjousvahti</strong>
@@ -60,9 +62,10 @@ export default function DesktopGostaWatch(){
    <button className="rounded-md bg-amber-200 px-3 font-semibold" type="submit">Tallenna</button>
   </form>
   {terms.length>0&&<div className="mt-2 flex flex-wrap gap-2">{terms.map(term=><button key={term} type="button" title="Poista vahti" onClick={()=>save(terms.filter(x=>x!==term))} className="rounded-full border border-amber-300 px-2 py-0.5">{term} ×</button>)}</div>}
+  {notice&&<p role="status" className="mt-1 text-xs text-emerald-800">{notice}</p>}
   {loading&&<p className="mt-1 text-xs text-slate-600">Tarkistetaan tarjouksia…</p>}
   {error&&<p className="mt-1 text-xs text-amber-800">{error}</p>}
-  {ready&&offers.length===0&&<p className="mt-1 text-xs">Ei tarjousosumia.</p>}
+  {ready&&checkedKey===key&&!loading&&offers.length===0&&<p className="mt-1 text-xs">Tarkistus valmis: ei voimassa olevia tarjousosumia.</p>}
   {open&&ready&&<div className="mt-2 max-h-64 overflow-y-auto">{offers.map((o,i)=><div key={i} className="border-t border-amber-200 py-1"><strong>{o.title}</strong> · {o.price} · {o.store} <span className="text-xs">({o.query})</span></div>)}</div>}
  </section>;
 }
