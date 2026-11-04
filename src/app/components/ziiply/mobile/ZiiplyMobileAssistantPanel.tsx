@@ -67,6 +67,7 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchChecked,setWatchChecked]=React.useState(false);
   const [watchError,setWatchError]=React.useState("");
   const [watchRefresh,setWatchRefresh]=React.useState(0);
+  const watchLastAutoScan=React.useRef(0);
 
   const [watchDebug,setWatchDebug]=React.useState("Ei tarkistusta vielä");
   const [watchRawDebug,setWatchRawDebug]=React.useState("Raakaa API-tarkistusta ei ole tehty");
@@ -117,6 +118,7 @@ export default function ZiiplyMobileAssistantPanel({
     const scan=async()=>{
       if(cancelled||running)return;
       running=true;
+      watchLastAutoScan.current=Date.now();
       setWatchLoading(true);
       setWatchError("");
       const started=Date.now();
@@ -138,27 +140,27 @@ export default function ZiiplyMobileAssistantPanel({
         setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,600)+" | lähikaupat: "+JSON.stringify(data.diagnostic?.nearby||[]).slice(0,1500));
         if(cancelled)return;
         if(data.partial){
-          setWatchError("Osa kaupoista jäi tarkistamatta. Näytetään "+matched.length+" vahvistettua osumaa onnistuneista kaupoista.");
+          // Background partial scans are diagnostic only; do not alarm the user.
         }
         if(!data.partial){setWatchOffers(matched);setWatchChecked(true);}else{
           // Never replace a previously complete snapshot with a timed-out subset.
           try{const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-            if(previous?.key===watchKey&&Array.isArray(previous.offers)&&Date.now()-Number(previous.at)<30*60*1000&&previous.offers.length>matched.length){setWatchOffers(previous.offers);setWatchChecked(true);setWatchError("Osa kaupoista jäi tarkistamatta. Näytetään aiemman täyden tarkistuksen "+previous.offers.length+" osumaa.");}
+            if(previous?.key===watchKey&&Array.isArray(previous.offers)&&Date.now()-Number(previous.at)<30*60*1000&&previous.offers.length>matched.length){setWatchOffers(previous.offers);setWatchChecked(true);}
             else{setWatchOffers(matched);setWatchChecked(true);}
           }catch{setWatchOffers(matched);setWatchChecked(true);}
         }
         if(!data.partial){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
-        if(!cancelled)setWatchError("Tarjousten tarkistus epäonnistui tai kesti yli 40 sekuntia. Yritä uudelleen päivityspainikkeella.");
+        // Automatic watcher refresh failures remain in diagnostics; retain the last successful offers.
       }finally{
         running=false;
         if(!cancelled)setWatchLoading(false);
       }
     };
     const initial=window.setTimeout(()=>{void scan();},200);
-    const interval=window.setInterval(()=>{if(document.visibilityState==="visible")void scan();},60*60*1000);
-    const resume=()=>{if(document.visibilityState==="visible")void scan();};
+    const interval=window.setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=60*60*1000)void scan();},60*60*1000);
+    const resume=()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=5*60*1000)void scan();};
     document.addEventListener("visibilitychange",resume);
     return()=>{cancelled=true;window.clearTimeout(initial);window.clearInterval(interval);document.removeEventListener("visibilitychange",resume);};
   },[watchKey,watchRefresh]);
