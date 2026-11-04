@@ -30,3 +30,8 @@ test("Arvo server cloud access requires a valid session and explicit consent",()
 test("Arvo cloud guard rejects an invalid server clock",()=>{
  assert.equal(canAccessArvoCloudMeals(valid,new Date("invalid")),false);
 });
+
+test("Arvo guard accepts database Date objects for valid timestamps",()=>{
+ assert.equal(canAccessArvoCloudMeals({...valid,sessionExpiresAt:new Date(valid.sessionExpiresAt),cloudMealGrantedAt:new Date(valid.cloudMealGrantedAt)},now),true);
+ assert.equal(canAccessArvoCloudMeals({...valid,sessionExpiresAt:new Date("invalid")},now),false);
+});
