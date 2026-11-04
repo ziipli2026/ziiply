@@ -41,7 +41,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     const readShared=()=>{
       try{
         const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-        if(cached?.key===watchKey&&Array.isArray(cached.offers)&&Number.isFinite(cached.at)&&Date.now()-cached.at<5*60*1000){
+        if(cached?.key===watchKey&&Array.isArray(cached.offers)&&Number.isFinite(cached.at)){
           setWatchCount(cached.offers.length);
           return Number(cached.at)||0;
         }
@@ -50,7 +50,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     };
     if(!watchKey){setWatchCount(null);return;}
     let lastScan=readShared();
-    if(!lastScan)setWatchCount(null);
+    // Keep the last confirmed bag visible while refreshing an old snapshot.
     let cancelled=false;
     let running=false;
     const sync=()=>{const at=readShared();if(at)lastScan=at;};
@@ -65,7 +65,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
         if(!cancelled){
-          setWatchCount(offers.length);
+          if(!data.partial || offers.length>0 || watchCount===null)setWatchCount(offers.length);
           lastScan=Date.now();
           if(!data.partial){
             const cached={key:watchKey,offers:offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((query:string)=>({query:String(query),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.sourceType||offer.chain||"")}))),at:lastScan,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI")};
