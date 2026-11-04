@@ -17,9 +17,13 @@ export async function resolveArvoCloudSession(
   now:Date=new Date(),
 ):Promise<ArvoResolvedSession|null> {
   if (!rawSessionToken || rawSessionToken.length < 32 || rawSessionToken.length > 4096) return null;
-  const tokenHash=hashSessionToken(rawSessionToken);
-  if (!/^[0-9a-f]{64}$/i.test(tokenHash)) return null;
-  const access=await lookup(tokenHash);
+  let tokenHash:string;
+  try { tokenHash=hashSessionToken(rawSessionToken); }
+  catch { return null; }
+  if (typeof tokenHash !== "string" || !/^[0-9a-f]{64}$/i.test(tokenHash)) return null;
+  let access:ArvoServerAccess|null;
+  try { access=await lookup(tokenHash); }
+  catch { return null; }
   if (!access || !canAccessArvoCloudMeals(access,now)) return null;
   return {userId:access.sessionUserId!};
 }
