@@ -2,7 +2,11 @@
 import {useEffect,useRef,useState} from "react";
 export default function Page(){
 const [active,setActive]=useState(false),[status,setStatus]=useState("Valmis"),[limit,setLimit]=useState(null),[road,setRoad]=useState(""),[calls,setCalls]=useState(0);
-const [events,setEvents]=useState([]),log=useRef([]);\nfunction record(type,detail){const item={at:new Date().toISOString(),type,...detail};log.current=[...log.current,item].slice(-500);setEvents([...log.current]);}\nfunction exportText(){return JSON.stringify({version:"tomtom-gps-debug-1",exportedAt:new Date().toISOString(),events:log.current},null,2)}\nfunction download(){const blob=new Blob([exportText()],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-tomtom-gps-debug.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}\nasync function copy(){try{await navigator.clipboard.writeText(exportText());setStatus("Debug kopioitu")}catch{setStatus("Kopiointi ei onnistunut – lataa JSON")}}\nconst gps=useRef(null),points=useRef([]),last=useRef(0),busy=useRef(false),running=useRef(false),count=useRef(0);
+const [events,setEvents]=useState([]),log=useRef([]);
+function record(type,detail){const item={at:new Date().toISOString(),type,...detail};log.current=[...log.current,item].slice(-500);setEvents([...log.current]);}
+function exportText(){return JSON.stringify({version:"tomtom-gps-debug-1",exportedAt:new Date().toISOString(),events:log.current},null,2)}
+function download(){const blob=new Blob([exportText()],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-tomtom-gps-debug.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}\nasync function copy(){try{await navigator.clipboard.writeText(exportText());setStatus("Debug kopioitu")}catch{setStatus("Kopiointi ei onnistunut – lataa JSON")}}
+const gps=useRef(null),points=useRef([]),last=useRef(0),busy=useRef(false),running=useRef(false),count=useRef(0);
 useEffect(()=>()=>{running.current=false;if(gps.current!==null)navigator.geolocation.clearWatch(gps.current)},[]);
 function stop(){running.current=false;if(gps.current!==null)navigator.geolocation.clearWatch(gps.current);gps.current=null;setActive(false);setStatus("Pysäytetty");record("stop",{})}
 async function lookup(){
