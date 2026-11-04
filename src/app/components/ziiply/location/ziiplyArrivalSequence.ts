@@ -66,14 +66,15 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const sameChain=!!candidate&&!!normalizedChain(candidate)&&selectedChains.has(normalizedChain(candidate)!);
  const selectedCandidate=!!candidate&&selectedStoreIds.includes(candidate.id);
  const eligibleCandidate=!!candidate&&selectionExists&&(selectedCandidate||sameChain);
- // Cross-check that successive reliable fixes identify the SAME physical store.
- if(!candidate||!eligibleCandidate){state.candidateStoreId=null;state.candidateSamples=0;}
+ // Cross-check three consecutive stationary fixes for the SAME physical store.
+ // Driving and unknown speed must not contribute to stationary confirmation.
+ const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
+ const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
+ if(moving||!candidate||!eligibleCandidate){state.candidateStoreId=null;state.candidateSamples=0;}
  else if(state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
  else {state.candidateStoreId=candidate.id;state.candidateSamples=1;}
  if(!candidate||candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
  const latched=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
- const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
- const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
  if(valid&&!moving) {
    if(state.stoppedAt===null)state.stoppedAt=sample.at;
    state.lastStationarySampleAt=sample.at;
