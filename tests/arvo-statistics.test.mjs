@@ -147,7 +147,7 @@ test("Arvo: deleted meal identifier cannot be reused by stale offline save",()=>
 
 test("Arvo: tombstoned meal stays hidden when meal-list write fails",()=>{
  const data=new Map();
- const a=meal("a","2026-10-29T12:00:00.000Z",{kcal:100,protein:5,carbs:10,fat:2});
+ const a=meal("00000000-0000-4000-8000-00000000000a","2026-10-29T12:00:00.000Z",{kcal:100,protein:5,carbs:10,fat:2});
  data.set(ARVO_MEALS_KEY,JSON.stringify([a]));
  const storage={
   getItem:key=>data.get(key)??null,
