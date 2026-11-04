@@ -133,3 +133,14 @@ test("Arvo: re-saving deleted meal clears pending remote deletion",()=>{
  assert.deepEqual(JSON.parse(state.get("ziiply-arvo-deleted-meals-v1")),[]);
  assert.equal(readArvoMeals(storage).length,1);
 });
+
+test("Arvo: deleted meal identifier cannot be reused by stale offline save",()=>{
+ const state=new Map();
+ const storage={getItem:key=>state.get(key)??null,setItem:(key,value)=>state.set(key,value)};
+ const id="00000000-0000-4000-8000-00000000000a";
+ const entry=meal(id,"2026-11-03T12:00:00.000Z",{kcal:100,protein:1,carbs:2,fat:3});
+ saveArvoMeal(storage,entry);
+ deleteArvoMeal(storage,id);
+ assert.throws(()=>saveArvoMeal(storage,entry),/arvo-meal-deleted-id/);
+ assert.deepEqual(readArvoMeals(storage),[]);
+});
