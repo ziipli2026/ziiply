@@ -201,11 +201,18 @@ async function runWatch(request: Request) {
       sources.push({chain:String(row.chain),publication:String(row.publication_id),count:offers.length});
       inspected += offers.length;
       for (const offer of offers) {
+        // Never publish an unpriced or malformed offer in the watcher bag.
+        if (!Number.isFinite(priceNumber(offer))) continue;
         const matchingQueries = queries.filter(q => matches(q,offer));
         if (!matchingQueries.length) continue;
         const title=String(offer.title||offer.name||offer.productName||"");
         const store=String(offer.storeName||offer.store||row.chain||"");
-        const key=[row.chain,store,offer.id||offer.offerId||offer.ean||title,offer.offerPrice??offer.price??""].join("|");
+        // The same product can arrive under different publication offer IDs.
+        // Prefer a verified EAN, scoped to the store and price; otherwise use
+        // normalized product identity instead of provider-specific row IDs.
+        const ean=String(offer.ean||"").trim();
+        const identity=/^\\d{8,14}$/.test(ean) ? "ean:"+ean : "name:"+norm(title);
+        const key=[row.chain,store,identity,priceNumber(offer)].join("|");
         if (seen.has(key)) continue;
         seen.add(key);
         results.push({...offer,title,storeName:store,chain:String(row.chain),watchQueries:matchingQueries});
