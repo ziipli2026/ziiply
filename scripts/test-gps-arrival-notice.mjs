@@ -50,7 +50,7 @@ assert.equal(reduce(n,{type:'sample',decision:x.decision,at:22000}).phase,'done'
  assert.equal(switched.showArrivalMessage,false);
 }
 x=scenario(selected,[]);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.notice,null);
-x=scenario(sameChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,false,'mismatch prompt must only appear once per continuous encounter');assert.equal(x.decision.state.arrivalStoreId,null,'mismatched store must not latch presence');assert.equal(x.notice,null);
+x=scenario(sameChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,true,'first confirmed mismatch must ask for store change');assert.equal(x.decision.state.arrivalStoreId,null,'mismatched store must not latch presence');assert.equal(x.notice,null);
 {
  let state=initialZiiplyArrivalState(), prompts=0;
  for(const at of [0,3000,6000,9000,12000]){
