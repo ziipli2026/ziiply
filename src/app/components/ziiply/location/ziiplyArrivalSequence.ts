@@ -33,6 +33,11 @@ export function ziiplyDistanceMeters(a:{latitude:number;longitude:number},b:{lat
 }
 export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyArrivalSample,stores:ZiiplyArrivalStore[],selectedStoreIds:string[]):ZiiplyArrivalDecision {
  const state={...previous};
+ // A confirmed visit belongs to the selected store, never to a stale selection.
+ if(state.arrivalStoreId&&!selectedStoreIds.includes(state.arrivalStoreId)){
+  state.arrivalStoreId=null;state.tripConfirmed=false;state.departureSamples=0;
+  state.stoppedAt=null;state.stationarySamples=0;state.candidateStoreId=null;state.candidateSamples=0;
+ }
  const finite=Number.isFinite(sample.latitude)&&Number.isFinite(sample.longitude)&&Math.abs(sample.latitude)<=90&&Math.abs(sample.longitude)<=180;
  const accurate=Number.isFinite(sample.accuracyMeters)&&sample.accuracyMeters>0&&sample.accuracyMeters<=30;
  const chronological=!state.lastAcceptedSample||sample.at>state.lastAcceptedSample.at;
