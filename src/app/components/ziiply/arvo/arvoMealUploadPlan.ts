@@ -1,6 +1,6 @@
 import {normalizeArvoMeal, type ArvoMeal} from "./arvoStatistics.ts";
 import {canSyncArvoMeals, type ArvoMealSyncPermission} from "./arvoMealSyncPermission.ts";
-import {reconcileArvoMeals} from "./arvoMealReconciliation.ts";
+import {mergeArvoDeletedIds,reconcileArvoMeals} from "./arvoMealReconciliation.ts";
 
 export type ArvoMealUploadPlan = {
   allowed: boolean;
@@ -19,12 +19,14 @@ export function planArvoMealUpload(
   remote: readonly ArvoMeal[],
   permission: ArvoMealSyncPermission,
   deletedIds: readonly string[] = [],
+  remoteDeletedIds: readonly string[] = [],
 ): ArvoMealUploadPlan {
+  const allDeletedIds=mergeArvoDeletedIds(deletedIds,remoteDeletedIds);
   if (!canSyncArvoMeals(permission)) {
-    return {allowed:false,upload:[],localOnly:local.map(normalizeArvoMeal).filter((m):m is ArvoMeal=>m!==null&&!deletedIds.includes(m.id)),conflicts:[],deleteRemoteIds:[]};
+    return {allowed:false,upload:[],localOnly:local.map(normalizeArvoMeal).filter((m):m is ArvoMeal=>m!==null&&!allDeletedIds.includes(m.id)),conflicts:[],deleteRemoteIds:[]};
   }
-  const {upload,localOnly,conflicts}=reconcileArvoMeals(local,remote,deletedIds);
+  const {upload,localOnly,conflicts}=reconcileArvoMeals(local,remote,allDeletedIds);
   const remoteIds = new Set(remote.map(meal=>meal.id));
-  const deleteRemoteIds = [...new Set(deletedIds)].filter(id=>remoteIds.has(id));
+  const deleteRemoteIds = [...new Set(deletedIds)].filter(id=>remoteIds.has(id) && !remoteDeletedIds.includes(id));
   return {allowed:true,upload,localOnly,conflicts,deleteRemoteIds};
 }
