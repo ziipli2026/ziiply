@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { fetchSharedGostaWatch } from "../mobile/gostaWatchSharedRequest";
 
 type Offer={query:string;title:string;price:string;store:string;source:string};
 const TERMS="ziiply-gosta-offer-watches-v1";
@@ -29,8 +30,7 @@ export default function DesktopGostaWatch(){
    try{
     const params=new URLSearchParams({q:key});
     // The watcher reads stored offers only; GPS must not delay the request.
-    const response=await fetch("/api/offers/watch?"+params.toString(),{cache:"no-store",signal:AbortSignal.timeout(12000)});
-    const data=await response.json();
+    const {response,data}=await fetchSharedGostaWatch("/api/offers/watch?"+params.toString());
     if(!response.ok||!data.ok||!Array.isArray(data.results))throw Error(String(data.error||"Tarjoushaku epäonnistui"));
     const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
     if(!cancelled){
