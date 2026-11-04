@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   const cached=roadResultCache.get(cacheKey);
   if(cached&&cached.until>Date.now())return respond({...cached.body,...(debug?{}:{diagnostics:undefined})},cached.status);
   const radius = Math.min(180, Math.max(90, Math.ceil(accuracy * 2 + 35)));
-  const query = `[out:json][timeout:6];way(around:${radius},${latitude},${longitude})["highway"]["maxspeed"];out geom;`;
+  const query = `[out:json][timeout:6];way(around:${radius},${latitude},${longitude})["highway"];out tags geom;`;
   const attempts: Attempt[] = await Promise.all(endpoints.map(async endpoint => {
     const provider = new URL(endpoint).hostname;
     const started = Date.now();
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       });
       status = response.status;
       if (!response.ok) {
-        if(response.status===429||response.status===503||response.status===504)providerCooldown.set(provider,Date.now()+(response.status===429?5*60*1000:60*1000));
+        if([406,429,503,504].includes(response.status))providerCooldown.set(provider,Date.now()+([406,429].includes(response.status)?5*60*1000:60*1000));
         return { provider, ms: Date.now() - started, status, outcome: "http_error" };
       }
       providerCooldown.delete(provider);
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
   }));
   const matched = attempts.find(a => a.outcome === "matched" && a.limit != null);
   const usable = attempts.some(a => a.status === 200 && (a.candidates ?? 0) > 0);
-  const reason = matched ? "matched" : usable ? "no_reliable_match" : "no_road_data";
+  const reason = matched ? "matched" : usable ? "no_reliable_match" : attempts.some(a=>a.status===200) ? "no_road_data" : "providers_unavailable";
   const details = attempts.map(({provider, ms, status, outcome, candidates}) => ({provider, ms, status, outcome, candidates}));
   console.info("[mobile-speed-limit] diagnostics", JSON.stringify({reason, attempts: details, accuracy: Math.round(accuracy)}));
   const body:Record<string,unknown>={limit:matched?.limit??null,reason,diagnostics:{accuracy:Math.round(accuracy),radius,providers:details}};
