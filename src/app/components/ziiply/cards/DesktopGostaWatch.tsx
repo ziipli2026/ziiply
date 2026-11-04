@@ -21,6 +21,7 @@ export default function DesktopGostaWatch(){
  },[]);
  React.useEffect(()=>{
   setError("");
+  setLoading(false);
   try{const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===key&&Array.isArray(cached.offers)){setOffers(cached.offers);setReady(true);}}catch{}
   if(!key){setOffers([]);setReady(false);return;}
   let cancelled=false,running=false,last=0;
@@ -34,7 +35,7 @@ export default function DesktopGostaWatch(){
     if(!response.ok||!data.ok||!Array.isArray(data.results))throw Error(String(data.error||"Tarjoushaku epäonnistui"));
     const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
     if(!cancelled){
-     setOffers(current=>{const old=current.filter(o=>!key.split("|").includes(o.query.toLocaleLowerCase("fi")));return data.partial&&current.length>next.length?current:[...old,...next];});
+     setOffers(current=>data.partial&&current.length>next.length?current:next);
      setReady(true);setError(data.partial?"Osa kaupoista jäi tarkistamatta.":"");
      if(!data.partial){try{localStorage.setItem(RESULTS,JSON.stringify({key,offers:next,at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
      last=Date.now();
@@ -48,7 +49,7 @@ export default function DesktopGostaWatch(){
   window.addEventListener("focus",resume);document.addEventListener("visibilitychange",resume);
   return()=>{cancelled=true;clearTimeout(timer);clearInterval(interval);window.removeEventListener("focus",resume);document.removeEventListener("visibilitychange",resume);};
  },[key]);
- const save=(next:string[])=>{localStorage.setItem(TERMS,JSON.stringify(next));setTerms(next);window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));};
+ const save=(next:string[])=>{const previous=new Set(terms.map(t=>t.toLocaleLowerCase("fi")));const added=next.some(t=>!previous.has(t.toLocaleLowerCase("fi")));localStorage.setItem(TERMS,JSON.stringify(next));setTerms(next);if(added)setError("");window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));};
  return <section className="rounded-xl border border-amber-300 bg-amber-50/90 px-3 py-2 text-sm text-slate-900" aria-label="Göstan tarjousvahti">
   <div className="flex items-center justify-between gap-2">
    <strong>Göstan tarjousvahti</strong>
