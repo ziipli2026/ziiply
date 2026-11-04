@@ -13,21 +13,21 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
  const delivered=useRef(new Set<string>());
  const visible=()=>activeRef.current&&document.visibilityState==='visible'&&document.hasFocus()&&Date.now()-lastInteraction.current<15000;
  const update=useCallback((decision:ZiiplyArrivalDecision,at:number)=>{
-   recordArrivalDiagnostic('arrival-decision',{status:decision.status,store:decision.store?.name??null,selected:decision.isSelectedStore,arrival:decision.showArrivalMessage,radar:decision.radar});
+   recordArrivalDiagnostic('arrival-decision',{status:decision.status,store:decision.store?.name??null,storeId:decision.store?.id??null,selected:decision.isSelectedStore,arrival:decision.showArrivalMessage,mismatch:decision.askStoreChange,radar:decision.radar,confirmedStoreId:decision.state.arrivalStoreId,stationarySamples:decision.state.stationarySamples??0,candidateSamples:decision.state.candidateSamples??0,candidateStoreId:decision.state.candidateStoreId??null,departureSamples:decision.state.departureSamples??0,enabled,visible:visible()});
    window.dispatchEvent(new CustomEvent('ziiply-arrival-debug',{detail:{source:'main',status:decision.status,store:decision.store?.name??null,selected:decision.isSelectedStore,arrival:decision.showArrivalMessage,radar:decision.radar}}));
    if(enabled&&decision.showArrivalMessage&&decision.isSelectedStore&&decision.store&&!delivered.current.has(decision.store.id)){
-     if(visible()){delivered.current.add(decision.store.id);dispatch({type:'sample',decision,at});}
-     else {pending.current=null;recordArrivalDiagnostic('arrival-suppressed-inactive',{store:decision.store.name});}
+     if(visible()){delivered.current.add(decision.store.id);recordArrivalDiagnostic('arrival-notification-start',{storeId:decision.store.id,store:decision.store.name,phase:'approach'});dispatch({type:'sample',decision,at});}
+     else {pending.current=null;recordArrivalDiagnostic('arrival-suppressed-inactive',{store:decision.store.name,storeId:decision.store.id,visibility:document.visibilityState,focused:document.hasFocus(),active:activeRef.current,interactionAgeMs:Date.now()-lastInteraction.current});}
    }
    if(decision.status==='checking'&&!decision.state.arrivalStoreId){
-     if(delivered.current.size) dispatch({type:'reset'});
+     if(delivered.current.size){recordArrivalDiagnostic('arrival-notification-reset',{reason:'outside-store',deliveredCount:delivered.current.size});dispatch({type:'reset'});}
      delivered.current.clear();pending.current=null;
    }
  },[enabled]);
- useEffect(()=>{if(!enabled){dispatch({type:'reset'});pending.current=null;}},[enabled]);
+ useEffect(()=>{if(!enabled){recordArrivalDiagnostic('arrival-notification-reset',{reason:'disabled'});dispatch({type:'reset'});pending.current=null;}},[enabled]);
  useEffect(()=>{
-  const activity=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())return;lastInteraction.current=Date.now();activeRef.current=true;setActive(true);dispatch({type:'resume',at:Date.now()});};
-  const inactive=()=>{dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);pending.current=null;};
+  const activity=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())return;lastInteraction.current=Date.now();activeRef.current=true;setActive(true);recordArrivalDiagnostic('arrival-notification-resume',{reason:'user-activity'});dispatch({type:'resume',at:Date.now()});};
+  const inactive=()=>{recordArrivalDiagnostic('arrival-notification-pause',{visibility:document.visibilityState,focused:document.hasFocus()});dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);pending.current=null;};
   const visibility=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())inactive();};
   document.addEventListener('pointerdown',activity,true);
   document.addEventListener('keydown',activity,true);
@@ -45,13 +45,13 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
  useEffect(()=>{
   if(!enabled||!active||!notice||notice.phase==='done')return;
   const timer=window.setInterval(()=>{
-   if(!visible()){dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);return;}
+   if(!visible()){recordArrivalDiagnostic('arrival-notification-pause',{reason:'inactive-timer',visibility:document.visibilityState,focused:document.hasFocus(),interactionAgeMs:Date.now()-lastInteraction.current});dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);return;}
    dispatch({type:'tick',at:Date.now()});
   },250);
   return ()=>window.clearInterval(timer);
  },[enabled,active,notice]);
- useEffect(()=>{window.dispatchEvent(new CustomEvent('ziiply-arrival-debug',{detail:{source:'main-ui',phase:enabled?notice?.phase??'none':'disabled',store:notice?.name??null}}));},[enabled,notice?.phase,notice?.name]);
- return {notice:enabled&&active?notice:null,update,dismiss:()=>dispatch({type:'dismiss'}),skip:()=>dispatch({type:'skip',at:Date.now()})};
+ useEffect(()=>{const phase=enabled?notice?.phase??'none':'disabled';recordArrivalDiagnostic('arrival-notification-phase',{phase,store:notice?.name??null,deadline:notice?.deadline??null,paused:notice?.paused??false});window.dispatchEvent(new CustomEvent('ziiply-arrival-debug',{detail:{source:'main-ui',phase,store:notice?.name??null}}));},[enabled,notice?.phase,notice?.name]);
+ return {notice:enabled&&active?notice:null,update,dismiss:()=>{recordArrivalDiagnostic('arrival-notification-dismiss',{phase:notice?.phase??null});dispatch({type:'dismiss'});},skip:()=>{recordArrivalDiagnostic('arrival-notification-skip',{phase:notice?.phase??null});dispatch({type:'skip',at:Date.now()});}};
 }
 export default function ZiiplyArrivalNotice({notice,onDismiss,onSkip,onList,onRecipe,onOffers,onConfirm}:{
  notice:ArrivalNotice|null;onDismiss:()=>void;onSkip:()=>void;onList:()=>void;onRecipe:()=>void;onOffers:()=>void;onConfirm?:()=>void;
