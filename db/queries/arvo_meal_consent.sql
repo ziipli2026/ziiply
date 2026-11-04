@@ -18,3 +18,7 @@ WHERE user_id=$1;
 -- Consent revocation intentionally does not silently erase meal history.
 -- Offer a separate authenticated erase-cloud-data action and confirm it.
 -- The API must re-check active consent inside every meal operation's transaction.
+
+-- Row-level FOR UPDATE in the atomic meal functions serializes writes with
+-- this UPDATE. After revocation commits, later meal writes must be rejected.
+-- Reads must independently verify active consent on each request.
