@@ -49,11 +49,13 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
       return 0;
     };
     if(!watchKey){setWatchCount(null);return;}
-    let lastScan=readShared();
-    // Keep the last confirmed bag visible while refreshing an old snapshot.
+    // A full browser reload starts with a hidden bag. A later background
+    // refresh in this mounted session must not clear already visible offers.
+    setWatchCount(null);
+    let lastScan=0;
     let cancelled=false;
     let running=false;
-    const sync=()=>{const at=readShared();if(at)lastScan=at;};
+    const sync=()=>{if(!running && lastScan>0)readShared();};
     const scan=async()=>{
       if(cancelled||running||document.visibilityState!=="visible")return;
       if(lastScan&&Date.now()-lastScan<20*1000)return;
@@ -65,7 +67,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
         if(!cancelled){
-          if(!data.partial || offers.length>0 || watchCount===null)setWatchCount(offers.length);
+          setWatchCount(current => !data.partial || offers.length>0 || current===null ? offers.length : current);
           lastScan=Date.now();
           if(!data.partial){
             const cached={key:watchKey,offers:offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((query:string)=>({query:String(query),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.sourceType||offer.chain||"")}))),at:lastScan,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI")};
