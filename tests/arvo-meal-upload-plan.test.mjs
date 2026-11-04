@@ -20,3 +20,13 @@ test("Arvo upload plan does not upload existing server meals twice",()=>{
  const plan=planArvoMealUpload([meal],[meal],{authenticated:true,cloudMealConsent:true});
  assert.equal(plan.upload.length,0);
 });
+
+test("Arvo cloud deletion is planned only with consent and an existing remote meal",()=>{
+ const denied=planArvoMealUpload([], [meal], {authenticated:true,cloudMealConsent:false},[meal.id]);
+ assert.deepEqual(denied.deleteRemoteIds,[]);
+ const permitted=planArvoMealUpload([], [meal], {authenticated:true,cloudMealConsent:true},[meal.id,meal.id]);
+ assert.deepEqual(permitted.deleteRemoteIds,[meal.id]);
+ assert.equal(permitted.upload.length,0);
+ const absent=planArvoMealUpload([],[],{authenticated:true,cloudMealConsent:true},[meal.id]);
+ assert.deepEqual(absent.deleteRemoteIds,[]);
+});
