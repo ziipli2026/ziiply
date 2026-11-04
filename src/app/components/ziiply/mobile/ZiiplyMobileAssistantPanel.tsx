@@ -119,8 +119,7 @@ export default function ZiiplyMobileAssistantPanel({
       if(cancelled||running)return;
       running=true;
       watchLastAutoScan.current=Date.now();
-      setWatchLoading(true);
-      setWatchError("");
+      // Background refresh stays silent; keep the previous visible snapshot.
       const started=Date.now();
       setWatchDebug("Haku käynnissä: "+new Date().toLocaleTimeString("fi-FI")+" | hakusanat: "+watchKey);
       try{
@@ -155,7 +154,7 @@ export default function ZiiplyMobileAssistantPanel({
         // Automatic watcher refresh failures remain in diagnostics; retain the last successful offers.
       }finally{
         running=false;
-        if(!cancelled)setWatchLoading(false);
+        // No visible loading state for automatic refreshes.
       }
     };
     const initial=window.setTimeout(()=>{void scan();},200);
@@ -179,8 +178,8 @@ export default function ZiiplyMobileAssistantPanel({
     setSavedWatches(next);
     window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));
     setWatchQuery("");
-    setWatchChecked(false);
     setWatchNotice("Vahti tallennettu. Tarjoukset ilmoitetaan haun valmistuttua, mikäli niitä on.");
+    window.setTimeout(()=>setWatchNotice(current=>current==="Vahti tallennettu. Tarjoukset ilmoitetaan haun valmistuttua, mikäli niitä on."?"":current),4000);
     setShowWatchNotebook(false);
   }
   function removeWatch(query: string) {
@@ -265,10 +264,8 @@ export default function ZiiplyMobileAssistantPanel({
               <div className="flex items-center justify-between gap-2"><h3 className="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
                 {watchFilter&&<button type="button" onClick={()=>setWatchFilter(null)} className="rounded-lg border border-[#b58a46] px-2 py-1 text-xs">Kaikki vahdit</button>}
               </div>
-              {watchLoading&&<p className="text-sm">Haetaan tuoreita tarjouksia…</p>}
-              {watchError&&<p role="alert" className="text-sm text-red-700">{watchError}</p>}
+
               {!savedWatches.length&&<p className="rounded-xl bg-white/70 p-4 text-sm">Tallenna ensin hakusana. Löydetyt tarjoukset näkyvät tässä kortteina.</p>}
-              {savedWatches.length>0&&watchChecked&&!watchLoading&&watchOffers.length===0&&<p className="rounded-xl bg-white/70 p-4 text-sm">Tarjouksia ei löytynyt.</p>}
               <div className="grid grid-cols-1 gap-3">
                 {watchOffers.filter(o=>!watchFilter||o.query===watchFilter).map((offer,index)=><article key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="rounded-2xl border-2 border-[#caa15d] bg-[#fffaf0] p-3 shadow-sm">
                   <div className="text-xs font-bold text-[#76502b]">{offer.store||"Kauppa"}{offer.source&&" · "+offer.source}</div>
