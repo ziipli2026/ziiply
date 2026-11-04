@@ -27,33 +27,45 @@ export async function GET(request:Request) {
   try {
     const db=neon(process.env.DATABASE_URL);
     // Read only already parsed, approved offer-search publications. No provider/API calls.
-    const rows=await db`SELECT chain,publication_id,offers FROM ziiply_offer_publications
+    // Filter existing normalized offer-search rows in Neon itself, not by
+    // downloading complete publication JSON and scanning it in the browser.
+    // This route makes exactly one database request and no external fetches.
+    const rows=await db`WITH active AS (
+      SELECT chain,publication_id,offers FROM ziiply_offer_publications
       WHERE approval_state='approved'
         AND valid_from <= (now() AT TIME ZONE 'Europe/Helsinki')::date
         AND valid_until >= (now() AT TIME ZONE 'Europe/Helsinki')::date
-      ORDER BY parsed_at DESC LIMIT 100`;
+    )
+    SELECT p.chain,p.publication_id,o.value AS offer
+    FROM active p CROSS JOIN LATERAL jsonb_array_elements(
+      CASE WHEN jsonb_typeof(p.offers)='array' THEN p.offers ELSE '[]'::jsonb END
+    ) AS o(value)
+    WHERE EXISTS (
+      SELECT 1 FROM unnest(string_to_array(${queries.join("|")},'|')) AS q(term)
+      WHERE lower(coalesce(o.value->>'title',o.value->>'name',o.value->>'productName','')) LIKE '%' || q.term || '%'
+    )
+    LIMIT 3000`;
     const seen=new Set<string>();
     const results:Offer[]=[];
     let inspected=0;
     for(const row of rows) {
-      const offers=Array.isArray(row.offers)?row.offers as Offer[]:[];
-      for(const offer of offers) {
-        inspected++;
-        const p=price(offer);
-        if(!Number.isFinite(p))continue;
-        const watchQueries=queries.filter(q=>matches(q,offer));
-        if(!watchQueries.length)continue;
-        const title=text(offer.title||offer.name||offer.productName);
-        const storeName=text(offer.storeName||offer.store||row.publication_id);
-        const id=text(offer.ean||offer.id||title);
-        const key=[row.chain,storeName,id,p].join("|");
-        if(seen.has(key))continue;
-        seen.add(key);
-        results.push({...offer,title,offerPrice:p,storeName,chain:row.chain,watchQueries});
-      }
+      const offer=row.offer as Offer;
+      if(!offer||typeof offer!=="object")continue;
+      inspected++;
+      const p=price(offer);
+      if(!Number.isFinite(p))continue;
+      const watchQueries=queries.filter(q=>matches(q,offer));
+      if(!watchQueries.length)continue;
+      const title=text(offer.title||offer.name||offer.productName);
+      const storeName=text(offer.storeName||offer.store||row.publication_id);
+      const id=text(offer.ean||offer.id||title);
+      const key=[row.chain,storeName,id,p].join("|");
+      if(seen.has(key))continue;
+      seen.add(key);
+      results.push({...offer,title,offerPrice:p,storeName,chain:row.chain,watchQueries});
     }
     results.sort((a,b)=>price(a)-price(b));
-    return NextResponse.json({ok:true,partial:false,queries,results,diagnostic:{source:"approved-normalized-offer-publications",publications:rows.length,inspected,matched:results.length}},{headers:{"Cache-Control":"no-store"}});
+    return NextResponse.json({ok:true,partial:false,queries,results,diagnostic:{source:"approved-normalized-offer-publications",candidateRows:rows.length,inspected,matched:results.length}},{headers:{"Cache-Control":"no-store"}});
   } catch(error) {
     return NextResponse.json({ok:false,error:error instanceof Error?error.message:String(error),results:[]},{status:500});
   }
