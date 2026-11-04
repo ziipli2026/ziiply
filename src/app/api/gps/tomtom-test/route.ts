@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   // The service must match them to a road; never invent a speed limit on failure.
   const scenario = new URL(request.url).searchParams.get("scenario") ?? "helsinki";
   const samples: Record<string, { points: string; headings?: string; label: string }> = {
-    helsinki: { points: sample.points, label: "Helsinki: original two points" },
+    helsinki: { points: "24.9397,60.1706;24.9404,60.1726", label: "Helsinki: original two points" },
     tomtom: { points: "4.6104919036936565,52.37576529649988;4.614096792595859,52.38341473290629", headings: "0;0", label: "TomTom documented reference points" },
     helsinki_reverse: { points: "24.9404,60.1726;24.9397,60.1706", label: "Helsinki: reversed travel direction" },
   };
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   if (!sample) return NextResponse.json({ error: "Unknown scenario", allowed: Object.keys(samples) }, { status: 400 });
   const params = new URLSearchParams({
     key,
-    points: "24.9397,60.1706;24.9404,60.1726",
+    points: sample.points,
     fields: "{projectedPoints{type,geometry{type,coordinates},properties{routeIndex,snapResult}},route{properties{id,speedLimits{value,unit,type},address{roadName,municipality,countryName},confidence,frc,formOfWay}}}",
     vehicleType: "PassengerCar",
     measurementSystem: "metric",
