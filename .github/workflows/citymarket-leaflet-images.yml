@@ -77,7 +77,7 @@ jobs:
             fi
             index=$((index+1))
           done
-          test "$successful" -gt 0
+          test "$successful" -eq "${#entries[@]}"
           node scripts/citymarket/verify-images.mjs
       - name: Verify browser image fragments
         if: steps.clock.outputs.run == 'true' && github.event_name != 'schedule'
