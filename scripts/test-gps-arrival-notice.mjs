@@ -41,6 +41,14 @@ let n=reduce(x.notice,{type:'tick',at:10000});assert.equal(n.phase,'list');
 n=reduce(n,{type:'tick',at:15000});assert.equal(n.phase,'offers');
 n=reduce(n,{type:'tick',at:70000});assert.equal(n.phase,'done');
 assert.equal(reduce(n,{type:'sample',decision:x.decision,at:22000}).phase,'done');
+// Switching selection invalidates an already confirmed visit, including during GPS loss.
+{
+ const confirmed=scenario(selected).decision.state;
+ const switched=evaluateZiiplyArrival(confirmed,{at:7000,latitude:selected.latitude,longitude:selected.longitude,accuracyMeters:100,speedKmh:0},[selected,sameChain,crossChain],[sameChain.id]);
+ assert.equal(switched.state.arrivalStoreId,null,'selection change must clear stale confirmed store');
+ assert.equal(switched.radar,'white','invalid GPS must not restore old green state');
+ assert.equal(switched.showArrivalMessage,false);
+}
 x=scenario(selected,[]);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.notice,null);
 x=scenario(sameChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,false,'mismatch prompt must only appear once per continuous encounter');assert.equal(x.decision.state.arrivalStoreId,null,'mismatched store must not latch presence');assert.equal(x.notice,null);
 {
