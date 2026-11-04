@@ -51,7 +51,7 @@ export default function DesktopGostaWatch(){
   window.addEventListener("focus",resume);document.addEventListener("visibilitychange",resume);
   return()=>{cancelled=true;clearTimeout(timer);clearInterval(interval);window.removeEventListener("focus",resume);document.removeEventListener("visibilitychange",resume);};
  },[key]);
- const save=(next:string[])=>{const previous=new Set(terms.map(t=>t.toLocaleLowerCase("fi")));const added=next.find(t=>!previous.has(t.toLocaleLowerCase("fi")));localStorage.setItem(TERMS,JSON.stringify(next));setTerms(next);setCheckedKey("");setNotice(added?`Vahti ”${added}” tallennettu. Tarjoukset tarkistetaan heti.`:"Vahtilista päivitetty.");setError("");window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));};
+ const save=(next:string[])=>{const previous=new Set(terms.map(t=>t.toLocaleLowerCase("fi")));const added=next.find(t=>!previous.has(t.toLocaleLowerCase("fi")));localStorage.setItem(TERMS,JSON.stringify(next));setTerms(next);setCheckedKey("");setNotice(added?`Vahti tallennettu. Tarjoukset ilmoitetaan haun valmistuttua, mikäli niitä on.`:"Vahtilista päivitetty.");setError("");window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));};
  return <section className="rounded-xl border border-amber-300 bg-amber-50/90 px-3 py-2 text-sm text-slate-900" aria-label="Göstan tarjousvahti">
   <div className="flex items-center justify-between gap-2">
    <strong>Göstan tarjousvahti</strong>
