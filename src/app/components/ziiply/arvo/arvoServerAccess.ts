@@ -17,10 +17,10 @@ export function canAccessArvoCloudMeals(access: ArvoServerAccess, now: Date = ne
   if (!access.sessionUserId || !uuid.test(access.sessionUserId)) return false;
   if (!Number.isFinite(now.getTime())) return false;
   if (!access.sessionExpiresAt || !Number.isFinite(toMillis(access.sessionExpiresAt))) return false;
-  if (Date.parse(access.sessionExpiresAt) <= now.getTime()) return false;
+  if (toMillis(access.sessionExpiresAt) <= now.getTime()) return false;
   if (access.sessionRevokedAt !== null || access.userDisabledAt !== null) return false;
   if (!access.cloudMealGrantedAt || !Number.isFinite(toMillis(access.cloudMealGrantedAt))) return false;
-  if (Date.parse(access.cloudMealGrantedAt) > now.getTime()) return false;
+  if (toMillis(access.cloudMealGrantedAt) > now.getTime()) return false;
   if (access.cloudMealRevokedAt !== null) return false;
   return true;
 }
