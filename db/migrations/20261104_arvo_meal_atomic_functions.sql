@@ -9,6 +9,11 @@ CREATE OR REPLACE FUNCTION public.ziiply_arvo_insert_meal(
 DECLARE inserted_count integer;
 BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text || ':' || p_meal_id::text,0));
+ IF NOT EXISTS (SELECT 1 FROM public.ziiply_arvo_meal_consents
+                WHERE user_id=p_user_id AND granted_at IS NOT NULL AND revoked_at IS NULL
+                FOR UPDATE) THEN
+  RAISE EXCEPTION 'arvo_cloud_consent_required' USING ERRCODE='42501';
+ END IF;
  IF EXISTS(SELECT 1 FROM public.ziiply_arvo_meal_deletions
            WHERE user_id=p_user_id AND meal_id=p_meal_id) THEN
   RETURN false;
