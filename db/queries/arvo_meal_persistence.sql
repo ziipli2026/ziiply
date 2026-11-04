@@ -1,0 +1,32 @@
+-- Arvo meal persistence statements, to be executed ONLY after the caller
+-- is authenticated and explicit meal cloud consent is verified server-side.
+-- All queries scope records to the authenticated user ID ($1).
+-- These are templates, not exposed endpoints or applied migrations.
+
+-- Insert a new meal without replacing existing records or reviving tombstones.
+-- $1 user_id, $2 meal_id, $3 consumed_at, $4 ean, $5 product_name,
+-- $6 grams, $7 kcal, $8 protein_g, $9 carbs_g, $10 fat_g
+INSERT INTO public.ziiply_arvo_meals
+ (user_id,meal_id,consumed_at,ean,product_name,grams,kcal,protein_g,carbs_g,fat_g)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+ON CONFLICT (user_id,meal_id) DO NOTHING;
+
+-- Soft-delete an existing meal. A retry is idempotent.
+-- $1 user_id, $2 meal_id
+UPDATE public.ziiply_arvo_meals
+SET deleted_at=COALESCE(deleted_at,now()),updated_at=now()
+WHERE user_id=$1 AND meal_id=$2;
+
+-- Fetch visible meals for this user only, most recent first.
+-- $1 user_id, $2 limit
+SELECT meal_id,consumed_at,ean,product_name,grams,kcal,protein_g,carbs_g,fat_g
+FROM public.ziiply_arvo_meals
+WHERE user_id=$1 AND deleted_at IS NULL
+ORDER BY consumed_at DESC,meal_id DESC LIMIT $2;
+
+-- Fetch deleted identifiers separately so other devices do not resurrect them.
+-- $1 user_id, $2 limit
+SELECT meal_id,deleted_at
+FROM public.ziiply_arvo_meals
+WHERE user_id=$1 AND deleted_at IS NOT NULL
+ORDER BY deleted_at DESC,meal_id DESC LIMIT $2;
