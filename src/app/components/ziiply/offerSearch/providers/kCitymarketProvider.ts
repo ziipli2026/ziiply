@@ -604,11 +604,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       ...(verified45LV?.depositAmount!=null?{depositAmount:verified45LV.depositAmount}:{}),
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       ...citymarketTransactionMetadata(row),
-      ...(verified45LV?{priceBasis:verified45LV.unit==="PKT"?"package-total":"set-total",priceText:price.toFixed(2).replace(".",",")+" € / "+(verified45LV.unit==="PKT"?"24-pack":"2 kpl")}:{}),
       ...(resolved?.source?.startsWith("owned-printed") && (resolved?.unit === "setti" || resolved?.packageCount > 1) ? {
         priceBasis: resolved.packageCount > 1 ? "package-total" : "set-total",
         priceText: price.toFixed(2).replace(".", ",") + " € / " + (resolved.packageCount > 1 ? "pkt (" + resolved.packageCount + " kpl)" : "setti"),
       } : {}),
+      ...(verified45LV?{priceBasis:verified45LV.unit==="PKT"?"package-total":"set-total",priceText:price.toFixed(2).replace(".",",")+" € / "+(verified45LV.unit==="PKT"?"24-pack":"2 kpl")}:{}),
       packageSize:row?.package?.raw??null,
       offerQuantity,
       offerUnit:verified45LV?.unit??(resolved?.unit?String(resolved.unit).toUpperCase():null),
