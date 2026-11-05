@@ -4035,5 +4035,41 @@
         ]
       ]
     }
+  },
+  "e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8": {
+    "kcm:spatial:11:talvi-työkäsine vinterarbetshandskar:6": {
+      "page": 11,
+      "rectangles": [
+        [
+          95.433,
+          603.784,
+          285.056,
+          730.168
+        ]
+      ]
+    },
+    "kcm:spatial:17:nivea vartalovoiteet 100–400 ml:percent:30": {
+      "page": 17,
+      "rectangles": [
+        [
+          195.261,
+          51.028,
+          463.284,
+          377.089
+        ],
+        [
+          101.344,
+          52.388,
+          266.203,
+          378.653
+        ],
+        [
+          360.942,
+          54.55,
+          490.395,
+          375.008
+        ]
+      ]
+    }
   }
 }
