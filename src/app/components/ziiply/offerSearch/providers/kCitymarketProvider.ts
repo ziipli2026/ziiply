@@ -537,6 +537,19 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     }
     const resolved=row?.spatialResolved;
     if(!resolved || resolved.displayOnlyUnitPrice) continue;
+    // PDF review 45LV: these publisher blocks contain a detached unit price,
+    // an adjacent card price, or a split multi-buy heading. Do not publish
+    // a misleading transaction price until the spatial parser is repaired.
+    const pageNumber=Number(row?.page);
+    const unsafe45LV=/_45LV_KCM/i.test(leafletUrl) && (
+      (pageNumber===3 && /^(?:KOLMIOJUUSTOPALAT|ja RUIS CRACKER)\\b/i.test(campaignTitle)) ||
+      (pageNumber===4 && /^M4EETVURSTIT\\b/i.test(campaignTitle)) ||
+      (pageNumber===9 && /^VIRVOITUSJUOMAT\\b/i.test(campaignTitle))
+    );
+    if(unsafe45LV){
+      console.warn('[K-Citymarket] Suppressed PDF-unverified 45LV offer:',pageNumber,campaignTitle,resolved.value);
+      continue;
+    }
 
     let price=Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
