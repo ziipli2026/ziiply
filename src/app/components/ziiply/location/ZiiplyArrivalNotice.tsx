@@ -18,9 +18,10 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
    panel=document.createElement('div');
    panel.id='ziiply-unified-gps-debug';
    panel.style.cssText='position:fixed;inset:8% 3% 9%;z-index:2147483647;background:#101614;color:#b8ffcb;border:2px solid white;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;font:12px/1.4 monospace;box-shadow:0 0 0 100vmax rgba(0,0,0,.5)';
-   const toolbar=document.createElement('div');toolbar.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap';
-   const title=document.createElement('strong');title.textContent='GPS DEBUG – kauppaan saapuminen + nopeusrajoitus';toolbar.appendChild(title);
-   const makeButton=(label:string,action:()=>void)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='padding:8px;background:#fff;color:#111;border-radius:7px';b.onclick=action;toolbar.appendChild(b);return b;};
+   const toolbar=document.createElement('div');toolbar.style.cssText='display:flex;flex-direction:column;align-items:stretch;gap:10px;flex:0 0 auto;min-width:0';
+   const actions=document.createElement('div');actions.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%';
+   const title=document.createElement('strong');title.textContent='GPS DEBUG – kauppaan saapuminen + nopeusrajoitus';title.style.cssText='display:block;line-height:1.35;white-space:normal;overflow-wrap:anywhere';toolbar.appendChild(title);toolbar.appendChild(actions);
+   const makeButton=(label:string,action:()=>void)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='display:block;min-width:0;min-height:44px;width:100%;padding:10px 8px;background:#fff;color:#111;border:1px solid #cbd5d1;border-radius:8px;font:600 13px/1.3 system-ui,sans-serif;white-space:normal;overflow-wrap:anywhere;text-align:center;cursor:pointer;touch-action:manipulation';b.onclick=action;actions.appendChild(b);return b;};
    const output=document.createElement('pre');output.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;flex:1;margin:0';
    const collect=()=>{
     const arrival=getArrivalDiagnostics().map(e=>new Date(e.at).toLocaleTimeString('fi-FI')+' '+e.event+' '+JSON.stringify(e.detail)).join('\\n');
