@@ -87,7 +87,7 @@ def build(folder,manifest_path,public_folder,review_path):
   if not rows:continue
   # Independent package-label text proof must accompany spatial ownership.
   # A distinctive word must occur in only one offer context on this page.
-  context={r['id']:words(r['title']+' '+' '.join(r['nearby'])) for r in rows}
+  context={r['id']:words(r.get('normalizedTitle',r['title'])+' '+' '.join(r['nearby'])) for r in rows}
   cells_by_id={r['id']:enclosed_cell(page,r,rows) for r in rows}
   freq={w:sum(w in v for v in context.values()) for v in context.values() for w in v}
   for b in blocks:
