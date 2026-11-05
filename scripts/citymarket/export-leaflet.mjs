@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
+import {repairCitymarketOCRTitle} from '../../src/app/components/ziiply/offerSearch/providers/kCitymarketOCRRepair.js';
 const [entry,folder,parserPath='src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js']=process.argv.slice(2);
 if(!entry||!folder)throw Error('Usage: export-leaflet.mjs entry output-folder [parser-path]');
 const requested=new URL(entry);
@@ -48,7 +49,7 @@ const rows=parsed.rows.flatMap(row=>{
  const priced=resolved&&Number(resolved.value)>0;
  if(!priced&&!(percent>0&&percent<100))return [];
  return [{id:`kcm:spatial:${row.page}:${title.toLowerCase()}:${priced?Number(resolved.value):'percent:'+percent}`,
-  page:row.page,title,anchor:row.imageAnchor??null,nearby:row.nearby??[]}];
+  page:row.page,title,normalizedTitle:repairCitymarketOCRTitle(title),anchor:row.imageAnchor??null,nearby:row.nearby??[]}];
 });
 await fs.writeFile(path.join(folder,'leaflet.json'),JSON.stringify({leaflet:leaflet.href,pdfUrl:pdfUrl.href,pdfSha256,pageCount:parsed.pageCount,rows},null,2));
 // Retain the complete parser output (including geometry/price candidates) so
