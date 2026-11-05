@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {writeArvoCloudMeal} from "../src/app/components/ziiply/arvo/arvoMealWrite.server.ts";
+import {createArvoNeonMealWriter} from "../src/app/components/ziiply/arvo/arvoNeonMealWriter.server.ts";
 const token="a".repeat(64);
 const hash=()=>"b".repeat(64);
 const userId="00000000-0000-4000-8000-000000000001";
@@ -29,4 +30,22 @@ test("Arvo write rejects invalid payload and never writes",async()=>{
 test("Arvo write fails closed on database error",async()=>{
  const result=await writeArvoCloudMeal(token,meal,async()=>access,hash,async()=>{throw Error("db down");},now);
  assert.deepEqual(result,{ok:false,reason:"storage-failed"});
+});
+
+test("Arvo full write path binds only authenticated user to Neon SQL",async()=>{
+ let captured;
+ const write=createArvoNeonMealWriter({query:async(sql,params)=>{
+  captured={sql,params};
+  return {rows:[{inserted:true}]};
+ }});
+ const result=await writeArvoCloudMeal(token,{...meal,userId:"00000000-0000-4000-8000-000000000002"},async()=>access,hash,write,now);
+ assert.deepEqual(result,{ok:true,mealId:meal.id});
+ assert.match(captured.sql,/ziiply_arvo_insert_meal/);
+ assert.equal(captured.params[0],userId);
+ assert.equal(captured.params[1],meal.id);
+ assert.equal(captured.params.length,10);
+});
+test("Arvo full write path never reports success for duplicate or tombstoned Neon meal",async()=>{
+ const write=createArvoNeonMealWriter({query:async()=>({rows:[{inserted:false}]})});
+ assert.deepEqual(await writeArvoCloudMeal(token,meal,async()=>access,hash,write,now),{ok:false,reason:"storage-failed"});
 });
