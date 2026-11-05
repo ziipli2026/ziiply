@@ -31,7 +31,7 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
       const amount = Number(size[1].replace(",", ".")) * (size[2].toLowerCase() === "g" || size[2].toLowerCase() === "ml" ? .001 : 1);
       // A 24-pack is one sellable package containing 24 bottles/cans.
       // Its first volume token is a single container, not the full pack.
-      const packMatch = title.match(/\\b(\\d+)\\s*[- ]?pack\\b/i);
+      const packMatch = title.match(/\b(\d+)\s*[- ]?pack\b/i);
       const packCount = packMatch ? Number(packMatch[1]) : 1;
       const expected = (price - deposit) / (amount * quantity * packCount);
       if (amount > 0 && Math.abs(expected - unitPrice) > Math.max(.08, expected * .06)) problem("inconsistentUnitPrices");
