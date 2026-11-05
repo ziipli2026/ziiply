@@ -17,7 +17,7 @@ test("Arvo reader scopes both queries to session user",async()=>{
  assert.equal(result.deletedIds[0],id);
  assert.deepEqual(result.deletedIds,[id]);
  assert.equal(calls.length,2);
- assert.ok(calls.every(c=>c.params.length===1&&c.params[0]===user&&c.sql.includes("user_id=$1::uuid")));
+ assert.ok(calls.every(c=>c.params.length===1&&c.params[0]===user&&c.sql.includes("user_id=$1::uuid")&&c.sql.includes("ziiply_arvo_meal_consents")&&c.sql.includes("revoked_at IS NULL")));
 });
 test("Arvo read rejects revoked consent without querying",async()=>{
  let reads=0;
