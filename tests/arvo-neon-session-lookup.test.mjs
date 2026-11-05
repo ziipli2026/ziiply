@@ -26,3 +26,17 @@ test("Neon session lookup fails closed on missing or ambiguous rows",async()=>{
   assert.equal(await lookup(hash),null);
  }
 });
+
+test("Neon session lookup rejects malformed field types",async()=>{
+ for(const row of [
+  {...access,sessionUserId:123},
+  {...access,sessionExpiresAt:42},
+  {...access,sessionRevokedAt:false},
+  {...access,userDisabledAt:0},
+  {...access,cloudMealGrantedAt:{}},
+  {...access,cloudMealRevokedAt:[]},
+ ]){
+  const lookup=createArvoNeonSessionLookup({query:async()=>({rows:[row]})});
+  assert.equal(await lookup(hash),null);
+ }
+});
