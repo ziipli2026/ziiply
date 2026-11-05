@@ -109,6 +109,19 @@ def build(folder,manifest_path,public_folder,review_path):
    options.sort()
    if len(options)==1 or len(options)>1 and options[1][0]-options[0][0]>.08:
     accepted[options[0][1]].append(b)
+  # An image object must not be assigned to two different offers.
+  # Ambiguous ownership is sent to review rather than silently duplicating
+  # a product picture in the published leaflet.
+  owners={}
+  for row_id,owned in accepted.items():
+   for block in owned:
+    key=tuple(round(v,3) for v in block['bbox'])
+    owners.setdefault(key,set()).add(row_id)
+  ambiguous={key for key,ids in owners.items() if len(ids)>1}
+  if ambiguous:
+   for row_id,owned in accepted.items():
+    accepted[row_id]=[block for block in owned if tuple(round(v,3) for v in block['bbox']) not in ambiguous]
+   print(f'::warning::Citymarket page {number+1}: {len(ambiguous)} ambiguous shared image objects require ownership review')
   # Audit every unresolved offer in one batch, not only WC-paper examples.
   # Candidate rectangles are evidence, never automatically approved matches.
   unresolved=[]
