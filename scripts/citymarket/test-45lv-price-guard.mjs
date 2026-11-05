@@ -10,4 +10,7 @@ for(const [page,title] of [[3,'KOLMIOJUUSTOPALAT 45–300 g'],[3,'ja RUIS CRACKE
 assert.equal(blocked(lv,3,'KOLMIOJUUSTO 100 g'),false);
 assert.equal(blocked('https://example.com/another_tarjouslehti_45LV_KCM/index.html',3,'KOLMIOJUUSTOPALAT'),false,'Future week 45 issues must not inherit this quarantine');
 assert.equal(blocked(lv,9,'KIVENNÄISVEDET'),false);
-console.log('Citymarket 45LV unsafe price guard: 15 checks passed');
+for(const [page,title] of [[3,'VALIO KOLMIOJUUSTOPALAT 45–300 g'],[3,'CREAM CRACKER 200 g'],[3,'ja RUIS CRACKER 225 g'],[4,'PIRKKA MEETVURSTIT 150 g'],[9,'KOFF VIRVOITUSJUOMAT 0,33 l 24-pack']]){
+ assert.equal(blocked(lv,page,title),true,'Brand-prefixed unsafe row must be suppressed: '+title);
+}
+console.log('Citymarket 45LV unsafe price guard: 20 checks passed');
