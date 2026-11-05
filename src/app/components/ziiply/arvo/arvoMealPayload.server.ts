@@ -9,6 +9,11 @@ const validTimestamp=(value:unknown):value is string=>{
  const local=value.slice(0,19);
  const offset=value.endsWith("Z") ? 0 : (()=>{const sign=value.at(-6)==="-"?-1:1;return sign*(Number(value.slice(-5,-3))*60+Number(value.slice(-2)));})();
  if(Math.abs(offset)>14*60)return false;
+ if(!value.endsWith("Z")){
+  const hours=Number(value.slice(-5,-3));
+  const minutes=Number(value.slice(-2));
+  if(hours>14||minutes>59||(hours===14&&minutes!==0))return false;
+ }
  const reconstructed=new Date(milliseconds+offset*60000).toISOString().slice(0,19);
  return reconstructed===local;
 };
