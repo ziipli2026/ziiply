@@ -2961,7 +2961,7 @@ export default function DesktopPreviewPage() {
               <span className={`flex w-full min-w-0 items-baseline justify-center gap-0 whitespace-nowrap font-black leading-none tabular-nums ${shownSpeed === null || shownSpeed <= 20 ? "text-[#526b61]" : speedOverLimit ? "text-[#cf202a]" : shownSpeedLimit !== null ? "text-[#138441]" : "text-[#102a24]"}`}>
                 <span className="relative inline-flex items-baseline justify-center"><span className="w-[3ch] text-center text-[32px] tracking-tight">{shownSpeed ?? 0}</span><span className="absolute left-full bottom-[3px] ml-1 text-[10px] font-bold">km/h</span></span>
               </span>
-              <span className="whitespace-nowrap text-[9px] font-bold leading-tight text-[#526b61]">Rajoitus {shownSpeedLimit ?? "—"}</span>
+
             </div>
 
         <header ref={desktopHeaderRef} className="grid grid-cols-[minmax(215px,240px)_minmax(265px,300px)_minmax(0,1fr)] items-center gap-3 border-b border-[#64745f]/20 pb-4">
