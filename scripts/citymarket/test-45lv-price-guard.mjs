@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import {isUnverified45LVPrice as blocked} from '../../src/app/components/ziiply/offerSearch/providers/kCitymarket45LVPriceGuard.js';
+import {isUnverified45LVPrice as blocked, verified45LVTransaction as verified} from '../../src/app/components/ziiply/offerSearch/providers/kCitymarket45LVPriceGuard.js';
 const lv='https://kcm-tarjouslehdet.k-ruoka.fi/90e9db1_tarjouslehti_45LV_KCM/index.html';
 const av='https://kcm-tarjouslehdet.k-ruoka.fi/example_tarjouslehti_45AV_KCM/index.html';
-for(const [page,title] of [[3,'KOLMIOJUUSTOPALAT 45–300 g'],[3,'ja RUIS CRACKER 225 g'],[4,'M4EETVURSTIT 150 g 2 (15,00/kg)'],[9,'VIRVOITUSJUOMAT 0,33 l/pl 24-pack']]){
+for(const [page,title] of [[3,'KOLMIOJUUSTOPALAT 45–300 g'],[3,'ja RUIS CRACKER 225 g'],]){
  assert.equal(blocked(lv,page,title),true,'45LV unsafe row must be suppressed: '+title);
  assert.equal(blocked(av,page,title),false,'Do not suppress historical AV: '+title);
  assert.equal(blocked(lv,page+1,title),false,'Do not suppress same title on a different page: '+title);
@@ -10,7 +10,7 @@ for(const [page,title] of [[3,'KOLMIOJUUSTOPALAT 45–300 g'],[3,'ja RUIS CRACKE
 assert.equal(blocked(lv,3,'KOLMIOJUUSTO 100 g'),false);
 assert.equal(blocked('https://example.com/another_tarjouslehti_45LV_KCM/index.html',3,'KOLMIOJUUSTOPALAT'),false,'Future week 45 issues must not inherit this quarantine');
 assert.equal(blocked(lv,9,'KIVENNÄISVEDET'),false);
-for(const [page,title] of [[3,'VALIO KOLMIOJUUSTOPALAT 45–300 g'],[3,'CREAM CRACKER 200 g'],[3,'ja RUIS CRACKER 225 g'],[4,'PIRKKA MEETVURSTIT 150 g'],[9,'KOFF VIRVOITUSJUOMAT 0,33 l 24-pack']]){
+for(const [page,title] of [[3,'VALIO KOLMIOJUUSTOPALAT 45–300 g'],[3,'CREAM CRACKER 200 g'],[3,'ja RUIS CRACKER 225 g'],]){
  assert.equal(blocked(lv,page,title),true,'Brand-prefixed unsafe row must be suppressed: '+title);
 }
 for(const title of ['KÄÄREELLISET KONVEHDIT 250–320 g','KÄÄREELLISET KONVEHDIT 209 g']){
@@ -18,4 +18,9 @@ for(const title of ['KÄÄREELLISET KONVEHDIT 250–320 g','KÄÄREELLISET KONVE
  assert.equal(blocked(av,8,title),false,'Other publication must remain unchanged');
  assert.equal(blocked(lv,7,title),false,'Other page must remain unchanged');
 }
-console.log('Citymarket 45LV unsafe price guard: 26 checks passed');
+assert.deepEqual(verified(lv,4,'M4EETVURSTIT 150 g 2 (15,00/kg)'),{price:4.5,quantity:2,unit:'KPL'});
+assert.deepEqual(verified(lv,9,'VIRVOITUSJUOMAT 0,33 l/pl 24-pack'),{price:12.99,quantity:1,unit:'PKT',depositAmount:2.4});
+assert.equal(verified(av,9,'VIRVOITUSJUOMAT 0,33 l/pl 24-pack'),null);
+assert.equal(blocked(lv,4,'PIRKKA MEETVURSTIT 150 g'),false);
+assert.equal(blocked(lv,9,'VIRVOITUSJUOMAT 0,33 l/pl 24-pack'),false);
+console.log('Citymarket 45LV price guard and verified totals passed');
