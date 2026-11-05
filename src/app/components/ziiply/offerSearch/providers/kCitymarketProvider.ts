@@ -1,3 +1,4 @@
+import { repairCitymarketOCRTitle } from "./kCitymarketOCRRepair.js";
 import { isUnverified45LVPrice, verified45LVTransaction } from "./kCitymarket45LVPriceGuard.js";
 import { repairCitymarketPrintedTitle, removeDuplicateContinuationRows, repairCitymarketCategory } from "./kCitymarket45AVCorrections.js";
 import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kCitymarketProductRows.js";
@@ -535,7 +536,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
 
   const offers:CitymarketOffer[]=[];
   for(const row of rows){
-    const campaignTitle=clean(row?.title||"");
+    const campaignTitle=repairCitymarketOCRTitle(clean(row?.title||""));
     const percent=Number(row?.percentageOffer?.percent);
     if(!row?.spatialResolved && campaignTitle && !isNoiseLine(campaignTitle) && percent>0 && percent<100){
       const validity=extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))||leafletValidity;
@@ -564,7 +565,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // product heading in the flattened publisher text. Strip only these leading
     // decorations; never change the price, quantity, package or unit metadata.
     // Limit to the 42AV archive until older leaflet regressions are verified.
-    const rawTitle=clean(row?.title||"");
+    const rawTitle=repairCitymarketOCRTitle(clean(row?.title||""));
     const title=/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle;
     if(!title || isNoiseLine(title)) continue;
     // 45AV page 3: Innocent juice 900 ml OR smoothie 750 ml, 3.49 € incl. 0.20 € deposit.
