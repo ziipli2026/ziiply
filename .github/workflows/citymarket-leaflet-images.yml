@@ -54,6 +54,9 @@ jobs:
       - name: Regression test Citymarket 45LV price safety
         if: steps.clock.outputs.run == 'true'
         run: node scripts/citymarket/test-45lv-price-guard.mjs
+      - name: Regression test reusable OCR cleanup
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-ocr-repair.mjs
       - name: Regression test multi-pack quality audit
         if: steps.clock.outputs.run == 'true'
         run: |
