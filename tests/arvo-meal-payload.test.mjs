@@ -22,7 +22,9 @@ test("Arvo cloud timestamps require real calendar dates and explicit timezone",(
   "2026-11-04T10:00:00",
   "2026-11-04T25:00:00Z",
   "2026-11-04T10:00:00+15:00",
-  "2026-11-04T10:00:00.000+02:99"
+  "2026-11-04T10:00:00.000+02:99",
+  "2026-11-04T10:00:00+14:01",
+  "2026-11-04T10:00:00-14:30"
  ])assert.equal(validateArvoMealPayload({...valid,timestamp}),null,timestamp);
  assert.equal(validateArvoMealPayload({...valid,timestamp:"2026-11-04T12:00:00+02:00"})?.timestamp,"2026-11-04T10:00:00.000Z");
 });
