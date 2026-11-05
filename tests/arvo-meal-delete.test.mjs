@@ -9,7 +9,7 @@ const access={sessionUserId:user,sessionExpiresAt:"2026-11-05T10:00:00.000Z",ses
 const now=new Date("2026-11-04T12:00:00.000Z");
 test("Arvo Neon deletion calls atomic tombstone function with bound IDs",async()=>{
  let call;
- const remove=createArvoNeonMealDeleter({query:async(sql,params)=>{call={sql,params};return {rows:[{}]};}});
+ const remove=createArvoNeonMealDeleter({query:async(sql,params)=>{call={sql,params};return {rows:[{deleted:null}]};}});
  await remove(user,id);
  assert.match(call.sql,/ziiply_arvo_delete_meal/);
  assert.deepEqual(call.params,[user,id]);
@@ -29,4 +29,11 @@ test("Arvo deletion rejects invalid IDs before writing",async()=>{
  const result=await deleteArvoCloudMeal(token,"invalid",async()=>access,()=> "b".repeat(64),async()=>{writes++;},now);
  assert.deepEqual(result,{ok:false,reason:"invalid-meal-id"});
  assert.equal(writes,0);
+});
+
+test("Arvo Neon deletion rejects missing or ambiguous database confirmations",async()=>{
+ for(const rows of [[],[{}],[{deleted:false}],[{deleted:true}],[{deleted:null},{deleted:null}]]){
+  const remove=createArvoNeonMealDeleter({query:async()=>({rows})});
+  await assert.rejects(remove(user,id),/delete-unconfirmed/);
+ }
 });
