@@ -21,7 +21,7 @@ test("Neon session lookup rejects invalid hash without querying",async()=>{
  assert.equal(calls,0);
 });
 test("Neon session lookup fails closed on missing or ambiguous rows",async()=>{
- for(const rows of [[],[{}],[access,access]]){
+ for(const rows of [[],[null],[{}],[access,access]]){
   const lookup=createArvoNeonSessionLookup({query:async()=>({rows})});
   assert.equal(await lookup(hash),null);
  }
