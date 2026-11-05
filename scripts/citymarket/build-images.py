@@ -109,6 +109,32 @@ def build(folder,manifest_path,public_folder,review_path):
    options.sort()
    if len(options)==1 or len(options)>1 and options[1][0]-options[0][0]>.08:
     accepted[options[0][1]].append(b)
+  # Rescue a package image only when geometry independently agrees in both
+  # directions: this offer's closest unowned image is also that image's
+  # closest offer, with a strong distance margin and no intervening border.
+  # Never guess when multiple images or offers are similarly close.
+  owned_boxes={tuple(round(v,3) for v in b['bbox']) for group in accepted.values() for b in group}
+  unmatched=[r for r in rows if not accepted[r['id']] and r.get('anchor')]
+  eligible=[]
+  for b in blocks:
+   x0,y0,x1,y1=b['bbox'];w=(x1-x0)/page.rect.width;h=(y1-y0)/page.rect.height
+   if w<.05 or h<.05 or w*h<.005 or w*h>.25 or y0<0 or y1>page.rect.height*.95:continue
+   if tuple(round(v,3) for v in b['bbox']) in owned_boxes:continue
+   eligible.append(b)
+  def proximity(row,block):
+   a=row['anchor'];x0,y0,x1,y1=block['bbox']
+   return math.hypot(((x0+x1)/(2*page.rect.width)-(a['left']+a['width']/2))*1.4,
+                     ((y0+y1)/(2*page.rect.height)-a['top'])*1.3)
+  for row in unmatched:
+   choices=sorted((proximity(row,b),b) for b in eligible if not blocked(page,row['anchor'],b['bbox']))
+   if not choices or choices[0][0]>.12:continue
+   if len(choices)>1 and choices[1][0]-choices[0][0]<.10:continue
+   distance,b=choices[0]
+   competitors=sorted(proximity(other,b) for other in unmatched if other['id']!=row['id'] and not blocked(page,other['anchor'],b['bbox']))
+   if competitors and competitors[0]-distance<.10:continue
+   accepted[row['id']].append(b)
+   eligible.remove(b)
+   print(f'Citymarket page {number+1}: unique reciprocal spatial image match for {row["title"]}')
   # An image object must not be assigned to two different offers.
   # Ambiguous ownership is sent to review rather than silently duplicating
   # a product picture in the published leaflet.
