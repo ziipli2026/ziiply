@@ -88,6 +88,10 @@ function textOf(src:string){
 }
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
+  // Publisher leaflet also contains non-food goods. Classify by the actual
+  // product, not by the fact it appeared in a supermarket leaflet.
+  if(/(?:talvi[- ]?työkäsine|työkäsine|vinterarbetshandskar)/.test(s)) return "Koti & vapaa-aika";
+  if(/(?:vartalovoite|kroppskrämer|body\s+lotion)/.test(s)) return "Hygienia & kosmetiikka";
   // 43LV: product-form precedence, not leaflet-specific names or prices.
   // Apply to parser output before broad fallback taxonomy.
   if (/(?:valosarj|valoketju|led[- ]?sarj|ajastinval)/.test(s)) return "Koti & vapaa-aika";
