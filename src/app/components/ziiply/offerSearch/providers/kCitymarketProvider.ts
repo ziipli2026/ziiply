@@ -542,9 +542,9 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // a misleading transaction price until the spatial parser is repaired.
     const pageNumber=Number(row?.page);
     const unsafe45LV=/_45LV_KCM/i.test(leafletUrl) && (
-      (pageNumber===3 && /^(?:KOLMIOJUUSTOPALAT|ja RUIS CRACKER)\\b/i.test(campaignTitle)) ||
-      (pageNumber===4 && /^M4EETVURSTIT\\b/i.test(campaignTitle)) ||
-      (pageNumber===9 && /^VIRVOITUSJUOMAT\\b/i.test(campaignTitle))
+      (pageNumber===3 && /^(?:KOLMIOJUUSTOPALAT|ja RUIS CRACKER)\b/i.test(campaignTitle)) ||
+      (pageNumber===4 && /^M4EETVURSTIT\b/i.test(campaignTitle)) ||
+      (pageNumber===9 && /^VIRVOITUSJUOMAT\b/i.test(campaignTitle))
     );
     if(unsafe45LV){
       console.warn('[K-Citymarket] Suppressed PDF-unverified 45LV offer:',pageNumber,campaignTitle,resolved.value);
