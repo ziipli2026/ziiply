@@ -143,7 +143,8 @@ def build(folder,manifest_path,public_folder,review_path):
    data=composite(chosen);fragment=hashlib.sha256(row['id'].encode()).hexdigest()[:20];y=len(cells)*300
    cells.append(f'<view id="{fragment}" viewBox="0 {y} 300 300"/><image x="0" y="{y}" width="300" height="300" preserveAspectRatio="xMidYMid meet" href="data:image/jpeg;base64,{base64.b64encode(data).decode()}"/>')
    mapping[row['id']]=f'/citymarket-leaflets/{digest}/images.svg#{fragment}'
- if not cells:raise ValueError('No verified image matches; preserving the previous manifest')
+ (folder/'image-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+ if not cells:raise ValueError(f'No verified image matches; {len(meta["rows"])} offers unresolved. See image-report.json and unresolved-review-page-*.png')
  target=Path(public_folder)/digest;target.mkdir(parents=True,exist_ok=True)
  svg=f'<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">'+''.join(cells)+'</svg>'
  (target/'images.svg').write_text(svg)
