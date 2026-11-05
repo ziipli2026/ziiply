@@ -61,3 +61,19 @@ test("End-to-end Arvo session resolution allows consented user and denies revoke
  assert.equal(await resolve(),null);
  assert.equal(calls,2);
 });
+
+test("End-to-end Arvo authorization denies expired, disabled and revoked sessions",async()=>{
+ const token="c".repeat(64);
+ const now=new Date("2026-11-05T10:00:00Z");
+ const hashToken=raw=>createHash("sha256").update(raw).digest("hex");
+ for(const changes of [
+  {sessionExpiresAt:new Date("2026-11-05T10:00:00Z")},
+  {sessionRevokedAt:new Date("2026-11-05T09:00:00Z")},
+  {userDisabledAt:new Date("2026-11-05T09:00:00Z")},
+  {cloudMealGrantedAt:null},
+  {cloudMealRevokedAt:new Date("2026-11-05T09:00:00Z")},
+ ]){
+  const lookup=createArvoNeonSessionLookup({query:async()=>({rows:[{...access,...changes}]})});
+  assert.equal(await resolveArvoCloudSession(token,lookup,hashToken,now),null);
+ }
+});
