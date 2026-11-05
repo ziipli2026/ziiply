@@ -64,3 +64,13 @@ test("Arvo reader accepts a valid meal without deletion",async()=>{
  assert.equal(result.meals[0].nutrition.kcal,120);
  assert.equal(result.meals[0].timestamp,"2026-11-04T10:00:00.000Z");
 });
+
+test("Arvo reader rejects invalid timestamps from Neon",async()=>{
+ const read=createArvoNeonMealReader({query:async(sql)=>({
+  rows:sql.includes("ziiply_arvo_meal_deletions")?[]:[{
+   meal_id:id,consumed_at:"not-a-date",ean:"6411234567890",product_name:"Testi",
+   grams:"100.00",kcal:"120.00",protein_g:null,carbs_g:"20.00",fat_g:"5.00"
+  }]
+ })});
+ await assert.rejects(read(user),/invalid-cloud-timestamp/);
+});
