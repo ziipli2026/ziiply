@@ -200,6 +200,7 @@ def build(folder,manifest_path,public_folder,review_path):
    print(f'::warning::Citymarket PDF page {number+1}: {len(unresolved)} unresolved images of {len(rows)} offers')
    sheet=page.get_pixmap(matrix=fitz.Matrix(1.4,1.4),alpha=False)
    sheet.save(str(folder/f'unresolved-review-page-{number+1}.png'))
+  final_owners={}
   for row in rows:
    selection=reviewed.get(row['id'])
    if selection:
@@ -207,6 +208,12 @@ def build(folder,manifest_path,public_folder,review_path):
     chosen=[b for b in blocks if any(max(abs(a-c) for a,c in zip(b['bbox'],rect))<.015 for rect in selection['rectangles'])]
     if len(chosen)!=len(selection['rectangles']):raise ValueError('Reviewed image object missing: '+row['title'])
    else:chosen=accepted[row['id']]
+   for block in chosen:
+    key=tuple(round(v,3) for v in block['bbox'])
+    prior=final_owners.get(key)
+    if prior and prior!=row['id']:
+     raise ValueError(f'Citymarket PDF page {number+1}: image object shared by {prior} and {row["id"]}; refuse ambiguous publication')
+    final_owners[key]=row['id']
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],'images':len(chosen),'rectangles':[list(b['bbox']) for b in chosen],'method':'reviewed-pdf-digest' if selection else 'publisher-cell-or-package-text' if chosen else 'unresolved'})
    if not chosen:continue
    data=composite(chosen);fragment=hashlib.sha256(row['id'].encode()).hexdigest()[:20];y=len(cells)*300
