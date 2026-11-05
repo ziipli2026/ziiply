@@ -82,3 +82,13 @@ test("Arvo reader fails closed if consent disappears while fetching",async()=>{
  })});
  await assert.rejects(read(user),/cloud-consent-revoked/);
 });
+
+test("Arvo reader rejects missing numeric fields instead of coercing them to zero",async()=>{
+ const read=createArvoNeonMealReader({query:async(sql)=>({
+  rows:sql.startsWith("SELECT 1 AS active")?[{active:1}]:sql.includes("ziiply_arvo_meal_deletions")?[]:[{
+   meal_id:id,consumed_at:"2026-11-04T10:00:00.000Z",ean:"6411234567890",
+   product_name:"Testi",grams:"",kcal:"120.00",protein_g:null,carbs_g:"20.00",fat_g:"5.00"
+  }]
+ })});
+ await assert.rejects(read(user),/invalid-cloud-numeric/);
+});
