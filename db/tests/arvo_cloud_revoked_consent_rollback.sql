@@ -5,7 +5,7 @@
 DO $outer$
 DECLARE
  uid uuid := '00000000-0000-4000-8000-000000009995';
- meal_id uuid := '00000000-0000-4000-8000-000000009996';
+ target_meal_id uuid := '00000000-0000-4000-8000-000000009996';
  next_id uuid := '00000000-0000-4000-8000-000000009997';
  appid bigint; denied boolean; sentinel boolean := false;
 BEGIN
@@ -19,7 +19,7 @@ BEGIN
   VALUES(uid,appid,now());
   INSERT INTO public.ziiply_arvo_meal_consents(user_id,granted_at)
   VALUES(uid,now());
-  IF public.ziiply_arvo_insert_meal(uid,meal_id,now(),'6410405082651','Synthetic meal',100,100,1,2,3) IS DISTINCT FROM true
+  IF public.ziiply_arvo_insert_meal(uid,target_meal_id,now(),'6410405082651','Synthetic meal',100,100,1,2,3) IS DISTINCT FROM true
   THEN RAISE EXCEPTION 'Fixture meal insertion failed'; END IF;
   UPDATE public.ziiply_arvo_meal_consents SET revoked_at=now(),updated_at=now() WHERE user_id=uid;
   denied:=false;
@@ -30,12 +30,12 @@ BEGIN
   IF NOT denied THEN RAISE EXCEPTION 'Insert after revocation was permitted'; END IF;
   denied:=false;
   BEGIN
-   PERFORM public.ziiply_arvo_delete_meal_v2(uid,meal_id);
+   PERFORM public.ziiply_arvo_delete_meal_v2(uid,target_meal_id);
   EXCEPTION WHEN SQLSTATE '42501' THEN denied:=true;
   END;
   IF NOT denied THEN RAISE EXCEPTION 'Delete after revocation was permitted'; END IF;
   IF EXISTS (SELECT 1 FROM public.ziiply_arvo_meals WHERE user_id=uid AND meal_id=next_id)
-  OR EXISTS (SELECT 1 FROM public.ziiply_arvo_meal_deletions WHERE user_id=uid AND meal_id=meal_id)
+  OR EXISTS (SELECT 1 FROM public.ziiply_arvo_meal_deletions WHERE user_id=uid AND meal_id=target_meal_id)
   THEN RAISE EXCEPTION 'Revoked operation changed data'; END IF;
   RAISE EXCEPTION 'ARVO_TEST_ROLLBACK_SENTINEL';
  EXCEPTION WHEN OTHERS THEN
