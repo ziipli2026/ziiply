@@ -23,3 +23,10 @@ test("Arvo Neon writer propagates SQL consent failure",async()=>{
  const write=createArvoNeonMealWriter({query:async()=>{throw Error("arvo_cloud_consent_required");}});
  await assert.rejects(write(user,meal),/consent_required/);
 });
+
+test("Arvo Neon writer fails closed on missing, malformed and ambiguous SQL results",async()=>{
+ for(const rows of [[],[{}],[{inserted:null}],[{inserted:1}],[{inserted:"true"}],[{inserted:true},{inserted:true}]]){
+  const write=createArvoNeonMealWriter({query:async()=>({rows})});
+  await assert.rejects(write(user,meal),/not-inserted/);
+ }
+});
