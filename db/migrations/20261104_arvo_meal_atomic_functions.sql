@@ -1,4 +1,4 @@
--- Atomic Arvo meal writes. NOT APPLIED to Neon.
+-- Atomic Arvo meal writes. Apply only after review; the original void-returning\n-- delete function may already exist on a test branch. The v2 name avoids\n-- PostgreSQL CREATE OR REPLACE return-type conflicts.
 -- The API must authorize the session and explicit meal-cloud consent first.
 -- p_user_id MUST come from the validated server session, never from request JSON.
 CREATE OR REPLACE FUNCTION public.ziiply_arvo_insert_meal(
@@ -27,7 +27,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.ziiply_arvo_delete_meal(
+CREATE OR REPLACE FUNCTION public.ziiply_arvo_delete_meal_v2(
  p_user_id uuid,p_meal_id uuid
 ) RETURNS boolean LANGUAGE plpgsql AS $
 BEGIN
@@ -52,4 +52,4 @@ $$;
 -- the trusted server role has EXECUTE and required table privileges.
 -- REVOKE from PUBLIC does not revoke privileges granted to named roles.
 REVOKE ALL ON FUNCTION public.ziiply_arvo_insert_meal(uuid,uuid,timestamptz,text,text,numeric,numeric,numeric,numeric,numeric) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.ziiply_arvo_delete_meal(uuid,uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.ziiply_arvo_delete_meal_v2(uuid,uuid) FROM PUBLIC;
