@@ -7,7 +7,7 @@ export function createArvoNeonMealDeleter(db:ArvoSqlExecutor) {
  return async (userId:string,mealId:string):Promise<void>=>{
   if(!uuid.test(userId)||!uuid.test(mealId))throw Error("invalid-arvo-delete-id");
   const result=await db.query(
-   "SELECT public.ziiply_arvo_delete_meal($1::uuid,$2::uuid) AS deleted",
+   "SELECT public.ziiply_arvo_delete_meal_v2($1::uuid,$2::uuid) AS deleted",
    [userId,mealId],
   );
   // Require an explicit true acknowledgement; PostgreSQL void values can be
