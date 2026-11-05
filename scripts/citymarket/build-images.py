@@ -125,9 +125,13 @@ def build(folder,manifest_path,public_folder,review_path):
     candidates.append({'rectangle':list(block['bbox']),'distance':round(distance,4) if distance is not None else None,
                        'blocked':blocked(page,anchor,block['bbox']) if anchor else None})
    candidates.sort(key=lambda c:c['distance'] if c['distance'] is not None else 999)
+   # Distinguish no nearby PDF image objects from unproven ownership.
+   # These are diagnostics, never automatic approval of a candidate.
+   nearby=[c for c in candidates if c['distance'] is not None and c['distance']<.35]
+   status='no-nearby-pdf-image' if not nearby else 'image-present-ownership-unverified'
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
                   'candidateImageRectangles':candidates[:15],
-                  'status':'manual-review-needed'})
+                  'nearbyImageObjects':len(nearby),'status':status})
   if unresolved:
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
