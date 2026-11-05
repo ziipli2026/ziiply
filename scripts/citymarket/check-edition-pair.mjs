@@ -12,7 +12,8 @@ const editions=files.map(file=>{
 assert.equal(editions[0].kind,'AV','AV entry redirected to another edition');
 assert.equal(editions[1].kind,'LV','LV entry redirected to another edition');
 // On Sunday/Monday the AV may already be the new week while LV is still last week.
-const weekGap=(editions[0].week-editions[1].week+53)%53;
-assert.ok(weekGap===0||weekGap===1,'AV/LV editions are not adjacent publication weeks');
+const avWeek=editions[0].week, lvWeek=editions[1].week;
+const adjacent=avWeek===lvWeek || avWeek===lvWeek+1 || (avWeek===1 && (lvWeek===52 || lvWeek===53));
+assert.ok(adjacent,'AV/LV editions are not adjacent publication weeks');
 assert.notEqual(editions[0].url,editions[1].url,'AV and LV resolved to the same publication');
 console.log('Verified distinct Citymarket editions',editions);
