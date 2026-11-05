@@ -831,9 +831,13 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     // Scheduled background enrichment fills missing images without delaying shoppers.
     return prepared;
   }
-  // Migration safety: do not break desktop or mobile when the first snapshot
-  // has not been seeded yet. Recover from the immutable publisher URL once,
-  // persist the result, and let all subsequent requests use Neon.
+  // Production must never bypass publication approval by parsing and seeding
+  // a leaflet during a user request. Keep the offline fixture path for CI only.
+  if (process.env.DATABASE_URL) {
+    console.warn("[K-Citymarket] no approved publication; refusing unreviewed live fallback");
+    return [];
+  }
+  // Offline fixture fallback for CI simulations without a database.
   console.warn("[K-Citymarket] approved snapshot missing; seeding current leaflet");
 
   const active=getActiveKCitymarketPeriod();
