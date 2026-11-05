@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     const nextAttempted = result.next !== null || result.errors.some((error) => error.startsWith("next "));
     const nextOk = !nextAttempted || Boolean(result.next);
     const blockingErrors = oldAvRolledForward ? [] : result.errors;
-    const ok = activeOk && !activeQuality.blocking && nextOk && blockingErrors.length === 0 && preflight?.ok !== false;
+    const ok = activeOk && !activeQuality.blocking && nextOk && blockingErrors.length === 0 && (!preflight || preflight.outcome === "preflight-awaiting-pdf-review");
     // Audit selected-store campaigns independently of the national leaflet.
     // The leaflet's success must not turn the local-campaign status green.
     if (process.env.DATABASE_URL) {
