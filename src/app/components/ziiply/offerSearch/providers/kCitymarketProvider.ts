@@ -1,4 +1,4 @@
-import { isUnverified45LVPrice } from "./kCitymarket45LVPriceGuard.js";
+import { isUnverified45LVPrice, verified45LVTransaction } from "./kCitymarket45LVPriceGuard.js";
 import { repairCitymarketPrintedTitle, removeDuplicateContinuationRows, repairCitymarketCategory } from "./kCitymarket45AVCorrections.js";
 import {canonicalCitymarketProductRows,citymarketTransactionMetadata} from "./kCitymarketProductRows.js";
 import { clean42AVPrintedTitle } from "./kCitymarket42AVTitleCleanup.js";
@@ -550,7 +550,8 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       continue;
     }
 
-    let price=Number(resolved.value);
+    const verified45LV=verified45LVTransaction(leafletUrl,Number(row?.page),campaignTitle);
+    let price=verified45LV?.price??Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
 
     // A printed discount badge or detached page/list numeral may precede the
@@ -566,7 +567,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(innocent45AV) price=3.49;
 
     const normalMin=Number(row?.normal?.min);
-    const offerQuantity=resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
+    const offerQuantity=verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
     // the same basis so UI comparisons and strike-through prices are meaningful.
@@ -600,15 +601,17 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       normalPrice,
       unitPrice,
       ...(innocent45AV?{depositAmount:0.20}:{}),
+      ...(verified45LV?.depositAmount!=null?{depositAmount:verified45LV.depositAmount}:{}),
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       ...citymarketTransactionMetadata(row),
+      ...(verified45LV?{priceBasis:verified45LV.unit==="PKT"?"package-total":"set-total",priceText:price.toFixed(2).replace(".",",")+" € / "+(verified45LV.unit==="PKT"?"24-pack":"2 kpl")}:{}),
       ...(resolved?.source?.startsWith("owned-printed") && (resolved?.unit === "setti" || resolved?.packageCount > 1) ? {
         priceBasis: resolved.packageCount > 1 ? "package-total" : "set-total",
         priceText: price.toFixed(2).replace(".", ",") + " € / " + (resolved.packageCount > 1 ? "pkt (" + resolved.packageCount + " kpl)" : "setti"),
       } : {}),
       packageSize:row?.package?.raw??null,
       offerQuantity,
-      offerUnit:resolved?.unit?String(resolved.unit).toUpperCase():null,
+      offerUnit:verified45LV?.unit??(resolved?.unit?String(resolved.unit).toUpperCase():null),
       resolutionSource:resolved?.source?String(resolved.source):null,
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
       plussa:/plussa/i.test(nearbyText),
