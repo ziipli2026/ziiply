@@ -18,7 +18,8 @@ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 
 /** Fetch only the authenticated user's active meals and durable deletion IDs. */
 export function createArvoNeonMealReader(db:ArvoSqlExecutor){
- return async (userId:string):Promise<{meals:ArvoMeal[];deletedIds:string[]}>=>{\n  if(!uuid.test(userId))throw Error("arvo-invalid-cloud-user");
+ return async (userId:string):Promise<{meals:ArvoMeal[];deletedIds:string[]}>=>{
+  if(!uuid.test(userId))throw Error("arvo-invalid-cloud-user");
   const [active,deleted]=await Promise.all([
    db.query("SELECT meal_id,consumed_at,ean,product_name,grams,kcal,protein_g,carbs_g,fat_g FROM public.ziiply_arvo_meals WHERE user_id=$1::uuid AND deleted_at IS NULL AND EXISTS (SELECT 1 FROM public.ziiply_arvo_meal_consents c WHERE c.user_id=$1::uuid AND c.granted_at IS NOT NULL AND c.revoked_at IS NULL) ORDER BY consumed_at DESC LIMIT 5001",[userId]),
    db.query("SELECT meal_id FROM public.ziiply_arvo_meal_deletions WHERE user_id=$1::uuid AND EXISTS (SELECT 1 FROM public.ziiply_arvo_meal_consents c WHERE c.user_id=$1::uuid AND c.granted_at IS NOT NULL AND c.revoked_at IS NULL) ORDER BY deleted_at DESC LIMIT 5001",[userId]),
