@@ -127,8 +127,11 @@ def build(folder,manifest_path,public_folder,review_path):
    candidates.sort(key=lambda c:c['distance'] if c['distance'] is not None else 999)
    # Distinguish no nearby PDF image objects from unproven ownership.
    # These are diagnostics, never automatic approval of a candidate.
-   nearby=[c for c in candidates if c['distance'] is not None and c['distance']<.35]
-   status='no-nearby-pdf-image' if not nearby else 'image-present-ownership-unverified'
+   nearby=[c for c in candidates if c['distance'] is not None and c['distance']<.35
+           and not c['blocked'] and
+           (c['rectangle'][2]-c['rectangle'][0])/page.rect.width>=.05 and
+           (c['rectangle'][3]-c['rectangle'][1])/page.rect.height>=.05]
+   status='no-nearby-eligible-pdf-image' if not nearby else 'nearby-pdf-image-ownership-unverified'
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
                   'candidateImageRectangles':candidates[:15],
                   'nearbyImageObjects':len(nearby),'status':status})
