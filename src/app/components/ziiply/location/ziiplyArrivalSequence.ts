@@ -13,7 +13,7 @@ export type ZiiplyArrivalStore = { id:string; name:string; latitude:number; long
 export type ZiiplyArrivalState = {
  tripStartedAt:number|null; stoppedAt:number|null; lastStationarySampleAt:number|null;
  lastStationaryPosition:{latitude:number;longitude:number}|null; tripConfirmed:boolean; lastAcceptedSample?:ZiiplyArrivalSample|null; stationarySamples?:number;
- arrivalStoreId:string|null; departureSamples?:number; recoveringFromBadGps?:boolean;
+ arrivalStoreId:string|null; confirmedStore?:ZiiplyArrivalStore|null; departureSamples?:number; recoveringFromBadGps?:boolean;
  candidateStoreId?:string|null; candidateSamples?:number; mismatchPromptedStoreId?:string|null;
 };
 export type ZiiplyArrivalDecision = {
@@ -23,7 +23,7 @@ export type ZiiplyArrivalDecision = {
 };
 export const initialZiiplyArrivalState=():ZiiplyArrivalState=>({
  tripStartedAt:null,stoppedAt:null,lastStationarySampleAt:null,lastStationaryPosition:null,
- tripConfirmed:false,arrivalStoreId:null,departureSamples:0,recoveringFromBadGps:false,lastAcceptedSample:null,stationarySamples:0,candidateStoreId:null,candidateSamples:0,mismatchPromptedStoreId:null
+ tripConfirmed:false,arrivalStoreId:null,confirmedStore:null,departureSamples:0,recoveringFromBadGps:false,lastAcceptedSample:null,stationarySamples:0,candidateStoreId:null,candidateSamples:0,mismatchPromptedStoreId:null
 });
 const rad=(n:number)=>n*Math.PI/180;
 export function ziiplyDistanceMeters(a:{latitude:number;longitude:number},b:{latitude:number;longitude:number}) {
@@ -34,8 +34,8 @@ export function ziiplyDistanceMeters(a:{latitude:number;longitude:number},b:{lat
 export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyArrivalSample,stores:ZiiplyArrivalStore[],selectedStoreIds:string[]):ZiiplyArrivalDecision {
  const state={...previous};
  // A confirmed visit belongs to the selected store, never to a stale selection.
- if(state.arrivalStoreId&&!selectedStoreIds.includes(state.arrivalStoreId)){
-  state.arrivalStoreId=null;state.tripConfirmed=false;state.departureSamples=0;
+ if(state.arrivalStoreId&&selectedStoreIds.length>0&&!selectedStoreIds.includes(state.arrivalStoreId)){
+  state.arrivalStoreId=null;state.confirmedStore=null;state.tripConfirmed=false;state.departureSamples=0;
   state.stoppedAt=null;state.stationarySamples=0;state.candidateStoreId=null;state.candidateSamples=0;
  }
  const finite=Number.isFinite(sample.latitude)&&Number.isFinite(sample.longitude)&&Math.abs(sample.latitude)<=90&&Math.abs(sample.longitude)<=180;
@@ -46,7 +46,10 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  // Reject impossible jumps and stale/duplicated timestamps; never infer arrival from missing GPS.
  const plausible=!state.lastAcceptedSample||(dt>0&&displacement/dt<=55+sample.accuracyMeters/dt);
  const valid=finite&&accurate&&chronological&&plausible&&Number.isFinite(sample.at);
- if(!valid)return {state,status:'uncertain',store:null,isSelectedStore:false,askStoreChange:false,showArrivalMessage:false,radar:state.arrivalStoreId&&selectedStoreIds.includes(state.arrivalStoreId)?'green':'white'};
+ if(!valid){
+  const held=state.arrivalStoreId?(stores.find(s=>s.id===state.arrivalStoreId)??state.confirmedStore??null):null;
+  return {state,status:held?'in-store':'uncertain',store:held,isSelectedStore:!!held&&selectedStoreIds.includes(held.id),askStoreChange:false,showArrivalMessage:false,radar:held?'green':'white'};
+ }
  if(dt>10){state.stoppedAt=null;state.stationarySamples=0;state.lastStationarySampleAt=null;state.candidateStoreId=null;state.candidateSamples=0;}
  state.lastAcceptedSample=sample;
  const candidates=valid?stores.map(store=>({store,distance:ziiplyDistanceMeters(sample,store)}))
@@ -74,7 +77,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  else if(state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
  else {state.candidateStoreId=candidate.id;state.candidateSamples=1;}
  if(!candidate||candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
- const latched=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
+ const latched=state.arrivalStoreId?(stores.find(s=>s.id===state.arrivalStoreId)??state.confirmedStore??null):null;
  if(valid&&!moving) {
    if(state.stoppedAt===null)state.stoppedAt=sample.at;
    state.lastStationarySampleAt=sample.at;
@@ -89,19 +92,20 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
    state.departureSamples=distance>DEPARTURE_RADIUS_METERS&&sample.accuracyMeters<=30
      ?(state.departureSamples??0)+1:0;
    if((state.departureSamples??0)>=DEPARTURE_SAMPLES) {
-     state.arrivalStoreId=null;state.tripConfirmed=false;state.departureSamples=0;state.stoppedAt=null;
+     state.arrivalStoreId=null;state.confirmedStore=null;state.tripConfirmed=false;state.departureSamples=0;state.stoppedAt=null;
    }
  }
- const retained=state.arrivalStoreId?stores.find(s=>s.id===state.arrivalStoreId)??null:null;
+ const retained=state.arrivalStoreId?(stores.find(s=>s.id===state.arrivalStoreId)??state.confirmedStore??null):null;
  const arrivalConfirmed=!retained&&valid&&!ambiguous&&eligibleCandidate
    &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable&&(state.candidateSamples??0)>=3;
  const showArrivalMessage=!!arrivalConfirmed&&selectedCandidate;
  const askStoreChange=!!arrivalConfirmed&&!selectedCandidate&&sameChain&&state.mismatchPromptedStoreId!==candidate!.id;
  if(askStoreChange)state.mismatchPromptedStoreId=candidate!.id;
  // A mismatch is only a question; it must never mark the user as present in an unselected shop.
- if(showArrivalMessage){state.arrivalStoreId=candidate!.id;state.tripConfirmed=true;state.departureSamples=0;}
+ if(showArrivalMessage){state.arrivalStoreId=candidate!.id;state.confirmedStore=candidate;state.tripConfirmed=true;state.departureSamples=0;}
  const inStore=!!state.arrivalStoreId;
- const store=inStore?stores.find(s=>s.id===state.arrivalStoreId)??candidate:candidate;
+ const store=inStore?(stores.find(s=>s.id===state.arrivalStoreId)??state.confirmedStore??null):candidate;
+ if(inStore&&store)state.confirmedStore=store;
  const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
  return {state,status:inStore?'in-store':!valid||ambiguous?'uncertain':candidate?(driving?'moving':'near-store'):'checking',
    store,isSelectedStore,askStoreChange,
