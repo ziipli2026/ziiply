@@ -1,6 +1,6 @@
 # Arvo cloud meal storage: server contract
 
-Status: **design only**. Do not expose this API or apply migration until verified beta session authentication and explicit cloud meal consent are implemented.
+Status: **server-side implementation and isolated Neon test schema prepared; HTTP API not enabled**. Do not expose endpoints or apply production migrations until verified beta session authentication, explicit cloud meal consent, and integration tests are complete.
 
 ## Security requirements
 
@@ -8,7 +8,7 @@ Status: **design only**. Do not expose this API or apply migration until verifie
 - Require separately recorded consent to cloud meal storage, not merely Apple Health read permission. Recheck it on each read/write/delete.
 - Reject client-supplied user IDs and enforce a bounded request body and batch size.
 - All SQL operations must include `WHERE user_id = authenticated_user_id`; never accept arbitrary user IDs in a query parameter.
-- POST is idempotent by `(user_id,meal_id)`. Do not overwrite an existing server meal silently on conflict.
+- POST uses `(user_id,meal_id)` uniqueness. Current writer treats an existing ID as a failed insert; distinguish safe idempotent retries from deleted-ID conflicts before enabling automatic retries. Never silently overwrite an existing server meal.
 - DELETE is a soft-delete (`deleted_at`) to prevent an older device re-uploading a removed meal.
 - GET returns only rows with `deleted_at IS NULL`, while sync metadata may include tombstone IDs scoped to the same user.
 - Treat unknown nutrient values as NULL; reject nonfinite/negative values and invalid UUIDs.
@@ -27,5 +27,5 @@ Status: **design only**. Do not expose this API or apply migration until verifie
 The reviewed SQL templates are in `db/queries/arvo_meal_persistence.sql`.
 - Insert uses `ON CONFLICT DO NOTHING` to prevent silent overwrite and tombstone resurrection.
 - Delete uses an idempotent `deleted_at` update scoped to the authenticated user.
-- Visible meals and deletion tombstones are queried separately and must be paginated.
-- A deletion that arrives before the original insert is not yet preserved by these templates. The API must address out-of-order delete-before-insert (e.g. an authenticated tombstone upsert with a durable deletion ledger) before multi-device sync is enabled.
+- Visible meals and deletion tombstones are currently read separately with a strict 5000-row cap per collection; exceeding the cap fails closed. Pagination or a consistent snapshot is required for larger accounts.
+- The isolated Neon test schema includes an atomic deletion ledger and consent-checked insert/delete functions, addressing out-of-order delete-before-insert. Their concurrency and integration behavior must still be tested before rollout.
