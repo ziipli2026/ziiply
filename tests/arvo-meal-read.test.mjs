@@ -63,6 +63,8 @@ test("Arvo reader accepts a valid meal without deletion",async()=>{
  const result=await read(user);
  assert.equal(result.meals.length,1);
  assert.equal(result.meals[0].nutrition.kcal,120);
+ assert.equal(result.meals[0].grams,100);
+ assert.equal(result.meals[0].nutrition.carbs,20);
  assert.equal(result.meals[0].timestamp,"2026-11-04T10:00:00.000Z");
 });
 
