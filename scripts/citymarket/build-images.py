@@ -126,7 +126,7 @@ def build(folder,manifest_path,public_folder,review_path):
    return math.hypot(((x0+x1)/(2*page.rect.width)-(a['left']+a['width']/2))*1.4,
                      ((y0+y1)/(2*page.rect.height)-a['top'])*1.3)
   for row in unmatched:
-   choices=sorted((proximity(row,b),b) for b in eligible if not blocked(page,row['anchor'],b['bbox']))
+   choices=sorted(((proximity(row,b),b) for b in eligible if not blocked(page,row['anchor'],b['bbox'])),key=lambda item:item[0])
    if not choices or choices[0][0]>.12:continue
    if len(choices)>1 and choices[1][0]-choices[0][0]<.10:continue
    distance,b=choices[0]
