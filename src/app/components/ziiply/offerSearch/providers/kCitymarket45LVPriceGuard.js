@@ -6,8 +6,16 @@ export function isUnverified45LVPrice(leafletUrl,page,title){
   // The OCR can prepend the brand or a stray digit to the product heading.
   // Match the distinctive product term, but only on its reviewed PDF page.
   if(page===3 && /(?:KOLMIOJUUSTOPALAT|(?:CREAM|RUIS)\s+CRACKER)/i.test(name)) return true;
-  if(page===4 && /(?:MEETVURSTIT|M4EETVURSTIT)/i.test(name)) return true;
   if(page===8 && /KÄÄREELLISET\s+KONVEHDIT/i.test(name)) return true;
-  if(page===9 && /VIRVOITUSJUOMAT/i.test(name)) return true;
   return false;
+}
+
+// PDF-verified transaction totals for the immutable 45LV publication.
+// These are the checkout totals, NOT the printed per-item or per-litre rates.
+export function verified45LVTransaction(leafletUrl,page,title){
+  if(!/90e9db1_tarjouslehti_45LV_KCM/i.test(String(leafletUrl||''))) return null;
+  const name=String(title||'').trim();
+  if(page===4 && /(?:MEETVURSTIT|M4EETVURSTIT)/i.test(name)) return {price:4.50,quantity:2,unit:'KPL'};
+  if(page===9 && /VIRVOITUSJUOMAT/i.test(name) && /24[- ]?pack/i.test(name)) return {price:12.99,quantity:1,unit:'PKT',depositAmount:2.40};
+  return null;
 }
