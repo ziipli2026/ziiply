@@ -68,7 +68,16 @@ jobs:
           if [ -n "$ENTRY" ]; then
             entries=("$ENTRY")
           else
-            entries=("https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/" "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/")
+            # The publisher redirects expired AV editions to the active LV edition.
+            # Check only the current Helsinki publication, never accept that redirect as AV.
+            weekday=$(TZ=Europe/Helsinki date +%u)
+            if [ "$weekday" -le 3 ]; then
+              entries=("https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/")
+              expected="AV"
+            else
+              entries=("https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/")
+              expected="LV"
+            fi
           fi
           index=0
           successful=0
@@ -83,7 +92,7 @@ jobs:
           done
           test "$successful" -eq "${#entries[@]}"
           if [ -z "$ENTRY" ]; then
-            node scripts/citymarket/check-edition-pair.mjs artifacts/citymarket-images/0/leaflet.json artifacts/citymarket-images/1/leaflet.json
+            node scripts/citymarket/check-active-edition.mjs artifacts/citymarket-images/0/leaflet.json "$expected"
           fi
           node scripts/citymarket/verify-images.mjs
           coverage=()
