@@ -7,6 +7,7 @@ export function isUnverified45LVPrice(leafletUrl,page,title){
   // Match the distinctive product term, but only on its reviewed PDF page.
   if(page===3 && /(?:KOLMIOJUUSTOPALAT|(?:CREAM|RUIS)\s+CRACKER)/i.test(name)) return true;
   if(page===4 && /(?:MEETVURSTIT|M4EETVURSTIT)/i.test(name)) return true;
+  if(page===8 && /KÄÄREELLISET\s+KONVEHDIT/i.test(name)) return true;
   if(page===9 && /VIRVOITUSJUOMAT/i.test(name)) return true;
   return false;
 }
