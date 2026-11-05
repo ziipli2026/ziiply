@@ -142,7 +142,7 @@ jobs:
               queue=[]
               for r in unresolved:
                   queue.append({'id':r['id'],'page':r['page'],'title':r['title'],
-                                'reason':r['status'],'candidateImageRectangles':r.get('candidateImageRectangles',[])[:5]})
+                                'reason':r['status'],'diagnosticReason':r.get('diagnosticReason'),'candidateImageRectangles':r.get('candidateImageRectangles',[])[:5]})
               counts={reason:sum(1 for item in queue if item['reason']==reason) for reason in sorted({item['reason'] for item in queue})}
               (report_path.parent/'image-repair-queue.json').write_text(json.dumps({
                   'unresolvedCount':len(queue),'reasonCounts':counts,'items':queue},ensure_ascii=False,indent=2)+'\\n')
