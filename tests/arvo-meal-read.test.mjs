@@ -115,3 +115,12 @@ test("Arvo reader rejects invalid user ID before any SQL query",async()=>{
  await assert.rejects(read("invalid-user"),/invalid-cloud-user/);
  assert.equal(queries,0);
 });
+
+test("Arvo reader refuses malformed or ambiguous consent confirmations",async()=>{
+ for(const rows of [[{}],[{active:0}],[{active:"1"}],[{active:1},{active:1}]]){
+  const read=createArvoNeonMealReader({query:async(sql)=>({
+   rows:sql.startsWith("SELECT 1 AS active")?rows:[]
+  })});
+  await assert.rejects(read(user),/cloud-consent-revoked/);
+ }
+});
