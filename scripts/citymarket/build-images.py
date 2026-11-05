@@ -176,11 +176,16 @@ def build(folder,manifest_path,public_folder,review_path):
            (c['rectangle'][3]-c['rectangle'][1])/page.rect.height>=.05]
    status='no-nearby-eligible-pdf-image' if not nearby else 'nearby-pdf-image-ownership-unverified'
    # Explain the rejection decision without approving any unverified image.
-   eligible_candidates=[c for c in candidates if not c['rejectedBySize'] and not c['blocked']]
+   # A nearby PDF object already assigned to another offer is not available
+   # for rescue; report that separately from a genuinely missing image.
+   assigned_boxes={tuple(round(v,3) for v in b['bbox']) for owner,group in accepted.items() if owner!=row['id'] for b in group}
+   for candidate in candidates:
+    candidate['assignedToOtherOffer']=tuple(round(v,3) for v in candidate['rectangle']) in assigned_boxes
+   eligible_candidates=[c for c in candidates if not c['rejectedBySize'] and not c['blocked'] and not c['assignedToOtherOffer']]
    closest=eligible_candidates[0] if eligible_candidates else None
    if not candidates:reason='no-pdf-image-objects'
    elif not eligible_candidates:
-    reason='all-candidates-rejected-by-size-or-border'
+    reason='nearest-images-already-owned' if any(c['assignedToOtherOffer'] and not c['rejectedBySize'] and not c['blocked'] for c in candidates) else 'all-candidates-rejected-by-size-or-border'
    elif closest['distance'] is None:reason='missing-offer-anchor'
    elif closest['distance']>.12:reason='closest-image-too-far-for-spatial-proof'
    elif len(eligible_candidates)>1 and eligible_candidates[1]['distance']-closest['distance']<.10:
