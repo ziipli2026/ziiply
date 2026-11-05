@@ -29,7 +29,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.ziiply_arvo_delete_meal(
  p_user_id uuid,p_meal_id uuid
-) RETURNS void LANGUAGE plpgsql AS $$
+) RETURNS boolean LANGUAGE plpgsql AS $
 BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text || ':' || p_meal_id::text,0));
  IF NOT EXISTS (SELECT 1 FROM public.ziiply_arvo_meal_consents
@@ -42,6 +42,7 @@ BEGIN
  UPDATE public.ziiply_arvo_meals
  SET deleted_at=COALESCE(deleted_at,now()),updated_at=now()
  WHERE user_id=p_user_id AND meal_id=p_meal_id AND deleted_at IS NULL;
+ RETURN true;
 END;
 $$;
 
