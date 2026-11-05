@@ -68,7 +68,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
    const confirmed=decision.status==='in-store'&&decision.state.arrivalStoreId===decision.store?.id;
    if(enabled&&decision.isSelectedStore&&decision.store&&(decision.showArrivalMessage||confirmed)&&!delivered.current.has(decision.store.id)){
      if(visible())deliver(decision,at);
-     else {pending.current={decision,at};recordArrivalDiagnostic('arrival-notification-pending',{store:decision.store.name,storeId:decision.store.id});}
+     else {pending.current=null;recordArrivalDiagnostic('arrival-suppressed-inactive',{store:decision.store.name,storeId:decision.store.id});}
    }
    if(decision.status==='checking'&&!decision.state.arrivalStoreId){
      if(delivered.current.size){recordArrivalDiagnostic('arrival-notification-reset',{reason:'outside-store',deliveredCount:delivered.current.size});dispatch({type:'reset'});}
@@ -77,7 +77,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
  },[enabled]);
  useEffect(()=>{if(!enabled){recordArrivalDiagnostic('arrival-notification-reset',{reason:'disabled'});dispatch({type:'reset'});pending.current=null;}},[enabled]);
  useEffect(()=>{
-  const activity=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())return;activeRef.current=true;setActive(true);if(enabled&&pending.current){const queued=pending.current;deliver(queued.decision,queued.at);}recordArrivalDiagnostic('arrival-notification-resume',{reason:'user-activity'});dispatch({type:'resume',at:Date.now()});};
+  const activity=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())return;activeRef.current=true;setActive(true);pending.current=null;recordArrivalDiagnostic('arrival-notification-resume',{reason:'user-activity'});dispatch({type:'resume',at:Date.now()});};
   const inactive=()=>{recordArrivalDiagnostic('arrival-notification-pause',{visibility:document.visibilityState,focused:document.hasFocus()});dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);};
   const visibility=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())inactive();else activity();};
   document.addEventListener('pointerdown',activity,true);
