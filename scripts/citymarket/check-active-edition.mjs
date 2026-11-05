@@ -5,7 +5,7 @@ assert.ok(file && /^(AV|LV)$/.test(expectedKind||''),'Usage: check-active-editio
 const data=JSON.parse(fs.readFileSync(file,'utf8'));
 const url=new URL(data.leaflet);
 assert.equal(url.hostname,'kcm-tarjouslehdet.k-ruoka.fi','Unexpected publisher host');
-const match=url.pathname.match(/tarjouslehti_(\\d+)(AV|LV)_KCM\\/index\\.html/i);
+const match=url.pathname.match(new RegExp('tarjouslehti_([0-9]+)(AV|LV)_KCM/index[.]html','i'));
 assert.ok(match,'Unknown Citymarket leaflet identity');
 assert.equal(match[2].toUpperCase(),expectedKind,'Publisher redirected to a different edition');
 assert.ok(Array.isArray(data.rows) && data.rows.length>0,'Empty Citymarket publication');
