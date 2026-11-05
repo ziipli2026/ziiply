@@ -10,8 +10,8 @@ export function createArvoNeonMealDeleter(db:ArvoSqlExecutor) {
    "SELECT public.ziiply_arvo_delete_meal($1::uuid,$2::uuid) AS deleted",
    [userId,mealId],
   );
-  // The SQL function returns void, represented as a single NULL-valued column.
-  // Missing or ambiguous results must not be treated as successful deletion.
-  if(result.rows.length!==1||!result.rows[0]||result.rows[0].deleted!==null)throw Error("arvo-meal-delete-unconfirmed");
+  // Require an explicit true acknowledgement; PostgreSQL void values can be
+  // driver-dependent and must not be mistaken for successful deletion.
+  if(result.rows.length!==1||result.rows[0]?.deleted!==true)throw Error("arvo-meal-delete-unconfirmed");
  };
 }
