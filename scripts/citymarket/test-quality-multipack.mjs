@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import ts from 'typescript';
+const source=readFileSync('src/app/components/ziiply/offerSearch/citymarketQuality.ts','utf8');
+const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const mod={exports:{}};
+new Function('module','exports',js)(mod,mod.exports);
+const inspect=mod.exports.inspectCitymarketOffers;
+const base={category:'Juomat',imageUrl:'/verified.png',price:12.99,depositAmount:2.40,unitPrice:1.34,offerQuantity:1};
+const pack=inspect([{...base,title:'VIRVOITUSJUOMAT 0,33 l/pl 24-pack'}]);
+assert.equal(pack.inconsistentUnitPrices,0,'24-pack must divide total liquid volume by 24');
+const single=inspect([{...base,title:'VIRVOITUSJUOMAT 0,33 l/pl'}]);
+assert.equal(single.inconsistentUnitPrices,1,'A single bottle must not inherit the 24-pack exemption');
+const bad=inspect([{...base,title:'VIRVOITUSJUOMAT 0,33 l/pl 24-pack',unitPrice:4.44}]);
+assert.equal(bad.inconsistentUnitPrices,1,'Wrong multipack unit price must still fail');
+console.log('Citymarket multipack quality audit: 3 checks passed');
