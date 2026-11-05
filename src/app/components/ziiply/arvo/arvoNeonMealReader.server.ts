@@ -1,6 +1,14 @@
 import type {ArvoSqlExecutor} from "./arvoNeonMealWriter.server.ts";
 import type {ArvoMeal} from "./arvoStatistics.ts";
 import {validateArvoMealPayload} from "./arvoMealPayload.server.ts";
+const asNumeric=(value:unknown):number|null=>{
+ if(value===null)return null;
+ if(typeof value!=="number"&&typeof value!=="string")throw Error("arvo-invalid-cloud-numeric");
+ if(typeof value==="string"&&!/^\\d+(?:\\.\\d+)?$/.test(value))throw Error("arvo-invalid-cloud-numeric");
+ const parsed=Number(value);
+ if(!Number.isFinite(parsed))throw Error("arvo-invalid-cloud-numeric");
+ return parsed;
+};
 const asTimestamp=(value:unknown):string=>{
  const date=value instanceof Date?value:new Date(String(value));
  if(!Number.isFinite(date.getTime()))throw Error("arvo-invalid-cloud-timestamp");
@@ -24,8 +32,8 @@ export function createArvoNeonMealReader(db:ArvoSqlExecutor){
   const deletedSet=new Set(deletedIds);
   const meals:ArvoMeal[]=active.rows.filter(row=>!deletedSet.has(String(row.meal_id))).map(row=>({
    id:String(row.meal_id),timestamp:asTimestamp(row.consumed_at),
-   ean:String(row.ean),name:String(row.product_name),grams:Number(row.grams),
-   nutrition:{kcal:row.kcal===null?null:Number(row.kcal),protein:row.protein_g===null?null:Number(row.protein_g),carbs:row.carbs_g===null?null:Number(row.carbs_g),fat:row.fat_g===null?null:Number(row.fat_g)}
+   ean:String(row.ean),name:String(row.product_name),grams:asNumeric(row.grams) ?? NaN,
+   nutrition:{kcal:asNumeric(row.kcal),protein:asNumeric(row.protein_g),carbs:asNumeric(row.carbs_g),fat:asNumeric(row.fat_g)}
   })).map(meal=>{
    const valid=validateArvoMealPayload(meal);
    if(!valid)throw Error("arvo-invalid-cloud-meal");
