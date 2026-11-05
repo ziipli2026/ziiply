@@ -94,3 +94,17 @@ test("Arvo reader rejects missing numeric fields instead of coercing them to zer
  })});
  await assert.rejects(read(user),/invalid-cloud-numeric/);
 });
+
+test("Arvo reader rejects duplicate cloud deletion IDs",async()=>{
+ const read=createArvoNeonMealReader({query:async(sql)=>({
+  rows:sql.startsWith("SELECT 1 AS active")?[{active:1}]:sql.includes("ziiply_arvo_meal_deletions")?[{meal_id:id},{meal_id:id}]:[]
+ })});
+ await assert.rejects(read(user),/duplicate-cloud-tombstone/);
+});
+test("Arvo reader rejects duplicate active meal IDs",async()=>{
+ const meal={meal_id:id,consumed_at:"2026-11-04T10:00:00.000Z",ean:"6411234567890",product_name:"Testi",grams:"100.00",kcal:"120.00",protein_g:null,carbs_g:"20.00",fat_g:"5.00"};
+ const read=createArvoNeonMealReader({query:async(sql)=>({
+  rows:sql.startsWith("SELECT 1 AS active")?[{active:1}]:sql.includes("ziiply_arvo_meal_deletions")?[]:[meal,meal]
+ })});
+ await assert.rejects(read(user),/duplicate-cloud-meal/);
+});
