@@ -136,7 +136,11 @@ def build(folder,manifest_path,public_folder,review_path):
     distance=(math.hypot((cx-(anchor['left']+anchor['width']/2))*1.4,
                          (cy-anchor['top'])*1.3) if anchor else None)
     candidates.append({'rectangle':list(block['bbox']),'distance':round(distance,4) if distance is not None else None,
-                       'blocked':blocked(page,anchor,block['bbox']) if anchor else None})
+                       'blocked':blocked(page,anchor,block['bbox']) if anchor else None,
+                       'widthRatio':round((x1-x0)/page.rect.width,4),
+                       'heightRatio':round((y1-y0)/page.rect.height,4),
+                       'areaRatio':round((x1-x0)*(y1-y0)/(page.rect.width*page.rect.height),5),
+                       'rejectedBySize':((x1-x0)/page.rect.width<.05 or (y1-y0)/page.rect.height<.05 or (x1-x0)*(y1-y0)/(page.rect.width*page.rect.height)<.005 or (x1-x0)*(y1-y0)/(page.rect.width*page.rect.height)>.25)})
    candidates.sort(key=lambda c:c['distance'] if c['distance'] is not None else 999)
    # Distinguish no nearby PDF image objects from unproven ownership.
    # These are diagnostics, never automatic approval of a candidate.
