@@ -866,21 +866,8 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
 
   const fallback=kCitymarketDefaultValidityV15(active);
   const dated=offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
-  // Persist the complete parsed leaflet independently of optional image enrichment.
-  // The durable record is used by both desktop and mobile on the next request.
-  try {
-    const start=active.startDate;
-    await storeParsedPublication({chain:"K-Citymarket",id:active.key,
-      validFrom:start,validUntil:shiftIsoDate(start,active.kind==="AV"?2:3),
-      parsedAt:new Date().toISOString(),offers:dated});
-  } catch(error) {
-    console.warn("[K-Citymarket] snapshot seed failed",error);
-  }
+  // Offline fallback is never allowed to approve a publication.
   const result=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(dated,active));
-  try {
-    await storeParsedPublication({chain:"K-Citymarket",id:active.key,validFrom:active.startDate,
-      validUntil:shiftIsoDate(active.startDate,active.kind==="AV"?2:3),parsedAt:new Date().toISOString(),offers:result});
-  } catch(error) {console.warn("[K-Citymarket] enriched image persistence failed",error);}
   return result;
 }
 function normalizeKCitymarketImageUrl(image:unknown,sourceUrl:unknown):string|undefined{
