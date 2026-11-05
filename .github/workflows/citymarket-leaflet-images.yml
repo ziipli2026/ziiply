@@ -91,6 +91,22 @@ jobs:
             coverage+=("artifacts/citymarket-images/$i/leaflet.json")
           done
           node scripts/citymarket/check-image-coverage.mjs "${coverage[@]}"
+      - name: Summarize unresolved publisher images
+        if: always() && steps.clock.outputs.run == 'true'
+        run: |
+          python - <<'PY'
+          import json, pathlib, os
+          root=pathlib.Path('artifacts/citymarket-images')
+          lines=['## Citymarket image extraction audit','']
+          for report in sorted(root.glob('*/image-report.json')):
+              items=json.loads(report.read_text())
+              unresolved=[item for item in items if item.get('status') in ('no-nearby-eligible-pdf-image','nearby-pdf-image-ownership-unverified')]
+              lines += [f'### {report.parent.name}: {len(unresolved)} unresolved offers','']
+              for item in unresolved:
+                  lines.append(f"- PDF page {item['page']}: {item['title']} — {item['status']}")
+              lines.append('')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('\n'.join(lines)+'\n')
+          PY
       - name: Verify browser image fragments
         if: steps.clock.outputs.run == 'true' && github.event_name != 'schedule'
         run: |
