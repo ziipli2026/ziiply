@@ -154,7 +154,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
         </div>
         <p className="mt-2 text-xs text-[#6d6a5c]">Tuotetietojen puutteiden vuoksi allergeeniturvallisuutta ei voida taata. Maidoton ei ole sama kuin laktoositon; viljaton ei takaa gluteenittomuutta.</p>
       </section>}
-      {activeSection==="energy"&&<section className="h-full rounded-xl bg-white/75 p-3 text-sm">
+      {activeSection==="energy"&&<section className="h-full rounded-xl bg-white/75 p-3 text-sm"><a href="/arvo-tilastot" className="mb-3 block rounded-lg border border-[#d9cfb9] bg-white px-3 py-2 font-bold text-[#173b2b]">Ravintotilastot: energia, proteiini, hiilihydraatit, rasva ja kuvaajat ›</a>
         <label className="flex items-center gap-2 font-bold"><input type="checkbox" checked={p.dietEnabled} onChange={e=>update("dietEnabled",e.target.checked)}/> Henkilökohtainen energiasuunnittelu käytössä</label>
         <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
           <div className="col-span-2 text-xs font-bold text-[#49634f]">Omat tiedot ja aktiivisuus</div>
@@ -197,7 +197,7 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       </div>}
       </section>}
 
-      {activeSection==="reminders"&&<section className="h-full rounded-xl bg-white/75 p-3">
+      {activeSection==="reminders"&&<section className="h-full rounded-xl bg-white/75 p-3"><a href="/arvo-tilastot" className="mb-2 block rounded-lg border border-[#d9cfb9] bg-white px-3 py-2 font-bold">Ateriapäiväkirja ja päivittäinen seuranta ›</a>
         {!reminderPage&&<div className="grid gap-2">
           <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setReminderPage("times")}><span><b className="block">Ruokailuajat ja hiljainen aika</b><small>Neljä ruokailuaikaa ja hiljainen aika</small></span>›</button>
           <button type="button" className="flex items-center justify-between rounded-lg border bg-white px-3 py-3 text-left" onClick={()=>setReminderPage("suggestions")}><span><b className="block">Viikonloput, juhlat ja kalenteri</b><small>Valitse haluamasi ehdotukset</small></span>›</button>
