@@ -29,9 +29,12 @@ function isoWeek(date){
  return 1+Math.round((thursday.getTime()-yearStart.getTime())/604800000);
 }
 const expectedAV=isoWeek(today);
-const expectedLV=isoWeek(today.getUTCDay()===0||today.getUTCDay()===1
- ? new Date(today.getTime()-7*86400000):today);
+// LV normally switches on Thursday; during the Sunday-Wednesday rollover
+// the previous week's LV can still be the publisher's active edition.
+const weekday=today.getUTCDay();
+const previousWeek=isoWeek(new Date(today.getTime()-7*86400000));
+const allowedLV=weekday===0||weekday<=3?[previousWeek,expectedAV]:[expectedAV];
 assert.equal(editions[0].week,expectedAV,'AV entry resolved to stale or future week');
-assert.equal(editions[1].week,expectedLV,'LV entry resolved to stale or future week');
+assert.ok(allowedLV.includes(editions[1].week),'LV entry resolved to stale or future week');
 
 console.log('Verified distinct Citymarket editions',editions);
