@@ -37,3 +37,14 @@ test("Arvo Neon deletion rejects missing or ambiguous database confirmations",as
   await assert.rejects(remove(user,id),/delete-unconfirmed/);
  }
 });
+
+test("Arvo deletion returns storage-failed if Neon cannot confirm the deletion",async()=>{
+ const remove=createArvoNeonMealDeleter({query:async()=>({rows:[]})});
+ assert.deepEqual(await deleteArvoCloudMeal(token,id,async()=>access,()=> "b".repeat(64),remove,now),{ok:false,reason:"storage-failed"});
+});
+test("Arvo deletion does not access database when authorization fails",async()=>{
+ let queries=0;
+ const remove=createArvoNeonMealDeleter({query:async()=>{queries++;return {rows:[{deleted:null}]};}});
+ assert.deepEqual(await deleteArvoCloudMeal(token,id,async()=>({...access,userDisabledAt:now}),()=> "b".repeat(64),remove,now),{ok:false,reason:"unauthorized"});
+ assert.equal(queries,0);
+});
