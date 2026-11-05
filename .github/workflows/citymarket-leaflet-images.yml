@@ -130,6 +130,23 @@ jobs:
               lines.append('')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('\n'.join(lines)+'\n')
           PY
+      - name: Export machine-readable image repair queue
+        if: always() && steps.clock.outputs.run == 'true'
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          root=pathlib.Path('artifacts/citymarket-images')
+          for report_path in root.glob('*/image-report.json'):
+              rows=json.loads(report_path.read_text())
+              unresolved=[r for r in rows if r.get('status') in ('no-nearby-eligible-pdf-image','nearby-pdf-image-ownership-unverified')]
+              queue=[]
+              for r in unresolved:
+                  queue.append({'id':r['id'],'page':r['page'],'title':r['title'],
+                                'reason':r['status'],'candidateImageRectangles':r.get('candidateImageRectangles',[])[:5]})
+              (report_path.parent/'image-repair-queue.json').write_text(json.dumps({
+                  'unresolvedCount':len(queue),'items':queue},ensure_ascii=False,indent=2)+'\\n')
+              print(f'Citymarket image repair queue: {len(queue)} unresolved offers, {report_path.parent}')
+          PY
       - name: Verify browser image fragments
         if: steps.clock.outputs.run == 'true' && github.event_name != 'schedule'
         run: |
