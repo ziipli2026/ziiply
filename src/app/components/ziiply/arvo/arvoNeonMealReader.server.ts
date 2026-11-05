@@ -26,7 +26,7 @@ export function createArvoNeonMealReader(db:ArvoSqlExecutor){
   ]);
   // A consent revoked during the two reads must never look like a successful empty sync.
   const consent=await db.query("SELECT 1 AS active FROM public.ziiply_arvo_meal_consents WHERE user_id=$1::uuid AND granted_at IS NOT NULL AND revoked_at IS NULL",[userId]);
-  if(consent.rows.length!==1)throw Error("arvo-cloud-consent-revoked");
+  if(consent.rows.length!==1||consent.rows[0]?.active!==1)throw Error("arvo-cloud-consent-revoked");
   if(active.rows.length>5000||deleted.rows.length>5000)throw Error("arvo-sync-result-limit-exceeded");
   const deletedIds=deleted.rows.map(row=>String(row.meal_id));
   if(new Set(deletedIds).size!==deletedIds.length)throw Error("arvo-duplicate-cloud-tombstone");
