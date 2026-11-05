@@ -14,6 +14,6 @@ export function createArvoNeonSessionLookup(db:ArvoSqlExecutor):ArvoSessionLooku
   const row=result.rows[0];
   const required=["sessionUserId","sessionExpiresAt","sessionRevokedAt","userDisabledAt","cloudMealGrantedAt","cloudMealRevokedAt"];
   if(!required.every(key=>Object.hasOwn(row,key)))return null;
-  return row as ArvoServerAccess;
+  return row as unknown as ArvoServerAccess;
  };
 }
