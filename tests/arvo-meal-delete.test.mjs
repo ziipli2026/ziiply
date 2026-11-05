@@ -9,7 +9,7 @@ const access={sessionUserId:user,sessionExpiresAt:"2026-11-05T10:00:00.000Z",ses
 const now=new Date("2026-11-04T12:00:00.000Z");
 test("Arvo Neon deletion calls atomic tombstone function with bound IDs",async()=>{
  let call;
- const remove=createArvoNeonMealDeleter({query:async(sql,params)=>{call={sql,params};return {rows:[{deleted:null}]};}});
+ const remove=createArvoNeonMealDeleter({query:async(sql,params)=>{call={sql,params};return {rows:[{deleted:true}]};}});
  await remove(user,id);
  assert.match(call.sql,/ziiply_arvo_delete_meal/);
  assert.deepEqual(call.params,[user,id]);
@@ -32,7 +32,7 @@ test("Arvo deletion rejects invalid IDs before writing",async()=>{
 });
 
 test("Arvo Neon deletion rejects missing or ambiguous database confirmations",async()=>{
- for(const rows of [[],[{}],[{deleted:false}],[{deleted:true}],[{deleted:null},{deleted:null}]]){
+ for(const rows of [[],[{}],[{deleted:false}],[{deleted:null}],[{deleted:true},{deleted:true}]]){
   const remove=createArvoNeonMealDeleter({query:async()=>({rows})});
   await assert.rejects(remove(user,id),/delete-unconfirmed/);
  }
@@ -44,7 +44,7 @@ test("Arvo deletion returns storage-failed if Neon cannot confirm the deletion",
 });
 test("Arvo deletion does not access database when authorization fails",async()=>{
  let queries=0;
- const remove=createArvoNeonMealDeleter({query:async()=>{queries++;return {rows:[{deleted:null}]};}});
+ const remove=createArvoNeonMealDeleter({query:async()=>{queries++;return {rows:[{deleted:true}]};}});
  assert.deepEqual(await deleteArvoCloudMeal(token,id,async()=>({...access,userDisabledAt:now}),()=> "b".repeat(64),remove,now),{ok:false,reason:"unauthorized"});
  assert.equal(queries,0);
 });
@@ -52,7 +52,7 @@ test("Arvo deletion does not access database when authorization fails",async()=>
 test("Arvo deletion always scopes SQL to authenticated user, never request-supplied identity",async()=>{
  const otherUser="00000000-0000-4000-8000-000000000002";
  let params;
- const remove=createArvoNeonMealDeleter({query:async(sql,bound)=>{params=bound;assert.match(sql,/\$1::uuid,\$2::uuid/);return {rows:[{deleted:null}]};}});
+ const remove=createArvoNeonMealDeleter({query:async(sql,bound)=>{params=bound;assert.match(sql,/\$1::uuid,\$2::uuid/);return {rows:[{deleted:true}]};}});
  const result=await deleteArvoCloudMeal(token,{id,userId:otherUser},async()=>access,()=> "b".repeat(64),remove,now);
  assert.deepEqual(result,{ok:false,reason:"invalid-meal-id"});
  assert.equal(params,undefined);
