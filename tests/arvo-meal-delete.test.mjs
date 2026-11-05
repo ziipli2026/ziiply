@@ -11,7 +11,7 @@ test("Arvo Neon deletion calls atomic tombstone function with bound IDs",async()
  let call;
  const remove=createArvoNeonMealDeleter({query:async(sql,params)=>{call={sql,params};return {rows:[{deleted:true}]};}});
  await remove(user,id);
- assert.match(call.sql,/ziiply_arvo_delete_meal/);
+ assert.match(call.sql,/ziiply_arvo_delete_meal_v2/);
  assert.deepEqual(call.params,[user,id]);
 });
 test("Arvo deletion uses authenticated user and rejects revoked consent",async()=>{
