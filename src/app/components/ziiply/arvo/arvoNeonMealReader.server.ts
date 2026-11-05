@@ -28,6 +28,9 @@ export function createArvoNeonMealReader(db:ArvoSqlExecutor){
   if(consent.rows.length!==1)throw Error("arvo-cloud-consent-revoked");
   if(active.rows.length>5000||deleted.rows.length>5000)throw Error("arvo-sync-result-limit-exceeded");
   const deletedIds=deleted.rows.map(row=>String(row.meal_id));
+  if(new Set(deletedIds).size!==deletedIds.length)throw Error("arvo-duplicate-cloud-tombstone");
+  const activeIds=active.rows.map(row=>String(row.meal_id));
+  if(new Set(activeIds).size!==activeIds.length)throw Error("arvo-duplicate-cloud-meal");
   if(deletedIds.some(id=>!uuid.test(id)))throw Error("arvo-invalid-cloud-tombstone");
   const deletedSet=new Set(deletedIds);
   const meals:ArvoMeal[]=active.rows.filter(row=>!deletedSet.has(String(row.meal_id))).map(row=>({
