@@ -82,6 +82,9 @@ jobs:
             index=$((index+1))
           done
           test "$successful" -eq "${#entries[@]}"
+          if [ -z "$ENTRY" ]; then
+            node scripts/citymarket/check-edition-pair.mjs artifacts/citymarket-images/0/leaflet.json artifacts/citymarket-images/1/leaflet.json
+          fi
           node scripts/citymarket/verify-images.mjs
       - name: Verify browser image fragments
         if: steps.clock.outputs.run == 'true' && github.event_name != 'schedule'
