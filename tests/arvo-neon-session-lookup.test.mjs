@@ -10,7 +10,7 @@ test("Neon session lookup is parameterized and includes user, session and consen
  const lookup=createArvoNeonSessionLookup({query:async(sql,params)=>{
   calls++;
   assert.deepEqual(params,[hash]);
-  for(const field of ["ziiply_beta_sessions","ziiply_beta_users","ziiply_arvo_meal_consents","token_hash=$1"])assert.ok(sql.includes(field));
+  for(const field of ["ziiply_beta_sessions","ziiply_beta_users","ziiply_arvo_meal_consents","token_hash=$1","s.expires_at>now()","s.revoked_at IS NULL","u.disabled_at IS NULL","c.granted_at IS NOT NULL","c.revoked_at IS NULL"])assert.ok(sql.includes(field));
   return {rows:[access]};
  }});
  assert.deepEqual(await lookup(hash),access);
