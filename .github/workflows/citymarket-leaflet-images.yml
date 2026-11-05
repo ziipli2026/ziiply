@@ -147,6 +147,10 @@ jobs:
               (report_path.parent/'image-repair-queue.json').write_text(json.dumps({
                   'unresolvedCount':len(queue),'reasonCounts':counts,'items':queue},ensure_ascii=False,indent=2)+'\\n')
               print(f'Citymarket image repair queue: {len(queue)} unresolved offers, {report_path.parent}')
+              for reason,count in sorted({key:sum(1 for item in queue if item.get('diagnosticReason')==key) for key in {item.get('diagnosticReason') for item in queue}}.items()):
+                  print(f'::notice::Citymarket image diagnostic: {reason}: {count}')
+              for item in queue:
+                  print(f'::notice::Citymarket unresolved PDF page {item["page"]}: {item["title"]} — {item.get("diagnosticReason")}')
           PY
       - name: Verify browser image fragments
         if: steps.clock.outputs.run == 'true' && github.event_name != 'schedule'
