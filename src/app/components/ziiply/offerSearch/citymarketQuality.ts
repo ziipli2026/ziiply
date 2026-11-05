@@ -1,4 +1,4 @@
-/** Deterministic quality gate for a parsed Citymarket leaflet. Images are warnings only. */
+/** Deterministic quality gate for a parsed Citymarket leaflet. Missing images are blocking quality defects. */
 export type CitymarketOfferQuality = {
   total: number; missingNames: number; missingPrices: number; missingCategories: number;
   suspiciousTitles: number; inconsistentUnitPrices: number; missingImages: number;
@@ -35,6 +35,6 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
     if (!String(offer.imageUrl ?? "").trim() && !String(offer.imageData ?? "").trim()) result.missingImages++;
   }
   result.blocking = result.total === 0 || result.missingNames > 0 || result.missingPrices > 0 ||
-    result.missingCategories > 0 || result.suspiciousTitles > 0 || result.inconsistentUnitPrices > 0;
+    result.missingCategories > 0 || result.missingImages > 0 || result.suspiciousTitles > 0 || result.inconsistentUnitPrices > 0;
   return result;
 }
