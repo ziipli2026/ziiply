@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
-import {ARVO_BETA_COOKIE_NAME} from "../../../../../components/ziiply/arvo/arvoBetaSessionBridge.server.ts";
-import {executeArvoCloudOperation} from "../../../../../components/ziiply/arvo/arvoCloudOperation.server.ts";
+import {ARVO_BETA_COOKIE_NAME} from "../../../../components/ziiply/arvo/arvoBetaSessionBridge.server.ts";
+import {executeArvoCloudOperation} from "../../../../components/ziiply/arvo/arvoCloudOperation.server.ts";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const noStore={"Cache-Control":"no-store"};
