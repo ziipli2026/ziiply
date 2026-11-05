@@ -175,9 +175,20 @@ def build(folder,manifest_path,public_folder,review_path):
            (c['rectangle'][2]-c['rectangle'][0])/page.rect.width>=.05 and
            (c['rectangle'][3]-c['rectangle'][1])/page.rect.height>=.05]
    status='no-nearby-eligible-pdf-image' if not nearby else 'nearby-pdf-image-ownership-unverified'
+   # Explain the rejection decision without approving any unverified image.
+   eligible_candidates=[c for c in candidates if not c['rejectedBySize'] and not c['blocked']]
+   closest=eligible_candidates[0] if eligible_candidates else None
+   if not candidates:reason='no-pdf-image-objects'
+   elif not eligible_candidates:
+    reason='all-candidates-rejected-by-size-or-border'
+   elif closest['distance'] is None:reason='missing-offer-anchor'
+   elif closest['distance']>.12:reason='closest-image-too-far-for-spatial-proof'
+   elif len(eligible_candidates)>1 and eligible_candidates[1]['distance']-closest['distance']<.10:
+    reason='multiple-images-too-close-to-distinguish'
+   else:reason='package-text-or-reciprocal-ownership-not-proven'
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
                   'candidateImageRectangles':candidates[:15],
-                  'nearbyImageObjects':len(nearby),'status':status})
+                  'nearbyImageObjects':len(nearby),'status':status,'diagnosticReason':reason})
   if unresolved:
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
