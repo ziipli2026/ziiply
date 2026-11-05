@@ -1,35 +1,34 @@
 {
   "schemaVersion": 1,
-  "issue": "43/26",
+  "issue": "45/26",
   "validity": {
-    "from": "2026-10-22",
-    "to": "2026-10-25"
+    "from": "2026-11-05",
+    "to": "2026-11-08"
   },
   "stores": [
     "Iisalmi",
     "Joensuu",
     "Järvenpää",
+    "Kajaani Lehtikangas",
     "Masku",
     "Tornio",
+    "Vanhakylä",
     "Ylöjärvi"
   ],
   "healthy": true,
   "offers": [
     {
-      "id": "eurospar:43/26:1:5",
-      "name": "hk siniset lenkit 500–580 g",
-      "category": "Muut",
-      "offerPrice": 5,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 2,
-        "unit": "pkt"
-      },
-      "normalPrice": "2,95–3,59",
-      "normalUnit": "pkt",
-      "unitPrice": "4,31–5,00",
+      "id": "eurospar:45/26:1:4",
+      "name": "greendeli voileipäkakku 750 g",
+      "category": "Leipomo",
+      "offerPrice": 13.99,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "15,90",
+      "normalUnit": null,
+      "unitPrice": "18,65",
       "unitPriceUnit": "kg",
-      "size": "500–580 g",
+      "size": "750 g",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -41,35 +40,193 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 1,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          304.3634948730469,
-          701.13720703125
+          56.125999450683594,
+          718.3603515625
         ],
         "price": [
-          324.3359069824219,
-          808.8212280273438,
-          365.37591552734375,
-          898.8212280273438
+          79.58989715576172,
+          832.4677734375,
+          127.75189971923828,
+          901.4677734375
         ]
       }
     },
     {
-      "id": "eurospar:43/26:1:3",
-      "name": "kalaonni kirjolohifilee c-leikattu n. 700 g",
+      "id": "eurospar:45/26:1:6",
+      "name": "elonen täytekakku 800 g",
+      "category": "Muut",
+      "offerPrice": 12.99,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "15,90",
+      "normalUnit": null,
+      "unitPrice": "16,24",
+      "unitPriceUnit": "kg",
+      "size": "800 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 1,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          312.1888122558594,
+          718.6416015625
+        ],
+        "price": [
+          335.2702941894531,
+          832.8897094726562,
+          385.0882873535156,
+          901.8897094726562
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:1:5",
+      "name": "ingman creamy-jäätelöt 825–1800 ml tai magnumit 440 ml",
+      "category": "Pakasteet",
+      "offerPrice": 10,
+      "priceBasis": "multi-buy-total",
+      "multiUnit": {
+        "quantity": 3,
+        "unit": "pkt"
+      },
+      "normalPrice": "4,49–6,29",
+      "normalUnit": "pkt",
+      "unitPrice": "1,85-7,58",
+      "unitPriceUnit": "l",
+      "size": "825–1800 ml",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 1,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          568.2515869140625,
+          718.3603515625
+        ],
+        "price": [
+          587.931884765625,
+          832.4677734375,
+          642.6488647460938,
+          901.4677734375
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:1:2",
+      "name": "atria naudan takuumurea ulkofileepala n. 800 g",
+      "category": "Muut",
+      "offerPrice": 21.99,
+      "priceBasis": "per-kg",
+      "multiUnit": null,
+      "normalPrice": "35,90",
+      "normalUnit": "kg",
+      "unitPrice": null,
+      "unitPriceUnit": null,
+      "size": "800 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": true,
+      "offerUnit": "kg",
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 1,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          56.125999450683594,
+          480.9925231933594
+        ],
+        "price": [
+          78.8772964477539,
+          593.8734130859375,
+          129.1092987060547,
+          662.8734130859375
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:1:3",
+      "name": "kalaneuvos tuore lohifilee  c-leikkuu vac n. 1,2 kg",
       "category": "Kala",
       "offerPrice": 12.99,
       "priceBasis": "per-kg",
@@ -78,10 +235,10 @@
       "normalUnit": null,
       "unitPrice": null,
       "unitPriceUnit": null,
-      "size": "700 g",
+      "size": "1,2 kg",
       "packCount": null,
       "discountPercent": null,
-      "restriction": "Enintään 2 kpl/talous.",
+      "restriction": null,
       "isWeightedProduct": true,
       "offerUnit": "kg",
       "eans": [],
@@ -90,185 +247,40 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 1,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          302.72821044921875,
-          467.5404357910156
+          302.94061279296875,
+          480.9925231933594
         ],
         "price": [
-          325.8096923828125,
-          583.2559204101562,
-          375.627685546875,
-          652.2559204101562
+          326.0220031738281,
+          593.8734130859375,
+          375.8399963378906,
+          662.8734130859375
         ]
       }
     },
     {
-      "id": "eurospar:43/26:1:4",
-      "name": "atria kanan ohut fileeleike honey butter 1000 g",
-      "category": "Liha & makkarat",
-      "offerPrice": 7.99,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": "12,90",
-      "normalUnit": null,
-      "unitPrice": null,
-      "unitPriceUnit": null,
-      "size": "1000 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": "Enintään 2 pkt/talous.",
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 1,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          56.692901611328125,
-          700.790283203125
-        ],
-        "price": [
-          77.98760223388672,
-          808.9743041992188,
-          118.48760223388672,
-          898.9743041992188
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:1:2",
-      "name": "atria possun sisäfilee naturell n. 500 g",
+      "id": "eurospar:45/26:1:1",
+      "name": "makeat satsumat 1 kg",
       "category": "Muut",
-      "offerPrice": 7.99,
-      "priceBasis": "per-kg",
-      "multiUnit": null,
-      "normalPrice": "13,59",
-      "normalUnit": "kg",
-      "unitPrice": null,
-      "unitPriceUnit": null,
-      "size": "500 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": "Enintään",
-      "isWeightedProduct": true,
-      "offerUnit": "kg",
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 1,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          57.0443000793457,
-          467.4212341308594
-        ],
-        "price": [
-          78.33899688720703,
-          575.81396484375,
-          118.83899688720703,
-          665.81396484375
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:1:6",
-      "name": "arla normaalisuolainen voi 500 g",
-      "category": "Muut",
-      "offerPrice": 2.99,
+      "offerPrice": 1.3900000000000001,
       "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": "3,99",
-      "normalUnit": null,
-      "unitPrice": "5,98",
-      "unitPriceUnit": "kg",
-      "size": "500 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": "Enintään",
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 1,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          551.8109741210938,
-          701.290283203125
-        ],
-        "price": [
-          573.9384765625,
-          808.9743041992188,
-          615.698486328125,
-          898.9743041992188
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:1:1",
-      "name": "banaani",
-      "category": "Hevi",
-      "offerPrice": 1.29,
-      "priceBasis": "per-kg",
       "multiUnit": null,
       "normalPrice": null,
       "normalUnit": null,
@@ -278,43 +290,99 @@
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
-      "isWeightedProduct": true,
-      "offerUnit": "kg",
+      "isWeightedProduct": false,
+      "offerUnit": null,
       "eans": [],
       "identityStatus": "leaflet-only",
       "identityReason": "Publisher PDF; EAN not inferred",
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 1,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          552.5192260742188,
-          455.4083557128906
+          553.3201904296875,
+          469.6219177246094
         ],
         "price": [
-          582.530517578125,
-          575.1717529296875,
-          608.4505004882812,
-          665.1717529296875
+          585.0191040039062,
+          590.8026123046875,
+          610.9390869140625,
+          680.8026123046875
         ]
       }
     },
     {
-      "id": "eurospar:43/26:2:3",
-      "name": "fazer rukiinen riisipiirakka 70 g",
+      "id": "eurospar:45/26:2:3",
+      "name": "reuter & stolt suklaasydänmunkki 70 g",
+      "category": "Leipomo",
+      "offerPrice": 2,
+      "priceBasis": "multi-buy-total",
+      "multiUnit": {
+        "quantity": 2,
+        "unit": "kpl"
+      },
+      "normalPrice": "1,29",
+      "normalUnit": "kpl",
+      "unitPrice": "14,29",
+      "unitPriceUnit": "kg",
+      "size": "70 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 2,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          559.3701171875,
+          338.0184631347656
+        ],
+        "price": [
+          572.3577880859375,
+          478.027587890625,
+          600.1978149414062,
+          538.027587890625
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:2:11",
+      "name": "fazer rukiinen riisipiirakka 70 g",
       "category": "Leipomo",
       "offerPrice": 3,
       "priceBasis": "multi-buy-total",
@@ -326,7 +394,7 @@
       "normalUnit": "kpl",
       "unitPrice": "4,29",
       "unitPriceUnit": "kg",
-      "size": "70 g",
+      "size": "70 g",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -338,145 +406,49 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 2,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          559.3701171875,
-          338.0184631347656
+          573.6256713867188,
+          830.2930908203125
         ],
         "price": [
           572.8557739257812,
-          478.027587890625,
-          599.0157470703125,
-          538.027587890625
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:2:10",
-      "name": "vaasan valkosipulivoipatonki",
-      "category": "Muut",
-      "offerPrice": 0.99,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": "1,49",
-      "normalUnit": null,
-      "unitPrice": "5,66",
-      "unitPriceUnit": "kg",
-      "size": null,
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 2,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          559.2291870117188,
-          585.026611328125
-        ],
-        "price": [
-          571.9743041992188,
-          723.6441040039062,
-          603.7742919921875,
-          783.6441040039062
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:2:11",
-      "name": "tanskalainen vaniljaviineri 85 g",
-      "category": "Kala",
-      "offerPrice": 2,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 3,
-        "unit": "kpl"
-      },
-      "normalPrice": "0,89",
-      "normalUnit": "kpl",
-      "unitPrice": "7,84",
-      "unitPriceUnit": "kg",
-      "size": "85 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 2,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          559.6787719726562,
-          818.9224243164062
-        ],
-        "price": [
-          572.3577880859375,
           960.9761352539062,
-          600.1978149414062,
+          599.0157470703125,
           1020.9761352539062
         ]
       }
     },
     {
-      "id": "eurospar:43/26:2:4",
-      "name": "atria mikroateriat 350 g",
-      "category": "Valmisruoka",
-      "offerPrice": 3.49,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": "4,19",
-      "normalUnit": null,
-      "unitPrice": "9,97",
+      "id": "eurospar:45/26:2:8",
+      "name": "fazer iso voicroissant 90 g",
+      "category": "Muut",
+      "offerPrice": 3,
+      "priceBasis": "multi-buy-total",
+      "multiUnit": {
+        "quantity": 4,
+        "unit": "kpl"
+      },
+      "normalPrice": "0,79",
+      "normalUnit": "kpl",
+      "unitPrice": "8,33",
       "unitPriceUnit": "kg",
-      "size": "350 g",
+      "size": "90 g",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -488,44 +460,199 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 2,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          36.850399017333984,
-          339.0246276855469
+          559.2291870117188,
+          585.026611328125
         ],
         "price": [
-          51.94049835205078,
-          479.0863037109375,
-          78.10050201416016,
-          539.0863037109375
+          573.5888061523438,
+          723.6441040039062,
+          599.748779296875,
+          783.6441040039062
         ]
       }
     },
     {
-      "id": "eurospar:43/26:2:2",
-      "name": "huhtahyvät porsaan paahdettu ulkofilee- tai kasslerpala kypsä n. 1 kg",
+      "id": "eurospar:45/26:2:12",
+      "name": "pouttu jahti- tai gouter- makkara 700 g",
       "category": "Liha & makkarat",
-      "offerPrice": 10.99,
+      "offerPrice": 3.49,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "3,99",
+      "normalUnit": null,
+      "unitPrice": "4,99",
+      "unitPriceUnit": "kg",
+      "size": "700 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 2,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          369.44879150390625,
+          830.9241943359375
+        ],
+        "price": [
+          384.53900146484375,
+          960.9761352539062,
+          410.6990051269531,
+          1020.9761352539062
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:2:10",
+      "name": "saarioinen kerma- tai valkosipulikerma­ perunat 600 g",
+      "category": "Maitotuotteet",
+      "offerPrice": 4.49,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "4,99",
+      "normalUnit": null,
+      "unitPrice": "7,48",
+      "unitPriceUnit": "kg",
+      "size": "600 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 2,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          36.740299224853516,
+          830.2930908203125
+        ],
+        "price": [
+          50.27050018310547,
+          960.9761352539062,
+          79.55050659179688,
+          1020.9761352539062
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:2:9",
+      "name": "snellman grillimakkarat 230–400 g",
+      "category": "Liha & makkarat",
+      "offerPrice": 2.99,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "3,49–3,99",
+      "normalUnit": null,
+      "unitPrice": "7,48–13,00",
+      "unitPriceUnit": "kg",
+      "size": "230–400 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 2,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          203.14959716796875,
+          829.853515625
+        ],
+        "price": [
+          217.40969848632812,
+          960.9761352539062,
+          245.24969482421875,
+          1020.9761352539062
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:2:1",
+      "name": "atria viljapossun juhlakinkku potkalla n. 7 kg",
+      "category": "Liha & makkarat",
+      "offerPrice": 5.99,
       "priceBasis": "per-kg",
       "multiUnit": null,
-      "normalPrice": "15,90",
-      "normalUnit": "kg",
+      "normalPrice": null,
+      "normalUnit": null,
       "unitPrice": null,
       "unitPriceUnit": null,
-      "size": "1 kg",
+      "size": "7 kg",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -537,47 +664,100 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 2,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          288.5293884277344,
+          289.1339111328125,
+          93.6301498413086
+        ],
+        "price": [
+          303.29180908203125,
+          232.61138916015625,
+          330.6518249511719,
+          292.61138916015625
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:2:2",
+      "name": "hk viljaporsaan kassler n. 2,3 kg",
+      "category": "Liha & makkarat",
+      "offerPrice": 6.99,
+      "priceBasis": "per-kg",
+      "multiUnit": null,
+      "normalPrice": "7,99",
+      "normalUnit": "kg",
+      "unitPrice": null,
+      "unitPriceUnit": null,
+      "size": "2,3 kg",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": true,
+      "offerUnit": "kg",
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 2,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          36.850399017333984,
           94.06356048583984
         ],
         "price": [
-          301.8219909667969,
-          237.52096557617188,
-          338.4840087890625,
-          283.5209655761719
+          49.730201721191406,
+          232.61138916015625,
+          79.7302017211914,
+          292.61138916015625
         ]
       }
     },
     {
-      "id": "eurospar:43/26:2:9",
-      "name": "hk pikkuprinssi 1 kg",
-      "category": "Muut",
-      "offerPrice": 5.99,
+      "id": "eurospar:45/26:2:4",
+      "name": "atria/kariniemen kananpojan minuuttipihvit 570–780 g",
+      "category": "Liha & makkarat",
+      "offerPrice": 7.99,
       "priceBasis": "single-unit",
       "multiUnit": null,
-      "normalPrice": "7,99",
+      "normalPrice": "8,99",
       "normalUnit": null,
-      "unitPrice": null,
-      "unitPriceUnit": null,
-      "size": "1 kg",
+      "unitPrice": "10,24–14,02",
+      "unitPriceUnit": "kg",
+      "size": "570–780 g",
       "packCount": null,
       "discountPercent": null,
-      "restriction": "Enintään",
+      "restriction": null,
       "isWeightedProduct": false,
       "offerUnit": null,
       "eans": [],
@@ -586,246 +766,46 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 2,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
           36.850399017333984,
-          585.026611328125
-        ],
-        "price": [
-          51.008399963378906,
-          723.6441040039062,
-          78.36840057373047,
-          783.6441040039062
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:2:6",
-      "name": "snellman kunnon pekoni 150 g",
-      "category": "Muut",
-      "offerPrice": 5,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 3,
-        "unit": "pkt"
-      },
-      "normalPrice": "2,99",
-      "normalUnit": "pkt",
-      "unitPrice": "11,11",
-      "unitPriceUnit": "kg",
-      "size": "150 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": "Enintään",
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 2,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          371.8268127441406,
           339.2603454589844
         ],
         "price": [
-          384.9410095214844,
-          477.88140869140625,
-          412.301025390625,
-          537.8814086914062
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:2:7",
-      "name": "snellman kotimaiset meetvurstit",
-      "category": "Muut",
-      "offerPrice": 5.5,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 2,
-        "unit": "pkt"
-      },
-      "normalPrice": "2,99",
-      "normalUnit": "pkt",
-      "unitPrice": "12,50–13,75",
-      "unitPriceUnit": "kg",
-      "size": null,
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 2,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          204.4095001220703,
-          584.6607666015625
-        ],
-        "price": [
-          218.5487060546875,
-          723.6441040039062,
-          245.90870666503906,
-          783.6441040039062
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:2:1",
-      "name": "hk viljaporsaan fileepihvit 6 kpl/600–640 g",
-      "category": "Liha & makkarat",
-      "offerPrice": 6.99,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": "7,99",
-      "normalUnit": null,
-      "unitPrice": "10,92–11,65",
-      "unitPriceUnit": "kg",
-      "size": "600–640 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 2,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          36.850399017333984,
-          93.86714935302734
-        ],
-        "price": [
-          49.730201721191406,
-          232.63909912109375,
-          79.7302017211914,
-          292.63909912109375
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:2:5",
-      "name": "kokkikartano pasta tai lasagne 600–650 g",
-      "category": "Muut",
-      "offerPrice": 6.99,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": null,
-      "normalUnit": null,
-      "unitPrice": "10,75–11,65",
-      "unitPriceUnit": "kg",
-      "size": "600–650 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 2,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          204.31500244140625,
-          339.0246276855469
-        ],
-        "price": [
-          217.19479370117188,
+          50.621299743652344,
           479.0863037109375,
-          247.19479370117188,
+          77.62129974365234,
           539.0863037109375
         ]
       }
     },
     {
-      "id": "eurospar:43/26:2:8",
-      "name": "wursti extra-palvit 250–400 g",
+      "id": "eurospar:45/26:2:5",
+      "name": "kokkikartano kiusaukset 650–700 g",
       "category": "Muut",
-      "offerPrice": 3.99,
+      "offerPrice": 5.99,
       "priceBasis": "single-unit",
       "multiUnit": null,
-      "normalPrice": "4,99–5,29",
+      "normalPrice": "6,59",
       "normalUnit": null,
-      "unitPrice": "9,98–15,96",
+      "unitPrice": "8,56–9,22",
       "unitPriceUnit": "kg",
-      "size": "250–400 g",
+      "size": "650–700 g",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -837,38 +817,145 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 2,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          371.3612060546875,
-          584.6607666015625
+          289.1339111328125,
+          339.2603454589844
         ],
         "price": [
-          386.1794128417969,
+          303.29180908203125,
+          479.0863037109375,
+          330.6518249511719,
+          539.0863037109375
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:2:6",
+      "name": "hk ohuen ohuet leikkeleet 300 g",
+      "category": "Muut",
+      "offerPrice": 3.49,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "3,79–3,99",
+      "normalUnit": null,
+      "unitPrice": "11,63",
+      "unitPriceUnit": "kg",
+      "size": "300 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 2,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          36.850399017333984,
+          585.026611328125
+        ],
+        "price": [
+          51.94049835205078,
           723.6441040039062,
-          412.33941650390625,
+          78.10050201416016,
           783.6441040039062
         ]
       }
     },
     {
-      "id": "eurospar:43/26:2:12",
-      "name": "spar burgeri",
+      "id": "eurospar:45/26:2:7",
+      "name": "dr oetker ristorante-pakastepizzat 280–355 g",
+      "category": "Pakasteet",
+      "offerPrice": 6,
+      "priceBasis": "multi-buy-total",
+      "multiUnit": {
+        "quantity": 2,
+        "unit": "kpl"
+      },
+      "normalPrice": "3,69",
+      "normalUnit": "kpl",
+      "unitPrice": "7,89–10,71",
+      "unitPriceUnit": "kg",
+      "size": "280–355 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 2,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          289.1339111328125,
+          585.026611328125
+        ],
+        "price": [
+          301.0238952636719,
+          723.6441040039062,
+          331.0238952636719,
+          783.6441040039062
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:1",
+      "name": "herkkumaa maustekurkku irto",
       "category": "Muut",
-      "offerPrice": 2.99,
-      "priceBasis": "single-unit",
+      "offerPrice": 3.99,
+      "priceBasis": "per-kg",
       "multiUnit": null,
       "normalPrice": null,
       "normalUnit": null,
@@ -878,52 +965,54 @@
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
+      "isWeightedProduct": true,
+      "offerUnit": "kg",
       "eans": [],
       "identityStatus": "leaflet-only",
       "identityReason": "Publisher PDF; EAN not inferred",
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
-      "page": 2,
+      "page": 3,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          270.0589904785156,
-          853.218994140625
+          25.51180076599121,
+          98.3154525756836
         ],
         "price": [
-          310.3008117675781,
-          904.8838500976562,
-          359.6680908203125,
-          1011.2788696289062
+          40.329898834228516,
+          155.26690673828125,
+          66.48989868164062,
+          215.26690673828125
         ]
       }
     },
     {
-      "id": "eurospar:43/26:3:3",
-      "name": "spar maapähkinävoi kermainen 350 g",
-      "category": "Maitotuotteet",
-      "offerPrice": 2.69,
+      "id": "eurospar:45/26:3:3",
+      "name": "keltainen kiivi 500 g",
+      "category": "Hevi",
+      "offerPrice": 2.99,
       "priceBasis": "single-unit",
       "multiUnit": null,
       "normalPrice": null,
       "normalUnit": null,
-      "unitPrice": "7,69",
+      "unitPrice": "5,98",
       "unitPriceUnit": "kg",
-      "size": "350 g",
+      "size": "500 g",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -935,47 +1024,151 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 3,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          438.4516906738281,
-          98.3154525756836
+          25.51180076599121,
+          251.97781372070312
         ],
         "price": [
-          452.5425109863281,
-          155.266845703125,
-          480.38250732421875,
-          215.266845703125
+          39.77190017700195,
+          319.96942138671875,
+          67.61190032958984,
+          379.96942138671875
         ]
       }
     },
     {
-      "id": "eurospar:43/26:3:15",
-      "name": "fazer marjapiirakka 2 kpl/140 g",
-      "category": "Leipomo",
-      "offerPrice": 3.5,
+      "id": "eurospar:45/26:3:7",
+      "name": "pensasmustikka 125 g",
+      "category": "Muut",
+      "offerPrice": 1.99,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": null,
+      "normalUnit": null,
+      "unitPrice": "15,92",
+      "unitPriceUnit": "kg",
+      "size": "125 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          221.98959350585938,
+          417.0222473144531
+        ],
+        "price": [
+          241.3466033935547,
+          484.7554931640625,
+          258.6266174316406,
+          544.7554931640625
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:4",
+      "name": "miniluumutomaatti 250 g",
+      "category": "Hevi",
+      "offerPrice": 3,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": null,
+      "normalUnit": null,
+      "unitPrice": "6,00",
+      "unitPriceUnit": "kg",
+      "size": "250 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          221.98959350585938,
+          251.97781372070312
+        ],
+        "price": [
+          235.61619567871094,
+          319.96942138671875,
+          261.77618408203125,
+          379.96942138671875
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:9",
+      "name": "forssan peruna-, punajuuri- tai italiansalaatti 400 g",
+      "category": "Hevi",
+      "offerPrice": 4,
       "priceBasis": "multi-buy-total",
       "multiUnit": {
         "quantity": 2,
         "unit": "pkt"
       },
-      "normalPrice": "2,29",
+      "normalPrice": "2,49",
       "normalUnit": "pkt",
-      "unitPrice": "12,50",
+      "unitPrice": "5,00",
       "unitPriceUnit": "kg",
-      "size": "140 g",
+      "size": "400 g",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -987,145 +1180,46 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 3,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          227.3332977294922,
-          868.6159057617188
+          25.51180076599121,
+          660.2839965820312
         ],
         "price": [
-          242.2593994140625,
-          964.1055297851562,
-          268.4194030761719,
-          1024.10546875
+          37.846099853515625,
+          755.3820190429688,
+          67.1260986328125,
+          815.3820190429688
         ]
       }
     },
     {
-      "id": "eurospar:43/26:3:14",
-      "name": "porokylän pikkueväs- ruisviipale 400 g",
-      "category": "Muut",
-      "offerPrice": 1.99,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": "2,69",
-      "normalUnit": null,
-      "unitPrice": "4,98",
-      "unitPriceUnit": "kg",
-      "size": "400 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          19.415800094604492,
-          868.6159057617188
-        ],
-        "price": [
-          38.77280044555664,
-          964.1055297851562,
-          56.05280303955078,
-          1024.10546875
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:10",
-      "name": "valio laktoositon jogurtti 1 kg",
+      "id": "eurospar:45/26:3:12",
+      "name": "valio maustettu ruokakerma 2,5 dl",
       "category": "Maitotuotteet",
       "offerPrice": 1.79,
       "priceBasis": "single-unit",
       "multiUnit": null,
       "normalPrice": "1,99",
       "normalUnit": null,
-      "unitPrice": null,
-      "unitPriceUnit": null,
-      "size": "1 kg",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          23.544300079345703,
-          660.2852783203125
-        ],
-        "price": [
-          43.922000885009766,
-          755.4784545898438,
-          61.202003479003906,
-          815.4784545898438
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:11",
-      "name": "arla power cow -pirtelö 200 ml",
-      "category": "Muut",
-      "offerPrice": 3.5,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 2,
-        "unit": "kpl"
-      },
-      "normalPrice": "1,99",
-      "normalUnit": "kpl",
-      "unitPrice": "8,75",
+      "unitPrice": "7,16",
       "unitPriceUnit": "l",
-      "size": "200 ml",
+      "size": null,
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -1137,40 +1231,354 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 3,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          231.90859985351562,
-          660.2852783203125
+          644.1732177734375,
+          660.2839965820312
         ],
         "price": [
-          246.83470153808594,
-          755.4784545898438,
-          272.99468994140625,
-          815.4784545898438
+          664.3889770507812,
+          755.3820190429688,
+          681.6690063476562,
+          815.3820190429688
         ]
       }
     },
     {
-      "id": "eurospar:43/26:3:12",
-      "name": "valio viola tuorejuusto 200 g",
+      "id": "eurospar:45/26:3:11",
+      "name": "castello sinihome- tai valkohome- juusto 150 g",
       "category": "Maitotuotteet",
       "offerPrice": 1.99,
       "priceBasis": "single-unit",
       "multiUnit": null,
-      "normalPrice": "2,39",
+      "normalPrice": "3,29",
+      "normalUnit": null,
+      "unitPrice": "13,27",
+      "unitPriceUnit": "kg",
+      "size": "150 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          438.4516906738281,
+          660.2839965820312
+        ],
+        "price": [
+          457.80859375,
+          755.3820190429688,
+          475.0885925292969,
+          815.3820190429688
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:10",
+      "name": "mo saaremaa juusto 1 kg",
+      "category": "Maitotuotteet",
+      "offerPrice": 5.99,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "6,79",
+      "normalUnit": null,
+      "unitPrice": null,
+      "unitPriceUnit": null,
+      "size": "1 kg",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          231.7322998046875,
+          660.2839965820312
+        ],
+        "price": [
+          245.8903045654297,
+          755.3820190429688,
+          273.25030517578125,
+          815.3820190429688
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:16",
+      "name": "hetki suosikki salaattiateriat 220–280 g",
+      "category": "Hevi",
+      "offerPrice": 7,
+      "priceBasis": "multi-buy-total",
+      "multiUnit": {
+        "quantity": 2,
+        "unit": "pkt"
+      },
+      "normalPrice": "3,95",
+      "normalUnit": "pkt",
+      "unitPrice": "12,50–15,91",
+      "unitPriceUnit": "kg",
+      "size": "220–280 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          519.4744262695312,
+          867.9075317382812
+        ],
+        "price": [
+          532.3754272460938,
+          963.3231201171875,
+          559.3754272460938,
+          1023.3231201171875
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:14",
+      "name": "arla lempi rahka laktoositon 200 g",
+      "category": "Maitotuotteet",
+      "offerPrice": 5,
+      "priceBasis": "multi-buy-total",
+      "multiUnit": {
+        "quantity": 3,
+        "unit": "kpl"
+      },
+      "normalPrice": "1,95",
+      "normalUnit": "kpl",
+      "unitPrice": "8,33",
+      "unitPriceUnit": "kg",
+      "size": "200 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          190.1112060546875,
+          867.9075317382812
+        ],
+        "price": [
+          203.22540283203125,
+          963.3231201171875,
+          230.5854034423828,
+          1023.3231201171875
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:13",
+      "name": "valio gefilus mehu 1 l",
+      "category": "Muut",
+      "offerPrice": 2.75,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "2,89",
+      "normalUnit": null,
+      "unitPrice": "2,75",
+      "unitPriceUnit": "l",
+      "size": null,
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          25.51180076599121,
+          867.9075317382812
+        ],
+        "price": [
+          41.393001556396484,
+          963.3231201171875,
+          69.23300170898438,
+          1023.3231201171875
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:15",
+      "name": "vaasan isopaahto 500–525 g",
+      "category": "Muut",
+      "offerPrice": 1.99,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "2,49",
+      "normalUnit": null,
+      "unitPrice": "3,79–3,98",
+      "unitPriceUnit": "kg",
+      "size": "500–525 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          354.7106018066406,
+          867.9075317382812
+        ],
+        "price": [
+          374.0675048828125,
+          963.3231201171875,
+          391.3475036621094,
+          1023.3231201171875
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:2",
+      "name": "spar cookies peanut tai brownie 200 g",
+      "category": "Muut",
+      "offerPrice": 1.99,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": null,
       "normalUnit": null,
       "unitPrice": "9,95",
       "unitPriceUnit": "kg",
@@ -1186,252 +1594,46 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 3,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
           438.4516906738281,
-          660.2852783203125
-        ],
-        "price": [
-          457.80859375,
-          755.4784545898438,
-          475.0885925292969,
-          815.4784545898438
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:17",
-      "name": "apetit kotimainen peruna-sipulisekoitus 1 kg",
-      "category": "Hevi",
-      "offerPrice": 3.5,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 2,
-        "unit": "ps"
-      },
-      "normalPrice": "1,89",
-      "normalUnit": null,
-      "unitPrice": "1,75",
-      "unitPriceUnit": "kg",
-      "size": "1 kg",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          644.1533813476562,
-          868.6159057617188
-        ],
-        "price": [
-          659.0795288085938,
-          964.1055297851562,
-          685.239501953125,
-          1024.10546875
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:9",
-      "name": "spar brownie cookies 200 g",
-      "category": "Muut",
-      "offerPrice": 3.5,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 2,
-        "unit": "PKT"
-      },
-      "normalPrice": "1,99",
-      "normalUnit": "pkt",
-      "unitPrice": "8,75",
-      "unitPriceUnit": "kg",
-      "size": "200 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          438.4516906738281,
-          428.3929138183594
-        ],
-        "price": [
-          453.0692138671875,
-          484.7554931640625,
-          479.2292175292969,
-          544.7554931640625
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:13",
-      "name": "herkkutilan juustoviipaleet 350–400 g",
-      "category": "Maitotuotteet",
-      "offerPrice": 10,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 3,
-        "unit": "pkt"
-      },
-      "normalPrice": "4,49",
-      "normalUnit": "pkt",
-      "unitPrice": "8,33–9,52",
-      "unitPriceUnit": "kg",
-      "size": "350–400 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          638.6270751953125,
-          660.2852783203125
-        ],
-        "price": [
-          651.1608276367188,
-          760.3603515625,
-          687.8228149414062,
-          806.3603515625
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:6",
-      "name": "spar popcorn 3-pack 270 g",
-      "category": "Muut",
-      "offerPrice": 1.99,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": null,
-      "normalUnit": null,
-      "unitPrice": "7,37",
-      "unitPriceUnit": "kg",
-      "size": "270 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          438.4516906738281,
-          263.3485412597656
+          98.3154525756836
         ],
         "price": [
           457.5,
-          320.67803955078125,
+          155.266845703125,
           474.7799987792969,
-          380.67803955078125
+          215.266845703125
         ]
       }
     },
     {
-      "id": "eurospar:43/26:3:16",
-      "name": "reformi luomu liemikuutiot 8 x 11 g",
+      "id": "eurospar:45/26:3:5",
+      "name": "spar cricks cracker 100 g",
       "category": "Muut",
-      "offerPrice": 3.5,
-      "priceBasis": "multi-buy-total",
-      "multiUnit": {
-        "quantity": 2,
-        "unit": "pkt"
-      },
-      "normalPrice": "1,99-2,19",
-      "normalUnit": "pkt",
-      "unitPrice": "19,89",
+      "offerPrice": 0.69,
+      "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": null,
+      "normalUnit": null,
+      "unitPrice": "6,90",
       "unitPriceUnit": "kg",
-      "size": "11 g",
+      "size": "100 g",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -1443,234 +1645,91 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 3,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
           438.4516906738281,
-          868.6159057617188
-        ],
-        "price": [
-          453.2361145019531,
-          964.1055297851562,
-          479.3961181640625,
-          1024.10546875
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:4",
-      "name": "makea persimoni",
-      "category": "Muut",
-      "offerPrice": 3.99,
-      "priceBasis": "per-kg",
-      "multiUnit": null,
-      "normalPrice": null,
-      "normalUnit": null,
-      "unitPrice": null,
-      "unitPriceUnit": null,
-      "size": null,
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": true,
-      "offerUnit": "kg",
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          23.544300079345703,
-          251.97781372070312
-        ],
-        "price": [
-          38.36240005493164,
-          320.67803955078125,
-          64.52239990234375,
-          380.67803955078125
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:7",
-      "name": "myrttinen mauste- ja suolakurkku 550 g",
-      "category": "Muut",
-      "offerPrice": 4.99,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": "6,99",
-      "normalUnit": null,
-      "unitPrice": "9,07",
-      "unitPriceUnit": "kg",
-      "size": "550 g",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          23.544300079345703,
-          428.3929138183594
-        ],
-        "price": [
-          36.86830139160156,
-          484.7554931640625,
-          66.14830017089844,
-          544.7554931640625
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:1",
-      "name": "kurpitsa",
-      "category": "Muut",
-      "offerPrice": 1.99,
-      "priceBasis": "per-kg",
-      "multiUnit": null,
-      "normalPrice": null,
-      "normalUnit": null,
-      "unitPrice": null,
-      "unitPriceUnit": null,
-      "size": null,
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": true,
-      "offerUnit": "kg",
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          23.544300079345703,
-          86.9448471069336
-        ],
-        "price": [
-          42.982200622558594,
-          155.26690673828125,
-          60.26219940185547,
-          215.26690673828125
-        ]
-      }
-    },
-    {
-      "id": "eurospar:43/26:3:5",
-      "name": "uusitalo annabelle peruna 2 kg",
-      "category": "Hevi",
-      "offerPrice": 1.49,
-      "priceBasis": "single-unit",
-      "multiUnit": null,
-      "normalPrice": null,
-      "normalUnit": null,
-      "unitPrice": "0,75",
-      "unitPriceUnit": "kg",
-      "size": "2 kg",
-      "packCount": null,
-      "discountPercent": null,
-      "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
-      "chain": "EUROSPAR",
-      "storeType": "EUROSPAR",
-      "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
-      "stores": [
-        "Iisalmi",
-        "Joensuu",
-        "Järvenpää",
-        "Masku",
-        "Tornio",
-        "Ylöjärvi"
-      ],
-      "page": 3,
-      "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
-        "heading": [
-          222.04629516601562,
           263.3485412597656
         ],
         "price": [
-          241.6092987060547,
-          320.67803955078125,
-          258.8893127441406,
-          380.67803955078125
+          450.4361877441406,
+          320.10198974609375,
+          482.2361755371094,
+          380.10198974609375
         ]
       }
     },
     {
-      "id": "eurospar:43/26:3:8",
-      "name": "järvikylä ruustinnan salaatti ruukussa",
-      "category": "Hevi",
-      "offerPrice": 1.69,
+      "id": "eurospar:45/26:3:8",
+      "name": "spar sea shell konvehdit 250 g",
+      "category": "Muut",
+      "offerPrice": 3.99,
       "priceBasis": "single-unit",
+      "multiUnit": null,
+      "normalPrice": "4,99",
+      "normalUnit": null,
+      "unitPrice": null,
+      "unitPriceUnit": null,
+      "size": "250 g",
+      "packCount": null,
+      "discountPercent": null,
+      "restriction": null,
+      "isWeightedProduct": false,
+      "offerUnit": null,
+      "eans": [],
+      "identityStatus": "leaflet-only",
+      "identityReason": "Publisher PDF; EAN not inferred",
+      "chain": "EUROSPAR",
+      "storeType": "EUROSPAR",
+      "source": "EUROSPAR tarjouslehti",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
+      "stores": [
+        "Iisalmi",
+        "Joensuu",
+        "Järvenpää",
+        "Kajaani Lehtikangas",
+        "Masku",
+        "Tornio",
+        "Vanhakylä",
+        "Ylöjärvi"
+      ],
+      "page": 3,
+      "sourceEvidence": {
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
+        "heading": [
+          438.4516906738281,
+          428.3929138183594
+        ],
+        "price": [
+          453.1068115234375,
+          484.7554931640625,
+          479.2668151855469,
+          544.7554931640625
+        ]
+      }
+    },
+    {
+      "id": "eurospar:45/26:3:6",
+      "name": "makea persimoni",
+      "category": "Muut",
+      "offerPrice": 3.49,
+      "priceBasis": "per-kg",
       "multiUnit": null,
       "normalPrice": null,
       "normalUnit": null,
@@ -1680,52 +1739,54 @@
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
-      "isWeightedProduct": false,
-      "offerUnit": null,
+      "isWeightedProduct": true,
+      "offerUnit": "kg",
       "eans": [],
       "identityStatus": "leaflet-only",
       "identityReason": "Publisher PDF; EAN not inferred",
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 3,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          222.04629516601562,
-          428.3929138183594
+          25.51180076599121,
+          417.0222473144531
         ],
         "price": [
-          241.5426025390625,
+          40.60200119018555,
           484.7554931640625,
-          258.8226013183594,
+          66.76200103759766,
           544.7554931640625
         ]
       }
     },
     {
-      "id": "eurospar:43/26:3:2",
-      "name": "sipuli 1 kg",
+      "id": "eurospar:45/26:3:17",
+      "name": "gille sahramiunelma 300 g",
       "category": "Muut",
-      "offerPrice": 1.3900000000000001,
+      "offerPrice": 3.49,
       "priceBasis": "single-unit",
       "multiUnit": null,
-      "normalPrice": null,
+      "normalPrice": "3,99",
       "normalUnit": null,
-      "unitPrice": null,
-      "unitPriceUnit": null,
-      "size": "1 kg",
+      "unitPrice": "11,63",
+      "unitPriceUnit": "kg",
+      "size": "300 g",
       "packCount": null,
       "discountPercent": null,
       "restriction": null,
@@ -1737,29 +1798,31 @@
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
-      "issue": "43/26",
-      "validFrom": "2026-10-22",
-      "validTo": "2026-10-25",
+      "issue": "45/26",
+      "validFrom": "2026-11-05",
+      "validTo": "2026-11-08",
       "stores": [
         "Iisalmi",
         "Joensuu",
         "Järvenpää",
+        "Kajaani Lehtikangas",
         "Masku",
         "Tornio",
+        "Vanhakylä",
         "Ylöjärvi"
       ],
       "page": 3,
       "sourceEvidence": {
-        "pdfSha256": "d01389bb6eb5435ccf45b125c08c247928fd42ab6e5d7fe6b64b4ca5ade780c7",
+        "pdfSha256": "102a58bf4e08673902385922470f7f2cb660d23375d47d41f5f5ac44220fdef8",
         "heading": [
-          222.04629516601562,
-          86.9448471069336
+          683.4755859375,
+          867.9075317382812
         ],
         "price": [
-          242.47669982910156,
-          155.26690673828125,
-          259.7567138671875,
-          215.26690673828125
+          698.5657958984375,
+          963.3231201171875,
+          724.7257690429688,
+          1023.3231201171875
         ]
       }
     }
