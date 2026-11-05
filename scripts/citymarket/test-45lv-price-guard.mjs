@@ -13,4 +13,9 @@ assert.equal(blocked(lv,9,'KIVENNÄISVEDET'),false);
 for(const [page,title] of [[3,'VALIO KOLMIOJUUSTOPALAT 45–300 g'],[3,'CREAM CRACKER 200 g'],[3,'ja RUIS CRACKER 225 g'],[4,'PIRKKA MEETVURSTIT 150 g'],[9,'KOFF VIRVOITUSJUOMAT 0,33 l 24-pack']]){
  assert.equal(blocked(lv,page,title),true,'Brand-prefixed unsafe row must be suppressed: '+title);
 }
-console.log('Citymarket 45LV unsafe price guard: 20 checks passed');
+for(const title of ['KÄÄREELLISET KONVEHDIT 250–320 g','KÄÄREELLISET KONVEHDIT 209 g']){
+ assert.equal(blocked(lv,8,title),true,'Ambiguous two-pack chocolate price must be quarantined');
+ assert.equal(blocked(av,8,title),false,'Other publication must remain unchanged');
+ assert.equal(blocked(lv,7,title),false,'Other page must remain unchanged');
+}
+console.log('Citymarket 45LV unsafe price guard: 26 checks passed');
