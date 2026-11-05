@@ -10,10 +10,10 @@ test("cloud snapshot preserves shared local diary and uses user-scoped cache",()
  const other={...meal,id:"00000000-0000-4000-8000-00000000000b"};
  const db=storage({[ARVO_MEALS_KEY]:JSON.stringify([meal])});
  const result=applyArvoCloudSnapshot(db,user,[other],[]);
- assert.deepEqual(result.meals.map(m=>m.id).sort(),[id,other.id].sort());
+ assert.deepEqual(result.meals.map(m=>m.id),[other.id]);
  assert.deepEqual(readArvoMeals(db).map(m=>m.id),[id]);
  assert.equal(db.getItem(arvoUserCloudCacheKey(otherUser)),null);
- assert.equal(JSON.parse(db.getItem(arvoUserCloudCacheKey(user))).meals.length,2);
+ assert.equal(JSON.parse(db.getItem(arvoUserCloudCacheKey(user))).meals.length,1);
 });
 test("remote tombstone hides stale local meal in scoped cloud snapshot without deleting local history",()=>{
  const db=storage({[ARVO_MEALS_KEY]:JSON.stringify([meal])});
@@ -27,14 +27,29 @@ test("failed cloud cache write cannot corrupt local diary",()=>{
  assert.throws(()=>applyArvoCloudSnapshot(db,user,[],[id]),/disk-full/);
  assert.deepEqual(readArvoMeals(db).map(m=>m.id),[id]);
 });
-test("conflicting cloud meal cannot overwrite shared local diary",()=>{
+test("cloud meal with same ID never overwrites shared local diary",()=>{
  const db=storage({[ARVO_MEALS_KEY]:JSON.stringify([meal])});
  const result=applyArvoCloudSnapshot(db,user,[{...meal,name:"Different"}],[]);
- assert.deepEqual(result.conflicts,[id]);
- assert.equal(db.getItem(arvoUserCloudCacheKey(user)),null);
+ assert.deepEqual(result.conflicts,[]);
+ assert.equal(JSON.parse(db.getItem(arvoUserCloudCacheKey(user))).meals[0].name,"Different");
  assert.equal(readArvoMeals(db)[0].name,"Testi");
 });
 test("cloud snapshot rejects invalid account ID before writing",()=>{
  const db=storage();
  assert.throws(()=>applyArvoCloudSnapshot(db,"invalid",[],[]),/invalid-cloud-user/);
+});
+
+test("two accounts never receive shared local meals in cloud caches",()=>{
+ const db=storage({[ARVO_MEALS_KEY]:JSON.stringify([meal])});
+ applyArvoCloudSnapshot(db,user,[],[]);
+ applyArvoCloudSnapshot(db,otherUser,[],[]);
+ assert.deepEqual(JSON.parse(db.getItem(arvoUserCloudCacheKey(user))).meals,[]);
+ assert.deepEqual(JSON.parse(db.getItem(arvoUserCloudCacheKey(otherUser))).meals,[]);
+ assert.deepEqual(readArvoMeals(db).map(m=>m.id),[id]);
+});
+test("conflicting duplicate remote rows fail closed",()=>{
+ const db=storage();
+ const result=applyArvoCloudSnapshot(db,user,[meal,{...meal,name:"Different"}],[]);
+ assert.deepEqual(result.conflicts,[id]);
+ assert.equal(db.getItem(arvoUserCloudCacheKey(user)),null);
 });
