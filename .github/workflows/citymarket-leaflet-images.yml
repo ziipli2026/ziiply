@@ -86,6 +86,11 @@ jobs:
             node scripts/citymarket/check-edition-pair.mjs artifacts/citymarket-images/0/leaflet.json artifacts/citymarket-images/1/leaflet.json
           fi
           node scripts/citymarket/verify-images.mjs
+          coverage=()
+          for ((i=0;i<${#entries[@]};i++)); do
+            coverage+=("artifacts/citymarket-images/$i/leaflet.json")
+          done
+          node scripts/citymarket/check-image-coverage.mjs "${coverage[@]}"
       - name: Verify browser image fragments
         if: steps.clock.outputs.run == 'true' && github.event_name != 'schedule'
         run: |
