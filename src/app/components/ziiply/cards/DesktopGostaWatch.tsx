@@ -11,21 +11,21 @@ export default function DesktopGostaWatch(){
  const [offers,setOffers]=React.useState<Offer[]>([]);
  const [ready,setReady]=React.useState(false);
  const [loading,setLoading]=React.useState(false);
- const [open,setOpen]=React.useState(false);
+ const [open,setOpen]=React.useState(true);
  const [error,setError]=React.useState("");
  const [notice,setNotice]=React.useState("");
  const [checkedKey,setCheckedKey]=React.useState("");
  const key=terms.map(x=>x.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
  React.useEffect(()=>{
-  const read=()=>{try{const v=JSON.parse(localStorage.getItem(TERMS)||"[]");setTerms(Array.isArray(v)?v.filter((x:unknown):x is string=>typeof x==="string"&&!!x.trim()).slice(0,30):[]);}catch{setTerms([]);}};
+  const read=()=>{try{const v=JSON.parse(localStorage.getItem(TERMS)||"[]");setTerms(Array.isArray(v)?v.filter((x:unknown):x is string=>typeof x==="string"&&!!x.trim()).slice(0,30):[]);const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached&&Array.isArray(cached.offers)&&cached.offers.length){setOffers(cached.offers);setReady(true);setOpen(true);}}catch{setTerms([]);}};
   read();window.addEventListener("storage",read);window.addEventListener("ziiply-gosta-watch-changed",read);
   return()=>{window.removeEventListener("storage",read);window.removeEventListener("ziiply-gosta-watch-changed",read);};
  },[]);
  React.useEffect(()=>{
   setError("");
   setLoading(false);
-  try{const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===key&&Array.isArray(cached.offers)){setOffers(cached.offers);setReady(true);}}catch{}
-  if(!key){setOffers([]);setReady(false);return;}
+  if(!key)return;
+  try{const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===key&&Array.isArray(cached.offers)&&cached.offers.length){setOffers(cached.offers);setReady(true);setOpen(true);}}catch{}
   let cancelled=false,running=false,last=0;
   const scan=async()=>{
    if(cancelled||running||document.visibilityState!=="visible")return;
@@ -37,9 +37,10 @@ export default function DesktopGostaWatch(){
     if(!response.ok||!data.ok||!Array.isArray(data.results))throw Error(String(data.error||"Tarjoushaku epäonnistui"));
     const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
     if(!cancelled){
-     setOffers(current=>data.partial&&current.length>next.length?current:next);
-     setReady(true);setCheckedKey(key);setError(data.partial?"Osa kaupoista jäi tarkistamatta.":"");
-     if(!data.partial){try{localStorage.setItem(RESULTS,JSON.stringify({key,offers:next,at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+     // A temporary empty or partial refresh must never erase previously found offers.
+     setOffers(current=>next.length===0&&current.length>0?current:data.partial&&current.length>next.length?current:next);
+     setReady(true);setCheckedKey(key);setError(data.partial?"Osa kaupoista jäi tarkistamatta; aiemmat löydöt säilyvät.":next.length===0&&offers.length>0?"Uusia osumia ei saatu; aiemmat löydöt säilyvät.":"");
+     if(!data.partial&&next.length>0){try{localStorage.setItem(RESULTS,JSON.stringify({key,offers:next,at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
      last=Date.now();
     }
    }catch(e){if(!cancelled)setError("Päivitys epäonnistui; aiemmat tulokset säilyvät.");}
