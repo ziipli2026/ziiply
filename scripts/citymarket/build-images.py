@@ -129,6 +129,7 @@ def build(folder,manifest_path,public_folder,review_path):
                   'candidateImageRectangles':candidates[:15],
                   'status':'manual-review-needed'})
   if unresolved:
+   print(f'::warning::Citymarket PDF page {number+1}: {len(unresolved)} unresolved images of {len(rows)} offers')
    sheet=page.get_pixmap(matrix=fitz.Matrix(1.4,1.4),alpha=False)
    sheet.save(str(folder/f'unresolved-review-page-{number+1}.png'))
   for row in rows:
