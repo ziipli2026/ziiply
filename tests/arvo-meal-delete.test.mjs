@@ -48,3 +48,15 @@ test("Arvo deletion does not access database when authorization fails",async()=>
  assert.deepEqual(await deleteArvoCloudMeal(token,id,async()=>({...access,userDisabledAt:now}),()=> "b".repeat(64),remove,now),{ok:false,reason:"unauthorized"});
  assert.equal(queries,0);
 });
+
+test("Arvo deletion always scopes SQL to authenticated user, never request-supplied identity",async()=>{
+ const otherUser="00000000-0000-4000-8000-000000000002";
+ let params;
+ const remove=createArvoNeonMealDeleter({query:async(sql,bound)=>{params=bound;assert.match(sql,/\$1::uuid,\$2::uuid/);return {rows:[{deleted:null}]};}});
+ const result=await deleteArvoCloudMeal(token,{id,userId:otherUser},async()=>access,()=> "b".repeat(64),remove,now);
+ assert.deepEqual(result,{ok:false,reason:"invalid-meal-id"});
+ assert.equal(params,undefined);
+ assert.deepEqual(await deleteArvoCloudMeal(token,id,async()=>access,()=> "b".repeat(64),remove,now),{ok:true});
+ assert.deepEqual(params,[user,id]);
+ assert.notEqual(params[0],otherUser);
+});
