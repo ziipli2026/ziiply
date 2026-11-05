@@ -3,8 +3,10 @@
 export function isUnverified45LVPrice(leafletUrl,page,title){
   if(!/90e9db1_tarjouslehti_45LV_KCM/i.test(String(leafletUrl||''))) return false;
   const name=String(title||'').trim();
-  if(page===3 && /^(?:KOLMIOJUUSTOPALAT|ja RUIS CRACKER)\b/i.test(name)) return true;
-  if(page===4 && /^M4EETVURSTIT\b/i.test(name)) return true;
-  if(page===9 && /^VIRVOITUSJUOMAT\b/i.test(name)) return true;
+  // The OCR can prepend the brand or a stray digit to the product heading.
+  // Match the distinctive product term, but only on its reviewed PDF page.
+  if(page===3 && /(?:KOLMIOJUUSTOPALAT|(?:CREAM|RUIS)\\s+CRACKER)/i.test(name)) return true;
+  if(page===4 && /(?:MEETVURSTIT|M4EETVURSTIT)/i.test(name)) return true;
+  if(page===9 && /VIRVOITUSJUOMAT/i.test(name)) return true;
   return false;
 }
