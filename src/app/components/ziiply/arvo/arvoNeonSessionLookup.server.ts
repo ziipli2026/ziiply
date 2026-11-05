@@ -12,6 +12,7 @@ export function createArvoNeonSessionLookup(db:ArvoSqlExecutor):ArvoSessionLooku
   );
   if(result.rows.length!==1)return null;
   const row=result.rows[0];
+  if(!row||typeof row!=="object"||Array.isArray(row))return null;
   const required=["sessionUserId","sessionExpiresAt","sessionRevokedAt","userDisabledAt","cloudMealGrantedAt","cloudMealRevokedAt"];
   if(!required.every(key=>Object.hasOwn(row,key)))return null;
   const nullableDate=(value:unknown):value is string|Date|null=>value===null||typeof value==="string"||value instanceof Date;
