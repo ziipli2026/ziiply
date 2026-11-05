@@ -109,6 +109,16 @@ def build(folder,manifest_path,public_folder,review_path):
    options.sort()
    if len(options)==1 or len(options)>1 and options[1][0]-options[0][0]>.08:
     accepted[options[0][1]].append(b)
+  # Geometry must not silently rescue an image from a different bordered
+  # publisher cell. Keep cell ownership as an exclusion, not just a positive
+  # assignment rule.
+  image_cell_owners={}
+  for b in blocks:
+   x0,y0,x1,y1=b['bbox'];ix=(x0+x1)/(2*page.rect.width);iy=(y0+y1)/(2*page.rect.height)
+   owners=[r['id'] for r in rows if cells_by_id[r['id']] and
+           cells_by_id[r['id']][0]<ix<cells_by_id[r['id']][2] and
+           cells_by_id[r['id']][1]<=iy<=cells_by_id[r['id']][3]]
+   image_cell_owners[tuple(round(v,3) for v in b['bbox'])]=set(owners)
   # Rescue a package image only when geometry independently agrees in both
   # directions: this offer's closest unowned image is also that image's
   # closest offer, with a strong distance margin and no intervening border.
@@ -119,7 +129,8 @@ def build(folder,manifest_path,public_folder,review_path):
   for b in blocks:
    x0,y0,x1,y1=b['bbox'];w=(x1-x0)/page.rect.width;h=(y1-y0)/page.rect.height
    if w<.05 or h<.05 or w*h<.005 or w*h>.25 or y0<0 or y1>page.rect.height*.95:continue
-   if tuple(round(v,3) for v in b['bbox']) in owned_boxes:continue
+   key=tuple(round(v,3) for v in b['bbox'])
+   if key in owned_boxes or image_cell_owners[key]:continue
    eligible.append(b)
   def proximity(row,block):
    a=row['anchor'];x0,y0,x1,y1=block['bbox']
