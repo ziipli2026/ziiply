@@ -2315,8 +2315,10 @@ function KauppiasMobileTopBar({
       lastAcceptedSpeed = kmh;
       if (!driving) return;
       queryLimit(position);
-      if (kmh < 20) belowThresholdSince ??= now;
-      else belowThresholdSince = null;
+      // Hide immediately on the first valid GPS fix below 20 km/h.
+      // Do not render 0 or low speeds during the former 30-second grace period.
+      if (kmh < 20) { reset(); return; }
+      belowThresholdSince = null;
       setMobileDrivingSpeed(Math.round(kmh));
     };
     const watchId = navigator.geolocation.watchPosition(
@@ -3105,7 +3107,7 @@ function KauppiasMobileTopBar({
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <div className="absolute inset-x-[3px] top-[7px] flex h-[46px] items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums" style={{ color: mobileSpeedLimit === null ? "#173b31" : mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileDrivingSpeed}</div>
+          <div className="absolute inset-0 flex items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums" style={{ color: mobileSpeedLimit === null ? "#173b31" : mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileDrivingSpeed}</div>
           
         </div>
       </div>}
