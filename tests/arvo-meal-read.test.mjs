@@ -124,3 +124,19 @@ test("Arvo reader refuses malformed or ambiguous consent confirmations",async()=
   await assert.rejects(read(user),/cloud-consent-revoked/);
  }
 });
+
+test("Arvo cloud read fails closed if Neon consent confirmation throws",async()=>{
+ const read=createArvoNeonMealReader({query:async(sql)=>{
+  if(sql.startsWith("SELECT 1 AS active"))throw Error("database-offline");
+  return {rows:[]};
+ }});
+ const result=await readArvoCloudMeals(token,async()=>access,()=> "b".repeat(64),read,now);
+ assert.deepEqual(result,{ok:false,reason:"storage-failed"});
+});
+test("Arvo cloud read never invokes Neon for unauthorized user",async()=>{
+ let queries=0;
+ const read=createArvoNeonMealReader({query:async()=>{queries++;return {rows:[]};}});
+ const result=await readArvoCloudMeals(token,async()=>({...access,sessionRevokedAt:now}),()=> "b".repeat(64),read,now);
+ assert.deepEqual(result,{ok:false,reason:"unauthorized"});
+ assert.equal(queries,0);
+});
