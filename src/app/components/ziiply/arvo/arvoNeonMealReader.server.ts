@@ -4,7 +4,7 @@ import {validateArvoMealPayload} from "./arvoMealPayload.server.ts";
 const asNumeric=(value:unknown):number|null=>{
  if(value===null)return null;
  if(typeof value!=="number"&&typeof value!=="string")throw Error("arvo-invalid-cloud-numeric");
- if(typeof value==="string"&&!/^\\d+(?:\\.\\d+)?$/.test(value))throw Error("arvo-invalid-cloud-numeric");
+ if(typeof value==="string"&&!/^\d+(?:\.\d+)?$/.test(value))throw Error("arvo-invalid-cloud-numeric");
  const parsed=Number(value);
  if(!Number.isFinite(parsed))throw Error("arvo-invalid-cloud-numeric");
  return parsed;
