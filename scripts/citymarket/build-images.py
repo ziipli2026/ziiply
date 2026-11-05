@@ -194,6 +194,10 @@ def build(folder,manifest_path,public_folder,review_path):
     candidate['assignedToOtherOffer']=tuple(round(v,3) for v in candidate['rectangle']) in assigned_boxes
    eligible_candidates=[c for c in candidates if not c['rejectedBySize'] and not c['blocked'] and not c['assignedToOtherOffer']]
    closest=eligible_candidates[0] if eligible_candidates else None
+   # Record exact distance evidence for the next geometric matching pass.
+   nearest_distance=round(closest['distance'],4) if closest and closest['distance'] is not None else None
+   next_distance=round(eligible_candidates[1]['distance'],4) if len(eligible_candidates)>1 and eligible_candidates[1]['distance'] is not None else None
+   nearest_gap=round(next_distance-nearest_distance,4) if nearest_distance is not None and next_distance is not None else None
    if not candidates:reason='no-pdf-image-objects'
    elif not eligible_candidates:
     reason='nearest-images-already-owned' if any(c['assignedToOtherOffer'] and not c['rejectedBySize'] and not c['blocked'] for c in candidates) else 'all-candidates-rejected-by-size-or-border'
@@ -204,7 +208,9 @@ def build(folder,manifest_path,public_folder,review_path):
    else:reason='package-text-or-reciprocal-ownership-not-proven'
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
                   'candidateImageRectangles':candidates[:15],
-                  'nearbyImageObjects':len(nearby),'status':status,'diagnosticReason':reason})
+                  'nearbyImageObjects':len(nearby),'status':status,'diagnosticReason':reason,
+                  'nearestEligibleDistance':nearest_distance,'secondEligibleDistance':next_distance,'nearestDistanceGap':nearest_gap,
+                  'anchor':anchor})
   if unresolved:
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
