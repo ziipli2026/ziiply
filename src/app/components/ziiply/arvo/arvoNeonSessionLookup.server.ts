@@ -14,6 +14,19 @@ export function createArvoNeonSessionLookup(db:ArvoSqlExecutor):ArvoSessionLooku
   const row=result.rows[0];
   const required=["sessionUserId","sessionExpiresAt","sessionRevokedAt","userDisabledAt","cloudMealGrantedAt","cloudMealRevokedAt"];
   if(!required.every(key=>Object.hasOwn(row,key)))return null;
-  return row as unknown as ArvoServerAccess;
+  const nullableDate=(value:unknown):value is string|Date|null=>value===null||typeof value==="string"||value instanceof Date;
+  if(typeof row.sessionUserId!=="string")return null;
+  if(!nullableDate(row.sessionExpiresAt)||row.sessionExpiresAt===null)return null;
+  if(!nullableDate(row.sessionRevokedAt)||!nullableDate(row.userDisabledAt))return null;
+  if(!nullableDate(row.cloudMealGrantedAt)||!nullableDate(row.cloudMealRevokedAt))return null;
+  const access:ArvoServerAccess={
+   sessionUserId:row.sessionUserId,
+   sessionExpiresAt:row.sessionExpiresAt,
+   sessionRevokedAt:row.sessionRevokedAt,
+   userDisabledAt:row.userDisabledAt,
+   cloudMealGrantedAt:row.cloudMealGrantedAt,
+   cloudMealRevokedAt:row.cloudMealRevokedAt,
+  };
+  return access;
  };
 }
