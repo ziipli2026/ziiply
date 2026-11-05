@@ -108,3 +108,10 @@ test("Arvo reader rejects duplicate active meal IDs",async()=>{
  })});
  await assert.rejects(read(user),/duplicate-cloud-meal/);
 });
+
+test("Arvo reader rejects invalid user ID before any SQL query",async()=>{
+ let queries=0;
+ const read=createArvoNeonMealReader({query:async()=>{queries++;return {rows:[]};}});
+ await assert.rejects(read("invalid-user"),/invalid-cloud-user/);
+ assert.equal(queries,0);
+});
