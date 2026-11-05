@@ -10,4 +10,4 @@ for(const [page,title] of [[3,'KOLMIOJUUSTOPALAT 45–300 g'],[3,'ja RUIS CRACKE
 assert.equal(blocked(lv,3,'KOLMIOJUUSTO 100 g'),false);
 assert.equal(blocked('https://example.com/another_tarjouslehti_45LV_KCM/index.html',3,'KOLMIOJUUSTOPALAT'),false,'Future week 45 issues must not inherit this quarantine');
 assert.equal(blocked(lv,9,'KIVENNÄISVEDET'),false);
-console.log('Citymarket 45LV unsafe price guard: 14 checks passed');
+console.log('Citymarket 45LV unsafe price guard: 15 checks passed');
