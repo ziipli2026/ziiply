@@ -5,8 +5,9 @@ import {
 
 /** Persistent staged leaflet editions; no request may publish an upcoming edition. */
 async function database() {
-  if (!process.env.DATABASE_URL) throw new Error("Leaflet staging requires DATABASE_URL");
-  const sql = neon(process.env.DATABASE_URL);
+  const databaseUrl = process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error("Leaflet staging requires a database connection");
+  const sql = neon(databaseUrl);
   await sql`CREATE TABLE IF NOT EXISTS ziiply_offer_publications (
     chain TEXT NOT NULL,
     publication_id TEXT NOT NULL,
