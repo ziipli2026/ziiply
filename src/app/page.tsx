@@ -3116,8 +3116,8 @@ function KauppiasMobileTopBar({
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <div className="absolute inset-x-0 top-[5px] flex items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums" style={{ color: mobileSpeedLimit === null ? "#173b31" : mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileDrivingSpeed}</div>
-          {mobileSpeedLimit !== null && <div aria-label={`Nopeusrajoitus ${mobileSpeedLimit}`} className="absolute bottom-[4px] left-1/2 flex h-[27px] min-w-[27px] -translate-x-1/2 items-center justify-center rounded-full border-[2.5px] border-[#d92d26] bg-white px-[3px] text-[11px] font-black leading-none text-black shadow-sm tabular-nums">{mobileSpeedLimit}</div>}
+          <div className="absolute inset-x-0 top-[4px] flex items-center justify-center whitespace-nowrap text-center text-[30px] font-black leading-none tracking-[-0.07em] tabular-nums" style={{ color: mobileSpeedLimit === null ? "#173b31" : mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileDrivingSpeed}</div>
+          {mobileSpeedLimit !== null && <div aria-label={`Nopeusrajoitus ${mobileSpeedLimit}`} className="absolute bottom-[3px] left-1/2 flex h-[34px] min-w-[34px] -translate-x-1/2 items-center justify-center rounded-full border-[3px] border-[#d92d26] bg-white px-[3px] text-[13px] font-black leading-none text-black shadow-sm tabular-nums">{mobileSpeedLimit}</div>}
           
         </div>
       </div>}
