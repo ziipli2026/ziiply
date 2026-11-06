@@ -196,6 +196,8 @@ def build(folder,manifest_path,public_folder,review_path):
      supported.append((distance,block,proof))
     if len(supported)!=1:
      if supported:print(f'Citymarket page {number+1}: ambiguous distant OCR candidates for {row["title"]}: {[(round(d,3),sorted(proof)) for d,_,proof in supported]}')
+     elif unique_words:print(f'Citymarket page {number+1}: no unique distant package OCR proof for {row["title"]}; title words {sorted(unique_words)}')
+     else:print(f'Citymarket page {number+1}: no unique long title token for {row["title"]}; title words {sorted(title_context[row["id"]])}')
      continue
     distance,b,proof=supported[0]
     competitors=sorted(proximity(other,b) for other in unmatched if other['id']!=row['id'] and not blocked(page,other['anchor'],b['bbox']))
