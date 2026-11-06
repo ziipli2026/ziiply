@@ -178,7 +178,9 @@ def build(folder,manifest_path,public_folder,review_path):
    if choices[0][0]>.12:
     # Evaluate all plausible packages, not only the nearest one: the
     # publisher may place the right image behind an unrelated nearer image.
-    unique_words={word for word in context[row['id']] if freq[word]==1 and len(word)>=8}
+    # Nearby PDF text often repeats a product name in adjacent offers.
+    # Prefer distinctive title words; keep the full-page uniqueness check.
+    unique_words={word for word in words(row.get('normalizedTitle',row['title'])) if freq[word]==1 and len(word)>=8}
     supported=[]
     for distance,block in choices:
      if distance>.35:break
@@ -190,10 +192,14 @@ def build(folder,manifest_path,public_folder,review_path):
                     for word in context[other['id']] if len(word)>=8 for t in label)]
      if competing:continue
      supported.append((distance,block,proof))
-    if len(supported)!=1:continue
+    if len(supported)!=1:
+     if supported:print(f'Citymarket page {number+1}: ambiguous distant OCR candidates for {row["title"]}: {[(round(d,3),sorted(proof)) for d,_,proof in supported]}')
+     continue
     distance,b,proof=supported[0]
     competitors=sorted(proximity(other,b) for other in unmatched if other['id']!=row['id'] and not blocked(page,other['anchor'],b['bbox']))
-    if competitors and competitors[0]-distance<.10:continue
+    if competitors and competitors[0]-distance<.10:
+     print(f'Citymarket page {number+1}: distant OCR candidate rejected by reciprocal distance for {row["title"]}: own {distance:.3f}, competing {competitors[0]:.3f}, proof {sorted(proof)}')
+     continue
     accepted[row['id']].append(b)
     eligible.remove(b)
     print(f'Citymarket page {number+1}: unique distant package OCR match for {row["title"]}: {sorted(proof)}')
