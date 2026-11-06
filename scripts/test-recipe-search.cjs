@@ -51,6 +51,11 @@ for(const c of cases){
  }
  report.push({recipe:c.title,source:c.url,ingredients:terms.length,searches:search.terms.length,cart});
 }
+assert.equal(core.parseRecipeIngredient('2 tl musta- tai valkopippuria').name,'mustapippuria');
+assert.equal(core.recipeProductSearchTerm(core.parseRecipeIngredient('2 tl musta- tai valkopippuria').name),'mustapippuri');
+assert.equal(core.parseRecipeIngredient('2 tl valko- tai mustapippuria').name,'valkopippuria');
+assert.equal(core.recipeProductCompatible('mustapippuria',{name:'Duni musta-valkoinen paperipillilajitelma 20 kpl'}),false);
+assert.equal(core.recipeProductCompatible('mustapippuria',{name:'Meira Mustapippuri jauhettu 31g'}),true);
 assert.equal(core.parseRecipeIngredient('lohta 600 g').amount,600);
 assert.equal(core.packageCount(1,'mystery',2,'mystery'),null);
 assert.equal(core.parseRecipeIngredient('5½ dl vehnäjauhoja').amount,5.5);
