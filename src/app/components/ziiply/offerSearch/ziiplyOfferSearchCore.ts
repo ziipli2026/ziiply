@@ -692,12 +692,12 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   return parsedResults;
 }
 
-async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearchContextV152) {
+async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearchContextV152, forceRefresh = false) {
   const contextKey = buildOfferSearchContextKeyV152(context) || "global";
   const now = Date.now();
   const cached = ziiplyGostaMasterCacheV156.get(contextKey);
 
-  if (cached && cached.expiresAt > now) {
+  if (!forceRefresh && cached && cached.expiresAt > now) {
     return cached.promise;
   }
 
@@ -727,7 +727,9 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
       return cleaned;
     })
     .catch((error) => {
-      ziiplyGostaMasterCacheV156.delete(contextKey);
+      if (ziiplyGostaMasterCacheV156.get(contextKey)?.promise === promise) {
+        ziiplyGostaMasterCacheV156.delete(contextKey);
+      }
       throw error;
     });
 
@@ -1003,6 +1005,7 @@ export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
 export async function searchZiiplyGostaOffersV146(options: {
   query: string;
   captureDiagnostics?: boolean;
+  forceRefresh?: boolean;
   terms?: string[];
   context?: ZiiplyGostaOfferSearchContextV152;
 }) {
@@ -1034,7 +1037,7 @@ export async function searchZiiplyGostaOffersV146(options: {
     // Category chips must not run a direct text search like q="Liha" or q="Hevi".
     // They use the full Gösta master offer dataset and then filter locally by
     // the category classifier. This restores the earlier working category behavior.
-    const masterResults = await fetchGostaMasterOfferResultsV156(options.context);
+    const masterResults = await fetchGostaMasterOfferResultsV156(options.context, options.forceRefresh);
 
     nextResults = searchByCategory
       ? masterResults.filter(
