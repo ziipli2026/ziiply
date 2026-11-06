@@ -269,7 +269,13 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  const explicitlyFresh=/\btuore(?:tta|ita|et|en|ita)?\b/.test(recipeSource);
  if(explicitlyFresh&&/pakast|kuivatt/.test(name+" "+category))return "fresh_ingredient_required";
 
- if(["ruokaöljy","rypsiöljy","oliiviöljy"].includes(term)&&(/margariin|levite|majoneesi/.test(name)||category.includes("/")&&!/(?:^|\/)[^/]*oljyt?(?:\/|$)/.test(category)))return "cooking_oil_product_required";
+ if(["ruokaöljy","rypsiöljy","oliiviöljy"].includes(term)){
+   // The requested oil must be the product, not a component of fish, snacks or prepared food.
+   const oilProduct=/(?:rypsi|rapsi|oliivi|auringonkukka|ruoka)öljy/.test(name);
+   const otherProduct=/tonnikal|simpuk|kalajalost|savumuik|savuahven|pizzakal|krutonk|lohkoperun|edamame|papu|sips|perunalastu|salaat|keksi|leipä|kastike|pesto|margariin|levite|majoneesi|geeli|puhdistus|hius|voide|saippua|öljyssä|öljyllä|öljystä|öljyä ja|öljyä sisältäv|öljyvalmiste|öljymargariini|öljy-kasvirasva/.test(name);
+   if(!oilProduct||otherProduct)return "cooking_oil_product_required";
+   if(category.includes("/")&&!/(?:^|\/)[^/]*oljyt?(?:\/|$)/.test(category))return "cooking_oil_category_required";
+ }
  if(["ruokaöljy","rypsiöljy","oliiviöljy"].includes(term)&&/basilika|chili|valkosipuli|sitruuna|yrtti|tryffeli/.test(name)&&!/basilika|chili|valkosipuli|sitruuna|yrtti|tryffeli/.test(requirement))return "plain_oil_required";
  if(term==="voi"&&(/sips|chips|peruna|mun[aa]|levite|flora|rasvaseos/.test(name)||category.includes("/")&&!/\/voit$/.test(category)))return "butter_product_required";
  const spiceTerms=["valkosipulijauhe","sipulijauhe","suola","merisuola","maustepippuri","mustapippuri","valkopippuri","laakerinlehti","curry","juustokumina","kardemumma","kaneli","oregano","paprikajauhe","basilika","timjami","korianteri","persilja","chilihiutale","pizzamauste","välimeren yrttiseos","sormisuola"];
