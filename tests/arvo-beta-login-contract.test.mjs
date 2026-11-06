@@ -1,0 +1,27 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+
+const root="src/app/api/beta/login/";
+for(const name of ["request","verify"]){
+ test(`beta ${name} mutation stays disabled until explicitly enabled`,()=>{
+  const code=readFileSync(root+name+"/route.ts","utf8");
+  assert.match(code,/ZIIPLY_BETA_LOGIN_ENABLED/);
+  assert.match(code,/ZIIPLY_BETA_RATE_LIMIT_READY/);
+  assert.match(code,/ZIIPLY_PUBLIC_ORIGIN/);
+  assert.match(code,/headers\.get\("origin"\)/);
+  assert.match(code,/DATABASE_URL/);
+  assert.match(code,/Cache-Control.*no-store/);
+ });
+}
+test("beta session verification issues HttpOnly cookie and consumes challenge",()=>{
+ const code=readFileSync(root+"verify/route.ts","utf8");
+ assert.match(code,/consumed_at\s*=\s*now\(\)/);
+ assert.match(code,/c\.consumed_at IS NULL/);
+ assert.match(code,/c\.expires_at > now\(\)/);
+ assert.match(code,/a\.status IN \('invited', 'active'\)/);
+ assert.match(code,/response\.cookies\.set\(BETA_COOKIE_NAME/);
+ const cookie=readFileSync("src/lib/ziiplyBetaSessionSecurity.mjs","utf8");
+ assert.match(cookie,/httpOnly:\s*true/);
+ assert.match(cookie,/secure:\s*true/);
+});
