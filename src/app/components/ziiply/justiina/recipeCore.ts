@@ -21,6 +21,9 @@ export function parseRecipeIngredient(line: string, id = "0"): RecipeIngredient 
   // Keep mixed unicode fractions distinct: 5½ means 5 + 1/2, never 51/2.
   clean=normalizeRecipeAlternatives(line).replace(/(\d)([½¼¾⅓⅔⅛])/g,"$1 $2").replace(/[½¼¾⅓⅔⅛]/g,x=>fractions[x]).replace(/[\u00a0\u202f]/g," ").replace(/^[#*•–-]+\s*/,"").trim();
   clean=clean.replace(/^(?:n\.|noin|vajaa|reilu)\s*/i,"");
+  // Expand Finnish shared-suffix alternatives: "musta- tai valkopippuria" means
+  // "mustapippuria tai valkopippuria", never a search for the colour "musta-".
+  clean=clean.replace(/\b(musta|valko)-\s+tai\s+(musta|valko)(pippur[\p{L}]*)/giu,(_match,first,_second,suffix)=>first+suffix+" tai "+_second+suffix);
   // When a fish recipe explicitly offers fillets, retain that alternative's own amount.
   const alternative=clean.replace(/\([^()]*\)/g, segment => segment.replace(/\s+tai\s+/gi, " __RECIPE_PAREN_OR__ ")).split(/\s+tai\s+/i).map(segment => segment.replace(/ __RECIPE_PAREN_OR__ /g, " tai "));
   const filletAlternative=alternative.length>1&&alternative.every(x=>/silak|kirjoloh|loh(?:i|ta)/i.test(x))?alternative.find(x=>/file/i.test(x)):undefined;
