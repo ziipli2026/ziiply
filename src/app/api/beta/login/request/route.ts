@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   // Stay disabled until shared rate limiting and schema verification are completed.
   if (process.env.ZIIPLY_BETA_LOGIN_ENABLED !== "true" || process.env.ZIIPLY_BETA_RATE_LIMIT_READY !== "true")
     return NextResponse.json({ ok: false, code: "BETA_LOGIN_TEST_NOT_READY" }, { status: 503, headers: noStore });
-  const config = [process.env.ARVO_TEST_DATABASE_URL, process.env.ZIIPLY_SMTP_HOST, process.env.ZIIPLY_SMTP_USER, process.env.ZIIPLY_SMTP_PASSWORD, process.env.ZIIPLY_BETA_MAIL_FROM];
+  const config = [process.env.ARVO_TEST_DATABASE_URL, process.env.ZIIPLY_SMTP_HOST, process.env.ZIIPLY_SMTP_USER, process.env.ARVO_SMTP_PASSWORD, process.env.ZIIPLY_BETA_MAIL_FROM];
   if (config.some(value => !value))
     return NextResponse.json({ ok: false, code: "BETA_LOGIN_NOT_CONFIGURED" }, { status: 503, headers: noStore });
   let body: unknown;
