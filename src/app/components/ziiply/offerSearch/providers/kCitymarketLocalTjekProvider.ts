@@ -43,9 +43,10 @@ export function getKCitymarketLocalTjekDebug(selectedStoreName: string): LocalPr
 // Shared durable snapshot: only publish fully completed Tjek scans.
 // Keep the previous successful snapshot if the upstream scan times out.
 async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
-  if (!process.env.DATABASE_URL) return null;
+  const databaseUrl = process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL;
+  if (!databaseUrl) return null;
   try {
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = neon(databaseUrl);
     const rows = await sql`SELECT offers FROM public.ziiply_kcitymarket_tjek_snapshots WHERE (store_key = ${key} OR regexp_replace(lower(store_key), '[^a-z0-9]+', '', 'g') = regexp_replace(lower(${key}), '[^a-z0-9]+', '', 'g')) ORDER BY CASE WHEN store_key = ${key} THEN 0 ELSE 1 END, updated_at DESC LIMIT 1`;
     return Array.isArray(rows[0]?.offers) ? rows[0].offers as Row[] : null;
   } catch (error) {
@@ -54,8 +55,9 @@ async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
   }
 }
 async function publishSnapshot(key: string, offers: Row[], publicationIds: string[]): Promise<void> {
-  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL missing: cannot persist Tjek snapshot");
-  const sql = neon(process.env.DATABASE_URL);
+  const databaseUrl = process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error("Cannot persist Tjek snapshot without a database connection");
+  const sql = neon(databaseUrl);
   await sql`INSERT INTO public.ziiply_kcitymarket_tjek_snapshots (store_key, offers, publication_ids, valid_until, updated_at)
     VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '7 days', NOW())
     ON CONFLICT (store_key) DO UPDATE SET offers = EXCLUDED.offers, publication_ids = EXCLUDED.publication_ids,
@@ -150,8 +152,8 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   // stage/pages/offerIds/running visible so partial coverage is never hidden.
   // A complete scan still wins; if no live rows arrived, use the last snapshot.
   const liveScanComplete = Boolean(entry && !entry.running && entry.progress.stage === "complete");
-  const tjekRows = live.length ? live : fallback;
-  if (entry && !liveScanComplete && live.length) {
+  const tjekRows = liveScanComplete && live.length ? live : fallback.length ? fallback : live;
+  if (entry && !liveScanComplete && live.length && !fallback.length) {
     console.info("[K-Citymarket] serving verified progressive Tjek rows", JSON.stringify({
       storeName: selectedStoreName, storeId: entry.progress.storeId,
       stage: entry.progress.stage, pages: entry.progress.pages,
