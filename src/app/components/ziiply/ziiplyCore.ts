@@ -2690,9 +2690,10 @@ export function scoreBaseNormalResult(query: string, product: Product) {
 
   score += getGroceryNonFoodPenalty(query, product);
 
-  const price = getProductPrice(product);
-  if (price > 0) score -= Math.min(18, price / 1000);
-
+  // Price is deliberately excluded from relevance scoring. It is a separate
+  // tie-breaker applied after product type/name/category/pack-size relevance.
+  // Mixing raw cents and normalized euros here made identical products rank
+  // differently depending on their provider.
   return score;
 }
 
@@ -2827,22 +2828,17 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   products: T[],
   priceOf: (product: T) => number,
 ): T[] {
-  // Preserve the semantic ranking (real product type, category and name).
-  // The old score/40 buckets discarded the core-intent ordering and allowed
-  // cheap unrelated products to precede actual matches.
-  const ranked = rankNormalSearchResults(query, products);
-  const order = new Map(ranked.map((product, index) => [product, index]));
-  return [...products].sort((a, b) => {
-    const semanticOrder = (order.get(a) ?? Number.MAX_SAFE_INTEGER) - (order.get(b) ?? Number.MAX_SAFE_INTEGER);
-    if (semanticOrder !== 0) return semanticOrder;
-    const ap = priceOf(a);
-    const bp = priceOf(b);
-    return (Number.isFinite(ap) ? ap : Number.POSITIVE_INFINITY) -
-      (Number.isFinite(bp) ? bp : Number.POSITIVE_INFINITY);
-  });
+  // Apply price only at the final tie-break stage of the shared semantic
+  // comparator. Converting ranked rows to ordinal positions first made every
+  // price comparison unreachable, even for equally relevant products.
+  return rankNormalSearchResults(query, products, (product) => priceOf(product));
 }
 
-export function rankNormalSearchResults(query: string, products: Product[]) {
+export function rankNormalSearchResults(
+  query: string,
+  products: Product[],
+  priceOf: (product: Product) => number = getProductPrice,
+) {
   const intent = detectSearchIntent(query);
   const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
 
@@ -2914,7 +2910,15 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
       const nonFoodDifference = b.nonFoodPenalty - a.nonFoodPenalty;
       if (Math.abs(nonFoodDifference) > 100) return nonFoodDifference;
 
-      return getProductPrice(a.product) - getProductPrice(b.product);
+      // Cheapest comparable product wins only after semantic relevance,
+      // category, size and non-food checks have been applied. Missing prices
+      // are always placed after priced results.
+      const ap = priceOf(a.product);
+      const bp = priceOf(b.product);
+      const comparableA = Number.isFinite(ap) && ap > 0 ? ap : Number.POSITIVE_INFINITY;
+      const comparableB = Number.isFinite(bp) && bp > 0 ? bp : Number.POSITIVE_INFINITY;
+      if (comparableA === comparableB) return 0;
+      return comparableA - comparableB;
     })
     .map(({ product }) => product);
 }
