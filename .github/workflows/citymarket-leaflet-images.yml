@@ -157,7 +157,7 @@ jobs:
                   print(f'::notice::Citymarket unresolved PDF page {item["page"]}: {item["title"]} — {item.get("diagnosticReason")}')
                   print('::notice::Closest candidate package OCR: '+', '.join(item.get('closestCandidateOCRWords',[])[:12]))
                   for candidate in item.get('candidateOCREvidence',[])[:5]:
-                      print(f'::notice::Candidate distance {candidate.get("distance")}: OCR matches {candidate.get("matchingWords",[])}; words {candidate.get("words",[])[:8]}')
+                      print(f'::notice::Candidate distance {candidate.get("distance")}: OCR matches {candidate.get("matchingWords",[])}; fuzzy {candidate.get("fuzzyMatches",[])[:3]}; border {candidate.get("blockedByBorder")}; cell {candidate.get("publisherCellOwners",[])}; owned {candidate.get("alreadyOwnedBy",[])}; words {candidate.get("words",[])[:8]}')
           PY
       - name: Verify browser image fragments
         if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success' && github.event_name != 'schedule'
