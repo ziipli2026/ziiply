@@ -9,7 +9,7 @@ export async function sendBetaLoginEmail({to,loginUrl}) {
   if(!host||!user||!pass||!from) throw new Error("SMTP configuration missing");
   const transport=nodemailer.createTransport({
     host,port:465,secure:true,auth:{user,pass},
-    tls:{servername:process.env.ZIIPLY_SMTP_TLS_SERVERNAME||"smtp.zoner.fi",rejectUnauthorized:true},
+    tls:{servername:process.env.ZIIPLY_SMTP_TLS_SERVERNAME||"zoner.fi",rejectUnauthorized:true},
     connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000
   });
   try {
