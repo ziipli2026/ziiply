@@ -4,7 +4,7 @@ import nodemailer from "nodemailer";
 export async function sendBetaLoginEmail({to,loginUrl}) {
   const host=process.env.ZIIPLY_SMTP_HOST;
   const user=process.env.ZIIPLY_SMTP_USER;
-  const pass=process.env.ZIIPLY_SMTP_PASSWORD;
+  const pass=process.env.ARVO_SMTP_PASSWORD;
   const from=process.env.ZIIPLY_BETA_MAIL_FROM;
   if(!host||!user||!pass||!from) throw new Error("SMTP configuration missing");
   const transport=nodemailer.createTransport({
