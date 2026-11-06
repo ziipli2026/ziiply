@@ -46,6 +46,13 @@ const clean=s=>String(s??'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim(
 const rows=parsed.rows.flatMap(row=>{
  const title=clean(row.title),resolved=row.spatialResolved,percent=Number(row.percentageOffer?.percent);
  if(!title||resolved?.displayOnlyUnitPrice)return [];
+ // The publisher illustrates the shared cracker card with Cream Cracker
+ // packages only. Keep the unillustrated variant in parser evidence.
+ if(pdfSha256==='e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8'&&
+    row.page===3&&/^ja RUIS CRACKER 225 g$/i.test(title)){
+  console.log('Citymarket image audit: no publisher package image for',title);
+  return [];
+ }
  const priced=resolved&&Number(resolved.value)>0;
  if(!priced&&!(percent>0&&percent<100))return [];
  return [{id:`kcm:spatial:${row.page}:${title.toLowerCase()}:${priced?Number(resolved.value):'percent:'+percent}`,
