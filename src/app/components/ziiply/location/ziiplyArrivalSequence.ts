@@ -77,7 +77,10 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  if(moving||(!candidate&&!ambiguous)||(!eligibleCandidate&&!ambiguous)){state.candidateStoreId=null;state.candidateSamples=0;}
  else if(candidate&&state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
  else if(candidate){state.candidateStoreId=candidate.id;state.candidateSamples=1;}
- if(candidate&&candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
+ else {state.candidateStoreId=null;state.candidateSamples=0;}
+ // Keep the last prompt latched while nearby GPS alternates between adjacent shops.
+ // Reset only after leaving the approach area, not on every ambiguous fix.
+ if(candidates.length===0){state.mismatchPromptedStoreId=null;}
  const latched=state.arrivalStoreId?(stores.find(s=>s.id===state.arrivalStoreId)??state.confirmedStore??null):null;
  if(valid&&!moving) {
    if(state.stoppedAt===null)state.stoppedAt=sample.at;
