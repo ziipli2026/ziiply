@@ -31,3 +31,6 @@ jobs:
 
       - name: Test reusable Digiroad matcher
         run: node scripts/test-digiroad-module.mjs
+
+      - name: Test speed limit confirmation and route continuity
+        run: node scripts/test-digiroad-speed-tracker.mjs
