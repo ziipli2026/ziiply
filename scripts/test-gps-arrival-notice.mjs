@@ -60,10 +60,26 @@ x=scenario(sameChain);assert.equal(x.decision.showArrivalMessage,false);assert.e
  }
  assert.equal(prompts,1,'one mismatch prompt per encounter');
 }
-x=scenario(crossChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,false);assert.equal(x.notice,null);
+x=scenario(crossChain);assert.equal(x.decision.showArrivalMessage,false);assert.equal(x.decision.askStoreChange,true,'cross-chain nearby store must request selection change');assert.equal(x.notice,null);
+// Regression: user stops with the wrong chain selected, then manually switches after >30s.
+{
+ let state=initialZiiplyArrivalState();let prompts=0;let final;
+ for(let i=0;i<18;i++){
+  const at=i*3000;
+  final=evaluateZiiplyArrival(state,{at,latitude:crossChain.latitude,longitude:crossChain.longitude,accuracyMeters:5,speedKmh:0},[selected,sameChain,crossChain],[selected.id]);
+  state=final.state;prompts+=Number(final.askStoreChange);
+ }
+ assert.equal(prompts,1,'cross-chain mismatch must prompt once');
+ for(let i=18;i<22;i++){
+  final=evaluateZiiplyArrival(state,{at:i*3000,latitude:crossChain.latitude,longitude:crossChain.longitude,accuracyMeters:5,speedKmh:0},[selected,sameChain,crossChain],[crossChain.id]);
+  state=final.state;
+ }
+ assert.equal(final.status,'in-store','manual switch after 30s must confirm without reload');
+ assert.equal(final.state.arrivalStoreId,crossChain.id);
+}
 x=scenario(selected);n=reduce(x.notice,{type:'tick',at:2000});assert.equal(n.phase,'approach');
 n=reduce(n,{type:'pause',at:8500});assert.equal(n.remainingMs,1500);assert.equal(n.deadline,null);
 n=reduce(n,{type:'tick',at:600000});assert.equal(n.phase,'approach');
 n=reduce(n,{type:'resume',at:600000});assert.equal(n.deadline,601500);
 n=reduce(n,{type:'tick',at:601500});assert.equal(n.phase,'list');
-console.log('PASS arrival: selected-only, same-chain mismatch, cross-chain suppression, once, 4+5+5 timers, pause/resume');
+console.log('PASS arrival: selected-only, same-chain mismatch, cross-chain mismatch and late manual selection, once, 4+5+5 timers, pause/resume');
