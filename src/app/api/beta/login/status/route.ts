@@ -18,7 +18,7 @@ export async function GET() {
     ok: true,
     buildReady: true,
     emailTestReady: configured && enabled && rateLimitReady,
-    loginFlowComplete: true,
+    loginFlowComplete: false, // Build success alone is not an end-to-end authenticated login test.
     reason: configured && enabled && rateLimitReady ? "ready" : "SMTP, database or beta login activation not configured"
   }, { headers: { "Cache-Control": "no-store" } });
 }
