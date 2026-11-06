@@ -73,9 +73,8 @@ const tests=[
    fetchFn:async()=>{
     requests++;
     const geometry=f('main',80).geometry;
-    return {ok:true,json:async()=>({numberMatched:2,features:[
+    return {ok:true,json:async()=>({numberMatched:1,features:[
      {geometry,properties:{oid:'road',nopeusrajoitus:80}},
-     {geometry,properties:{oid:'seasonal',nopeusrajoitus:100,talven_ja_pimean_nopeusrajoitus:80}},
     ]})};
    },
   });
@@ -85,6 +84,20 @@ const tests=[
   time=2000;
   assert.equal((await tievelho.update(fix(20))).speedLimit,80);
   assert.equal(requests,1);
+ }],
+ ['nearby seasonal road prevents confirmation of the adjacent limit',async()=>{
+  const geometry=f('main',80).geometry;
+  const nearby={...geometry,coordinates:geometry.coordinates.map(([x,y])=>[x,y+0.00001])};
+  const tievelho=new DigiroadSpeedService({
+   fetchRoads:fetchTievelhoNearFix,
+   fetchFn:async()=>({ok:true,json:async()=>({numberMatched:2,features:[
+    {geometry,properties:{oid:'seasonal',nopeusrajoitus:100,talven_ja_pimean_nopeusrajoitus:80}},
+    {geometry:nearby,properties:{oid:'adjacent',nopeusrajoitus:60}},
+   ]})}),
+  });
+  for(let observation=0;observation<4;observation++){
+   assert.equal((await tievelho.update(fix(observation*10))).speedLimit,null);
+  }
  }],
  ['reset clears cached state',async()=>{service.reset();assert.equal(service.cache,null);assert.equal(service.tracker.snapshot().status,'unknown')}],
 ];
