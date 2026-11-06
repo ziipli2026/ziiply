@@ -272,6 +272,9 @@ def build(folder,manifest_path,public_folder,review_path):
    # Full token comparison helps find OCR variants like 'tvurst' vs
    # 'meetvurstit' without claiming they prove product identity.
    title_words=sorted(words(row.get('normalizedTitle',row['title'])))
+   # Record near-misses separately: fuzzy OCR scores are evidence for
+   # debugging, never sufficient on their own to publish a picture.
+   title_ocr_near_misses=[]
    closest_candidate=closest if closest else (candidates[0] if candidates else None)
    # Audit the five closest *eligible* images, not only the nearest object.
    # A correct package can be farther away than an unrelated product photo.
@@ -283,8 +286,13 @@ def build(folder,manifest_path,public_folder,review_path):
     except (subprocess.SubprocessError,OSError,ValueError) as exc:
      print(f'::warning::Citymarket PDF page {number+1}: candidate OCR unavailable: {exc}')
      label=[]
+    fuzzy_matches=sorted(({'offerWord':word,'packageWord':token,'similarity':round(SequenceMatcher(None,word,token).ratio(),3)}
+                          for word in title_words for token in label
+                          if len(word)>=7 and len(token)>=6 and SequenceMatcher(None,word,token).ratio()>=.65),
+                         key=lambda match:-match['similarity'])[:5]
     candidate_ocr_evidence.append({'rectangle':candidate['rectangle'],'distance':candidate['distance'],
-                                   'words':label,'matchingWords':sorted(set(label)&context[row['id']])})
+                                   'words':label,'matchingWords':sorted(set(label)&context[row['id']]),
+                                   'fuzzyMatches':fuzzy_matches})
    closest_label_words=[]
    if closest_candidate:
     matched_block=next((b for b in blocks if all(abs(a-c)<.015 for a,c in zip(b['bbox'],closest_candidate['rectangle']))),None)
