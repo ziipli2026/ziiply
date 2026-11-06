@@ -10,7 +10,7 @@ const fail=(status:number)=>NextResponse.json({ok:false},{status,headers:noStore
  */
 export async function POST(request:NextRequest){
  if(process.env.ZIIPLY_ARVO_CLOUD_API_ENABLED!=="true")return fail(404);
- if(!process.env.DATABASE_URL||!process.env.ZIIPLY_PUBLIC_ORIGIN)return fail(503);
+ if(!process.env.ARVO_TEST_DATABASE_URL||!process.env.ZIIPLY_PUBLIC_ORIGIN)return fail(503);
  if(request.headers.get("origin")!==process.env.ZIIPLY_PUBLIC_ORIGIN)return fail(403);
  const token=request.cookies.get(ARVO_BETA_COOKIE_NAME)?.value??null;
  if(!token||!/^[A-Za-z0-9_-]{43}$/.test(token))return fail(401);
