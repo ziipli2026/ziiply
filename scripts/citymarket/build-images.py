@@ -243,7 +243,7 @@ def build(folder,manifest_path,public_folder,review_path):
                   'candidateImageRectangles':candidates[:15],
                   'nearbyImageObjects':len(nearby),'status':status,'diagnosticReason':reason,
                   'nearestEligibleDistance':nearest_distance,'secondEligibleDistance':next_distance,'nearestDistanceGap':nearest_gap,
-                  'anchor':anchor})
+                  'closestCandidateOCRWords':closest_label_words,'anchor':anchor})
   if unresolved:
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
