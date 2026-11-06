@@ -566,7 +566,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // decorations; never change the price, quantity, package or unit metadata.
     // Limit to the 42AV archive until older leaflet regressions are verified.
     const rawTitle=repairCitymarketOCRTitle(clean(row?.title||""));
-    const title=/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle;
+    const title=verified45LV?.title??(/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle);
     if(!title || isNoiseLine(title)) continue;
     // 45AV page 3: Innocent juice 900 ml OR smoothie 750 ml, 3.49 € incl. 0.20 € deposit.
     // The printed unit-price range is 3.66–4.39 €/l excluding deposit.
@@ -584,7 +584,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // A neighbouring card's normal price can occasionally leak into flattened
     // leaflet HTML. A genuine normal price must be strictly above the offer
     // transaction price on the same quantity basis.
-    const normalPrice=normalPriceCandidate!=null && normalPriceCandidate>price
+    const normalPrice=!verified45LV?.reviewedCard && normalPriceCandidate!=null && normalPriceCandidate>price
       ? normalPriceCandidate
       : null;
     const unitMin=Number(row?.unitPrice?.min);
@@ -593,6 +593,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       Number.isFinite(unitMin) && Number.isFinite(unitMax) && Math.abs(unitMin-unitMax)<0.001
         ? unitMin
         : null;
+    if(verified45LV?.reviewedCard) unitPrice=null;
     if(innocent45AV) unitPrice=/TÄYSMEHUT/i.test(title)?3.66:4.39;
 
     // Classify only from the offer's own nearby leaflet text. Never infer an EAN
@@ -602,27 +603,27 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const campaignType: "offer" | "campaign" = /kampanja|kaikki .*?(?:tuotteet|vaatteet)|-\\d+\\s*%/i.test(title) && !/\\b\\d+(?:[,.]\\d+)?\\s*(?:g|kg|ml|l)\\b/i.test(title) ? "campaign" : "offer";
     offers.push({
       id:`kcm:spatial:${row?.page??0}:${title.toLowerCase()}:${price}`,
-      publisherOfferId:row.publisherOfferId,
+      publisherOfferId:verified45LV?.reviewedCard?`kcm:spatial:${row.page}:${clean(row.title).toLowerCase()}:${Number(resolved.value)}`:row.publisherOfferId,
       title,
       price,
       normalPrice,
       unitPrice,
       ...(innocent45AV?{depositAmount:0.20}:{}),
       ...(verified45LV?.depositAmount!=null?{depositAmount:verified45LV.depositAmount}:{}),
-      unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
-      ...citymarketTransactionMetadata(row),
+      unit:verified45LV?.reviewedCard?verified45LV.unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
+      ...(!verified45LV?.reviewedCard?citymarketTransactionMetadata(row):{}),
       ...(resolved?.source?.startsWith("owned-printed") && (resolved?.unit === "setti" || resolved?.packageCount > 1) ? {
         priceBasis: resolved.packageCount > 1 ? "package-total" : "set-total",
         priceText: price.toFixed(2).replace(".", ",") + " € / " + (resolved.packageCount > 1 ? "pkt (" + resolved.packageCount + " kpl)" : "setti"),
       } : {}),
-      ...(verified45LV?{priceBasis:verified45LV.unit==="PKT"?"package-total":"set-total",priceText:price.toFixed(2).replace(".",",")+" € / "+(verified45LV.unit==="PKT"?"24-pack":"2 kpl")}:{}),
-      packageSize:row?.package?.raw??null,
+      ...(verified45LV?{priceBasis:verified45LV.reviewedCard?(verified45LV.quantity>1?"set-total":"package-total"):verified45LV.unit==="PKT"?"package-total":"set-total",priceText:price.toFixed(2).replace(".",",")+" € / "+(verified45LV.priceLabel??(verified45LV.unit==="PKT"?"24-pack":"2 kpl"))}:{}),
+      packageSize:verified45LV?.reviewedCard?null:row?.package?.raw??null,
       offerQuantity,
       offerUnit:verified45LV?.unit??(resolved?.unit?String(resolved.unit).toUpperCase():null),
       resolutionSource:resolved?.source?String(resolved.source):null,
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
-      plussa:/plussa/i.test(nearbyText),
-      benefitText,
+      plussa:verified45LV?.reviewedCard||/plussa/i.test(nearbyText),
+      benefitText:verified45LV?.reviewedCard?"Plussa-etu":benefitText,
       campaignType,
       validFrom:row.printedValidity?.from??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
       validTo:row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
