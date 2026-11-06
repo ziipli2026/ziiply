@@ -87,6 +87,24 @@ def enclosed_cell(page,row,rows):
  inside=[r for r in rows if r.get('anchor') and box[0]<r['anchor']['left']+r['anchor']['width']/2<box[2] and box[1]<=r['anchor']['top']<=box[3]]
  return box if len(inside)==1 else None
 
+def outlined_offer_panels(page, rows):
+ """Find narrow, explicitly drawn panels with exactly one offer anchor."""
+ if any(not row.get('anchor') for row in rows):return []
+ anchors=[(row['id'],fitz.Point(
+     (row['anchor']['left']+row['anchor']['width']/2)*page.rect.width,
+     (row['anchor']['top']+row['anchor']['height']/2)*page.rect.height))
+     for row in rows]
+ panels=[]
+ for drawing in page.get_drawings():
+  if drawing['type'] not in ('s','fs'):continue
+  for item in drawing['items']:
+   if item[0]!='re':continue
+   box=item[1]
+   if not (.10<=box.width/page.rect.width<=.55 and .10<=box.height/page.rect.height<=.55):continue
+   owners=[row_id for row_id,point in anchors if box.contains(point)]
+   if len(owners)==1:panels.append((owners[0],box))
+ return panels
+
 def recover_pdf_text_anchor(page,row,rows):
  """Recover a missing offer anchor only from a unique PDF text occurrence.
 
@@ -166,6 +184,24 @@ def build(folder,manifest_path,public_folder,review_path):
    key=tuple(round(v,3) for v in b['bbox'])
    if key in owned_boxes or image_cell_owners[key]:continue
    eligible.append(b)
+  # An explicitly outlined panel provides ownership even when the package
+  # has no readable OCR. Require full containment and an unambiguous pair.
+  panels=outlined_offer_panels(page,rows) if unmatched else []
+  panel_candidates={row['id']:[] for row in unmatched}
+  for block in eligible:
+   box=fitz.Rect(block['bbox'])
+   panel_owners={owner for owner,panel in panels if panel.contains(box)}
+   if len(panel_owners)!=1:continue
+   owner=next(iter(panel_owners))
+   if owner in panel_candidates:panel_candidates[owner].append(block)
+  for row in unmatched:
+   candidates=panel_candidates[row['id']]
+   if len(candidates)!=1 or blocked(page,row['anchor'],candidates[0]['bbox']):continue
+   block=candidates[0]
+   accepted[row['id']].append(block)
+   eligible.remove(block)
+   print(f'Citymarket page {number+1}: enclosed PDF panel image match for {row["title"]}')
+  unmatched=[row for row in unmatched if not accepted[row['id']]]
   def proximity(row,block):
    a=row['anchor'];x0,y0,x1,y1=block['bbox']
    return math.hypot(((x0+x1)/(2*page.rect.width)-(a['left']+a['width']/2))*1.4,
