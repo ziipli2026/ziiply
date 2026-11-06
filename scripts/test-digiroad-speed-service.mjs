@@ -42,6 +42,29 @@ const tests=[
   await retrying.update(fix(120));
   assert.equal(requests,8);
  }],
+ ['overlapping fixes only match the latest observation',async()=>{
+  let resolveFetch;
+  const overlapping=new DigiroadSpeedService({fetchFn:()=>new Promise(resolve=>{resolveFetch=resolve})});
+  const older=overlapping.update(fix());
+  const latest=overlapping.update(fix(10));
+  resolveFetch({ok:true,json:async()=>({features:[f('main',80)],numberMatched:1})});
+  assert.equal((await older).source,'gps_superseded');
+  assert.equal((await latest).pendingCount,1);
+ }],
+ ['reset discards an outstanding response',async()=>{
+  let resolveFetch;
+  const resetting=new DigiroadSpeedService({fetchFn:()=>new Promise(resolve=>{resolveFetch=resolve})});
+  const older=resetting.update(fix());
+  const resolveOlder=resolveFetch;
+  resetting.reset();
+  const latest=resetting.update(fix(10));
+  const response={ok:true,json:async()=>({features:[f('main',80)],numberMatched:1})};
+  resolveOlder(response);
+  assert.equal((await older).source,'gps_superseded');
+  assert.equal(resetting.cache,null);
+  resolveFetch(response);
+  assert.equal((await latest).pendingCount,1);
+ }],
  ['reset clears cached state',async()=>{service.reset();assert.equal(service.cache,null);assert.equal(service.tracker.snapshot().status,'unknown')}],
 ];
 for(const [name,run] of tests){await run();console.log('PASS '+name)}
