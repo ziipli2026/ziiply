@@ -6,6 +6,26 @@ const {isBadNormalResult,rankProductResultsByRelevanceAndPrice}=require('../src/
 const cases=require('./fixtures/recipe-audit.json');
 const catalog=require('./fixtures/recipe-products.json');
 const distractors=['Vartalosokeri karvanpoistoon 300 g','Pyykkietikka 1 l','Lohikeitto 300 g','Savukirjolohifilee 300 g','Jauheliha-spagetti lastenateria 200 g','Makaroni laatikko valmisateria 400 g','Kookosmaito juoma 1 l','Tilli tuorejuusto 200 g','Valkosipuli jauhettu 50 g','Curry kastike 400 g','Broilerin fileesuikale hunajamarinoitu 400 g','Kananmunan muotoinen suklaa 50 g','Sitruuna saippua 100 g'];
+// Shared ranking regression: semantic match first, then cheapest within the
+// same relevance tier. The explicit price selector represents the normalized
+// comparable price supplied by each search provider.
+const rankingTieCases=[
+ {id:'expensive',name:'Ruokaöljy 1 l',__price:2.99},
+ {id:'cheap',name:'Ruokaöljy 1 l',__price:1.79},
+ {id:'missing',name:'Ruokaöljy 1 l',__price:null},
+];
+assert.deepEqual(
+ rankProductResultsByRelevanceAndPrice('ruokaöljy',rankingTieCases,p=>p.__price??Number.POSITIVE_INFINITY).map(p=>p.id),
+ ['cheap','expensive','missing'],
+ 'equally relevant products must sort by normalized price, with missing prices last'
+);
+const relevanceBeforePrice=[
+ {id:'exact',name:'Ruokaöljy 1 l',__price:4.99},
+ {id:'cheap-weaker',name:'Rypsiöljy 1 l',__price:0.49},
+];
+const relevanceRanked=rankProductResultsByRelevanceAndPrice('ruokaöljy',relevanceBeforePrice,p=>p.__price);
+assert.equal(relevanceRanked[0].id,'exact','a stronger product-name match must remain ahead of a cheaper weaker match');
+
 const report=[];
 for(const c of cases){
  const d=core.parseRecipeText(c.text);
