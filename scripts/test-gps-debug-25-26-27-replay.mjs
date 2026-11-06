@@ -1,5 +1,6 @@
-// Regression replay derived from GPS debug 25, 26, 27 (2026-11-06).
-// Coordinates are rounded real GPS samples; store anchors from gps-store-selection-simulation.yml.
+// Synthetic regression scenarios modeling the observed behavior in GPS debug 25, 26 and 27.
+// These are NOT exact replay samples extracted from the uploaded JSON files.
+// Store anchors are from gps-store-selection-simulation.yml; GPS fixes and timestamps are illustrative.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
