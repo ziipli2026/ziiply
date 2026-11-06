@@ -71,6 +71,7 @@ test("beta login and Arvo cloud storage use isolated test database variable",()=
   "src/app/api/beta/login/request/route.ts",
   "src/app/api/beta/login/session/route.ts",
   "src/app/api/beta/login/verify/route.ts",
+  "src/app/api/beta/login/status/route.ts",
   "src/app/api/arvo/meals/route.ts",
   "src/app/api/arvo/meals/delete/route.ts",
   "src/app/api/arvo/meals/write/route.ts",
