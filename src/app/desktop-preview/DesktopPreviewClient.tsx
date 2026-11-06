@@ -2137,15 +2137,19 @@ export default function DesktopPreviewPage() {
     const initial=window.setTimeout(()=>{void scan();},250);
     const checkSchedule=()=>{
       if(document.visibilityState!=="visible")return;
-      const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
+      const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
       const get=(type:string)=>parts.find(part=>part.type===type)?.value||"";
       const hour=Number(get("hour"));
       const slotStart=[7,13,19].filter(h=>h<=hour).pop();
       if(slotStart===undefined)return;
-      const slot=[get("year"),get("month"),get("day"),slotStart].join("-");
+      const date=[get("year"),get("month"),get("day")].join("-");
+      const oneTimeRun=date==="2026-11-06" && hour===20 && get("minute")==="05";
+      const slot=oneTimeRun ? date+"-20:05-once" : date+"-"+slotStart;
+      if(oneTimeRun && window.sessionStorage.getItem("ziiply-gosta-watch-20261106-2005"))return;
       if(window.sessionStorage.getItem("ziiply-gosta-watch-slot-v1")===slot)return;
       if(gostaWatchScanStarted.current&&Date.now()-gostaWatchScanStarted.current<90000)return;
-      window.sessionStorage.setItem("ziiply-gosta-watch-slot-v1",slot);
+      window.sessionStorage.setItem("ziiply-gosta-watch-slot-v1",oneTimeRun ? date+"-"+slotStart : slot);
+      if(oneTimeRun)window.sessionStorage.setItem("ziiply-gosta-watch-20261106-2005","done");
       void scan();
     };
     const onResume=()=>{
