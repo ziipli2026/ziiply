@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         // Clear the browser cookie even if the database cannot revoke the server session.
         // Do not report successful server-side revocation in this case.
         const response = NextResponse.json({ ok: false, code: "SESSION_REVOCATION_FAILED" }, { status: 503, headers: { "Cache-Control": "no-store" } });
-        response.cookies.set(BETA_COOKIE_NAME, "", { ...betaCookieOptions(0), maxAge: 0 });
+        response.cookies.set(BETA_COOKIE_NAME, "", { ...betaCookieOptions(0), sameSite: "lax" as const, maxAge: 0 });
         return response;
       }
     }
