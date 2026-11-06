@@ -45,6 +45,7 @@ export type ZiiplyMobileSearchResultsCardProps = {
   products?: ZiiplyMobileSearchResultProduct[];
   onClose?: () => void;
   onSkip?: () => void;
+  compact?: boolean;
   onAddProduct?: (product: ZiiplyMobileSearchResultProduct) => void;
 };
 
@@ -257,6 +258,7 @@ export default function ZiiplyMobileSearchResultsCard({
   products = [],
   onClose,
   onSkip,
+  compact = false,
   onAddProduct,
 }: ZiiplyMobileSearchResultsCardProps) {
   const [expandedProduct, setExpandedProduct] = useState<ZiiplyMobileSearchResultProduct | null>(null);
@@ -265,7 +267,7 @@ export default function ZiiplyMobileSearchResultsCard({
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[95] flex items-stretch justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-[3px] sm:hidden">
-      <section className="pointer-events-auto relative flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[2rem] border-[5px] border-[#6d5128] bg-[#fff6db] shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]">
+      <section className={`pointer-events-auto relative flex h-full w-full ${compact ? "max-w-[25rem] rounded-[1.35rem]" : "max-w-[28rem] rounded-[2rem]"} flex-col overflow-hidden border-[5px] border-[#6d5128] bg-[#fff6db] shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]`}>
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.055]"
           style={{
@@ -346,10 +348,10 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    aria-busy={loading} className={`relative flex items-start gap-3 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2.5 shadow-[0_3px_0_rgba(91,72,44,0.12)] ${loading?"opacity-55":""}`}
+                    aria-busy={loading} className={`relative flex items-start ${compact?"gap-2 rounded-[0.85rem] px-2 py-2":"gap-3 rounded-[1.15rem] px-2.5 py-2.5"} overflow-hidden border-[3px] border-[#8c6934] bg-[#fffdf8] shadow-[0_3px_0_rgba(91,72,44,0.12)] ${loading?"opacity-55":""}`}
                   >
-                    <div className="flex w-[5.8rem] shrink-0 flex-col items-center gap-1.5">
-                      <button type="button" disabled={loading} onClick={() => setExpandedProduct(product)} aria-label={`Näytä tuotteen ${name} suurempi kuva ja tiedot`} className="flex h-[5.15rem] w-[5.15rem] items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]">
+                    <div className={`flex shrink-0 flex-col items-center gap-1.5 ${compact?"w-[4.6rem]":"w-[5.8rem]"}`}>
+                      <button type="button" disabled={loading} onClick={() => setExpandedProduct(product)} aria-label={`Näytä tuotteen ${name} suurempi kuva ja tiedot`} className={`flex ${compact?"h-[4.1rem] w-[4.1rem]":"h-[5.15rem] w-[5.15rem]"} items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]`}>
                         {image ? (
                           <img src={image} alt="" className="h-full w-full object-contain" loading="lazy" />
                         ) : (
@@ -368,7 +370,7 @@ export default function ZiiplyMobileSearchResultsCard({
                       </button>
                     </div>
                     <div className="min-w-0 flex-1 pt-0.5">
-                      <div className="break-words text-[0.86rem] font-black leading-tight text-[#123d32]" style={{ fontFamily: cooper }}>{name}</div>
+                      <div className={`${compact?"text-[0.78rem]":"text-[0.86rem]"} break-words font-black leading-tight text-[#123d32]`} style={{ fontFamily: cooper }}>{name}</div>
                       {(product.ean || product.product?.ean) && (
                         <div className="mt-1 break-all text-[0.61rem] font-bold text-[#8a7a55]">
                           EAN {String(product.ean || product.product?.ean)}
