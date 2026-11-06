@@ -1989,7 +1989,7 @@ export default function DesktopPreviewPage() {
     if(!forceRefresh && hit && Date.now()-hit.time<gostaHomeCacheTtl)return Promise.resolve(hit.results);
     const pending=offerWarmPending.current.get(key);
     if(pending)return pending;
-    const promise=searchZiiplyGostaOffersV146({query:"",terms:[],context:ctx,captureDiagnostics:true})
+    const promise=searchZiiplyGostaOffersV146({query:"",terms:[],context:ctx,captureDiagnostics:true,forceRefresh})
       .then(r=>{
         const input=r.diagnosticInput||[];
         const cleaned=cleanZiiplyGostaOfferResultsV146(r.results||[]);
