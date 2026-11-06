@@ -1,5 +1,6 @@
 """Extract publisher image objects. Never infer an EAN or import image-source prices."""
 import argparse,base64,hashlib,html,io,json,math,re,subprocess
+from difflib import SequenceMatcher
 from pathlib import Path
 import fitz
 from PIL import Image
@@ -123,7 +124,7 @@ def build(folder,manifest_path,public_folder,review_path):
    for r in rows:
     a=r.get('anchor')
     if not a or blocked(page,a,b['bbox']):continue
-    proof={word for word in context[r['id']] if freq[word]==1 and any(t==word or len(t)>=6 and len(word)>=6 and t[:6]==word[:6] for t in text)}
+    proof={word for word in context[r['id']] if freq[word]==1 and any(t==word or len(t)>=6 and len(word)>=6 and (t[:6]==word[:6] or (len(t)>=8 and len(word)>=8 and SequenceMatcher(None,t,word).ratio()>=.84)) for t in text)}
     if not proof:continue
     dx=(x0+x1)/2/page.rect.width-(a['left']+a['width']/2);dy=(y0+y1)/2/page.rect.height-a['top']
     distance=math.hypot(dx*1.4,dy*1.3)
