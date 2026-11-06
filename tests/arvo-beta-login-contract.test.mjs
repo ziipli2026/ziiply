@@ -84,3 +84,11 @@ test("beta login and Arvo cloud storage use isolated test database variable",()=
   assert.doesNotMatch(code,/process\\.env\\.DATABASE_URL/,path);
  }
 });
+
+test("Arvo beta SMTP uses a dedicated password variable",()=>{
+ const smtp=readFileSync("src/lib/ziiplyBetaSmtp.mjs","utf8");
+ const status=readFileSync("src/app/api/beta/login/status/route.ts","utf8");
+ assert.match(smtp,/process\.env\.ARVO_SMTP_PASSWORD/);
+ assert.match(status,/"ARVO_SMTP_PASSWORD"/);
+ assert.doesNotMatch(smtp,/process\.env\.ZIIPLY_SMTP_PASSWORD/);
+});
