@@ -60,6 +60,13 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
   },300);
   return()=>{clearTimeout(timer);controller.abort()};
  },[query]);
+ const searchProducts=(recipe:Recipe)=>{
+  const plan=onlineRecipeSearchPlan(recipe.content,recipe.title);
+  if(!plan.items.length){setError("Reseptistä ei löytynyt haettavia ainesosia.");return;}
+  try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:plan.items}));}catch{}
+  if(!onSearchIngredients){setError("Tuotehaku ei ole käytettävissä.");return;}
+  onSearchIngredients(plan.terms);
+ };
  const save=(recipe:Recipe)=>{
   try {
    const key="ziiply-desktop-vihkonen-recipes-v1";
@@ -81,10 +88,10 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
   {!loading&&query.trim()&&!error&&<p>{results.length?results.length+" reseptiosumaa":"Ei reseptejä tällä nimellä."}</p>}
   {results.map(recipe=><article key={recipe.url} className="rounded-xl border border-[#b99d62] bg-white p-3">
    <button type="button" className="w-full text-left font-bold underline" onClick={()=>setOpened(v=>v===recipe.url?null:recipe.url)}>{recipe.title}</button>
+   <div className="mt-3 flex flex-wrap gap-2"><button type="button" className="rounded-lg bg-[#174c3a] px-3 py-2 font-semibold text-white" onClick={()=>searchProducts(recipe)}>Hae tuotteet</button><button type="button" className="rounded-lg border border-[#174c3a] px-3 py-2" onClick={()=>setOpened(v=>v===recipe.url?null:recipe.url)}>{opened===recipe.url?"Piilota resepti":"Näytä resepti"}</button></div>
    {opened===recipe.url&&<div className="mt-2 space-y-2">
     <p className="max-h-64 overflow-auto whitespace-pre-wrap text-sm">{recipe.content}</p>
     <div className="flex flex-wrap gap-2">
-     <button type="button" className="rounded-lg border border-[#174c3a] px-3 py-2" onClick={()=>{const plan=onlineRecipeSearchPlan(recipe.content,recipe.title);if(!plan.items.length){setError("Reseptistä ei löytynyt haettavia ainesosia.");return;}try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:plan.items}));}catch{}onSearchIngredients?.(plan.terms);}}>Hae ainesosat</button>
      <button type="button" className="rounded-lg bg-[#174c3a] px-3 py-2 text-white" onClick={()=>save(recipe)}>Tallenna resepti</button>
      <a href={recipe.url} target="_blank" rel="noopener noreferrer" className="rounded-lg border px-3 py-2">Alkuperäinen resepti</a>
     </div>
