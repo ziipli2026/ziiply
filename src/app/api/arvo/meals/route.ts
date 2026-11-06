@@ -13,7 +13,7 @@ const deny=(status:number)=>NextResponse.json({ok:false,error:status===401?"unau
  */
 export async function GET(request:NextRequest){
  if(process.env.ZIIPLY_ARVO_CLOUD_API_ENABLED!=="true")return deny(404);
- if(!process.env.DATABASE_URL)return deny(503);
+ if(!process.env.ARVO_TEST_DATABASE_URL)return deny(503);
  const token=request.cookies.get(ARVO_BETA_COOKIE_NAME)?.value??null;
  if(!token||!/^[A-Za-z0-9_-]{43}$/.test(token))return deny(401);
  try{
