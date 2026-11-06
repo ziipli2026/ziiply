@@ -76,5 +76,13 @@ assert.equal(core.recipeProductCompatible('persiljaa hienonnettuna',{name:'Persi
 assert.equal(core.recipeRetailPackageCount(core.parseRecipeIngredient('300 g keittojuureksia'),{name:'Keittojuurekset 200 g'}),2);
 assert.equal(core.recipeRetailPackageCount(core.parseRecipeIngredient('300 g keittojuureksia'),{name:'Keittojuurekset 500 g'}),1);
 
+// Regression from the 2026-11-06 real desktop recipe-search JSON export.
+const cookingOilAccepted=['Kotimaista 450ml rypsiöljy','Pirkka rypsi-rapsiöljy 450ml','Keiju rypsiöljy 0,5l','Xtra 1l rapsiöljy','K-Menu rapsiöljy 1l'];
+const cookingOilRejected=['Coop tonnikala paloina oliiviöljyssä MSC 135/104 g','Dave&Jons paahdettuja edamame papuja oliiviöljyllä ja merisuolalla 100 g','Coop oliiviöljyä ja merisuolaa sisältävät krutongit 100 g','Kotimaista rosmariini-oliiviöljy lohkoperuna 450 g, Pakaste','Kotimaista leppäsavukala rypsiöljyssä 150 g/115 g','Coop Juokseva rapsiöljyvalmiste 500 ml'];
+for(const name of cookingOilAccepted)assert.equal(core.recipeProductCompatible('öljyä',{name}),true,'valid cooking oil rejected: '+name);
+for(const name of cookingOilRejected)assert.equal(core.recipeProductCompatible('öljyä',{name}),false,'non-oil accepted: '+name);
+assert.equal(core.recipeProductCompatible('öljyä',{name:'Pirkka rypsiöljy 500ml',category:'oljyt-etikat-ja-salaattikastikkeet/oljyt/rypsi--ja-rapsioljyt'}),true);
+assert.equal(core.recipeProductCompatible('öljyä',{name:'Coop tonnikala oliiviöljyssä',category:'sailykkeet/kala'}),false);
+
 if(process.env.RECIPE_AUDIT_OUTPUT)fs.writeFileSync(process.env.RECIPE_AUDIT_OUTPUT,JSON.stringify(report,null,2));
 console.log('PASS: 10 recipes, '+report.reduce((n,r)=>n+r.searches,0)+' simulated product selections; adversarial products and quantity regressions');
