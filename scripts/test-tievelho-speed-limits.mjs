@@ -6,11 +6,15 @@ const sites = [
   ['Klaukkala / vt 3', [24.77, 60.35, 24.85, 60.42]],
 ];
 
-await Promise.all(sites.map(async ([site, bbox]) => {
+const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
   const url = new URL(endpoint);
   url.search = new URLSearchParams({f: 'application/geo+json', bbox: bbox.join(','), limit: '100'});
   const response = await fetch(url, {signal: AbortSignal.timeout(12000)});
-  assert.ok(response.ok, `${site}: Tievelho HTTP ${response.status}`);
+  if (!response.ok) {
+    const body = await response.text();
+    const title = body.match(/<title>\s*([^<]+)/i)?.[1].trim();
+    throw new Error(`Tievelho HTTP ${response.status}${title ? ` — ${title}` : ''}`);
+  }
   const data = await response.json();
   assert.ok(Array.isArray(data.features), `${site}: GeoJSON features missing`);
   const usable = data.features.filter(({geometry, properties}) => {
@@ -29,3 +33,10 @@ await Promise.all(sites.map(async ([site, bbox]) => {
   }));
   assert.ok(usable.length, `${site}: no speed limit records with WGS84 line geometry`);
 }));
+
+for (const [index, result] of results.entries()) {
+  if (result.status === 'rejected') {
+    console.error(`${sites[index][0]}: ${result.reason.message}`);
+    process.exitCode = 1;
+  }
+}
