@@ -3482,6 +3482,7 @@ export default function DesktopPreviewPage() {
         </section>
 
 
+      <DesktopRecipeSearchDebug active={workspace==="justiina" || desktopListPending || justiinaResultsOpen} />
       <ZiiplyArrivalNotice notice={desktopArrivalNotice.notice}
         onDismiss={desktopArrivalNotice.dismiss} onSkip={desktopArrivalNotice.skip}
         onList={()=>{desktopArrivalNotice.dismiss();setNotebookRecipePicker(false);setNotebookOpen(true);}}
