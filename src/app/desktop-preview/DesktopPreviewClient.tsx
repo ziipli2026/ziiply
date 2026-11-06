@@ -332,6 +332,7 @@ export default function DesktopPreviewPage() {
   const [gostaHomeDebouncedQuery,setGostaHomeDebouncedQuery]=useState("");
   const [gostaHomeSearchResults, setGostaHomeResults] = useState<any[]>([]);
   const [gostaWatchResultsMode,setGostaWatchResultsMode]=useState(false);
+  const [gostaWatchScanReady, setGostaWatchScanReady] = useState(false);
   const [gostaWatchSnapshot, setGostaWatchSnapshot] = useState<{queryKey:string;offers:any[];partial:boolean}|null>(null);
   const [gostaExpandedOfferGroup,setGostaExpandedOfferGroup]=useState<string|null>(null);
   const [gostaHomeLoading, setGostaHomeLoading] = useState(false);
@@ -2101,6 +2102,7 @@ export default function DesktopPreviewPage() {
             return {queryKey:key,...result};
           });
           gostaWatchLastScan.current=Date.now();
+          setGostaWatchScanReady(true);
         }
       }catch{
         // Keep the previous successful count if a background request fails.
@@ -3218,8 +3220,8 @@ export default function DesktopPreviewPage() {
               onReportFuel={()=>{setFuelCompared(false);setFuelReportOpen(true);}}
               onGostaDetails={()=>{setGostaHomeSearchOpen(true);setGostaChainPicker(false);}}
               onGostaHomeSearch={()=>{setGostaHomeSearchOpen(true);setGostaDetailsOpen(false);setGostaChainPicker(false);}}
-              gostaWatchCount={currentGostaWatchSnapshot?.offers.length??0}
-               gostaWatchActive={Boolean(currentGostaWatchSnapshot?.offers.length)}
+              gostaWatchCount={gostaWatchScanReady ? currentGostaWatchSnapshot?.offers.length ?? 0 : 0}
+               gostaWatchActive={gostaWatchScanReady && Boolean(currentGostaWatchSnapshot?.offers.length)}
               onGostaWatchOpen={()=>{setGostaChainPicker(false);openAllGostaWatchResults();}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
