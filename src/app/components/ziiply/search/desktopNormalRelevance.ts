@@ -14,7 +14,8 @@ export function searchWords(value: unknown): string[] {
 const forms: Record<string, string> = {
   tomattia:'tomaattia', mozarellaa:'mozzarellaa',
   kanan:'kana', kananmunan:'kananmuna', kananmunaa:'kananmuna', broilerin:'broileri', kermat:'kerma',
-  maitoa:'maito', maidon:'maito', maidot:'maito', kahvia:'kahvi', kahvin:'kahvi',
+  maitoa:'maito', maidon:'maito', maidot:'maito', kahvia:'kahvi', kahvin:'kahvi', kahvit:'kahvi',
+  papukahvit:'papukahvi', suodatinkahvit:'suodatinkahvi', pannukahvit:'pannukahvi', pikakahvit:'pikakahvi',
   juustoa:'juusto', juuston:'juusto', juustot:'juusto', leipaa:'leipa', leivat:'leipa',
   jogurttia:'jogurtti', jogurtin:'jogurtti', jugurtti:'jogurtti', jugurti:'jogurtti',
   voita:'voi', kermaa:'kerma', kerman:'kerma', jauhelihaa:'jauheliha',
