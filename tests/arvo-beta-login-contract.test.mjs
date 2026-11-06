@@ -41,6 +41,6 @@ test("SMTP failure cleanup errors cannot mask the delivery failure response",()=
 test("logout clears browser cookie even if database revocation fails",()=>{
  const code=readFileSync(root+"logout/route.ts","utf8");
  assert.match(code,/SESSION_REVOCATION_FAILED/);
- assert.match(code,/response\.cookies\.set\(BETA_COOKIE_NAME, "", \{ \.\.\.betaCookieOptions\(0\), maxAge: 0 \}\)/);
+ assert.match(code,/response\.cookies\.set\(BETA_COOKIE_NAME, "", \{ \.\.\.betaCookieOptions\(0\), sameSite: "lax" as const, maxAge: 0 \}\)/);
  assert.match(code,/return response/);
 });
