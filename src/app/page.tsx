@@ -2197,14 +2197,15 @@ function KauppiasMobileTopBar({
     let candidateHigh: { speed: number; at: number } | null = null;
     let lastLimitQueryAt = 0;
     let limitGeneration = 0;
+    const limitFixes: Array<{latitude: number; longitude: number; accuracy: number; heading: number | null; timestamp: number}> = [];
     const queryLimit = (position: GeolocationPosition) => {
     const now = Date.now();
     const { latitude, longitude, accuracy, heading } = position.coords;
-    if (accuracy > 100 || now - lastLimitQueryAt < 12000) {
-      const target = document.getElementById("mobile-speed-limit-debug");
-      if (target && accuracy > 100) { const h = document.getElementById("mobile-speed-limit-debug-history"); if (h) h.textContent += "\nGPS liian epätarkka ±" + Math.round(accuracy) + " m"; }
-      return;
-    }
+    const previous = limitFixes.at(-1);
+    if (previous && position.timestamp - previous.timestamp > 10000) limitFixes.length = 0;
+    limitFixes.push({latitude, longitude, accuracy, heading, timestamp: position.timestamp});
+    if (limitFixes.length > 3) limitFixes.shift();
+    if (limitFixes.length < 3 || now - lastLimitQueryAt < 12000) return;
     lastLimitQueryAt = now;
     const generation = ++limitGeneration;
     const controller = new AbortController();
@@ -2242,14 +2243,10 @@ function KauppiasMobileTopBar({
     };
     debugLine("GPS ±" + Math.round(accuracy) + " m | haku alkaa");
     const timeout = window.setTimeout(() => { debugLine("AIKAKATKAISU 39 s"); controller.abort(); }, 39000);
-    const params = new URLSearchParams({
-      lat: String(latitude),
-      lon: String(longitude),
-      accuracy: String(accuracy),
-    });
-    if (heading !== null && Number.isFinite(heading)) params.set("heading", String(heading));
-    params.set("debug", "1");
-    void fetch("/api/mobile-speed-limit?" + params.toString(), {
+    void fetch("/api/tievelho-speed-limit", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({fixes: limitFixes}),
       signal: controller.signal,
       cache: "no-store",
     }).then(async response => {
@@ -2281,6 +2278,8 @@ function KauppiasMobileTopBar({
       lastAcceptedSpeed = null;
       setMobileDrivingSpeed(null);
       setMobileSpeedLimit(null);
+      limitFixes.length = 0;
+      lastLimitQueryAt = 0;
       ++limitGeneration;
     };
     const applyFix = (position: GeolocationPosition) => {
@@ -2314,10 +2313,10 @@ function KauppiasMobileTopBar({
       lastFixAt = timestamp;
       lastAcceptedSpeed = kmh;
       if (!driving) return;
-      queryLimit(position);
       // Hide immediately on the first valid GPS fix below 20 km/h.
       // Do not render 0 or low speeds during the former 30-second grace period.
       if (kmh < 20) { reset(); return; }
+      queryLimit(position);
       belowThresholdSince = null;
       setMobileDrivingSpeed(Math.round(kmh));
     };
