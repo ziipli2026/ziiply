@@ -59,8 +59,13 @@ export async function POST(request: Request) {
     await sendBetaLoginEmail({ to: email, loginUrl: url.toString() });
   } catch (error) {
     // A failed SMTP attempt must not consume the user's hourly send quota.
-    await sql`DELETE FROM public.ziiply_beta_login_challenges WHERE token_hash = ${tokenHash} AND consumed_at IS NULL`;
-    await sql`DELETE FROM public.ziiply_beta_login_attempts WHERE id = ${allowed[0].id}`;
+    try {
+      await sql`DELETE FROM public.ziiply_beta_login_challenges WHERE token_hash = ${tokenHash} AND consumed_at IS NULL`;
+      await sql`DELETE FROM public.ziiply_beta_login_attempts WHERE id = ${allowed[0].id}`;
+    } catch {
+      // Do not expose database cleanup details or override the SMTP failure response.
+      console.error("[beta-login] SMTP failure cleanup failed");
+    }
     console.error("[beta-login] SMTP delivery failed", { code: error instanceof Error && "code" in error ? String(error.code) : "unknown", command: error instanceof Error && "command" in error ? String(error.command) : "unknown", syscall: error instanceof Error && "syscall" in error ? String(error.syscall) : "unknown" });
     return NextResponse.json({ ok: false, code: "EMAIL_DELIVERY_FAILED" }, { status: 503, headers: noStore });
   }
