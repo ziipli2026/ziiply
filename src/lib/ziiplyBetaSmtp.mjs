@@ -1,5 +1,5 @@
 // Zoner SMTP over TLS; requires ZIIPLY_SMTP_HOST, ZIIPLY_SMTP_USER,
-// ZIIPLY_SMTP_PASSWORD and ZIIPLY_BETA_MAIL_FROM in server environment.
+// ARVO_SMTP_PASSWORD and ZIIPLY_BETA_MAIL_FROM in server environment.
 import nodemailer from "nodemailer";
 export async function sendBetaLoginEmail({to,loginUrl}) {
   const host=process.env.ZIIPLY_SMTP_HOST;
