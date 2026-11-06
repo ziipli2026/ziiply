@@ -68,7 +68,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const selectionExists=selectedStoreIds.length>0;
  const sameChain=!!candidate&&!!normalizedChain(candidate)&&selectedChains.has(normalizedChain(candidate)!);
  const selectedCandidate=!!candidate&&selectedStoreIds.includes(candidate.id);
- const eligibleCandidate=!!candidate&&selectionExists&&(selectedCandidate||sameChain);
+ const eligibleCandidate=!!candidate&&selectionExists; // Any reliably detected nearby store can request a selection change; never auto-select it.
  // Cross-check three consecutive stationary fixes for the SAME physical store.
  // Driving and unknown speed must not contribute to stationary confirmation.
  const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
@@ -85,7 +85,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
    state.stationarySamples=(state.stationarySamples??0)+1;
  } else if(valid&&moving) {state.stoppedAt=null;state.lastStationarySampleAt=null;state.lastStationaryPosition=null;state.stationarySamples=0;}
  if(valid&&moving&&state.tripStartedAt===null)state.tripStartedAt=sample.at;
- const stable=!moving&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=ZIIPLY_PARKED_SAMPLE_MS&&sample.at-state.stoppedAt<=30000&&(state.stationarySamples??0)>=3&&dt<=10;
+ const stable=!moving&&state.stoppedAt!==null&&sample.at-state.stoppedAt>=ZIIPLY_PARKED_SAMPLE_MS&&(state.stationarySamples??0)>=3&&dt<=10;
  // A confirmed visit is sticky across GPS loss and isolated outliers.
  if(latched&&valid) {
    const distance=ziiplyDistanceMeters(sample,latched);
@@ -99,7 +99,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const arrivalConfirmed=!retained&&valid&&!ambiguous&&eligibleCandidate
    &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable&&(state.candidateSamples??0)>=3;
  const showArrivalMessage=!!arrivalConfirmed&&selectedCandidate;
- const askStoreChange=!!arrivalConfirmed&&!selectedCandidate&&sameChain&&state.mismatchPromptedStoreId!==candidate!.id;
+ const askStoreChange=!!arrivalConfirmed&&!selectedCandidate&&selectionExists&&state.mismatchPromptedStoreId!==candidate!.id;
  if(askStoreChange)state.mismatchPromptedStoreId=candidate!.id;
  // A mismatch is only a question; it must never mark the user as present in an unselected shop.
  if(showArrivalMessage){state.arrivalStoreId=candidate!.id;state.confirmedStore=candidate;state.tripConfirmed=true;state.departureSamples=0;}
