@@ -2201,6 +2201,7 @@ function KauppiasMobileTopBar({
     const now = Date.now();
     const { latitude, longitude, accuracy, heading } = position.coords;
     if (accuracy > 100 || now - lastLimitQueryAt < 12000) {
+      recordArrivalDiagnostic("speed-limit-query-skipped", { reason: accuracy > 100 ? "gps-accuracy" : "throttled", accuracyM: Math.round(accuracy), waitMs: Math.max(0, 12000 - (now - lastLimitQueryAt)) });
       const target = document.getElementById("mobile-speed-limit-debug");
       if (target && accuracy > 100) { const h = document.getElementById("mobile-speed-limit-debug-history"); if (h) h.textContent += "\nGPS liian epätarkka ±" + Math.round(accuracy) + " m"; }
       return;
@@ -2208,6 +2209,8 @@ function KauppiasMobileTopBar({
     lastLimitQueryAt = now;
     const generation = ++limitGeneration;
     const controller = new AbortController();
+    const startedAt = Date.now();
+    recordArrivalDiagnostic("speed-limit-query-start", { generation, accuracyM: Math.round(accuracy), heading: heading === null ? null : Math.round(heading), latitude, longitude });
     const debugLine = (message: string) => {
       let target = document.getElementById("mobile-speed-limit-debug");
       if (!target) {
@@ -2241,7 +2244,7 @@ function KauppiasMobileTopBar({
       }
     };
     debugLine("GPS ±" + Math.round(accuracy) + " m | haku alkaa");
-    const timeout = window.setTimeout(() => { debugLine("AIKAKATKAISU 39 s"); controller.abort(); }, 39000);
+    const timeout = window.setTimeout(() => { recordArrivalDiagnostic("speed-limit-query-timeout", { generation, elapsedMs: Date.now() - startedAt }); debugLine("AIKAKATKAISU 39 s"); controller.abort(); }, 39000);
     const params = new URLSearchParams({
       lat: String(latitude),
       lon: String(longitude),
@@ -2257,6 +2260,8 @@ function KauppiasMobileTopBar({
         limit: number | null; reason?: string;
         diagnostics?: { accuracy: number; radius: number; providers: Array<{provider:string;ms:number;status:number|null;outcome:string;candidates?:number}> };
       };
+      recordArrivalDiagnostic("speed-limit-query-response", { generation, httpStatus: response.status, elapsedMs: Date.now() - startedAt, limit: data.limit, reason: data.reason ?? null, radiusM: data.diagnostics?.radius ?? null, providerCount: data.diagnostics?.providers?.length ?? 0 });
+      data.diagnostics?.providers?.forEach((provider, index) => recordArrivalDiagnostic("speed-limit-provider", { generation, index, provider: provider.provider, httpStatus: provider.status, elapsedMs: provider.ms, outcome: provider.outcome, candidates: provider.candidates ?? null }));
       const providerLines = data.diagnostics?.providers.map(p =>
         p.provider + " | HTTP " + (p.status ?? "—") + " | " + p.outcome + " | " + p.ms + "ms | roads " + (p.candidates ?? "—")
       ).join("\n") ?? "Palvelimen diagnostiikka puuttuu";
@@ -2265,13 +2270,15 @@ function KauppiasMobileTopBar({
       if (!response.ok) throw new Error("HTTP " + response.status + " " + (data.reason ?? ""));
       return data;
     }).then(data => {
-      if (!active || generation !== limitGeneration) return;
+      if (!active || generation !== limitGeneration) { recordArrivalDiagnostic("speed-limit-response-ignored", { generation, currentGeneration: limitGeneration, active }); return; }
       const limit = typeof data.limit === "number" && Number.isFinite(data.limit) ? data.limit : null;
       debugLine(limit === null ? "EI RAJOITUSTA | " + (data.reason ?? "tuntematon") : "RAJOITUS " + limit + " km/h | " + (data.reason ?? "matched"));
+      recordArrivalDiagnostic("speed-limit-display-update", { generation, limit, reason: data.reason ?? null });
       setMobileSpeedLimit(limit);
      }).catch((error: unknown) => {
       if (!(error instanceof Error && error.message.startsWith("HTTP "))) debugLine("VERKKOVIRHE " + (error instanceof Error ? error.name + ": " + error.message : String(error)));
-      if (active && generation === limitGeneration) setMobileSpeedLimit(null);
+      recordArrivalDiagnostic("speed-limit-query-error", { generation, elapsedMs: Date.now() - startedAt, error: error instanceof Error ? error.name + ": " + error.message : String(error), applied: active && generation === limitGeneration });
+      if (active && generation === limitGeneration) { recordArrivalDiagnostic("speed-limit-display-update", { generation, limit: null, reason: "query-error" }); setMobileSpeedLimit(null); }
     }).finally(() => window.clearTimeout(timeout));
   };
   const reset = () => {
@@ -2280,6 +2287,7 @@ function KauppiasMobileTopBar({
       candidateHigh = null;
       lastAcceptedSpeed = null;
       setMobileDrivingSpeed(null);
+      recordArrivalDiagnostic("speed-limit-display-reset", { reason: "speed-reset", previousGeneration: limitGeneration });
       setMobileSpeedLimit(null);
       ++limitGeneration;
     };
@@ -2314,6 +2322,7 @@ function KauppiasMobileTopBar({
       lastFixAt = timestamp;
       lastAcceptedSpeed = kmh;
       if (!driving) return;
+      recordArrivalDiagnostic("speed-display-sample", { speedKmh: Math.round(kmh), accuracyM: Math.round(accuracy), speedLimitQueryEligible: kmh >= 20 });
       queryLimit(position);
       // Hide immediately on the first valid GPS fix below 20 km/h.
       // Do not render 0 or low speeds during the former 30-second grace period.
@@ -2323,7 +2332,7 @@ function KauppiasMobileTopBar({
     };
     const watchId = navigator.geolocation.watchPosition(
       applyFix,
-      () => { /* GPS errors must never create a speed reading. */ },
+      error => { recordArrivalDiagnostic("speed-display-gps-error", { code: error.code, message: error.message }); },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 },
     );
     const timer = window.setInterval(() => {
