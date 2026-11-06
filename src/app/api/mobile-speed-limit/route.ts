@@ -15,6 +15,37 @@ const providerCooldown=new Map<string,number>();
 const roadResultCache=new Map<string,{until:number;body:Record<string,unknown>;status:number}>();
 const MAX_ROAD_CACHE=400;
 type Attempt = { provider: string; ms: number; status: number | null; outcome: string; candidates?: number; limit?: number | null };
+
+// Independent OSM map fallback: retrieve nearby nodes and ways from the official OSM API.
+// This endpoint is deliberately used only after Overpass fails; cache and throttling
+// above limit requests. Never infer a limit when OSM has no explicit maxspeed tag.
+async function fetchOsmMapRoads(latitude:number,longitude:number,radius:number):Promise<OsmRoad[]> {
+  const latSpan=Math.min(0.003, radius/111195);
+  const lonSpan=Math.min(0.005, radius/(111195*Math.max(0.2,Math.cos(latitude*Math.PI/180))));
+  const bbox=[longitude-lonSpan,latitude-latSpan,longitude+lonSpan,latitude+latSpan].map(n=>n.toFixed(6)).join(",");
+  const response=await fetch("https://api.openstreetmap.org/api/0.6/map?bbox="+bbox,{
+    headers:{"Accept":"application/xml","User-Agent":"ZiiplySpeedLimit/1.0 (road speed limit lookup)"},
+    signal:AbortSignal.timeout(5500),cache:"no-store",
+  });
+  if(!response.ok)throw new Error("OSM map HTTP "+response.status);
+  const xml=await response.text();
+  if(xml.length>2_500_000)throw new Error("OSM map too large");
+  const nodes=new Map<string,{lat:number;lon:number}>();
+  for(const m of xml.matchAll(/<node\b([^>]*?)\/?>(?:<\/node>)?/g)){
+    const a=m[1];const id=/\bid="([^"]+)"/.exec(a)?.[1],lat=/\blat="([^"]+)"/.exec(a)?.[1],lon=/\blon="([^"]+)"/.exec(a)?.[1];
+    if(id&&lat&&lon)nodes.set(id,{lat:Number(lat),lon:Number(lon)});
+  }
+  const roads:OsmRoad[]=[];
+  for(const m of xml.matchAll(/<way\b[^>]*>([\s\S]*?)<\/way>/g)){
+    const body=m[1],tags:Record<string,string>={};
+    for(const tag of body.matchAll(/<tag\b[^>]*\bk="([^"]+)"[^>]*\bv="([^"]*)"[^>]*\/>/g))tags[tag[1]]=tag[2];
+    if(!tags.highway||!tags.maxspeed)continue;
+    const geometry=Array.from(body.matchAll(/<nd\b[^>]*\bref="([^"]+)"[^>]*\/>/g),nd=>nodes.get(nd[1])).filter((n):n is {lat:number;lon:number}=>!!n);
+    if(geometry.length>1)roads.push({tags,geometry});
+  }
+  return roads;
+}
+
 export async function GET(request: NextRequest) {
   const p = request.nextUrl.searchParams;
   const lat = p.get("lat"), lon = p.get("lon"), acc = p.get("accuracy"), h = p.get("heading");
@@ -98,6 +129,18 @@ export async function GET(request: NextRequest) {
       return { provider, ms: Date.now() - started, status, outcome: error instanceof Error ? error.name + ": " + error.message.slice(0, 100) : "unknown_error" };
     }
   }));
+  // Overpass providers are often rate-limited or blocked from serverless networks.
+  // Use the independent official OSM map API as a last resort, not another Overpass mirror.
+  if(!attempts.some(a=>a.outcome==="matched")){
+    const started=Date.now();
+    try{
+      const roads=await fetchOsmMapRoads(latitude,longitude,radius);
+      const match=matchRoadSpeedLimit(roads,{latitude,longitude,accuracy,heading});
+      attempts.push({provider:"api.openstreetmap.org",ms:Date.now()-started,status:200,outcome:match?"matched":"no_reliable_match",candidates:roads.length,limit:match?.limit??null});
+    }catch(error){
+      attempts.push({provider:"api.openstreetmap.org",ms:Date.now()-started,status:null,outcome:error instanceof Error?error.message.slice(0,100):"unknown_error"});
+    }
+  }
   const matched = attempts.find(a => a.outcome === "matched" && a.limit != null);
   const usable = attempts.some(a => a.status === 200 && (a.candidates ?? 0) > 0);
   const reason = matched ? "matched" : usable ? "no_reliable_match" : attempts.some(a=>a.status===200) ? "no_road_data" : "providers_unavailable";
