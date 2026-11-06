@@ -161,7 +161,23 @@ def build(folder,manifest_path,public_folder,review_path):
                      ((y0+y1)/(2*page.rect.height)-a['top'])*1.3)
   for row in unmatched:
    choices=sorted(((proximity(row,b),b) for b in eligible if not blocked(page,row['anchor'],b['bbox'])),key=lambda item:item[0])
-   if not choices or choices[0][0]>.12:continue
+   if not choices:continue
+   # A long unique package word may be recognized despite OCR noise and
+   # publisher graphics placing the package farther from the offer title.
+   # Do not accept fuzzy text alone: require a single matching offer, a
+   # substantial distance margin and no intervening publisher border.
+   if choices[0][0]>.12:
+    if not (choices[0][0]<=.35 and (len(choices)==1 or choices[1][0]-choices[0][0]>=.10)):
+     continue
+    distance,b=choices[0]
+    label=ocr(b)
+    unique_words={word for word in context[row['id']] if freq[word]==1 and len(word)>=8}
+    proof={word for word in unique_words if any(len(t)>=8 and SequenceMatcher(None,t,word).ratio()>=.84 for t in label)}
+    if not proof:continue
+    other_matches=[other for other in unmatched if other['id']!=row['id'] and
+                   any(len(t)>=8 and SequenceMatcher(None,t,word).ratio()>=.84
+                       for word in context[other['id']] if len(word)>=8 for t in label)]
+    if other_matches:continue
    if len(choices)>1 and choices[1][0]-choices[0][0]<.10:continue
    distance,b=choices[0]
    competitors=sorted(proximity(other,b) for other in unmatched if other['id']!=row['id'] and not blocked(page,other['anchor'],b['bbox']))
