@@ -3253,6 +3253,7 @@ export default function DesktopPreviewPage() {
                gostaWatchActive={gostaWatchScanReady && Boolean(currentGostaWatchSnapshot?.offers.length)}
               onGostaWatchOpen={()=>{setGostaChainPicker(false);openAllGostaWatchResults();}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
+              onArvoScanner={()=>{window.location.assign("/arvo-scanner-preview");}}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
               chooseStoresNoticeFor={chooseStoresNoticeFor}
               onSelect={(key) => {
