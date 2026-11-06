@@ -39,16 +39,16 @@ export default function BetaLoginPage() {
     finally { setBusy(false); }
   }
   return <main style={{maxWidth:460,margin:"4rem auto",padding:"1.5rem",fontFamily:"system-ui"}}>
-    <h1>Ziiply – beetakirjautuminen</h1>
+    <h1 style={{fontSize:24,fontWeight:700,marginBottom:8}}>Ziiply – beetakirjautuminen</h1>
     <p>Kirjaudu beetarekisteriin ilmoittamallasi sähköpostiosoitteella. Et tarvitse salasanaa.</p>
     {!ready && <p role="status">Sähköpostikirjautumisen testiä valmistellaan. Lomake avautuu, kun palvelu on valmis.</p>}
     {authenticated && <section aria-label="Beetaistunto"><p>Olet kirjautunut beetatestaajana.</p><a href="/arvo-tilastot">Avaa Arvon tilastot</a><p><button type="button" onClick={logout} disabled={busy}>Kirjaudu ulos</button></p></section>}
-    {!authenticated && <form onSubmit={submit}>
+    {!authenticated && <form onSubmit={submit} style={{marginTop:24}}>
       <label htmlFor="beta-email">Sähköpostiosoite</label>
       <input id="beta-email" type="email" autoComplete="email" required value={email}
         onChange={e=>setEmail(e.target.value)} disabled={busy}
-        style={{display:"block",width:"100%",padding:12,margin:"8px 0 16px",border:"1px solid #888",borderRadius:8}}/>
-      <button type="submit" disabled={!ready || busy} style={{padding:"12px 20px",borderRadius:8}}>
+        style={{display:"block",width:"100%",padding:12,margin:"8px 0 16px",border:"2px solid #64748b",backgroundColor:"#f8fafc",color:"#0f172a",borderRadius:8}}/>
+      <button type="submit" disabled={!ready || busy} style={{padding:"12px 20px",borderRadius:8,width:"100%",fontWeight:700,backgroundColor:!ready || busy ? "#dbe4e0" : "#176247",color:!ready || busy ? "#34453e" : "#fff",cursor:!ready || busy ? "not-allowed" : "pointer"}}>
         {busy?"Lähetetään…":"Lähetä kirjautumislinkki"}
       </button>
     </form>}
