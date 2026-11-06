@@ -65,6 +65,11 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
  const update=useCallback((decision:ZiiplyArrivalDecision,at:number)=>{
    recordArrivalDiagnostic('arrival-decision',{status:decision.status,store:decision.store?.name??null,storeId:decision.store?.id??null,selected:decision.isSelectedStore,arrival:decision.showArrivalMessage,mismatch:decision.askStoreChange,radar:decision.radar,confirmedStoreId:decision.state.arrivalStoreId,stationarySamples:decision.state.stationarySamples??0,candidateSamples:decision.state.candidateSamples??0,candidateStoreId:decision.state.candidateStoreId??null,departureSamples:decision.state.departureSamples??0,enabled,visible:visible()});
    window.dispatchEvent(new CustomEvent('ziiply-arrival-debug',{detail:{source:'main',status:decision.status,store:decision.store?.name??null,selected:decision.isSelectedStore,arrival:decision.showArrivalMessage,radar:decision.radar}}));
+   if(enabled&&decision.askStoreChange&&visible()){
+     const choices=decision.nearbyStoreChoices?.length?decision.nearbyStoreChoices:decision.store?[decision.store]:[];
+     recordArrivalDiagnostic('arrival-store-change-requested',{stores:choices.map(s=>({id:s.id,name:s.name})),ambiguous:choices.length>1});
+     window.dispatchEvent(new CustomEvent('ziiply-arrival-store-change-requested',{detail:{stores:choices,ambiguous:choices.length>1}}));
+   }
    // Arrival is a latched state: do not lose the one-shot event while Safari is backgrounded.
    const confirmed=decision.status==='in-store'&&decision.state.arrivalStoreId===decision.store?.id;
    if(enabled&&decision.isSelectedStore&&decision.store&&(decision.showArrivalMessage||confirmed)&&!delivered.current.has(decision.store.id)){
