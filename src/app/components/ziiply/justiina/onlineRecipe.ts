@@ -47,9 +47,14 @@ export function onlineRecipeDisplayIngredients(content:string){
 /** A body-text search hit is insufficient: every query word must match the dish title. */
 export function onlineRecipeTitleMatches(title:string,query:string):boolean {
   const words=(value:string)=>value.toLocaleLowerCase("fi").normalize("NFKC").replace(/^keittokirja\//,"").match(/[\p{L}\p{N}]+/gu)||[];
-  const prefixQuery=query.trim().match(/^([\\p{L}\\p{N}]+)\\*$/u);
-  const wanted=words(query), actual=words(title);
-  if(prefixQuery)return actual.some(name=>name.startsWith(prefixQuery[1].toLocaleLowerCase("fi")));
+  const normalizedQuery=query.trim().toLocaleLowerCase("fi");
+  const wildcard=normalizedQuery.match(/^(\\*)?([\\p{L}\\p{N}]+)(\\*)?$/u);
+  const actual=words(title);
+  if(wildcard&&(wildcard[1]||wildcard[3])){
+    const term=wildcard[2];
+    return actual.some(name=>wildcard[1]&&wildcard[3]?name.includes(term):wildcard[1]?name.endsWith(term):name.startsWith(term));
+  }
+  const wanted=words(query);
   return wanted.length>0&&wanted.every(word=>actual.some(name=>name===word||(word.length>=3&&(name.startsWith(word)||name.endsWith(word)))||(word.length>=5&&name.includes(word))));
 }
 
