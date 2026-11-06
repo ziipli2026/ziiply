@@ -65,3 +65,20 @@ test("disabled beta login also rejects existing browser sessions",()=>{
  assert.match(code,/ZIIPLY_BETA_RATE_LIMIT_READY/);
  assert.match(code,/authenticated: false/);
 });
+
+test("beta login and Arvo cloud storage use isolated test database variable",()=>{
+ const paths=[
+  "src/app/api/beta/login/request/route.ts",
+  "src/app/api/beta/login/session/route.ts",
+  "src/app/api/beta/login/verify/route.ts",
+  "src/app/api/arvo/meals/route.ts",
+  "src/app/api/arvo/meals/delete/route.ts",
+  "src/app/api/arvo/consent/route.ts",
+  "src/app/components/ziiply/arvo/arvoCloudOperation.server.ts"
+ ];
+ for(const path of paths){
+  const code=readFileSync(path,"utf8");
+  assert.match(code,/ARVO_TEST_DATABASE_URL/,path);
+  assert.doesNotMatch(code,/process\\.env\\.DATABASE_URL/,path);
+ }
+});
