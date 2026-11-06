@@ -55,7 +55,7 @@ export function onlineRecipeTitleMatches(title:string,query:string):boolean {
     return actual.some(name=>wildcard[1]&&wildcard[3]?name.includes(term):wildcard[1]?name.endsWith(term):name.startsWith(term));
   }
   const wanted=words(query);
-  return wanted.length>0&&wanted.every(word=>actual.some(name=>name===word||(word.length>=3&&(name.startsWith(word)||name.endsWith(word)))||(word.length>=5&&name.includes(word))));
+  return wanted.length>0&&wanted.every(word=>actual.some(name=>name.includes(word)));
 }
 
 /** Use the same plan as the editor, including protein requirements and tap-water exclusion. */
