@@ -8,7 +8,7 @@ export default function BetaLoginPage() {
   const [authenticated,setAuthenticated] = useState(false);
   useEffect(() => {
     fetch("/api/beta/login/status",{cache:"no-store"})
-      .then(r=>r.json()).then(data=>setReady(Boolean(data.emailTestReady && data.loginFlowComplete)))
+      .then(r=>r.json()).then(data=>setReady(Boolean(data.emailTestReady)))
       .catch(()=>setReady(false));
     fetch("/api/beta/login/session",{cache:"no-store"})
       .then(r=>r.json()).then(data=>setAuthenticated(Boolean(data.authenticated)))
