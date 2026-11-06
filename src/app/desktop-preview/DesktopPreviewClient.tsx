@@ -1,6 +1,6 @@
 "use client";
 import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, rankDesktopNormalRows, withDesktopCatalogEvidence, searchWords } from "../components/ziiply/search/desktopNormalRelevance";
-import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults } from "../components/ziiply/justiina/onlineRecipe";
+import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
 import { citymarketFailureNotice } from "../components/ziiply/offerSearch/citymarketAvailability";
 import { recipeCoverageQueries, mergeRecipeSearchResponses } from "../components/ziiply/justiina/recipeSearchCoverage";
@@ -303,8 +303,21 @@ export default function DesktopPreviewPage() {
             if(page.title?.startsWith("Keittokirja/")&&page.fullurl&&!allPages.has(page.title))allPages.set(page.title,page);
           }
         }
+        let nextCatalogPage:string|undefined;
+        for(let batch=0;batch<12;batch++){
+          const params=new URLSearchParams({action:"query",generator:"allpages",gapnamespace:"0",gapprefix:"Keittokirja/",gaplimit:"500",prop:"info",inprop:"url",format:"json",origin:"*"});
+          if(nextCatalogPage)params.set("gapcontinue",nextCatalogPage);
+          const response=await fetch(api+params,{signal:controller.signal});
+          if(!response.ok)break;
+          const catalog=await response.json();
+          for(const page of Object.values(catalog.query?.pages||{}) as {title:string;fullurl:string;index?:number}[]){
+            if(page.title?.startsWith("Keittokirja/")&&page.fullurl&&onlineRecipeTitleMatches(page.title,query)&&!allPages.has(page.title))allPages.set(page.title,page);
+          }
+          nextCatalogPage=catalog.continue?.gapcontinue;
+          if(!nextCatalogPage)break;
+        }
         trace.rawHits=allPages.size;
-        const pages=[...allPages.values()]
+        const pages=[...allPages.values()].filter(p=>onlineRecipeTitleMatches(p.title,query))
           .sort((a,b)=>(a.index||0)-(b.index||0)).slice(0,40);
         trace.recipePages=pages.length;
         const detailLogs:{title:string;http?:number;characters?:number;error?:string}[]=[];
