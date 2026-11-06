@@ -92,3 +92,11 @@ test("Arvo beta SMTP uses a dedicated password variable",()=>{
  assert.match(status,/"ARVO_SMTP_PASSWORD"/);
  assert.doesNotMatch(smtp,/process\.env\.ZIIPLY_SMTP_PASSWORD/);
 });
+
+test("beta readiness lists only names of required isolated configuration keys",()=>{
+ const status=readFileSync("src/app/api/beta/login/status/route.ts","utf8");
+ for(const key of ["ARVO_TEST_DATABASE_URL","ZIIPLY_SMTP_HOST","ZIIPLY_SMTP_USER","ARVO_SMTP_PASSWORD","ZIIPLY_BETA_RATE_LIMIT_SECRET","ZIIPLY_BETA_MAIL_FROM","ZIIPLY_PUBLIC_ORIGIN"]){
+  assert.ok(status.includes(key),key);
+ }
+ assert.match(status,/missingConfigurationKeys/);
+});
