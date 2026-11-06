@@ -19,3 +19,6 @@ jobs:
 
       - name: GPS matching safety regressions
         run: node scripts/test-digiroad-matching-safety.mjs
+
+      - name: Probe motorways ring roads and major routes for 60 to 120 kmh
+        run: node scripts/test-digiroad-main-roads.mjs
