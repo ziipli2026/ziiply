@@ -77,16 +77,28 @@ export async function GET(request: Request) {
     if (process.env.DATABASE_URL) {
       try {
         const sql = neon(process.env.DATABASE_URL);
-        const rows = await sql`SELECT offers FROM public.ziiply_kcitymarket_tjek_snapshots WHERE store_key = 'k-ruoka k citymarket hyvinkaa' ORDER BY updated_at DESC LIMIT 1`;
-        const offers = Array.isArray(rows[0]?.offers) ? rows[0].offers as Record<string,unknown>[] : [];
-        const active = offers.filter(row => row.storeId === "N183"
-          && (row.sourceScope === "SELECTED_STORE_WEB_OFFERS" || (row.debug as Record<string,unknown> | undefined)?.sourceScope === "SELECTED_STORE_WEB_OFFERS")
-          && Number.isFinite(Date.parse(String(row.validFrom ?? "")))
-          && Date.parse(String(row.validFrom)) <= startedAt.getTime()
-          && Date.parse(String(row.validUntil ?? "")) >= startedAt.getTime());
-        await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:active.length>0,count:active.length,
-          outcome:active.length>0?"verified-store-campaigns-active":"verified-store-campaigns-expired-or-missing",
-          details:{storeId:"N183",storedRows:offers.length,source:"K-Ruoka selected store snapshot"}});
+        const rows = await sql`SELECT store_key, offers FROM public.ziiply_kcitymarket_tjek_snapshots
+          WHERE store_key IN ('k-ruoka k citymarket hyvinkaa', 'k citymarket hyvinkaa')`;
+        const activeCount = (key: string, storeId: string, scope: string) => {
+          const offers = rows.find(row => row.store_key === key)?.offers;
+          if (!Array.isArray(offers)) return 0;
+          return (offers as Record<string, unknown>[]).filter(row =>
+            row.storeId === storeId
+            && ((row.debug as Record<string, unknown> | undefined)?.sourceScope ?? row.sourceScope) === scope
+            && Date.parse(String(row.validFrom ?? "")) <= startedAt.getTime()
+            && Date.parse(String(row.validUntil ?? "")) >= startedAt.getTime()
+          ).length;
+        };
+        const verifiedKruokaRows = activeCount("k-ruoka k citymarket hyvinkaa", "N183", "SELECTED_STORE_WEB_OFFERS");
+        const tjekRows = activeCount("k citymarket hyvinkaa", "fe95rtb", "SELECTED_STORE_PUBLICATION");
+        const count = verifiedKruokaRows || tjekRows;
+        await recordPublicationRun({
+          chain: "K", source: "k-citymarket-local-benefits", ok: count > 0, count,
+          outcome: verifiedKruokaRows > 0 ? "verified-store-campaigns-active"
+            : tjekRows > 0 ? "selected-store-publication-active" : "verified-store-campaigns-expired-or-missing",
+          details: { storeId: "N183", verifiedKruokaRows, tjekRows,
+            source: verifiedKruokaRows > 0 ? "K-Ruoka selected store snapshot" : tjekRows > 0 ? "Tjek selected store publication" : "No active selected store snapshot" },
+        });
       } catch (error) {
         await recordPublicationRun({chain:"K",source:"k-citymarket-local-benefits",ok:false,count:0,
           outcome:"store-campaign-audit-error",details:{error:String(error)}}).catch(()=>undefined);
