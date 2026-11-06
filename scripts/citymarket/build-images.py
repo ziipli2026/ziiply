@@ -77,13 +77,35 @@ def enclosed_cell(page,row,rows):
  inside=[r for r in rows if r.get('anchor') and box[0]<r['anchor']['left']+r['anchor']['width']/2<box[2] and box[1]<=r['anchor']['top']<=box[3]]
  return box if len(inside)==1 else None
 
+def recover_pdf_text_anchor(page,row,rows):
+ """Recover a missing offer anchor only from a unique PDF text occurrence.
+
+ Never infer coordinates from another offer or a nearby image.
+ """
+ tokens=[w for w in re.findall(r'[A-Za-zÅÄÖåäö]{5,}',row['title']) if w.lower() not in STOP]
+ other=' '.join(r['title'] for r in rows if r['id']!=row['id']).lower()
+ for token in tokens:
+  if token.lower() in other:continue
+  hits=page.search_for(token)
+  if len(hits)!=1:continue
+  hit=hits[0]
+  return {'left':hit.x0/page.rect.width,'top':hit.y0/page.rect.height,
+          'width':hit.width/page.rect.width,'height':hit.height/page.rect.height}
+ return None
+
 def build(folder,manifest_path,public_folder,review_path):
  folder=Path(folder);meta=json.loads((folder/'leaflet.json').read_text());pdf=(folder/'leaflet.pdf').read_bytes();digest=hashlib.sha256(pdf).hexdigest();doc=fitz.open(stream=pdf,filetype='pdf')
  if len(doc)!=meta['pageCount']:raise ValueError('PDF page count differs from the parsed publication')
  reviews=json.loads(Path(review_path).read_text()) if Path(review_path).exists() else {}
  reviewed=reviews.get(digest,{});mapping={};report=[];cells=[]
  for number in range(len(doc)):
-  page=doc[number];rows=[r for r in meta['rows'] if r['page']==number+1];blocks=pictures(page);accepted={r['id']:[] for r in rows}
+  page=doc[number];rows=[r.copy() for r in meta['rows'] if r['page']==number+1];blocks=pictures(page);accepted={r['id']:[] for r in rows}
+  for row in rows:
+   if not row.get('anchor'):
+    anchor=recover_pdf_text_anchor(page,row,rows)
+    if anchor:
+     row['anchor']=anchor
+     print(f'Citymarket PDF page {number+1}: recovered unique text anchor for {row["title"]}')
   if not rows:continue
   # Independent package-label text proof must accompany spatial ownership.
   # A distinctive word must occur in only one offer context on this page.
