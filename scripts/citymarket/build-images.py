@@ -231,6 +231,10 @@ def build(folder,manifest_path,public_folder,review_path):
    # PDF images may be displaced from publisher text anchors. Record the
    # closest image's label evidence so large-distance cases can be separated
    # from completely unrelated page graphics without relaxing publication.
+   # Include publisher-package words for diagnostics, never as sole approval.
+   # Full token comparison helps find OCR variants like 'tvurst' vs
+   # 'meetvurstit' without claiming they prove product identity.
+   title_words=sorted(words(row.get('normalizedTitle',row['title'])))
    closest_candidate=closest if closest else (candidates[0] if candidates else None)
    # Audit the five closest *eligible* images, not only the nearest object.
    # A correct package can be farther away than an unrelated product photo.
@@ -255,7 +259,7 @@ def build(folder,manifest_path,public_folder,review_path):
                   'candidateImageRectangles':candidates[:15],
                   'nearbyImageObjects':len(nearby),'status':status,'diagnosticReason':reason,
                   'nearestEligibleDistance':nearest_distance,'secondEligibleDistance':next_distance,'nearestDistanceGap':nearest_gap,
-                  'closestCandidateOCRWords':closest_label_words,'candidateOCREvidence':candidate_ocr_evidence,'anchor':anchor})
+                  'titleWords':title_words,'closestCandidateOCRWords':closest_label_words,'candidateOCREvidence':candidate_ocr_evidence,'anchor':anchor})
   if unresolved:
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
