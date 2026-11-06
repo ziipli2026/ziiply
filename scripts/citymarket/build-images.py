@@ -287,6 +287,8 @@ def build(folder,manifest_path,public_folder,review_path):
    title_ocr_near_misses=[]
    closest_candidate=closest if closest else (candidates[0] if candidates else None)
    # Audit the five closest *eligible* images, not only the nearest object.
+   # Record image dimensions so that the next repair can distinguish a
+   # single large publisher photo from fragmented PDF image objects.
    # A correct package can be farther away than an unrelated product photo.
    candidate_ocr_evidence=[]
    for candidate in eligible_candidates[:5]:
@@ -302,7 +304,7 @@ def build(folder,manifest_path,public_folder,review_path):
                          key=lambda match:-match['similarity'])[:5]
     candidate_ocr_evidence.append({'rectangle':candidate['rectangle'],'distance':candidate['distance'],
                                    'words':label,'matchingWords':sorted(set(label)&context[row['id']]),
-                                   'fuzzyMatches':fuzzy_matches,'blockedByBorder':bool(row.get('anchor') and blocked(page,row['anchor'],match['bbox'])),'publisherCellOwners':sorted(image_cell_owners.get(tuple(round(v,3) for v in match['bbox']),set())),'alreadyOwnedBy':sorted([owner for owner,owned in accepted.items() if match in owned])})
+                                   'fuzzyMatches':fuzzy_matches,'pixelSize':[match.get('width'),match.get('height')],'blockedByBorder':bool(row.get('anchor') and blocked(page,row['anchor'],match['bbox'])),'publisherCellOwners':sorted(image_cell_owners.get(tuple(round(v,3) for v in match['bbox']),set())),'alreadyOwnedBy':sorted([owner for owner,owned in accepted.items() if match in owned])})
    closest_label_words=[]
    if closest_candidate:
     matched_block=next((b for b in blocks if all(abs(a-c)<.015 for a,c in zip(b['bbox'],closest_candidate['rectangle']))),None)
