@@ -14,7 +14,7 @@ export async function POST(request:NextRequest){
  if(!process.env.DATABASE_URL||!process.env.ZIIPLY_PUBLIC_ORIGIN)return fail(503);
  if(request.headers.get("origin")!==process.env.ZIIPLY_PUBLIC_ORIGIN)return fail(403);
  const token=request.cookies.get(ARVO_BETA_COOKIE_NAME)?.value??null;
- if(!token)return fail(401);
+ if(!token||!/^[A-Za-z0-9_-]{43}$/.test(token))return fail(401);
  const length=Number(request.headers.get("content-length")??"0");
  if(!Number.isFinite(length)||length>2048)return fail(413);
  let payload:unknown;
