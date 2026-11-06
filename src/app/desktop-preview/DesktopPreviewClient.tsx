@@ -285,7 +285,7 @@ export default function DesktopPreviewPage() {
       setJustiinaRecipeDebug({...trace});
       try{
         const api="https://fi.wikibooks.org/w/api.php?";
-        const searchUrl=api+new URLSearchParams({action:"query",generator:"search",gsrsearch:"intitle:Keittokirja "+query,gsrnamespace:"0",gsrlimit:"20",prop:"info",inprop:"url",format:"json",origin:"*"});
+        const searchUrl=api+new URLSearchParams({action:"query",generator:"search",gsrsearch:query,gsrnamespace:"0",gsrlimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"});
         const response=await fetch(searchUrl,{signal:controller.signal});
         trace.searchHttp=response.status;
         if(!response.ok)throw new Error("Hakupalvelu ei vastaa: HTTP "+response.status);
@@ -295,7 +295,7 @@ export default function DesktopPreviewPage() {
         trace.rawHits=Object.keys(data.query?.pages||{}).length;
         const pages=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;index?:number}[])
           .filter(p=>p.title?.startsWith("Keittokirja/")&&p.fullurl)
-          .sort((a,b)=>(a.index||0)-(b.index||0)).slice(0,12);
+          .sort((a,b)=>(a.index||0)-(b.index||0)).slice(0,30);
         trace.recipePages=pages.length;
         const detailLogs:{title:string;http?:number;characters?:number;error?:string}[]=[];
         trace.details=detailLogs;
