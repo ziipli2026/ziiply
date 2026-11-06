@@ -67,7 +67,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
    window.dispatchEvent(new CustomEvent('ziiply-arrival-debug',{detail:{source:'main',status:decision.status,store:decision.store?.name??null,selected:decision.isSelectedStore,arrival:decision.showArrivalMessage,radar:decision.radar}}));
    if(enabled&&decision.askStoreChange&&visible()){
      const choices=decision.nearbyStoreChoices?.length?decision.nearbyStoreChoices:decision.store?[decision.store]:[];
-     recordArrivalDiagnostic('arrival-store-change-requested',{stores:choices.map(s=>({id:s.id,name:s.name})),ambiguous:choices.length>1});
+     recordArrivalDiagnostic('arrival-store-change-requested',{stores:JSON.stringify(choices.map(s=>({id:s.id,name:s.name}))),ambiguous:choices.length>1});
      window.dispatchEvent(new CustomEvent('ziiply-arrival-store-change-requested',{detail:{stores:choices,ambiguous:choices.length>1}}));
    }
    // Arrival is a latched state: do not lose the one-shot event while Safari is backgrounded.
