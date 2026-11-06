@@ -187,7 +187,7 @@ export function recipeProductSearchTerm(input: string): string | null {
 }
 /** Equivalent alternative markers in recipe prose, independent of ingredient type. */
 export function normalizeRecipeAlternatives(input:string):string {
- return input.replace(/\s+ja\s*\/\s*tai\s+/gi," tai ").replace(/^tarvittaessa\s+/i,"");
+ return input.replace(/\b(musta|valko)-\s+tai\s+(musta|valko)(pippur[\p{L}]*)/giu,(_all,a,b,tail)=>a+tail+" tai "+b+tail).replace(/\s+ja\s*\/\s*tai\s+/gi," tai ").replace(/^tarvittaessa\s+/i,"");
 }
 /** Preserve recipe qualifiers in provider queries before broad category lookup. */
 export function recipeIdentityQueries(input:string,term:string):string[] {
