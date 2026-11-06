@@ -73,6 +73,7 @@ test("beta login and Arvo cloud storage use isolated test database variable",()=
   "src/app/api/beta/login/verify/route.ts",
   "src/app/api/arvo/meals/route.ts",
   "src/app/api/arvo/meals/delete/route.ts",
+  "src/app/api/arvo/meals/write/route.ts",
   "src/app/api/arvo/consent/route.ts",
   "src/app/components/ziiply/arvo/arvoCloudOperation.server.ts"
  ];
