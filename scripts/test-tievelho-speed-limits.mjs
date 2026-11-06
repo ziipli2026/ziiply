@@ -90,6 +90,18 @@ const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
           assert.equal(matchDigiroadFix(fixAt(0), roads).speedLimit, 120);
           assert.equal(matchDigiroadFix(fixAt(1), roads).speedLimit, 60);
           assert.equal(matchDigiroadFix(fixAt(0.5), roads).reason, 'ambiguous_roads');
+          const center = fixAt(0);
+          const crossing = {
+            properties: {link_id: 'crossing', arvo: 40},
+            geometry: {type: 'LineString', coordinates: [
+              [center.longitude - 3 * offsetLon, center.latitude - 3 * offsetLat],
+              [center.longitude + 3 * offsetLon, center.latitude + 3 * offsetLat],
+            ]},
+          };
+          const junction = [roads[0], crossing];
+          assert.equal(matchDigiroadFix(center, junction).speedLimit, 120);
+          assert.equal(matchDigiroadFix({...center, heading: (heading + 90) % 360}, junction).speedLimit, 40);
+          assert.equal(matchDigiroadFix({...center, heading: null}, junction).reason, 'ambiguous_roads');
           parallelChecked = true;
         }
         const tracker = new DigiroadSpeedTracker();
@@ -108,7 +120,7 @@ const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
       }
     }
   }
-  console.log(JSON.stringify({site, confirmed120Trajectories: confirmed, parallelChecked}));
+  console.log(JSON.stringify({site, confirmed120Trajectories: confirmed, parallelChecked, junctionChecked: parallelChecked}));
   assert.ok(confirmed > 0, `${site}: no 120 km/h trajectory confirmed on its source segment`);
   assert.ok(usable.length, `${site}: no speed limit records with WGS84 line geometry`);
 }));
