@@ -2289,7 +2289,8 @@ function KauppiasMobileTopBar({
       setMobileDrivingSpeed(null);
       recordArrivalDiagnostic("speed-limit-display-reset", { reason: "speed-reset", previousGeneration: limitGeneration });
       setMobileSpeedLimit(null);
-      ++limitGeneration;
+      // Keep an in-flight lookup valid across a brief dip below 20 km/h.
+      // A new lookup supersedes it using its own generation; unmount sets active=false.
     };
     const applyFix = (position: GeolocationPosition) => {
       const now = Date.now();
