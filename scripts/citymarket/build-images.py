@@ -122,6 +122,8 @@ def build(folder,manifest_path,public_folder,review_path):
   context={r['id']:words(r.get('normalizedTitle',r['title'])+' '+' '.join(r['nearby'])) for r in rows}
   cells_by_id={r['id']:enclosed_cell(page,r,rows) for r in rows}
   freq={w:sum(w in v for v in context.values()) for v in context.values() for w in v}
+  title_context={r['id']:words(r.get('normalizedTitle',r['title'])) for r in rows}
+  title_freq={w:sum(w in v for v in title_context.values()) for v in title_context.values() for w in v}
   for b in blocks:
    x0,y0,x1,y1=b['bbox'];w=(x1-x0)/page.rect.width;h=(y1-y0)/page.rect.height
    if w<.05 or h<.05 or w*h<.005 or w*h>.25 or y0<0 or y1>page.rect.height*.95:continue
@@ -180,7 +182,7 @@ def build(folder,manifest_path,public_folder,review_path):
     # publisher may place the right image behind an unrelated nearer image.
     # Nearby PDF text often repeats a product name in adjacent offers.
     # Prefer distinctive title words; keep the full-page uniqueness check.
-    unique_words={word for word in words(row.get('normalizedTitle',row['title'])) if freq[word]==1 and len(word)>=8}
+    unique_words={word for word in title_context[row['id']] if title_freq[word]==1 and len(word)>=8}
     supported=[]
     for distance,block in choices:
      if distance>.35:break
@@ -189,7 +191,7 @@ def build(folder,manifest_path,public_folder,review_path):
      if not proof:continue
      competing=[other for other in unmatched if other['id']!=row['id'] and
                 any(len(t)>=8 and SequenceMatcher(None,t,word).ratio()>=.84
-                    for word in context[other['id']] if len(word)>=8 for t in label)]
+                    for word in title_context[other['id']] if len(word)>=8 for t in label)]
      if competing:continue
      supported.append((distance,block,proof))
     if len(supported)!=1:
