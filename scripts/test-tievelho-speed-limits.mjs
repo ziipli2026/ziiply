@@ -27,7 +27,12 @@ const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
     numberMatched ??= data.numberMatched;
     features.push(...data.features);
     const href = data.links?.find(link => link.rel === 'next')?.href;
-    next = href ? new URL(href, next) : null;
+    next = null;
+    if (href) {
+      assert.ok(data.features.length, 'Tievelho returned an empty page before the end');
+      next = new URL(url);
+      next.searchParams.set('startIndex', String(features.length));
+    }
   }
   if (Number.isInteger(numberMatched)) assert.equal(features.length, numberMatched, 'Incomplete Tievelho results');
   const usable = features.filter(({geometry, properties}) => {
