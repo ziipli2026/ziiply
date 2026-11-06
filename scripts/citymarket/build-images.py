@@ -228,6 +228,17 @@ def build(folder,manifest_path,public_folder,review_path):
    elif len(eligible_candidates)>1 and eligible_candidates[1]['distance']-closest['distance']<.10:
     reason='multiple-images-too-close-to-distinguish'
    else:reason='package-text-or-reciprocal-ownership-not-proven'
+   # PDF images may be displaced from publisher text anchors. Record the
+   # closest image's label evidence so large-distance cases can be separated
+   # from completely unrelated page graphics without relaxing publication.
+   closest_candidate=candidates[0] if candidates else None
+   closest_label_words=[]
+   if closest_candidate:
+    matched_block=next((b for b in blocks if all(abs(a-c)<.015 for a,c in zip(b['bbox'],closest_candidate['rectangle']))),None)
+    if matched_block:
+     try:closest_label_words=sorted(ocr(matched_block))[:24]
+     except (subprocess.SubprocessError,OSError,ValueError) as exc:
+      print(f'::warning::Citymarket PDF page {number+1}: candidate OCR unavailable: {exc}')
    report.append({'id':row['id'],'title':row['title'],'page':row['page'],
                   'candidateImageRectangles':candidates[:15],
                   'nearbyImageObjects':len(nearby),'status':status,'diagnosticReason':reason,
