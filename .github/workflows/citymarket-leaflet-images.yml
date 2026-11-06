@@ -146,7 +146,7 @@ jobs:
                                 'reason':r['status'],'diagnosticReason':r.get('diagnosticReason'),'anchor':r.get('anchor'),
                                 'nearestEligibleDistance':r.get('nearestEligibleDistance'),
                                 'secondEligibleDistance':r.get('secondEligibleDistance'),
-                                'nearestDistanceGap':r.get('nearestDistanceGap'),'candidateImageRectangles':r.get('candidateImageRectangles',[])[:5]})
+                                'nearestDistanceGap':r.get('nearestDistanceGap'),'closestCandidateOCRWords':r.get('closestCandidateOCRWords',[]),'candidateImageRectangles':r.get('candidateImageRectangles',[])[:5]})
               counts={reason:sum(1 for item in queue if item['reason']==reason) for reason in sorted({item['reason'] for item in queue})}
               (report_path.parent/'image-repair-queue.json').write_text(json.dumps({
                   'unresolvedCount':len(queue),'reasonCounts':counts,'items':queue},ensure_ascii=False,indent=2)+'\\n')
@@ -155,6 +155,7 @@ jobs:
                   print(f'::notice::Citymarket image diagnostic: {reason}: {count}')
               for item in queue:
                   print(f'::notice::Citymarket unresolved PDF page {item["page"]}: {item["title"]} — {item.get("diagnosticReason")}')
+                  print('::notice::Closest candidate package OCR: '+', '.join(item.get('closestCandidateOCRWords',[])[:12]))
           PY
       - name: Verify browser image fragments
         if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success' && github.event_name != 'schedule'
