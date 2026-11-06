@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Origin not allowed" }, { status: 403, headers: noStore });
   if (process.env.ZIIPLY_BETA_LOGIN_ENABLED !== "true" ||
       process.env.ZIIPLY_BETA_RATE_LIMIT_READY !== "true" ||
-      !process.env.DATABASE_URL)
+      !process.env.ARVO_TEST_DATABASE_URL)
     return NextResponse.json({ ok: false, code: "BETA_LOGIN_TEST_NOT_READY" }, { status: 503, headers: noStore });
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ ok: false }, { status: 400, headers: noStore }); }
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   try { tokenHash = hashBetaToken(token); } catch {
     return NextResponse.json({ ok: false, code: "INVALID_LINK" }, { status: 400, headers: noStore });
   }
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = neon(process.env.ARVO_TEST_DATABASE_URL);
   // One SQL statement consumes the challenge once and creates the session atomically.
   const sessionToken = createBetaToken();
   const sessionHash = hashBetaToken(sessionToken);
