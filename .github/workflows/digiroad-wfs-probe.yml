@@ -43,3 +43,6 @@ jobs:
 
       - name: Simulate GPS noise and parallel roads
         run: node scripts/test-digiroad-noisy-drive.mjs
+
+      - name: Verify initial GPS recognition keeps retrying
+        run: node scripts/test-digiroad-initial-retry.mjs
