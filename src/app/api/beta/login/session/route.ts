@@ -7,7 +7,10 @@ export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store" };
 export async function GET(request: NextRequest) {
   const token = request.cookies.get(BETA_COOKIE_NAME)?.value;
-  if (!token || !process.env.DATABASE_URL) return NextResponse.json({ authenticated: false }, { headers });
+  if (!token || !process.env.DATABASE_URL ||
+      process.env.ZIIPLY_BETA_LOGIN_ENABLED !== "true" ||
+      process.env.ZIIPLY_BETA_RATE_LIMIT_READY !== "true")
+    return NextResponse.json({ authenticated: false }, { headers });
   let hash: string;
   try { hash = hashBetaToken(token); } catch { return NextResponse.json({ authenticated: false }, { headers }); }
   const sql = neon(process.env.DATABASE_URL);
