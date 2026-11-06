@@ -11,7 +11,17 @@ const sites = [
   { name: 'Klaukkala keskusta', lat: 60.381, lon: 24.753 },
   { name: 'Riihimaki keskusta', lat: 60.738, lon: 24.772 },
   { name: 'Helsinki keskusta', lat: 60.170, lon: 24.941 },
-];
+  // Route 25 Hanko–Porvoo corridor sampling; approximate coordinates near the corridor,
+  // NOT verified road-centerline points. Matching specifically to road 25 needs road identity checks.
+  { name: 'Vt25 Hanko vicinity', lat: 59.824, lon: 22.968 },
+  { name: 'Vt25 Tammisaari vicinity', lat: 59.974, lon: 23.434 },
+  { name: 'Vt25 Karjaa vicinity', lat: 60.071, lon: 23.660 },
+  { name: 'Vt25 Lohja vicinity', lat: 60.248, lon: 24.060 },
+  { name: 'Vt25 Nummela vicinity', lat: 60.333, lon: 24.320 },
+  { name: 'Vt25 Hyvinkaa vicinity', lat: 60.631, lon: 24.859 },
+  { name: 'Vt25 Mantsala vicinity', lat: 60.635, lon: 25.320 },
+  { name: 'Vt25 Porvoo vicinity', lat: 60.392, lon: 25.665 },
+]; 
 const radius = 0.001; // approx 100m latitude, wider in longitude
 const timeoutMs = 12000;
 let failures = 0;
