@@ -34,3 +34,6 @@ jobs:
 
       - name: Test speed limit confirmation and route continuity
         run: node scripts/test-digiroad-speed-tracker.mjs
+
+      - name: Test GPS cache and network request suppression
+        run: node scripts/test-digiroad-speed-service.mjs
