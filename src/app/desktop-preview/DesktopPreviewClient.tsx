@@ -285,19 +285,27 @@ export default function DesktopPreviewPage() {
       setJustiinaRecipeDebug({...trace});
       try{
         const api="https://fi.wikibooks.org/w/api.php?";
-        const wildcardPrefix=query.match(/^([\\p{L}\\p{N}]+)\\*$/u)?.[1];
-        const wildcardTerm=query.match(/^\\*?([\\p{L}\\p{N}]+)\\*?$/u)?.[1]||query;
-        const searchUrl=api+new URLSearchParams(wildcardPrefix?{action:"query",generator:"prefixsearch",gpssearch:"Keittokirja/"+wildcardPrefix,gpsnamespace:"0",gpslimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"}:{action:"query",generator:"search",gsrsearch:wildcardTerm,gsrnamespace:"0",gsrlimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"});
-        const response=await fetch(searchUrl,{signal:controller.signal});
-        trace.searchHttp=response.status;
-        if(!response.ok)throw new Error("Hakupalvelu ei vastaa: HTTP "+response.status);
-        const data=await response.json();
-        if(data.error)throw new Error(data.error.info||"Wikikirjaston API-virhe");
+        const searchTerm=query.replace(/\\*/g,"").trim();
+        const searchVariants=[searchTerm,"intitle:"+searchTerm];
+        const searchResponses=await Promise.all(searchVariants.map(async term=>{
+          const url=api+new URLSearchParams({action:"query",generator:"search",gsrsearch:term,gsrnamespace:"0",gsrlimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"});
+          const response=await fetch(url,{signal:controller.signal});
+          if(!response.ok)throw new Error("Hakupalvelu ei vastaa: HTTP "+response.status);
+          const data=await response.json();
+          if(data.error)throw new Error(data.error.info||"Wikikirjaston API-virhe");
+          return data;
+        }));
+        trace.searchHttp=200;
         if(controller.signal.aborted)return;
-        trace.rawHits=Object.keys(data.query?.pages||{}).length;
-        const pages=(Object.values(data.query?.pages||{}) as {title:string;fullurl:string;index?:number}[])
-          .filter(p=>p.title?.startsWith("Keittokirja/")&&p.fullurl)
-          .sort((a,b)=>(a.index||0)-(b.index||0)).slice(0,30);
+        const allPages=new Map<string,{title:string;fullurl:string;index?:number}>();
+        for(const data of searchResponses){
+          for(const page of Object.values(data.query?.pages||{}) as {title:string;fullurl:string;index?:number}[]){
+            if(page.title?.startsWith("Keittokirja/")&&page.fullurl&&!allPages.has(page.title))allPages.set(page.title,page);
+          }
+        }
+        trace.rawHits=allPages.size;
+        const pages=[...allPages.values()]
+          .sort((a,b)=>(a.index||0)-(b.index||0)).slice(0,40);
         trace.recipePages=pages.length;
         const detailLogs:{title:string;http?:number;characters?:number;error?:string}[]=[];
         trace.details=detailLogs;
