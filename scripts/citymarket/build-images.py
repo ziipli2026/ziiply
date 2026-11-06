@@ -11,7 +11,16 @@ def normalized(text):
 
 STOP=set('plussa korttia ilman kpl tuotteet suomi tarjous voimassa erikois hinta kaikki alkaen prosenttia pakaste original natural sk20 light'.split())
 def words(text):
- return {w for w in normalized(text).split() if len(w)>=4 and not w.isdigit() and w not in STOP}
+ # PDF font extraction can insert a stray digit inside a product name
+ # (e.g. M4EETVURSTIT). Retain the original token as well as a cautious
+ # letter-only variant for OCR comparison; do not alter displayed titles.
+ tokens=normalized(text).split()
+ variants=set(tokens)
+ for token in tokens:
+  if re.search(r'[a-z][0-9][a-z]',token):
+   letters=re.sub(r'[0-9]','',token)
+   if len(letters)>=6:variants.add(letters)
+ return {w for w in variants if len(w)>=4 and not w.isdigit() and w not in STOP}
 
 def pictures(page):
  blocks=[b for b in page.get_text('dict',clip=fitz.INFINITE_RECT())['blocks'] if b['type']==1]
