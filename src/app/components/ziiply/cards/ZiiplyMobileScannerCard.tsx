@@ -50,7 +50,7 @@
  *   jotta tuntematon EAN voidaan kuitata käyttäjälle ilman että se näyttää vain virheeltä.
  */
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export type ZiiplyMobileScannerFlashState = "idle" | "success" | "error";
 
@@ -70,6 +70,8 @@ export type ZiiplyMobileScannerCardProps = {
   flashState?: ZiiplyMobileScannerFlashState;
   loading?: boolean;
   scannerMessage?: string;
+  storeLocation?: {name:string;verified:boolean;checking?:boolean} | null;
+  successMessage?: string;
   cameraOverlay?: React.ReactNode;
   torchOn?: boolean;
   manualInputOpen?: boolean;
@@ -77,12 +79,16 @@ export type ZiiplyMobileScannerCardProps = {
   onSelectResult?: (result: ZiiplyMobileScannerSelectionResult) => void;
   formatPrice?: (value: number) => string;
   getProductPrice?: (result: ZiiplyMobileScannerSelectionResult) => number | null | undefined;
+  onCaptureDiscountSticker?: () => void;
   onToggleTorch?: () => void;
   onToggleManualInput?: () => void;
   onCameraTap?: React.PointerEventHandler<HTMLDivElement>;
   onClose?: () => void | Promise<void>;
   className?: string;
   fullscreen?: boolean;
+  hideHeaderTitle?: boolean;
+  headerTitle?: React.ReactNode;
+  footerLeft?: React.ReactNode;
 };
 
 export default function ZiiplyMobileScannerCard({
@@ -90,6 +96,8 @@ export default function ZiiplyMobileScannerCard({
   flashState = "idle",
   loading = false,
   scannerMessage = "",
+  storeLocation = null,
+  successMessage = "✓",
   cameraOverlay,
   torchOn = false,
   manualInputOpen = false,
@@ -98,11 +106,15 @@ export default function ZiiplyMobileScannerCard({
   formatPrice,
   getProductPrice,
   onToggleTorch,
+  onCaptureDiscountSticker,
   onToggleManualInput,
   onCameraTap,
   onClose,
   className = "",
   fullscreen = false,
+  hideHeaderTitle = false,
+  headerTitle,
+  footerLeft,
 }: ZiiplyMobileScannerCardProps) {
   const flashClass = useMemo(() => {
     if (flashState === "success") {
@@ -110,22 +122,138 @@ export default function ZiiplyMobileScannerCard({
     }
 
     if (flashState === "error") {
-      return "bg-[#ff3e32]/30 shadow-[inset_0_0_90px_rgba(255,40,30,0.72)]";
+      // A lookup miss is not a failed scan: do not flash red behind the camera.
+      return "bg-transparent";
     }
 
     return "bg-transparent";
   }, [flashState]);
 
-  const visibleMessage =
-    loading
-      ? "Haetaan tuotetta"
-      : flashState === "success"
-        ? "Lisätty koriin"
-        : scannerMessage
-          ? scannerMessage
-          : flashState === "error"
-            ? "Ei löytynyt"
-            : "";
+  // A single visible scanner notice; loading and status must not compete.
+  // Remember dismissed status text so a parent that keeps the same string
+  // cannot revive it on every unrelated render.
+  const [notice, setNotice] = useState("");
+  const dismissedNoticeRef = useRef("");
+  const rawNotice = scannerMessage.trim()
+    ? scannerMessage.trim()
+    : flashState === "success" ? successMessage
+    : flashState === "error" ? "Ei löytynyt" : "";
+  useEffect(() => {
+    if (loading) {
+      setNotice("");
+      return;
+    }
+    if (!rawNotice) {
+      dismissedNoticeRef.current = "";
+      setNotice("");
+      return;
+    }
+    if (rawNotice === dismissedNoticeRef.current) return;
+    setNotice(rawNotice);
+    const timeout = window.setTimeout(() => {
+      dismissedNoticeRef.current = rawNotice;
+      setNotice("");
+    }, 2600);
+    return () => window.clearTimeout(timeout);
+  }, [rawNotice, loading]);
+  const visibleMessage = loading ? "Haetaan tuotetta" : notice;
+  const noticeIsError = /ei löytynyt|ei tunnistettu|virhe|epäonnistui/i.test(visibleMessage);
+  const noticeIsSuccess = !noticeIsError && /lisätty|kerätty|✓/i.test(visibleMessage);
+
+  const [gpsAcknowledgement, setGpsAcknowledgement] = useState("");
+  const gpsAcknowledgedKeyRef = useRef("");
+  useEffect(() => {
+    if (!storeLocation?.verified || !storeLocation.name) {
+      gpsAcknowledgedKeyRef.current = "";
+      setGpsAcknowledgement("");
+      return;
+    }
+    const key = storeLocation.name;
+    if (gpsAcknowledgedKeyRef.current === key) return;
+    gpsAcknowledgedKeyRef.current = key;
+    setGpsAcknowledgement(key);
+    const timeout = window.setTimeout(() => setGpsAcknowledgement(""), 2200);
+    return () => window.clearTimeout(timeout);
+  }, [storeLocation?.verified, storeLocation?.name]);
+
+
+  // EAN scanning always stays active. A discount hint needs BOTH an orange
+  // sticker-shaped region and barcode-like dark/light vertical transitions in
+  // that same region. Packaging color alone is never sufficient.
+  const [redStickerCandidateV864, setRedStickerCandidateV864] = useState(false);
+  useEffect(() => {
+    if (!onCaptureDiscountSticker) return;
+    let hits = 0;
+    const timer = window.setInterval(() => {
+      if (loading || cameraOverlay || manualInputOpen || flashState !== "idle" || selectionResults.length > 1) {
+        hits = 0;
+        setRedStickerCandidateV864(false);
+        return;
+      }
+      const video = document.getElementById(regionId)?.querySelector("video");
+      if (!video || video.readyState < 2 || !video.videoWidth) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 96;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+      try {
+        ctx.drawImage(video, 0, 0, 128, 96);
+        const data = ctx.getImageData(0, 0, 128, 96).data;
+        const orange = (x: number, y: number) => {
+          const i = (y * 128 + x) * 4;
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          return r > 125 && g > 48 && g < r * 0.79 && b < g * 0.83;
+        };
+        // Only the CENTER 40% of the live camera image is eligible for a
+        // discount-sticker hint. Distant shelf products at the edges are ignored.
+        // The candidate itself must cover a meaningful part of this window.
+        const roi = { left: 38, right: 90, top: 29, bottom: 67 };
+        let bounded = false;
+        let barcodeRows = 0;
+        for (let top = roi.top; top <= roi.bottom - 24 && !bounded; top += 3) {
+          for (let left = roi.left; left <= roi.right - 32 && !bounded; left += 3) {
+            let orangePixels = 0;
+            let orangeLeft = 32, orangeRight = 0, orangeTop = 24, orangeBottom = 0;
+            for (let y = 0; y < 24; y += 2) for (let x = 0; x < 32; x += 2) {
+              if (!orange(left + x, top + y)) continue;
+              orangePixels++;
+              orangeLeft = Math.min(orangeLeft, x);
+              orangeRight = Math.max(orangeRight, x);
+              orangeTop = Math.min(orangeTop, y);
+              orangeBottom = Math.max(orangeBottom, y);
+            }
+            // Reject small distant objects and large uniform orange packages.
+            // Require a sticker-sized orange area in BOTH dimensions.
+            if (orangePixels < 72 || orangePixels > 152 ||
+                orangeRight - orangeLeft < 20 || orangeBottom - orangeTop < 14) continue;
+            let stripeRows = 0;
+            for (let y = top + 3; y < top + 21; y += 2) {
+              let transitions = 0, previous = false;
+              for (let x = left + 2; x < left + 30; x++) {
+                const i = (y * 128 + x) * 4;
+                const dark = data[i] + data[i + 1] + data[i + 2] < 230;
+                if (x > left + 2 && dark !== previous) transitions++;
+                previous = dark;
+              }
+              if (transitions >= 9) stripeRows++;
+            }
+            if (stripeRows >= 5) {
+              bounded = true;
+              barcodeRows = stripeRows;
+            }
+          }
+        }
+        // A visual stripe pattern is NOT proof of an actual GS1 barcode.
+        hits = bounded && barcodeRows >= 5 ? Math.min(3, hits + 1) : 0;
+        setRedStickerCandidateV864(hits >= 2);
+      } catch {
+        hits = 0;
+        setRedStickerCandidateV864(false);
+      }
+    }, 550);
+    return () => window.clearInterval(timer);
+  }, [regionId, onCaptureDiscountSticker, loading, cameraOverlay, manualInputOpen, flashState, selectionResults.length]);
 
   const hasSelectionResults = selectionResults.length > 1;
 
@@ -179,6 +307,32 @@ export default function ZiiplyMobileScannerCard({
       aria-label="Viivakoodin skanneri"
     >
       <style jsx global>{`
+        .ziiply-scanner-success-check,
+        .ziiply-scanner-error-mark {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          width: 60px !important;
+          height: 60px !important;
+          min-width: 60px !important;
+          min-height: 60px !important;
+          flex-shrink: 0 !important;
+          border-radius: 50% !important;
+          background: rgba(187, 247, 208, 0.78) !important;
+          color: #14532d !important;
+          font-size: 34px !important;
+          font-weight: 900 !important;
+          line-height: 1 !important;
+          text-shadow: none !important;
+          box-shadow: 0 0 12px rgba(187, 247, 208, 0.45) !important;
+        }
+        .ziiply-scanner-error-mark {
+          background: rgba(254, 202, 202, 0.78) !important;
+          color: #991b1b !important;
+          box-shadow: 0 0 12px rgba(254, 202, 202, 0.45) !important;
+        }
+
+
         #${regionId} {
           width: 100% !important;
           height: 100% !important;
@@ -305,13 +459,13 @@ export default function ZiiplyMobileScannerCard({
           <span className="h-[3px] rounded-full bg-[#2c5b38]" />
         </div>
 
-        <div className="min-w-0 flex-1 rounded-[0.95rem] border-[2.5px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.74)]">
-          <div
+        <div className={hideHeaderTitle ? "min-w-0 flex-1" : "min-w-0 flex-1 rounded-[0.95rem] border-[2.5px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.74)]"}>
+          {headerTitle || (!hideHeaderTitle && <div
             className="truncate text-[22px] font-black uppercase leading-none tracking-[0.075em] text-[#163d32]"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
           >
             Skanneri
-          </div>
+          </div>)}
         </div>
 
         <button
@@ -330,7 +484,7 @@ export default function ZiiplyMobileScannerCard({
           aria-label={torchOn ? "Sammuta valo" : "Sytytä valo"}
           title={torchOn ? "Sammuta valo" : "Sytytä valo"}
         >
-          ✦
+          {headerTitle ? <span aria-hidden="true" className="text-[26px] leading-none">🔦</span> : <span aria-hidden="true">✦</span>}
         </button>
       </header>
 
@@ -377,6 +531,32 @@ export default function ZiiplyMobileScannerCard({
           <ScannerCorner className="right-5 top-5 rotate-90" />
           <ScannerCorner className="bottom-5 left-5 -rotate-90" />
           <ScannerCorner className="bottom-5 right-5 rotate-180" />
+          {storeLocation?.name && (storeLocation.verified || storeLocation.checking) && /(?:market|prisma|lidl|tokmanni|spar|sale|alepa|k-extra)/i.test(storeLocation.name) && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="pointer-events-none absolute left-1/2 top-[4%] z-[36] flex w-[88%] -translate-x-1/2 items-center justify-center px-1 text-center text-[13px] font-extrabold leading-snug text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.98),0_0_9px_rgba(0,0,0,0.98)]"
+            >
+              <span className="absolute left-[calc(22%-6px)] top-[-0.75rem]" aria-label={storeLocation.verified ? "GPS online" : storeLocation.checking ? "GPS tarkistaa" : "GPS offline"}>
+                <svg aria-hidden="true" viewBox="0 0 24 24" className={["h-[18px] w-[18px] drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]",storeLocation.verified?"text-emerald-300":storeLocation.checking?"animate-pulse text-amber-300":"text-transparent"].join(" ")} fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2.5 8.8a15 15 0 0 1 19 0" />
+                  <path d="M6.2 12.5a9.2 9.2 0 0 1 11.6 0" />
+                  <path d="M9.8 16.1a4.1 4.1 0 0 1 4.4 0" />
+                  <circle cx="12" cy="20" r="1" fill="currentColor" stroke="none" />
+                  {!storeLocation.verified && !storeLocation.checking && <path d="M4 3.5 20.5 21" strokeWidth="3.2" />}
+                </svg>
+              </span>
+              <span className="min-w-0 break-words">{storeLocation.name}</span>
+            </div>
+          )}
+
+          {redStickerCandidateV864 && !cameraOverlay && !visibleMessage && (
+            <div role="status" className="pointer-events-none absolute inset-x-2 bottom-[24%] z-[45] flex flex-col items-center justify-end text-center">
+              <span className="text-[15px] font-black leading-tight text-white [text-shadow:0_2px_4px_rgba(0,0,0,1),0_0_8px_rgba(0,0,0,0.95)]">
+                mahdollinen alennustarra-ota kuva
+              </span>
+            </div>
+          )}
 
           {/* V594: kameran käynnistyksen ohjeteksti poistettu kokonaan. */}
 
@@ -384,17 +564,28 @@ export default function ZiiplyMobileScannerCard({
           {!cameraOverlay && visibleMessage && (
             <div
               className={[
-                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[min(82%,320px)] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] px-4 py-3 text-center text-[15px] font-black uppercase tracking-[0.05em] shadow-[0_10px_24px_rgba(0,0,0,0.28)]",
-                flashState === "success"
-                  ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
-                  : flashState === "error"
-                    ? "border-[2px] border-[#7a1b15] bg-[#ffd6cf]/95 text-[#61130e]"
-                    : visibleMessage === "Tuote lisätty"
-                      ? "border-[2px] border-[#245c28]/70 bg-[#d7ffd2]/52 text-[#123d18] backdrop-blur-[1px]"
-                      : "border-[2px] border-[#245c28] bg-[#d7ffd2]/88 text-[#123d18] backdrop-blur-[2px]",
+                // Keep scanner feedback inside the white aiming corners, without a backing panel.
+                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[min(82%,320px)] -translate-x-1/2 -translate-y-1/2 px-2 py-1 text-center text-[15px] font-black uppercase tracking-[0.04em] leading-snug",
+                noticeIsError
+                  ? "text-[#fff0e8] [text-shadow:0_2px_4px_rgba(80,0,0,0.95),0_0_10px_rgba(0,0,0,0.95)]"
+                  : noticeIsSuccess
+                    ? "text-[#eaffdf] [text-shadow:0_2px_4px_rgba(0,35,0,0.95),0_0_10px_rgba(0,0,0,0.95)]"
+                    : "text-white [text-shadow:0_2px_4px_rgba(0,0,0,0.98),0_0_10px_rgba(0,0,0,0.98)]",
               ].join(" ")}
             >
-              {visibleMessage}
+              {noticeIsSuccess && visibleMessage.includes("✓") ? (
+                <span className="flex flex-wrap items-center justify-center gap-3">
+                  {visibleMessage.replace(/\s*·?\s*✓\s*$/, "").trim() && (
+                    <span>{visibleMessage.replace(/\s*·?\s*✓\s*$/, "").trim()}</span>
+                  )}
+                  <span className="ziiply-scanner-success-check" aria-label="Lisätty">✓</span>
+                </span>
+              ) : noticeIsError ? (
+                <span className="flex flex-col items-center justify-center gap-3">
+                  <span>{visibleMessage}</span>
+                  <span className="ziiply-scanner-error-mark" aria-label="Lisäys epäonnistui">✕</span>
+                </span>
+              ) : visibleMessage}
             </div>
           )}
 
@@ -451,9 +642,20 @@ export default function ZiiplyMobileScannerCard({
         </div>
       </main>
 
+      {redStickerCandidateV864 && !cameraOverlay && !visibleMessage && (
+        <div aria-hidden="true" className="pointer-events-none absolute bottom-[calc(env(safe-area-inset-bottom)+92px)] left-1/2 z-[55] -translate-x-1/2 animate-bounce">
+          <svg width="54" height="70" viewBox="0 0 54 70" fill="none" className="drop-shadow-[0_3px_3px_rgba(0,0,0,0.85)]">
+            <path d="M27 4 C27 23 27 34 27 53" stroke="#113c30" strokeWidth="10" strokeLinecap="round"/>
+            <path d="M27 4 C27 23 27 34 27 53" stroke="#ffe29b" strokeWidth="6" strokeLinecap="round"/>
+            <path d="M9 40 L27 60 L45 40" stroke="#113c30" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 40 L27 60 L45 40" stroke="#ffe29b" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      )}
+
       {/* Alatoiminnot */}
       <footer className="relative z-10 grid shrink-0 grid-cols-[1fr_82px_1fr] items-center gap-2 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2">
-        <button
+        {footerLeft || <button
           type="button"
           onClick={onToggleManualInput}
           className={[
@@ -464,17 +666,13 @@ export default function ZiiplyMobileScannerCard({
           ].join(" ")}
         >
           Liitä EAN
-        </button>
+        </button>}
 
         <button
           type="button"
-          onClick={() => {
-            // Pääkameranappi ei käynnistä erillistä logiikkaa.
-            // Kamera käynnistetään page.tsx:n eanModalOpen/eanScannerOpen-polussa.
-            // Napin tarkoitus on antaa käyttäjälle iso, selkeä "skannaa/katso tähän" -ankkuri.
-          }}
+          onClick={() => onCaptureDiscountSticker?.()}
           className="flex h-[78px] w-[78px] items-center justify-center rounded-full border-[5px] border-[#7b6034] bg-[#d8c08c] shadow-[0_6px_16px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.55)] active:scale-[0.98]"
-          aria-label="Kamera"
+          aria-label="Ota kuva alennustarrasta"
         >
           <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border-[3px] border-[#efe2b8] bg-[linear-gradient(180deg,#24572b_0%,#113116_100%)] text-[29px] leading-none text-[#fff6d9]">
             📷
