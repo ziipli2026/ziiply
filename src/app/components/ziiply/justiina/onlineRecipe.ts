@@ -48,7 +48,7 @@ export function onlineRecipeDisplayIngredients(content:string){
 export function onlineRecipeTitleMatches(title:string,query:string):boolean {
   const words=(value:string)=>value.toLocaleLowerCase("fi").normalize("NFKC").replace(/^keittokirja\//,"").match(/[\p{L}\p{N}]+/gu)||[];
   const wanted=words(query), actual=words(title);
-  return wanted.length>0&&wanted.every(word=>actual.some(name=>name===word||(word.length>=5&&name.endsWith(word))));
+  return wanted.length>0&&wanted.every(word=>actual.some(name=>name===word||(word.length>=3&&(name.startsWith(word)||name.endsWith(word)))||(word.length>=5&&name.includes(word))));
 }
 
 /** Use the same plan as the editor, including protein requirements and tap-water exclusion. */
