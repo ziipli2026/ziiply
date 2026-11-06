@@ -8361,7 +8361,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
-      scrollToNormalResults();
+      if(recipeItems.length && runId===mobileRecipeRunRef.current){
+        // Every recipe ingredient has been accepted or skipped: finish in the basket.
+        setMobileResultsReadyQueryV537("");
+        setSearchPanelOpen(false);
+        setCartModalOpen(true);
+      } else {
+        scrollToNormalResults();
+      }
     } catch (error: any) {
       if (recipeDebugActive) appendRecipeDebug("search-error", { message: String(error?.message || error), stack: String(error?.stack || "") });
       pushVoiceDebugV507(`runVoice CATCH ${String(error?.message || error).slice(0, 160)}`);
@@ -24268,6 +24275,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {/* V512: voice debug panel removed from visible UI. */}
 
             <ZiiplyMobileSearchResultsCard
+              compact={mobileRecipeSearchActive}
               open={
                 searchPanelOpen && (mobileRecipeSearchActive || (
                 !loadingNormal && normalResults.length > 0 && mobileResultsReadyQueryV537.length > 0))
