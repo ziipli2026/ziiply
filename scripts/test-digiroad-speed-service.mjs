@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import {DigiroadSpeedService} from '../lib/digiroad-speed-service.mjs';
+import {fetchTievelhoNearFix} from '../lib/tievelho-speed-limits.mjs';
 const lat=60.5,lon=24.8;
 const f=(id,limit)=>({type:'Feature',properties:{link_id:id,arvo:limit},geometry:{type:'LineString',coordinates:[[lon-.003,lat],[lon+.003,lat]]}});
 const fix=(offset=0,accuracy=3)=>({latitude:lat,longitude:lon+offset/(111320*Math.cos(lat*Math.PI/180)),accuracy,heading:90});
@@ -64,6 +65,26 @@ const tests=[
   assert.equal(resetting.cache,null);
   resolveFetch(response);
   assert.equal((await latest).pendingCount,1);
+ }],
+ ['Tievelho records flow through the GPS confirmation service',async()=>{
+  let time=0, requests=0;
+  const tievelho=new DigiroadSpeedService({
+   fetchRoads:fetchTievelhoNearFix,clock:()=>time,
+   fetchFn:async()=>{
+    requests++;
+    const geometry=f('main',80).geometry;
+    return {ok:true,json:async()=>({numberMatched:2,features:[
+     {geometry,properties:{oid:'road',nopeusrajoitus:80}},
+     {geometry,properties:{oid:'seasonal',nopeusrajoitus:100,talven_ja_pimean_nopeusrajoitus:80}},
+    ]})};
+   },
+  });
+  assert.equal((await tievelho.update(fix())).speedLimit,null);
+  time=1000;
+  assert.equal((await tievelho.update(fix(10))).speedLimit,null);
+  time=2000;
+  assert.equal((await tievelho.update(fix(20))).speedLimit,80);
+  assert.equal(requests,1);
  }],
  ['reset clears cached state',async()=>{service.reset();assert.equal(service.cache,null);assert.equal(service.tracker.snapshot().status,'unknown')}],
 ];
