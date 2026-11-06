@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 // Test-only status: does not reveal accounts, credentials or database contents.
 export async function GET() {
-  const required = ["ZIIPLY_PUBLIC_ORIGIN", "ARVO_TEST_DATABASE_URL", "ZIIPLY_SMTP_HOST", "ZIIPLY_SMTP_USER", "ZIIPLY_SMTP_PASSWORD", "ZIIPLY_BETA_RATE_LIMIT_SECRET", "ZIIPLY_BETA_MAIL_FROM"] as const;
+  const required = ["ZIIPLY_PUBLIC_ORIGIN", "ARVO_TEST_DATABASE_URL", "ZIIPLY_SMTP_HOST", "ZIIPLY_SMTP_USER", "ARVO_SMTP_PASSWORD", "ZIIPLY_BETA_RATE_LIMIT_SECRET", "ZIIPLY_BETA_MAIL_FROM"] as const;
   const missing = required.filter(key => !process.env[key]);
   const configured = missing.length === 0;
   const enabled = process.env.ZIIPLY_BETA_LOGIN_ENABLED === "true";
