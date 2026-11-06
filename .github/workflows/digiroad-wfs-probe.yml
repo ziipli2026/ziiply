@@ -16,3 +16,6 @@ jobs:
         run: node scripts/test-digiroad-wfs-speed-limits.mjs
       - name: Match simulated GPS trajectories to real Digiroad line geometries
         run: node scripts/test-digiroad-map-matching.mjs
+
+      - name: GPS matching safety regressions
+        run: node scripts/test-digiroad-matching-safety.mjs
