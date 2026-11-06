@@ -3107,7 +3107,8 @@ function KauppiasMobileTopBar({
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-          <div className="absolute inset-0 flex items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums" style={{ color: mobileSpeedLimit === null ? "#173b31" : mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileDrivingSpeed}</div>
+          <div className="absolute inset-x-0 top-[7px] flex items-center justify-center whitespace-nowrap text-center text-[35px] font-black leading-none tracking-[-0.07em] tabular-nums" style={{ color: mobileSpeedLimit === null ? "#173b31" : mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileDrivingSpeed}</div>
+          {mobileSpeedLimit !== null && <div aria-label={`Nopeusrajoitus ${mobileSpeedLimit}`} className="absolute inset-x-0 bottom-[7px] text-center text-[15px] font-extrabold leading-none tabular-nums" style={{ color: mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileSpeedLimit}</div>}
           
         </div>
       </div>}
