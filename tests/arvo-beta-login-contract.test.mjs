@@ -44,3 +44,9 @@ test("logout clears browser cookie even if database revocation fails",()=>{
  assert.match(code,/response\.cookies\.set\(BETA_COOKIE_NAME, "", \{ \.\.\.betaCookieOptions\(0\), sameSite: "lax" as const, maxAge: 0 \}\)/);
  assert.match(code,/return response/);
 });
+
+test("beta login form unlocks on email readiness without requiring completed E2E test",()=>{
+ const page=readFileSync("src/app/beta/kirjaudu/page.tsx","utf8");
+ assert.match(page,/setReady\(Boolean\(data\.emailTestReady\)\)/);
+ assert.doesNotMatch(page,/data\.emailTestReady && data\.loginFlowComplete/);
+});
