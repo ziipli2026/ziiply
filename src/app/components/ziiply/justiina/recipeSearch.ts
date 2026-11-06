@@ -212,6 +212,7 @@ export function classifyRecipeIngredient(input: string): RecipeFoodGroup | null 
 export function recipeProductRejectionReason(input: string, product: { name?: string; category?: string },context?:RecipeContext): string | null {
  // Explicit recipe alternatives are OR choices, never separate requirements.
  // Evaluate each choice with the same category/attribute checks as an ordinary ingredient.
+ if(recipeProductSearchTerm(input)==="mustapippuri" && /\bvalkopippuri/i.test(String(product.name||"")))return "black_pepper_only";
  const original=normalizeRecipeAlternatives(String(context?.sourceLine||""));
  if(/\s+tai\s+/i.test(original) && !/\([^)]*\btai\b[^)]*\)/i.test(original)){
    const alternatives=original.split(/\s+tai\s+/i).map(x=>x.trim()).filter(Boolean);
