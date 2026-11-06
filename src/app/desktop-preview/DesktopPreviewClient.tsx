@@ -2741,7 +2741,14 @@ export default function DesktopPreviewPage() {
         }
       }
       if(!diagnostic)appendDesktopRecipeDebug("product_decisions",{query,ingredient:recipeIngredient||null,decisions:productDecisions});
-      const relevanceAndPriceRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
+      // Recipe candidates have already passed recipeProductCompatible. For generic
+      // ingredients such as ruokaöljy, name relevance must not put 12.99 €
+      // olive oil ahead of 1.99 € rapeseed oil. Sort comparable offers by
+      // their displayed EUR price, retaining the existing order only on ties.
+      const relevanceAndPriceRows=rows
+        .filter((p:any)=>Number.isFinite(p.__price)&&p.__price>0)
+        .sort((a:any,b:any)=>a.__price-b.__price);
+      // Preserve fish-specific fresh/frozen prioritization when applicable.
       const sortedRows=(recipeIngredient?prioritizeRecipeFishProducts(recipeIngredient.name,relevanceAndPriceRows,recipeIngredient):relevanceAndPriceRows).slice(0,120);
       if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return false;
       if(!diagnostic)appendDesktopRecipeDebug("ranked_results",{query,voiceRunId,failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,displayedProducts:sortedRows});
