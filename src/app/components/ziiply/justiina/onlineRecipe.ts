@@ -60,8 +60,11 @@ export function onlineRecipeTitleMatches(title:string,query:string):boolean {
 
 /** Use the same plan as the editor, including protein requirements and tap-water exclusion. */
 export function onlineRecipeSearchPlan(content:string,title:string){
- const method=content.split(/\n(?:Valmistus|Valmistaminen|Ohje|Valmistusohje)\s*:?\s*\n/i);
- return prepareRecipeSearch(onlineRecipeIngredients(content),method.length>1?method.slice(1).join("\n"):"",title);
+ // Wikikirjasto may split a compound ingredient at a rendered line break.
+ const normalizedContent=content.replace(/\bmusta\s*-\s*(?:\n\s*)?pippur(?:i|ia|in)\b/gi,"mustapippuri");
+ const method=normalizedContent.split(/\n(?:Valmistus|Valmistaminen|Ohje|Valmistusohje)\s*:?\s*\n/i);
+ const ingredients=onlineRecipeIngredients(normalizedContent).map(item=>/^(?:musta-?|mustapippur(?:i|ia|in))$/i.test(item.name.trim())?{...item,name:"mustapippuri"}:item);
+ return prepareRecipeSearch(ingredients,method.length>1?method.slice(1).join("\n"):"",title);
 }
 
 /** Query changes must not leave a prior dish visible during debounce/network work. */
