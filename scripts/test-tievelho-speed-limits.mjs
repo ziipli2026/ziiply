@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {matchDigiroadFix} from '../lib/digiroad-speed-matching.mjs';
+import {DigiroadSpeedTracker} from '../lib/digiroad-speed-tracker.mjs';
 
 const endpoint = 'https://avoinapi.vaylapilvi.fi/vaylatiedot/ogc/features/v1/collections/tiestotiedot:nopeusrajoitukset/items';
 const sites = [
@@ -49,6 +51,40 @@ const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
     numberMatched, pages: visited.size,
     speedLimits: [...new Set(usable.map(feature => Number(feature.properties.nopeusrajoitus)))].sort((a,b) => a-b),
   }));
+  const candidates = usable.map((feature, index) => ({
+    ...feature,
+    properties: {link_id: String(index), arvo: Number(feature.properties.nopeusrajoitus)},
+  }));
+  let confirmed = 0;
+  for (const candidate of candidates.filter(feature => feature.properties.arvo === 120)) {
+    const {geometry, properties} = candidate;
+    const lines = geometry.type === 'LineString' ? [geometry.coordinates] : geometry.coordinates;
+    for (const line of lines) {
+      for (let index = 1; index < line.length; index++) {
+        const [lon, lat] = line[index - 1];
+        const [endLon, endLat] = line[index];
+        const dx = (endLon - lon) * Math.cos(lat * Math.PI / 180);
+        const dy = endLat - lat;
+        if (Math.hypot(dx, dy) * 111320 < 20) continue;
+        const heading = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+        const tracker = new DigiroadSpeedTracker();
+        const results = [0.25, 0.5, 0.75].map((fraction, fixIndex) => {
+          const match = matchDigiroadFix({
+            latitude: lat + fraction * dy,
+            longitude: lon + fraction * (endLon - lon),
+            accuracy: 3,
+            heading,
+          }, candidates);
+          return tracker.update(match, {timestamp: fixIndex * 1000});
+        });
+        assert.equal(results[0].status, 'unknown');
+        assert.equal(results[1].status, 'unknown');
+        if (results[2].linkId === properties.link_id && results[2].speedLimit === 120) confirmed++;
+      }
+    }
+  }
+  console.log(JSON.stringify({site, confirmed120Trajectories: confirmed}));
+  assert.ok(confirmed > 0, `${site}: no 120 km/h trajectory confirmed on its source segment`);
   assert.ok(usable.length, `${site}: no speed limit records with WGS84 line geometry`);
 }));
 
