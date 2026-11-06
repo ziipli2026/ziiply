@@ -231,7 +231,7 @@ def build(folder,manifest_path,public_folder,review_path):
    # PDF images may be displaced from publisher text anchors. Record the
    # closest image's label evidence so large-distance cases can be separated
    # from completely unrelated page graphics without relaxing publication.
-   closest_candidate=candidates[0] if candidates else None
+   closest_candidate=closest if closest else (candidates[0] if candidates else None)
    closest_label_words=[]
    if closest_candidate:
     matched_block=next((b for b in blocks if all(abs(a-c)<.015 for a,c in zip(b['bbox'],closest_candidate['rectangle']))),None)
