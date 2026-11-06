@@ -11,10 +11,11 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
  const [opened,setOpened]=React.useState<string|null>(null);
  React.useEffect(()=>{
   const q=query.trim().replace(/\*/g,"");
-  if(!q){setResults([]);setError("");return}
+  setResults([]);setOpened(null);setError("");
+  if(!q){setLoading(false);return}
   const controller=new AbortController();
   const timer=setTimeout(async()=>{
-   setLoading(true);setError("");
+   setLoading(true);setResults([]);setError("");
    try {
     const api="https://fi.wikibooks.org/w/api.php?";
     const search=await Promise.all([q,"intitle:"+q].map(async term=>{
