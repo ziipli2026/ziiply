@@ -2233,7 +2233,10 @@ export default function DesktopPreviewPage() {
   const desktopArrivalFixAt = useRef(0);
   const [desktopSpeedKmh, setDesktopSpeedKmh] = useState<number | null>(null);
   const shownSpeed = desktopSpeedKmh;
-  const shownSpeedLimit: number | null = null;
+  const [shownSpeedLimit, setShownSpeedLimit] = useState<number | null>(null);
+  const speedLimitFixes = useRef<Array<{latitude: number; longitude: number; accuracy: number; heading: number | null; timestamp: number}>>([]);
+  const speedLimitRequest = useRef<AbortController | null>(null);
+  const speedLimitQueriedAt = useRef(0);
   const speedOverLimit = shownSpeed !== null && shownSpeedLimit !== null && shownSpeed > shownSpeedLimit + 2;
   const desktopArrivalHandler = useRef<(position: GeolocationPosition | null) => void>(() => {});
   const desktopArrivalStoreId = (store:any) => String(store?.name || "").trim().toLocaleLowerCase("fi");
@@ -2252,6 +2255,35 @@ export default function DesktopPreviewPage() {
     }
     if(position.timestamp<=desktopArrivalFixAt.current)return;
     desktopArrivalFixAt.current=position.timestamp;
+    const {latitude, longitude, accuracy, heading, speed} = position.coords;
+    const fixes = speedLimitFixes.current;
+    if (speed == null || !Number.isFinite(speed) || speed * 3.6 < 20 || accuracy > 40 || at - position.timestamp > 5000) {
+      fixes.length = 0;
+      speedLimitRequest.current?.abort();
+      setShownSpeedLimit(null);
+    } else {
+      if (fixes.length && position.timestamp - fixes[fixes.length - 1].timestamp > 10000) fixes.length = 0;
+      fixes.push({latitude, longitude, accuracy, heading, timestamp: position.timestamp});
+      if (fixes.length > 3) fixes.shift();
+      if (fixes.length === 3 && at - speedLimitQueriedAt.current >= 12000) {
+        speedLimitQueriedAt.current = at;
+        speedLimitRequest.current?.abort();
+        const controller = new AbortController();
+        speedLimitRequest.current = controller;
+        const timeout = window.setTimeout(() => controller.abort(), 15000);
+        void fetch("/api/tievelho-speed-limit", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({fixes}),
+          signal: controller.signal,
+        }).then(async response => response.ok ? await response.json() as {limit: number | null} : null)
+          .then(result => {
+            if (speedLimitRequest.current === controller && !controller.signal.aborted) setShownSpeedLimit(result?.limit ?? null);
+          }).catch(() => {
+            if (speedLimitRequest.current === controller) setShownSpeedLimit(null);
+          }).finally(() => window.clearTimeout(timeout));
+      }
+    }
     const chosen=(Object.values(selectedStores) as any[]).filter(Boolean);
     const unique=new Map<string,{id:string;name:string;latitude:number;longitude:number}>();
     for(const store of [...stores,...lidlStores,...sparStores,...chosen]){
@@ -2272,7 +2304,7 @@ export default function DesktopPreviewPage() {
     desktopArrivalNotice.update(decision,position.timestamp);
   };
   useEffect(()=>{
-    if(!gpsOn || !navigator.geolocation){desktopInStoreConfirmedRef.current=false;desktopArrivalDecision.current=null;return;}
+    if(!gpsOn || !navigator.geolocation){setShownSpeedLimit(null);desktopInStoreConfirmedRef.current=false;desktopArrivalDecision.current=null;return;}
     let active=true;
     let pending=false;
     const accept=(position:GeolocationPosition)=>{pending=false;if(active)desktopArrivalHandler.current(position);};
@@ -2286,7 +2318,7 @@ export default function DesktopPreviewPage() {
     const timer=window.setInterval(sample,5000);
     const resume=()=>{if(!document.hidden)sample();};
     sample();document.addEventListener("visibilitychange",resume);
-    return()=>{active=false;navigator.geolocation.clearWatch(watch);window.clearInterval(timer);document.removeEventListener("visibilitychange",resume);};
+    return()=>{active=false;speedLimitRequest.current?.abort();speedLimitRequest.current=null;speedLimitFixes.current.length=0;speedLimitQueriedAt.current=0;navigator.geolocation.clearWatch(watch);window.clearInterval(timer);document.removeEventListener("visibilitychange",resume);};
   },[gpsOn]);
   async function confirmDesktopArrivalForScan(){
     if(!gpsOn||!navigator.geolocation)return false;
