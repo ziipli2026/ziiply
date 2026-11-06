@@ -50,3 +50,11 @@ test("beta login form unlocks on email readiness without requiring completed E2E
  assert.match(page,/setReady\(Boolean\(data\.emailTestReady\)\)/);
  assert.doesNotMatch(page,/data\.emailTestReady && data\.loginFlowComplete/);
 });
+
+test("beta email confirmation does not consume the one-time token twice on effect rerun",()=>{
+ const page=readFileSync("src/app/beta/kirjaudu/vahvista/page.tsx","utf8");
+ assert.match(page,/useRef\(false\)/);
+ assert.match(page,/if\(verificationStarted\.current\)return/);
+ assert.match(page,/verificationStarted\.current=true/);
+ assert.match(page,/window\.history\.replaceState/);
+});
