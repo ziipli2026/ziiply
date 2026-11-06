@@ -2073,7 +2073,12 @@ export default function DesktopPreviewPage() {
     }));
     if(batches.every(batch=>batch.status==="rejected"))throw new Error("Tarjousten lataus epäonnistui.");
     const all=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]);
-    const matching=queries.flatMap(query=>all.filter((offer:any)=>desktopSearchDecision(query,{...offer,name:String(offer.title||offer.name||"")}).accepted).map((offer:any)=>({...offer,__gostaWatchQuery:query})));
+    const matching=queries.flatMap(query=>all.filter((offer:any)=>{
+      const name=String(offer.title||offer.name||"");
+      // The printed alternatives are two forms of the same coffee offer.
+      const searchableName=name.replace(/\bsuodatin-\s+tai\s+papukahvit?\b/gi,"suodatinkahvi papukahvi");
+      return desktopSearchDecision(query,{...offer,name:searchableName}).accepted;
+    }).map((offer:any)=>({...offer,__gostaWatchQuery:query})));
     const seen=new Set<string>();
     const unique=matching.filter((offer:any)=>{const key=String(offer.__gostaHomeStore||"")+"|"+String(offer.id||offer.ean||offer.title||offer.name||"")+"|"+String(offer.price||offer.offerPrice||"");if(seen.has(key))return false;seen.add(key);return true;});
     return {offers:unique,partial:batches.some(batch=>batch.status==="rejected")};
