@@ -58,3 +58,10 @@ test("beta email confirmation does not consume the one-time token twice on effec
  assert.match(page,/verificationStarted\.current=true/);
  assert.match(page,/window\.history\.replaceState/);
 });
+
+test("disabled beta login also rejects existing browser sessions",()=>{
+ const code=readFileSync(root+"session/route.ts","utf8");
+ assert.match(code,/ZIIPLY_BETA_LOGIN_ENABLED/);
+ assert.match(code,/ZIIPLY_BETA_RATE_LIMIT_READY/);
+ assert.match(code,/authenticated: false/);
+});
