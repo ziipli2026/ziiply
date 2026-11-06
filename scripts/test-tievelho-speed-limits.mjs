@@ -9,15 +9,28 @@ const sites = [
 const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
   const url = new URL(endpoint);
   url.search = new URLSearchParams({f: 'application/geo+json', bbox: bbox.join(','), limit: '100'});
-  const response = await fetch(url, {signal: AbortSignal.timeout(12000)});
-  if (!response.ok) {
-    const body = await response.text();
-    const title = body.match(/<title>\s*([^<]+)/i)?.[1].trim();
-    throw new Error(`Tievelho HTTP ${response.status}${title ? ` — ${title}` : ''}`);
+  const features = [];
+  const visited = new Set();
+  let next = url;
+  let numberMatched;
+  while (next) {
+    assert.ok(next.origin === url.origin && next.pathname === url.pathname, 'Unexpected pagination URL');
+    assert.ok(!visited.has(next.href) && visited.size < 10, 'Tievelho pagination did not finish');
+    visited.add(next.href);
+    const response = await fetch(next, {signal: AbortSignal.timeout(12000)});
+    if (!response.ok) {
+      const title = (await response.text()).match(/<title>\s*([^<]+)/i)?.[1].trim();
+      throw new Error(`Tievelho HTTP ${response.status}${title ? ` — ${title}` : ''}`);
+    }
+    const data = await response.json();
+    assert.ok(Array.isArray(data.features), 'GeoJSON features missing');
+    numberMatched ??= data.numberMatched;
+    features.push(...data.features);
+    const href = data.links?.find(link => link.rel === 'next')?.href;
+    next = href ? new URL(href, next) : null;
   }
-  const data = await response.json();
-  assert.ok(Array.isArray(data.features), `${site}: GeoJSON features missing`);
-  const usable = data.features.filter(({geometry, properties}) => {
+  if (Number.isInteger(numberMatched)) assert.equal(features.length, numberMatched, 'Incomplete Tievelho results');
+  const usable = features.filter(({geometry, properties}) => {
     const lines = geometry?.type === 'LineString' ? [geometry.coordinates]
       : geometry?.type === 'MultiLineString' ? geometry.coordinates : [];
     const speed = Number(properties?.nopeusrajoitus);
@@ -27,8 +40,8 @@ const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
         && Number.isFinite(lat) && lat >= 58 && lat <= 71));
   });
   console.log(JSON.stringify({
-    site, returned: data.features.length, usable: usable.length,
-    numberMatched: data.numberMatched, hasNextPage: data.links?.some(link => link.rel === 'next'),
+    site, returned: features.length, usable: usable.length,
+    numberMatched, pages: visited.size,
     speedLimits: [...new Set(usable.map(feature => Number(feature.properties.nopeusrajoitus)))].sort((a,b) => a-b),
   }));
   assert.ok(usable.length, `${site}: no speed limit records with WGS84 line geometry`);
