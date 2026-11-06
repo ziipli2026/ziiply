@@ -420,7 +420,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     {view==="publications"&&<section style={{padding:18,background:"#fff",border:"1px solid #cbd5e1",borderRadius:14,marginBottom:18}}>
        <h2 style={{marginTop:0}}>K-Citymarket – paikallinen Kaupan edut -haku</h2>
        <p style={{fontSize:14}}>{dot(localCitymarketLevel)} <strong>{localCitymarketMessage}</strong></p>
-       <p style={{fontSize:13}}>K-Ruoka.fi / Kaupan edut, riippumaton PDF-tarjouslehdestä. {latestLocalCitymarket?"Viimeisin tarkistus: "+new Date(latestLocalCitymarket.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+(latestLocalCitymarket.ok?latestLocalCitymarket.offer_count+" paikallista etua":"Voimassa olevien etujen määrä ei tiedossa"):"Tarkistusmerkintää ei ole viimeisen 14 päivän ajalta."}</p>
+       <p style={{fontSize:13}}>{latestLocalCitymarket?.outcome==="selected-store-publication-active"?"Tjek / K-Citymarket Hyvinkään oma tarjousjulkaisu.":"K-Ruoka.fi / Kaupan edut."} Erillinen valtakunnallisesta PDF-tarjouslehdestä. {latestLocalCitymarket?"Viimeisin tarkistus: "+new Date(latestLocalCitymarket.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+(latestLocalCitymarket.ok?latestLocalCitymarket.offer_count+" paikallista etua":"Voimassa olevien etujen määrä ei tiedossa"):"Tarkistusmerkintää ei ole viimeisen 14 päivän ajalta."}</p>
        {latestLocalCitymarket?.details?.error&&<p style={{color:"#b91c1c"}}>{latestLocalCitymarket.details.error}</p>}
        <p style={{fontSize:12,color:"#64748b"}}>PDF-parserin onnistuminen ei tarkoita, että paikallinen etuhaku toimii. Vihreä tila edellyttää erillistä onnistunutta tarkistusta.</p>
      </section>}
