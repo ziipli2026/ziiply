@@ -56,6 +56,7 @@ const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
     properties: {link_id: String(index), arvo: Number(feature.properties.nopeusrajoitus)},
   }));
   let confirmed = 0;
+  let parallelChecked = false;
   for (const candidate of candidates.filter(feature => feature.properties.arvo === 120)) {
     const {geometry, properties} = candidate;
     const lines = geometry.type === 'LineString' ? [geometry.coordinates] : geometry.coordinates;
@@ -67,6 +68,30 @@ const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
         const dy = endLat - lat;
         if (Math.hypot(dx, dy) * 111320 < 20) continue;
         const heading = (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+        if (!parallelChecked) {
+          const scale = Math.cos(lat * Math.PI / 180);
+          const length = Math.hypot(dx, dy);
+          const offsetLon = -dy / length * 8 / (111320 * scale);
+          const offsetLat = dx / length * 8 / 111320;
+          const road = (id, speed, offset) => ({
+            properties: {link_id: id, arvo: speed},
+            geometry: {type: 'LineString', coordinates: [
+              [lon + offset * offsetLon, lat + offset * offsetLat],
+              [endLon + offset * offsetLon, endLat + offset * offsetLat],
+            ]},
+          });
+          const roads = [road('main', 120, 0), road('parallel', 60, 1)];
+          const fixAt = offset => ({
+            latitude: (lat + endLat) / 2 + offset * offsetLat,
+            longitude: (lon + endLon) / 2 + offset * offsetLon,
+            heading,
+            accuracy: 3,
+          });
+          assert.equal(matchDigiroadFix(fixAt(0), roads).speedLimit, 120);
+          assert.equal(matchDigiroadFix(fixAt(1), roads).speedLimit, 60);
+          assert.equal(matchDigiroadFix(fixAt(0.5), roads).reason, 'ambiguous_roads');
+          parallelChecked = true;
+        }
         const tracker = new DigiroadSpeedTracker();
         const results = [0.25, 0.5, 0.75].map((fraction, fixIndex) => {
           const match = matchDigiroadFix({
@@ -83,7 +108,7 @@ const results = await Promise.allSettled(sites.map(async ([site, bbox]) => {
       }
     }
   }
-  console.log(JSON.stringify({site, confirmed120Trajectories: confirmed}));
+  console.log(JSON.stringify({site, confirmed120Trajectories: confirmed, parallelChecked}));
   assert.ok(confirmed > 0, `${site}: no 120 km/h trajectory confirmed on its source segment`);
   assert.ok(usable.length, `${site}: no speed limit records with WGS84 line geometry`);
 }));
