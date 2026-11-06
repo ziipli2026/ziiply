@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ZiiplyMobileScannerCard from "../cards/ZiiplyMobileScannerCard";
 import posthog from "posthog-js";
+import { useRouter } from "next/navigation";
 import {arvoNutrientValues, saveArvoMeal} from "./arvoStatistics";
 
 /**
@@ -12,6 +13,7 @@ import {arvoNutrientValues, saveArvoMeal} from "./arvoStatistics";
  */
 export type ArvoCartProduct = { ean: string; name: string; grams: number; nutrition: Record<string, unknown> | null };
 export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { onClose?: () => void; onAddToCart?: (product: ArvoCartProduct) => void | Promise<void> } = {}) {
+  const router = useRouter();
   const [open, setOpen] = useState(true);
   const [ean, setEan] = useState("");
   const [productName, setProductName] = useState("");
@@ -79,7 +81,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
       disposed = true;
       cameraRef.current = null;
       if (scanner) {
-        void Promise.resolve(scanner.stop()).catch(() => undefined).then(() => scanner.clear()).catch(() => undefined);
+        void Promise.resolve().then(() => scanner.stop()).catch(() => undefined).then(() => scanner.clear()).catch(() => undefined);
       }
     };
   }, [open]);
@@ -150,11 +152,10 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     setOpen(false);
     setTab("scan");
     if (onClose) { onClose(); return; }
-    if (typeof window !== "undefined") {
-      const referrer = document.referrer;
-      if (referrer && new URL(referrer).origin === window.location.origin && window.history.length > 1) window.history.back();
-      else window.location.assign("/");
-    }
+    setStatus("");
+    const referrer = document.referrer ? new URL(document.referrer) : null;
+    const fromDesktop = referrer?.origin === window.location.origin && referrer.pathname === "/desktop-preview";
+    router.replace(fromDesktop ? "/desktop-preview" : "/desktop-preview");
   };
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#f8f5ed] text-[#173b2b]">
