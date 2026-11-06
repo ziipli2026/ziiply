@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   // Station lookup and photo report submission must use the same fuel registry.
   const database = fuelDatabaseConfig();
   const testConnection = database.production ? undefined : database.connection;
-  const connection = database.connection || process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const connection = database.connection;
   if (!connection) return NextResponse.json({ ok: false, error: "Fuel database not configured" }, { status: 503 });
   try {
     const sql = neon(connection);
