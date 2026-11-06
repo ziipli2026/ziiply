@@ -292,7 +292,7 @@ def build(folder,manifest_path,public_folder,review_path):
                          key=lambda match:-match['similarity'])[:5]
     candidate_ocr_evidence.append({'rectangle':candidate['rectangle'],'distance':candidate['distance'],
                                    'words':label,'matchingWords':sorted(set(label)&context[row['id']]),
-                                   'fuzzyMatches':fuzzy_matches})
+                                   'fuzzyMatches':fuzzy_matches,'blockedByBorder':bool(row.get('anchor') and blocked(page,row['anchor'],match['bbox'])),'publisherCellOwners':sorted(image_cell_owners.get(tuple(round(v,3) for v in match['bbox']),set())),'alreadyOwnedBy':sorted([owner for owner,owned in accepted.items() if match in owned])})
    closest_label_words=[]
    if closest_candidate:
     matched_block=next((b for b in blocks if all(abs(a-c)<.015 for a,c in zip(b['bbox'],closest_candidate['rectangle']))),None)
