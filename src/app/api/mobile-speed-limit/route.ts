@@ -8,6 +8,8 @@ const endpoints = [
   "https://overpass.osm.ch/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
   "https://overpass.openstreetmap.ru/api/interpreter",
+  "https://overpass.nchc.org.tw/api/interpreter",
+  "https://overpass.ultra.cc/api/interpreter",
 ];
 const providerCooldown=new Map<string,number>();
 const roadResultCache=new Map<string,{until:number;body:Record<string,unknown>;status:number}>();
@@ -57,7 +59,7 @@ export async function GET(request: NextRequest) {
   const cached=roadResultCache.get(cacheKey);
   if(cached&&cached.until>Date.now())return respond({...cached.body,...(debug?{}:{diagnostics:undefined})},cached.status);
   const radius = Math.min(180, Math.max(90, Math.ceil(accuracy * 2 + 35)));
-  const query = `[out:json][timeout:6];way(around:${radius},${latitude},${longitude})["highway"];out tags geom;`;
+  const query = `[out:json][timeout:8];way(around:${radius},${latitude},${longitude})["highway"]["maxspeed"];out geom;`;
   const attempts: Attempt[] = await Promise.all(endpoints.map(async endpoint => {
     const provider = new URL(endpoint).hostname;
     const started = Date.now();
@@ -83,7 +85,7 @@ export async function GET(request: NextRequest) {
         : postResponse;
       status = response.status;
       if (!response.ok) {
-        if([406,429,503,504].includes(response.status))providerCooldown.set(provider,Date.now()+([406,429].includes(response.status)?5*60*1000:60*1000));
+        if([406,429,503,504].includes(response.status))providerCooldown.set(provider,Date.now()+(response.status===429?5*60*1000:response.status===406?60*1000:30*1000));
         return { provider, ms: Date.now() - started, status, outcome: "http_error" };
       }
       providerCooldown.delete(provider);
