@@ -232,6 +232,18 @@ def build(folder,manifest_path,public_folder,review_path):
    # closest image's label evidence so large-distance cases can be separated
    # from completely unrelated page graphics without relaxing publication.
    closest_candidate=closest if closest else (candidates[0] if candidates else None)
+   # Audit the five closest *eligible* images, not only the nearest object.
+   # A correct package can be farther away than an unrelated product photo.
+   candidate_ocr_evidence=[]
+   for candidate in eligible_candidates[:5]:
+    match=next((b for b in blocks if all(abs(a-c)<.015 for a,c in zip(b['bbox'],candidate['rectangle']))),None)
+    if not match:continue
+    try:label=sorted(ocr(match))[:24]
+    except (subprocess.SubprocessError,OSError,ValueError) as exc:
+     print(f'::warning::Citymarket PDF page {number+1}: candidate OCR unavailable: {exc}')
+     label=[]
+    candidate_ocr_evidence.append({'rectangle':candidate['rectangle'],'distance':candidate['distance'],
+                                   'words':label,'matchingWords':sorted(set(label)&context[row['id']])})
    closest_label_words=[]
    if closest_candidate:
     matched_block=next((b for b in blocks if all(abs(a-c)<.015 for a,c in zip(b['bbox'],closest_candidate['rectangle']))),None)
@@ -243,7 +255,7 @@ def build(folder,manifest_path,public_folder,review_path):
                   'candidateImageRectangles':candidates[:15],
                   'nearbyImageObjects':len(nearby),'status':status,'diagnosticReason':reason,
                   'nearestEligibleDistance':nearest_distance,'secondEligibleDistance':next_distance,'nearestDistanceGap':nearest_gap,
-                  'closestCandidateOCRWords':closest_label_words,'anchor':anchor})
+                  'closestCandidateOCRWords':closest_label_words,'candidateOCREvidence':candidate_ocr_evidence,'anchor':anchor})
   if unresolved:
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
