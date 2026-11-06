@@ -28,3 +28,6 @@ jobs:
 
       - name: Verify small GPS query preserves actual high speed segment
         run: node scripts/test-digiroad-segment-centered.mjs
+
+      - name: Test reusable Digiroad matcher
+        run: node scripts/test-digiroad-module.mjs
