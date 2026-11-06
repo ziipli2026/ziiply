@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import {onlineRecipeTitleMatches, onlineRecipeSearchPlan, onlineRecipeDisplayIngredients} from "./onlineRecipe";
 
 type Recipe = {title:string;url:string;content:string};
 export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIngredients?:(terms:string[])=>void}) {
@@ -38,7 +39,7 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
      continuation=data.continue?.gapcontinue;
      if(!continuation)break;
     }
-    const matches=[...pages.values()].filter(p=>p.title.toLocaleLowerCase("fi").includes(q.toLocaleLowerCase("fi"))).slice(0,40);
+    const matches=[...pages.values()].filter(p=>onlineRecipeTitleMatches(p.title,query)).slice(0,40);
     const recipes=(await Promise.all(matches.map(async p=>{
      try {
       const response=await fetch(api+new URLSearchParams({action:"parse",page:p.title,prop:"text",format:"json",origin:"*"}),{signal:controller.signal});
@@ -52,7 +53,7 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
       return text.length>35?{title:p.title.replace(/^Keittokirja\//,""),url:p.fullurl,content:text.slice(0,10000)}:null;
      }catch{return null}
     }))).filter((r):r is Recipe=>r!==null);
-    if(!controller.signal.aborted)setResults(recipes);
+    if(!controller.signal.aborted)setResults(recipes.filter(recipe=>onlineRecipeTitleMatches(recipe.title,query)));
    }catch(e){if(!controller.signal.aborted)setError("Reseptipalvelu ei vastaa. Yritä uudelleen.");}
    finally{if(!controller.signal.aborted)setLoading(false)}
   },300);
@@ -63,7 +64,9 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
    const key="ziiply-desktop-vihkonen-recipes-v1";
    const old=JSON.parse(localStorage.getItem(key)||"[]");
    const id="external-"+encodeURIComponent(recipe.url);
-   const entry={id,title:recipe.title,ingredients:recipe.content,instructions:recipe.content,source:"muualta",category:"muualta",sourceUrl:recipe.url,sourceName:"Wikikirjasto / Keittokirja",createdAt:new Date().toISOString()};
+   const parts=recipe.content.split(/\n(?:Valmistus|Ohje|Valmistusohje)\s*\n/i);
+   const ingredients=onlineRecipeDisplayIngredients(recipe.content);
+   const entry={id,title:recipe.title,ingredients:ingredients.map(item=>item.amount+" "+item.name).join("\n"),instructions:parts.length>1?parts.slice(1).join("\n"):recipe.content,source:"muualta",category:"muualta",sourceUrl:recipe.url,sourceName:"Wikikirjasto / Keittokirja",createdAt:new Date().toISOString()};
    localStorage.setItem(key,JSON.stringify([entry,...(Array.isArray(old)?old:[]).filter((x:{id:string})=>x.id!==id)]));
    window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));
    setError("Resepti tallennettu.");
@@ -80,6 +83,7 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
    {opened===recipe.url&&<div className="mt-2 space-y-2">
     <p className="max-h-64 overflow-auto whitespace-pre-wrap text-sm">{recipe.content}</p>
     <div className="flex flex-wrap gap-2">
+     <button type="button" className="rounded-lg border border-[#174c3a] px-3 py-2" onClick={()=>{const plan=onlineRecipeSearchPlan(recipe.content,recipe.title);if(!plan.items.length){setError("Reseptistä ei löytynyt haettavia ainesosia.");return;}try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:plan.items}));}catch{}onSearchIngredients?.(plan.terms);}}>Hae ainesosat</button>
      <button type="button" className="rounded-lg bg-[#174c3a] px-3 py-2 text-white" onClick={()=>save(recipe)}>Tallenna resepti</button>
      <a href={recipe.url} target="_blank" rel="noopener noreferrer" className="rounded-lg border px-3 py-2">Alkuperäinen resepti</a>
     </div>
