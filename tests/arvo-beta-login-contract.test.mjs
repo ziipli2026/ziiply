@@ -25,3 +25,9 @@ test("beta session verification issues HttpOnly cookie and consumes challenge",(
  assert.match(cookie,/httpOnly:\s*true/);
  assert.match(cookie,/secure:\s*true/);
 });
+
+test("failed SMTP delivery removes undelivered beta login challenge",()=>{
+ const code=readFileSync(root+"request/route.ts","utf8");
+ assert.match(code,/catch \(error\) \{[\s\S]*DELETE FROM public\.ziiply_beta_login_challenges WHERE token_hash = \$\{tokenHash\} AND consumed_at IS NULL/);
+ assert.match(code,/DELETE FROM public\.ziiply_beta_login_attempts WHERE id = \$\{allowed\[0\]\.id\}/);
+});
