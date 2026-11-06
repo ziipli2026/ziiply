@@ -93,7 +93,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const latestLocalCitymarket=localCitymarketRuns[0]??null;
   const localCitymarketAgeH=latestLocalCitymarket?(Date.now()-new Date(latestLocalCitymarket.checked_at).getTime())/3600000:null;
   const localCitymarketLevel=!latestLocalCitymarket?"gray":!latestLocalCitymarket.ok||latestLocalCitymarket.offer_count===0?"red":localCitymarketAgeH!==null&&localCitymarketAgeH>24?"red":localCitymarketAgeH!==null&&localCitymarketAgeH>8?"yellow":"green";
-  const localCitymarketMessage=!latestLocalCitymarket?"EI TARKISTUSTIETOA – paikallista hakua ei ole vahvistettu":!latestLocalCitymarket.ok?"HAKU EPÄONNISTUI":latestLocalCitymarket.offer_count===0?"0 TARJOUSTA":localCitymarketLevel==="red"?"TARKISTUS VANHENTUNUT":localCitymarketLevel==="yellow"?"TARKISTUS VANHENEE":"HAKU ONNISTUI";
+  const localCitymarketMessage=!latestLocalCitymarket?"EI TARKISTUSTIETOA – paikallista hakua ei ole vahvistettu":!latestLocalCitymarket.ok?"PAIKALLISIA ETUJA EI SAATU VARMENNETTUA":latestLocalCitymarket.offer_count===0?"0 TARJOUSTA":localCitymarketLevel==="red"?"TARKISTUS VANHENTUNUT":localCitymarketLevel==="yellow"?"TARKISTUS VANHENEE":"HAKU ONNISTUI";
 
   // Dedicated refresh history cannot be displaced by busy unrelated sources.
   if(process.env.DATABASE_URL){
@@ -420,7 +420,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     {view==="publications"&&<section style={{padding:18,background:"#fff",border:"1px solid #cbd5e1",borderRadius:14,marginBottom:18}}>
        <h2 style={{marginTop:0}}>K-Citymarket – paikallinen Kaupan edut -haku</h2>
        <p style={{fontSize:14}}>{dot(localCitymarketLevel)} <strong>{localCitymarketMessage}</strong></p>
-       <p style={{fontSize:13}}>K-Ruoka.fi / Kaupan edut, riippumaton PDF-tarjouslehdestä. {latestLocalCitymarket?"Viimeisin tarkistus: "+new Date(latestLocalCitymarket.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+latestLocalCitymarket.offer_count+" tarjousta":"Tarkistusmerkintää ei ole viimeisen 14 päivän ajalta."}</p>
+       <p style={{fontSize:13}}>K-Ruoka.fi / Kaupan edut, riippumaton PDF-tarjouslehdestä. {latestLocalCitymarket?"Viimeisin tarkistus: "+new Date(latestLocalCitymarket.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+(latestLocalCitymarket.ok?latestLocalCitymarket.offer_count+" paikallista etua":"Voimassa olevien etujen määrä ei tiedossa"):"Tarkistusmerkintää ei ole viimeisen 14 päivän ajalta."}</p>
        {latestLocalCitymarket?.details?.error&&<p style={{color:"#b91c1c"}}>{latestLocalCitymarket.details.error}</p>}
        <p style={{fontSize:12,color:"#64748b"}}>PDF-parserin onnistuminen ei tarkoita, että paikallinen etuhaku toimii. Vihreä tila edellyttää erillistä onnistunutta tarkistusta.</p>
      </section>}
