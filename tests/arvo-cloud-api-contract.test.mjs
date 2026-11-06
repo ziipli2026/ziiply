@@ -16,6 +16,7 @@ for(const route of routes){
   assert.match(code,/process\.env\.DATABASE_URL/);
   assert.match(code,/request\.cookies\.get\(ARVO_BETA_COOKIE_NAME\)/);
   assert.match(code,/executeArvoCloudOperation\(token,/);
+  assert.match(code,/!token\|\|!\/\^\[A-Za-z0-9_-\]\{43\}\$\/.test\(token\)/);
   assert.match(code,/export async function (?:GET|POST)\(/);
   assert.match(code,/Cache-Control.*no-store/);
   assert.doesNotMatch(code,/request\.nextUrl\.searchParams\.get\(["'](?:userId|token)/);
