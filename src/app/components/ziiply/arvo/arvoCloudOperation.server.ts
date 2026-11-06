@@ -19,7 +19,7 @@ export async function executeArvoCloudOperation(
  rawServerCookie:string|null,
  operation:"read"|"write"|"delete"|"grant"|"revoke",
  payload?:unknown,
- connectionString:string|undefined=process.env.DATABASE_URL,
+ connectionString:string|undefined=process.env.ARVO_TEST_DATABASE_URL,
 ){
  return withArvoNeonDatabase(connectionString,async db=>{
   const sessionLookup=createArvoNeonSessionLookup(db);
