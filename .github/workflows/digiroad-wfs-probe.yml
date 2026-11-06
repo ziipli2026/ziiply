@@ -22,3 +22,6 @@ jobs:
 
       - name: Probe motorways ring roads and major routes for 60 to 120 kmh
         run: node scripts/test-digiroad-main-roads.mjs
+
+      - name: Compare lightweight GPS sized main-road queries
+        run: node scripts/test-digiroad-lightweight-roads.mjs
