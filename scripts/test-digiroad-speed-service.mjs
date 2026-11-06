@@ -17,6 +17,31 @@ const tests=[
   const bad=new DigiroadSpeedService({fetchFn:async()=>{throw Error('offline')},clock:()=>now});
   const r=await bad.update(fix());assert.equal(r.status,'unknown');
  }],
+ ['prolonged search slows requests and still confirms from cache',async()=>{
+  let time=0, requests=0;
+  const retrying=new DigiroadSpeedService({clock:()=>time,fetchFn:async()=>{
+   requests++;
+   if(time<40000)throw Error('offline');
+   return {ok:true,json:async()=>({features:[f('main',80)],numberMatched:1})};
+  }});
+  for(time=0;time<=25000;time+=5000){
+   assert.equal((await retrying.update(fix())).status,'unknown');
+  }
+  assert.equal(requests,6);
+  for(time=30000;time<40000;time+=1000){
+   assert.equal((await retrying.update(fix())).status,'unknown');
+  }
+  assert.equal(requests,6);
+  assert.equal((await retrying.update(fix())).status,'unknown');
+  time+=1000;
+  assert.equal((await retrying.update(fix())).status,'unknown');
+  time+=1000;
+  assert.equal((await retrying.update(fix())).speedLimit,80);
+  assert.equal(requests,7);
+  time=45000;
+  await retrying.update(fix(120));
+  assert.equal(requests,8);
+ }],
  ['reset clears cached state',async()=>{service.reset();assert.equal(service.cache,null);assert.equal(service.tracker.snapshot().status,'unknown')}],
 ];
 for(const [name,run] of tests){await run();console.log('PASS '+name)}
