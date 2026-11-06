@@ -285,7 +285,8 @@ export default function DesktopPreviewPage() {
       setJustiinaRecipeDebug({...trace});
       try{
         const api="https://fi.wikibooks.org/w/api.php?";
-        const searchUrl=api+new URLSearchParams({action:"query",generator:"search",gsrsearch:query,gsrnamespace:"0",gsrlimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"});
+        const wildcardPrefix=query.match(/^([\\p{L}\\p{N}]+)\\*$/u)?.[1];
+        const searchUrl=api+new URLSearchParams(wildcardPrefix?{action:"query",generator:"prefixsearch",gpssearch:"Keittokirja/"+wildcardPrefix,gpsnamespace:"0",gpslimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"}:{action:"query",generator:"search",gsrsearch:query,gsrnamespace:"0",gsrlimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"});
         const response=await fetch(searchUrl,{signal:controller.signal});
         trace.searchHttp=response.status;
         if(!response.ok)throw new Error("Hakupalvelu ei vastaa: HTTP "+response.status);
