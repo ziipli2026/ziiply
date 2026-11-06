@@ -849,7 +849,25 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     : [];
   if(stored.length){
     const { correctPreparedCitymarketPrices }=await import("./kCitymarketPreparedPriceCorrections");
-    const prepared=normalizeKCitymarketOfferImages(correctPreparedCitymarketPrices(stored));
+    const corrected=correctPreparedCitymarketPrices(stored).flatMap(offer=>{
+      // Existing snapshots retain the original parser IDs and prices.
+      const legacy=offer.id.match(/^kcm:spatial:(3|8):(.+):([\d.]+)$/);
+      if(!legacy || offer.price!==Number(legacy[3])) return [offer];
+      const page=Number(legacy[1]);
+      const title=legacy[2];
+      const verified=verified45LVTransaction(offer.sourceUrl,page,title);
+      if(!verified?.reviewedCard){
+        return /ruis cracker 225 g$/i.test(title) && isUnverified45LVPrice(offer.sourceUrl,page,title) ? [] : [offer];
+      }
+      const priceText=verified.price.toFixed(2).replace(".",",")+" € / "+verified.priceLabel;
+      return [{...offer,title:verified.title,price:verified.price,priceText,
+        offerQuantity:verified.quantity,offerUnit:verified.unit,unit:verified.unit,
+        priceBasis:verified.quantity>1?"set-total":"package-total",
+        packageSize:null,unitPrice:null,normalPrice:null,plussa:true,benefitText:"Plussa-etu",
+        resolutionSource:"reviewed-45lv-pdf",resolutionSanity:"pass",
+        imageUrl:getKCitymarketPublisherImage(offer.sourceUrl,offer.id)||offer.imageUrl}];
+    });
+    const prepared=normalizeKCitymarketOfferImages(corrected);
     if(prepared.every(offer=>Boolean(offer.imageUrl)))return prepared;
     // Scheduled background enrichment fills missing images without delaying shoppers.
     return prepared;
