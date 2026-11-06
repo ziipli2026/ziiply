@@ -2834,11 +2834,11 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   return rankNormalSearchResults(query, products, (product) => priceOf(product));
 }
 
-export function rankNormalSearchResults(
+export function rankNormalSearchResults<T extends Product>(
   query: string,
-  products: Product[],
-  priceOf: (product: Product) => number = getProductPrice,
-) {
+  products: T[],
+  priceOf: (product: T) => number = getProductPrice,
+): T[] {
   const intent = detectSearchIntent(query);
   const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
 
@@ -2881,7 +2881,7 @@ export function rankNormalSearchResults(
 
   return products
     .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
-    .map((product: Product): ScoredProduct & { coreProductIntentRank: number } => ({
+    .map((product: T): ScoredProduct & { coreProductIntentRank: number; product: T } => ({
       product,
       score: scoreNormalSResult(query, product),
       categoryConfidence: getCategoryConfidence(intent, product),
