@@ -25,3 +25,6 @@ jobs:
 
       - name: Compare lightweight GPS sized main-road queries
         run: node scripts/test-digiroad-lightweight-roads.mjs
+
+      - name: Verify small GPS query preserves actual high speed segment
+        run: node scripts/test-digiroad-segment-centered.mjs
