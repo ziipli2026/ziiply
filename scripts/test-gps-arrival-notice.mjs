@@ -77,6 +77,21 @@ x=scenario(crossChain);assert.equal(x.decision.showArrivalMessage,false);assert.
  assert.equal(final.status,'in-store','manual switch after 30s must confirm without reload');
  assert.equal(final.state.arrivalStoreId,crossChain.id);
 }
+// Adjacent shops inside GPS accuracy: offer both choices, never auto-confirm.
+{
+ const a={id:'adj-k',name:'K-Supermarket',chain:'K',latitude:60,longitude:25};
+ const b={id:'adj-s',name:'S-market',chain:'S',latitude:60.00006,longitude:25};
+ let state=initialZiiplyArrivalState(),prompts=0,decision;
+ for(let i=0;i<8;i++){
+  decision=evaluateZiiplyArrival(state,{at:i*3000,latitude:60.00003,longitude:25,accuracyMeters:5,speedKmh:0},[a,b],[a.id]);
+  state=decision.state;prompts+=Number(decision.askStoreChange);
+ }
+ assert.equal(prompts,1,'ambiguous adjacent stores should ask only once');
+ assert.equal(decision.status,'uncertain');
+ assert.equal(decision.showArrivalMessage,false,'ambiguous GPS must not auto-confirm');
+ assert.equal(decision.nearbyStoreChoices.length,2,'both adjacent stores must be offered');
+ assert.equal(decision.state.arrivalStoreId,null);
+}
 x=scenario(selected);n=reduce(x.notice,{type:'tick',at:2000});assert.equal(n.phase,'approach');
 n=reduce(n,{type:'pause',at:8500});assert.equal(n.remainingMs,1500);assert.equal(n.deadline,null);
 n=reduce(n,{type:'tick',at:600000});assert.equal(n.phase,'approach');
