@@ -64,12 +64,23 @@ export async function GET(request: NextRequest) {
     if((providerCooldown.get(provider)||0)>started)return {provider,ms:0,status:null,outcome:"cooldown"};
     let status: number | null = null;
     try {
-      const response = await fetch(endpoint + "?data=" + encodeURIComponent(query), {
-        method: "GET",
-        headers: { "Accept": "application/json" },
+      // POST avoids long encoded query URLs rejected as HTTP 406 by some Overpass proxies.
+      // Keep GET fallback for providers that do not support form POST.
+      const postResponse = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body: new URLSearchParams({ data: query }).toString(),
         signal: AbortSignal.timeout(6500),
         cache: "no-store",
       });
+      const response = [405, 415, 501].includes(postResponse.status)
+        ? await fetch(endpoint + "?data=" + encodeURIComponent(query), {
+            method: "GET",
+            headers: { "Accept": "application/json" },
+            signal: AbortSignal.timeout(6500),
+            cache: "no-store",
+          })
+        : postResponse;
       status = response.status;
       if (!response.ok) {
         if([406,429,503,504].includes(response.status))providerCooldown.set(provider,Date.now()+([406,429].includes(response.status)?5*60*1000:60*1000));
