@@ -1,8 +1,8 @@
+/** Desktop preview reads the same dedicated fuel registry as production. */
 export function fuelDatabaseConfig(env:Record<string,string|undefined>=process.env){
-  const production=env.FUEL_PRODUCTION_ENABLED==='true';
-  const connection=production?env.FUEL_DATABASE_URL:env.TANKKAUS_TEST_DATABASE_URL;
   return {
-    production,connection,
-    expectedBranch:production?'br-lucky-fog-b1hwz641':'br-weathered-meadow-b1bwpzst',
+    production:true,
+    connection:env.FUEL_DATABASE_URL,
+    expectedBranch:'br-lucky-fog-b1hwz641',
   };
 }
