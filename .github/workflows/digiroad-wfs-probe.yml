@@ -37,3 +37,6 @@ jobs:
 
       - name: Test GPS cache and network request suppression
         run: node scripts/test-digiroad-speed-service.mjs
+
+      - name: Simulate 80 to 100 to 120 kmh GPS drive
+        run: node scripts/test-digiroad-long-drive.mjs
