@@ -1,0 +1,16 @@
+name: Digiroad WFS speed limit probe
+on:
+  push:
+    branches: [test/digiroad-wfs-speed-limits]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Query five sample locations (read-only)
+        run: node scripts/test-digiroad-wfs-speed-limits.mjs
