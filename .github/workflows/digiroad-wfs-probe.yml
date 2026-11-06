@@ -12,22 +12,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Query five sample locations (read-only)
-        run: node scripts/test-digiroad-wfs-speed-limits.mjs
-      - name: Match simulated GPS trajectories to real Digiroad line geometries
-        run: node scripts/test-digiroad-map-matching.mjs
-
       - name: GPS matching safety regressions
         run: node scripts/test-digiroad-matching-safety.mjs
-
-      - name: Probe motorways ring roads and major routes for 60 to 120 kmh
-        run: node scripts/test-digiroad-main-roads.mjs
-
-      - name: Compare lightweight GPS sized main-road queries
-        run: node scripts/test-digiroad-lightweight-roads.mjs
-
-      - name: Verify small GPS query preserves actual high speed segment
-        run: node scripts/test-digiroad-segment-centered.mjs
 
       - name: Test reusable Digiroad matcher
         run: node scripts/test-digiroad-module.mjs
@@ -46,3 +32,17 @@ jobs:
 
       - name: Verify initial GPS recognition keeps retrying
         run: node scripts/test-digiroad-initial-retry.mjs
+
+      - name: Query five sample locations (read-only)
+        run: node scripts/test-digiroad-wfs-speed-limits.mjs
+      - name: Match simulated GPS trajectories to real Digiroad line geometries
+        run: node scripts/test-digiroad-map-matching.mjs
+
+      - name: Probe motorways ring roads and major routes for 60 to 120 kmh
+        run: node scripts/test-digiroad-main-roads.mjs
+
+      - name: Compare lightweight GPS sized main-road queries
+        run: node scripts/test-digiroad-lightweight-roads.mjs
+
+      - name: Verify small GPS query preserves actual high speed segment
+        run: node scripts/test-digiroad-segment-centered.mjs
