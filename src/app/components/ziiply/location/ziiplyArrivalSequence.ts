@@ -18,7 +18,7 @@ export type ZiiplyArrivalState = {
 };
 export type ZiiplyArrivalDecision = {
  state:ZiiplyArrivalState; status:'moving'|'checking'|'near-store'|'in-store'|'uncertain';
- store:ZiiplyArrivalStore|null; isSelectedStore:boolean; askStoreChange:boolean;
+ store:ZiiplyArrivalStore|null; isSelectedStore:boolean; askStoreChange:boolean; nearbyStoreChoices?:ZiiplyArrivalStore[];
  showArrivalMessage:boolean; radar:'white'|'yellow'|'green';
 };
 export const initialZiiplyArrivalState=():ZiiplyArrivalState=>({
@@ -56,6 +56,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
    .filter(x=>x.distance<=ZIIPLY_APPROACH_RADIUS_METERS).sort((a,b)=>a.distance-b.distance):[];
  const ambiguous=candidates.length>1&&candidates[1].distance-candidates[0].distance<=sample.accuracyMeters;
  const candidate=ambiguous?null:candidates[0]?.store??null;
+ const nearbyStoreChoices=ambiguous?candidates.filter(x=>x.distance-candidates[0].distance<=sample.accuracyMeters).map(x=>x.store):[];
  // No selection means no automatic arrival. A mismatched chain must never trigger a notice.
  const selectedStores=stores.filter(store=>selectedStoreIds.includes(store.id));
  const normalizedChain=(store:ZiiplyArrivalStore):string|null=>{
@@ -73,10 +74,10 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  // Driving and unknown speed must not contribute to stationary confirmation.
  const moving=sample.speedKmh===null||!Number.isFinite(sample.speedKmh)||sample.speedKmh>1.5;
  const driving=sample.speedKmh!==null&&Number.isFinite(sample.speedKmh)&&sample.speedKmh>20;
- if(moving||!candidate||!eligibleCandidate){state.candidateStoreId=null;state.candidateSamples=0;}
- else if(state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
- else {state.candidateStoreId=candidate.id;state.candidateSamples=1;}
- if(!candidate||candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
+ if(moving||(!candidate&&!ambiguous)||(!eligibleCandidate&&!ambiguous)){state.candidateStoreId=null;state.candidateSamples=0;}
+ else if(candidate&&state.candidateStoreId===candidate.id){state.candidateSamples=(state.candidateSamples??0)+1;}
+ else if(candidate){state.candidateStoreId=candidate.id;state.candidateSamples=1;}
+ if(candidate&&candidate.id!==state.mismatchPromptedStoreId){state.mismatchPromptedStoreId=null;}
  const latched=state.arrivalStoreId?(stores.find(s=>s.id===state.arrivalStoreId)??state.confirmedStore??null):null;
  if(valid&&!moving) {
    if(state.stoppedAt===null)state.stoppedAt=sample.at;
@@ -99,8 +100,9 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  const arrivalConfirmed=!retained&&valid&&!ambiguous&&eligibleCandidate
    &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable&&(state.candidateSamples??0)>=3;
  const showArrivalMessage=!!arrivalConfirmed&&selectedCandidate;
- const askStoreChange=!!arrivalConfirmed&&!selectedCandidate&&selectionExists&&state.mismatchPromptedStoreId!==candidate!.id;
- if(askStoreChange)state.mismatchPromptedStoreId=candidate!.id;
+ const ambiguousPrompt=ambiguous&&selectionExists&&stable&&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&nearbyStoreChoices.length>1&&state.mismatchPromptedStoreId!==nearbyStoreChoices.map(s=>s.id).sort().join('|');
+ const askStoreChange=(!!arrivalConfirmed&&!selectedCandidate&&selectionExists&&state.mismatchPromptedStoreId!==candidate!.id)||ambiguousPrompt;
+ if(askStoreChange)state.mismatchPromptedStoreId=ambiguousPrompt?nearbyStoreChoices.map(s=>s.id).sort().join('|'):candidate!.id;
  // A mismatch is only a question; it must never mark the user as present in an unselected shop.
  if(showArrivalMessage){state.arrivalStoreId=candidate!.id;state.confirmedStore=candidate;state.tripConfirmed=true;state.departureSamples=0;}
  const inStore=!!state.arrivalStoreId;
@@ -108,7 +110,7 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
  if(inStore&&store)state.confirmedStore=store;
  const isSelectedStore=!!store&&selectedStoreIds.includes(store.id);
  return {state,status:inStore?'in-store':!valid||ambiguous?'uncertain':candidate?(driving?'moving':'near-store'):'checking',
-   store,isSelectedStore,askStoreChange,
+   store,isSelectedStore,askStoreChange,nearbyStoreChoices,
    showArrivalMessage,radar:inStore&&isSelectedStore?'green':candidate&&selectedCandidate&&!moving?'yellow':'white'};
 }
 export function confirmZiiplyStorePresence(previous:ZiiplyArrivalState,storeId:string):ZiiplyArrivalState {
