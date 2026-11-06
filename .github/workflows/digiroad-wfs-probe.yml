@@ -40,3 +40,6 @@ jobs:
 
       - name: Simulate 80 to 100 to 120 kmh GPS drive
         run: node scripts/test-digiroad-long-drive.mjs
+
+      - name: Simulate GPS noise and parallel roads
+        run: node scripts/test-digiroad-noisy-drive.mjs
