@@ -207,6 +207,30 @@ export default function ZiiplyMobileCompareSelectionCard({
   onClose,
   className = "",
 }: ZiiplyMobileCompareSelectionCardProps) {
+  const [compareDebug, setCompareDebug] = React.useState<Array<Record<string, unknown>>>([]);
+  const [debugExpanded, setDebugExpanded] = React.useState(false);
+  const debugEvent = (event: string, details: Record<string, unknown> = {}) => {
+    const entry = { time: new Date().toISOString(), event, storeId: store.id, storeName: store.name, ...details };
+    setCompareDebug((current) => [...current.slice(-99), entry]);
+    console.info("[Ziiply comparison debug]", entry);
+  };
+  const debugPanel = (
+    <div className="mx-2 my-2 rounded-lg border border-[#876b37] bg-[#fff8e5] p-2 text-xs text-[#28402a]">
+      <div className="flex flex-wrap items-center gap-2">
+        <strong>Vertailun debug · {compareDebug.length} tapahtumaa</strong>
+        <button type="button" className="rounded border px-2 py-1" onClick={() => setDebugExpanded((value) => !value)}>{debugExpanded ? "Piilota loki" : "Näytä loki"}</button>
+        <button type="button" className="rounded border px-2 py-1" onClick={() => {
+          const payload = { store: { id: store.id, name: store.name, chain: store.chain }, rows: ((store.matches && store.matches.length > 0 ? store.matches : items) || []).map((row) => ({ id: row.id, name: getItemName(row), brand: getProductBrandExample(row), price: row.price, matchType: row.matchType })), events: compareDebug };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a"); link.href = url; link.download = "ziiply-vertailu-debug.json"; link.click();
+          window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }}>Tallenna JSON</button>
+        <button type="button" className="rounded border px-2 py-1" onClick={() => setCompareDebug([])}>Tyhjennä</button>
+      </div>
+      {debugExpanded ? <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all">{JSON.stringify(compareDebug, null, 2)}</pre> : null}
+    </div>
+  );
   const [alternativeMenu, setAlternativeMenu] = React.useState<{ key: string; mode: QualityMode; items: ZiiplyCompareSelectionItem[]; loading: boolean } | null>(null);
 
   // Desktop: add only the scroll room needed to align the active row at the top.
@@ -298,7 +322,10 @@ export default function ZiiplyMobileCompareSelectionCard({
                             <button
                               key={mode}
                               type="button"
-                              onClick={async (event) => {
+                              onClick={async () => {
+                                const productName = getItemName(item);
+                                debugEvent("button_clicked", { mode, productName, currentMode, brand: getProductBrandExample(item), chain: store.chain });
+                                try {
                                 if (mode === "cheapest") {
                                   setAlternativeMenu(null);
                                   await onChangeMatchMode(store.id, item, mode);
