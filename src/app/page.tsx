@@ -12196,6 +12196,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
 
+    // Hide previous-query products immediately while the new query is running.
+    // Otherwise the heading updates before the old product cards disappear.
+    setNormalResults([]);
+    setSingleProductCompareResults([]);
+    setMobileResultsReadyQueryV537("");
     setLoadingNormal(true);
     setNormalSearchAttempted(true);
     if (!cachedNormalSearchV441) setSearchDebug([]);
@@ -21788,7 +21793,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }}
                   resultsPanel={
                     <div className="space-y-3">
-                      {loadingOffers ? null : activeResult === "offers" && filteredOffers.length > 0 ? (
+                      {loadingNormal || singleProductCompareLoading ? (
+                        <p role="status" aria-live="polite" className="py-6 text-center text-base font-black text-[#315c43]">Haetaan tuotteita…</p>
+                      ) : loadingOffers ? null : activeResult === "offers" && filteredOffers.length > 0 ? (
                         filteredOffers.slice(0, 12).map((item) => {
                           const product = offerToProduct(item);
                           return (
