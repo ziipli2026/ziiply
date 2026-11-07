@@ -12,12 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: d73a0001389ab66fd79b675277e809d5ab8e7806
+          ref: dada098526f89d81d6ea9c2097423cfc237090eb
           path: desktop
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 2c29d141c04646b299ad6cb3c4f835e197be111f
+          ref: refs/pull/263/merge
           path: mobile
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -164,9 +164,9 @@ jobs:
       matrix:
         include:
           - variant: desktop
-            ref: d73a0001389ab66fd79b675277e809d5ab8e7806
+            ref: dada098526f89d81d6ea9c2097423cfc237090eb
           - variant: mobile
-            ref: 2c29d141c04646b299ad6cb3c4f835e197be111f
+            ref: refs/pull/263/merge
     name: Typecheck ${{ matrix.variant }}
     steps:
       - uses: actions/checkout@v4
@@ -178,3 +178,10 @@ jobs:
           node-version: '24'
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npx tsc --noEmit --pretty false
+      - name: Run existing desktop cheapest suite
+        if: matrix.variant == 'desktop'
+        run: node --test tests/desktop-cheapest-regression.test.cjs
+      - name: Run existing mobile comparison audits
+        if: matrix.variant == 'mobile'
+        run: |
+          for audit in scripts/audit-comparison-*.cjs; do node "$audit" || exit; done
