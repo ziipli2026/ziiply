@@ -3,6 +3,7 @@ import { gostaWatchUrl } from "./gostaWatchLocation";
 import { fetchSharedGostaWatch } from "./gostaWatchSharedRequest";
 import { matchesGostaWatch } from "./gostaWatchMatch";
 import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
+import type { RecipeIngredient } from "../justiina/recipeCore";
 import JustiinaOnlineRecipes from "../justiina/JustiinaOnlineRecipes";
 import ArvoSettingsPanel from "../ArvoSettingsPanel";
 
@@ -13,7 +14,7 @@ import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 export type ZiiplyMobileAssistantPanelProps = {
   activeAssistant: ZiiplyAssistantKey | null;
   onClose: () => void;
-  onSearchIngredients?: (terms: string[]) => void;
+  onSearchIngredients?: (terms: string[], items?: RecipeIngredient[]) => void;
   selectedChains?: Record<"s"|"k"|"lidl"|"tokmanni",boolean>;
   onChangeChain?: (chain: "s"|"k"|"lidl"|"tokmanni", enabled:boolean) => void;
   locationLabel?: string;

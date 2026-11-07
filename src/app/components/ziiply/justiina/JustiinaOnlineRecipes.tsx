@@ -2,8 +2,10 @@
 import React from "react";
 import {onlineRecipeTitleMatches, onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, fetchOnlineRecipeJson} from "./onlineRecipe";
 
+import type { RecipeIngredient } from "./recipeCore";
+
 type Recipe = {title:string;url:string;content:string};
-export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIngredients?:(terms:string[])=>void}) {
+export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIngredients?:(terms:string[], items:RecipeIngredient[])=>void}) {
  const queryInput=React.useRef<HTMLInputElement>(null);
  const [query,setQuery]=React.useState("");
  const [results,setResults]=React.useState<Recipe[]>([]);
@@ -58,10 +60,9 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
  const searchProducts=(recipe:Recipe)=>{
   const plan=onlineRecipeSearchPlan(recipe.content,recipe.title);
   if(!plan.items.length){setError("Reseptistä ei löytynyt haettavia ainesosia.");return;}
-  try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:plan.items}));}catch{}
   if(!onSearchIngredients){setError("Tuotehaku ei ole käytettävissä.");return;}
   queryInput.current?.blur();
-  onSearchIngredients(plan.terms);
+  onSearchIngredients(plan.terms, plan.items);
  };
  const save=(recipe:Recipe)=>{
   try {

@@ -8,7 +8,7 @@ let node;
 function walk(n){if(ts.isFunctionDeclaration(n)&&n.name?.text==='runVoiceSearchFromSpeechV453')node=n;ts.forEachChild(n,walk)}walk(ast);
 assert.ok(node);
 const javascript=ts.transpileModule(node.getText(ast),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
-async function run(debug){
+async function run(debug, blockedStorage = false){
  const plan=prepareRecipeSearch(parseRecipeText('Ainekset:\n300 g silakkafileitä\n12 kananmunaa').ingredients);
  const storage=new Map([['ziiply-justiina-active-ingredients-v1',JSON.stringify({items:plan.items})]]);
  // The queue must retain the same measured ingredient requirements and their order.
@@ -23,6 +23,10 @@ async function run(debug){
  for(const name of ['voiceAutoSearchAfterStopRef','voiceInputFallbackArmedRefV454','voiceFallingEdgeSearchArmedRefV455','voiceHeardSpeechRef','voiceSearchRunningRefV453','voiceForceJustiinaCartSearchRefV461','gostaPanelStickyOpenRefV158'])deps[name]={current:false};
  deps.voiceSilenceTimeoutRef={current:null};deps.mobileRecipeRunRef={current:0};deps.mobileRecipeContextRef={current:null};
  deps.sessionStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
+ if (blockedStorage) for (const method of ["getItem","setItem","removeItem"]) deps.sessionStorage[method]=()=>{throw new Error("Storage blocked")};
+ const transitions=[];
+ deps.setSearchPanelOpen=value=>transitions.push(["search",value]);
+ deps.setActiveAssistant=value=>transitions.push(["assistant",value]);
  deps.window={clearTimeout};deps.getVoiceSearchCandidateV456=x=>x;deps.fixText=x=>x;deps.parseTerms=x=>x.split(',');deps.getSingleSearchTerm=x=>x;
  let choice=null;const searched=[];
  let cartOpened=false;deps.setCartModalOpen=value=>{cartOpened=value};
@@ -31,8 +35,9 @@ async function run(debug){
  deps.waitForVoiceSearchResultChoiceV509=async(term,recipe)=>{assert.equal(recipe,true);await new Promise(resolve=>{choice=resolve})};
  const recipeVisibility=[];deps.setMobileRecipeSearchActive=value=>recipeVisibility.push(value);
  const fn=new Function(...Object.keys(deps),javascript+';return runVoiceSearchFromSpeechV453;')(...Object.values(deps));
- let finished=false;const task=fn(plan.terms.join(', '),true,plan.terms).then(()=>{finished=true});
+ let finished=false;const task=fn(plan.terms.join(', '),true,plan.terms,blockedStorage ? plan.items : undefined).then(()=>{finished=true});
  await new Promise(setImmediate);
+ if(blockedStorage)assert.deepEqual(transitions.slice(0,2),[["search",true],["assistant",null]]);
  assert.equal(searched.length,1);assert.equal(finished,false);
  assert.equal(deps.mobileRecipeContextRef.current.ingredient.amount,300);
  assert.equal(deps.mobileRecipeContextRef.current.ingredient.unit,'g');
@@ -50,7 +55,7 @@ async function run(debug){
  const egg={name:'Farmimuna M6 348g Vapaa kananmuna',__recipeRunId:1,__recipeStep:1};
  assert.equal(mobileRecipeSelectionAllowed(deps.mobileRecipeContextRef.current,egg),true);
  assert.equal(mobileRecipePackageQuantity(deps.mobileRecipeContextRef.current,egg),2);
- assert.equal(storage.get('ziiply-justiina-recipe-step-v1'),'1');
+ if(!blockedStorage)assert.equal(storage.get('ziiply-justiina-recipe-step-v1'),'1');
  deps.resolveVoiceResultWaitV509();await task;
  assert.equal(cartOpened,true,'the last ingredient choice opens the basket');
  assert.deepEqual(recipeVisibility,[true,false],'ordinary Hae card hidden throughout the recipe queue');
@@ -58,7 +63,7 @@ async function run(debug){
  assert.equal(mobileRecipeSelectionAllowed(null,egg),false,'expired recipe card rejected');
  assert.equal(mobileRecipeSelectionAllowed(null,{name:'Maito 1l'}),true,'ordinary product selection unchanged');
 }
-(async()=>{await run(false);await run(true);assert.equal(mobileRecipePriceInCents(1.69,'s-kaupat-normal-v220'),169);assert.equal(mobileRecipePriceInCents(169,'ruoanhinta-s'),169);console.log('PASS: actual mobile queue with debug on/off, last-step wait, stale selections, fish/egg quantities, source price units and normal selection')})().catch(error=>{console.error(error);process.exitCode=1});
+(async()=>{await run(false);await run(true);await run(false,true);assert.equal(mobileRecipePriceInCents(1.69,'s-kaupat-normal-v220'),169);assert.equal(mobileRecipePriceInCents(169,'ruoanhinta-s'),169);console.log('PASS: actual mobile queue with debug on/off, last-step wait, stale selections, fish/egg quantities, source price units and normal selection')})().catch(error=>{console.error(error);process.exitCode=1});
 // Render the actual page's conditional card JSX: recipe text must not exist in the DOM.
 const React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
 let cardGuard;

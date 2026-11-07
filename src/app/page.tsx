@@ -8260,9 +8260,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return true;
   }
 
-  async function runVoiceSearchFromSpeechV453(rawValue?: string, force = false, recipeTerms?: string[]) {
+  async function runVoiceSearchFromSpeechV453(rawValue?: string, force = false, recipeTerms?: string[], onlineRecipeItems?: RecipeIngredient[]) {
     const cleaned = recipeTerms?.length ? recipeTerms.join(", ") : getVoiceSearchCandidateV456(rawValue);
-    const recipeDebugActive = typeof window !== "undefined" && Boolean(sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1"));
+    let recipeDebugActive = false;
+    try { recipeDebugActive = typeof window !== "undefined" && Boolean(sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1")); } catch {}
     if (recipeDebugActive) appendRecipeDebug("search-start", { rawValue, cleaned, force });
     pushVoiceDebugV507(`runVoice START force=${force ? "1" : "0"} raw=${String(rawValue || "").slice(0, 140)} cleaned=${cleaned}`);
     if (!cleaned) {
@@ -8283,8 +8284,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const runId=++mobileRecipeRunRef.current;
-    let recipeItems:RecipeIngredient[]=[];
-    if(recipeTerms?.length){
+    let recipeItems:RecipeIngredient[]=onlineRecipeItems ?? [];
+    if(recipeTerms?.length && !onlineRecipeItems){
       try { recipeItems=JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"null")?.items||[]; } catch {}
       if(recipeItems.length!==recipeTerms.length){appendRecipeDebug("recipe-handoff-error",{terms:recipeTerms,items:recipeItems});return;}
     }
@@ -8307,7 +8308,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceSilenceTimeoutRef.current = null;
     }
 
-    const parsedVoiceTerms = parseTerms(cleaned)
+    const parsedVoiceTerms = recipeTerms?.length ? [] : parseTerms(cleaned)
       .map((term) => fixText(String(term || "")).trim())
       .filter(Boolean);
 
@@ -8327,6 +8328,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setIsListening(false);
     setVoiceProcessing(true);
     setSearchPanelOpen(true);
+    if (onlineRecipeItems?.length) setActiveAssistant(null);
     setActiveResult("none");
     setSearchCompareMode("cart");
     setInput(voiceTerms.join(", "));
@@ -23583,7 +23585,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
                   onClose={() => setActiveAssistant(null)}
-                  onSearchIngredients={(terms) => { setActiveAssistant(null); void runVoiceSearchFromSpeechV453(terms.join(", "), true, terms); }}
+                  onSearchIngredients={(terms, items) => {
+                    if (!items) setActiveAssistant(null);
+                    void runVoiceSearchFromSpeechV453(terms.join(", "), true, terms, items);
+                  }}
                   selectedChains={selectedChains}
                   onChangeChain={(chain, enabled) => setSelectedChains(current => ({...current, [chain]: enabled}))}
                   locationLabel={activeArea.label || locationInput}
