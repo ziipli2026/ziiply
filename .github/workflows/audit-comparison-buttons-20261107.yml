@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: c80ec8723882dd3060a4240a74317dcec59ef6e4
+          ref: d73a0001389ab66fd79b675277e809d5ab8e7806
           path: desktop
           persist-credentials: false
       - uses: actions/checkout@v4
@@ -164,7 +164,7 @@ jobs:
       matrix:
         include:
           - variant: desktop
-            ref: c80ec8723882dd3060a4240a74317dcec59ef6e4
+            ref: d73a0001389ab66fd79b675277e809d5ab8e7806
           - variant: mobile
             ref: 2c29d141c04646b299ad6cb3c4f835e197be111f
     name: Typecheck ${{ matrix.variant }}
