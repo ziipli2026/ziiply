@@ -4473,6 +4473,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const NORMAL_SEARCH_CACHE_MAX_ITEMS_V441 = 24;
   const [normalSearchAttempted, setNormalSearchAttempted] = useState(false);
   const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
+  const mobileSearchTraceRef = useRef<any>({ events: [], status: "not-started" });
+  const traceSearch = (stage: string, data: Record<string, unknown> = {}) => {
+    const trace = mobileSearchTraceRef.current;
+    trace.events.push({ at: new Date().toISOString(), stage, ...data });
+    if (trace.events.length > 120) trace.events.shift();
+  };
+  const traceProducts = (items: Product[]) => items.map((p: Product) => ({
+    id: p.id, ean: p.ean, name: p.name, category: p.category,
+    price: getProductPrice(p), source: (p as any).source,
+    store: (p as any).storeName || (p as any).store,
+    originalSearchTerm: (p as any).originalSearchTerm,
+    usedSearchQuery: (p as any).usedSearchQuery,
+  }));
+  const downloadMobileSearchTrace = () => {
+    const trace = mobileSearchTraceRef.current;
+    const payload = { schema: "ziiply-mobile-search-pipeline-v2", exportedAt: new Date().toISOString(),
+      appUrl: window.location.origin + window.location.pathname, userAgent: navigator.userAgent,
+      ...trace, displayedProducts: traceProducts(normalResultsLatestRefV441.current) };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const a = document.createElement("a"); a.href = url;
+    a.download = "ziiply-haku-pipeline-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   const [loadingNormal, setLoadingNormal] = useState(false);
   const [singleProductCompareResults, setSingleProductCompareResults] =
     useState<SingleProductCompareResult[]>([]);
@@ -12854,7 +12878,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V441 Freeze Screen:
     // Älä tyhjennä tuloksia haun alussa. Pidetään viimeisin vakaa näkymä ruudulla,
     // näytetään mahdollinen cache heti ja päivitetään vasta kun uusi data on valmis.
+    mobileSearchTraceRef.current = { status: "searching", startedAt: new Date().toISOString(),
+      originalTerms: focusedSearchTerms, forceEan, events: [] };
     const normalSearchCacheKeyV441 = buildNormalSearchCacheKeyV441(focusedSearchTerms, forceEan);
+    traceSearch("search-start", { cacheKey: normalSearchCacheKeyV441 });
     const cachedNormalSearchV441 = recipeIngredient ? undefined : normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
 
     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
@@ -12863,7 +12890,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const cachedValidated = cachedNormalSearchV441.results.filter((product: Product) =>
         productGroupGate(cachedTerm, product.name) && !isBadNormalResult(product, cachedTerm),
       );
+      traceSearch("cache-read", { raw: traceProducts(cachedNormalSearchV441.results),
+        accepted: traceProducts(cachedValidated),
+        rejected: traceProducts(cachedNormalSearchV441.results.filter((p: Product) => !cachedValidated.includes(p))) });
       if (cachedValidated.length > 0) {
+      mobileSearchTraceRef.current.status = "cache-hit";
       setNormalResultsStableV441(cachedValidated);
       setSearchDebug(cachedNormalSearchV441.debug || []);
       setMobileResultsReadyQueryV537(cachedNormalSearchV441.readyQuery || focusedSearchTerms[0] || useTerms[0] || "");
@@ -12962,6 +12993,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           continue;
         }
 
+        traceSearch("expanded-queries", { term, searchQueries });
         for (const searchQuery of searchQueries) {
           if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
           const withinChainS = storeCompareScope === "within_chain" && withinChain === "S";
@@ -13069,6 +13101,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const pricedItems = betweenSingleLidl
             ? rawItems.filter((product: Product) => Boolean(product.name?.trim()))
             : rawItems.filter((product: Product) => getProductPrice(product) > 0);
+          traceSearch("provider-raw-and-priced", { term, searchQuery, selectedStore: usedStoreName,
+            raw: traceProducts(rawItems), priced: traceProducts(pricedItems),
+            rejectedByPrice: traceProducts(rawItems.filter((p: Product) => !pricedItems.includes(p))) });
           const eggLockedSearch =
             detectSearchIntent(term).category === "egg" ||
             isEggSearchTerm(term) ||
@@ -13090,6 +13125,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             ? normalFiltered
             : normalFiltered.length > 0 ? normalFiltered : pricedItems;
 
+          traceSearch("relevance-filter", { term, searchQuery,
+            accepted: traceProducts(normalFiltered),
+            rejected: traceProducts(pricedItems.filter((p: Product) => !normalFiltered.includes(p))),
+            fallbackRestoredRaw: safeItemsBeforePetFilter === pricedItems });
           const safeItems = filterPetProductsFromFoodSearchV443(
             safeItemsBeforePetFilter,
             term,
@@ -13121,6 +13160,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return withMeta;
             });
 
+          traceSearch("final-provider-results", { term, searchQuery,
+            groupMatched: traceProducts(groupMatchedItems), final: traceProducts(finalItems) });
           debugEntries.push({
             term,
             query: searchQuery,
@@ -13167,6 +13208,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const normalItemsForSelection = recipeIngredient ? normalItemsForSelectionUnfiltered
         : normalItemsForSelectionUnfiltered.filter((product) => !isBadNormalResult(product, originalNormalQuery));
 
+      traceSearch("merged-provider-results", { products: traceProducts(normalItemsForSelection) });
       const normalUnique = filterPetProductsFromFoodSearchV443(
         normalItemsForSelection,
         focusedSearchTerms[0] || useTerms[0] || "",
@@ -13252,6 +13294,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const readyQueryV441 = unique.length > 0 ? focusedSearchTerms[0] || useTerms[0] || "" : "";
       setSearchDebug(debugEntries);
       if(recipeIngredient)setActiveNormalSearchTerm(focusedSearchTerms[0]||"");
+      traceSearch("display-final", { products: traceProducts(unique), debugEntries });
+      mobileSearchTraceRef.current.status = "completed";
       setNormalResultsStableV441(unique);
       setMobileResultsReadyQueryV537(readyQueryV441);
 
@@ -24263,6 +24307,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               loading={mobileRecipeSearchActive && loadingNormal}
               title={mobileRecipeSearchActive ? activeNormalSearchTerm || "Reseptin tuotteet" : activeNormalSearchTerm || "Tuotteet"}
               products={normalResults}
+              onDownloadDebug={downloadMobileSearchTrace}
               onSkip={mobileRecipeSearchActive?()=>{
                 resolveVoiceResultWaitV509("recipe ingredient skipped");
               }:undefined}
