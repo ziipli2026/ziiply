@@ -1,0 +1,106 @@
+name: Audit current comparison buttons
+on:
+  push:
+    branches: [audit/comparison-buttons-20261107]
+    paths: ['.github/workflows/audit-comparison-buttons-20261107.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --prefix "$RUNNER_TEMP/ziiply-audit" --no-save --ignore-scripts --no-audit --no-fund typescript@5
+      - name: Reproduce current behavior with controlled catalog responses
+        run: |
+          export NODE_PATH="$RUNNER_TEMP/ziiply-audit/node_modules"
+          node <<'AUDIT'
+          const {execFileSync}=require('node:child_process');
+          const {posix:path}=require('node:path');
+          const vm=require('node:vm');
+          const assert=require('node:assert/strict');
+          const ts=require('typescript');
+          const desk='5f76cc2513b39f452acc117b56865c5e7485dc68',mob='84a855619d129facfa99226859227ae3db8f0a0a';
+          const corePath='src/app/components/ziiply/ziiplyCore.ts';
+          const read=(ref,file)=>execFileSync('git',['show',ref+':'+file],{encoding:'utf8',maxBuffer:4000000});
+          const compile=s=>ts.transpileModule(s,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
+          function load(ref,file,modules=new Map()){
+           if(modules.has(file))return modules.get(file).exports;
+           const m={exports:{}};modules.set(file,m);
+           Function('require','module','exports',compile(read(ref,file)))(id=>id==='posthog-js'?{}:load(ref,path.join(path.dirname(file),id+'.ts'),modules),m,m.exports);
+           return m.exports;
+          }
+          function functions(ref,file,names,ctx){
+           const source=ts.createSourceFile(file,read(ref,file),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+           const found=new Map();
+           function visit(node){
+            if(ts.isFunctionDeclaration(node)&&names.includes(node.name?.text))found.set(node.name.text,node.getText(source));
+            ts.forEachChild(node,visit);
+           }
+           visit(source);
+           for(const name of names)assert(found.has(name),name);
+           vm.runInContext(compile([...found.values()].join('\n')),ctx);
+          }
+          const desktopNames=['desktopChangeCompareMatchMode','desktopFindCompareCandidates','desktopCheapestPack','desktopCheapestCompatible','desktopIsFilterCoffee','desktopCheapestSearchQueries','desktopCompareCategoryCompatible','desktopPickCompareCandidate','desktopReliableComparePrice','desktopHasExplicitPackage','desktopVerifiedKgPriceCents','storeKind'];
+          const p=(name,price,ean,extra={})=>({id:ean,name,ean,price,...extra});
+          const spaghetti=p('De Cecco Spaghetti n.12 500g',295,'8001250120129',{brandName:'De Cecco'});
+          const ownS=p('Coop Spaghetti 500g',105,'6410000000001',{brandName:'Coop'});
+          const ownK=p('K-Menu Spaghetti 500g',110,'6410000000002',{brandName:'K-Menu'});
+          const milk=p('Valio rasvaton maito 1 l',125,'6408430100001',{brandName:'Valio'});
+          const ownMilk=p('Kotimaista rasvaton maito 1 l',95,'6410000000003',{brandName:'Kotimaista'});
+          const out=[];
+          async function desktop(label,{item=spaghetti,visible=item,kind='K',mode='own_brands',exact=false,pool=[],manualPool=false,cents=visible.price}={}){
+           const requests=[],notices=[],replaced=[];
+           const store={id:kind==='K'?'123':'292',name:kind==='K'?'K-Citymarket Hyvinkää':'Prisma Hyvinkää'};
+           const cartItem={id:'row',name:item.name,ean:item.ean,quantity:1,category:item.category};
+           const ctx=vm.createContext({...load(desk,corePath),URLSearchParams,AbortController,setTimeout,clearTimeout,
+            desktopProductSearchCache:new Map(),desktopCompareResults:{shop:{store}},cartItems:[cartItem],
+            flashCartNotice:s=>notices.push(s),logCompareAudit:()=>{},
+            desktopSelectCompareAlternative:async(_id,_match,a)=>replaced.push(a.name),
+            fetch:async url=>{
+             const term=new URL(url,'https://fixture.invalid').searchParams.get('search');
+             requests.push(term);
+             const items=term===item.ean?(exact?[item]:[]):pool;
+             return {ok:true,json:async()=>({items})};
+            }});
+           functions(desk,'src/app/desktop-preview/DesktopPreviewClient.tsx',desktopNames,ctx);
+           if(manualPool)ctx.desktopFindCompareCandidates=async()=>pool;
+           const found=await ctx.desktopChangeCompareMatchMode('shop',{id:'row',name:visible.name,sourceProductName:item.name,price:cents,quantity:1},mode);
+           const row={label,requests,found:Array.from(found,x=>x.name),replaced,notices};out.push(row);return row;
+          }
+          (async()=>{
+           for(const [name,kind,item,own] of [['K spaghetti','K',spaghetti,ownK],['S milk','S',milk,ownMilk]]){
+            const row=await desktop(name+' exact EAN own brand',{item,kind,exact:true,pool:[own]});
+            assert.deepEqual(row.requests,[item.ean]);assert.deepEqual(row.found,[]);
+           }
+           assert.deepEqual((await desktop('S spaghetti without exact EAN',{kind:'S',pool:[ownS]})).found,[ownS.name]);
+           assert.deepEqual((await desktop('K spaghetti without exact EAN',{pool:[ownK]})).found,[ownK.name]);
+           assert.deepEqual((await desktop('K spaghetti category disagreement',{item:{...spaghetti,category:'Pasta'},pool:[{...ownK,category:'Kuivatuotteet'}],manualPool:true})).found,[]);
+           const eggs=p('Valio kananmunat 10 kpl',300,'6410000000004');
+           assert.deepEqual((await desktop('S eggs same 10 pcs',{item:eggs,kind:'S',pool:[p('Kotimaista kananmunat 10 kpl',200,'6410000000005')],manualPool:true})).found,[]);
+           const liguori=p('Liguori Spaghetti 500g',159,'6410000000006',{brandName:'Liguori'});
+           const de=p('De Cecco Spaghetti n.3 500g',450,'6410000000007',{brandName:'De Cecco'});
+           const other=p('Delverde Spaghetti 500g',500,'6410000000008',{brandName:'Delverde'});
+           assert.deepEqual((await desktop('S displayed Liguori, original De Cecco',{kind:'S',visible:liguori,mode:'same_brand',pool:[liguori,de,other],manualPool:true})).found,[de.name,other.name]);
+           assert.deepEqual((await desktop('K Halvin with a more expensive candidate',{mode:'cheapest',pool:[other],manualPool:true})).replaced,[other.name]);
+           assert.deepEqual((await desktop('S Halvin with cheaper candidate hidden behind EAN',{item:milk,kind:'S',mode:'cheapest',exact:true,pool:[ownMilk]})).replaced,[milk.name]);
+           const core=load(mob,corePath),ctx=vm.createContext({...core});
+           functions(mob,'src/app/page.tsx',['getAlternativeSearchTerm','getAlternativeSearchTerms'],ctx);
+           const queries=Array.from(ctx.getAlternativeSearchTerms(spaghetti.name,'s'));
+           assert(queries.every(q=>q.includes('cecco')));
+           const gate=core.isAllowedByQualityMode(spaghetti.name,de.name,'keep_brands','k','De Cecco','De Cecco');
+           const score=core.scoreQualityMode(spaghetti.name,de.name,'keep_brands');
+           assert.equal(gate,true);assert.equal(score,-9999);
+           out.push({label:'mobile spaghetti query terms and brand checks',queries,gate,score});
+           for(const row of out)console.log(JSON.stringify(row));
+           console.log('Reproduced '+out.length+' diagnostic cases with test catalog responses (no live stock claim).');
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          AUDIT
