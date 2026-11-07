@@ -6,11 +6,6 @@ import posthog from "posthog-js";
 import { useRouter } from "next/navigation";
 import {arvoNutrientValues, saveArvoMeal} from "./arvoStatistics";
 
-/**
- * Arvon ravintoskannerin ensimmäinen käyttöliittymäversio.
- * Käyttää samaa kameranäkymäkomponenttia kuin tavallinen skanneri.
- * EAN-tunnistus, ravintohaku ja päiväkirjaan tallennus kytketään myöhemmin.
- */
 export type ArvoCartProduct = { ean: string; name: string; grams: number; nutrition: Record<string, unknown> | null };
 export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { onClose?: () => void; onAddToCart?: (product: ArvoCartProduct) => void | Promise<void> } = {}) {
   const router = useRouter();
@@ -31,18 +26,18 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
   useEffect(() => {
     if (!open) return;
     let disposed = false;
-    let scanner: any = null;
-    let started = false;
     let stream: MediaStream | null = null;
-    const releaseCamera = async () => {
-      cameraRef.current = null;
-      try {
-        if (started) await scanner.stop();
-      } catch {
-        // Release the tracks even if the reader has already stopped.
-      } finally {
-        stream?.getTracks().forEach(track => { if (track.readyState !== "ended") track.stop(); });
-        try { scanner?.clear(); } catch {}
+    let video: HTMLVideoElement | null = null;
+    let scanTimer: number | undefined;
+    const releaseCamera = () => {
+      window.clearInterval(scanTimer);
+      if (cameraRef.current === stream) cameraRef.current = null;
+      stream?.getTracks().forEach(track => track.stop());
+      stream = null;
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+        video.remove();
       }
     };
     const onDecoded = (raw: string) => {
@@ -57,55 +52,67 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     };
     async function start() {
       try {
-        // Reuse the exact html5-qrcode library used by Ziiply's ordinary scanner.
-        const { HTML5_QRCODE_SCRIPT_URL } = await import("../ziiplyCore");
-        if (!(window as any).Html5Qrcode) {
-          await new Promise<void>((resolve, reject) => {
-            const existing = document.querySelector('script[data-ziiply-html5qr="true"]') as HTMLScriptElement | null;
-            const script = existing || document.createElement("script");
-            if (!existing) {
-              script.src = HTML5_QRCODE_SCRIPT_URL;
-              script.dataset.ziiplyHtml5qr = "true";
-              script.onload = () => resolve();
-              script.onerror = () => reject(new Error("scanner-script"));
-              document.head.appendChild(script);
-            } else if ((window as any).Html5Qrcode) resolve();
-            else {
-              script.addEventListener("load", () => resolve(), {once:true});
-              script.addEventListener("error", () => reject(new Error("scanner-script")), {once:true});
-            }
-          });
-        }
-        if (disposed) return;
-        const Reader = (window as any).Html5Qrcode;
-        if (!Reader) throw new Error("scanner-unavailable");
+        const { createArvoBarcodeReader } = await import("./arvoBarcodeReader");
         const region = document.getElementById(regionId);
-        const formats = (window as any).Html5QrcodeSupportedFormats;
-        const formatsToSupport = formats
-          ? [formats.EAN_13, formats.EAN_8, formats.UPC_A, formats.UPC_E]
-          : undefined;
-        scanner = new Reader(regionId, { verbose: false, formatsToSupport });
-        const videoConstraints: MediaTrackConstraints = {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        };
-        // Decode the whole frame so a visible barcode cannot straddle a hidden scan box.
-        await scanner.start(videoConstraints, { fps: 10, videoConstraints }, onDecoded, () => undefined);
-        started = true;
-        stream = (region?.querySelector("video")?.srcObject as MediaStream | null | undefined) ?? null;
-        if (disposed) { await releaseCamera(); return; }
+        if (disposed || !region) return;
+
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+        if (disposed) { releaseCamera(); return; }
+
+        video = document.createElement("video");
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.srcObject = stream;
+        region.appendChild(video);
+        await video.play();
+        if (disposed) return;
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        if (!context) throw new Error("scanner-canvas-unavailable");
+        const decode = createArvoBarcodeReader();
         cameraRef.current = stream;
         setStatus("Pidä koko viivakoodi näkyvissä, myös sen vaaleat reunat.");
-      } catch (error) {
-        if (disposed) await releaseCamera();
-        else setStatus("Skannerin käynnistys epäonnistui. Tarkista kameran käyttöoikeus.");
+
+        let framesWithoutCode = 0;
+        scanTimer = window.setInterval(() => {
+          if (!video || video.readyState < 2 || !video.videoWidth) return;
+          const { videoWidth: width, videoHeight: height } = video;
+          if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
+          }
+          try {
+            context.drawImage(video, 0, 0);
+            const code = decode(context.getImageData(0, 0, width, height));
+            if (code) {
+              framesWithoutCode = 0;
+              onDecoded(code);
+            } else if (++framesWithoutCode === 30) {
+              setStatus(`Viivakoodia ei tunnistettu. Kamerakuva ${width} × ${height} px.`);
+            }
+          } catch {
+            releaseCamera();
+            setStatus("Kamerakuvan lukeminen epäonnistui. Avaa skanneri uudelleen.");
+          }
+        }, 180);
+      } catch {
+        releaseCamera();
+        if (!disposed) setStatus("Skannerin käynnistys epäonnistui. Tarkista kameran käyttöoikeus.");
       }
     }
     void start();
     return () => {
       disposed = true;
-      if (started) void releaseCamera();
+      releaseCamera();
     };
   }, [open]);
   useEffect(() => {

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
+    "@zxing/library": "0.21.3",
     "next": "15.5.9",
     "posthog-js": "^1.374.2",
     "react": "19.1.1",
