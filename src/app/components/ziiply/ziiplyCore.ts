@@ -1317,6 +1317,13 @@ export function getBrandMatchScore(sourceName: string, targetName: string) {
 }
 
 export function getSizeMatchScore(sourceName: string, targetName: string) {
+  // Keep essential product families distinct across mobile and desktop.
+  // normalize() removes Finnish accents, so patterns must use normalized names.
+  if (/(?:^|\s)linssi(?:t)?(?:\s|$)/.test(source) && !/(?:linssi|lentil)/.test(candidate)) return false;
+  if (/tomaattipyree/.test(source) && !/(?:tomaattipyree|tomato paste|tomaattitiiviste)/.test(candidate)) return false;
+  if (/oliivioljy/.test(source) &&
+      (!/(?:oliivioljy|olive oil)/.test(candidate) ||
+       /(?:auringonkukkaoljy|rypsioljy|rapeseed oil|sunflower oil|oljyseos|oljyjen seos)/.test(candidate))) return false;
   const sourceSize = parseMetricSize(sourceName);
   const targetSize = parseMetricSize(targetName);
 
