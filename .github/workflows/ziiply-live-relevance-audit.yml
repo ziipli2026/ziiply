@@ -1,6 +1,10 @@
-name: Ziiply live relevance audit - 127 products
+name: Ziiply live relevance audit - 100 products
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ziiply-live-relevance-audit.yml'
 jobs:
   relevance:
     strategy:
@@ -21,6 +25,7 @@ jobs:
       - name: Audit live S and K search results
         env:
           SHARD: ${{ matrix.shard }}
+          MAX_TERMS: '100'
         run: node scripts/ziiply-relevance-audit-live.cjs
       - name: Upload audit report
         if: always()
