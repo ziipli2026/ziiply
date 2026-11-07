@@ -5,6 +5,7 @@
 // V12: paluu vasempaan yläkulmaan paperilappu-/hintalappu-tyyliin mockupin mukaan.
 // Selection-kortille EI lisätä jaa-koria; vain paluu vertailuun ja sulje.
 
+import { comparisonBrand } from "../comparisonBrand";
 import React from "react";
 
 export type ZiiplyCompareSelectionStore = {
@@ -170,54 +171,8 @@ function getStoreOwnBrandExample(chain?: "S" | "K") {
 
 function getProductBrandExample(item: unknown) {
   const data = item as ZiiplyCompareSelectionItem;
-  const name = String(getItemName(item) || data?.sourceProductName || data?.cartItem?.name || "").trim();
-  const first = name.split(/\s+/).find((part) => /[A-Za-zÅÄÖåäö]/.test(part)) || "sama brändi";
-  return first.replace(/[^\wÅÄÖåäö-]/g, "");
-}
-
-function normalizeBrand(value: unknown) {
-  return String(value ?? "").toLocaleLowerCase("fi-FI").trim().replace(/\\s+/g, " ");
-}
-
-function getMatchBrand(item: ZiiplyCompareSelectionItem) {
-  return normalizeBrand(item?.brandName || "");
-}
-
-function filterComparisonAlternatives(
-  candidates: ZiiplyCompareSelectionItem[],
-  source: ZiiplyCompareSelectionItem,
-  mode: QualityMode,
-  chain?: "S" | "K",
-) {
-  const ownBrands = chain === "S"
-    ? ["coop", "xtra", "kotimaista", "rainbow"]
-    : chain === "K"
-      ? ["pirkka", "k-menu", "k menu"]
-      : [];
-  const sourceBrand = getMatchBrand(source);
-  const filtered = candidates.filter((candidate) => {
-    const brand = getMatchBrand(candidate);
-    if (mode === "same_brand" && sourceBrand && brand && brand !== sourceBrand) return false;
-    if (mode === "own_brands" && brand && ownBrands.length && !ownBrands.some((own) => brand === own || brand.startsWith(own + " "))) return false;
-    return true;
-  });
-  // A same-brand search must at least offer the currently matched product,
-  // even when the backend fails to return it.
-  if (mode === "same_brand" && sourceBrand && source.product?.name) {
-    const sourceEan = String(source.product.ean || "");
-    const alreadyIncluded = filtered.some((candidate) =>
-      sourceEan ? String(candidate.product?.ean || candidate.ean || "") === sourceEan
-        : String(candidate.product?.name || candidate.name || "") === source.product?.name,
-    );
-    if (!alreadyIncluded) filtered.unshift({
-      ...source.product,
-      product: source.product,
-      price: source.price,
-      name: source.product.name,
-      brandName: sourceBrand,
-    });
-  }
-  return filtered;
+  const name = String(data?.product?.name || getItemName(item) || "").trim();
+  return comparisonBrand(name, data?.brandName || (data?.product as { brandName?: string })?.brandName) || "Sama brändi";
 }
 
 function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
@@ -350,7 +305,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                                 try {
                                   const result = await onChangeMatchMode(store.id, item, mode);
                                   if (requestId !== alternativeRequestRef.current) return;
-                                  setAlternativeMenu({ key, mode, items: filterComparisonAlternatives(Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [], item, mode, store.chain), loading: false });
+                                  setAlternativeMenu({ key, mode, items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [], loading: false });
                                   onDebugAlternatives?.({ storeId: store.id, mode, source: item, candidates: Array.isArray(result) ? result : [] });
                                 } catch {
                                   if (requestId === alternativeRequestRef.current) setAlternativeMenu({ key, mode, items: [], loading: false });

@@ -694,6 +694,7 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import { comparisonAlternativeQueries, comparisonBrand, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "./components/ziiply/comparisonBrand";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
@@ -19990,19 +19991,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const sourceName = sourceCartItem?.name || sourceCartItem?.product?.name || match.product.name;
     // Same-brand alternatives refer to the product currently displayed in this store,
     // not the original basket product from another chain.
-    const comparisonBrand = matchQualityMode === "keep_brands"
-      ? (match.product.brandName || getPrimaryBrand(match.product.name))
-      : (sourceCartItem?.product?.brandName || getPrimaryBrand(sourceName));
+    const selectedBrand = comparisonBrand(match.product.name, match.product.brandName);
+    const sourceBrand = comparisonBrand(sourceName, sourceCartItem?.product?.brandName);
+    const searchName = matchQualityMode === "keep_brands" ? match.product.name : sourceName;
+    const searchBrand = matchQualityMode === "keep_brands" ? selectedBrand : sourceBrand;
+    const alternativeTerms = (chain: "s" | "k") => [...new Set([
+      ...comparisonAlternativeQueries(searchName, searchBrand, chain, matchQualityMode),
+      ...getAlternativeSearchTerms(searchName, chain),
+    ])].slice(0, 8);
+    const modeAllows = (product: { name: string; brandName?: string | null }, chain: "s" | "k") => {
+      if (matchQualityMode === "own_brands") return isComparisonOwnBrand(chain, product.name, product.brandName);
+      if (matchQualityMode === "keep_brands") {
+        return sameComparisonBrand(selectedBrand, comparisonBrand(product.name, product.brandName));
+      }
+      return isAllowedByQualityMode(sourceName, product.name, matchQualityMode, chain, sourceBrand, product.brandName || undefined);
+    };
+    const score = (product: { name: string }) => scoreNameMatch(sourceName, product.name)
+      + (matchQualityMode === "own_brands" || matchQualityMode === "keep_brands" ? 0
+        : scoreQualityMode(sourceName, product.name, matchQualityMode));
     let alternatives: Product[] = [];
 
     if (chainKey === "s") {
-      const sTerms = getAlternativeSearchTerms(sourceName, "s");
-      const allSItems: Product[] = [];
-
-      for (const term of sTerms.slice(0, 5)) {
-        const items = await fetchSProducts(term, activeStores.sStoreId);
-        allSItems.push(...items);
-      }
+      const sTerms = alternativeTerms("s");
+      const allSItems = (await Promise.all(
+        sTerms.map(term => fetchSProducts(term, activeStores.sStoreId)),
+      )).flat();
 
       const uniqueSItems = Array.from(
         new Map(allSItems.map((item) => [item.id, item])).values(),
@@ -20020,33 +20033,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )
         .filter((product) => productGroupGate(sourceName, product.name))
         .filter((product) => isCheapestAttributeCompatible(sourceName, product.name))
-        .filter((product) =>
-          isAllowedByQualityMode(
-            sourceName,
-            product.name,
-            matchQualityMode,
-            "s",
-            comparisonBrand,
-            product.brandName,
-          ),
-        )
-        .filter(
-          (product) =>
-            scoreNameMatch(sourceName, product.name) +
-              scoreQualityMode(
-                sourceName,
-              product.name,
-                matchQualityMode,
-              ) >
-            -100,
-        )
+        .filter((product) => comparisonTypeCompatible(sourceName, product.name))
+        .filter((product) => isComparisonAttributeCompatible(sourceName, product.name))
+        .filter((product) => modeAllows(product, "s"))
+        .filter((product) => score(product) > -100)
         .sort((a, b) => {
-          const aScore =
-            scoreNameMatch(sourceName, a.name) +
-            scoreQualityMode(sourceName, a.name, matchQualityMode);
-          const bScore =
-            scoreNameMatch(sourceName, b.name) +
-            scoreQualityMode(sourceName, b.name, matchQualityMode);
+          const aScore = score(a);
+          const bScore = score(b);
 
           if (
             matchQualityMode !== "cheapest" &&
@@ -20061,9 +20054,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     if (chainKey === "k") {
-      const kTerms = getAlternativeSearchTerms(sourceName, "k");
-      const allKItems: KProduct[] = [];
-
+      const kTerms = alternativeTerms("k");
       // Vaihtoehdot pitää hakea juuri sen vertailukortin kaupasta.
       // Ketjun sisällä activeStores.kStoreId voi osoittaa toiseen K-kauppaan
       // (esim. Citymarket), vaikka match kuuluu K-Supermarket Jokelaan.
@@ -20083,10 +20074,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         : undefined;
       const alternativeKStoreId = matchKStore?.id || activeStores.kStoreId;
 
-      for (const term of kTerms.slice(0, 4)) {
-        const items = await fetchKProducts(term, alternativeKStoreId);
-        allKItems.push(...items);
-      }
+      const allKItems = (await Promise.all(
+        kTerms.map(term => fetchKProducts(term, alternativeKStoreId)),
+      )).flat();
 
       const uniqueKItems = Array.from(
         new Map(allKItems.map((item) => [item.id, item])).values(),
@@ -20107,34 +20097,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )
         .filter((product) => productGroupGate(sourceName, product.name))
         .filter((product) => isCheapestAttributeCompatible(sourceName, product.name))
-        .filter((product) =>
-          isAllowedByQualityMode(
-            sourceName,
-            product.name,
-            matchQualityMode,
-            "k",
-            comparisonBrand,
-            product.brandName,
-          ),
-        )
-        .filter(
-          (product) =>
-            scoreNameMatch(sourceName, product.name) +
-              scoreQualityMode(
-                sourceName,
-              product.name,
-                matchQualityMode,
-              ) >
-            -100,
-        )
+        .filter((product) => comparisonTypeCompatible(sourceName, product.name))
+        .filter((product) => isComparisonAttributeCompatible(sourceName, product.name))
+        .filter((product) => modeAllows(product, "k"))
+        .filter((product) => score(product) > -100)
         .map(convertKProductToProduct)
         .sort((a, b) => {
-          const aScore =
-            scoreNameMatch(sourceName, a.name) +
-            scoreQualityMode(sourceName, a.name, matchQualityMode);
-          const bScore =
-            scoreNameMatch(sourceName, b.name) +
-            scoreQualityMode(sourceName, b.name, matchQualityMode);
+          const aScore = score(a);
+          const bScore = score(b);
 
           if (
             matchQualityMode !== "cheapest" &&
@@ -25175,7 +25145,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   )
                   .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
 
-                if (safeMode === "cheapest" && replacement) {
+                if (safeMode === "cheapest" && replacement && safeMatch.price > 0
+                  && getProductPrice(replacement) < safeMatch.price) {
                   replaceMatchProduct(
                     chainKey as ChainResult["key"],
                     safeMatch,
@@ -25246,7 +25217,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   )
                   .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
 
-                if (replacement) {
+                if (replacement && safeMatch.price > 0 && getProductPrice(replacement) < safeMatch.price) {
                   replaceMatchProduct(
                     chainKey as ChainResult["key"],
                     safeMatch,
