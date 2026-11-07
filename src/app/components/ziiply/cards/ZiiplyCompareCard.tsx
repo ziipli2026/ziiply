@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 export type ZiiplyCompareStore = {
   id: string;
@@ -31,6 +31,8 @@ export type ZiiplyCompareCardProps = {
   onSelectStore?: (storeId: string) => void;
   onBackToCart?: () => void;
   onOpenStore?: (storeId: string) => void;
+  debugRows?: Array<{ storeId: string; name: string; brand?: string; price?: number; matchType?: string }>;
+  onDebugStore?: (storeId: string) => void;
 };
 
 function formatEuro(cents?: number | null) {
@@ -59,7 +61,13 @@ export function ZiiplyCompareCard({
   onSelectStore,
   onBackToCart,
   onOpenStore,
+  debugRows = [],
+  onDebugStore,
 }: ZiiplyCompareCardProps) {
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<string | null>(null);
+  const [events, setEvents] = useState<Array<{ time: string; action: string; storeId: string; rows: number }>>([]);
+  const track = (action: string, storeId: string) => setEvents(prev => [...prev.slice(-99), {time: new Date().toISOString(), action, storeId, rows: debugRows.filter(row => row.storeId === storeId).length}]);
   const cheapest = getCheapestStore(stores);
 
   return (
@@ -99,6 +107,20 @@ export function ZiiplyCompareCard({
         </div>
       </header>
 
+      <div className="relative z-10 mt-2 flex flex-wrap items-center gap-2 text-xs font-bold">
+        <button type="button" onClick={() => setDebugOpen(v => !v)} className="rounded-lg border border-[#7c663d] bg-[#fff4d8] px-3 py-2">Vertailun debug ({events.length})</button>
+        <button type="button" onClick={() => {
+          const payload = { date: new Date().toISOString(), stores, selectedStore, rows: debugRows, events };
+          const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"}));
+          const link = document.createElement("a"); link.href = url; link.download = "ziiply-desktop-vertailu-debug.json"; link.click(); URL.revokeObjectURL(url);
+        }} className="rounded-lg border border-[#7c663d] bg-[#fff4d8] px-3 py-2">Tallenna debug JSON</button>
+        {selectedStore && <span>Valittu: {stores.find(s => s.id === selectedStore)?.name} · {debugRows.filter(r => r.storeId === selectedStore).length} riviä</span>}
+      </div>
+      {debugOpen && <pre className="relative z-10 max-h-28 overflow-auto rounded-lg bg-white p-2 text-xs">{JSON.stringify(events, null, 2)}</pre>}
+      {selectedStore && <div className="relative z-10 mt-2 max-h-40 overflow-auto rounded-xl border border-[#7c663d] bg-[#fff4d8] p-3 text-sm">
+        {debugRows.filter(row => row.storeId === selectedStore).length === 0 ? "Kaupalle ei löytynyt tuoterivejä." :
+          debugRows.filter(row => row.storeId === selectedStore).map((row,i) => <div key={i} className="border-b py-1">{row.name} · {row.brand || "ei brändiä"} · {row.price ?? "ei hintaa"} €</div>)}
+      </div>}
       <div className="relative z-10 mt-4 min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
         {loading ? (
           <div className="grid gap-3 lg:grid-cols-2">
@@ -188,7 +210,7 @@ export function ZiiplyCompareCard({
                   <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
                     <button
                       type="button"
-                      onClick={() => onSelectStore?.(store.id)}
+                      onClick={() => { track("select", store.id); setSelectedStore(store.id); onDebugStore?.(store.id); onSelectStore?.(store.id); }}
                       className="min-h-[46px] rounded-[20px] border-[3px] border-[#0f7d37] bg-[#11873a] px-4 text-[15px] font-black uppercase tracking-[0.04em] text-[#fff6d7] shadow-[0_0_0_2px_#41ad62_inset] active:scale-[0.98] disabled:opacity-45"
                       disabled={!onSelectStore}
                     >
@@ -197,7 +219,7 @@ export function ZiiplyCompareCard({
 
                     <button
                       type="button"
-                      onClick={() => onOpenStore?.(store.id)}
+                      onClick={() => { track("open", store.id); setSelectedStore(store.id); onDebugStore?.(store.id); onOpenStore?.(store.id); }}
                       className="min-h-[46px] rounded-[20px] border-[3px] border-[#7c663d] bg-[#efe1bd] px-4 text-[15px] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[0_0_0_2px_#f8edcf_inset] active:scale-[0.98] disabled:opacity-45"
                       disabled={!onOpenStore}
                     >
