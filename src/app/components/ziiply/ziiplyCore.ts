@@ -2762,6 +2762,8 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
   }
 
   return products
+    // Reject incompatible milk variants instead of merely pushing them to the end.
+    .filter((product: Product) => !comparisonProductType(query) || comparisonTypeCompatible(query, product.name))
     .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
     .map((product: Product): ScoredProduct & { coreProductIntentRank: number } => ({
       product,
