@@ -76,6 +76,28 @@ jobs:
            const found=await ctx.desktopChangeCompareMatchMode('shop',{id:'row',name:visible.name,sourceProductName:item.name,price:cents,quantity:1},mode);
            const row={label,requests,found:Array.from(found,x=>x.name),replaced,notices};out.push(row);return row;
           }
+          async function mobile(label,mode,source,visible,pool,requireNeutral=false){
+           const requests=[],replaced=[];
+           const ctx=vm.createContext({...load(mob,corePath),activeStores:{sStoreId:'292'},
+            cart:[{id:'row',name:source.name,product:source}],
+            setMatchQualityMode:()=>{},replaceMatchProduct:(_chain,_match,p)=>replaced.push(p.name),
+            showCartToast:s=>{throw Error(s)},console,
+            fetchSProducts:async term=>{requests.push(term);return requireNeutral&&term.includes('cecco')?[]:pool;}
+           });
+           const file='src/app/page.tsx';
+           functions(mob,file,['getAlternativeSearchTerm','getAlternativeSearchTerms','isCheapestAttributeCompatible','fetchAlternativesForMatch'],ctx);
+           const sourceFile=ts.createSourceFile(file,read(mob,file),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+           let handler;
+           function visit(n){
+            if(ts.isJsxAttribute(n)&&n.name.getText(sourceFile)==='onChangeMatchMode'&&n.initializer?.expression?.getText(sourceFile).includes('fetchAlternativesForMatch'))handler=n.initializer.expression.getText(sourceFile);
+            ts.forEachChild(n,visit);
+           }
+           visit(sourceFile);
+           assert(handler,'Mobile comparison handler missing');
+           vm.runInContext(compile('var handle = '+handler),ctx);
+           const found=await ctx.handle('s',{cartItemId:'row',product:visible,price:visible.price},mode);
+           const row={label,requests,found:Array.from(found||[],x=>x.name),replaced};out.push(row);return row;
+          }
           (async()=>{
            for(const [name,kind,item,own] of [['K spaghetti','K',spaghetti,ownK],['S milk','S',milk,ownMilk]]){
             const row=await desktop(name+' exact EAN own brand',{item,kind,exact:true,pool:[own]});
@@ -100,6 +122,9 @@ jobs:
            const score=core.scoreQualityMode(spaghetti.name,de.name,'keep_brands');
            assert.equal(gate,true);assert.equal(score,-9999);
            out.push({label:'mobile spaghetti query terms and brand checks',queries,gate,score});
+           assert.deepEqual((await mobile('mobile own brands with neutral-only catalog hit','own_brands',spaghetti,spaghetti,[ownS],true)).found,[]);
+           assert.deepEqual((await mobile('mobile same brand with priced candidate','same_brand',spaghetti,spaghetti,[de])).found,[]);
+           assert.deepEqual((await mobile('mobile Halvin with a more expensive candidate','cheapest',spaghetti,spaghetti,[other])).replaced,[other.name]);
            for(const row of out)console.log(JSON.stringify(row));
            console.log('Reproduced '+out.length+' diagnostic cases with test catalog responses (no live stock claim).');
           })().catch(e=>{console.error(e);process.exitCode=1});
