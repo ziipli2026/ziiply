@@ -326,20 +326,22 @@ export default function ZiiplyMobileCompareSelectionCard({
                                 const productName = getItemName(item);
                                 debugEvent("button_clicked", { mode, productName, currentMode, brand: getProductBrandExample(item), chain: store.chain });
                                 try {
-                                if (mode === "cheapest") {
+                                  if (mode === "cheapest") {
+                                    setAlternativeMenu(null);
+                                    const result = await onChangeMatchMode(store.id, item, mode);
+                                    debugEvent("cheapest_completed", { productName, resultCount: Array.isArray(result) ? result.length : null });
+                                    return;
+                                  }
+                                  const key = `${String(item.id ?? item.product?.id ?? index)}:${mode}`;
+                                  setAlternativeMenu({ key, mode, items: [], loading: true });
+                                  const result = await onChangeMatchMode(store.id, item, mode);
+                                  debugEvent("alternatives_received", { mode, productName, count: Array.isArray(result) ? result.length : null,
+                                    alternatives: Array.isArray(result) ? result.slice(0, 20).map((candidate: any) => ({ name: candidate?.name || candidate?.product?.name, price: candidate?.price || candidate?.product?.price })) : [] });
+                                  setAlternativeMenu({ key, mode, items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [], loading: false });
+                                } catch (error) {
+                                  debugEvent("button_error", { mode, productName, error: String(error) });
                                   setAlternativeMenu(null);
-                                  await onChangeMatchMode(store.id, item, mode);
-                                  return;
                                 }
-                                const key = `${String(item.id ?? item.product?.id ?? index)}:${mode}`;
-                                setAlternativeMenu({ key, mode, items: [], loading: true });
-                                const result = await onChangeMatchMode(store.id, item, mode);
-                                setAlternativeMenu({
-                                  key,
-                                  mode,
-                                  items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [],
-                                  loading: false,
-                                });
                               }}
                               className={`min-h-[2.05rem] rounded-[0.72rem] border-2 px-1.5 py-1 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
                                 active
