@@ -237,7 +237,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   // No permanent blank area below the last product.
   React.useLayoutEffect(() => {
     if (!embedded) return;
-    const row = document.querySelector('[data-compare-alternatives-open]') as HTMLElement | null;
+    const row = document.querySelector(`[data-compare-store-id="${CSS.escape(String(store.id))}"] [data-compare-alternatives-open]`) as HTMLElement | null;
     const scroller = row?.closest('[data-desktop-compare-products-scroll]') as HTMLElement | null;
     if (!row || !scroller) return;
     const frame = requestAnimationFrame(() => {
@@ -252,7 +252,7 @@ export default function ZiiplyMobileCompareSelectionCard({
       cancelAnimationFrame(frame);
       scroller.style.paddingBottom = "";
     };
-  }, [embedded, alternativeMenu?.key, alternativeMenu?.loading]);
+  }, [embedded, store.id, alternativeMenu?.key, alternativeMenu?.loading]);
 
   if (!open) return null;
 
@@ -273,7 +273,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                 return (
                   <article
                     key={String(item.id ?? item.product?.id ?? index)}
-                    data-compare-product-row data-compare-alternatives-open={alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? "" : undefined} className="border-b border-[#d4bd86]/72"
+                    data-compare-product-row data-compare-store-id={store.id} data-compare-alternatives-open={alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? "" : undefined} className="border-b border-[#d4bd86]/72"
                   >
                     <div className={compact ? "grid min-h-[3.4rem] grid-cols-[minmax(0,1fr)_4.25rem] items-center border-b border-[#d4bd86]/72 px-1.5 py-1" : "grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5"}>
                       <div className="flex min-w-0 items-center gap-2.5 pr-2">
