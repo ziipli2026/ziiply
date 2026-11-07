@@ -1,36 +1,42 @@
-name: Audit current comparison buttons
+name: Verify fixed desktop and mobile comparison buttons
 on:
   push:
     branches: [audit/comparison-buttons-20261107]
     paths: ['.github/workflows/audit-comparison-buttons-20261107.yml']
-  workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  audit:
+  button-regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: c80ec8723882dd3060a4240a74317dcec59ef6e4
+          path: desktop
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 2c29d141c04646b299ad6cb3c4f835e197be111f
+          path: mobile
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
       - run: npm install --prefix "$RUNNER_TEMP/ziiply-audit" --no-save --ignore-scripts --no-audit --no-fund typescript@5
-      - name: Reproduce current behavior with controlled catalog responses
+      - name: Run comparison handlers with controlled store responses
         run: |
           export NODE_PATH="$RUNNER_TEMP/ziiply-audit/node_modules"
+          export DESKTOP_ROOT="$GITHUB_WORKSPACE/desktop" MOBILE_ROOT="$GITHUB_WORKSPACE/mobile"
           node <<'AUDIT'
-          const {execFileSync}=require('node:child_process');
+          const fs=require('node:fs');
           const {posix:path}=require('node:path');
           const vm=require('node:vm');
           const assert=require('node:assert/strict');
           const ts=require('typescript');
           const desk='5f76cc2513b39f452acc117b56865c5e7485dc68',mob='84a855619d129facfa99226859227ae3db8f0a0a';
           const corePath='src/app/components/ziiply/ziiplyCore.ts';
-          const read=(ref,file)=>execFileSync('git',['show',ref+':'+file],{encoding:'utf8',maxBuffer:4000000});
+          const read=(ref,file)=>fs.readFileSync((ref===desk ? process.env.DESKTOP_ROOT : process.env.MOBILE_ROOT)+'/'+file,'utf8');
           const compile=s=>ts.transpileModule(s,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
           function load(ref,file,modules=new Map()){
            if(modules.has(file))return modules.get(file).exports;
@@ -57,18 +63,18 @@ jobs:
           const milk=p('Valio rasvaton maito 1 l',125,'6408430100001',{brandName:'Valio'});
           const ownMilk=p('Kotimaista rasvaton maito 1 l',95,'6410000000003',{brandName:'Kotimaista'});
           const out=[];
-          async function desktop(label,{item=spaghetti,visible=item,kind='K',mode='own_brands',exact=false,pool=[],manualPool=false,cents=visible.price}={}){
+          async function desktop(label,{item=spaghetti,visible=item,kind='K',mode='own_brands',exact=false,pool=[],manualPool=false,neutralOnly=false,cents=visible.price}={}){
            const requests=[],notices=[],replaced=[];
            const store={id:kind==='K'?'123':'292',name:kind==='K'?'K-Citymarket Hyvinkää':'Prisma Hyvinkää'};
            const cartItem={id:'row',name:item.name,ean:item.ean,quantity:1,category:item.category};
-           const ctx=vm.createContext({...load(desk,corePath),URLSearchParams,AbortController,setTimeout,clearTimeout,
+           const ctx=vm.createContext({...load(desk,corePath),...load(desk,corePath.replace("ziiplyCore","comparisonBrand")),URLSearchParams,AbortController,setTimeout,clearTimeout,
             desktopProductSearchCache:new Map(),desktopCompareResults:{shop:{store}},cartItems:[cartItem],
             flashCartNotice:s=>notices.push(s),logCompareAudit:()=>{},
             desktopSelectCompareAlternative:async(_id,_match,a)=>replaced.push(a.name),
             fetch:async url=>{
              const term=new URL(url,'https://fixture.invalid').searchParams.get('search');
              requests.push(term);
-             const items=term===item.ean?(exact?[item]:[]):pool;
+             const items=term===item.ean?(exact?[item]:[]):neutralOnly && !/^(?:(?:coop|xtra|kotimaista|rainbow|pirkka|k-menu) )?spagetti$/i.test(term)?[]:pool;
              return {ok:true,json:async()=>({items})};
             }});
            functions(desk,'src/app/desktop-preview/DesktopPreviewClient.tsx',desktopNames,ctx);
@@ -76,13 +82,14 @@ jobs:
            const found=await ctx.desktopChangeCompareMatchMode('shop',{id:'row',name:visible.name,sourceProductName:item.name,price:cents,quantity:1},mode);
            const row={label,requests,found:Array.from(found,x=>x.name),replaced,notices};out.push(row);return row;
           }
-          async function mobile(label,mode,source,visible,pool,requireNeutral=false){
+          async function mobile(label,mode,source,visible,pool,requireNeutral=false,chain='s'){
            const requests=[],replaced=[];
-           const ctx=vm.createContext({...load(mob,corePath),activeStores:{sStoreId:'292'},
+           const ctx=vm.createContext({...load(mob,corePath),...load(mob,corePath.replace("ziiplyCore","comparisonBrand")),activeStores:{sStoreId:'292',kStoreId:'123'},foundStores:[],
             cart:[{id:'row',name:source.name,product:source}],
             setMatchQualityMode:()=>{},replaceMatchProduct:(_chain,_match,p)=>replaced.push(p.name),
             showCartToast:s=>{throw Error(s)},console,
-            fetchSProducts:async term=>{requests.push(term);return requireNeutral&&term.includes('cecco')?[]:pool;}
+            fetchSProducts:async term=>{requests.push(term);return requireNeutral&&term.includes('cecco')?[]:pool;},
+            fetchKProducts:async term=>{requests.push(term);return requireNeutral&&term.includes('cecco')?[]:pool;}
            });
            const file='src/app/page.tsx';
            functions(mob,file,['getAlternativeSearchTerm','getAlternativeSearchTerms','isCheapestAttributeCompatible','fetchAlternativesForMatch'],ctx);
@@ -95,37 +102,79 @@ jobs:
            visit(sourceFile);
            assert(handler,'Mobile comparison handler missing');
            vm.runInContext(compile('var handle = '+handler),ctx);
-           const found=await ctx.handle('s',{cartItemId:'row',product:visible,price:visible.price},mode);
+           const found=await ctx.handle(chain,{cartItemId:'row',product:visible,price:visible.price},mode);
            const row={label,requests,found:Array.from(found||[],x=>x.name),replaced};out.push(row);return row;
           }
           (async()=>{
-           for(const [name,kind,item,own] of [['K spaghetti','K',spaghetti,ownK],['S milk','S',milk,ownMilk]]){
-            const row=await desktop(name+' exact EAN own brand',{item,kind,exact:true,pool:[own]});
-            assert.deepEqual(row.requests,[item.ean]);assert.deepEqual(row.found,[]);
-           }
-           assert.deepEqual((await desktop('S spaghetti without exact EAN',{kind:'S',pool:[ownS]})).found,[ownS.name]);
-           assert.deepEqual((await desktop('K spaghetti without exact EAN',{pool:[ownK]})).found,[ownK.name]);
-           assert.deepEqual((await desktop('K spaghetti category disagreement',{item:{...spaghetti,category:'Pasta'},pool:[{...ownK,category:'Kuivatuotteet'}],manualPool:true})).found,[]);
-           const eggs=p('Valio kananmunat 10 kpl',300,'6410000000004');
-           assert.deepEqual((await desktop('S eggs same 10 pcs',{item:eggs,kind:'S',pool:[p('Kotimaista kananmunat 10 kpl',200,'6410000000005')],manualPool:true})).found,[]);
+           const pirkka=p('Pirkka spagetti 500g',135,'6410000000002',{brandName:'Pirkka',category:'Pasta'});
+           const big=p('Xtra Spaghetti 1kg',75,'6410000000010',{brandName:'Xtra'});
+           const penne=p('Coop Penne 500g',60,'6410000000011',{brandName:'Coop'});
+           const frozen=p('Coop Spaghetti Bolognese 500g pakaste',55,'6410000000012',{brandName:'Coop'});
+           const glutenFree=p('Coop Spaghetti 500g gluteeniton',85,'6410000000013',{brandName:'Coop'});
+           const organic=p('Coop Spaghetti pasta luomu 500 g',90,'6410000000014',{brandName:'Coop'});
            const liguori=p('Liguori Spaghetti 500g',159,'6410000000006',{brandName:'Liguori'});
-           const de=p('De Cecco Spaghetti n.3 500g',450,'6410000000007',{brandName:'De Cecco'});
+           const same=p('Pastificio Liguori Spaghetti n.3 500g',450,'6410000000007',{brandName:'Pastificio Liguori'});
+           const de=p('De Cecco Spaghetti n.3 500g',450,'6410000000018',{brandName:'De Cecco'});
            const other=p('Delverde Spaghetti 500g',500,'6410000000008',{brandName:'Delverde'});
-           assert.deepEqual((await desktop('S displayed Liguori, original De Cecco',{kind:'S',visible:liguori,mode:'same_brand',pool:[liguori,de,other],manualPool:true})).found,[de.name,other.name]);
-           assert.deepEqual((await desktop('K Halvin with a more expensive candidate',{mode:'cheapest',pool:[other],manualPool:true})).replaced,[other.name]);
-           assert.deepEqual((await desktop('S Halvin with cheaper candidate hidden behind EAN',{item:milk,kind:'S',mode:'cheapest',exact:true,pool:[ownMilk]})).replaced,[milk.name]);
-           const core=load(mob,corePath),ctx=vm.createContext({...core});
-           functions(mob,'src/app/page.tsx',['getAlternativeSearchTerm','getAlternativeSearchTerms'],ctx);
-           const queries=Array.from(ctx.getAlternativeSearchTerms(spaghetti.name,'s'));
-           assert(queries.every(q=>q.includes('cecco')));
-           const gate=core.isAllowedByQualityMode(spaghetti.name,de.name,'keep_brands','k','De Cecco','De Cecco');
-           const score=core.scoreQualityMode(spaghetti.name,de.name,'keep_brands');
-           assert.equal(gate,true);assert.equal(score,-9999);
-           out.push({label:'mobile spaghetti query terms and brand checks',queries,gate,score});
-           assert.deepEqual((await mobile('mobile own brands with neutral-only catalog hit','own_brands',spaghetti,spaghetti,[ownS],true)).found,[]);
-           assert.deepEqual((await mobile('mobile same brand with priced candidate','same_brand',spaghetti,spaghetti,[de])).found,[]);
-           assert.deepEqual((await mobile('mobile Halvin with a more expensive candidate','cheapest',spaghetti,spaghetti,[other])).replaced,[other.name]);
+           const equal=p('Barilla Spaghetti 500g',295,'6410000000015',{brandName:'Barilla'});
+           const unpriced=p('Coop Spaghetti 500g',0,'6410000000016',{brandName:'Coop'});
+           const milkWrong=p('Kotimaista kevytmaito 1 l',65,'6410000000017',{brandName:'Kotimaista'});
+           const milkEqual=p('Pirkka rasvaton maito 1 l',125,'6410000000019',{brandName:'Pirkka'});
+           const milkOwnK=p('K-Menu rasvaton maito 1 l',95,'6410000000020',{brandName:'K-Menu'});
+           const sPool=[big,penne,frozen,glutenFree,organic,unpriced,ownS];
+           const kPool=[big,penne,frozen,glutenFree,unpriced,pirkka];
+           const dK=await desktop('Desktop K own brand with exact EAN and Finnish neutral query',{item:{...spaghetti,category:'Dry pasta'},exact:true,neutralOnly:true,pool:kPool});
+           assert(dK.requests.includes('spagetti')&&dK.requests.includes('K-Menu spagetti'));
+           assert.deepEqual(dK.found,[pirkka.name]);
+           assert.deepEqual((await desktop('Desktop S own brand excludes wrong size, type, attribute and price',{kind:'S',exact:true,neutralOnly:true,pool:sPool})).found,[ownS.name]);
+           assert.deepEqual((await desktop('Desktop S milk exact EAN own brand',{kind:'S',item:milk,exact:true,pool:[ownMilk,milkWrong]})).found,[ownMilk.name]);
+           assert.deepEqual((await desktop('Desktop visible Liguori brand',{kind:'S',visible:liguori,mode:'same_brand',pool:[same,de,other]})).found,[same.name]);
+           assert.deepEqual((await desktop('Desktop De Cecco not Delverde',{mode:'same_brand',pool:[de,other]})).found,[de.name]);
+           assert.deepEqual((await desktop('Desktop cheapest is cheaper',{mode:'cheapest',pool:[other,equal,pirkka]})).replaced,[pirkka.name]);
+           for(const [label,pool] of [['expensive',[other]],['equal',[equal]],['invalid',[unpriced,frozen,big]]]){
+            assert.deepEqual((await desktop('Desktop cheapest '+label,{mode:'cheapest',pool})).replaced,[]);
+           }
+           assert.deepEqual((await desktop('Desktop cheapest unknown price',{mode:'cheapest',pool:[pirkka],cents:0})).replaced,[]);
+           assert.deepEqual((await desktop('Desktop own-brand 10 eggs',{
+            kind:'S',item:p('Valio kananmunat 10 kpl',300,'6410000000021'),
+            pool:[p('Kotimaista kananmunat 10 kpl',200,'6410000000022'),p('Coop kananmunat 6 kpl',100,'6410000000023')]
+           })).found,['Kotimaista kananmunat 10 kpl']);
+           const mS=await mobile('Mobile S own brands neutral query','own_brands',spaghetti,spaghetti,sPool,true);
+           assert(mS.requests.includes('spagetti')&&mS.requests.includes('Xtra spagetti'));
+           assert.deepEqual(mS.found,[ownS.name]);
+           assert.deepEqual((await mobile('Mobile K own brands neutral query','own_brands',spaghetti,spaghetti,kPool,true,'k')).found,[pirkka.name]);
+           assert.deepEqual((await mobile('Mobile S milk own brands','own_brands',milk,milk,[ownMilk,milkWrong,milkEqual])).found,[ownMilk.name]);
+           assert.deepEqual((await mobile('Mobile K milk own brands','own_brands',milk,milk,[milkOwnK,milkEqual,ownMilk],false,'k')).found,[milkOwnK.name,milkEqual.name]);
+           assert.deepEqual((await mobile('Mobile De Cecco not Delverde','same_brand',spaghetti,spaghetti,[de,other])).found,[de.name]);
+           assert.deepEqual((await mobile('Mobile visible Liguori brand','same_brand',spaghetti,liguori,[same,de,other])).found,[same.name]);
+           assert.deepEqual((await mobile('Mobile cheapest is cheaper','cheapest',spaghetti,spaghetti,[other,equal,ownS])).replaced,[ownS.name]);
+           for(const [label,pool] of [['expensive',[other]],['equal',[equal]],['invalid',[unpriced,frozen,big]]]){
+            assert.deepEqual((await mobile('Mobile cheapest '+label,'cheapest',spaghetti,spaghetti,pool)).replaced,[]);
+           }
+           assert.deepEqual((await mobile('Mobile cheapest unknown price','cheapest',spaghetti,{...spaghetti,price:0},[ownS])).replaced,[]);
            for(const row of out)console.log(JSON.stringify(row));
-           console.log('Reproduced '+out.length+' diagnostic cases with test catalog responses (no live stock claim).');
-          })().catch(e=>{console.error(e);process.exitCode=1});
+           console.log('PASS '+out.length+' desktop and mobile button scenarios with controlled store responses');
+          })().catch(e=>{console.error(out.at(-1));console.error(e);process.exitCode=1});
           AUDIT
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: desktop
+            ref: c80ec8723882dd3060a4240a74317dcec59ef6e4
+          - variant: mobile
+            ref: 2c29d141c04646b299ad6cb3c4f835e197be111f
+    name: Typecheck ${{ matrix.variant }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx tsc --noEmit --pretty false
