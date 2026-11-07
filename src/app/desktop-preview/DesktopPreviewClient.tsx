@@ -1479,9 +1479,9 @@ export default function DesktopPreviewPage() {
       }));
       let filtered = candidates;
       if (mode === "own_brands") {
-        filtered = candidates.filter(p => isComparisonOwnBrand(chain, p.name, p.brandName || p.brand));
+        filtered = candidates.filter((p: any) => isComparisonOwnBrand(chain, p.name, p.brandName || p.brand));
       } else if (mode === "same_brand") {
-        filtered = candidates.filter(p =>
+        filtered = candidates.filter((p: any) =>
           sameComparisonBrand(selectedBrand, comparisonBrand(p.name, p.brandName || p.brand)),
         );
       }
