@@ -2709,7 +2709,9 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
 ): T[] {
   const ranked = rankNormalSearchResults(query, products);
   const order = new Map(ranked.map((product, index) => [product, index]));
-  return [...products].sort((a, b) => {
+  // Rank only the accepted products. Sorting the original list reintroduced
+  // rejected milk types (e.g. rasvaton maito for a täysmaito query).
+  return [...ranked].sort((a, b) => {
     const aScore = scoreNormalSResult(query, a);
     const bScore = scoreNormalSResult(query, b);
     const aTier = Math.floor(aScore / 40);
