@@ -4,6 +4,7 @@ import {onlineRecipeTitleMatches, onlineRecipeSearchPlan, onlineRecipeDisplayIng
 
 type Recipe = {title:string;url:string;content:string};
 export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIngredients?:(terms:string[])=>void}) {
+ const queryInput=React.useRef<HTMLInputElement>(null);
  const [query,setQuery]=React.useState("");
  const [results,setResults]=React.useState<Recipe[]>([]);
  const [loading,setLoading]=React.useState(false);
@@ -59,6 +60,7 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
   if(!plan.items.length){setError("Reseptistä ei löytynyt haettavia ainesosia.");return;}
   try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,items:plan.items}));}catch{}
   if(!onSearchIngredients){setError("Tuotehaku ei ole käytettävissä.");return;}
+  queryInput.current?.blur();
   onSearchIngredients(plan.terms);
  };
  const save=(recipe:Recipe)=>{
@@ -76,7 +78,7 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
  };
  return <div className="space-y-3 p-3 text-[#174c3a]">
   <label htmlFor="justiina-online-query" className="block font-bold">Hae reseptejä Wikikirjastosta</label>
-  <input id="justiina-online-query" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Esim. lihapullat, lohi, pasta" className="w-full rounded-xl border border-[#b99d62] bg-white p-3"/>
+  <input ref={queryInput} id="justiina-online-query" style={{fontSize:"16px"}} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Esim. lihapullat, lohi, pasta" className="w-full rounded-xl border border-[#b99d62] bg-white p-3"/>
   {loading&&<p role="status">Haetaan reseptejä…</p>}
   {error&&<p role="status">{error}</p>}
   {!loading&&query.trim()&&!error&&<p>{results.length?results.length+" reseptiosumaa":"Ei reseptejä tällä nimellä."}</p>}
