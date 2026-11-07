@@ -2708,10 +2708,11 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   priceOf: (product: T) => number,
 ): T[] {
   const ranked = rankNormalSearchResults(query, products);
+  const accepted = new Set<Product>(ranked);
   const order = new Map(ranked.map((product, index) => [product, index]));
   // Rank only the accepted products. Sorting the original list reintroduced
   // rejected milk types (e.g. rasvaton maito for a täysmaito query).
-  return [...ranked].sort((a, b) => {
+  return products.filter((product) => accepted.has(product)).sort((a, b) => {
     const aScore = scoreNormalSResult(query, a);
     const bScore = scoreNormalSResult(query, b);
     const aTier = Math.floor(aScore / 40);
