@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/ziiply-live-relevance-audit.yml'
+      - 'scripts/ziiply-relevance-audit-live.cjs'
 jobs:
   relevance:
     strategy:
