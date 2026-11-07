@@ -237,7 +237,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   // No permanent blank area below the last product.
   React.useLayoutEffect(() => {
     if (!embedded) return;
-    const row = document.querySelector(`[data-compare-store-id="${CSS.escape(String(store.id))}"] [data-compare-alternatives-open]`) as HTMLElement | null;
+    const row = document.querySelector(`[data-compare-store-id="${CSS.escape(String(store.id))}"][data-compare-alternatives-open]`) as HTMLElement | null;
     const scroller = row?.closest('[data-desktop-compare-products-scroll]') as HTMLElement | null;
     if (!row || !scroller) return;
     const frame = requestAnimationFrame(() => {
