@@ -32,6 +32,19 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     if (!open) return;
     let disposed = false;
     let scanner: any = null;
+    let started = false;
+    let stream: MediaStream | null = null;
+    const releaseCamera = async () => {
+      cameraRef.current = null;
+      try {
+        if (started) await scanner.stop();
+      } catch {
+        // Release the tracks even if the reader has already stopped.
+      } finally {
+        stream?.getTracks().forEach(track => { if (track.readyState !== "ended") track.stop(); });
+        try { scanner?.clear(); } catch {}
+      }
+    };
     const onDecoded = (raw: string) => {
       const code = String(raw || "").replace(/\D/g, "");
       if (!/^\d{8,14}$/.test(code) || code === lastEanRef.current || disposed) return;
@@ -66,23 +79,23 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
         if (disposed) return;
         const Reader = (window as any).Html5Qrcode;
         if (!Reader) throw new Error("scanner-unavailable");
+        const region = document.getElementById(regionId);
         scanner = new Reader(regionId, {verbose:false});
         await scanner.start({facingMode:"environment"}, {fps:12, qrbox: {width:270,height:155}, aspectRatio:1.7778}, onDecoded, () => undefined);
-        if (disposed) { await scanner.stop().catch(() => undefined); return; }
-        const video = document.querySelector("#" + regionId + " video") as HTMLVideoElement | null;
-        cameraRef.current = video?.srcObject as MediaStream | null;
+        started = true;
+        stream = (region?.querySelector("video")?.srcObject as MediaStream | null | undefined) ?? null;
+        if (disposed) { await releaseCamera(); return; }
+        cameraRef.current = stream;
         setStatus("Kohdista EAN-viivakoodi kameran keskelle.");
       } catch (error) {
-        if (!disposed) setStatus("Skannerin käynnistys epäonnistui. Tarkista kameran käyttöoikeus.");
+        if (disposed) await releaseCamera();
+        else setStatus("Skannerin käynnistys epäonnistui. Tarkista kameran käyttöoikeus.");
       }
     }
     void start();
     return () => {
       disposed = true;
-      cameraRef.current = null;
-      if (scanner) {
-        void Promise.resolve().then(() => scanner.stop()).catch(() => undefined).then(() => scanner.clear()).catch(() => undefined);
-      }
+      if (started) void releaseCamera();
     };
   }, [open]);
   useEffect(() => {
@@ -153,9 +166,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     setTab("scan");
     if (onClose) { onClose(); return; }
     setStatus("");
-    const referrer = document.referrer ? new URL(document.referrer) : null;
-    const fromDesktop = referrer?.origin === window.location.origin && referrer.pathname === "/desktop-preview";
-    router.replace(fromDesktop ? "/desktop-preview" : "/desktop-preview");
+    router.replace("/desktop-preview");
   };
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#f8f5ed] text-[#173b2b]">

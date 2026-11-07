@@ -33,6 +33,8 @@ import { getOfferPrice, splitOfferDisplayPrice } from "../components/ziiply/card
 
 const DesktopFuelPhotoReport=dynamic(()=>import("../components/ziiply/desktop/DesktopFuelPhotoReport"),{ssr:false});
 
+const ArvoNutritionScanner=dynamic(()=>import("../components/ziiply/arvo/ArvoNutritionScannerPreview"),{ssr:false});
+
 type Assistant = "gosta" | "justiina" | "arvo";
 
 // Shared geometry for desktop Gosta overlays (fuel, offers, future electricity).
@@ -731,6 +733,7 @@ export default function DesktopPreviewPage() {
   const [cartPaperReady,setCartPaperReady]=useState(false);
   useEffect(()=>{let active=true;const img=new Image();img.decoding="async";img.onload=()=>{const done=()=>{if(active)setCartPaperReady(true)};if(typeof img.decode==="function")void img.decode().catch(()=>undefined).finally(done);else done()};img.onerror=()=>{if(active)setCartPaperReady(true)};img.src="/ui/cart/vihkonen.webp";return()=>{active=false}},[]);
 
+  const [arvoScannerOpen,setArvoScannerOpen]=useState(false);
   const [desktopScannerOpen,setDesktopScannerOpen]=useState(false);
   const desktopInStoreConfirmedRef=useRef<boolean|null>(null);
   const desktopPhysicalCollectionRef=useRef(false);
@@ -3135,6 +3138,11 @@ export default function DesktopPreviewPage() {
 
         {saveListOpen&&<div className="fixed inset-0 z-[120] grid place-items-center bg-[#17352a]/35 p-10"><div className="w-full max-w-[560px] rounded-[26px] border-[3px] border-[#315d45] bg-[#fff6d9] p-6 shadow-2xl"><div className="font-serif text-[28px] font-black italic text-[#174c3a]">Tallenna Ostelusvihkoon</div><label className="mt-5 block text-[10px] font-black uppercase tracking-[.16em] text-[#756848]">Vihkon nimi</label><input autoFocus value={saveListName} onChange={e=>setSaveListName(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")saveCartToNotebook()}} className="mt-2 w-full rounded-[16px] border-2 border-[#b89552] bg-white px-4 py-3 text-[16px] font-black outline-none"/><div className="mt-5 flex justify-end gap-3"><button onClick={()=>setSaveListOpen(false)} className="rounded-full border-2 border-[#9b8051] px-5 py-2 font-black">Peru</button><button onClick={saveCartToNotebook} className="rounded-full border-2 border-[#315d45] bg-[#dfead4] px-6 py-2 font-black text-[#174c3a]">Tallenna</button></div></div></div>}
         {reloadCartDecisionOpen&&<div className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#1c271c]/65 px-4"><div role="dialog" aria-modal="true" aria-label="Säilytetäänkö ostoskori?" className="w-full max-w-[420px] rounded-[22px] border-[3px] border-[#b89552] bg-[#fff3d3] p-6 text-center text-[#174c35] shadow-2xl"><h2 className="font-serif text-[24px] font-black">Säilytetäänkö ostoskorin tavarat?</h2><p className="mt-3 text-[15px]">Ostoskori sisältää {cartItems.length} tuotetta.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><button type="button" onClick={()=>{setReloadCartDecisionOpen(false);setCartOpen(false);setNotebookOpen(false);setDesktopCompareNotice(false);setWorkspace(null);setActive(null)}} className="rounded-full border-2 border-[#17573c] bg-[#17573c] px-5 py-3 font-black text-white">Säilytä tavarat</button><button type="button" onClick={()=>{setCartItems([]);setReloadCartDecisionOpen(false);setCartOpen(false);setNotebookOpen(false);setDesktopCompareNotice(false);setWorkspace(null);setActive(null);try{window.sessionStorage.removeItem("ziiply-desktop-current-cart-v1")}catch{}}} className="rounded-full border-2 border-[#b58a46] bg-[#fff9e9] px-5 py-3 font-black">Tyhjennä kori</button></div></div></div>}
+        {arvoScannerOpen && (
+          <div role="dialog" aria-modal="true" aria-label="Arvon ravintoskanneri" className="fixed inset-0 z-[100000]">
+            <ArvoNutritionScanner onClose={()=>setArvoScannerOpen(false)} />
+          </div>
+        )}
         {desktopScannerOpen&&<div className="fixed inset-0 z-[99998] flex items-center justify-center bg-black/65 p-4"><div className="relative h-[min(680px,92dvh)] w-[min(440px,95vw)] overflow-hidden rounded-[24px] bg-[#f4edda]">
 <ZiiplyDesktopScannerCard className="[&>footer]:hidden" regionId="ziiply-desktop-scanner-region" loading={desktopScannerLoading} flashState={desktopScannerFlash} scannerMessage={desktopScannerMessage} onClose={()=>{desktopInStoreConfirmedRef.current=null;desktopPhysicalCollectionRef.current=false;setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} />
 {desktopScannerIncrement&&<div className="pointer-events-none absolute inset-0 z-[90] flex items-center justify-center"><span className="rounded-2xl border-[3px] border-[#245c28] bg-[#d7ffd2] px-12 py-6 text-[48px] font-black text-[#123d18] shadow-xl">+1</span></div>}
@@ -3269,7 +3277,7 @@ export default function DesktopPreviewPage() {
                gostaWatchActive={gostaWatchScanReady && Boolean(currentGostaWatchSnapshot?.offers.length)}
               onGostaWatchOpen={()=>{setGostaChainPicker(false);openAllGostaWatchResults();}}
               onJustiinaRecipeSearch={()=>setJustiinaRecipeSearchOpen(true)}
-              onArvoScanner={()=>{window.location.assign("/arvo-scanner-preview");}}
+              onArvoScanner={()=>setArvoScannerOpen(true)}
               hasSelectedStores={fuelSelected ? fuelGroups.length>0 : Object.values(selectedStores).some(Boolean)}
               chooseStoresNoticeFor={chooseStoresNoticeFor}
               onSelect={(key) => {
