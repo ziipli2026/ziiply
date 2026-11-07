@@ -1,6 +1,7 @@
 "use client";
 
 import { productMoneyEuros, type PriceAmountUnit } from "./productMoney";
+import { comparisonTypeCompatible, comparisonProductType } from "./comparisonBrand";
 import type React from "react";
 import posthog from "posthog-js";
 import { correctSearchQuery } from "./search/searchIntentAI";
@@ -2849,6 +2850,8 @@ export function isBadNormalResult(product: Product, query: string) {
 
   const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
   if (queryIsMilk) {
+    // A full-milk query must never show skimmed or low-fat milk, even at the end of the results.
+    if (comparisonProductType(query) && !comparisonTypeCompatible(query, product.name)) return true;
     const positiveMilkSignals = [
       "maito",
       "kevytmaito",
@@ -3122,6 +3125,8 @@ export function isAllowedByQualityMode(
   sourceBrandName?: string,
   candidateBrandName?: string,
 ) {
+  // All quality modes must preserve explicitly requested milk type and attributes.
+  if (comparisonProductType(sourceName) && !comparisonTypeCompatible(sourceName, candidateName)) return false;
   if (qualityMode === "cheapest") return true;
 
   const source = normalize(sourceName);
