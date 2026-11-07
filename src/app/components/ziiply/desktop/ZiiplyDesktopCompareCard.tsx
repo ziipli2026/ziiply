@@ -34,9 +34,6 @@ export default function ZiiplyDesktopCompareCard({
   onChangeMatchMode, onSelectMatchAlternative, onAcceptPackageProposal, onRejectPackageProposal, onAcceptWeightProposal, onRejectWeightProposal,
 }: Props) {
   const [expanded, setExpanded] = useState<string[]>([]);
-  const [debugVisible, setDebugVisible] = useState(false);
-  const [debugEvents, setDebugEvents] = useState<Array<{at:string;action:string;store:string;row?:string;mode?:string;error?:string}>>([]);
-  const recordDebug = (event: {action:string;store:string;row?:string;mode?:string;error?:string}) => setDebugEvents(prev => [...prev.slice(-199), {at:new Date().toISOString(),...event}]);
   if (!open) return null;
   const complete = stores.filter(s => !s.missingItems && (s.itemCount || 0) > 0 && Number.isFinite(s.totalPrice));
   const bestPrice = complete.length ? Math.min(...complete.map(s => Number(s.totalPrice))) : null;
@@ -55,15 +52,6 @@ export default function ZiiplyDesktopCompareCard({
             <h2 className="mt-1 font-serif text-[clamp(26px,3vw,43px)] font-black italic text-[#174c3a]">{title}</h2>
             <p className="mt-1 text-sm font-bold text-[#6b5839]">{subtitle}</p>
             {loading && <p role="status" className="text-sm font-bold text-[#17633c]">Päivitetään hintoja…</p>}
-            <div className="mt-2 flex justify-center gap-2">
-              <button type="button" onClick={()=>setDebugVisible(v=>!v)} className="rounded-lg border border-[#8d663f] bg-[#fff8e7] px-3 py-1 text-xs font-bold">Vertailun debug ({debugEvents.length})</button>
-              <button type="button" onClick={()=>{
-                const report={createdAt:new Date().toISOString(),stores,events:debugEvents};
-                const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}));
-                const a=document.createElement("a");a.href=url;a.download="ziiply-desktop-vertailu-debug.json";a.click();URL.revokeObjectURL(url);
-              }} className="rounded-lg border border-[#8d663f] bg-[#fff8e7] px-3 py-1 text-xs font-bold">Tallenna debug JSON</button>
-            </div>
-            {debugVisible && <pre className="mt-2 max-h-24 overflow-auto rounded-lg bg-white p-2 text-left text-xs">{JSON.stringify(debugEvents,null,2)}</pre>}
           </header>
           <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${stores.length>=3?"xl:grid-cols-3":""} ${stores.length>=4?"2xl:grid-cols-4":""} ${expanded.length ? "flex-1 content-start" : "content-start"}`}>
             {stores.length === 0 && <p className="col-span-full p-8 text-center font-bold">{loading ? "Vertailutuloksia haetaan…" : "Vertailutuloksia ei ole saatavilla."}</p>}
@@ -101,7 +89,7 @@ export default function ZiiplyDesktopCompareCard({
                   </div>
                   {isOpen && (
                     <div data-desktop-compare-products-scroll className="max-h-[min(48dvh,520px)] min-h-0 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
-                      <ZiiplyMobileCompareSelectionCard key={store.id} open embedded compact store={{...store,matches:rows}} items={items} onChangeMatchMode={async (storeId,match,mode)=>{recordDebug({action:"change_match_mode",store:storeId,row:String((match as any)?.name||(match as any)?.product?.name||""),mode});try{const result=await onChangeMatchMode?.(storeId,match,mode);recordDebug({action:"match_mode_result",store:storeId,mode,row:`${Array.isArray(result)?result.length:"no-array"} alternatives`});return result;}catch(error){recordDebug({action:"match_mode_error",store:storeId,mode,error:String(error)});throw error;}}} onSelectMatchAlternative={(storeId,match,alternative)=>{recordDebug({action:"select_alternative",store:storeId,row:String((alternative as any)?.name||"")});return onSelectMatchAlternative?.(storeId,match,alternative);}} />
+                      <ZiiplyMobileCompareSelectionCard key={store.id} open embedded compact store={{...store,matches:rows}} items={items} onChangeMatchMode={onChangeMatchMode} onSelectMatchAlternative={onSelectMatchAlternative} />
                     </div>
                   )}
                 </article>
