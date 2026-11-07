@@ -7,6 +7,10 @@ const metrics = [
   { key: "steps", label: "Askeleet", unit: "askelta" },
   { key: "activeEnergyKcal", label: "Aktiivisuusenergia", unit: "kcal" },
 ] as const;
+const shortDate = new Intl.DateTimeFormat("fi-FI", {
+  day: "numeric", month: "numeric", timeZone: "UTC",
+});
+const displayDate = (date: string) => shortDate.format(new Date(date));
 const format = new Intl.NumberFormat("fi-FI", { maximumFractionDigits: 1 });
 
 function parseDays(input: unknown): Day[] {
@@ -36,6 +40,18 @@ export default function ArvoHealthPage() {
   cutoff?.setUTCDate(cutoff.getUTCDate() - period + 1);
   const start = cutoff?.toISOString().slice(0, 10) ?? "";
   const visible = days.filter(day => day.localDate >= start);
+  const summaries = metrics.map(metric => {
+    const samples = visible.flatMap(day => {
+      const value = day[metric.key];
+      return value === undefined ? [] : [{ date: day.localDate, value }];
+    });
+    const total = samples.reduce((sum, sample) => sum + sample.value, 0);
+    const peak = samples.reduce<(typeof samples)[number] | undefined>(
+      (highest, sample) => !highest || sample.value > highest.value ? sample : highest,
+      undefined,
+    );
+    return { ...metric, samples, total, peak };
+  });
 
   async function importDays(file: File) {
     const request = ++load.current;
@@ -81,16 +97,32 @@ export default function ArvoHealthPage() {
           }}>Tyhjennä tiedot</button>
         </div>
         <p className="text-sm">{start} – {lastDate}</p>
-        {metrics.map(metric => {
-          const samples = visible.flatMap(day => {
-            const value = day[metric.key];
-            return value === undefined ? [] : [{ date: day.localDate, value }];
-          });
+        <section className="space-y-2 rounded-xl border border-[#d3c9ad] bg-white p-4">
+          <h2 className="text-xl font-bold">Jakson yhteenveto</h2>
+          {summaries.map(({ key, label, unit, samples, total, peak }) => (
+            <p key={key}>
+              <strong>{label}</strong>{" · "}
+              {samples.length === 0 ? "Jaksolta ei ole mittauksia." : <>
+                {format.format(total)} {unit}
+                {period > 1 && <>
+                  {" yhteensä, keskimäärin "}
+                  <strong>{format.format(Math.round(total / samples.length))} {unit} päivässä</strong>
+                  {samples.length < period && ` (${samples.length} mittauspäivää)`}
+                  {key === "steps" && samples.length > 1 && peak &&
+                    `. Eniten askelia kertyi ${displayDate(peak.date)} (${format.format(peak.value)} askelta)`}
+                </>}.
+              </>}
+            </p>
+          ))}
+          <p className="text-sm">Kooste kattaa tiedot vientihetkeen asti. Viimeisin päivä voi olla kesken.</p>
+        </section>
+        {summaries.map(metric => {
+          const { samples } = metric;
           const max = Math.max(1, ...samples.map(sample => sample.value));
           return <section key={metric.key} className="space-y-3 rounded-xl border border-[#d3c9ad] bg-white p-4">
             <h2 className="text-xl font-bold">{metric.label}</h2>
             {samples.length === 0 ? <p>Jaksolta ei ole mittauksia.</p> : <>
-              <p>Yhteensä <strong>{format.format(samples.reduce((total, sample) => total + sample.value, 0))} {metric.unit}</strong></p>
+              <p>Yhteensä <strong>{format.format(metric.total)} {metric.unit}</strong></p>
               <ul className="space-y-2">
                 {samples.map(sample => <li key={sample.date} className="grid grid-cols-[6rem_1fr_auto] items-center gap-2 text-sm">
                   <time dateTime={sample.date}>{sample.date}</time>
