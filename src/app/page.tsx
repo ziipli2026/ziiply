@@ -21911,11 +21911,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       title="Vertailu"
                       subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
                       loading={comparisonLoading}
-                      onSelectStore={(storeId) => {
+                      debugRows={chainResults.flatMap(result => (result.matches || []).map((match: Match) => ({
+                        storeId: result.key,
+                        name: match.product?.name || "",
+                        brand: String((match.product as any)?.brand || ""),
+                        price: match.price,
+                        matchType: String((match as any).matchType || ""),
+                      })))}
+                      onSelectStore={(storeId: string) => {
                         console.info("[Ziiply desktop compare] select", {storeId, results: chainResults.map(r => ({key:r.key, found:r.foundItems, missing:r.missingItems}))});
                         setActiveResult("compare");
                       }}
-                      onOpenStore={(storeId) => {
+                      onOpenStore={(storeId: string) => {
                         console.info("[Ziiply desktop compare] open", {storeId, matches: chainResults.find(r => r.key === storeId)?.matches?.length ?? 0});
                         setActiveResult("compare");
                       }}
