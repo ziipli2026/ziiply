@@ -39,6 +39,36 @@ jobs:
             --esModuleInterop \
             --skipLibCheck \
             --outDir .tmp-search-regression/search
+      - name: Full milk mobile search functional test
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const names = [
+            'Valio täysmaito suomalaiselta maitotilalta 1l',
+            'Pirkka suomalainen täysmaito 1l',
+            'Kotimaista täysmaito 1l',
+            'Valio kevytmaito 1l',
+            'Arla rasvaton maito 1l',
+            'Pirkka rasvaton maito 1l',
+            'Valio laktoositon täysmaito 1l',
+            'Valio täysmaito 1,5l',
+            'Valio luomu täysmaito 1l',
+          ];
+          const products = names.map((name, i) => ({
+            id: i + 1, name, price: 1.2 + i / 10,
+            storeItems: [{price: 1.2 + i / 10}]
+          }));
+          const actual = core.rankNormalSearchResults('täysmaito 1l', products).map(p => p.name);
+          const expected = names.slice(0, 3);
+          assert.deepEqual(actual.slice().sort(), expected.slice().sort(), 'Full milk search must contain ONLY regular 1l full milk');
+          for (const name of names.slice(3)) {
+            assert.equal(core.isBadNormalResult(products[names.indexOf(name)], 'täysmaito 1l'), true, 'Must reject: ' + name);
+          }
+          assert.equal(core.rankNormalSearchResults('rasvaton maito 1l', products).some(p => p.name.includes('täysmaito')), false);
+          console.log('PASS full milk 1l mobile search: exactly', actual.length, 'correct results; no skimmed, low-fat, lactose-free, organic or wrong sizes');
+          NODE
       - name: Verify normal-search semantics
         shell: bash
         run: |
