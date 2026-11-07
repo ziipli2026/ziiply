@@ -5,6 +5,7 @@
 // V12: paluu vasempaan yläkulmaan paperilappu-/hintalappu-tyyliin mockupin mukaan.
 // Selection-kortille EI lisätä jaa-koria; vain paluu vertailuun ja sulje.
 
+import { comparisonBrand } from "../comparisonBrand";
 import React from "react";
 
 export type ZiiplyCompareSelectionStore = {
@@ -174,9 +175,8 @@ function getStoreOwnBrandExample(chain?: ZiiplyCompareSelectionStore["chain"]) {
 
 function getProductBrandExample(item: unknown) {
   const data = item as ZiiplyCompareSelectionItem;
-  const name = String(data?.sourceProductName || data?.cartItem?.name || getItemName(item)).trim();
-  const first = name.split(/\s+/).find((part) => /[A-Za-zÅÄÖåäö]/.test(part)) || "sama brändi";
-  return first.replace(/[^\wÅÄÖåäö-]/g, "");
+  const name = String(data?.product?.name || getItemName(item) || "").trim();
+  return comparisonBrand(name, data?.brandName || (data?.product as { brandName?: string })?.brandName) || "Sama brändi";
 }
 
 function getQualityHint(mode: QualityMode, item: unknown, chain?: ZiiplyCompareSelectionStore["chain"]) {
