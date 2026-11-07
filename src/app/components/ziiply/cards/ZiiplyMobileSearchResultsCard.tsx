@@ -263,6 +263,43 @@ export default function ZiiplyMobileSearchResultsCard({
 }: ZiiplyMobileSearchResultsCardProps) {
   const [expandedProduct, setExpandedProduct] = useState<ZiiplyMobileSearchResultProduct | null>(null);
   useEffect(()=>{if(loading)setExpandedProduct(null);},[loading]);
+  function downloadSearchDebug() {
+    const query = title || "Tuotteet";
+    const payload = {
+      kind: "ziiply-mobile-normal-search-debug",
+      schemaVersion: 1,
+      timestamp: new Date().toISOString(),
+      query,
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+      loading,
+      resultCount: products.length,
+      products: products.map((product, index) => ({
+        index,
+        id: product.id ?? null,
+        ean: product.ean ?? product.product?.ean ?? null,
+        name: getName(product),
+        category: product.category ?? product.product?.category ?? null,
+        brand: product.brandName ?? product.product?.brandName ?? null,
+        chain: product.chain ?? product.product?.chain ?? null,
+        store: getStore(product),
+        price: product.price ?? product.product?.price ?? null,
+        originalSearchTerm: product.originalSearchTerm ?? null,
+        usedSearchQuery: product.usedSearchQuery ?? null,
+        source: product.source ?? product.product?.source ?? null,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "ziiply-mobiili-hakudebug-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   if (!open) return null;
 
   return (
@@ -315,6 +352,11 @@ export default function ZiiplyMobileSearchResultsCard({
           </div>
         </header>
 
+        <div className="relative z-20 shrink-0 px-4 pb-2">
+          <button type="button" onClick={downloadSearchDebug} className="min-h-10 rounded-lg border-2 border-[#6f5730] bg-[#fff2cb] px-3 text-sm font-bold text-[#123d32]">
+            Lataa haun debug-JSON ({products.length} tuotetta)
+          </button>
+        </div>
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2">
             {loading && products.length === 0 && (
