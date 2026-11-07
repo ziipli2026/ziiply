@@ -11,7 +11,12 @@ function extract(name, next) {
   assert.ok(start >= 0 && end > start, 'missing helper '+name);
   return source.slice(start,end);
 }
-const ctx = vm.createContext({});
+const brandExports = {};
+const brandSource = fs.readFileSync('src/app/components/ziiply/comparisonBrand.ts', 'utf8');
+vm.runInNewContext(ts.transpileModule(brandSource, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+}).outputText, { exports: brandExports });
+const ctx = vm.createContext({ ...brandExports });
 const helpers = extract('desktopCheapestPack','desktopIsFilterCoffee') + extract('desktopIsFilterCoffee','desktopCheapestSearchQueries') + extract('desktopCheapestSearchQueries','desktopCheapestCompatible') + extract('desktopCheapestCompatible','desktopChangeCompareMatchMode');
 vm.runInContext(ts.transpileModule(helpers, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
 const compatible = (a,b) => vm.runInContext('desktopCheapestCompatible('+JSON.stringify(a)+','+JSON.stringify(b)+')',ctx);
@@ -28,12 +33,9 @@ test('price comparison is in cents and only strictly cheaper',()=>{
   const start=source.indexOf('      if(mode==="cheapest"){',source.indexOf('async function desktopChangeCompareMatchMode'));
   const end=source.indexOf('      return filtered.slice(0,20)',start);
   const body=source.slice(start,end);
-  assert.match(body,/Math\.round\(currentPrice\*100\)/);
-  assert.match(body,/Number\(cheapest\.price\)>=Math\.round\(currentPrice\*100\)/);
+  assert.match(source,/Math\.round\(row\.price\*100\)/);
+  assert.match(body,/Number\(cheapest\.price\)>=currentPrice/);
   assert.match(body,/!Number\.isFinite\(currentPrice\)\|\|currentPrice<=0/);
-  assert.equal(249 >= Math.round(2.50*100),false);
-  assert.equal(250 >= Math.round(2.50*100),true);
-  assert.equal(251 >= Math.round(2.50*100),true);
 });
 
 test('cheapest mode executes selection only for a strictly cheaper valid candidate', async () => {
@@ -45,11 +47,15 @@ test('cheapest mode executes selection only for a strictly cheaper valid candida
     const selected = [];
     const notices = [];
     const env = vm.createContext({
+    ...brandExports,
       desktopCompareResults: { shop: { store: { id: 'shop' } } },
       cartItems: [{ id: 'item', name: 'Laktoositon maito 1 l', quantity: 1 }],
       storeKind: () => 'sHyper',
       desktopFindCompareCandidates: async () => offers.map((price, index) => ({ id: 'p'+index, name: 'Laktoositon maito 1 l', price })),
       productGroupGate: () => true,
+      isSameRetailPackage: () => true,
+      isComparisonAttributeCompatible: () => true,
+      desktopReliableComparePrice: p => Number.isFinite(p.price) && p.price > 0,
       flashCartNotice: message => notices.push(message),
       desktopSelectCompareAlternative: async (...args) => selected.push(args),
     });
@@ -57,12 +63,12 @@ test('cheapest mode executes selection only for a strictly cheaper valid candida
     await env.desktopChangeCompareMatchMode('shop', { id: 'item', price: currentPrice }, 'cheapest');
     return { selected, notices };
   }
-  assert.equal((await scenario(2.50,[249])).selected.length,1,'cheaper price must swap');
-  assert.equal((await scenario(2.50,[250])).selected.length,0,'equal price must not swap');
-  assert.equal((await scenario(2.50,[251])).selected.length,0,'higher price must not swap');
+  assert.equal((await scenario(250,[249])).selected.length,1,'cheaper price must swap');
+  assert.equal((await scenario(250,[250])).selected.length,0,'equal price must not swap');
+  assert.equal((await scenario(250,[251])).selected.length,0,'higher price must not swap');
   assert.equal((await scenario(null,[249])).selected.length,0,'unknown current price must not swap');
-  assert.equal((await scenario(2.50,[0])).selected.length,0,'zero-price candidate must not swap');
-  const mixed = await scenario(2.50,[0,249,199,NaN]);
+  assert.equal((await scenario(250,[0])).selected.length,0,'zero-price candidate must not swap');
+  const mixed = await scenario(250,[0,249,199,NaN]);
   assert.equal(mixed.selected.length,1,'one valid cheaper candidate must swap');
   assert.equal(mixed.selected[0][2].price,199,'must select lowest valid price even with invalid prices');
 });
@@ -74,6 +80,7 @@ test('selected alternative updates compare row price, quantity total and missing
   let state={shop:{rows:[{cartItemId:'item',name:'Laktoositon maito 1 l',price:2.50,quantity:2},{cartItemId:'other',name:'Other',price:3,quantity:1}],total:8,missing:0}};
   const notices=[];
   const env=vm.createContext({
+    ...brandExports,
     desktopCompareResults:state,
     desktopComparisonEdited:{current:false},
     cartItems:[{id:'item',name:'Laktoositon maito 1 l',quantity:2}],

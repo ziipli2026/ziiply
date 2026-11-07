@@ -1,4 +1,5 @@
 "use client";
+import { comparisonAlternativeQueries, comparisonBrand, comparisonProductType, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "../components/ziiply/comparisonBrand";
 import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, rankDesktopNormalRows, withDesktopCatalogEvidence, searchWords } from "../components/ziiply/search/desktopNormalRelevance";
 import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
@@ -934,11 +935,11 @@ export default function DesktopPreviewPage() {
   // Use the same query expansion and ranking as the mobile comparison.
   const desktopProductSearchCacheRef=useRef<Map<string,{at:number;promise:Promise<any[]>}>>(new Map());
   const desktopProductSearchCache=desktopProductSearchCacheRef.current;
-  async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean){
+  async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean,alternativeQueries: string[] = []){
     // The selected store is authoritative: never search S products for a K store (or vice versa).
     const kind=storeKind(store);
     if(kind==="spar"){
-      const queries=[...new Set([name,...getKSearchTerms(name)].filter(Boolean))].slice(0,6);
+      const queries=[...new Set([...alternativeQueries,name,...getKSearchTerms(name)].filter(Boolean))].slice(0,6);
       const responses=await Promise.all(queries.map(async search=>{
         try{
           const params=new URLSearchParams({search,intent:name});
@@ -996,7 +997,7 @@ export default function DesktopPreviewPage() {
       if(desktopProductSearchCache.size>250){for(const [key,value] of desktopProductSearchCache){if(now-value.at>60_000)desktopProductSearchCache.delete(key);}}
       return promise;
     };
-    if(normalizedEan){
+    if(normalizedEan && !alternativeQueries.length){
       const exactResults=await fetchCandidates(normalizedEan);
       const exact=exactResults.filter((p:any)=>normalizeEan(p.ean)===normalizedEan&&desktopReliableComparePrice(p)&&isSameRetailPackage(name,String(p.name||""))&&isComparisonAttributeCompatible(name,String(p.name||"")));
       if(exact.length&&desktopPickCompareCandidate(exact,name,ean,isS))return exact;
@@ -1011,12 +1012,12 @@ export default function DesktopPreviewPage() {
       }
       if(exactResults.length)logCompareAudit("ean_candidates_rejected_continue_name_search",{store:store.name,name,ean,candidates:exactResults.length});
     }
-    const queries=[...new Set([name,...getNormalSearchQueries(name),...getKSearchTerms(name)].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan&&!/^\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)$/i.test(v)))].slice(0,12);
+    const queries=[...new Set([...alternativeQueries,name,...getNormalSearchQueries(name),...getKSearchTerms(name)].map(v=>String(v||"").trim()).filter(v=>v&&v!==normalizedEan&&!/^\d+(?:[.,]\d+)?\s*(?:kg|g|l|dl|ml|kpl|pkt|pss)$/i.test(v)))].slice(0,12);
     const responses=await Promise.all(queries.slice(0,4).map(fetchCandidates));
     let candidates=responses.flat();
     // Only broaden the search if the first batch produced no compatible priced product.
     // Avoid extra API requests for successful searches.
-    if(queries.length>4&&!desktopPickCompareCandidate(candidates,name,ean,isS)){
+    if(queries.length>4&&(alternativeQueries.length>0||!desktopPickCompareCandidate(candidates,name,ean,isS))){
       const fallback=await Promise.all(queries.slice(4).map(fetchCandidates));
       candidates=candidates.concat(fallback.flat());
       logCompareAudit("comparison_fallback_search",{store:store.name,name,additionalQueries:queries.slice(4),candidates:candidates.length});
@@ -1365,7 +1366,7 @@ export default function DesktopPreviewPage() {
             const estimatedWeightPrice=verifiedWeightCents!==null&&comparisonGrams!==null&&comparisonGrams>0
               ?Math.round(verifiedWeightCents*comparisonGrams/1000)/100:null;
             const finalPrice=estimatedWeightPrice??price;
-            return {cartItemId:String(item.id||""),name:estimatedWeightPrice!==null?String(weightProposal.name):matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price:finalPrice,weightEstimate:estimatedWeightPrice!==null,weightGramsPerItem:estimatedWeightPrice!==null?comparisonGrams:null,weightPricePerKgCents:estimatedWeightPrice!==null?verifiedWeightCents:null,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(finalPrice===null?"none":estimatedWeightPrice!==null?"name":exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative,weightProposal:estimatedWeightPrice!==null?null:weightProposal?{name:String(weightProposal.name),pricePerKgCents:desktopVerifiedKgPriceCents(weightProposal),verifiedPerKgPrice:true,ean:String(weightProposal.ean||""),gramsPerItem:comparisonGrams}:null};
+            return {cartItemId:String(item.id||""),brandName:comparisonBrand(String(matched?.name || name), matched?.brandName || matched?.brand),name:estimatedWeightPrice!==null?String(weightProposal.name):matched?String(matched.name):name,ean:matched?String(matched.ean||""):ean,quantity:Number(item.quantity||1),price:finalPrice,weightEstimate:estimatedWeightPrice!==null,weightGramsPerItem:estimatedWeightPrice!==null?comparisonGrams:null,weightPricePerKgCents:estimatedWeightPrice!==null?verifiedWeightCents:null,image:String((matched as any)?.pictureUrl||(matched as any)?.image||(matched as any)?.imageUrl||(matched as any)?.product?.image||(matched as any)?.product?.imageUrl||item?.image||item?.product?.image||""),match:(finalPrice===null?"none":estimatedWeightPrice!==null?"name":exact?"ean":matched?"name":"none") as "ean"|"name"|"none",packageAlternative:alternative,weightProposal:estimatedWeightPrice!==null?null:weightProposal?{name:String(weightProposal.name),pricePerKgCents:desktopVerifiedKgPriceCents(weightProposal),verifiedPerKgPrice:true,ean:String(weightProposal.ean||""),gramsPerItem:comparisonGrams}:null};
           }catch(error){logCompareAudit("product_search_error",{store:store.name,name,ean,error:String(error)});desktopDebug(`HAKUVIRHE ${store.name} / ${name}: ${String(error)}`);return {cartItemId:String(item.id||""),name,quantity:Number(item.quantity||1),price:null,match:"none" as const}}
         }));
         desktopDebug(`Kauppahaku valmis: ${store.name}, hinnat=${rows.filter(x=>x.price!=null).length}/${rows.length}`);
@@ -1419,10 +1420,11 @@ export default function DesktopPreviewPage() {
   function desktopCompareCategoryCompatible(source:any,candidate:any){
     const sourceName=String(source?.name||source?.title||"");
     const candidateName=String(candidate?.name||candidate?.title||"");
-    if(!sourceName||!candidateName)return false;
+    if(!sourceName||!candidateName||!comparisonTypeCompatible(sourceName,candidateName))return false;
     const category=(p:any)=>String(p?.categoryId||p?.category?.id||p?.categoryName||p?.category||p?.product?.category||"").trim().toLocaleLowerCase("fi");
     const a=category(source),b=category(candidate);
-    if(a&&b&&a!==b)return false;
+    const sameRecognizedType = Boolean(comparisonProductType(sourceName)) && comparisonProductType(sourceName) === comparisonProductType(candidateName);
+    if(a&&b&&a!==b&&!sameRecognizedType)return false;
     if(!productGroupGate(sourceName,candidateName)||!productGroupGate(candidateName,sourceName))return false;
     const normalize=(v:string)=>v.toLocaleLowerCase("fi").replace(/[-–]/g," ").replace(/[^a-zåäö0-9 ]/g," ").replace(/\s+/g," ").trim();
     const modifiers=[
@@ -1442,11 +1444,11 @@ export default function DesktopPreviewPage() {
     // Even within the same broad category, retain distinctive product-type terms
     // instead of trusting the first matching search result.
     {
-      const tokens=(v:string)=>normalize(v).replace(/\b\d+(?:\s*[x×]\s*\d+)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt)\b/g," ").split(" ").filter(t=>t.length>=4&&!/^\d+$/.test(t));
+      const tokens=(v:string)=>normalize(v).replace(/\bspaghetti\b/g,"spagetti").replace(/\b\d+(?:\s*[x×]\s*\d+)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt)\b/g," ").split(" ").filter(t=>t.length>=4&&!/^\d+$/.test(t));
       const xWords=tokens(sourceName),yWords=tokens(candidateName);
       const xCore=xWords.slice(1).filter(t=>!modifiers.some(([,p])=>new RegExp(p.source).test(t)));
       const yCore=yWords.slice(1).filter(t=>!modifiers.some(([,p])=>new RegExp(p.source).test(t)));
-      if(xCore.length&&yCore.length&&!xCore.some(t=>yCore.includes(t)))return false;
+      if(!sameRecognizedType&&xCore.length&&yCore.length&&!xCore.some(t=>yCore.includes(t)))return false;
     }
     return true;
   }
@@ -1459,30 +1461,39 @@ export default function DesktopPreviewPage() {
     if(!name)return [];
     const store=result.store;const kind=storeKind(store);const isS=kind==="sHyper"||kind==="sLocal";
     try{
-      const products=await desktopFindCompareCandidates(name,String(cartItem?.ean||cartItem?.product?.ean||""),store,isS);
+      const chain = kind === "spar" || kind === "lidl" ? kind : isS ? "s" : "k";
+      const visibleName = String(match?.product?.name || match?.name || name);
+      const selectedBrand = comparisonBrand(visibleName, match?.brandName || match?.product?.brandName);
+      const originalBrand = comparisonBrand(name, cartItem?.brandName || cartItem?.product?.brandName);
+      const searchName = mode === "same_brand" ? visibleName : name;
+      const queries = comparisonAlternativeQueries(searchName, mode === "same_brand" ? selectedBrand : originalBrand, chain, mode);
+      const products = await desktopFindCompareCandidates(searchName, "", store, isS, queries);
       if(mode==="cheapest"&&desktopIsFilterCoffee(name)){
         const extra=await Promise.all(desktopCheapestSearchQueries(name).map(async query=>desktopFindCompareCandidates(query,"",store,isS)));
         products.push(...extra.flat());
       }
-      const candidates=products.filter((product:any)=>desktopCompareCategoryCompatible({...cartItem,name},product)&&desktopCheapestCompatible(name,String(product.name||""))).map((product:any,index:number)=>({
+      const candidates=products.filter((product:any)=>desktopReliableComparePrice(product) && desktopCompareCategoryCompatible({...cartItem,name},product) && isSameRetailPackage(name,product.name) && isComparisonAttributeCompatible(name,product.name) && (!desktopCheapestPack(name) || desktopCheapestCompatible(name,product.name))).map((product:any,index:number)=>({
         ...product,id:String(product.id||product.ean||index),name:product.name,
         price:Number(product.price),product:{...(product.product||{}),id:product.id||product.ean||index,name:product.name,ean:product.ean},
         sourceProductName:name,cartItem,quantity:Number(cartItem?.quantity||match?.quantity||1),isMissingComparisonItem:false
       }));
-      const originalBrand=name.split(/\s+/)[0]?.toLocaleLowerCase("fi")||"";
-      const ownBrand=kind==="spar"?/(^|\s)(spar|eurospar|first price)(\s|$)/i:kind==="lidl"?/(^|\s)(milbona|cien|chef select|pikok|combino)(\s|$)/i:isS?/(^|\s)(coop|xtra|kotimaista)(\s|$)/i:/(^|\s)(pirkka|k-menu)(\s|$)/i;
-      let filtered=candidates;
-      if(mode==="own_brands")filtered=candidates.filter((p:any)=>ownBrand.test(p.name));
-      if(mode==="same_brand")filtered=candidates.filter((p:any)=>String(p.brandName||p.brand||p.name).toLocaleLowerCase("fi").includes(originalBrand));
+      let filtered = candidates;
+      if (mode === "own_brands") {
+        filtered = candidates.filter((p: any) => isComparisonOwnBrand(chain, p.name, p.brandName || p.brand));
+      } else if (mode === "same_brand") {
+        filtered = candidates.filter((p: any) =>
+          sameComparisonBrand(selectedBrand, comparisonBrand(p.name, p.brandName || p.brand)),
+        );
+      }
       filtered=filtered.sort((a:any,b:any)=>Number(a.price)-Number(b.price));
       if(mode==="cheapest"){
-        const compatible=filtered.filter((p:any)=>desktopCheapestCompatible(name,p.name));
+        const compatible = filtered;
         if(!compatible.length){flashCartNotice("Saman kokoista ja ominaisuuksiltaan vastaavaa tuotetta ei löytynyt.");return []}
         const currentPrice=Number(match?.price);
         const cheapest=compatible.find((p:any)=>Number.isFinite(Number(p.price))&&Number(p.price)>0);
         if(!cheapest){flashCartNotice("Vaihtoehdolle ei löytynyt kelvollista hintaa.");return []}
         if(!Number.isFinite(currentPrice)||currentPrice<=0){flashCartNotice("Nykyisen tuotteen hintaa ei tunneta. Automaattista vaihtoa ei tehdä.");return compatible}
-        if(Number(cheapest.price)>=Math.round(currentPrice*100)){flashCartNotice("Nykyinen tuote on jo yhtä halpa tai halvempi.");return compatible}
+        if(Number(cheapest.price)>=currentPrice){flashCartNotice("Nykyinen tuote on jo yhtä halpa tai halvempi.");return compatible}
         await desktopSelectCompareAlternative(storeId,match,{...cheapest,comparisonSelectionMode:"cheapest"});
         return compatible;
       }
@@ -1514,7 +1525,7 @@ export default function DesktopPreviewPage() {
     const rows=chosen.rows.map((row:any)=>row.cartItemId===rowId?{...row,name:String(alternative?.name||row.name),ean:String(alternative?.ean||alternative?.product?.ean||""),price:priceCents/100,image:String(alternative?.pictureUrl||alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const}:row);
     setDesktopCompareResults(current=>{
       const existing=current[storeId];if(!existing)return current;
-      const updatedRows=existing.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const,ean:String(alternative?.ean||alternative?.product?.ean||""),packageAlternative:null,qualityMode:String(alternative?.comparisonSelectionMode||"cheapest")}:row);
+      const updatedRows=existing.rows.map((row:any)=>String(row.cartItemId)===rowId?{...row,name:String(alternative?.name||row.name),price:priceCents/100,image:String(alternative?.image||alternative?.imageUrl||alternative?.product?.image||alternative?.product?.imageUrl||row.image||""),match:"name" as const,ean:String(alternative?.ean||alternative?.product?.ean||""),packageAlternative:null,brandName:comparisonBrand(alternativeName,alternative?.brandName || alternative?.brand),qualityMode:String(alternative?.comparisonSelectionMode||"cheapest")}:row);
       return {...current,[storeId]:{...existing,rows:updatedRows,total:updatedRows.reduce((sum:number,row:any)=>sum+(row.price??0)*Number(row.quantity||1),0),missing:updatedRows.filter((row:any)=>row.price==null).length}};
     });
     flashCartNotice("Tuotevaihtoehto päivitetty vertailuun.");
