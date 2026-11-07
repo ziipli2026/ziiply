@@ -80,13 +80,23 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
         const Reader = (window as any).Html5Qrcode;
         if (!Reader) throw new Error("scanner-unavailable");
         const region = document.getElementById(regionId);
-        scanner = new Reader(regionId, {verbose:false});
-        await scanner.start({facingMode:"environment"}, {fps:12, qrbox: {width:270,height:155}, aspectRatio:1.7778}, onDecoded, () => undefined);
+        const formats = (window as any).Html5QrcodeSupportedFormats;
+        const formatsToSupport = formats
+          ? [formats.EAN_13, formats.EAN_8, formats.UPC_A, formats.UPC_E]
+          : undefined;
+        scanner = new Reader(regionId, { verbose: false, formatsToSupport });
+        const videoConstraints: MediaTrackConstraints = {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        };
+        // Decode the whole frame so a visible barcode cannot straddle a hidden scan box.
+        await scanner.start(videoConstraints, { fps: 10, videoConstraints }, onDecoded, () => undefined);
         started = true;
         stream = (region?.querySelector("video")?.srcObject as MediaStream | null | undefined) ?? null;
         if (disposed) { await releaseCamera(); return; }
         cameraRef.current = stream;
-        setStatus("Kohdista EAN-viivakoodi kameran keskelle.");
+        setStatus("Pidä koko viivakoodi näkyvissä, myös sen vaaleat reunat.");
       } catch (error) {
         if (disposed) await releaseCamera();
         else setStatus("Skannerin käynnistys epäonnistui. Tarkista kameran käyttöoikeus.");
@@ -170,6 +180,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
   };
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#f8f5ed] text-[#173b2b]">
+      <style>{`div#${regionId} video { object-fit: contain !important; }`}</style>
       <ZiiplyMobileScannerCard
         regionId="arvo-nutrition-scanner-camera"
         fullscreen
