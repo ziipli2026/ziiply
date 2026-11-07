@@ -25,7 +25,7 @@ function startsWithBrand(name: string, brand: string) {
 
 export function comparisonBrand(name: string, metadata?: string | null) {
   const explicit = typeof metadata === "string" ? metadata.trim() : "";
-  return explicit || knownBrands.find(brand => startsWithBrand(brandKey(name), brand)) || "";
+  return knownBrands.find(brand => startsWithBrand(brandKey(name), brand)) || explicit;
 }
 
 export function sameComparisonBrand(source: string, candidate: string) {
@@ -35,7 +35,7 @@ export function sameComparisonBrand(source: string, candidate: string) {
 
 export function isComparisonOwnBrand(chain: BrandChain, name: string, metadata?: string | null) {
   return chainBrands[chain].some(brand =>
-    startsWithBrand(brandKey(metadata || ""), brand) || startsWithBrand(brandKey(name), brand),
+    startsWithBrand(brandKey(name), brand) || (!knownBrands.some(known => startsWithBrand(brandKey(name), known)) && startsWithBrand(brandKey(metadata || ""), brand)),
   );
 }
 
@@ -44,6 +44,9 @@ export function comparisonProductType(name: string) {
   if (/\bspagetti\b/i.test(product) && !/bolognese|kastik|ateria|lasten|pakaste/i.test(product)) {
     return "spagetti";
   }
+  if (/\b(?:täysmaito|taysmaito)\b/i.test(product)) return "täysmaito";
+  if (/\bkevytmaito\b/i.test(product)) return "kevytmaito";
+  if (/\b(?:rasvaton maito|rasvatonmaito)\b/i.test(product)) return "rasvaton maito";
   return "";
 }
 
@@ -66,6 +69,12 @@ export function comparisonAlternativeQueries(
 
 export function comparisonTypeCompatible(source: string, candidate: string) {
   const type = comparisonProductType(source);
+  if (type === "täysmaito" || type === "kevytmaito" || type === "rasvaton maito") {
+    return comparisonProductType(candidate) === type &&
+      /\b(?:1\s*l|1000\s*ml)\b/i.test(source) === /\b(?:1\s*l|1000\s*ml)\b/i.test(candidate) &&
+      /laktoositon/i.test(source) === /laktoositon/i.test(candidate) &&
+      /luomu/i.test(source) === /luomu/i.test(candidate);
+  }
   if (type !== "spagetti") return true;
   return comparisonProductType(candidate) === type &&
     !/shirataki|hedelmä|fruit|lastenpeli|hius/i.test(candidate) &&
