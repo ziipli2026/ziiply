@@ -3436,12 +3436,12 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
-  // Distinct food families must never match just because their package sizes agree.
-  if (/(?:^|\\s)linssit?(?:\\s|$)/.test(source) && !/(?:linssi|linssit|lentil)/.test(candidate)) return false;
+  // Normalized strings have no accents; use a literal word boundary for linssit.
+  if (/(?:^|\s)linssi(?:t)?(?:\s|$)/.test(source) && !/(?:linssi|lentil)/.test(candidate)) return false;
   if (/tomaattipyree/.test(source) && !/(?:tomaattipyree|tomato paste|tomaattitiiviste)/.test(candidate)) return false;
-  if (/oliiviöljy/.test(source) &&
-      (!/oliiviöljy|olive oil/.test(candidate) ||
-       /(?:auringonkukkaöljy|rypsiöljy|rapeseed oil|sunflower oil|öljyseos|öljyjen seos)/.test(candidate))) return false;
+  if (/oliivioljy/.test(source) &&
+      (!/(?:oliivioljy|olive oil)/.test(candidate) ||
+       /(?:auringonkukkaoljy|rypsioljy|rapeseed oil|sunflower oil|oljyseos|oljyjen seos)/.test(candidate))) return false;
   // Broad K-search fallback may return hundreds of products sharing only
   // the package size. Keep the requested hygiene/cleaning product family.
   if (/\bastianpesuaine\b/.test(source) && !/\b(?:astianpesuaine|tiskiaine|kasitiskiaine)\b/.test(candidate)) return false;
