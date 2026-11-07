@@ -12861,7 +12861,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Revalidate cached results against the current product-group gate.
       const cachedTerm = focusedSearchTerms[0] || useTerms[0] || "";
       const cachedValidated = cachedNormalSearchV441.results.filter((product: Product) =>
-        productGroupGate(cachedTerm, product.name),
+        productGroupGate(cachedTerm, product.name) && !isBadNormalResult(product, cachedTerm),
       );
       if (cachedValidated.length > 0) {
       setNormalResultsStableV441(cachedValidated);
@@ -13084,11 +13084,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           // Fail-open pidetään vain yleisissä hauissa. Kananmunahaussa se aiheutti sen,
           // että "kananmunaton pasta" palasi tuloksiin, jos kaikki aidot osumat putosivat.
-          const safeItemsBeforePetFilter = recipeIngredient ? normalFiltered : eggLockedSearch
+          // Strict milk queries must not restore rejected products on zero matches.
+          const strictMilkTypeQuery = /(?:täysmaito|taysmaito|kevytmaito|rasvaton\s*maito)/i.test(searchQuery);
+          const safeItemsBeforePetFilter = recipeIngredient || eggLockedSearch || strictMilkTypeQuery
             ? normalFiltered
-            : normalFiltered.length > 0
-              ? normalFiltered
-              : pricedItems;
+            : normalFiltered.length > 0 ? normalFiltered : pricedItems;
 
           const safeItems = filterPetProductsFromFoodSearchV443(
             safeItemsBeforePetFilter,
@@ -13161,8 +13161,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return true;
             })
           : [];
-      const normalItemsForSelection =
+      const normalItemsForSelectionUnfiltered =
         !recipeIngredient && literalKMatches.length > 0 ? literalKMatches : dedupedNormalItems;
+      const originalNormalQuery = focusedSearchTerms[0] || useTerms[0] || "";
+      const normalItemsForSelection = recipeIngredient ? normalItemsForSelectionUnfiltered
+        : normalItemsForSelectionUnfiltered.filter((product) => !isBadNormalResult(product, originalNormalQuery));
 
       const normalUnique = filterPetProductsFromFoodSearchV443(
         normalItemsForSelection,
