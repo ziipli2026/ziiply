@@ -178,7 +178,8 @@ const terms=[
 ];
 const shard=Number(process.env.SHARD||0),shards=4;
 if(!Number.isInteger(shard)||shard<0||shard>=shards)throw Error('Invalid shard');
-const requests=terms.map((term,i)=>({term,i})).filter(x=>x.i%shards===shard);
+const maxTerms=Number(process.env.MAX_TERMS||terms.length);
+const requests=terms.slice(0,maxTerms).map((term,i)=>({term,i})).filter(x=>x.i%shards===shard);
 const base='https://ziiply.vercel.app';
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function fetchProducts(chain,term){
