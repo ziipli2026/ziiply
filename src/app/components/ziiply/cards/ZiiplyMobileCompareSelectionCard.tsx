@@ -220,7 +220,7 @@ export default function ZiiplyMobileCompareSelectionCard({
         <strong>Vertailun debug · {compareDebug.length} tapahtumaa</strong>
         <button type="button" className="rounded border px-2 py-1" onClick={() => setDebugExpanded((value) => !value)}>{debugExpanded ? "Piilota loki" : "Näytä loki"}</button>
         <button type="button" className="rounded border px-2 py-1" onClick={() => {
-          const payload = { store: { id: store.id, name: store.name, chain: store.chain }, rows: ((store.matches && store.matches.length > 0 ? store.matches : items) || []).map((row) => ({ id: row.id, name: getItemName(row), brand: getProductBrandExample(row), price: row.price, matchType: row.matchType })), events: compareDebug };
+          const payload = { store: { id: store.id, name: store.name, chain: store.chain }, rows: ((store.matches && store.matches.length > 0 ? store.matches : items) || []).map((row: any) => ({ id: row.id, name: getItemName(row), brand: getProductBrandExample(row), price: row.price, matchType: row.matchType })), events: compareDebug };
           const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a"); link.href = url; link.download = "ziiply-vertailu-debug.json"; link.click();
