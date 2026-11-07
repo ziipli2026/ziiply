@@ -76,7 +76,7 @@ export default function ZiiplyDesktopCompareCard({
               const isOpen = expanded.includes(store.id);
               const rows = (store.matches || []) as MatchRow[];
               return (
-                <article key={store.id} className={`flex min-w-0 flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isOpen ? "min-h-[260px]" : "h-auto"} ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
+                <article key={store.id} className={`flex h-fit min-w-0 self-start flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
                   <div className="flex shrink-0 items-center gap-3 border-b border-[#c9ad76]/70 px-4 py-3">
                     <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : store.chain === "K" ? "border-[#85161c] bg-[#cf2028]" : store.chain === "LIDL" ? "border-[#153c8a] bg-[#235ac2]" : "border-[#8b4321] bg-[#bc7032]"}`}>{store.chain || "•"}</div>
                     <div className="min-w-0 flex-1">
@@ -100,7 +100,7 @@ export default function ZiiplyDesktopCompareCard({
                     <button type="button" onClick={()=>onSelectStore?.(store.id)} disabled={!rows.some(row=>row.price!=null)||loading} className="flex-1 rounded-xl border-2 border-[#536b4d] bg-[#e0ebd1] px-3 py-2 text-xs font-black text-[#214d36] disabled:opacity-50">🛒 Siirrä ostoskoriin</button>
                   </div>
                   {isOpen && (
-                    <div data-desktop-compare-products-scroll className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
+                    <div data-desktop-compare-products-scroll className="max-h-[min(48dvh,520px)] min-h-0 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-width:thin]">
                       <ZiiplyMobileCompareSelectionCard key={store.id} open embedded compact store={{...store,matches:rows}} items={items} onChangeMatchMode={async (storeId,match,mode)=>{recordDebug({action:"change_match_mode",store:storeId,row:String((match as any)?.name||(match as any)?.product?.name||""),mode});try{const result=await onChangeMatchMode?.(storeId,match,mode);recordDebug({action:"match_mode_result",store:storeId,mode,row:`${Array.isArray(result)?result.length:"no-array"} alternatives`});return result;}catch(error){recordDebug({action:"match_mode_error",store:storeId,mode,error:String(error)});throw error;}}} onSelectMatchAlternative={(storeId,match,alternative)=>{recordDebug({action:"select_alternative",store:storeId,row:String((alternative as any)?.name||"")});return onSelectMatchAlternative?.(storeId,match,alternative);}} />
                     </div>
                   )}
