@@ -25,6 +25,7 @@ async function run(debug){
  deps.sessionStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
  deps.window={clearTimeout};deps.getVoiceSearchCandidateV456=x=>x;deps.fixText=x=>x;deps.parseTerms=x=>x.split(',');deps.getSingleSearchTerm=x=>x;
  let choice=null;const searched=[];
+ let cartOpened=false;deps.setCartModalOpen=value=>{cartOpened=value};
  deps.resolveVoiceResultWaitV509=()=>{if(choice){const resolve=choice;choice=null;resolve()}};
  deps.searchNormalPrices=async(term,force,context)=>{searched.push({term,context});assert.equal(deps.mobileRecipeContextRef.current,context)};
  deps.waitForVoiceSearchResultChoiceV509=async(term,recipe)=>{assert.equal(recipe,true);await new Promise(resolve=>{choice=resolve})};
@@ -51,6 +52,7 @@ async function run(debug){
  assert.equal(mobileRecipePackageQuantity(deps.mobileRecipeContextRef.current,egg),2);
  assert.equal(storage.get('ziiply-justiina-recipe-step-v1'),'1');
  deps.resolveVoiceResultWaitV509();await task;
+ assert.equal(cartOpened,true,'the last ingredient choice opens the basket');
  assert.deepEqual(recipeVisibility,[true,false],'ordinary Hae card hidden throughout the recipe queue');
  assert.equal(deps.mobileRecipeContextRef.current,null);assert.equal(storage.has('ziiply-justiina-recipe-step-v1'),false);
  assert.equal(mobileRecipeSelectionAllowed(null,egg),false,'expired recipe card rejected');

@@ -1,15 +1,33 @@
+import { recipeIdentityQueries, normalizeRecipeAlternatives, recipeProductSearchTerm } from "./recipeSearch";
 import { recipeCategoryQueries } from "./recipeCategories";
 import type { RecipeIngredient } from './recipeCore';
 
 /** Supplement noisy ingredient searches even when the first query has a match. */
-export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredient | null): string[] {
+export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredient | null, fallbackQueries: string[] = []): string[] {
   if (!ingredient) return [];
   const term = (ingredient.searchTerm || query).toLowerCase().trim();
-  // Search for fresh basic potatoes rather than falling back to recipe prose
-  // ("400 g Pirkka perunaa ... vihreä pussi") or processed potato dishes.
-  if (term === 'peruna') return ['peruna pesty', 'peruna kiinteä', 'perunat', 'irtoperuna', 'ruokaperuna'];
+  // Search every explicitly offered alternative, but keep one ingredient/cart line.
+  // The parser retains the original source line when it contains "tai".
+  // Basic vegetables must be searched as produce, never split packaging text on "tai".
+  const rawProduce=new Set(["peruna","porkkana","sipuli","punasipuli","valkosipuli","tomaatti","kurkku","paprika","bataatti","purjo","pinaatti","herne","sitruuna"]);
+  if(rawProduce.has(term)) {
+    const variants: Record<string,string[]>={peruna:["peruna pesty","peruna kiinteä","perunat","irtoperuna","ruokaperuna"]};
+    return [...new Set([term,...(variants[term]||[])])];
+  }
+  const source=normalizeRecipeAlternatives(String(ingredient.sourceLine||""));
+  const alternatives=source.split(/\s+tai\s+/i);
+  if(alternatives.length>1){
+    const stripAmount=(value:string)=>value.replace(/^\s*(?:\d+(?:[,.]\d+)?(?:\s*[-–]\s*\d+(?:[,.]\d+)?)?\s*(?:kg|g|l|dl|cl|ml|kpl|pkt|pss|prk|rkl|tl)\s+)?/i,"").trim();
+    const variants=alternatives.map(stripAmount).filter(Boolean).flatMap(name=>{
+      const alternativeTerm=recipeProductSearchTerm(name);
+      if(!alternativeTerm)return [];
+      return [alternativeTerm,...recipeCoverageQueries(alternativeTerm,{...ingredient,name,sourceLine:name,searchTerm:alternativeTerm})];
+    });
+    return [...new Set([query,...variants])];
+  }
   const categoryQueries=recipeCategoryQueries(term);
   if(categoryQueries.length)return categoryQueries;
+  if(term==='kerma')return ['kuohukerma','ruokakerma','vispikerma','kerma'];
   if (term === 'sokeri') return [...new Set([query, 'taloussokeri', 'hienosokeri', 'ruokosokeri', 'fariinisokeri'])];
   const aliases: Record<string, string[]> = {
     'punainen linssi esikeitetty': ['linssi'],
@@ -19,24 +37,26 @@ export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredie
     'juokseva margariini': ['juokseva', 'margariini'],
     'ancho chili': ['ancho'],
     'sipulikeittoaines': ['sipulikeitto'],
-    'vihreä paprika': ['paprika'],
+    'vihreä paprika': ['paprika vihreä', 'paprika'],
     'sitruuna': ['sitruuna luomu', 'sitruunat'],
     'ruokaöljy': ['rypsiöljy', 'oliiviöljy', 'rapsiöljy'],
     'kananjauheliha': ['jauheliha'],
     'maissi pakaste': ['maissi'],
     'sweet chili kastike': ['sweet chili'],
     'vaalea suuruste': ['suuruste'],
-    'villiriisisekoitus': ['villiriisi', 'riisisekoitus', 'riisi'],
+    'villiriisisekoitus': ['villiriisi', 'villi riisi', 'wild rice', 'riisisekoitus', 'riisi'],
     'jauhoinen peruna': ['peruna', 'rosamunda'],
     'aura muru': ['aura'],
   };
-  if (aliases[term]) return [...new Set([query, ...aliases[term]])];
+  if (aliases[term]) return [...new Set([...recipeIdentityQueries(ingredient.name||term,term),query, ...aliases[term]])];
+  const identityQueries=recipeIdentityQueries(ingredient.name||term,term);
   const protein = ingredient.proteinRequirement;
   if (protein?.family === "meat" && protein.processing === "raw" && protein.marinated) return [...new Set([query, protein.marinade ? protein.marinade + "marinoitu" : "marinoitu", "fileesuikale"])];
   if (protein?.family === 'fish' && protein.processing === 'raw') {
     return [...new Set([query, protein.species])];
   }
-  return [];
+  if(protein)return []; // Keep existing meat-query expansion and preparation requirements.
+  return identityQueries.length ? [...new Set([...identityQueries,query,...fallbackQueries])] : [];
 }
 
 export function mergeRecipeSearchResponses(responses: any[]): any {

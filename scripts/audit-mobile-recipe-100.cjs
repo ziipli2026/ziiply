@@ -1,0 +1,40 @@
+require('./recipe-audit-runtime.cjs');
+const fs=require('node:fs'),path=require('node:path'),ts=require('typescript'),{execFile}=require('node:child_process'),{promisify}=require('node:util');
+const run=promisify(execFile),assert=require('node:assert/strict');
+const sourceRoot=path.resolve(process.env.RECIPE_AUDIT_SOURCE||'.');
+const sourceRequire=p=>require(path.join(sourceRoot,p));
+const core=sourceRequire('src/app/components/ziiply/justiina/recipeCore.ts');
+const search=sourceRequire('src/app/components/ziiply/justiina/recipeSearch.ts');
+const coverage=sourceRequire('src/app/components/ziiply/justiina/recipeSearchCoverage.ts');
+const normal=sourceRequire('src/app/components/ziiply/ziiplyCore.ts');
+const mobile=sourceRequire('src/app/components/ziiply/justiina/mobileRecipeSearch.ts');
+const online=sourceRequire('src/app/components/ziiply/justiina/onlineRecipe.ts');
+const out=path.resolve(process.env.RECIPE_AUDIT_OUTPUT||'docs/audits/mobile-recipe-100-20261107');fs.mkdirSync(out,{recursive:true});
+const original=require('./fixtures/recipe-audit-20.json');
+const controls=fs.readFileSync('scripts/fixtures/mobile-recipe-80.txt','utf8').trim().split('\n').map(line=>{const [title,body]=line.split('|');return {title,ingredients:body.split(';'),source:'Controlled recipe input; no external-source attribution'};});
+const recipes=[...original.map(r=>({...r,source:r.url})),...controls];
+assert.equal(recipes.length,100);
+const page=fs.readFileSync(path.join(sourceRoot,'src/app/page.tsx'),'utf8');const ast=ts.createSourceFile('page.tsx',page,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+const functions={};function visit(n){if(ts.isFunctionDeclaration(n)&&n.name)functions[n.name.text]=n.getText(ast);ts.forEachChild(n,visit)}visit(ast);
+function fn(name,scope){return new Function('scope','with(scope){return ('+ts.transpileModule(functions[name],{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText+');}')(scope)}
+assert.equal(new Set(recipes.map(r=>r.title)).size,100);
+const plans=recipes.map(recipe=>{const text=recipe.title+'\nAinekset:\n'+recipe.ingredients.join('\n')+'\nValmistus:\n'+(recipe.instructions||'');const draft=core.parseRecipeText(text);return {recipe,draft,plan:core.prepareRecipeSearch(draft.ingredients,draft.instructions,recipe.title),onlinePlan:online.onlineRecipeSearchPlan(text,recipe.title)};});
+const jobs=new Map();
+for(const {plan} of plans)for(const ingredient of plan.items){const variants=coverage.recipeCoverageQueries(ingredient.searchTerm,ingredient,[...new Set(normal.getNormalSearchQueries(ingredient.searchTerm))].slice(0,6));const queries=[...new Set([...(variants.length?variants:normal.getNormalSearchQueries(ingredient.searchTerm)),ingredient.searchTerm])].slice(0,Math.max(6,variants.length));for(const query of queries)jobs.set(query+'|'+ingredient.name,{query,ingredient:ingredient.name});}
+const cachePath=path.resolve(process.env.RECIPE_AUDIT_CACHE||path.join(out,'api-cache.json'));const cache=fs.existsSync(cachePath)?JSON.parse(fs.readFileSync(cachePath)):{};
+const base=process.env.RECIPE_AUDIT_BASE||'https://ziiply.vercel.app';
+async function fetchJob(job){const key=job.query+'|'+job.ingredient;if(cache[key])return;const url=base+'/api/s-products?'+new URLSearchParams({search:job.query,store:'292',storeName:'Prisma Hyvinkää',recipeIngredient:job.ingredient});try{const {stdout}=await run('curl',['-sS','--max-time','35',url],{maxBuffer:8*1024*1024});const data=JSON.parse(stdout);cache[key]={data,at:new Date().toISOString()};}catch(e){cache[key]={error:String(e.message).slice(0,300),at:new Date().toISOString()}}fs.writeFileSync(cachePath,JSON.stringify(cache));}
+async function main(){const pending=process.env.RECIPE_AUDIT_OFFLINE?[]:[...jobs.values()].filter(j=>!cache[j.query+'|'+j.ingredient]);let index=0,done=0;console.log('Live selected-store requests:',pending.length);await Promise.all(Array.from({length:6},async()=>{for(;;){const job=pending[index++];if(!job)return;await fetchJob(job);if(++done%20===0)console.log('Fetched',done,'/',pending.length)}}));
+const rows=[];
+for(const {recipe,draft,plan,onlinePlan} of plans){
+ const storage=new Map([['ziiply-justiina-active-ingredients-v1',JSON.stringify({items:plan.items})]]),calls=[],errors=[],unknown=[];let products=[],finished=false;
+ const state={...normal,...core,...search,...coverage,...mobile,console:{...console,error:(...args)=>errors.push(args.map(String).join(' '))},window:{clearTimeout},sessionStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},voiceForceJustiinaCartSearchRefV461:{current:false},mobileRecipeRunRef:{current:0},mobileRecipeContextRef:{current:null},voiceSearchRunningRefV453:{current:false},voiceSilenceTimeoutRef:{current:null},gostaPanelStickyOpenRefV158:{current:false},normalSearchCacheRefV441:{current:new Map()},activeNormalSearchRequestRefV441:{current:0},activeResult:'none',searchCompareMode:'cart',hasActiveStores:true,input:'',terms:[],cart:[],storeMode:'hyper',storeCompareScope:'within_chain',withinChain:'S',betweenChainSelectionModeV749:'one',selectedChains:{s:true,k:false,lidl:false,tokmanni:false},activeArea:{sStoreId:292,sStoreName:'Prisma Hyvinkää'},activeStores:{sStoreId:292,sStoreName:'Prisma Hyvinkää'},registerZiiplyRecoverableRequest:()=>()=>{},trackZiiplyEvent:()=>{},appendRecipeDebug:(stage,data)=>{if(stage==='search-error')errors.push(data.message)},selectedLidlStoreV750:null,selectedTokmanniStoreV756:null,selectedEurosparStoreV751:null,pushVoiceDebugV507:()=>{},scrollToNormalResults:()=>{},showSearchNotFoundNoticeV471:()=>{},setNormalResultsStableV441:p=>{products=p},setEanCache:()=>{},waitForVoiceSearchResultChoiceV509:async()=>{},resolveVoiceResultWaitV509:()=>{},fetch:async url=>{const p=new URL(url,'https://example.test').searchParams;const key=p.get('search')+'|'+p.get('recipeIngredient');const hit=cache[key];if(!hit||hit.error)throw new Error(hit?.error||'Uncached request '+key);return {ok:true,status:200,json:async()=>hit.data}}};
+ const scope=new Proxy(state,{has:()=>true,get:(o,k)=>{if(k===Symbol.unscopables)return undefined;if(k in o)return o[k];if(k in globalThis)return globalThis[k];if(typeof k==='string'&&/^set[A-Z]/.test(k))return ()=>{};if(typeof k==='string'&&/Ref/.test(k))return o[k]={current:false};if(functions[k])return o[k]=fn(k,scope);unknown.push(String(k));throw new Error('Unprovided dependency '+String(k));}});
+ const actualSearch=fn('searchNormalPrices',scope);state.searchNormalPrices=async(term,force,context)=>{products=[];await actualSearch(term,force,context);calls.push({term,count:products.length,accepted:products.slice(0,5).map(p=>p.name),ingredient:context?.ingredient.name});};
+ try{await fn('runVoiceSearchFromSpeechV453',scope)(plan.terms.join(', '),true,plan.terms);finished=true}catch(e){errors.push(String(e))}
+ rows.push({title:recipe.title,source:recipe.source,parsedIngredients:draft.ingredients.length,sourceIngredients:recipe.ingredients.length,terms:plan.terms,onlineTerms:onlinePlan.terms,queueFinished:finished,steps:calls,errors,unknownDependencies:[...new Set(unknown)]});
+}
+fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({main:require('node:child_process').execFileSync('git',['-C',sourceRoot,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),date:new Date().toISOString(),boundary:'Actual main-page queue and product search functions; selected Prisma Hyvinkää S-chain responses fetched live and replayed; React state setters and user choice are simulated. 20 attributed source recipes + 80 controlled recipe inputs. Not a browser end-to-end test.',requests:Object.keys(cache).length,networkErrors:Object.entries(cache).filter(([,v])=>v.error).map(([key,v])=>({key,error:v.error})),recipes:rows},null,2));
+console.log(JSON.stringify({recipes:rows.length,steps:rows.reduce((n,r)=>n+r.steps.length,0),emptySteps:rows.reduce((n,r)=>n+r.steps.filter(s=>!s.count).length,0),unknown:[...new Set(rows.flatMap(r=>r.unknownDependencies))],errors:rows.flatMap(r=>r.errors).slice(0,5)},null,2));
+}
+main().catch(e=>{console.error(e);process.exitCode=1});

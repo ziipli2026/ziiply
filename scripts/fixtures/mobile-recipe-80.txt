@@ -1,0 +1,80 @@
+Munakas|3 kananmunaa;1 dl maitoa;20 g voita;½ tl suolaa
+Kokkelia|4 kananmunaa;30 g voita;½ tl suolaa
+Uunipuuro|2 dl ohrasuurimoita;1 l maitoa;20 g voita;½ tl suolaa
+Kaurapuuro|2 dl kaurahiutaleita;5 dl maitoa;½ tl suolaa
+Riisipuuro|2 dl riisiä;1 l maitoa;½ tl suolaa
+Mannapuuro|1 dl mannasuurimoita;5 dl maitoa;½ tl suolaa
+Vispipuuro|2 dl puolukoita;1 dl mannasuurimoita;1 dl sokeria
+Voilla viimeistelty perunamuusi|1 kg perunoita;2 dl maitoa;50 g voita;1 tl suolaa
+Porkkanasose|500 g porkkanoita;30 g voita;½ tl suolaa
+Lanttusose|500 g lanttua;1 dl kermaa;30 g voita
+Bataattisose|500 g bataattia;30 g voita;½ tl suolaa
+Paistetut perunat|600 g perunoita;40 g voita;1 sipuli;1 tl suolaa
+Valkosipuliperunat|800 g perunoita;3 valkosipulinkynttä;3 dl kermaa;1 tl suolaa
+Kermaperunat|800 g perunoita;3 dl kermaa;1 tl suolaa
+Porkkanalaatikko|1 kg porkkanoita;2 dl riisiä;2 kananmunaa;2 dl kermaa
+Lanttulaatikko|1 kg lanttua;2 dl kermaa;1 kananmuna;50 g voita
+Bataattilaatikko|800 g bataattia;2 dl kermaa;1 kananmuna;30 g voita
+Kesäkeitto|300 g perunoita;200 g porkkanoita;200 g kukkakaalia;5 dl maitoa
+Pinaattikeitto|150 g pinaattia;30 g voita;3 rkl vehnäjauhoja;5 dl maitoa
+Porkkanakeitto|600 g porkkanoita;1 sipuli;2 dl kermaa;20 g voita
+Kukkakaalikeitto|600 g kukkakaalia;1 sipuli;2 dl kermaa;½ tl suolaa
+Parsakaalikeitto|500 g parsakaalia;1 sipuli;2 dl kermaa;½ tl suolaa
+Bataattikeitto|600 g bataattia;1 sipuli;2 dl kermaa;½ tl suolaa
+Purjokeitto|2 purjoa;400 g perunoita;2 dl kermaa;30 g voita
+Tomaattikeitto|800 g tomaattimurskaa;1 sipuli;2 valkosipulinkynttä;2 dl kermaa
+Hernekeitto|500 g herneitä;1 sipuli;1 tl suolaa;1 tl meiramia
+Punainen linssikeitto|3 dl punaisia linssejä;400 g tomaattimurskaa;1 sipuli;2 porkkanaa
+Papukeitto|400 g valkoisia papuja;400 g tomaattimurskaa;1 sipuli;2 valkosipulinkynttä
+Sienikeitto|300 g herkkusieniä;1 sipuli;30 g voita;2 dl kermaa
+Kalakeitto|400 g seitiä;600 g perunoita;2 porkkanaa;1 sipuli
+Kirjolohipasta|400 g kirjolohifileetä;300 g pastaa;2 dl kermaa;½ tl suolaa
+Tomaattinen tonnikalapasta|2 prk tonnikalaa;300 g pastaa;400 g tomaattimurskaa;1 sipuli
+Katkarapupasta|200 g katkarapuja;300 g pastaa;2 dl kermaa;2 valkosipulinkynttä
+Kermainen kanapasta|400 g broilerin fileesuikaleita;300 g pastaa;2 dl kermaa;1 sipuli
+Jauhelihapasta|400 g naudan jauhelihaa;300 g pastaa;400 g tomaattimurskaa;1 sipuli
+Kasvispasta|300 g pastaa;1 kesäkurpitsa;2 tomaattia;1 sipuli
+Pinaattipasta|300 g pastaa;150 g pinaattia;2 dl kermaa;2 valkosipulinkynttä
+Sienipasta|300 g pastaa;250 g herkkusieniä;2 dl kermaa;1 sipuli
+Uunilohi|600 g lohifileetä;1 sitruuna;1 tl suolaa;30 g voita
+Paistettu seiti|400 g seitiä;30 g voita;1 tl suolaa;1 sitruuna
+Silakkapihvit|500 g silakkafileitä;1 dl ruisjauhoja;30 g voita;1 tl suolaa
+Kalapyörykät|400 g seitiä;1 kananmuna;1 dl kermaa;½ dl korppujauhoja
+Lihapyörykät|400 g naudan jauhelihaa;1 kananmuna;1 sipuli;1 dl korppujauhoja
+Jauhelihapihvit|400 g naudan jauhelihaa;1 kananmuna;1 sipuli;1 tl suolaa
+Broileripihvit|400 g broilerin jauhelihaa;1 kananmuna;1 sipuli;½ tl suolaa
+Porkkanapihvit|500 g porkkanoita;2 kananmunaa;1 dl vehnäjauhoja;½ tl suolaa
+Kesäkurpitsapihvit|500 g kesäkurpitsaa;2 kananmunaa;1 dl vehnäjauhoja;½ tl suolaa
+Kasvismunakas|4 kananmunaa;1 paprika;1 sipuli;20 g voita
+Sienimunakas|4 kananmunaa;200 g herkkusieniä;1 sipuli;20 g voita
+Juustomunakas|4 kananmunaa;100 g juustoraastetta;1 dl maitoa;20 g voita
+Nakkikastike|400 g nakkeja;1 sipuli;2 rkl vehnäjauhoja;20 g voita
+Jauhelihakastike|400 g naudan jauhelihaa;1 sipuli;400 g tomaattimurskaa;1 tl suolaa
+Sienikastike|250 g herkkusieniä;1 sipuli;2 dl kermaa;20 g voita
+Valkokastike|40 g voita;3 rkl vehnäjauhoja;5 dl maitoa;½ tl suolaa
+Juustokastike|30 g voita;3 rkl vehnäjauhoja;5 dl maitoa;100 g juustoraastetta
+Tomaattikastike|400 g tomaattimurskaa;1 sipuli;2 valkosipulinkynttä;2 rkl oliiviöljyä
+Kaalipata|800 g valkokaalia;400 g naudan jauhelihaa;1 sipuli;1 dl riisiä
+Kasvisriisi|3 dl riisiä;2 porkkanaa;1 paprika;1 sipuli
+Kanariisi|3 dl riisiä;400 g broilerin fileesuikaleita;1 sipuli;1 paprika
+Tonnikalariisi|3 dl riisiä;2 prk tonnikalaa;1 paprika;1 sipuli
+Kasvisrisotto|3 dl risottoriisiä;1 sipuli;200 g herneitä;30 g voita
+Sienirisotto|3 dl risottoriisiä;250 g herkkusieniä;1 sipuli;30 g voita
+Pannupizza|4 dl vehnäjauhoja;2 dl maitoa;200 g juustoraastetta;200 g tomaattimurskaa
+Juustosämpylät|5 dl vehnäjauhoja;2 dl maitoa;100 g juustoraastetta;25 g hiivaa
+Kaurasämpylät|5 dl vehnäjauhoja;2 dl kaurahiutaleita;3 dl maitoa;25 g hiivaa
+Porkkanasämpylät|5 dl vehnäjauhoja;200 g porkkanoita;3 dl maitoa;25 g hiivaa
+Teepannuleipä|4 dl vehnäjauhoja;2 dl maitoa;50 g voita;2 tl leivinjauhetta
+Voisilmäpullat|5 dl vehnäjauhoja;2 dl maitoa;100 g voita;25 g hiivaa
+Kanelipullat|5 dl vehnäjauhoja;2 dl maitoa;100 g voita;2 tl kanelia
+Voipohjainen mustikkapiirakka|3 dl vehnäjauhoja;100 g voita;1 dl sokeria;300 g mustikoita
+Puolukkapiirakka|3 dl vehnäjauhoja;100 g voita;1 dl sokeria;300 g puolukoita
+Omenapiirakka|3 dl vehnäjauhoja;100 g voita;1 dl sokeria;3 omenaa
+Raparperipiirakka|3 dl vehnäjauhoja;100 g voita;1 dl sokeria;300 g raparperia
+Suklaakakku|3 dl vehnäjauhoja;100 g voita;2 kananmunaa;100 g tummaa suklaata
+Sitruunakakku|3 dl vehnäjauhoja;100 g voita;2 kananmunaa;1 sitruuna
+Banaanikakku|3 dl vehnäjauhoja;100 g voita;2 kananmunaa;2 banaania
+Porkkanakakku|3 dl vehnäjauhoja;100 g voita;2 kananmunaa;200 g porkkanoita
+Kaurakeksit|3 dl kaurahiutaleita;100 g voita;1 dl sokeria;1 kananmuna
+Suklaakeksit|3 dl vehnäjauhoja;100 g voita;1 dl sokeria;100 g tummaa suklaata
+Marjakiisseli|300 g mustikoita;1 dl sokeria;3 rkl perunajauhoja

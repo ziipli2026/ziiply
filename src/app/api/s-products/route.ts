@@ -1,3 +1,4 @@
+import { appendRuoanhintaPages } from "@/lib/ruoanhintaPagination";
 import { recipeProductCompatible } from "@/app/components/ziiply/justiina/recipeSearch";
 import { NextResponse } from "next/server";
 import { rankGrocerySearchResults } from "../_shared/grocerySearchRelevance";
@@ -150,7 +151,14 @@ export async function GET(request: Request) {
       } catch { return [] as RuoanhintaProduct[]; }
     }));
     const data = await response.json();
-    const primaryItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    const firstPage: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    // Recipe candidates must not disappear at the provider's first-page boundary.
+    const primaryItems = recipeIngredient ? await appendRuoanhintaPages(firstPage, 80, async (skip, signal) => {
+      const pageUrl=new URL(endpoint);pageUrl.searchParams.set("skip",String(skip));
+      const page=await fetch(pageUrl,{headers:{accept:"application/json"},cache:"no-store",signal});
+      if(!page.ok)throw new Error("Provider page HTTP "+page.status);
+      const body=await page.json();return Array.isArray(body.items)?body.items:[];
+    }) : firstPage;
     const sourceItems = [...new Map([...primaryItems,...extraResponses.flat()].map(item=>[item.id,item])).values()];
 
     const items = sourceItems

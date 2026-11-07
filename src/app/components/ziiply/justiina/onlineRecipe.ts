@@ -1,5 +1,23 @@
 import { parseRecipeIngredient, prepareRecipeSearch, classifyRecipeIngredient, type RecipeIngredient } from "./recipeCore";
 
+/** Bound each provider request, including body reading, without losing parent cancellation. */
+export async function fetchOnlineRecipeJson(url:string,signal:AbortSignal,timeoutMs=15000):Promise<any>{
+ const controller=new AbortController();
+ let timer:ReturnType<typeof setTimeout>|undefined;
+ let onAbort:()=>void=()=>{};
+ try{
+  return await Promise.race([
+   (async()=>{const response=await fetch(url,{signal:controller.signal});if(!response.ok)throw new Error("Reseptipalvelu HTTP "+response.status);const data=await response.json();if(data.error)throw new Error(data.error.info||"Reseptipalvelun virhe");return data;})(),
+   new Promise<never>((_,reject)=>{
+    onAbort=()=>{controller.abort();reject(new Error("Reseptihaku keskeytettiin"));};
+    signal.addEventListener("abort",onAbort,{once:true});
+    if(signal.aborted){onAbort();return;}
+    timer=setTimeout(()=>{controller.abort();reject(new Error("Reseptipalvelun aikaraja ylittyi"));},timeoutMs);
+   }),
+  ]);
+ }finally{if(timer)clearTimeout(timer);signal.removeEventListener("abort",onAbort);}
+}
+
 /** Keep the displayed ingredient and the item sent to Justiina on the same parser. */
 export function onlineRecipeIngredients(content:string): RecipeIngredient[] {
   const items:RecipeIngredient[]=[];

@@ -7329,9 +7329,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function fetchKProducts(
     search: string,
     storeId: string | number,
+    recipeIngredient?:RecipeIngredient,
   ): Promise<KProduct[]> {
     const response = await fetch(
-      `/api/k-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
+      `/api/k-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}${recipeIngredient?`&recipeIngredient=${encodeURIComponent(recipeIngredient.name)}`:""}`,
       { cache: "no-store" },
     );
     const data = await response.json();
@@ -8260,7 +8261,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function runVoiceSearchFromSpeechV453(rawValue?: string, force = false, recipeTerms?: string[]) {
-    const cleaned = getVoiceSearchCandidateV456(rawValue);
+    const cleaned = recipeTerms?.length ? recipeTerms.join(", ") : getVoiceSearchCandidateV456(rawValue);
     const recipeDebugActive = typeof window !== "undefined" && Boolean(sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1"));
     if (recipeDebugActive) appendRecipeDebug("search-start", { rawValue, cleaned, force });
     pushVoiceDebugV507(`runVoice START force=${force ? "1" : "0"} raw=${String(rawValue || "").slice(0, 140)} cleaned=${cleaned}`);
@@ -12912,7 +12913,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Näin "maito, kahvi, cola" käyttää samaa relevance-logiikkaa kuin yksittäinen haku:
         // valitse maito -> valitse kahvi -> valitse cola.
         // K-vastine haetaan vasta ostoskori-/vertailuvaiheessa.
-        const coverageQueries=recipeCoverageQueries(term,recipeIngredient);
+        const coverageQueries=recipeCoverageQueries(term,recipeIngredient,[...new Set(getNormalSearchQueries(term))].slice(0,6));
         const generatedSearchQueries = (coverageQueries.length?coverageQueries:getNormalSearchQueries(term))
           .map((query) => fixText(String(query || "")).trim())
           .filter(Boolean);
@@ -12990,7 +12991,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const useS=withinChainS||(!withinChainK&&!betweenSingleK&&selectedChains.s);
             const useK=withinChainK||betweenSingleK||(storeCompareScope==="between_chains"&&betweenChainSelectionModeV749==="many"&&selectedChains.k);
             if(useS&&sId)requests.push(fetchSProducts(searchQuery,sId,sName||"",recipeIngredient).then(items=>items.map(product=>({...product,__recipeChain:"S",__recipeStoreName:sName}))));
-            if(useK&&kId)requests.push(fetchKProducts(searchQuery,kId).then(items=>items.map(item=>({...convertKProductToProduct(item),category:(item as KProduct & {category?:string}).category,__recipeChain:"K",__recipeStoreName:kName}))));
+            if(useK&&kId)requests.push(fetchKProducts(searchQuery,kId,recipeIngredient).then(items=>items.map(item=>({...convertKProductToProduct(item),category:(item as KProduct & {category?:string}).category,__recipeChain:"K",__recipeStoreName:kName}))));
             const responses=await Promise.allSettled(requests);
             rawItems=responses.flatMap(response=>response.status==="fulfilled"?response.value:[]);
             appendRecipeDebug("recipe-selected-store-responses",{query:searchQuery,sStore:useS?sName:null,kStore:useK?kName:null,failures:responses.filter(response=>response.status==="rejected").map(response=>String(response.reason)),products:rawItems});

@@ -40,6 +40,8 @@ export function inferRecipeProtein(name:string,instructions="",sourceLine=name):
 }
 export function proteinProductRejection(required:RecipeProteinRequirement,product:{name?:string;category?:string}):string|null{
  const name=(product.name||"").toLocaleLowerCase("fi"),category=(product.category||"").toLocaleLowerCase("fi"),text=name+" "+category;
+ if(/mauste|liemikuutio|fond|bouillon/.test(name)||/mausteet|texmex-mausteet/.test(category))return "protein_ingredient_required";
+ if(/kiusaus|perunamuusi|wrap/.test(name)||required.cut==="jauheliha"&&/jauheliha[-\s]*(?:pihv|vart)|burgerpihv/.test(name))return "ready_meal_is_not_ingredient";
  const food=species.find(x=>x.id===required.species)!;
  if(!food.pattern.test(name))return "protein_species_mismatch";
  if(required.species==="lohi"&&/kirjoloh/.test(name))return "protein_species_mismatch";

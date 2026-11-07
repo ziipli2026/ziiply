@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import {onlineRecipeTitleMatches, onlineRecipeSearchPlan, onlineRecipeDisplayIngredients} from "./onlineRecipe";
+import {onlineRecipeTitleMatches, onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, fetchOnlineRecipeJson} from "./onlineRecipe";
 
 type Recipe = {title:string;url:string;content:string};
 export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIngredients?:(terms:string[])=>void}) {
@@ -19,9 +19,7 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
    try {
     const api="https://fi.wikibooks.org/w/api.php?";
     const search=await Promise.all([q,"intitle:"+q].map(async term=>{
-     const response=await fetch(api+new URLSearchParams({action:"query",generator:"search",gsrsearch:term,gsrnamespace:"0",gsrlimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"}),{signal:controller.signal});
-     if(!response.ok)throw new Error("Reseptipalvelu ei vastaa");
-     return response.json();
+     return fetchOnlineRecipeJson(api+new URLSearchParams({action:"query",generator:"search",gsrsearch:term,gsrnamespace:"0",gsrlimit:"50",prop:"info",inprop:"url",format:"json",origin:"*"}),controller.signal);
     }));
     const pages=new Map<string,{title:string;fullurl:string}>();
     for(const data of search)for(const page of Object.values(data.query?.pages||{}) as {title:string;fullurl:string}[]){
@@ -31,9 +29,7 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
     for(let i=0;i<12;i++){
      const params=new URLSearchParams({action:"query",generator:"allpages",gapnamespace:"0",gapprefix:"Keittokirja/",gaplimit:"500",prop:"info",inprop:"url",format:"json",origin:"*"});
      if(continuation)params.set("gapcontinue",continuation);
-     const response=await fetch(api+params,{signal:controller.signal});
-     if(!response.ok)break;
-     const data=await response.json();
+     const data=await fetchOnlineRecipeJson(api+params,controller.signal);
      for(const page of Object.values(data.query?.pages||{}) as {title:string;fullurl:string}[]){
       if(page.title?.startsWith("Keittokirja/")&&page.fullurl)pages.set(page.title,page);
      }
@@ -43,14 +39,12 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
     const matches=[...pages.values()].filter(p=>onlineRecipeTitleMatches(p.title,query)).slice(0,40);
     const recipes=(await Promise.all(matches.map(async p=>{
      try {
-      const response=await fetch(api+new URLSearchParams({action:"parse",page:p.title,prop:"text",format:"json",origin:"*"}),{signal:controller.signal});
-      if(!response.ok)return null;
-      const data=await response.json();
+      const data=await fetchOnlineRecipeJson(api+new URLSearchParams({action:"parse",page:p.title,prop:"text",format:"json",origin:"*"}),controller.signal);
       const html=data.parse?.text?.["*"];
       if(typeof html!=="string")return null;
       const doc=new DOMParser().parseFromString(html,"text/html");
       doc.querySelectorAll("script,style,.mw-editsection,.reference,.reflist,.navbox,.metadata").forEach(el=>el.remove());
-      const text=(doc.querySelector(".mw-parser-output")||doc.body).textContent?.replace(/\n{3,}/g,"\n\n").trim()||"";
+      const text=(doc.querySelector(".mw-parser-output")||doc.body).textContent?.replace(/\n[ \t]+/g,"\n").replace(/\n{3,}/g,"\n\n").trim()||"";
       return text.length>35?{title:p.title.replace(/^Keittokirja\//,""),url:p.fullurl,content:text.slice(0,10000)}:null;
      }catch{return null}
     }))).filter((r):r is Recipe=>r!==null);

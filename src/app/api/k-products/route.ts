@@ -1,3 +1,4 @@
+import { appendRuoanhintaPages } from "@/lib/ruoanhintaPagination";
 import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { rankGrocerySearchResults } from "../_shared/grocerySearchRelevance";
@@ -7,6 +8,7 @@ import { observeEanProductsBestEffort } from "@/lib/eanBank";
 type RuoanhintaProduct = {
   id: number;
   name: string;
+  category?: string;
   ean?: string;
   gtin?: string;
   eanCode?: string;
@@ -61,8 +63,9 @@ export async function GET(request: Request) {
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "3221";
   const storeId = resolveKStoreId(store);
+  const recipeIngredient=(searchParams.get("recipeIngredient")||"").trim();
 
-  if (search.length > 120 || store.length > 32) {
+  if (search.length > 120 || store.length > 32 || recipeIngredient.length > 200) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
   }
 
@@ -146,7 +149,14 @@ export async function GET(request: Request) {
       } catch { return [] as RuoanhintaProduct[]; }
     }));
     const data = await response.json();
-    const primaryItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    const firstPage: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    // Recipe candidates must not disappear at the provider's first-page boundary.
+    const primaryItems = recipeIngredient ? await appendRuoanhintaPages(firstPage, 100, async (skip, signal) => {
+      const pageUrl=new URL(endpoint);pageUrl.searchParams.set("skip",String(skip));
+      const page=await fetch(pageUrl,{headers:{accept:"application/json"},cache:"no-store",signal});
+      if(!page.ok)throw new Error("Provider page HTTP "+page.status);
+      const body=await page.json();return Array.isArray(body.items)?body.items:[];
+    }) : firstPage;
     // Only when a generic bread search returns no priced items, retry two
     // narrower bread queries. Do not expand nonempty results or other categories.
     const breadFallbackTerms = normalizedSearch === "leipä" && ![...primaryItems, ...extraResponses.flat()].some(product => getPrice(product) > 0)
@@ -196,6 +206,7 @@ export async function GET(request: Request) {
         name: fixEncoding(product.name),
         ean: getEan(product),
         familyKey: product.familyKey,
+        category: product.category,
         brandName: product.brandName ? fixEncoding(product.brandName) : undefined,
         // Prefer Kesko's canonical EAN image for K products. Ruoanhinta's
         // pictureUrl can be empty/stale for Citymarket rows even when the EAN is valid.
