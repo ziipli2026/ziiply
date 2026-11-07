@@ -21584,7 +21584,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             <header className="relative h-[6.2rem] rounded-[1.6rem] border-[5px] border-[#073b2d] bg-[#fff4d8] p-2 shadow-[0_5px_0_#073b2d]">
               <button type="button" aria-label="Avaa ostoskori" title="Avaa ostoskori" onClick={() => setCartModalOpen(true)}
                 className="absolute right-3 top-2 z-30 flex items-center gap-1 rounded-xl border-2 border-[#0b6330] bg-[#fff4d8] px-3 py-2 text-sm font-black text-[#073b2d] shadow-md">
-                🛒 <span>{cart.length}</span>
+                🛒
               </button>
               <div className="grid grid-cols-[150px_minmax(0,1fr)_320px] items-stretch gap-2">
                 <div className="flex items-center justify-center overflow-hidden rounded-[1.4rem] border border-[#d7bd87] bg-[#fffaf0] px-4">
