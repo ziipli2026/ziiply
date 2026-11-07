@@ -2763,7 +2763,7 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
 
   return products
     // Reject incompatible milk variants instead of merely pushing them to the end.
-    .filter((product: Product) => !comparisonProductType(query) || comparisonTypeCompatible(query, product.name))
+    .filter((product: Product) => !comparisonProductType(query) || comparisonProductType(product.name) === comparisonProductType(query))
     .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
     .map((product: Product): ScoredProduct & { coreProductIntentRank: number } => ({
       product,
@@ -2853,7 +2853,7 @@ export function isBadNormalResult(product: Product, query: string) {
   const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
   if (queryIsMilk) {
     // A full-milk query must never show skimmed or low-fat milk, even at the end of the results.
-    if (comparisonProductType(query) && !comparisonTypeCompatible(query, product.name)) return true;
+    if (comparisonProductType(query) && comparisonProductType(product.name) !== comparisonProductType(query)) return true;
     const positiveMilkSignals = [
       "maito",
       "kevytmaito",
