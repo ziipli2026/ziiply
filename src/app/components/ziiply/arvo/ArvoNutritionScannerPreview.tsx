@@ -121,8 +121,11 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     setProductName("");
     setNutrition(null);
     setStatus("Haetaan EAN-tuotetta Neonista…");
-    fetch("/api/ean-bank?ean=" + encodeURIComponent(ean), {signal:controller.signal})
-      .then(response => response.json())
+    fetch("/api/ean-bank?arvo=1&ean=" + encodeURIComponent(ean), {signal:controller.signal})
+      .then(response => {
+        if (!response.ok) throw new Error("arvo-nutrition-lookup-failed");
+        return response.json();
+      })
       .then(data => {
         if (!data?.product) { trackEvent("arvo_product_not_found"); setStatus("EAN-tuotetta ei löytynyt."); return; }
         trackEvent("arvo_product_found");

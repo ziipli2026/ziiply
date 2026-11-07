@@ -1,3 +1,4 @@
+import { attachFineliSaltEstimate, shouldSuppressLocalOffNutrition } from "./fineli-salt-estimate.mjs";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanProducts from "../../../../data/lidl/verified-ean-links.json";
@@ -84,9 +85,11 @@ async function ensureSchema(sql: ReturnType<typeof db>) {
 
 export async function GET(request: NextRequest) {
   try {
-    const sql = db();
-    await ensureSchema(sql);
     const ean = normalizeEan(request.nextUrl.searchParams.get("ean"));
+    const arvoLookup = Boolean(ean) && request.nextUrl.searchParams.get("arvo") === "1";
+    const nutritionDatabase = arvoLookup ? process.env.ARVO_NUTRITION_DATABASE_URL : undefined;
+    const sql = nutritionDatabase ? neon(nutritionDatabase) : db();
+    if (!nutritionDatabase) await ensureSchema(sql);
     const q = clean(request.nextUrl.searchParams.get("q"), 160);
 
     if (ean) {
@@ -98,6 +101,105 @@ export async function GET(request: NextRequest) {
         WHERE ean = ${ean}
         LIMIT 1
       `;
+      if (rows[0] && arvoLookup) {
+          // Prefer verified EAN-specific Open Food Facts data. Fineli is only a
+          // generic-food fallback for an unbranded, exact-name, unique match.
+          // Never write inferred nutrition into the EAN or OFF master tables.
+          let nutrition: Record<string, unknown> | null = null;
+          try {
+            const matched = await sql`
+              SELECT 'open-food-facts' AS source, to_jsonb(o) AS data
+              FROM public.ziiply_off_nutrition o
+              WHERE o.ean = ${ean}
+              UNION ALL
+              SELECT 'fineli-generic' AS source,
+                     jsonb_build_object(
+                       'fineliId', f.fineli_id,
+                       'foodName', f.name_fi,
+                       'nutrients', f.nutrients,
+                       'per', 100,
+                       'perUnit', 'g',
+                       'weightBasis', CASE
+                         WHEN f.name_fi ILIKE '%KIVINEEN%' AND f.name_fi ILIKE '%KUORINEEN%' THEN 'with_peel_and_stone'
+                         WHEN f.name_fi ILIKE '%KIVINEEN%' THEN 'with_stone'
+                         WHEN f.name_fi ILIKE '%KUORINEEN%' THEN 'with_peel'
+                         ELSE 'edible_portion'
+                       END,
+                       'weightBasisLabel', CASE
+                         WHEN f.name_fi ILIKE '%KIVINEEN%' AND f.name_fi ILIKE '%KUORINEEN%' THEN '100 g kuorineen ja kivineen punnittua tuotetta'
+                         WHEN f.name_fi ILIKE '%KIVINEEN%' THEN '100 g kivineen punnittua tuotetta'
+                         WHEN f.name_fi ILIKE '%KUORINEEN%' THEN '100 g kuorineen punnittua tuotetta'
+                         ELSE '100 g syötävää osaa'
+                       END,
+                       'sourceAttribution', f.source,
+                       'sourceUrl', f.source_url,
+                       'estimated', true,
+                       'confidence', m.confidence,
+                       'matchMethod', m.match_method
+                     ) AS data
+              FROM public.ziiply_ean_fineli_matches m
+              JOIN public.ziiply_fineli_foods f ON f.fineli_id = m.fineli_id
+              WHERE m.ean = ${ean} AND m.approved = true
+                AND NOT EXISTS (SELECT 1 FROM public.ziiply_off_nutrition o WHERE o.ean = ${ean})
+              LIMIT 1
+            `;
+            const specific = matched.find((item) => item.source === "open-food-facts");
+            const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
+            // Retailer-local EANs can collide with unrelated OFF product identities.
+            const unsafeLocalOff = selected?.source === "open-food-facts" &&
+              shouldSuppressLocalOffNutrition(ean, rows[0].name, selected.data?.product_name);
+            if (selected && !unsafeLocalOff) {
+              const safeNutrition: Record<string, unknown> = { ...selected.data, source: selected.source };
+              // Do not expose physically impossible OFF values to the scanner.
+              // Keep other valid nutrients; never change the stored source record.
+              if (selected.source === "open-food-facts") {
+                const invalidFields: string[] = [];
+                for (const [field, maximum] of [["kcal_100g", 1000], ["fat_100g", 100], ["proteins_100g", 100], ["salt_100g", 100]] as const) {
+                  const value = safeNutrition[field];
+                  if (value !== null && value !== undefined && (!Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > maximum)) {
+                    safeNutrition[field] = null;
+                    invalidFields.push(field);
+                  }
+                }
+                if (invalidFields.length) safeNutrition.invalidNutritionFields = invalidFields;
+              }
+              // Optional, explicitly labeled Fineli salt estimate. Never replace OFF salt.
+              // Disabled by default until the consumer UI distinguishes estimates.
+              if (process.env.ZIIPLY_FINELI_SALT_ESTIMATE_PREVIEW === "1" &&
+                  selected.source === "open-food-facts" &&
+                  (safeNutrition.salt_100g === null || safeNutrition.salt_100g === undefined)) {
+                try {
+                  const estimates = await sql`
+                    SELECT f.fineli_id AS "fineliId", f.name_fi AS "foodName",
+                           (f.nutrients->'NACL'->>'value')::numeric / 1000 AS "saltG100g",
+                           m.confidence AS "confidence"
+                    FROM public.ziiply_ean_fineli_matches m
+                    JOIN public.ziiply_fineli_foods f ON f.fineli_id = m.fineli_id
+                    WHERE m.ean = ${ean} AND m.approved IS TRUE
+                      AND m.match_method = 'manual_verified'
+                      AND m.confidence IN ('verified', 'high')
+                      AND f.nutrients->'NACL'->>'unit' = 'MG'
+                      AND jsonb_typeof(f.nutrients->'NACL'->'value') = 'number'
+                      AND (f.nutrients->'NACL'->>'value')::numeric BETWEEN 0 AND 100000
+                    LIMIT 2
+                  `;
+                  Object.assign(safeNutrition, attachFineliSaltEstimate(
+                    safeNutrition, selected.source, true, estimates
+                  ));
+
+                } catch (estimateError) {
+                  // An optional Fineli lookup must never discard valid OFF nutrition.
+                  console.warn("Optional Fineli salt estimate unavailable", estimateError instanceof Error ? estimateError.message : String(estimateError));
+                }
+              }
+              nutrition = safeNutrition;
+            }
+          } catch (error) {
+            // EAN scanning must remain available even if nutrition tables are unavailable.
+            console.warn("EAN nutrition lookup unavailable", error instanceof Error ? error.message : String(error));
+          }
+          return NextResponse.json({ ok: true, product: { ...rows[0], nutrition } });
+      }
       if (rows[0]) {
         // Nutrition is optional: never block the EAN lookup when enrichment fails.
         let nutrition: { kcal_100g: number; source: string; estimated?: boolean; source_ean?: string } | null = null;
