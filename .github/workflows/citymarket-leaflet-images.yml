@@ -176,6 +176,10 @@ jobs:
             git rebase origin/main
             git push origin HEAD:main
             gh workflow run kcitymarket-manual-current-leaflet.yml --ref main
+          else
+            # Even unchanged extracted images require a fresh production
+            # snapshot check (and category recovery) after deployment.
+            gh workflow run kcitymarket-manual-current-leaflet.yml --ref main
           fi
       - uses: actions/upload-artifact@v4
         if: always() && steps.clock.outputs.run == 'true'
