@@ -23,7 +23,25 @@ export function getKCitymarketPublisherImage(sourceUrl:string,offerId:string):st
   const candidates=Object.entries(publication.images)
     .filter(([id])=>titleFromId(id)===wanted)
     .map(([,value])=>valid(value)).filter((value):value is string=>!!value);
-  return candidates.length===1?candidates[0]:null;
+  if(candidates.length===1)return candidates[0];
+  if(candidates.length>1)return null;
+
+  // The PDF and live parser sometimes disagree only on line-wrap
+  // hyphenation (e.g. "juusto-nack" versus "juustonack").
+  // This is NOT fuzzy product matching: require one-to-one uniqueness
+  // across *all* offer IDs in this immutable publication, including
+  // offers without a verified image, before accepting a normalized title.
+  const normalized=(title:string)=>title
+    .normalize("NFKC").toLowerCase()
+    .replace(/([a-zåäö])-\\s*([a-zåäö])/g,"$1$2")
+    .replace(/\\s+/g," ").trim();
+  const key=normalized(wanted);
+  const imageEntries=Object.entries(publication.images);
+  const matching=imageEntries.filter(([id])=>normalized(titleFromId(id))===key);
+  // Never silently choose between two distinct source cards.
+  if(matching.length!==1)return null;
+  const match=valid(matching[0][1]);
+  return match??null;
 }
 
 /**
