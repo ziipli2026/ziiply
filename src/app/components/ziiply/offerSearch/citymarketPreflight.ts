@@ -18,6 +18,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
   const databaseUrl = citymarketPreflightDatabaseUrl();
   const sql = databaseUrl ? neon(databaseUrl) : null;
   let quality: Record<string, number> | null = null;
+  let missingCategoryTitles: string[] = [];
   if (input.parsed && sql) {
     const rows = await sql`SELECT jsonb_array_length(offers)::int AS total,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
@@ -32,13 +33,31 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'resolutionSanity','pass')<>'pass') AS unverified_prices
       FROM ziiply_offer_publications WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state IN ('candidate','approved') ORDER BY parsed_at DESC LIMIT 1`;
     quality = rows[0] as Record<string, number> ?? null;
+    // Expose concrete next-edition category defects to the repair workflow.
+    // Counts alone leave the automation unable to identify which offers need repair.
+    if (quality?.missing_categories > 0) {
+      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
+        FROM ziiply_offer_publications p
+        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
+        WHERE p.chain='K-Citymarket'
+          AND (p.publication_id=${input.period} OR p.publication_id LIKE ${input.period + '-printed-transactions-%'})
+          AND p.approval_state IN ('candidate','approved')
+          AND p.parsed_at=(SELECT max(parsed_at) FROM ziiply_offer_publications
+            WHERE chain='K-Citymarket'
+              AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
+              AND approval_state IN ('candidate','approved'))
+          AND COALESCE(o->>'category','') IN ('','Muut')
+        LIMIT 20`;
+      missingCategoryTitles = defects.map(row => String(row.title));
+    }
+
   }
   const failed = !input.parsed || errors.length>0 || !quality || quality.total===0 ||
     quality.total!==input.parsed.offers || quality.missing_names>0 || quality.missing_prices>0 || quality.missing_images>0 || quality.missing_categories>0 || quality.unverified_prices>0;
   const outcome = !input.parsed ? "preflight-parser-failed" : !quality ? "preflight-snapshot-missing" :
     failed ? "preflight-quality-failed" : "preflight-awaiting-pdf-review";
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
-    quality, errors, severity: failed ? "error" : "warning", pdfReview: "pending" };
+    quality, missingCategoryTitles, errors, severity: failed ? "error" : "warning", pdfReview: "pending" };
   await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:false,
     count:quality?.total??input.parsed?.offers??0,outcome,details }, databaseUrl);
   return {ok:false,outcome,...details};
