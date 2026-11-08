@@ -1,6 +1,10 @@
 import { neon } from "@neondatabase/serverless";
 import { recordPublicationRun } from "./publicationRunLog";
 
+export function citymarketPreflightDatabaseUrl() {
+  return process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL;
+}
+
 export type CitymarketPreflightInput = {
   period: string;
   startedAt: string;
@@ -11,7 +15,8 @@ export type CitymarketPreflightInput = {
 /** Check the exact next edition after the automatic parser; never infer it from the active edition. */
 export async function recordCitymarketPreflight(input: CitymarketPreflightInput) {
   const errors = input.errors.filter(error => error.startsWith("next ")).slice(0, 10);
-  const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
+  const databaseUrl = citymarketPreflightDatabaseUrl();
+  const sql = databaseUrl ? neon(databaseUrl) : null;
   let quality: Record<string, number> | null = null;
   if (input.parsed && sql) {
     const rows = await sql`SELECT jsonb_array_length(offers)::int AS total,
@@ -35,6 +40,6 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
     quality, errors, severity: failed ? "error" : "warning", pdfReview: "pending" };
   await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:false,
-    count:quality?.total??input.parsed?.offers??0,outcome,details });
+    count:quality?.total??input.parsed?.offers??0,outcome,details }, databaseUrl);
   return {ok:false,outcome,...details};
 }

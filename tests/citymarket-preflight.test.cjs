@@ -39,12 +39,12 @@ test('first failure is retained when a retry recovers; archive capture cannot ap
   assert.equal(result.first,bad.checked_at);assert.equal(result.level,'yellow');assert.equal(result.reviewed,false);
 });
 test('preflight records failed fetch, missing snapshot, count mismatch and percentage-only campaigns correctly',async()=>{
-  let quality=null;const records=[];
+  let quality=null;const records=[];const connections=[];
   const {recordCitymarketPreflight:record}=load('src/app/components/ziiply/offerSearch/citymarketPreflight.ts',{
-    '@neondatabase/serverless':{neon:()=>async()=>quality?[quality]:[]},
-    './publicationRunLog':{recordPublicationRun:async r=>records.push(r)},
+    '@neondatabase/serverless':{neon:url=>{connections.push(url);return async()=>quality?[quality]:[]}},
+    './publicationRunLog':{recordPublicationRun:async (r,url)=>records.push({...r,url})},
   });
-  const previous=process.env.DATABASE_URL;process.env.DATABASE_URL='test-only';
+  const previous=process.env.OFFER_PUBLICATION_DATABASE_URL;process.env.OFFER_PUBLICATION_DATABASE_URL='publications-only';
   try{
     const input={period,startedAt:'2026-10-21T12:10:00Z',parsed:null,errors:['next '+period+': HTTP 403']};
     assert.equal((await record(input)).outcome,'preflight-parser-failed');
@@ -61,7 +61,9 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
     assert.equal(records.at(-1).details.pdfReview,'pending');
     assert.equal(records.at(-1).ok,false,'PDF review pending must never be logged as approved');
-  }finally{if(previous===undefined)delete process.env.DATABASE_URL;else process.env.DATABASE_URL=previous;}
+    assert.ok(connections.every(url=>url==='publications-only'));
+    assert.ok(records.every(record=>record.url==='publications-only'));
+  }finally{if(previous===undefined)delete process.env.OFFER_PUBLICATION_DATABASE_URL;else process.env.OFFER_PUBLICATION_DATABASE_URL=previous;}
 });
 
 test('Sunday and Wednesday are both shown, and a completely missing run goes red after deadline',()=>{

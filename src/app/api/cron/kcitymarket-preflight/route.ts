@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
-import { recordCitymarketPreflight } from "@/app/components/ziiply/offerSearch/citymarketPreflight";
+import { citymarketPreflightDatabaseUrl, recordCitymarketPreflight } from "@/app/components/ziiply/offerSearch/citymarketPreflight";
 import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 import { getNextKCitymarketPeriod, persistKCitymarketOfferPublication, warmKCitymarketOfferCache } from "@/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
 
@@ -22,9 +22,10 @@ export async function GET(request: Request) {
 
   const details = { period: period.key, parserStartedAt: now.toISOString() };
   const log = { chain: "K-Citymarket", source: "k-citymarket-preflight", ok: false, count: 0 };
+  const databaseUrl = citymarketPreflightDatabaseUrl();
   try {
-    if (!process.env.DATABASE_URL) throw new Error("Citymarket preflight database unavailable");
-    const sql = neon(process.env.DATABASE_URL);
+    if (!databaseUrl) throw new Error("Citymarket preflight database unavailable");
+    const sql = neon(databaseUrl);
     const [latest] = await sql`SELECT outcome, checked_at FROM ziiply_publication_run_log
       WHERE source='k-citymarket-preflight' AND details->>'period'=${period.key}
       ORDER BY checked_at DESC, id DESC LIMIT 1`;
@@ -35,7 +36,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ skipped: "Automatic preflight already passed", ...details });
     }
 
-    await recordPublicationRun({ ...log, outcome: "preflight-started", details });
+    await recordPublicationRun({ ...log, outcome: "preflight-started", details }, databaseUrl);
     const result = await warmKCitymarketOfferCache(now, "next");
     if (result.next) await persistKCitymarketOfferPublication(now, period);
     const report = await recordCitymarketPreflight({
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
     console.error("[K-Citymarket] Advance preflight failed", period.key, message);
     await recordPublicationRun({ ...log, outcome: "preflight-check-error", details: {
       ...details, errors: [message], pdfReview: "pending",
-    } }).catch(logError => console.error("[K-Citymarket] Advance preflight logging failed", logError));
+    } }, databaseUrl).catch(logError => console.error("[K-Citymarket] Advance preflight logging failed", logError));
     return NextResponse.json({ ok: false, ...details, error: message }, { status: 503 });
   }
 }

@@ -4,9 +4,9 @@ import { neon } from "@neondatabase/serverless";
 export async function recordPublicationRun(input: {
   chain: string; source: string; ok: boolean; count: number;
   outcome: string; details?: unknown;
-}): Promise<void> {
-  if (!process.env.DATABASE_URL) return;
-  const sql = neon(process.env.DATABASE_URL);
+}, databaseUrl = process.env.DATABASE_URL): Promise<void> {
+  if (!databaseUrl) return;
+  const sql = neon(databaseUrl);
   await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
