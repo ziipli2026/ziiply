@@ -10,20 +10,24 @@
       "schedule": "15 * * * *"
     },
     {
-      "path": "/api/cron/kcitymarket-cache",
+      "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 13 * * 3"
     },
     {
-      "path": "/api/cron/kcitymarket-cache",
+      "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 12 * * 3"
     },
     {
-      "path": "/api/cron/kcitymarket-cache",
+      "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 12 * * 0"
     },
     {
-      "path": "/api/cron/kcitymarket-cache",
+      "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 13 * * 0"
+    },
+    {
+      "path": "/api/cron/kcitymarket-preflight",
+      "schedule": "40 12,13,14 * * 0,3"
     },
     {
       "path": "/api/cron/skaupat-protocol",

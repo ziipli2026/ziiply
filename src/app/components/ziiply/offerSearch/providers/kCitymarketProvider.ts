@@ -726,23 +726,15 @@ async function readCachedPeriod(period:KCitymarketPeriod){
   citymarketHtmlDebugV8=payload.debug;
   return payload;
 }
-export async function warmKCitymarketOfferCache(now=new Date()){
-  const active=getActiveKCitymarketPeriod(now);
-  const next=getNextKCitymarketPeriod(now);
+export async function warmKCitymarketOfferCache(now: Date, scope: "active" | "next"){
+  const period=scope==="active"?getActiveKCitymarketPeriod(now):getNextKCitymarketPeriod(now);
   const result:{active:{period:string;offers:number;cachedAt:string}|null;next:{period:string;offers:number;cachedAt:string}|null;errors:string[]}={active:null,next:null,errors:[]};
+  if(!period) return result;
   try{
-    const payload=await readCachedPeriod(active);
-    result.active={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
+    const payload=await readCachedPeriod(period);
+    result[scope]={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
   }catch(error){
-    result.errors.push("active "+active.key+": "+(error instanceof Error?error.message:String(error)));
-  }
-  if(next){
-    try{
-      const payload=await readCachedPeriod(next);
-      result.next={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
-    }catch(error){
-      result.errors.push("next "+next.key+": "+(error instanceof Error?error.message:String(error)));
-    }
+    result.errors.push(scope+" "+period.key+": "+(error instanceof Error?error.message:String(error)));
   }
   return result;
 }

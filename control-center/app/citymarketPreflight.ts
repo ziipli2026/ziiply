@@ -51,11 +51,15 @@ export function citymarketPreflightStatus(runs:PreflightRun[],now=new Date(),kin
   const metadataClean=Boolean(preflight)&&Number(preflightQuality.total??0)>0&&["missing_names","missing_prices","missing_images","missing_categories","unverified_prices"].every(key=>Number(preflightQuality[key]??NaN)===0);
   const auditIsNewer=Boolean(archive&&preflight&&Date.parse(archive.checked_at)>=Date.parse(preflight.checked_at));
   const reviewed=archive?.outcome==="pdf-review-passed"&&archive.ok&&parserOk&&metadataClean&&auditIsNewer;
+  const started = report?.outcome === "preflight-started";
+  const interrupted = started && now.getTime() - Date.parse(report.checked_at) >= 3*60000;
   const missingOverdue=!report&&now.getTime()>Date.parse(expected.expectedAt)+30*60000;
-  const level=!report?(missingOverdue?"red":"gray"):!parserOk||archiveFailed?"red":stale||!reviewed?"yellow":"green";
-  const label=!report?(missingOverdue?"ENNAKKOPARSERIN AJO PUUTTUU":"ODOTTAA ENSIMMÄISTÄ AJOA"):!parserOk?"PARSERIN ESITARKASTUS EPÄONNISTUI":archiveFailed?(archive.outcome==="source-archive-review-needed"?"LÄHDEAINEISTOSSA TARKISTETTAVAA":"LÄHDEARKISTON TARKISTUS EPÄONNISTUI"):stale?"TARKISTUS VANHENEE":reviewed?"PDF-TARKISTUS HYVÄKSYTTY":"AUTOMAATTITARKISTUS TEHTY · PDF-VERTAILU ODOTTAA";
-  return {...expected,level,label,first:auto.at(-1)?.checked_at??matching.at(-1)?.checked_at??null,
-    latest:report?.checked_at??null,count:report?(Number(quality.total??next.offers??(report.source==="k-citymarket-cache"?0:report.offer_count))):null,
+  const level=started?(interrupted?"red":"yellow"):!report?(missingOverdue?"red":"gray"):!parserOk||archiveFailed?"red":stale||!reviewed?"yellow":"green";
+  const label=started?(interrupted?"ENNAKKOPARSERIN AJO KESKEYTYI":"ENNAKKOPARSERIN AJO KÄYNNISSÄ"):!report?(missingOverdue?"ENNAKKOPARSERIN AJO PUUTTUU":"ODOTTAA ENSIMMÄISTÄ AJOA"):!parserOk?"PARSERIN ESITARKASTUS EPÄONNISTUI":archiveFailed?(archive.outcome==="source-archive-review-needed"?"LÄHDEAINEISTOSSA TARKISTETTAVAA":"LÄHDEARKISTON TARKISTUS EPÄONNISTUI"):stale?"TARKISTUS VANHENEE":reviewed?"PDF-TARKISTUS HYVÄKSYTTY":"AUTOMAATTITARKISTUS TEHTY · PDF-VERTAILU ODOTTAA";
+  const starts=matching.filter(r=>r.outcome==="preflight-started");
+  const first=starts.at(-1)?.checked_at??auto.at(-1)?.checked_at??matching.filter(r=>r.source==="k-citymarket-preflight").at(-1)?.checked_at??null;
+  return {...expected,level,label,first,
+    latest:report?.checked_at??null,count:report&&!started?(Number(quality.total??next.offers??(report.source==="k-citymarket-cache"?0:report.offer_count))):null,
     parserOk:Boolean(parserOk),quality,errors,archive:archive?.outcome??"Lähdearkiston tarkistusta ei ole raportoitu",reviewed};
 }
 

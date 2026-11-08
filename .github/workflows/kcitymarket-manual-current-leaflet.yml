@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Wait for the matching production deployment
+        id: deployment
         env:
           GH_TOKEN: ${{ github.token }}
           REVISION: ${{ github.sha }}
@@ -45,7 +46,17 @@ jobs:
           done
           echo "Production deployment did not become ready"
           exit 1
+      - name: Run advance parser during the publication window
+        env:
+          KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
+          curl --fail-with-body --show-error --max-time 210 \
+            -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
+            https://ziiply.vercel.app/api/cron/kcitymarket-preflight
       - name: Run current Citymarket parser
+        if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
         env:
           KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
         run: |

@@ -106,3 +106,17 @@ test('45AV passes only after a newer PDF audit and complete quality metadata',()
  const incomplete={...run,details:{...run.details,quality:{total:32,missing_images:0,missing_categories:0}}};
  assert.equal(status([incomplete,audit],now).level,'yellow');
 });
+
+test('46AV shows a recorded start, detects interruption and preserves the first start on retry',()=>{
+ const p='2026-11-09-W46-AV';
+ const started={checked_at:'2026-11-08T13:10:00Z',source:'k-citymarket-preflight',ok:false,offer_count:0,outcome:'preflight-started',details:{period:p}};
+ assert.equal(status([started],new Date('2026-11-08T13:11:00Z')).label,'ENNAKKOPARSERIN AJO KÄYNNISSÄ');
+ const interrupted=status([started],new Date('2026-11-08T13:30:00Z'));
+ assert.equal(interrupted.label,'ENNAKKOPARSERIN AJO KESKEYTYI');
+ assert.equal(interrupted.count,null);
+ const retry={...started,checked_at:'2026-11-08T13:41:00Z',outcome:'preflight-awaiting-pdf-review',offer_count:42};
+ const recovered=status([retry,started],new Date('2026-11-08T13:42:00Z'));
+ assert.equal(recovered.first,started.checked_at);
+ assert.equal(recovered.count,42);
+ assert.equal(recovered.parserOk,true);
+});

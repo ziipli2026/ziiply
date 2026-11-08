@@ -16,13 +16,17 @@ await fs.mkdir(folder,{recursive:true});
 let details={period,issue,pdfReview:'pending',runUrl:process.env.GITHUB_SERVER_URL&&process.env.GITHUB_REPOSITORY&&process.env.GITHUB_RUN_ID?`${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`:null};
 let ok=false,count=0,outcome='source-archive-failed';
 try{
-  const attempts=await sql`SELECT checked_at::text,ok,offer_count,details FROM ziiply_publication_run_log
-    WHERE source='k-citymarket-cache' AND (details->'next'->>'period'=${period}
-      OR EXISTS(SELECT 1 FROM jsonb_array_elements_text(COALESCE(details->'errors','[]'::jsonb)) e WHERE e LIKE ${'next '+period+':%'}))
-    ORDER BY checked_at ASC LIMIT 1`;
-  if(!attempts.length)throw Error('First automatic parser attempt has not been recorded for '+period);
-  details.firstParserAt=attempts[0].checked_at;
-  details.firstParserOk=attempts[0].details?.next?.period===period;
+  const attempts=await sql`SELECT checked_at::text,source,outcome,details FROM ziiply_publication_run_log
+    WHERE (source='k-citymarket-preflight' AND details->>'period'=${period})
+      OR (source='k-citymarket-cache' AND (details->'next'->>'period'=${period}
+        OR EXISTS(SELECT 1 FROM jsonb_array_elements_text(COALESCE(details->'errors','[]'::jsonb)) e WHERE e LIKE ${'next '+period+':%'})))
+    ORDER BY checked_at ASC,id ASC`;
+  const first=attempts[0];
+  const firstResult=first?.outcome==='preflight-started'
+    ? attempts.find(row=>row.outcome!=='preflight-started'&&row.details?.parserStartedAt===first.details?.parserStartedAt)
+    : first;
+  details.firstParserAt=first?.details?.parserStartedAt??first?.checked_at??null;
+  details.firstParserOk=firstResult ? (firstResult.details?.parsed?.period??firstResult.details?.next?.period)===period : null;
   const child=spawnSync(process.execPath,['scripts/citymarket/export-leaflet.mjs',entry,folder],{encoding:'utf8',timeout:180000});
   if(child.status!==0)throw Error('Source capture failed: '+String(child.stderr||child.stdout||child.error||child.status).slice(-1600));
   const manifest=JSON.parse(await fs.readFile(path.join(folder,'archive-manifest.json'),'utf8'));
