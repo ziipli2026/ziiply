@@ -66,6 +66,7 @@ jobs:
             exit 1
           fi
           jq -e '.quality != null and .parsed != null' preflight.json >/dev/null
+          jq -r '(.missingCategoryTitles // [])[] | "Missing category offer titles: " + .' preflight.json
           echo "Preflight quality inspected; continuing refresh even if incomplete"
       - name: Run current Citymarket parser
         if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
