@@ -8,8 +8,10 @@ export type SearchKind = "normal" | "ean" | "offer";
 export type SearchSession = { id: string; kind: SearchKind; startedAt: number; firstPriceReported: boolean; finished: boolean };
 
 const active = new Map<string, SearchSession>();
+// PostHog queues capture calls made before async initialization completes.
+// Never silently discard a search event merely because __loaded is still false.
 const safeCapture = (event: string, props: Record<string, string | number | boolean>) => {
-  try { if (typeof window !== "undefined" && posthog.__loaded) posthog.capture(event, props); }
+  try { if (typeof window !== "undefined") posthog.capture(event, props); }
   catch { /* analytics must never block a search */ }
 };
 
