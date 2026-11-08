@@ -72,6 +72,13 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
-          curl --fail-with-body --show-error --max-time 150 \
+          status=$(curl --silent --show-error --output cache.json --write-out '%{http_code}' --max-time 150 \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
-            https://ziiply.vercel.app/api/cron/kcitymarket-cache
+            https://ziiply.vercel.app/api/cron/kcitymarket-cache)
+          cat cache.json
+          if [ "$status" != "200" ] && [ "$status" != "503" ]; then
+            echo "::error::Citymarket cache refresh transport failure: HTTP $status"
+            exit 1
+          fi
+          jq -e '.activeOk == true' cache.json >/dev/null
+          echo "Citymarket active refresh inspected; 46AV quality is checked separately"
