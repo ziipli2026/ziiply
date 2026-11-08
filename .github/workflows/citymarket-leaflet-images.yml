@@ -22,6 +22,7 @@ on:
     - cron: '15 4,5,6,7 * * 1,4'
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: citymarket-publisher-images
   cancel-in-progress: false
@@ -161,7 +162,9 @@ jobs:
           npm install --no-save --package-lock=false playwright
           npx playwright install --with-deps chromium
           node scripts/citymarket/verify-image-rendering.mjs
-      - name: Publish verified image data
+      - name: Publish verified image data and recheck the publication
+        env:
+          GH_TOKEN: ${{ github.token }}
         if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success'
         run: |
           git config user.name 'github-actions[bot]'
@@ -172,6 +175,7 @@ jobs:
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
+            gh workflow run kcitymarket-manual-current-leaflet.yml --ref main
           fi
       - uses: actions/upload-artifact@v4
         if: always() && steps.clock.outputs.run == 'true'

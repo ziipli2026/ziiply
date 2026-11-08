@@ -10,7 +10,6 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketPrintedTransactionProof.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
       - "src/app/api/cron/kcitymarket-preflight/route.ts"
-      - "src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json"
 
 permissions:
   contents: read
