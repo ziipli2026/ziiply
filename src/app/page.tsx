@@ -696,6 +696,7 @@
 "use client";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "./components/ziiply/comparisonBrand";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
+import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordFirstPricedResults } from "./components/ziiply/search/searchTelemetry";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { recordArrivalDiagnostic, getArrivalDiagnostics, clearArrivalDiagnostics } from "./components/ziiply/location/ziiplyArrivalDiagnostics";
@@ -12922,6 +12923,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         accepted: traceProducts(cachedValidated),
         rejected: traceProducts(cachedNormalSearchV441.results.filter((p: Product) => !cachedValidated.includes(p))) });
       if (cachedValidated.length > 0) {
+      const telemetry = beginSearchTelemetry(forceEan ? "ean" : "normal");
+      const pricedCount = cachedValidated.filter((product: Product) => getProductPrice(product) > 0).length;
+      if (pricedCount > 0) recordFirstPricedResults(telemetry, pricedCount);
+      finishSearchTelemetry(telemetry, pricedCount > 0 ? "priced_results" : "no_priced_results", pricedCount);
       mobileSearchTraceRef.current.status = "cache-hit";
       setNormalResultsStableV441(cachedValidated);
       setSearchDebug(cachedNormalSearchV441.debug || []);
@@ -12938,11 +12943,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
+    const searchTelemetryV441 = beginSearchTelemetry(forceEan ? "ean" : "normal");
     const unregisterProductRecovery = registerZiiplyRecoverableRequest('justiina-visible-search', {
       kind: 'product-search', startedAt: Date.now(),
       abort: () => {
         if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
         ++activeNormalSearchRequestRefV441.current;
+        cancelSearchTelemetry(searchTelemetryV441);
         setLoadingNormal(false);
       },
     });
@@ -13326,6 +13333,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       mobileSearchTraceRef.current.status = "completed";
       setNormalResultsStableV441(unique);
       setMobileResultsReadyQueryV537(readyQueryV441);
+      const pricedCountV441 = unique.filter((product: Product) => getProductPrice(product) > 0).length;
+      if (pricedCountV441 > 0) recordFirstPricedResults(searchTelemetryV441, pricedCountV441);
+      finishSearchTelemetry(searchTelemetryV441, pricedCountV441 > 0 ? "priced_results" : "no_priced_results", pricedCountV441);
 
       // Never persist an empty response: transient upstream failures must be retryable.
       if (!recipeIngredient && unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
@@ -13391,6 +13401,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setGpsErrorMessage("GPS ei löydy");
       }
       if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+      finishSearchTelemetry(searchTelemetryV441, "error");
       setSearchDebug(debugEntries);
       // V441: virheessä ei tyhjennetä viimeistä vakaata tulosnäkymää.
       if (isMainSearch) {
@@ -13398,6 +13409,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     } finally {
       unregisterProductRecovery();
+      cancelSearchTelemetry(searchTelemetryV441);
       if (normalSearchRequestIdV441 === activeNormalSearchRequestRefV441.current) {
         setLoadingNormal(false);
       }
