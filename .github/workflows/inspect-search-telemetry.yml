@@ -1,0 +1,36 @@
+name: Inspect search telemetry integration points
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/inspect-search-telemetry.yml"]
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate search lifecycle without logging user data
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('src/app/page.tsx')
+          lines=p.read_text().splitlines()
+          print('PAGE_LINES',len(lines))
+          terms=['activeNormalSearchRequestRefV441','normalSearchRequestIdV441','unregisterProductRecovery','setLoadingNormal(','onNormalSearch=','rankNormalSearchResults(','setNormalSearchResults(','setSearchResults(','loadingNormal','registerZiiplyRecoverableRequest(']
+          for term in terms:
+              hits=[i for i,line in enumerate(lines) if term in line]
+              print('MATCH',term,'COUNT',len(hits),'LINES',','.join(str(i+1) for i in hits[:35]))
+          anchors=[i for i,line in enumerate(lines) if 'normalSearchRequestIdV441' in line or 'unregisterProductRecovery' in line]
+          shown=set()
+          for anchor in anchors[:14]:
+              start=max(0,anchor-12);end=min(len(lines),anchor+19)
+              print('CONTEXT',start+1,end)
+              for i in range(start,end):
+                  if i in shown: continue
+                  shown.add(i)
+                  s=lines[i]
+                  # Avoid printing literals that could include user queries or secrets
+                  s=re.sub(r'(["\x27\x60])(?:\\.|(?!\1).)*?\1','<literal>',s)
+                  print(f'{i+1}: {s[:210]}')
+          PY
