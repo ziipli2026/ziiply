@@ -95,14 +95,11 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
        const actions=document.createElement('div');actions.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap';
        const makeButton=(label:string,handler:()=>void,primary:boolean)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='padding:12px 16px;border-radius:12px;font-weight:700;background:'+(primary?'#146c43':'white')+';color:'+(primary?'white':'#103b25');b.onclick=handler;actions.appendChild(b);};
        const close=()=>{overlay.remove();promptRef.current=false;setStorePrompt(null);};
-       makeButton('Vaihda kauppa',()=>{const buttons=Array.from(document.querySelectorAll('button,[role="button"]')) as HTMLElement[];const target=choices.length===1?choices[0]:null;
-         const normalized=(value:string)=>value.toLocaleLowerCase('fi-FI').replace(/\\s+/g,' ').trim();
-         const cards=Array.from(document.querySelectorAll('div,article,section,li')).filter(el=>!el.closest('#ziiply-gps-store-change-dialog'));
-         const card=target?cards.filter(el=>normalized(el.textContent||'').includes(normalized(target.name))&&Array.from(el.querySelectorAll('button')).some(b=>/^vaihda$/i.test((b.textContent||'').trim()))).sort((a,b)=>(a.textContent||'').length-(b.textContent||'').length)[0]:null;
-         const changeButton=card?Array.from(card.querySelectorAll('button')).find(b=>/^vaihda$/i.test((b.textContent||'').trim())):null;
-         const trigger=buttons.find(b=>!b.closest('#ziiply-gps-store-change-dialog')&&/^(kaupat|valitse kauppa|vaihda kauppaa|kaupan valinta)$/i.test((b.textContent||'').trim()));
-         recordArrivalDiagnostic('arrival-store-picker-trigger',{found:!!changeButton||!!trigger,store:target?.name??null,direct:!!changeButton});
-         close();if(changeButton)changeButton.click();else trigger?.click();},true);
+       makeButton('Vaihda kauppa',()=>{const target=choices.length===1?choices[0]:null;
+         if(!target){recordArrivalDiagnostic('arrival-store-switch-failed',{reason:'ambiguous'});return;}
+         window.dispatchEvent(new CustomEvent('ziiply-arrival-store-switch-confirmed',{detail:{id:target.id,name:target.name}}));
+         recordArrivalDiagnostic('arrival-store-switch-confirmed',{store:target.name});
+         close();},true);
        makeButton('Pidä nykyinen',()=>{recordArrivalDiagnostic('arrival-store-change-declined',{});close();},false);
        dialog.append(heading,info,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
        recordArrivalDiagnostic('arrival-store-change-prompt-visible',{stores:choices.map(s=>s.name).join(', ')});
