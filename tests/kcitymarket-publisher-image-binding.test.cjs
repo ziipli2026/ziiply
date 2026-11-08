@@ -10,6 +10,8 @@ test('Actual provider preserves original PDF card identities through title clean
   './kCitymarketSpatialParser.js':await import(path.join(base,'kCitymarketSpatialParser.js')),
   './kCitymarketProductRows.js':await import(path.join(base,'kCitymarketProductRows.js')),
   './kCitymarket42AVTitleCleanup.js':await import(path.join(base,'kCitymarket42AVTitleCleanup.js')),
+  './kCitymarketOCRRepair.js':await import(path.join(base,'kCitymarketOCRRepair.js')),
+  './kCitymarket45AVCorrections.js':await import(path.join(base,'kCitymarket45AVCorrections.js')),
   'next/cache':{unstable_cache:fn=>fn},
   '@neondatabase/serverless':{neon:()=>{throw Error('No database allowed in frozen replay');}},
   './kCitymarketPublisherImages':{},
