@@ -37,16 +37,15 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
     // Counts alone leave the automation unable to identify which offers need repair.
     if (quality?.missing_categories > 0) {
       const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
-        FROM ziiply_offer_publications p
+        FROM (
+          SELECT offers FROM ziiply_offer_publications
+          WHERE chain='K-Citymarket'
+            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
+            AND approval_state IN ('candidate','approved')
+          ORDER BY parsed_at DESC LIMIT 1
+        ) p
         CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE p.chain='K-Citymarket'
-          AND (p.publication_id=${input.period} OR p.publication_id LIKE ${input.period + '-printed-transactions-%'})
-          AND p.approval_state IN ('candidate','approved')
-          AND p.parsed_at=(SELECT max(parsed_at) FROM ziiply_offer_publications
-            WHERE chain='K-Citymarket'
-              AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
-              AND approval_state IN ('candidate','approved'))
-          AND COALESCE(o->>'category','') IN ('','Muut')
+        WHERE COALESCE(o->>'category','') IN ('','Muut')
         LIMIT 20`;
       missingCategoryTitles = defects.map(row => String(row.title));
     }
