@@ -29,8 +29,8 @@ export function getKCitymarketPublisherImage(sourceUrl:string,offerId:string):st
   // The PDF and live parser sometimes disagree only on line-wrap
   // hyphenation (e.g. "juusto-nack" versus "juustonack").
   // This is NOT fuzzy product matching: require one-to-one uniqueness
-  // across *all* offer IDs in this immutable publication, including
-  // offers without a verified image, before accepting a normalized title.
+  // across all verified image identities in this immutable publication
+  // before accepting a normalized title.
   const normalized=(title:string)=>title
     .normalize("NFKC").toLowerCase()
     .replace(/([a-zåäö])-\\s*([a-zåäö])/g,"$1$2")
