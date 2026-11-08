@@ -181,6 +181,13 @@ jobs:
             # snapshot check (and category recovery) after deployment.
             gh workflow run kcitymarket-manual-current-leaflet.yml --ref main
           fi
+      - name: Flag still-missing publisher images after safe publication
+        if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success'
+        run: |
+          for file in artifacts/citymarket-images/*/leaflet.json; do
+            [ -f "$file" ] || continue
+            node scripts/citymarket/check-image-coverage.mjs "$file"
+          done
       - uses: actions/upload-artifact@v4
         if: always() && steps.clock.outputs.run == 'true'
         with:
