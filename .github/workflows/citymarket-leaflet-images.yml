@@ -20,6 +20,8 @@ on:
     # Both UTC offsets are listed; Helsinki clock guard skips extras.
     - cron: '15 12,13,14,15 * * 0,3'
     - cron: '15 4,5,6,7 * * 1,4'
+    # Retry incomplete upcoming editions throughout publication evening.
+    - cron: '0,30 14-20 * * 0,3'
 permissions:
   contents: write
   actions: write
@@ -44,7 +46,7 @@ jobs:
           else
             hour=$(TZ=Europe/Helsinki date +%H)
             weekday=$(TZ=Europe/Helsinki date +%u)
-            if { [ "$weekday" = 7 ] || [ "$weekday" = 3 ]; } && { [ "$hour" = 15 ] || [ "$hour" = 17 ]; }; then
+            if { [ "$weekday" = 7 ] || [ "$weekday" = 3 ]; } && { [ "$hour" -ge 15 ] && [ "$hour" -le 23 ]; }; then
               echo 'run=true' >> "$GITHUB_OUTPUT"
             elif { [ "$weekday" = 1 ] || [ "$weekday" = 4 ]; } && { [ "$hour" = 7 ] || [ "$hour" = 9 ]; }; then
               echo 'run=true' >> "$GITHUB_OUTPUT"
