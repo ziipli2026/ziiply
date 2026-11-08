@@ -838,6 +838,13 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
   const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
+  const beforeImages=offers.filter(offer=>Boolean(offer.imageUrl)).length;
+  const afterImages=enriched.filter(offer=>Boolean(offer.imageUrl)).length;
+  console.info("[K-Citymarket] publication image enrichment result",{
+    period:active.key,total:enriched.length,beforeImages,afterImages,
+    addedImages:afterImages-beforeImages,missingImages:enriched.length-afterImages,
+    missingTitles:enriched.filter(offer=>!offer.imageUrl).map(offer=>offer.title),
+  });
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
   return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v165",validFrom:start,
