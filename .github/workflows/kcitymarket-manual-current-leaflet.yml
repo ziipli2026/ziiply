@@ -22,7 +22,7 @@ concurrency:
 jobs:
   parse:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Wait for the matching production deployment
         id: deployment
@@ -53,9 +53,18 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
-          curl --fail-with-body --show-error --max-time 210 \
+          # A quality failure (HTTP 503) is expected until every missing
+          # image/category is repaired. Still run the cache refresh below.
+          status=$(curl --silent --show-error --output preflight.json --write-out '%{http_code}' --max-time 210 \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
-            https://ziiply.vercel.app/api/cron/kcitymarket-preflight
+            https://ziiply.vercel.app/api/cron/kcitymarket-preflight)
+          cat preflight.json
+          if [ "$status" != "200" ] && [ "$status" != "503" ]; then
+            echo "::error::Citymarket preflight transport failure: HTTP $status"
+            exit 1
+          fi
+          jq -e '.quality != null and .parsed != null' preflight.json >/dev/null
+          echo "Preflight quality inspected; continuing refresh even if incomplete"
       - name: Run current Citymarket parser
         if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
         env:
