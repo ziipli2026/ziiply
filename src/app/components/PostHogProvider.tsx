@@ -42,7 +42,26 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
           const bannedKey = /(^|_)(email|token|secret|password|health|nutrition|meal|recipe|latitude|longitude|lat|lon|lng|gps|coordinate|url|href|referrer|pathname|search|query|ean|barcode|product_name)(_|$)/i
           const properties = Object.fromEntries(
             Object.entries(event.properties || {}).filter(([key]) =>
-              key.startsWith('$') ? !/url|referrer|current_url|pathname|host|search|query/i.test(key) : !bannedKey.test(key)
+              key.startsWith('
+            )
+          )
+          event.properties = {
+            ...properties,
+            ziiply_environment: environment,
+            ziiply_internal_test: isInternalTest,
+            ziiply_analytics_schema: 1,
+          }
+          return event
+        },
+      }
+    )
+
+    if (isInternalTest) posthog.setInternalOrTestUser()
+  }, [])
+
+  return <PHProvider client={posthog}>{children}</PHProvider>
+}
+) ? !/url|referrer|current_url|pathname|host|search|query/i.test(key) : (key === 'search_id' || key === 'search_kind' || !bannedKey.test(key))
             )
           )
           event.properties = {
