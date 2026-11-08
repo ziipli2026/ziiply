@@ -89,6 +89,15 @@ function textOf(src:string){
 }
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
+  // Publisher headings can contain line-break hyphens even inside a word.
+  const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
+  if(/\bpääryn(?:ä|ät|öitä)\b/.test(joined)) return "Hevi";
+  if(/konvehteja|piparkakut/.test(joined)) return "Makeiset & keksit";
+  if(/mikroateriat|mikromåltider/.test(joined)) return "Valmisruoka";
+  if(/\bnoodles\b|\bnuudeli/.test(joined)) return "Kuivatuotteet";
+  if(/valkosipuliperunat/.test(joined)) return "Pakasteet";
+  if(/vitamiinijuomat|vitamindrycker/.test(joined)) return "Juomat";
+  if(/tehokosteusvoide/.test(joined)) return "Hygienia & kosmetiikka";
   // Product forms confirmed by the 45LV publication quality audit. Keep
   // these generic so the same goods are classified in subsequent issues.
   if(/(?:cream\\s+cracker|ruis\\s+cracker|\\bcracker\\b|kääreelliset\\s+konvehdit|\\bkonvehdit\\b|wienernougat|mantelikakut)/.test(s)) return "Makeiset & keksit";
@@ -718,7 +727,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-printed-transactions-v164-20261103-45av-price-and-title-corrected"],
+  ["ziiply-kcitymarket-printed-transactions-v166-20261108-edition-category-repair"],
   {revalidate:false},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){

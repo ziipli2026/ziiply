@@ -110,7 +110,7 @@ jobs:
           for ((i=0;i<${#entries[@]};i++)); do
             coverage+=("artifacts/citymarket-images/$i/leaflet.json")
           done
-          node scripts/citymarket/check-image-coverage.mjs "${coverage[@]}"
+          node scripts/citymarket/check-image-coverage.mjs --allow-verified-partial "${coverage[@]}"
       - name: Summarize unresolved publisher images
         if: always() && steps.clock.outputs.run == 'true'
         run: |

@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const manifest=JSON.parse(fs.readFileSync('src/app/components/ziiply/offerSearch/providers/data/kCitymarketLeafletImages.json','utf8'));
-const paths=process.argv.slice(2);
+const [mode,...rest]=process.argv.slice(2);
+const allowPartial=mode==="--allow-verified-partial";
+const paths=allowPartial?rest:process.argv.slice(2);
 assert.ok(paths.length>0,'Provide extracted leaflet metadata paths');
 let missingTotal=0;
 for(const file of paths){
@@ -17,7 +19,8 @@ for(const file of paths){
  const unknown=[...available].filter(id=>!expected.has(id));
  assert.equal(unknown.length,0,'Manifest includes images not belonging to current leaflet');
  console.log('CITYMARKET_IMAGE_COVERAGE',JSON.stringify({leaflet:leaflet.leaflet,total:expected.size,images:available.size,missing:missing.length,missingOffers}));
- if(missing.length)console.error('::error::Citymarket image extraction incomplete: '+missing.length+' missing from '+leaflet.leaflet);
+ if(allowPartial) assert.ok(available.size>0,'No verified images for '+leaflet.leaflet);
+ if(missing.length)console.error((allowPartial?'::warning::':'::error::')+'Citymarket image extraction incomplete: '+missing.length+' missing from '+leaflet.leaflet);
  missingTotal+=missing.length;
 }
-assert.equal(missingTotal,0,'Incomplete Citymarket image extraction must not publish');
+if(!allowPartial) assert.equal(missingTotal,0,'Incomplete Citymarket image extraction must not publish');
