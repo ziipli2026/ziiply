@@ -78,7 +78,22 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
      const choices=decision.nearbyStoreChoices?.length?decision.nearbyStoreChoices:decision.store?[decision.store]:[];
      recordArrivalDiagnostic('arrival-store-change-requested',{stores:JSON.stringify(choices.map(s=>({id:s.id,name:s.name}))),ambiguous:choices.length>1});
      window.dispatchEvent(new CustomEvent('ziiply-arrival-store-change-requested',{detail:{stores:choices,ambiguous:choices.length>1}}));
-     if(choices.length&&!promptRef.current){promptRef.current=true;setStorePrompt(choices.map(s=>({id:s.id,name:s.name})));recordArrivalDiagnostic('arrival-store-change-prompt-visible',{stores:choices.map(s=>s.name)});}
+     if(choices.length&&!promptRef.current){
+       promptRef.current=true;setStorePrompt(choices.map(s=>({id:s.id,name:s.name})));
+       const overlay=document.createElement('div');overlay.id='ziiply-gps-store-change-dialog';
+       overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px';
+       const dialog=document.createElement('div');dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label','Vaihda kauppa');
+       dialog.style.cssText='background:#e4f8e8;color:#103b25;border-radius:20px;padding:24px;max-width:420px;width:100%;text-align:center;font:16px system-ui';
+       const heading=document.createElement('h2');heading.textContent='Oletko eri kaupassa?';heading.style.cssText='font-size:22px;font-weight:800;margin-bottom:14px';
+       const info=document.createElement('p');info.textContent='GPS tunnisti kaupan: '+choices.map(s=>s.name).join(', ')+'. Vaihdetaanko valittu kauppa?';info.style.marginBottom='20px';
+       const actions=document.createElement('div');actions.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap';
+       const makeButton=(label:string,handler:()=>void,primary:boolean)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='padding:12px 16px;border-radius:12px;font-weight:700;background:'+(primary?'#146c43':'white')+';color:'+(primary?'white':'#103b25');b.onclick=handler;actions.appendChild(b);};
+       const close=()=>{overlay.remove();promptRef.current=false;setStorePrompt(null);};
+       makeButton('Vaihda kauppa',()=>{const buttons=Array.from(document.querySelectorAll('button,[role="button"]')) as HTMLElement[];const trigger=buttons.find(b=>!b.closest('#ziiply-gps-store-change-dialog')&&/^(kaupat|valitse kauppa|vaihda kauppaa|kaupan valinta)$/i.test((b.textContent||'').trim()));recordArrivalDiagnostic('arrival-store-picker-trigger',{found:!!trigger});close();trigger?.click();},true);
+       makeButton('Pidä nykyinen',()=>{recordArrivalDiagnostic('arrival-store-change-declined',{});close();},false);
+       dialog.append(heading,info,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
+       recordArrivalDiagnostic('arrival-store-change-prompt-visible',{stores:choices.map(s=>s.name)});
+     }
    }
    // Arrival is a latched state: do not lose the one-shot event while Safari is backgrounded.
    const confirmed=decision.status==='in-store'&&decision.state.arrivalStoreId===decision.store?.id;
