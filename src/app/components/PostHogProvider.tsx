@@ -29,7 +29,8 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     posthog.init(
       'phc_yUGdeyjeZABknZazoazcsLfBhDwuZ8NBTDxXUxN2EweJ',
       {
-        api_host: 'https://eu.i.posthog.com',
+        api_host: '/ph-ingest',
+        ui_host: 'https://eu.posthog.com',
         person_profiles: 'identified_only',
         autocapture: false,
         capture_pageview: false,
