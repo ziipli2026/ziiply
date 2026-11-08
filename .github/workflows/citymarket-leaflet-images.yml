@@ -83,15 +83,11 @@ jobs:
           if [ -n "$ENTRY" ]; then
             entries=("$ENTRY")
           else
-            # The publisher redirects expired AV editions to the active LV edition.
-            # Check only the current Helsinki publication, never accept that redirect as AV.
-            weekday=$(TZ=Europe/Helsinki date +%u)
-            if [ "$weekday" -le 3 ]; then
+            expected=$(node scripts/citymarket/check-active-edition.mjs --target)
+            if [[ "$expected" == *AV ]]; then
               entries=("https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/")
-              expected="AV"
             else
               entries=("https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/")
-              expected="LV"
             fi
           fi
           index=0
