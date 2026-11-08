@@ -92,7 +92,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
        makeButton('Vaihda kauppa',()=>{const buttons=Array.from(document.querySelectorAll('button,[role="button"]')) as HTMLElement[];const trigger=buttons.find(b=>!b.closest('#ziiply-gps-store-change-dialog')&&/^(kaupat|valitse kauppa|vaihda kauppaa|kaupan valinta)$/i.test((b.textContent||'').trim()));recordArrivalDiagnostic('arrival-store-picker-trigger',{found:!!trigger});close();trigger?.click();},true);
        makeButton('Pidä nykyinen',()=>{recordArrivalDiagnostic('arrival-store-change-declined',{});close();},false);
        dialog.append(heading,info,actions);overlay.appendChild(dialog);document.body.appendChild(overlay);
-       recordArrivalDiagnostic('arrival-store-change-prompt-visible',{stores:choices.map(s=>s.name)});
+       recordArrivalDiagnostic('arrival-store-change-prompt-visible',{stores:choices.map(s=>s.name).join(', ')});
      }
    }
    // Arrival is a latched state: do not lose the one-shot event while Safari is backgrounded.
