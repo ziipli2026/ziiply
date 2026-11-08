@@ -750,7 +750,8 @@ export async function warmKCitymarketOfferCache(now: Date, scope: "active" | "ne
 // Only exact, unambiguous EAN-bank matches are enriched. Multi-variant leaflet
 // headings must never inherit an arbitrary barcode or product photo.
 async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<CitymarketOffer[]>{
-  const databaseUrl=process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL;
+  // EAN catalogue belongs to the primary product database; publication storage may be separate.
+  const databaseUrl=process.env.DATABASE_URL || process.env.OFFER_PUBLICATION_DATABASE_URL;
   if(!databaseUrl || !offers.length) {
     console.warn("[K-Citymarket] EAN image enrichment skipped: database URL unavailable");
     return offers;
