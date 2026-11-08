@@ -755,7 +755,7 @@ async function enrichCitymarketFromEanBank(offers:CitymarketOffer[]):Promise<Cit
     const sql=neon(process.env.DATABASE_URL);
     const rows=await sql`SELECT ean,name,quantity,image_url FROM ziiply_ean_products WHERE image_url IS NOT NULL AND image_url <> '' ORDER BY updated_at DESC`;
     if(!rows.length)console.warn("[K-Citymarket] EAN bank contains no usable image rows");
-    const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\s+/g," ");
+    const norm=(value:unknown)=>String(value??"").toLocaleLowerCase("fi-FI").replace(/([a-zåäö])-\s*([a-zåäö])/g,"$1$2").replace(/[^a-z0-9åäö]+/g," ").trim().replace(/\s+/g," ");
     // Do not silently exclude older catalogue images merely because the EAN bank has grown.
     const index=new Map<string,typeof rows>();
     const byProductName=new Map<string,typeof rows>();
