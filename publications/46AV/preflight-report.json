@@ -1,0 +1,24 @@
+{
+  "ok": false,
+  "outcome": "source-archive-review-needed",
+  "period": "2026-11-09-W46-AV",
+  "issue": "46AV",
+  "pdfReview": "pending",
+  "runUrl": "https://github.com/ziipli2026/ziiply/actions/runs/42499803890",
+  "firstParserAt": null,
+  "firstParserOk": null,
+  "sourceVerified": true,
+  "publisherUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/91aa412_tarjouslehti_46AV_KCM/index.html",
+  "pdfSha256": "fa20a2d7c408db259d52f854903ddb59a8af868328a37a070db316a8ba05e419",
+  "pages": 19,
+  "count": 34,
+  "parserRows": 35,
+  "unresolved": [
+    "6|KAURANAKSUT 6–12 kk 25–35 g"
+  ],
+  "unverified": [
+    "18|KOSTEA WC-PAPERI 42 kpl"
+  ],
+  "duplicates": [],
+  "auditScope": "Frozen source and automatic parser checks; full printed PDF comparison pending"
+}

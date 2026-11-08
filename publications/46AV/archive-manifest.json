@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "sourceUrl": "https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/",
+  "publisherUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/91aa412_tarjouslehti_46AV_KCM/index.html",
+  "pdfUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/91aa412_tarjouslehti_46AV_KCM/files/extfile/DownloadURL.pdf",
+  "pdfSha256": "fa20a2d7c408db259d52f854903ddb59a8af868328a37a070db316a8ba05e419",
+  "pageCount": 19,
+  "offerCount": 34,
+  "archivedAt": "2026-11-08T16:25:55.977Z",
+  "files": [
+    "leaflet.pdf",
+    "leaflet.json",
+    "parser-evidence.json",
+    "publisher-responses.json"
+  ]
+}
