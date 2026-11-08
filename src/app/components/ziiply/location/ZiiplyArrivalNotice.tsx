@@ -1,11 +1,20 @@
 "use client";
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { arrivalNoticeReducer, type ArrivalNotice } from './ziiplyArrivalNotice';
 import type { ZiiplyArrivalDecision } from './ziiplyArrivalSequence';
 import { getArrivalDiagnostics, recordArrivalDiagnostic } from './ziiplyArrivalDiagnostics';
 
 export function useZiiplyArrivalNotice(enabled:boolean) {
  const [notice,dispatch]=useReducer(arrivalNoticeReducer,null);
+ const [storePrompt,setStorePrompt]=useState<{id:string;name:string}[]|null>(null);
+ const promptRef=useRef(false);
+ const openStorePicker=()=>{
+   const buttons=Array.from(document.querySelectorAll('button,[role="button"]')) as HTMLElement[];
+   const trigger=buttons.find(b=>!b.closest('[data-store-prompt]')&&/^(kaupat|valitse kauppa|vaihda kauppaa|kaupan valinta)$/i.test((b.textContent||'').trim()));
+   recordArrivalDiagnostic('arrival-store-picker-trigger',{found:!!trigger});
+   trigger?.click();
+   promptRef.current=false;setStorePrompt(null);
+ };
  useEffect(()=>{
   const onDebugClick=(event:MouseEvent)=>{
    const target=event.target instanceof Element ? event.target : null;
@@ -69,6 +78,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
      const choices=decision.nearbyStoreChoices?.length?decision.nearbyStoreChoices:decision.store?[decision.store]:[];
      recordArrivalDiagnostic('arrival-store-change-requested',{stores:JSON.stringify(choices.map(s=>({id:s.id,name:s.name}))),ambiguous:choices.length>1});
      window.dispatchEvent(new CustomEvent('ziiply-arrival-store-change-requested',{detail:{stores:choices,ambiguous:choices.length>1}}));
+     if(choices.length&&!promptRef.current){promptRef.current=true;setStorePrompt(choices.map(s=>({id:s.id,name:s.name})));recordArrivalDiagnostic('arrival-store-change-prompt-visible',{stores:choices.map(s=>s.name)});}
    }
    // Arrival is a latched state: do not lose the one-shot event while Safari is backgrounded.
    const confirmed=decision.status==='in-store'&&decision.state.arrivalStoreId===decision.store?.id;
@@ -81,7 +91,7 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
      delivered.current.clear();pending.current=null;
    }
  },[enabled]);
- useEffect(()=>{if(!enabled){recordArrivalDiagnostic('arrival-notification-reset',{reason:'disabled'});dispatch({type:'reset'});pending.current=null;}},[enabled]);
+ useEffect(()=>{if(!enabled){recordArrivalDiagnostic('arrival-notification-reset',{reason:'disabled'});dispatch({type:'reset'});pending.current=null;promptRef.current=false;setStorePrompt(null);}},[enabled]);
  useEffect(()=>{
   const activity=()=>{if(document.visibilityState!=='visible'||!document.hasFocus())return;activeRef.current=true;setActive(true);pending.current=null;recordArrivalDiagnostic('arrival-notification-resume',{reason:'user-activity'});dispatch({type:'resume',at:Date.now()});};
   const inactive=()=>{recordArrivalDiagnostic('arrival-notification-pause',{visibility:document.visibilityState,focused:document.hasFocus()});dispatch({type:'pause',at:Date.now()});activeRef.current=false;setActive(false);};
@@ -110,7 +120,17 @@ export function useZiiplyArrivalNotice(enabled:boolean) {
   return ()=>window.clearInterval(timer);
  },[enabled,active,notice]);
  useEffect(()=>{const phase=enabled?notice?.phase??'none':'disabled';recordArrivalDiagnostic('arrival-notification-phase',{phase,store:notice?.name??null,deadline:notice?.deadline??null,paused:!!notice&&notice.deadline===null&&notice.remainingMs!=null});window.dispatchEvent(new CustomEvent('ziiply-arrival-debug',{detail:{source:'main-ui',phase,store:notice?.name??null}}));},[enabled,notice?.phase,notice?.name]);
- return {notice:enabled&&active?notice:null,update,dismiss:()=>{recordArrivalDiagnostic('arrival-notification-dismiss',{phase:notice?.phase??null});dispatch({type:'dismiss'});},skip:()=>{recordArrivalDiagnostic('arrival-notification-skip',{phase:notice?.phase??null});dispatch({type:'skip',at:Date.now()});}};
+ const storeChangePrompt=enabled&&active&&storePrompt?<div data-store-prompt="true" style={{position:'fixed',inset:0,zIndex:2147483647,background:'rgba(0,0,0,.55)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+  <div role="dialog" aria-modal="true" aria-label="Vaihda kauppa" style={{background:'#e4f8e8',color:'#103b25',borderRadius:20,padding:24,maxWidth:420,width:'100%',textAlign:'center'}}>
+   <h2 style={{fontSize:22,fontWeight:800,marginBottom:14}}>Oletko eri kaupassa?</h2>
+   <p style={{marginBottom:20}}>GPS tunnisti kaupan: {storePrompt.map(s=>s.name).join(', ')}. Vaihdetaanko valittu kauppa?</p>
+   <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>
+    <button type="button" onClick={openStorePicker} style={{padding:'12px 16px',borderRadius:12,background:'#146c43',color:'white',fontWeight:700}}>Vaihda kauppa</button>
+    <button type="button" onClick={()=>{recordArrivalDiagnostic('arrival-store-change-declined',{});promptRef.current=false;setStorePrompt(null);}} style={{padding:'12px 16px',borderRadius:12,background:'white',color:'#103b25',fontWeight:700}}>Pidä nykyinen</button>
+   </div>
+  </div>
+ </div>:null;
+ return {storeChangePrompt,notice:enabled&&active?notice:null,update,dismiss:()=>{recordArrivalDiagnostic('arrival-notification-dismiss',{phase:notice?.phase??null});dispatch({type:'dismiss'});},skip:()=>{recordArrivalDiagnostic('arrival-notification-skip',{phase:notice?.phase??null});dispatch({type:'skip',at:Date.now()});}};
 }
 export default function ZiiplyArrivalNotice({notice,onDismiss,onSkip,onList,onRecipe,onOffers,onConfirm}:{
  notice:ArrivalNotice|null;onDismiss:()=>void;onSkip:()=>void;onList:()=>void;onRecipe:()=>void;onOffers:()=>void;onConfirm?:()=>void;
