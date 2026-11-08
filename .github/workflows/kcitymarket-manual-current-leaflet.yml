@@ -9,6 +9,8 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketPrintedTransactionProof.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
+      - "src/app/components/ziiply/offerSearch/citymarketPreflight.ts"
       - "src/app/api/cron/kcitymarket-preflight/route.ts"
 
 permissions:
