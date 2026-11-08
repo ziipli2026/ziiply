@@ -82,3 +82,14 @@ jobs:
           fi
           jq -e '.activeOk == true' cache.json >/dev/null
           echo "Citymarket active refresh inspected; 46AV quality is checked separately"
+      - name: Enforce upcoming edition quality after both refreshes
+        if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          jq -e '.quality != null and .parsed != null' preflight.json >/dev/null
+          jq -r '"Upcoming Citymarket: " + .period + " — " + (.quality.missing_images|tostring) + " missing images, " + (.quality.missing_categories|tostring) + " missing categories"' preflight.json
+          if ! jq -e '.quality.missing_images == 0 and .quality.missing_categories == 0 and .quality.missing_prices == 0 and .quality.unverified_prices == 0' preflight.json >/dev/null; then
+            echo "::error::Upcoming Citymarket edition is incomplete; automated repair must continue"
+            exit 1
+          fi
+          echo "Upcoming edition has no missing image, category or price fields; PDF review remains independent"
