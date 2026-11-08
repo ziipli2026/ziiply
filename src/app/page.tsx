@@ -10433,6 +10433,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     clearSearchAndComparisonState();
   }
 
+  // GPS confirmation must update the canonical store state, including a cross-chain change.
+  // Do not simulate clicks on visible cards: those may be hidden or belong to another chain.
+  useEffect(() => {
+    const onGpsStoreSwitch = (event: Event) => {
+      const detail=(event as CustomEvent<{id:string;name:string}>).detail;
+      if(!detail?.name)return;
+      const norm=(value:string)=>value.toLocaleLowerCase("fi-FI").replace(/\\s+/g," ").trim();
+      const matching=foundStores.find(store=>norm(store.name)===norm(detail.name)) ||
+        foundStores.find(store=>norm(store.name).includes(norm(detail.name))||norm(detail.name).includes(norm(store.name)));
+      if(!matching){recordArrivalDiagnostic("arrival-store-switch-failed",{reason:"store-not-in-directory",store:detail.name});return;}
+      const chain=getZiiplyResolverStoreChainV32(matching);
+      if(chain!=="S"&&chain!=="K"){recordArrivalDiagnostic("arrival-store-switch-failed",{reason:"unsupported-chain",store:detail.name});return;}
+      const mode:StoreMode=isLocalStoreForModeV295(matching)?"local":"hyper";
+      const store={...matching,type:chain,chain};
+      setStoreCompareScope("between_chains");
+      setWithinChain(null);
+      setBetweenChainSelectionModeV749("one");
+      setStoreModeChosenV299(true);
+      selectedStoreModeRefV302.current=mode;
+      setStoreMode(mode);
+      setSelectedChains({s:chain==="S",k:chain==="K",lidl:false,tokmanni:false});
+      selectStoreForCurrentMode(store,mode);
+      recordArrivalDiagnostic("arrival-store-switch-applied",{store:store.name,chain,mode});
+    };
+    window.addEventListener("ziiply-arrival-store-switch-confirmed",onGpsStoreSwitch);
+    return ()=>window.removeEventListener("ziiply-arrival-store-switch-confirmed",onGpsStoreSwitch);
+  },[foundStores,storeMode,storeCompareScope,locationInput,activeArea,gpsCoordsV320,usingOwnLocation,storeModeChosenV299]);
+
   function selectStoreForCurrentMode(
     store: StoreSearchItem,
     forcedMode?: StoreMode,
