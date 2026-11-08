@@ -100,10 +100,10 @@ export function category(t:string){
   if(/tehokosteusvoide/.test(joined)) return "Hygienia & kosmetiikka";
   // Product forms confirmed by the 45LV publication quality audit. Keep
   // these generic so the same goods are classified in subsequent issues.
-  if(/(?:cream\\s+cracker|ruis\\s+cracker|\\bcracker\\b|kääreelliset\\s+konvehdit|\\bkonvehdit\\b|wienernougat|mantelikakut)/.test(s)) return "Makeiset & keksit";
-  if(/(?:100%\\s+kaura|\\bkaurahiutale|\\bkaurasuurimo)/.test(s)) return "Kuivatuotteet";
-  if(/(?:ylikypsä\\s+saunapalvi|palvikylki)/.test(s)) return "Liha & makkarat";
-  if(/(?:extra\\s+dry\\s+8\\s*%)/.test(s)) return "Juomat";
+  if(/(?:cream\s+cracker|ruis\s+cracker|\bcracker\b|kääreelliset\s+konvehdit|\bkonvehdit\b|wienernougat|mantelikakut)/.test(s)) return "Makeiset & keksit";
+  if(/(?:100%\s+kaura|\bkaurahiutale|\bkaurasuurimo)/.test(s)) return "Kuivatuotteet";
+  if(/(?:ylikypsä\s+saunapalvi|palvikylki)/.test(s)) return "Liha & makkarat";
+  if(/(?:extra\s+dry\s+8\s*%)/.test(s)) return "Juomat";
   // Publisher leaflet also contains non-food goods. Classify by the actual
   // product, not by the fact it appeared in a supermarket leaflet.
   if(/(?:talvi[- ]?työkäsine|työkäsine|vinterarbetshandskar)/.test(s)) return "Koti & vapaa-aika";
