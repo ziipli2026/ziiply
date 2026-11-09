@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 import { warmKCitymarketOfferCache, persistKCitymarketOfferPublication, getNextKCitymarketPeriod } from "@/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
-import { readActivePublicationOffers } from "@/app/components/ziiply/offerSearch/publicationStore";
+import { readActivePublicationOffers, readPublicationCandidate } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 import { inspectCitymarketOffers } from "@/app/components/ziiply/offerSearch/citymarketQuality";
 
@@ -39,6 +39,18 @@ export async function GET(request: Request) {
       activeOffers = await readActivePublicationOffers<Record<string,unknown>>("K-Citymarket",startedAt);
     } catch (error) {
       result.errors.push("approved snapshot read: " + (error instanceof Error ? error.message : String(error)));
+    }
+    // Diagnose the staged edition separately. A candidate must never be
+    // counted as an approved consumer publication.
+    const candidateId = result.active?.period ? result.active.period + "-printed-transactions-v165" : null;
+    let candidateQuality: ReturnType<typeof inspectCitymarketOffers> | null = null;
+    if (candidateId) {
+      try {
+        const candidate = await readPublicationCandidate<Record<string,unknown>>("K-Citymarket", candidateId);
+        if (candidate) candidateQuality = inspectCitymarketOffers(candidate.offers);
+      } catch (error) {
+        result.errors.push("candidate snapshot read: " + (error instanceof Error ? error.message : String(error)));
+      }
     }
     const activeQuality = inspectCitymarketOffers(activeOffers);
     const activeImages = {total:activeQuality.total,withImage:activeQuality.total-activeQuality.missingImages,missingImage:activeQuality.missingImages};
@@ -82,10 +94,10 @@ export async function GET(request: Request) {
           outcome:"store-campaign-audit-error",details:{error:String(error)}}).catch(()=>undefined);
       }
     }
-    await recordPublicationRun({ chain: "K", source: "k-citymarket-cache", ok, count: result.active?.offers ?? 0, outcome: ok ? "active-cache-ok" : "cache-warm-partial-or-failed", details: { activeImages, activeQuality, active: result.active, next: result.next, errors: result.errors.slice(0, 10), activeOk, nextAttempted, nextOk } }).catch(() => undefined);
+    await recordPublicationRun({ chain: "K", source: "k-citymarket-cache", ok, count: result.active?.offers ?? 0, outcome: ok ? "active-cache-ok" : "cache-warm-partial-or-failed", details: { activeImages, activeQuality, candidateId, candidateQuality, active: result.active, next: result.next, errors: result.errors.slice(0, 10), activeOk, nextAttempted, nextOk } }).catch(() => undefined);
 
     return NextResponse.json(
-      { ok, activeOk, nextAttempted, nextOk, startedAt: startedAt.toISOString(), activeImages, activeQuality, ...result },
+      { ok, activeOk, nextAttempted, nextOk, startedAt: startedAt.toISOString(), activeImages, activeQuality, candidateId, candidateQuality, ...result },
       { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
