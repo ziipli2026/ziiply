@@ -696,7 +696,7 @@
 "use client";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "./components/ziiply/comparisonBrand";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
-import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordFirstPricedResults, recordSearchProductAddedToCart, recordSearchResultsDismissed } from "./components/ziiply/search/searchTelemetry";
+import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordSearchProductAddedToCart, recordSearchResultsDismissed } from "./components/ziiply/search/searchTelemetry";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { recordArrivalDiagnostic, getArrivalDiagnostics, clearArrivalDiagnostics } from "./components/ziiply/location/ziiplyArrivalDiagnostics";
@@ -12925,7 +12925,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (cachedValidated.length > 0) {
       const telemetry = beginSearchTelemetry(forceEan ? "ean" : "normal");
       const pricedCount = cachedValidated.filter((product: Product) => getProductPrice(product) > 0).length;
-      if (pricedCount > 0) recordFirstPricedResults(telemetry, pricedCount);
+
       finishSearchTelemetry(telemetry, pricedCount > 0 ? "priced_results" : "no_priced_results", pricedCount);
       mobileSearchTraceRef.current.status = "cache-hit";
       setNormalResultsStableV441(cachedValidated);
@@ -13334,7 +13334,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setNormalResultsStableV441(unique);
       setMobileResultsReadyQueryV537(readyQueryV441);
       const pricedCountV441 = unique.filter((product: Product) => getProductPrice(product) > 0).length;
-      if (pricedCountV441 > 0) recordFirstPricedResults(searchTelemetryV441, pricedCountV441);
+
       finishSearchTelemetry(searchTelemetryV441, pricedCountV441 > 0 ? "priced_results" : "no_priced_results", pricedCountV441);
 
       // Never persist an empty response: transient upstream failures must be retryable.
