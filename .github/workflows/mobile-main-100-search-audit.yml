@@ -24,7 +24,7 @@ jobs:
           npx tsc src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-100-audit
       - name: Run 100 distinct live product queries and validate ranking
         env:
-          TERMS_JSON: '["maito","kevytmaito","täysmaito","rasvaton maito","kauramaito","piimä","kerma","ruokakerma","voi","margariini","juusto","emmental","mozzarella","raejuusto","rahka","jogurtti","viili","kananmuna","leipä","ruisleipä","paahtoleipä","sämpylä","näkkileipä","croissant","kaurahiutale","puuro","murot","mysli","riisi","pasta","makaroni","spagetti","nuudeli","peruna","porkkana","sipuli","valkosipuli","tomaatti","kurkku","paprika","salaatti","kaali","parsakaali","kukkakaali","banaani","omena","päärynä","appelsiini","mandariini","sitruuna","viinirypäle","mansikka","mustikka","vadelma","avokado","kiivi","vesimeloni","jauheliha","naudanliha","porsaanliha","broileri","kanafilee","nakki","makkara","kinkku","pekoni","lohi","kirjolohi","tonnikala","silakka","katkarapu","kalapuikko","kahvi","tee","kaakao","sokeri","suola","mustapippuri","kaneli","vehnäjauho","ruisjauho","leivinjauhe","hiiva","ruokaöljy","oliiviöljy","etikka","ketsuppi","sinappi","majoneesi","tomaattimurska","herne","maissi","pavut","linssit","mehu","limonadi","kivennäisvesi","jäätelö","suklaa","keksi"]'
+          TERMS_JSON: '["maito","kevytmaito","täysmaito","rasvaton maito","kauramaito","piimä","kerma","ruokakerma","voi","margariini","juusto","emmental","mozzarella","raejuusto","rahka","jogurtti","viili","kananmuna","leipä","ruisleipä","paahtoleipä","sämpylä","näkkileipä","cola","kaurahiutale","puuro","murot","mysli","riisi","pasta","makaroni","spagetti","nuudeli","peruna","porkkana","sipuli","valkosipuli","tomaatti","kurkku","paprika","salaatti","kaali","parsakaali","kukkakaali","banaani","omena","päärynä","appelsiini","mandariini","sitruuna","viinirypäle","mansikka","mustikka","vadelma","avokado","kiivi","vesimeloni","jauheliha","naudanliha","porsaanliha","broileri","kanafilee","nakki","makkara","kinkku","pekoni","lohi","kirjolohi","tonnikala","silakka","katkarapu","kalapuikko","kahvi","tee","kaakao","sokeri","suola","mustapippuri","kaneli","vehnäjauho","ruisjauho","leivinjauhe","hiiva","ruokaöljy","oliiviöljy","etikka","ketsuppi","sinappi","majoneesi","tomaattimurska","herne","maissi","pavut","linssit","mehu","limonadi","kivennäisvesi","jäätelö","suklaa","keksi"]'
         shell: bash
         run: |
           node <<'NODE'
@@ -44,7 +44,16 @@ jobs:
             const reverseOrdered=rankedReversed.every((p,i)=>i===0||rankedReversed[i-1].price<=p.price);
             const sameTop=JSON.stringify(ranked.slice(0,10).map(p=>[p.name,p.price]))===JSON.stringify(rankedReversed.slice(0,10).map(p=>[p.name,p.price]));
             const ordered=ranked.every((p,i)=>i===0||ranked[i-1].price<=p.price);
-            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rejected:priced.length-ranked.length};
+            const normalized=s=>String(s||'').toLocaleLowerCase('fi').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+            const wrong=ranked.filter(p=>{
+              const name=normalized(p.name);
+              if(term==='oliiviöljy') return !/oliivioljy/.test(name)||/(?:tonnikala|sardiin|muikku|krutonk|krutonki|peruna|keksi|levite|oivariini|kastike|riisi|edamame|oljyssa|oljylla|oljya sisalt)/.test(name);
+              if(term==='limonadi') return /(?:jaatelo|jaapuikko|limonadijaa|mehujaa|sorbet|karkki|siirappi)/.test(name);
+              if(term==='cola') return /(?:colada|mocktail|jaatelo|limonadijaa|pre.workout|shot)/.test(name);
+              if(term==='maito') return /(?:maitorahka|rasvaseos|kerma|suklaa|jogurtti|jaatelo|maitojuoma)/.test(name);
+              return false;
+            });
+            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,wrongGroup:wrong.slice(0,5).map(p=>p.name),top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rejected:priced.length-ranked.length};
           }
           (async()=>{
             for(let i=0;i<terms.length;i+=5){
@@ -53,10 +62,10 @@ jobs:
               }));
               for(const r of batch){results.push(r);console.log(JSON.stringify(r))}
             }
-            const summary={queries:terms.length,completed:results.filter(r=>!r.error).length,errors:results.filter(r=>r.error).length,empty:results.filter(r=>!r.error&&r.accepted===0).length,unsorted:results.filter(r=>r.sorted===false).length,unstableTop:results.filter(r=>r.stableTop===false).length,source:'live Prisma API + production shared ranking code',commit:process.env.GITHUB_SHA};
+            const summary={queries:terms.length,completed:results.filter(r=>!r.error).length,errors:results.filter(r=>r.error).length,empty:results.filter(r=>!r.error&&r.accepted===0).length,unsorted:results.filter(r=>r.sorted===false).length,unstableTop:results.filter(r=>r.stableTop===false).length,wrongGroup:results.filter(r=>r.wrongGroup?.length).length,source:'live Prisma API + production shared ranking code',commit:process.env.GITHUB_SHA};
             fs.writeFileSync('mobile-main-100-search-results.json',JSON.stringify({summary,results},null,2));
             console.log('SUMMARY '+JSON.stringify(summary));
-            if(summary.errors||summary.unsorted||summary.unstableTop)process.exitCode=1;
+            if(summary.errors||summary.unsorted||summary.unstableTop||summary.wrongGroup)process.exitCode=1;
           })();
           NODE
       - uses: actions/upload-artifact@v4
