@@ -44,7 +44,7 @@ jobs:
             const reverseOrdered=rankedReversed.every((p,i)=>i===0||rankedReversed[i-1].price<=p.price);
             const sameTop=JSON.stringify(ranked.slice(0,10).map(p=>[p.name,p.price]))===JSON.stringify(rankedReversed.slice(0,10).map(p=>[p.name,p.price]));
             const ordered=ranked.every((p,i)=>i===0||ranked[i-1].price<=p.price);
-            const normalized=s=>String(s||'').toLocaleLowerCase('fi').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+            const normalized=s=>String(s||'').toLocaleLowerCase('fi').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
             const wrong=ranked.filter(p=>{
               const name=normalized(p.name);
               if(term==='oliiviöljy') return !/oliivioljy/.test(name)||/(?:tonnikala|sardiin|muikku|krutonk|krutonki|peruna|keksi|levite|oivariini|kastike|riisi|edamame|oljyssa|oljylla|oljya sisalt)/.test(name);
