@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/ziiply-kcitymarket-image-refresh.mts'
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
       - '.github/workflows/kcitymarket-image-refresh-manual.yml'
   workflow_dispatch:
   schedule:
@@ -31,7 +32,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
         run: npx --yes tsx scripts/ziiply-kcitymarket-image-check.mts
-      - name: Enrich approved Cittari publication images directly in Neon
+      - name: Enrich approved or candidate Cittari publication images directly in Neon
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.schedule == '40 * * * *' || steps.check.outputs.run_heavy == 'true'
         env:
           DATABASE_URL: ${{ secrets.ZIIPLY_DATABASE_URL }}
