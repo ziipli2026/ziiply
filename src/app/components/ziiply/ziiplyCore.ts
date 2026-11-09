@@ -2965,7 +2965,7 @@ export function isBadNormalResult(product: Product, query: string) {
   if (normalizedQuery.includes("jauheliha") && !productText.includes("jauheliha")) return true;
   if ((normalizedQuery.includes("jogurtti") || normalizedQuery.includes("jogurt")) && /(?:kastike|kuorrute|myslipatukka|patukka)/.test(normalizedName)) return true;
 
-  const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
+  const queryIsMilk = intentCategory === "milk" || hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
   // Exact fat-content variants must reject different real milk types.
   // Keep the generic 'maito' query broad enough for all accepted milks.
   const requestedMilkType = comparisonProductType(query);
@@ -2989,6 +2989,9 @@ export function isBadNormalResult(product: Product, query: string) {
 
     const forbiddenMilkContext = [
       "maitorahka",
+      "rasvaseos",
+      "rasvasekoite",
+      "rasvasekoitus",
       "rahka",
       "kuohukerma",
       "kerma",
