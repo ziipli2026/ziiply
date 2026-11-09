@@ -150,3 +150,12 @@ const qualityRows=await sql`
  WHERE p.chain='K-Citymarket' AND p.publication_id=${before[0].publication_id}
 `;
 console.log("CANDIDATE_QUALITY",JSON.stringify({publication:before[0].publication_id,approvalState:after[0].approval_state,...qualityRows[0]}));
+const categoryDefects=await sql`
+ SELECT x->>'id' AS id,x->>'title' AS title,x->>'category' AS category,x->>'price' AS price,
+ x->>'discountPercent' AS discount_percent
+ FROM ziiply_offer_publications p, jsonb_array_elements(p.offers) x
+ WHERE p.chain='K-Citymarket' AND p.publication_id=${before[0].publication_id}
+ AND coalesce(x->>'category','') IN ('','Muut')
+`;
+console.log("CANDIDATE_MISSING_CATEGORIES",JSON.stringify(categoryDefects));
+
