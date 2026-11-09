@@ -188,3 +188,35 @@ const categoryDefects=await sql`
 `;
 console.log("CANDIDATE_MISSING_CATEGORIES",JSON.stringify(categoryDefects));
 
+
+ // Release only the explicitly reviewed 46AV snapshot, and only when every
+ // measured quality gate passes. This does not authorize future editions.
+const releaseId="2026-11-09-W46-AV-printed-transactions-v165";
+const metrics=qualityRows[0] as Record<string,number>;
+const allQualityPassed=after[0]?.total===33 && after[0]?.with_image===33 &&
+  ["missing_names","missing_categories","missing_prices","unverified_prices","suspicious_names"].every(key=>Number(metrics[key])===0);
+if(before[0].publication_id===releaseId && after[0].approval_state==="candidate"){
+  if(!allQualityPassed)throw new Error("46AV release blocked: candidate quality gate failed");
+  const promoted=await sql`
+    UPDATE ziiply_offer_publications SET approval_state='approved'
+    WHERE chain='K-Citymarket' AND publication_id=${releaseId}
+      AND approval_state='candidate'
+      AND jsonb_array_length(offers)=33
+      AND NOT EXISTS(
+        SELECT 1 FROM jsonb_array_elements(offers) x
+        WHERE coalesce(x->>'title','')=''
+          OR coalesce(x->>'category','') IN ('','Muut')
+          OR NOT (coalesce(x->>'imageUrl','') ~* '^https://' OR coalesce(x->>'imageUrl','') LIKE '/citymarket-leaflets/%')
+          OR coalesce(x->>'resolutionSanity','pass')<>'pass'
+          OR coalesce(x->>'title','') ~* '^(TUOTTEET|SIT([[:space:]]|$))'
+          OR NOT (
+            (coalesce(x->>'price','') ~ '^[0-9]+([.][0-9]+)?$'
+              AND CASE WHEN coalesce(x->>'price','') ~ '^[0-9]+([.][0-9]+)?$' THEN (x->>'price')::numeric>0 ELSE false END)
+            OR (coalesce(x->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?$'
+              AND CASE WHEN coalesce(x->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?$' THEN (x->>'discountPercent')::numeric>0 AND (x->>'discountPercent')::numeric<100 ELSE false END)
+          )
+      )
+    RETURNING publication_id,approval_state`;
+  if(promoted.length!==1)throw new Error("46AV approval did not satisfy database release guards");
+  console.log("46AV_PUBLICATION_APPROVED",JSON.stringify(promoted[0]));
+}
