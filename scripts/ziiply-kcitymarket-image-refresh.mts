@@ -132,3 +132,23 @@ if(after[0]?.with_image < before[0]?.with_image)throw new Error("Image coverage 
 const matchingEnriched=offers.filter(o=>Boolean(normalizedImage(o.imageUrl))&&storedRows.some(y=>y.id===o.id)).length;
 if(after[0]?.with_image < matchingEnriched) throw new Error("Enriched matching image URLs were not persisted; check DB update");
 console.log("RESULT",JSON.stringify({total:after[0].total,withImage:after[0].with_image,missing:after[0].total-after[0].with_image}));
+const qualityRows=await sql`
+ SELECT
+  count(*)::int AS total,
+  count(*) FILTER (WHERE coalesce(x->>'title','')='')::int AS missing_names,
+  count(*) FILTER (WHERE coalesce(x->>'category','') IN ('','Muut'))::int AS missing_categories,
+  count(*) FILTER (WHERE (coalesce(x->>'price','') !~ '^[0-9]+([.][0-9]+)?
+ OR
+    CASE WHEN coalesce(x->>'price','') ~ '^[0-9]+([.][0-9]+)?
+ THEN (x->>'price')::numeric<=0 ELSE true END)
+    AND (coalesce(x->>'discountPercent','') !~ '^[0-9]+([.][0-9]+)?
+ OR
+    CASE WHEN coalesce(x->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?
+ THEN (x->>'discountPercent')::numeric<=0 OR (x->>'discountPercent')::numeric>=100 ELSE true END))::int AS missing_prices,
+  count(*) FILTER (WHERE coalesce(x->>'resolutionSanity','pass')<>'pass')::int AS unverified_prices,
+  count(*) FILTER (WHERE coalesce(x->>'title','') ~* '^(TUOTTEET|SIT([[:space:]]|$))')::int AS suspicious_names
+ FROM ziiply_offer_publications p, jsonb_array_elements(p.offers) x
+ WHERE p.chain='K-Citymarket' AND p.publication_id=${before[0].publication_id}
+`;
+console.log("CANDIDATE_QUALITY",JSON.stringify({publication:before[0].publication_id,approvalState:after[0].approval_state,...qualityRows[0]}));
+
