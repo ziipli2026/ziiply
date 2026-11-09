@@ -21,6 +21,39 @@ const stored=await sql`
   WHERE publication_id=${before[0].publication_id} AND chain='K-Citymarket'
     AND approval_state=${before[0].approval_state} LIMIT 1`;
 if(!stored.length)throw new Error("Selected Citymarket publication disappeared before image enrichment");
+// Repair only the two independently diagnosed OCR artifacts in the 46AV candidate.
+// Never touch approved publications or other periods. Keep all prices intact.
+const is46AVCandidate=before[0].approval_state==="candidate" &&
+  /^2026-11-09-W46-AV-printed-transactions-/.test(String(before[0].publication_id));
+if(is46AVCandidate){
+  const brokenTitleId="kcm:spatial:6:sit 100–185 g:4";
+  const orphanHeadingId="kcm:spatial:16:tuotteet:percent:30";
+  const oldRows=stored[0].offers as Array<{id?:string,title?:string}>;
+  const broken=oldRows.find(x=>x.id===brokenTitleId);
+  const orphan=oldRows.find(x=>x.id===orphanHeadingId);
+  if(broken?.title==="SIT 100–185 g" && orphan?.title==="TUOTTEET"){
+    // Name restoration is supported by the spatial parser's same-card heading.
+    // The generic TUOTTEET heading has no unique matching product.
+    const clean=oldRows.filter(x=>x.id!==orphanHeadingId).map(x=>
+      x.id===brokenTitleId?{...x,title:"PERUNALASTUT ja JUUSTONACKSIT 100–185 g",
+        id:"kcm:spatial:6:perunalastut ja juustonacksit 100–185 g:4"}:x);
+    if(clean.length!==oldRows.length-1)throw new Error("46AV candidate repair row count mismatch");
+    const repaired=await sql`
+      UPDATE ziiply_offer_publications p
+      SET offers=${JSON.stringify(clean)}::jsonb
+      WHERE p.chain='K-Citymarket' AND p.publication_id=${before[0].publication_id}
+        AND p.approval_state='candidate'
+        AND jsonb_array_length(p.offers)=34
+        AND EXISTS(SELECT 1 FROM jsonb_array_elements(p.offers) x WHERE x->>'id'=${brokenTitleId} AND x->>'title'='SIT 100–185 g')
+        AND EXISTS(SELECT 1 FROM jsonb_array_elements(p.offers) x WHERE x->>'id'=${orphanHeadingId} AND x->>'title'='TUOTTEET')
+      RETURNING publication_id`;
+    if(repaired.length!==1)throw new Error("46AV candidate repair failed its safety guards");
+    console.log("46AV_CANDIDATE_OCR_REPAIRED",JSON.stringify({from:34,to:33,repairedName:"PERUNALASTUT ja JUUSTONACKSIT 100–185 g",removedOrphan:"TUOTTEET"}));
+    stored[0].offers=clean;
+  }else{
+    console.log("46AV_CANDIDATE_OCR_REPAIR_SKIPPED",JSON.stringify({broken:broken?.title,orphan:orphan?.title}));
+  }
+}
 const offers=await enrichStoredKCitymarketOfferImages(stored[0].offers as Parameters<typeof enrichStoredKCitymarketOfferImages>[0]);
 console.log("ENRICHED",JSON.stringify({offers:offers.length,withImage:offers.filter(o=>!!o.imageUrl).length}));
 const imageFormats:Record<string,number>={};
@@ -94,7 +127,7 @@ console.log("MISSING_IMAGE_OFFERS",JSON.stringify(storedRows.filter(row =>
   !offers.some(offer => offer.id === row.id && Boolean(normalizedImage(offer.imageUrl)))
 ).map(row => ({id:row.id,title:row.title,price:row.price}))));
 console.log("AFTER",JSON.stringify(after));
-if(after[0]?.total!==before[0]?.total)throw new Error("Offer count changed unexpectedly");
+if(after[0]?.total!==(stored[0].offers as unknown[]).length)throw new Error("Offer count changed unexpectedly");
 if(after[0]?.with_image < before[0]?.with_image)throw new Error("Image coverage decreased");
 const matchingEnriched=offers.filter(o=>Boolean(normalizedImage(o.imageUrl))&&storedRows.some(y=>y.id===o.id)).length;
 if(after[0]?.with_image < matchingEnriched) throw new Error("Enriched matching image URLs were not persisted; check DB update");
