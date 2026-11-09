@@ -90,6 +90,9 @@ const diagnostics=await sql`
 `;
 console.log("PATCH_DIAGNOSTICS",JSON.stringify(diagnostics));
 const after=await read();
+console.log("MISSING_IMAGE_OFFERS",JSON.stringify(storedRows.filter(row =>
+  !offers.some(offer => offer.id === row.id && Boolean(normalizedImage(offer.imageUrl)))
+).map(row => ({id:row.id,title:row.title,price:row.price}))));
 console.log("AFTER",JSON.stringify(after));
 if(after[0]?.total!==before[0]?.total)throw new Error("Offer count changed unexpectedly");
 if(after[0]?.with_image < before[0]?.with_image)throw new Error("Image coverage decreased");
