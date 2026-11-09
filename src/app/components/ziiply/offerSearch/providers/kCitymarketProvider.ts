@@ -952,6 +952,10 @@ function normalizeKCitymarketOfferImages(offers:CitymarketOffer[]):CitymarketOff
   return url?{...offer,imageUrl:url}:offer;
  });
 }
+// Explicit background-only image enrichment of a stored publication; no approval or price writes.
+export async function enrichStoredKCitymarketOfferImages(offers:CitymarketOffer[]):Promise<CitymarketOffer[]>{
+  return enrichKCitymarketPublicationImages(offers,getActiveKCitymarketPeriod());
+}
 async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],active:KCitymarketPeriod):Promise<CitymarketOffer[]>{
   // Track exact publication-image coverage before optional catalogue/Tjek
   // enrichment. This exposes extraction gaps on each fresh leaflet.
