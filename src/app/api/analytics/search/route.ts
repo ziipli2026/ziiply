@@ -17,10 +17,15 @@ export async function POST(request: NextRequest) {
         typeof body.search_kind !== "string" || !KINDS.has(body.search_kind)) {
       return NextResponse.json({ error: "invalid_event" }, { status: 400 });
     }
+    // Accept only the locally generated anonymous browser ID. Legacy events
+    // still use search-scoped identity when storage is unavailable.
+    const anonymousUserId = typeof body.anonymous_user_id === "string" &&
+      /^a[a-f0-9-]{36}$/.test(body.anonymous_user_id)
+      ? body.anonymous_user_id : null;
     const props: Record<string, string | number | boolean> = {
       search_id: body.search_id, search_kind: body.search_kind,
       ziiply_environment: request.nextUrl.hostname === "ziiply.fi" || request.nextUrl.hostname === "www.ziiply.fi" ? "production" : "preview",
-      ziiply_analytics_schema: 2,
+      ziiply_analytics_schema: 3,
     };
     if (typeof body.outcome === "string" && OUTCOMES.has(body.outcome)) props.outcome = body.outcome;
     for (const key of ["results_count", "elapsed_ms"]) {
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch("https://eu.i.posthog.com/capture/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ api_key: KEY, event: body.event, distinct_id: "ziiply-search-" + body.search_id, properties: props }),
+      body: JSON.stringify({ api_key: KEY, event: body.event, distinct_id: anonymousUserId ? "ziiply-beta-" + anonymousUserId : "ziiply-search-" + body.search_id, properties: props }),
       cache: "no-store",
       signal: AbortSignal.timeout(6000),
     });
