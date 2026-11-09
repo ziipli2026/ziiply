@@ -696,7 +696,7 @@
 "use client";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "./components/ziiply/comparisonBrand";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
-import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordFirstPricedResults, recordSearchProductAddedToCart } from "./components/ziiply/search/searchTelemetry";
+import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordFirstPricedResults, recordSearchProductAddedToCart, recordSearchResultsDismissed } from "./components/ziiply/search/searchTelemetry";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { recordArrivalDiagnostic, getArrivalDiagnostics, clearArrivalDiagnostics } from "./components/ziiply/location/ziiplyArrivalDiagnostics";
@@ -24285,6 +24285,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               products={normalResults}
               emptyText="Kirjoita tuotteet hakukenttään."
               onClose={() => {
+                recordSearchResultsDismissed();
                 setSearchPanelOpen(false);
                 setNormalResults([]);
                 setMobileResultsReadyQueryV537("");
