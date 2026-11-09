@@ -1699,6 +1699,19 @@ if(out.rows.some(r=>r.page===7&&/VITAMIINIVEDET 1,5 l\/pl/i.test(r.title||''))){
     sanity:'pass',confidence:'high'},percentageOffer:null};
  });
 }
+// Restore a heading split across two publisher HTML lines only when the
+// original same-card text contains the exact prefix, hyphen and suffix.
+// Never use a product catalogue or another publication as name evidence.
+out.rows=out.rows.map(row=>{
+ const title=String(row.title||'').trim();
+ if(!/^SIT\\s+100[–-]185\\s*g$/i.test(title))return row;
+ const evidence=(row.nearby||[]).map(x=>String(x).trim());
+ const prefix=evidence.findIndex(x=>/^PERUNALASTUT\\s+ja$/i.test(x));
+ if(prefix<0||!/^JUUSTONACK-$/i.test(evidence[prefix+1]||''))return row;
+ if(!evidence.slice(prefix+2,prefix+9).some(x=>/^SIT\\s+100[–-]185\\s*g$/i.test(x)))return row;
+ return {...row,title:'PERUNALASTUT ja JUUSTONACKSIT 100–185 g',
+   debugRecoveredPublisherTitle:{from:row.title,to:'PERUNALASTUT ja JUUSTONACKSIT 100–185 g',source:'same-card-split-heading'}};
+});
 out.rows=out.rows.map(row=>restoreUniquePublisherClippedTitle(row,publicationWordBoxes.get(row.page)));
 out.rows=out.rows.map(row=>verifyPrintedTransaction(row,[...(publicationWordBoxes.get(row.page)||[]),...(row.debugNearbyBoxes||[])]));
 // Reconcile clipped publisher names only after the regular transaction proofs.
