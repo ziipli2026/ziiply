@@ -24356,6 +24356,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 resolveVoiceResultWaitV509("recipe ingredient skipped");
               }:undefined}
               onClose={() => {
+                recordSearchResultsDismissed();
                 if(mobileRecipeSearchActive){
                   mobileRecipeRunRef.current++;activeNormalSearchRequestRefV441.current++;
                   mobileRecipeContextRef.current=null;setMobileRecipeSearchActive(false);
