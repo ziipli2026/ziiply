@@ -130,6 +130,10 @@ export async function GET(request: Request) {
   const oilSearchAliases = /^(?:ruokaöljy|ruokaoljy)$/.test(normalizedSearch)
     ? ["rypsiöljy", "auringonkukkaöljy", "oliiviöljy"]
     : [];
+  // Vinegars are typically listed under their specific variety, not plain "etikka".
+  const vinegarSearchAliases = /^(?:etikkaa?|väkiviinaetikkaa?)$/.test(normalizedSearch)
+    ? ["väkiviinaetikka", "omenaviinietikka", "viinietikka"]
+    : [];
 
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
     upstreamSearch
@@ -145,7 +149,7 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) throw new Error("Upstream HTTP " + response.status);
-    const additionalTerms = [...new Set([...(MEAT_SEARCH_ALIASES[normalizedSearch] || []), ...(BASKET_SEARCH_ALIASES[normalizedSearch] || []), ...oilSearchAliases])];
+    const additionalTerms = [...new Set([...(MEAT_SEARCH_ALIASES[normalizedSearch] || []), ...(BASKET_SEARCH_ALIASES[normalizedSearch] || []), ...oilSearchAliases, ...vinegarSearchAliases])];
     const extraResponses = await Promise.all(additionalTerms.map(async (term) => {
       try {
         const extraUrl = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&storeIds=${storeId}&skip=0&take=80`;
