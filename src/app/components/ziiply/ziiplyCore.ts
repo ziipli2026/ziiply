@@ -1948,6 +1948,20 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
+  // Only sellable oil products qualify for an oil query, not foods containing oil.
+  if (/^(?:oliiviöljy|oliiviöljyä|oliivioljy|oliivioljya|ruokaöljy|ruokaöljyä|ruokaoljy|ruokaoljya)$/.test(source)) {
+    const oilName = /(?:oliiviöljy|oliivioljy|rypsiöljy|rypsioljy|rapsiöljy|rapsioljy|auringonkukkaöljy|auringonkukkaoljy|kasviöljy|kasvioljy|ruokaöljy|ruokaoljy|paistoöljy|paistooljy)/;
+    const preparedFood = /(?:öljyssä|öljyssa|öljyllä|öljylla|öljyä sisält|öljya sisalt|tonnikala|sardiin|valmisriisi|krutonk|krutonki|edamame|pähkin|pahkin|sips|perunalast|kastike|majoneesi|marinadi|salaatti|säilyke|sailyke|oliiviöljyuute)/;
+    if (!oilName.test(target) || preparedFood.test(target)) return false;
+    if (/^oliivi/.test(source) && !/(?:oliiviöljy|oliivioljy)/.test(target)) return false;
+  }
+
+  // Frozen lemonade-flavoured products are not bottled/canned soft drinks.
+  if (/^(?:limonadi|limonadia|limsa|limua|virvoitusjuoma)$/.test(source)) {
+    if (/(?:jäätelö|jaatelo|limonadijää|limonadijaa|jääpuikko|jaapuikko|mehujää|mehujaa|sorbet|karkki|makeinen|pastilli|siirappi|tiiviste|cocktail|mocktail)/.test(target)) return false;
+    if (!/(?:limonadi(?!jää|jaa)|limsa|limu|virvoitusjuoma|cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes)/.test(target)) return false;
+  }
+
   if (source.includes("jauheliha") && !target.includes("jauheliha")) return false;
 
   // Bread must never fall through to an unrelated grocery item. This is a hard
