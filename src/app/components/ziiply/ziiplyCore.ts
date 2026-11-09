@@ -1925,15 +1925,15 @@ export function productGroupGate(sourceName: string, targetName: string) {
   // Identify the requested grocery ingredient BEFORE scoring by price.
   // Recipe modifiers (such as "etikkaa 10 %") must not turn into unrelated matches.
   const requestedRaw = correctSearchQuery(sourceName).toLocaleLowerCase("fi").trim();
-  const requested = /^(?:etikkaa?|väkiviinaetikkaa?)(?:\\s+10\\s*%)?$/.test(requestedRaw)
+  const requested = /^(?:etikkaa?|väkiviinaetikkaa?)(?:\s+10\s*%)?$/.test(requestedRaw)
     ? "etikka"
     : requestedRaw;
   const candidate = targetName.toLocaleLowerCase("fi").trim();
   const exactGroups: Record<string, RegExp> = {
-    sokeri: /\\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\\b/i,
-    merisuola: /\\bmerisuola(?:a)?\\b/i,
-    etikka: /(?:^|\\s|-)etikka\\b|väkiviinaetikka|omenaviinietikka|viinietikka/i,
-    silakka: /\\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\\b/i,
+    sokeri: /\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\b/i,
+    merisuola: /\bmerisuola(?:a)?\b/i,
+    etikka: /(?:^|\s|-)etikka\b|väkiviinaetikka|omenaviinietikka|viinietikka/i,
+    silakka: /\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\b/i,
   };
   const excludedPrepared: Record<string, RegExp> = {
     sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen|vartalo|kuorinta|kosmeti|ihonhoito|shampoo|saippua|suihkugeeli/i,
@@ -2042,7 +2042,7 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const sourceIsCheese = hasAnyToken(source, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
     const targetIsCheese = hasAnyToken(target, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
-    const targetIsWrongCheeseProduct = hasAnyToken(target, [
+    const targetIsWrongCheeseProduct = !source.includes("raejuusto") && hasAnyToken(target, [
       "tuorejuusto",
       "sulatejuusto",
       "raejuusto",
@@ -2979,7 +2979,7 @@ export function isBadNormalResult(product: Product, query: string) {
   // Shared product-group validation for all normal searches and offer searches.
   const intentCategory = detectSearchIntent(query).category;
   if (intentCategory === "butter") {
-    if (!/(?:^|[\\s-])(?:voi|meijerivoi)(?:$|[\\s-])/.test(normalizedName)) return true;
+    if (!/(?:^|[\s-])(?:voi|meijerivoi)(?:$|[\s-])/.test(normalizedName)) return true;
     if (/(?:voitäyte|voitäytte|voiherkku|kasvovoi|vartalovoi|hiusvoi|voide|pullapitko|leivonnainen|margariini)/.test(normalizedName)) return true;
     if (/(?:kosmetiikka|hygienia|leipomo|leivonnaiset)/.test(category)) return true;
   }
