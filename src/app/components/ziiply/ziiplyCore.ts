@@ -1952,7 +1952,7 @@ export function productGroupGate(sourceName: string, targetName: string) {
   // user query and product name equally (accents and inflections included).
   if (/^(?:oliivioljya?|ruokaoljya?)$/.test(source)) {
     const standaloneOil = /(?:^|[\s-])(?:extra virgin |ekstra neitsyt |neitsyt |luomu |kylmapuristettu |kevyt )*(?:oliivioljy|rypsioljy|rapsioljy|auringonkukkaoljy|kasvioljy|ruokaoljy|paistooljy)(?:[\s,.-]|$)/;
-    const wrongOilProduct = /(?:oljyssa|oljylla|oljya sisalt|tonnikala|sardiin|muikku|valmisriisi|krutonk|krutonki|edamame|pahkin|sips|perunalast|kastike|majoneesi|marinadi|salaatti|sailyke|lohkoperuna|voileipakeksi|keksi|oivariini|levite|voi\b|tuorejuusto|mauste|oliivioljy(?:uute|lla|ssa))/;
+    const wrongOilProduct = /(?:oljyssa|oljylla|oljya sisalt|tonnikala|sardiin|muikku|valmisriisi|krutonk|krutonki|edamame|pahkin|sips|perunalast|kastike|majoneesi|marinadi|salaatti|sailyke|lohkoperuna|voileipakeksi|keksi|oivariini|levite|margariini|voi\b|tuorejuusto|mauste|oliivioljy(?:uute|lla|ssa))/;
     if (!standaloneOil.test(target) || wrongOilProduct.test(target)) return false;
     if (source.startsWith("oliivi") && !/(?:^|[\s-])oliivioljy(?:[\s,.-]|$)/.test(target)) return false;
   }
