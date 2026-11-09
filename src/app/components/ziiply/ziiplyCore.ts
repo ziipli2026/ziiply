@@ -2966,6 +2966,10 @@ export function isBadNormalResult(product: Product, query: string) {
   if ((normalizedQuery.includes("jogurtti") || normalizedQuery.includes("jogurt")) && /(?:kastike|kuorrute|myslipatukka|patukka)/.test(normalizedName)) return true;
 
   const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
+  // Exact fat-content variants must reject different real milk types.
+  // Keep the generic 'maito' query broad enough for all accepted milks.
+  const requestedMilkType = comparisonProductType(query);
+  if (requestedMilkType && comparisonProductType(product.name) !== requestedMilkType) return true;
   if (queryIsMilk) {
     const positiveMilkSignals = [
       "maito",
