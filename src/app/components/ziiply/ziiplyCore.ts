@@ -2713,6 +2713,16 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   // Rank only the accepted products. Sorting the original list reintroduced
   // rejected milk types (e.g. rasvaton maito for a täysmaito query).
   return products.filter((product) => accepted.has(product)).sort((a, b) => {
+    // For the generic milk query, every accepted product is a valid milk type.
+    // Price must decide the order instead of search-score tiers.
+    if (normalize(query).trim() === "maito") {
+      const aPrice = priceOf(a);
+      const bPrice = priceOf(b);
+      const aValid = Number.isFinite(aPrice) && aPrice > 0;
+      const bValid = Number.isFinite(bPrice) && bPrice > 0;
+      if (aValid !== bValid) return aValid ? -1 : 1;
+      if (aValid && aPrice !== bPrice) return aPrice - bPrice;
+    }
     const aScore = scoreNormalSResult(query, a);
     const bScore = scoreNormalSResult(query, b);
     const aTier = Math.floor(aScore / 40);
