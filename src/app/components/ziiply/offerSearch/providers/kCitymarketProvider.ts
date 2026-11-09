@@ -1018,6 +1018,10 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
         .map(match=>match[0].replace(/\s+/g,"").replace(",","."));
     };
     const packageMatch=(value:string)=>packageSizes(value)[0]||"";
+    // Roll and piece counts distinguish tissue packs; 40 rolls must never match 42 wipes.
+    const countPack=(value:string)=>[...repair(value).toLowerCase().matchAll(/\b\d+\s*(?:rl|rll|rullaa|kpl)\b/gi)]
+      .map(match=>match[0].replace(/\s+/g,"").replace(/rll$|rullaa$/,"rl"));
+
     const wordIsDistinctive=(word:string)=>word.length>=11 && !["virvoitusjuomat","energiajuomat"].includes(word);
     const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","ja","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma","sis","pantit","pantti"]);
     const tokens=(value:string)=>{
@@ -1040,6 +1044,9 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
         const wantedSize=packageMatch(offer.packageSize||offer.title);
         if(wanted.size>=1){
           let candidates=[...photos.entries()].filter(([name])=>{
+            const wantedCounts=countPack(offer.title);
+            const foundCounts=countPack(name);
+            if(wantedCounts.length && (!foundCounts.length || !wantedCounts.some(count=>foundCounts.includes(count))))return false;
             const foundSizes=packageSizes(name);
             const foundSize=foundSizes[0]||"";
             if(wantedSize && foundSizes.length && !foundSizes.includes(wantedSize))return false;
