@@ -6,6 +6,15 @@ export type SearchKind = "normal" | "ean" | "offer";
 export type SearchSession = { id: string; kind: SearchKind; startedAt: number; firstPriceReported: boolean; finished: boolean };
 
 const active = new Map<string, SearchSession>();
+let lastCompletedSearch: { id: string; kind: SearchKind; selected: boolean; closed: boolean } | null = null;
+
+export function recordSearchResultsDismissed(): void {
+  const previous = lastCompletedSearch;
+  if (!previous || previous.selected || previous.closed) return;
+  previous.closed = true;
+  safeCapture("search_results_dismissed", { search_id: previous.id, search_kind: previous.kind });
+}
+
 // Deliver via Ziiply's own server endpoint so Safari content blockers cannot
 // silently suppress the PostHog SDK. The server logs the upstream HTTP result.
 const safeCapture = (event: string, props: Record<string, string | number | boolean>) => {
@@ -26,6 +35,11 @@ export function beginSearchTelemetry(kind: SearchKind): SearchSession {
     kind, startedAt: typeof performance !== "undefined" ? performance.now() : Date.now(),
     firstPriceReported: false, finished: false,
   };
+  // Starting another search without selecting a result is browsing, not a failed search.
+  if (lastCompletedSearch && !lastCompletedSearch.selected && !lastCompletedSearch.closed) {
+    safeCapture("search_no_selection", { search_id: lastCompletedSearch.id, search_kind: lastCompletedSearch.kind });
+  }
+  lastCompletedSearch = null;
   active.set(session.id, session);
   safeCapture("search_started", { search_id: session.id, search_kind: kind });
   return session;
@@ -55,6 +69,7 @@ export function finishSearchTelemetry(session: SearchSession, outcome: SearchOut
     elapsed_ms: Math.max(0, Math.round(now - session.startedAt)),
   });
   active.delete(session.id);
+  if (outcome === "priced_results" && pricedCount > 0) lastCompletedSearch = { id: session.id, kind: session.kind, selected: false, closed: false };
 }
 
 /** Cancelled searches are excluded from success-rate denominators. */
@@ -68,6 +83,7 @@ export function cancelSearchTelemetry(session: SearchSession): void {
  * Never transmit product names, EANs, search terms, or cart contents.
  */
 export function recordSearchProductAddedToCart(): void {
+  if (lastCompletedSearch) lastCompletedSearch.selected = true;
   const id = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   safeCapture("product_added_to_cart", { search_id: id, search_kind: "normal" });
