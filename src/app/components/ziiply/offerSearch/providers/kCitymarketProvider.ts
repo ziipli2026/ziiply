@@ -1012,7 +1012,8 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
     const packageSizes=(value:string)=>{
       // Tjek normalizes decimal commas to spaces; composite offers can list several sizes.
       const raw=repair(value).toLowerCase()
-        .replace(/\b(\d{1,2})\s+(\d{2})\s*(kg|g|ml|cl|dl|l)\b/g,"$1.$2 $3");
+        .replace(/\b(\d{1,2})\s+(\d{2})\s*(kg|g|ml|cl|dl|l)\b/g,(_full,whole,tail,unit)=>
+          Number(whole)<=2 ? whole+"."+tail+" "+unit : whole+" "+unit+" "+tail+" "+unit);
       return [...raw.matchAll(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/gi)]
         .map(match=>match[0].replace(/\s+/g,"").replace(",","."));
     };
@@ -1021,6 +1022,7 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
     const stop=new Set(["suomi","peru","kolombia","marokko","espanja","ruotsi","tai","ja","kpl","kg","alkaen","valikoima","lajitelmat","lajitelma","sis","pantit","pantti"]);
     const tokens=(value:string)=>{
       const cleaned=repair(value)
+        .replace(/\bPROTEIINI\s*[-–]\s*JUOMAT\b/gi,"PROTEIINIJUOMAT")
         .replace(/\b(?:Spannmålsfritt|Portionsask(?:ar|-ar)|Airfry-produkter|Godisask|Alkoholfri|Träbaserad|Mywear friluftskläder)\b.*$/i," ")
         .replace(/\b(?:Mikromåltider|Chokladstänger|Vitamindrycker|Energidrycker)\b/gi," ")
         .replace(/\b(?:Suomi|Peru|Kolombia|Marokko|Espanja)(?:\s*\/\s*(?:Peru|Kolombia|Marokko|Espanja))*\b/gi," ")
