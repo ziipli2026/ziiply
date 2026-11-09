@@ -137,18 +137,16 @@ const qualityRows=await sql`
   count(*)::int AS total,
   count(*) FILTER (WHERE coalesce(x->>'title','')='')::int AS missing_names,
   count(*) FILTER (WHERE coalesce(x->>'category','') IN ('','Muut'))::int AS missing_categories,
-  count(*) FILTER (WHERE (coalesce(x->>'price','') !~ '^[0-9]+([.][0-9]+)?
- OR
-    CASE WHEN coalesce(x->>'price','') ~ '^[0-9]+([.][0-9]+)?
- THEN (x->>'price')::numeric<=0 ELSE true END)
-    AND (coalesce(x->>'discountPercent','') !~ '^[0-9]+([.][0-9]+)?
- OR
-    CASE WHEN coalesce(x->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?
- THEN (x->>'discountPercent')::numeric<=0 OR (x->>'discountPercent')::numeric>=100 ELSE true END))::int AS missing_prices,
+  count(*) FILTER (WHERE NOT (
+    (coalesce(x->>'price','') ~ '^[0-9]+([.][0-9]+)?' AND
+     CASE WHEN coalesce(x->>'price','') ~ '^[0-9]+([.][0-9]+)?' THEN (x->>'price')::numeric>0 ELSE false END)
+    OR
+    (coalesce(x->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?' AND
+     CASE WHEN coalesce(x->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?' THEN (x->>'discountPercent')::numeric>0 AND (x->>'discountPercent')::numeric<100 ELSE false END)
+  ))::int AS missing_prices,
   count(*) FILTER (WHERE coalesce(x->>'resolutionSanity','pass')<>'pass')::int AS unverified_prices,
   count(*) FILTER (WHERE coalesce(x->>'title','') ~* '^(TUOTTEET|SIT([[:space:]]|$))')::int AS suspicious_names
  FROM ziiply_offer_publications p, jsonb_array_elements(p.offers) x
  WHERE p.chain='K-Citymarket' AND p.publication_id=${before[0].publication_id}
 `;
 console.log("CANDIDATE_QUALITY",JSON.stringify({publication:before[0].publication_id,approvalState:after[0].approval_state,...qualityRows[0]}));
-
