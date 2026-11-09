@@ -2801,8 +2801,12 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   products: T[],
   priceOf: (product: T) => number,
 ): T[] {
+  // The normal product picker is always cheapest-first AFTER hard semantic
+  // filtering. RankNormalSearchResults provides the relevance tie-break order,
+  // but must never group provider queries/brands ahead of a cheaper match.
   return rankNormalSearchResults(query, products, priceOf)
-    .filter((product) => Number.isFinite(priceOf(product)) && priceOf(product) > 0);
+    .filter((product) => Number.isFinite(priceOf(product)) && priceOf(product) > 0)
+    .sort((a, b) => priceOf(a) - priceOf(b));
 }
 
 export function rankNormalSearchResults<T extends Product>(
@@ -3044,6 +3048,9 @@ export function isBadNormalResult(product: Product, query: string) {
   }
 
   const queryIsCola = hasAnyToken(normalizedQuery, ["cola", "coca-cola", "coca cola", "pepsi", "kokis"]);
+  // A cola-flavoured product, cocktail or sports shot is not a cola soda.
+  // Reject by product identity, never by score alone.
+  if (queryIsCola && /(?:colada|mocktail|pre[ -]?workout|workout|shot|mehujaa|mehujää|jaatelo|jäätelö|limonadijää)/.test(normalizedName)) return true;
   if (queryIsCola) {
     if (!isClearlyColaProduct(product.name)) return true;
     if (isDifferentColaBrand(query, product.name)) return true;
