@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/mobile-main-100-search-audit.yml"
+      - "src/app/components/ziiply/ziiplyCore.ts"
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,8 +39,11 @@ jobs:
             const raw=Array.isArray(body)?body:(body.items||body.products||[]);
             const priced=raw.map(p=>({...p,price:Number(p.price||p.storeItems?.[0]?.price||0)})).filter(p=>Number.isFinite(p.price)&&p.price>0);
             const ranked=core.rankProductResultsByRelevanceAndPrice(term,priced,p=>p.price);
+            const rankedReversed=core.rankProductResultsByRelevanceAndPrice(term,[...priced].reverse(),p=>p.price);
+            const reverseOrdered=rankedReversed.every((p,i)=>i===0||rankedReversed[i-1].price<=p.price);
+            const sameTop=JSON.stringify(ranked.slice(0,10).map(p=>[p.name,p.price]))===JSON.stringify(rankedReversed.slice(0,10).map(p=>[p.name,p.price]));
             const ordered=ranked.every((p,i)=>i===0||ranked[i-1].price<=p.price);
-            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered,top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rejected:priced.length-ranked.length};
+            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rejected:priced.length-ranked.length};
           }
           (async()=>{
             for(let i=0;i<terms.length;i+=5){
@@ -48,10 +52,10 @@ jobs:
               }));
               for(const r of batch){results.push(r);console.log(JSON.stringify(r))}
             }
-            const summary={queries:terms.length,completed:results.filter(r=>!r.error).length,errors:results.filter(r=>r.error).length,empty:results.filter(r=>!r.error&&r.accepted===0).length,unsorted:results.filter(r=>r.sorted===false).length,source:'live Prisma API + production shared ranking code',commit:process.env.GITHUB_SHA};
+            const summary={queries:terms.length,completed:results.filter(r=>!r.error).length,errors:results.filter(r=>r.error).length,empty:results.filter(r=>!r.error&&r.accepted===0).length,unsorted:results.filter(r=>r.sorted===false).length,unstableTop:results.filter(r=>r.stableTop===false).length,source:'live Prisma API + production shared ranking code',commit:process.env.GITHUB_SHA};
             fs.writeFileSync('mobile-main-100-search-results.json',JSON.stringify({summary,results},null,2));
             console.log('SUMMARY '+JSON.stringify(summary));
-            if(summary.errors||summary.unsorted)process.exitCode=1;
+            if(summary.errors||summary.unsorted||summary.unstableTop)process.exitCode=1;
           })();
           NODE
       - uses: actions/upload-artifact@v4
