@@ -15,6 +15,22 @@ export function recordSearchResultsDismissed(): void {
   safeCapture("search_results_dismissed", { search_id: previous.id, search_kind: previous.kind });
 }
 
+// Anonymous browser ID: no names, emails, search terms or device fingerprinting.
+const ANON_ID_KEY = "ziiply_search_anon_id_v1";
+let inMemoryAnonId: string | null = null;
+function anonymousSearchUserId(): string {
+  if (inMemoryAnonId) return inMemoryAnonId;
+  try {
+    const existing = window.localStorage.getItem(ANON_ID_KEY);
+    if (existing && /^a[a-f0-9-]{36}$/.test(existing)) return (inMemoryAnonId = existing);
+  } catch { /* storage unavailable */ }
+  const id = "a" + (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random().toString(36).slice(2));
+  inMemoryAnonId = id;
+  try { window.localStorage.setItem(ANON_ID_KEY, id); } catch { /* session-only fallback */ }
+  return id;
+}
+
 // Deliver via Ziiply's own server endpoint so Safari content blockers cannot
 // silently suppress the PostHog SDK. The server logs the upstream HTTP result.
 const safeCapture = (event: string, props: Record<string, string | number | boolean>) => {
@@ -23,7 +39,7 @@ const safeCapture = (event: string, props: Record<string, string | number | bool
     void fetch("/api/analytics/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event, ...props }),
+      body: JSON.stringify({ event, ...props, anonymous_user_id: anonymousSearchUserId() }),
       keepalive: true,
     }).catch(() => { /* analytics must never block search */ });
   } catch { /* analytics must never block search */ }
