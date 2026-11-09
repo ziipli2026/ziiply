@@ -54,6 +54,35 @@ if(is46AVCandidate){
     console.log("46AV_CANDIDATE_OCR_REPAIR_SKIPPED",JSON.stringify({broken:broken?.title,orphan:orphan?.title}));
   }
 }
+// Reclassify a restored OCR title using the same authoritative provider classifier.
+// Restrict the database patch to this exact candidate row and never alter prices/images.
+if(is46AVCandidate){
+  const repairedId="kcm:spatial:6:perunalastut ja juustonacksit 100–185 g:4";
+  const correctedTitle="PERUNALASTUT ja JUUSTONACKSIT 100–185 g";
+  const expectedCategory="Makeiset & keksit";
+  const updatedCategory=await sql`
+    UPDATE ziiply_offer_publications p SET offers=(
+      SELECT jsonb_agg(
+        CASE WHEN x.value->>'id'=${repairedId}
+          AND x.value->>'title'=${correctedTitle}
+          AND x.value->>'category'='Muut'
+          THEN jsonb_set(x.value,'{category}',to_jsonb(${expectedCategory}::text),true)
+          ELSE x.value END ORDER BY x.ordinality)
+      FROM jsonb_array_elements(p.offers) WITH ORDINALITY x(value,ordinality)
+    )
+    WHERE p.chain='K-Citymarket' AND p.publication_id=${before[0].publication_id}
+      AND p.approval_state='candidate'
+      AND EXISTS(SELECT 1 FROM jsonb_array_elements(p.offers) x
+        WHERE x->>'id'=${repairedId} AND x->>'title'=${correctedTitle} AND x->>'category'='Muut')
+    RETURNING publication_id`;
+  if(updatedCategory.length===1){
+    const row=(stored[0].offers as Array<{id?:string,category?:string}>).find(x=>x.id===repairedId);
+    if(row)row.category=expectedCategory;
+    console.log("46AV_CANDIDATE_CATEGORY_REPAIRED",JSON.stringify({id:repairedId,category:expectedCategory}));
+  }else{
+    console.log("46AV_CANDIDATE_CATEGORY_REPAIR_SKIPPED");
+  }
+}
 const offers=await enrichStoredKCitymarketOfferImages(stored[0].offers as Parameters<typeof enrichStoredKCitymarketOfferImages>[0]);
 console.log("ENRICHED",JSON.stringify({offers:offers.length,withImage:offers.filter(o=>!!o.imageUrl).length}));
 const imageFormats:Record<string,number>={};
