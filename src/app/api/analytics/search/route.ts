@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     });
     const responseBody = await response.text();
     const accepted = response.ok && !/["']status["']\s*:\s*0/.test(responseBody);
-    console.info("[ziiply-search-telemetry]", JSON.stringify({ event: body.event, status: response.status, accepted }));
+    console.info("[ziiply-search-telemetry]", JSON.stringify({ event: body.event, status: response.status, accepted, anonymous: Boolean(anonymousUserId) }));
     return NextResponse.json({ accepted }, { status: accepted ? 200 : 502 });
   } catch (error) {
     console.error("[ziiply-search-telemetry] delivery_failed", error instanceof Error ? error.message : "unknown");
