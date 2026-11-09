@@ -1,0 +1,1514 @@
+## main total_lines=25712
+rankNormalSearchResults: 2 hits, lines [1642, 13284]
+rankProductResultsByRelevanceAndPrice: 3 hits, lines [1643, 13180, 13308]
+setNormalSearchResults: 0 hits, lines []
+setSearchResults: 0 hits, lines []
+normalSearchCache: 15 hits, lines [4459, 4471, 4580, 4582, 4612, 4636, 4682, 4691, 4693, 4697, 12912, 12913, 12914, 12942, 13341]
+cache-hit: 1 hits, lines [12930]
+cache-read: 1 hits, lines [12922]
+searchCache: 15 hits, lines [4459, 4471, 4580, 4582, 4612, 4636, 4682, 4691, 4693, 4697, 12912, 12913, 12914, 12942, 13341]
+displayedProducts: 1 hits, lines [4494]
+getNormalSearchQueries: 12 hits, lines [951, 1573, 7230, 7273, 12985, 12986, 13645, 13760, 13928, 17039, 18674, 19372]
+searchNormalProducts: 0 hits, lines []
+isWrongMilkSearchProduct: 1 hits, lines [1629]
+939: 
+940: // V117_OPENFOODFACTS_CART_NAME_CLEAN_INFO
+941: // Korjaus: Open Food Facts -fallback pidetään saman EAN-haun sisällä loppuun asti.
+942: // V117: Open Food Facts -tuotteen nimeen ei enää lisätä status-tekstiä koriin.
+943: // Status näytetään ilmoituksena: tunnistettu, mutta ei mukana hintavertailussa.
+944: // Tuntematon EAN ei enää ehdi lisätä rinnakkaista riviä ennen OFF-vastausta.
+945: // V130_RECOGNIZED_SCAN_BLOCKS_PARALLEL_UNKNOWN: tunnistetun EAN-skannauksen jälkeen saman lukutapahtuman tuntematon fallback blokataan.
+946: // Jos tuntematon rivi on jo ehtinyt koriin, OFF-osuma päivittää saman rivin tunnistetuksi eikä lisää toista ilmoitusta/riviä.
+947: 
+948: // V723_SEARCH_FAIL_OPEN_FIX
+949: // Pohjana V722.
+950: // Korjaus hakumoottoriin:
+951: // - getNormalSearchQueries(term) ei saa enää kaataa hakua, jos se palauttaa tyhjän/huonon listan
+952: // - alkuperäinen käyttäjän kirjoittama termi lisätään aina hakujonoon fallbackiksi
+953: // - low-signal early return ei enää pysäytä tavallisia vähintään 2 merkin hakusanoja
+954: // - lisätty debug-merkintä, jos hakukyselylista jäi tyhjäksi ennen fallbackia.
+955: 
+956: // V722_TOPBAR_LABEL_AND_PRICE_ALIGN_FIX
+957: // Pohjana V721.
+958: // Korjaukset:
+959: // - SAA -> SÄÄ ja SAHKO -> SÄHKÖ diakriittien kanssa
+960: // - sää- ja sähköotsikot nostettu samalle vaakalinjalle kuin AJOAINE ja KES
+961: // - sähkön "Laskee/Nousee/Vakaa" alateksti poistettu
+962: // - lämpötila ja sähkön hinta asetettu samalle pystylinjalle
+963: // - lämpötilan ja sähkön hinnan fonttia pienennetty hieman, jotta hinta mahtuu paremmin
+964: // - c/kWh siirretty oikeammalle ja pidetty pienempänä.
+965: 
+966: // V721_TOPBAR_TEXT_FIT_AND_CALENDAR_IN_APP
+967: // Pohjana V720.
+968: // Korjaukset:
+969: // - sääkortista poistettu säätilateksti, koska kuvake kertoo säätyypin
+970: // - sääkorttiin jätetty kuvake + lämpötila, jolloin tila mahtuu paremmin
+1561:   SEARCH_ALIASES,
+1562:   getSearchQuery,
+1563:   getColaSpecificSearchQueries,
+1564:   uniqueNormalizedQueries,
+1565:   SEARCH_INTENTS,
+1566:   detectSearchIntent,
+1567:   isMilkSearchTerm,
+1568:   isColaSearchTerm,
+1569:   getPrimaryProductNounQuery,
+1570:   isVerySpecificSearch,
+1571:   normalizeLooseProductMatch,
+1572:   getMetricSizeKey,
+1573:   getNormalSearchQueries,
+1574:   isAliasSearch,
+1575:   formatEuro,
+1576:   formatComparisonPrice,
+1577:   getProductCategoryLabel,
+1578:   triggerHaptic,
+1579:   playScanSuccessFeedback,
+1580:   getScannerVideoElement,
+1581:   getScannerVideoTrack,
+1582:   applyBestEffortScannerCameraTuning,
+1583:   focusScannerCameraAtPoint,
+1584:   formatDate,
+1585:   getProductPrice,
+1586:   isManualShoppingItem,
+1587:   getPriceHistoryKeyFromProduct,
+1588:   getPriceHistoryKeyFromCartItem,
+1589:   getPriceChangeInfo,
+1590:   getSizeToken,
+1591:   hasWord,
+1592:   getNormalizedWords,
+1617:   PREMIUM_BRANDS,
+1618:   isValueBrandProduct,
+1619:   isKOwnBrandProduct,
+1620:   isPremiumBrandProduct,
+1621:   productGroupGate,
+1622:   isHardRejectedKMatch,
+1623:   scoreNameMatch,
+1624:   scoreDirectQueryNameMatch,
+1625:   getProductSearchText,
+1626:   getPreferredSizeScore,
+1627:   looksLikeNonFoodProduct,
+1628:   getGroceryNonFoodPenalty,
+1629:   isWrongMilkSearchProduct,
+1630:   hasStrongMilkSignal,
+1631:   getCategoryConfidence,
+1632:   getImportantQueryWordsForStrictMatch,
+1633:   getStrictMultiWordMatchScore,
+1634:   scoreBaseNormalResult,
+1635:   scoreMilkProduct,
+1636:   scoreCoffeeProduct,
+1637:   scoreColaProduct,
+1638:   scoreButtermilkProduct,
+1639:   scoreCookingOilProduct,
+1640:   scoreCategorySpecificResult,
+1641:   scoreNormalSResult,
+1642:   rankNormalSearchResults,
+1643:   rankProductResultsByRelevanceAndPrice,
+1644:   isNonFoodOffer,
+1645:   isBadNormalResult,
+1646:   findArea,
+1647:   storeText,
+1648:   isPrisma,
+1649:   isKCitymarket,
+1650:   isSLocalStore,
+1651:   isKLocalStore,
+1652:   pickStore,
+1653:   offerToProduct,
+1654:   scoreOfferForTerm,
+1655:   rankOfferSearchResults,
+1656:   convertKProductToProduct,
+1657:   getPrimaryBrand,
+1658:   isAllowedByQualityMode,
+1659:   scoreQualityMode,
+1660:   pickBestSProduct,
+1661:   pickBestKProduct,
+1662: } from "./components/ziiply/ziiplyCore";
+4447:       : "";
+4448:     const totalLabel = missingCount > 0 ? `Löytyneiden tuotteiden osasumma ${total}` : `Yhteensä ${total}`;
+4449:     const text = [`Ziiply kori: ${storeName}`, missingNotice, total ? totalLabel : "", ...lines]
+4450:       .filter(Boolean)
+4451:       .join("\n");
+4452: 
+4453:     void shareTextV729(`Ziiply kori: ${storeName}`, text);
+4454:   }
+4455: 
+4456: 
+4457:   const [normalResults, setNormalResults] = useState<Product[]>([]);
+4458:   const normalResultsLatestRefV441 = useRef<Product[]>([]);
+4459:   const normalSearchCacheRefV441 = useRef<
+4460:     Map<
+4461:       string,
+4462:       {
+4463:         results: Product[];
+4464:         debug: SearchDebugEntry[];
+4465:         readyQuery: string;
+4466:         savedAt: number;
+4467:       }
+4468:     >
+4469:   >(new Map());
+4470:   const activeNormalSearchRequestRefV441 = useRef(0);
+4471:   const normalSearchCacheHydratedRefV441 = useRef(false);
+4472:   const NORMAL_SEARCH_CACHE_STORAGE_KEY_V441 = "ziiply-normal-search-cache-v441";
+4473:   const NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441 = 1000 * 60 * 20;
+4474:   const NORMAL_SEARCH_CACHE_MAX_ITEMS_V441 = 24;
+4475:   const [normalSearchAttempted, setNormalSearchAttempted] = useState(false);
+4476:   const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
+4477:   const mobileSearchTraceRef = useRef<any>({ events: [], status: "not-started" });
+4478:   const traceSearch = (stage: string, data: Record<string, unknown> = {}) => {
+4479:     const trace = mobileSearchTraceRef.current;
+4480:     trace.events.push({ at: new Date().toISOString(), stage, ...data });
+4481:     if (trace.events.length > 120) trace.events.shift();
+4482:   };
+4483:   const traceProducts = (items: Product[]) => items.map((p: Product) => ({
+4484:     id: p.id, ean: p.ean, name: p.name, category: p.category,
+4485:     price: getProductPrice(p), source: (p as any).source,
+4486:     store: (p as any).storeName || (p as any).store,
+4487:     originalSearchTerm: (p as any).originalSearchTerm,
+4488:     usedSearchQuery: (p as any).usedSearchQuery,
+4489:   }));
+4490:   const downloadMobileSearchTrace = () => {
+4491:     const trace = mobileSearchTraceRef.current;
+4492:     const payload = { schema: "ziiply-mobile-search-pipeline-v2", exportedAt: new Date().toISOString(),
+4493:       appUrl: window.location.origin + window.location.pathname, userAgent: navigator.userAgent,
+4494:       ...trace, displayedProducts: traceProducts(normalResultsLatestRefV441.current) };
+4495:     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+4496:     const a = document.createElement("a"); a.href = url;
+4497:     a.download = "ziiply-haku-pipeline-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
+4498:     document.body.appendChild(a); a.click(); a.remove();
+4499:     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+4500:   };
+4501:   const [loadingNormal, setLoadingNormal] = useState(false);
+4502:   const [singleProductCompareResults, setSingleProductCompareResults] =
+4503:     useState<SingleProductCompareResult[]>([]);
+4504:   const [singleProductCompareLoading, setSingleProductCompareLoading] =
+4505:     useState(false);
+4506:   const [singleProductCompareTerm, setSingleProductCompareTerm] = useState("");
+4507:   const searchNavigationLocked =
+4508:     loadingOffers || loadingNormal || singleProductCompareLoading;
+4509:   const withinChainStoresReadyV320 = Boolean(
+4510:     storeCompareScope === "within_chain" &&
+4511:     withinChain &&
+4512:     (withinChain === "S"
+4513:       ? (activeArea.sStoreId || activeArea.sStoreName) &&
+4568:     usingOwnLocation,
+4569:     foundStores,
+4570:   ]);
+4571: 
+4572: 
+4573: 
+4574:   useEffect(() => {
+4575:     normalResultsLatestRefV441.current = normalResults;
+4576:   }, [normalResults]);
+4577: 
+4578:   useEffect(() => {
+4579:     if (typeof window === "undefined") return;
+4580:     if (normalSearchCacheHydratedRefV441.current) return;
+4581: 
+4582:     normalSearchCacheHydratedRefV441.current = true;
+4583: 
+4584:     try {
+4585:       const raw = window.sessionStorage.getItem(NORMAL_SEARCH_CACHE_STORAGE_KEY_V441);
+4586:       if (!raw) return;
+4587: 
+4588:       const parsed = JSON.parse(raw) as Array<[
+4589:         string,
+4590:         {
+4591:           results: Product[];
+4592:           debug: SearchDebugEntry[];
+4593:           readyQuery: string;
+4594:           savedAt: number;
+4595:         },
+4596:       ]>;
+4597: 
+4598:       const now = Date.now();
+4599:       const next = new Map<string, {
+4600:         results: Product[];
+4601:         debug: SearchDebugEntry[];
+4602:         readyQuery: string;
+4603:         savedAt: number;
+4604:       }>();
+4605: 
+4606:       for (const [key, value] of Array.isArray(parsed) ? parsed : []) {
+4607:         if (!value || !Array.isArray(value.results) || value.results.length === 0) continue;
+4608:         if (now - Number(value.savedAt || 0) > NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441) continue;
+4609:         next.set(key, value);
+4610:       }
+4611: 
+4612:       normalSearchCacheRefV441.current = next;
+4613:     } catch {}
+4614:   }, []);
+4615: 
+4616:   function getNormalResultsSignatureV441(items: Product[]) {
+4617:     return items
+4618:       .map((item: any) => {
+4619:         const id = item?.id ?? item?.ean ?? item?.name ?? "";
+4620:         const price = item?.price ?? item?.comparisonPrice ?? item?.comparisonPriceValue ?? "";
+4621:         return `${id}:${price}`;
+4622:       })
+4623:       .join("|");
+4624:   }
+4625: 
+4626:   function setNormalResultsStableV441(next: Product[]) {
+4627:     const currentSignature = getNormalResultsSignatureV441(normalResultsLatestRefV441.current);
+4628:     const nextSignature = getNormalResultsSignatureV441(next);
+4629: 
+4630:     if (currentSignature !== nextSignature) {
+4631:       normalResultsLatestRefV441.current = next;
+4632:       setNormalResults(next);
+4633:     }
+4634:   }
+4635: 
+4636:   function buildNormalSearchCacheKeyV441(searchTerms: string[], forceEan: boolean) {
+4637:     const withinChainStoreSignature =
+4638:       storeCompareScope === "within_chain"
+4639:         ? withinChain === "S"
+4640:           ? [
+4641:               activeArea.sStoreId || "",
+4642:               activeArea.sStoreName || "",
+4643:               activeArea.sLocalStoreId || "",
+4644:               activeArea.sLocalStoreName || "",
+4645:             ]
+4646:           : withinChain === "K"
+4647:             ? [
+4648:                 activeArea.kStoreId || "",
+4649:                 activeArea.kStoreName || "",
+4650:                 activeArea.kLocalStoreId || "",
+4651:                 activeArea.kLocalStoreName || "",
+4652:               ]
+4653:             : []
+4654:         : [];
+4655: 
+4670:       selectedEurosparStoreV751?.id || "",
+4671:       selectedEurosparStoreV751?.name || "",
+4672:       withinChain || "",
+4673:       activeStores.sStoreId || "",
+4674:       activeStores.kStoreId || "",
+4675:       activeStores.sStoreName || "",
+4676:       activeStores.kStoreName || "",
+4677:       ...withinChainStoreSignature,
+4678:       searchTerms.map((term) => normalize(String(term || ""))).join(","),
+4679:     ].join("|");
+4680:   }
+4681: 
+4682:   function rememberNormalSearchCacheV441(
+4683:     cacheKey: string,
+4684:     value: {
+4685:       results: Product[];
+4686:       debug: SearchDebugEntry[];
+4687:       readyQuery: string;
+4688:       savedAt: number;
+4689:     },
+4690:   ) {
+4691:     normalSearchCacheRefV441.current.set(cacheKey, value);
+4692: 
+4693:     const entries = Array.from(normalSearchCacheRefV441.current.entries())
+4694:       .sort((a, b) => Number(b[1]?.savedAt || 0) - Number(a[1]?.savedAt || 0))
+4695:       .slice(0, NORMAL_SEARCH_CACHE_MAX_ITEMS_V441);
+4696: 
+4697:     normalSearchCacheRefV441.current = new Map(entries);
+4698: 
+4699:     try {
+4700:       window.sessionStorage.setItem(
+4701:         NORMAL_SEARCH_CACHE_STORAGE_KEY_V441,
+4702:         JSON.stringify(entries),
+4703:       );
+4704:     } catch {}
+4705:   }
+4706: 
+4707:   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
+4708:   const [haeReadyBadgeTimerVisibleV520, setHaeReadyBadgeTimerVisibleV520] =
+4709:     useState(false);
+4710:   const previousSearchReadySignatureV320 = useRef("");
+4711:   const suppressHaeReadyBadgeUntilRefV541 = useRef(0);
+4712: 
+4713:   const searchReadySignatureV320 = storesReadyForSearch
+4714:     ? [
+4715:         storeCompareScope,
+4716:         storeMode,
+7218:     variants: string[],
+7219:     nameCandidates: string[],
+7220:     storeId: string | number,
+7221:   ): Promise<Product | null> {
+7222:     if (getProductPrice(candidate) > 0) return candidate;
+7223: 
+7224:     const candidateName = fixText(candidate.name || "");
+7225:     const searchTerms = Array.from(
+7226:       new Map(
+7227:         [
+7228:           candidateName,
+7229:           ...nameCandidates,
+7230:           ...getNormalSearchQueries(candidateName).slice(0, 8),
+7231:         ]
+7232:           .map((term) => fixText(String(term || "")).trim())
+7233:           .filter(Boolean)
+7234:           .map((term) => [normalize(term), term]),
+7235:       ).values(),
+7236:     ).slice(0, 12);
+7237: 
+7238:     for (const term of searchTerms) {
+7239:       const pricedProducts = await fetchSProducts(term, storeId).catch(
+7240:         () => [] as Product[],
+7241:       );
+7242: 
+7243:       const exactEanMatch = pricedProducts.find(
+7244:         (product) =>
+7245:           getProductPrice(product) > 0 && isSameEan(product.ean, variants),
+7246:       );
+7247:       if (exactEanMatch) return mergeSProductPriceV463(candidate, exactEanMatch);
+7248: 
+7249:       const looseNameMatch = pricedProducts.find(
+7261:     ean: string,
+7262:     variants: string[],
+7263:     nameCandidates: string[],
+7264:   ): Promise<EanSearchResult[]> {
+7265:     const exactCandidatesByKey = new Map<string, Product>();
+7266:     const storeId = activeStores.sStoreId;
+7267: 
+7268:     const searchTerms = Array.from(
+7269:       new Map(
+7270:         [
+7271:           ...variants,
+7272:           ...nameCandidates,
+7273:           ...nameCandidates.flatMap((name) => getNormalSearchQueries(name).slice(0, 6)),
+7274:         ]
+7275:           .map((term) => fixText(String(term || "")).trim())
+7276:           .filter(Boolean)
+7277:           .map((term) => [normalize(term), term]),
+7278:       ).values(),
+7279:     ).slice(0, 16);
+7280: 
+7281:     for (const term of searchTerms) {
+7282:       const products = await fetchSProductsAllowUnpricedV463(term, storeId).catch(
+7283:         () => [] as Product[],
+7284:       );
+7285: 
+7286:       for (const product of products) {
+7287:         if (!isSameEan(product.ean, variants)) continue;
+7288:         exactCandidatesByKey.set(
+7289:           `S-v463-${normalizeEan(product.ean || ean)}-${product.id}`,
+7290:           product,
+7291:         );
+7292:       }
+12900:     if (isMainSearch) {
+12901:       // Normaali Hae-haku ei koske korin vertailuosumiin.
+12902:       // Vertailu rakentaa/päivittää osumat vasta kun käyttäjä avaa Vertailu-näkymän.
+12903:       // Näin uuden tuotteen hakeminen ei pyyhi jo korissa olevien tuotteiden S/K-osumia.
+12904:       setLastOptimizationSnapshot(null);
+12905:     }
+12906: 
+12907:     // V441 Freeze Screen:
+12908:     // Älä tyhjennä tuloksia haun alussa. Pidetään viimeisin vakaa näkymä ruudulla,
+12909:     // näytetään mahdollinen cache heti ja päivitetään vasta kun uusi data on valmis.
+12910:     mobileSearchTraceRef.current = { status: "searching", startedAt: new Date().toISOString(),
+12911:       originalTerms: focusedSearchTerms, forceEan, events: [] };
+12912:     const normalSearchCacheKeyV441 = buildNormalSearchCacheKeyV441(focusedSearchTerms, forceEan);
+12913:     traceSearch("search-start", { cacheKey: normalSearchCacheKeyV441 });
+12914:     const cachedNormalSearchV441 = recipeIngredient ? undefined : normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
+12915: 
+12916:     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
+12917:       // Revalidate cached results against the current product-group gate.
+12918:       const cachedTerm = focusedSearchTerms[0] || useTerms[0] || "";
+12919:       const cachedValidated = cachedNormalSearchV441.results.filter((product: Product) =>
+12920:         productGroupGate(cachedTerm, product.name) && !isBadNormalResult(product, cachedTerm),
+12921:       );
+12922:       traceSearch("cache-read", { raw: traceProducts(cachedNormalSearchV441.results),
+12923:         accepted: traceProducts(cachedValidated),
+12924:         rejected: traceProducts(cachedNormalSearchV441.results.filter((p: Product) => !cachedValidated.includes(p))) });
+12925:       if (cachedValidated.length > 0) {
+12926:       const telemetry = beginSearchTelemetry(forceEan ? "ean" : "normal");
+12927:       const pricedCount = cachedValidated.filter((product: Product) => getProductPrice(product) > 0).length;
+12928:       if (pricedCount > 0) recordFirstPricedResults(telemetry, pricedCount);
+12929:       finishSearchTelemetry(telemetry, pricedCount > 0 ? "priced_results" : "no_priced_results", pricedCount);
+12930:       mobileSearchTraceRef.current.status = "cache-hit";
+12931:       setNormalResultsStableV441(cachedValidated);
+12932:       setSearchDebug(cachedNormalSearchV441.debug || []);
+12933:       setMobileResultsReadyQueryV537(cachedNormalSearchV441.readyQuery || focusedSearchTerms[0] || useTerms[0] || "");
+12934:       setVisibleNormalCount(8);
+12935:       setLoadingNormal(false);
+12936:       setNormalSearchAttempted(true);
+12937:       setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
+12938:       setActiveResult("none");
+12939:       return;
+12940:       }
+12941:       // All cached hits failed the new gate: fetch fresh products instead.
+12942:       normalSearchCacheRefV441.current.delete(normalSearchCacheKeyV441);
+12943:     }
+12944: 
+12945:     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
+12946:     const searchTelemetryV441 = beginSearchTelemetry(forceEan ? "ean" : "normal");
+12947:     const unregisterProductRecovery = registerZiiplyRecoverableRequest('justiina-visible-search', {
+12948:       kind: 'product-search', startedAt: Date.now(),
+12949:       abort: () => {
+12950:         if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+12951:         ++activeNormalSearchRequestRefV441.current;
+12952:         cancelSearchTelemetry(searchTelemetryV441);
+12953:         setLoadingNormal(false);
+12954:       },
+12955:     });
+12956: 
+12957:     setLoadingNormal(true);
+12958:     setNormalSearchAttempted(true);
+12959:     if (!cachedNormalSearchV441) setSearchDebug([]);
+12960:     setVisibleNormalCount(8);
+12961:     if (isMainSearch) {
+12973: 
+12974:     const debugEntries: SearchDebugEntry[] = [];
+12975: 
+12976:     try {
+12977:       const all: Product[] = [];
+12978: 
+12979:       for (const term of focusedSearchTerms) {
+12980:         // Normaali haku on S-first: haetaan S-tuote ensin /api/s-products-routesta.
+12981:         // Monen tuotteen haussa näytetään vain seuraavan jonossa olevan tuotteen kandidaatit.
+12982:         // Näin "maito, kahvi, cola" käyttää samaa relevance-logiikkaa kuin yksittäinen haku:
+12983:         // valitse maito -> valitse kahvi -> valitse cola.
+12984:         // K-vastine haetaan vasta ostoskori-/vertailuvaiheessa.
+12985:         const coverageQueries=recipeCoverageQueries(term,recipeIngredient,[...new Set(getNormalSearchQueries(term))].slice(0,6));
+12986:         const generatedSearchQueries = (coverageQueries.length?coverageQueries:getNormalSearchQueries(term))
+12987:           .map((query) => fixText(String(query || "")).trim())
+12988:           .filter(Boolean);
+12989: 
+12990:         const originalSearchFallback = fixText(String(term || "")).trim();
+12991: 
+12992:         const detectedIntentV799 = detectSearchIntent(term);
+12993:         const strongCategoryIntentV799 = detectedIntentV799.category !== "generic";
+12994:         const searchQueryLimitV799 = recipeIngredient ? Math.max(6,coverageQueries.length) : strongCategoryIntentV799 ? 2 : 6;
+12995: 
+12996:         // V799: tunnettu tuoteryhmä ei tarvitse koko varianttilistan verkkohakua.
+12997:         // Esim. "maito" palauttaa jo maitotuotteet yhdellä laajalla haulla ja
+12998:         // nykyinen intent-filtteri/rankkaus rajaa väärät osumat. Pidetään toinen
+12999:         // kysely turvallisena alias/canonical-fallbackina. Tuntemattomalle
+13000:         // tuotteelle säilytetään laajempi fallback.
+13001:         const searchQueries = Array.from(
+13002:           new Map(
+13003:             [...generatedSearchQueries, originalSearchFallback]
+13004:               .filter(Boolean)
+13005:               .map((query) => [normalize(query), query]),
+13168:             safeItemsBeforePetFilter,
+13169:             term,
+13170:             searchQuery,
+13171:           );
+13172: 
+13173:           // Use the desktop preview's relevance-first, price-aware shared ranking.
+13174:           // Never promote a product merely because the ingredient is mentioned in its name.
+13175:           const groupMatchedItems = safeItems.filter((product: Product) =>
+13176:             recipeIngredient ? recipeAllows(product) : productGroupGate(searchQuery, product.name),
+13177:           );
+13178:           const finalItems = (betweenSingleLidl
+13179:             ? groupMatchedItems.filter((product) => Boolean(product.name?.trim()) && (product as Product & { source?: string }).source === "lidl.fi-public-research")
+13180:             : rankProductResultsByRelevanceAndPrice(searchQuery, groupMatchedItems, (product: Product) => getProductPrice(product)))
+13181:             .slice(0, 40)
+13182:             .map((product) => {
+13183:               const withMeta = {
+13184:                 ...product,
+13185:                 ...(recipeContext?{__recipeRunId:recipeContext.runId,__recipeStep:recipeContext.step}:{}),
+13186:                 originalSearchTerm: term,
+13187:                 usedSearchQuery: searchQuery,
+13188:                 fallbackStoreName: (product as Product & MobileRecipeProduct).__recipeStoreName || fallbackStoreName || undefined,
+13189:               } as Product & {
+13190:                 originalSearchTerm?: string;
+13191:                 usedSearchQuery?: string;
+13192:                 fallbackStoreName?: string;
+13193:               };
+13194: 
+13195:               return withMeta;
+13196:             });
+13197: 
+13198:           traceSearch("final-provider-results", { term, searchQuery,
+13199:             groupMatched: traceProducts(groupMatchedItems), final: traceProducts(finalItems) });
+13272:             useTerms[0] ||
+13273:             "";
+13274:           const bOriginalQuery =
+13275:             (b as Product & { originalSearchTerm?: string })
+13276:               .originalSearchTerm ||
+13277:             useTerms[0] ||
+13278:             "";
+13279: 
+13280:           // Kaikkien alihakujen yhdistämisen jälkeen käytetään samaa
+13281:           // tuoteryhmätietoista rankkausta kuin yksittäisessä haussa.
+13282:           // Vanha directName-first -sorttaus nosti esim. piimäleivät oikeiden
+13283:           // piimien edelle ja "Maitokolmio"-brändin rasvaseoksen maitojen edelle.
+13284:           const rankedPair = rankNormalSearchResults(
+13285:             aOriginalQuery,
+13286:             [a, b],
+13287:           );
+13288: 
+13289:           // Tuoteryhmän oikeellisuus / normaali relevance ratkaisee aina ensin.
+13290:           // Oppiminen ei saa nostaa väärää tuoteryhmää oikean tuotteen edelle.
+13291:           if (rankedPair[0]?.id === a.id && rankedPair[1]?.id === b.id) return -1;
+13292:           if (rankedPair[0]?.id === b.id && rankedPair[1]?.id === a.id) return 1;
+13293: 
+13294:           // Vasta relevance-tasapelin jälkeen käytetään käyttäjän aiemmista
+13295:           // valinnoista opittua EAN-riippumatonta rakenneprofiilia.
+13296:           const aLearnedStructureBoost = getLearnedStructureBoost(aOriginalQuery, a).boost;
+13297:           const bLearnedStructureBoost = getLearnedStructureBoost(bOriginalQuery, b).boost;
+13298:           if (aLearnedStructureBoost !== bLearnedStructureBoost) {
+13299:             return bLearnedStructureBoost - aLearnedStructureBoost;
+13300:           }
+13301: 
+13302:           return (
+13303:             scoreNormalSResult(bOriginalQuery, b) -
+13304:             scoreNormalSResult(aOriginalQuery, a)
+13305:           );
+13306:         });
+13307: 
+13308:       const unique=recipeIngredient?prioritizeRecipeFishProducts(recipeIngredient.name,rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0],normalUnique.filter(recipeAllows),getProductPrice),recipeIngredient):normalUnique;
+13309:       if(recipeContext&&recipeContext.runId!==mobileRecipeRunRef.current)return;
+13310:       if(recipeIngredient)appendRecipeDebug("recipe-ranked-results",{ingredient:recipeIngredient,products:unique});
+13311: 
+13312:       if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+13313:       setEanCache((prev) => {
+13314:         const next = { ...prev };
+13315: 
+13316:         for (const item of unique) {
+13317:           const ean = normalizeEan(item.ean);
+13318: 
+13319:           if (isUsableEan(ean)) {
+13320:             next[ean] = item.name;
+13321:           }
+13322:         }
+13323: 
+13324:         return next;
+13325:       });
+13326: 
+13327:       if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+13329:       const readyQueryV441 = unique.length > 0 ? focusedSearchTerms[0] || useTerms[0] || "" : "";
+13330:       setSearchDebug(debugEntries);
+13331:       if(recipeIngredient)setActiveNormalSearchTerm(focusedSearchTerms[0]||"");
+13332:       traceSearch("display-final", { products: traceProducts(unique), debugEntries });
+13333:       mobileSearchTraceRef.current.status = "completed";
+13334:       setNormalResultsStableV441(unique);
+13335:       setMobileResultsReadyQueryV537(readyQueryV441);
+13336:       const pricedCountV441 = unique.filter((product: Product) => getProductPrice(product) > 0).length;
+13337:       if (pricedCountV441 > 0) recordFirstPricedResults(searchTelemetryV441, pricedCountV441);
+13338:       finishSearchTelemetry(searchTelemetryV441, pricedCountV441 > 0 ? "priced_results" : "no_priced_results", pricedCountV441);
+13339: 
+13340:       // Never persist an empty response: transient upstream failures must be retryable.
+13341:       if (!recipeIngredient && unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
+13342:         results: unique,
+13343:         debug: debugEntries,
+13344:         readyQuery: readyQueryV441,
+13345:         savedAt: Date.now(),
+13346:       });
+13347: 
+13348:       if (unique.length === 0) {
+13349:         const missingTerm = focusedSearchTerms[0] || useTerms[0] || "";
+13350:         if (missingTerm) {
+13351:           // V471: ilmoitus tehdään vasta valmiin tuloksen jälkeen.
+13352:           // Tämä on erillinen notifikaatiotila, jotta äänihaun päättyminen
+13353:           // tai voicePromptTextin nollaus ei piilota "ei löydy" -viestiä.
+13354:           // If every query to the selected S store returned zero raw rows,
+13355:           // distinguish unavailable store data from a missing individual product.
+13356:           // Applies to all S stores, not a hardcoded Prisma list.
+13357:           const sOnlySearch =
+13358:             (storeCompareScope === "within_chain" && withinChain === "S") ||
+13359:             (storeCompareScope === "between_chains" &&
+13360:               betweenChainSelectionModeV749 === "one" &&
+13633:             hyperBest = pickBestSProduct(await fetchSForMatchV801(item.name, hyperId), item.name, itemEan);
+13634:           }
+13635:           if (hyperBest && getProductPrice(hyperBest) > 0) {
+13636:             s = { product: { ...hyperBest, storeName: hyperName } as Product, price: getProductPrice(hyperBest), quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+13637:           }
+13638: 
+13639:           if (localId) {
+13640:             const localSearchTerms = Array.from(
+13641:               new Map(
+13642:                 [
+13643:                   itemEan,
+13644:                   item.name,
+13645:                   ...getNormalSearchQueries(item.name).slice(0, 6),
+13646:                 ]
+13647:                   .map((term) => fixText(String(term || "")).trim())
+13648:                   .filter(Boolean)
+13649:                   .map((term) => [normalize(term), term]),
+13650:               ).values(),
+13651:             ).slice(0, 8);
+13652: 
+13653:             let localBest: Product | undefined;
+13654:             let localMatchType: "ean" | "name" = "name";
+13655: 
+13656:             // 1) Täsmävastine aina ensisijaisesti EANilla.
+13657:             if (itemEan) {
+13658:               const eanItems = await fetchSForMatchV801(itemEan, localId).catch(
+13659:                 () => [] as Product[],
+13660:               );
+13661:               localBest = eanItems.find(
+13662:                 (candidate) =>
+13663:                   normalizeEan(candidate.ean) === itemEan &&
+13664:                   getProductPrice(candidate) > 0,
+13748:             }
+13749:           }
+13750:         } catch { failed = true; }
+13751:       } else {
+13752:         if (item.chain === "S" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.sStoreName || "")) {
+13753:           s = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
+13754:         } else {
+13755:           try {
+13756:             const sTerms = Array.from(new Set([
+13757:               comparisonSourceEan,
+13758:               comparisonSourceName,
+13759:               comparisonSourceName.replace(/^(?:pirkka|k-menu|coop|xtra|kotimaista|rainbow)\s+/i,""),
+13760:               ...getNormalSearchQueries(comparisonSourceName).slice(0, 6),
+13761:             ].map((term) => fixText(String(term || "")).trim()).filter(Boolean)));
+13762:             const sBatches = await Promise.all(
+13763:               sTerms.map((term) => fetchSForMatchV801(term, activeStores.sStoreId).catch(() => [] as Product[])),
+13764:             );
+13765:             const sCandidates = sBatches.flat();
+13766:             traceCompareV824("S-EHDOKKAAT", { sourceName: comparisonSourceName, ean: comparisonSourceEan, storeId: activeStores.sStoreId, queries: sTerms, counts: sBatches.map((batch,index)=>({query:sTerms[index],count:batch.length})), candidates: sC
+13767:             const exactS = comparisonSourceEan
+13768:               ? sCandidates.find((candidate) =>
+13769:                   normalizeEan(candidate.ean) === comparisonSourceEan && getProductPrice(candidate) > 0)
+13770:               : undefined;
+13771:             const best = exactS || (sourceFamilyKnownV823
+13772:               ? pickBestSProduct(sCandidates.filter(candidate=>getProductPrice(candidate)>0&&isComparisonAttributeCompatible(comparisonSourceName,candidate.name)), comparisonSourceName, comparisonSourceEan)
+13773:               : undefined);
+13774:             traceCompareV824("S-VALINTA", {sourceName:comparisonSourceName,selected:best?{name:best.name,ean:best.ean,price:getProductPrice(best)}:null,reason:best?"priced-compatible-match":sourceFamilyKnownV823?"no-priced-compatible-match":"unknown-
+13775:             if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: normalizeEan(best.ean) === comparisonSourceEan && comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
+13776:           } catch { failed = true; }
+13777:         }
+13778:         if (item.chain === "K" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")) {
+13779:           k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
+13916:           const lookupItemV793 = originalItemV793 || item;
+13917:           const itemEan = normalizeEan(lookupItemV793.ean || lookupItemV793.product?.ean);
+13918:           const itemName = fixText(String(lookupItemV793.name || lookupItemV793.product?.name || "")).trim();
+13919:           if (!itemName) return item;
+13920: 
+13921:           let match: Product | undefined;
+13922:           let storeName = item.storeName || "";
+13923: 
+13924:           try {
+13925:             if (selectedKey === "s" && activeStores.sStoreId) {
+13926:               storeName = activeStores.sStoreName || storeName;
+13927:               const neutralName = itemName.replace(/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow)\s+/i, "").trim();
+13928:               const queries = Array.from(new Set([itemEan, itemName, neutralName, ...getNormalSearchQueries(itemName).slice(0, 6), ...getNormalSearchQueries(neutralName).slice(0, 6)].filter(Boolean)));
+13929:               // Search all queries before selecting a different EAN: exact identity wins globally.
+13930:               const found: Product[] = [];
+13931:               for (const query of queries) {
+13932:                 const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
+13933:                 found.push(...candidates);
+13934:                 if (itemEan) {
+13935:                   const exact = candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0);
+13936:                   if (exact) { match = exact; break; }
+13937:                 }
+13938:               }
+13939:               if (!match) {
+13940:                 const safe = found.filter((candidate) =>
+13941:                   getProductPrice(candidate) > 0 &&
+13942:                   isComparisonAttributeCompatible(itemName, String(candidate.name || ""))
+13943:                 );
+13944:                 match = pickBestSProduct(safe, neutralName || itemName);
+13945:               }
+13946:             } else if (selectedKey === "k" && activeStores.kStoreId) {
+13947:               storeName = activeStores.kStoreName || storeName;
+17027:               storeName: activeStores.kStoreName,
+17028:               productName: fixText(kBest.name),
+17029:               price: kBest.price,
+17030:               ean: kBest.ean,
+17031:               image: kBest.pictureUrl,
+17032:               comparisonPrice: null,
+17033:             });
+17034:           }
+17035:         } else {
+17036:           let sBest: Product | undefined;
+17037:           const selectedEan = normalizeEan(result.product.ean);
+17038: 
+17039:           for (const sSearchTerm of getNormalSearchQueries(selectedName).slice(
+17040:             0,
+17041:             6,
+17042:           )) {
+17043:             const sItems = await fetchSProducts(
+17044:               sSearchTerm,
+17045:               activeStores.sStoreId,
+17046:             );
+17047:             sBest = pickBestSProduct(sItems, selectedName, selectedEan);
+17048:             if (sBest && getProductPrice(sBest) > 0) break;
+17049:           }
+17050: 
+17051:           if (sBest && getProductPrice(sBest) > 0) {
+17052:             nextResults.push({
+17053:               key: "s",
+17054:               chain: "S-ryhmä",
+17055:               storeName: activeStores.sStoreName,
+17056:               productName: fixText(sBest.name),
+17057:               price: getProductPrice(sBest),
+17058:               ean: sBest.ean,
+18662:           const data = response?.ok ? await response.json().catch(() => null) : null;
+18663:           const exact = data?.product as Product | undefined;
+18664:           if (
+18665:             exact &&
+18666:             normalizeEan((exact as any).ean || itemEan) === itemEan &&
+18667:             getProductPrice(exact) > 0
+18668:           ) {
+18669:             match = exact;
+18670:           }
+18671:         }
+18672: 
+18673:         if (!match) {
+18674:           const queries = Array.from(new Set([itemEan, itemName, ...getNormalSearchQueries(itemName).slice(0, 5)].filter(Boolean)));
+18675:           for (const query of queries) {
+18676:             const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
+18677:             match = itemEan
+18678:               ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
+18679:               : pickBestSProduct(candidates, itemName, itemEan) || null;
+18680:             if (match && getProductPrice(match) > 0) break;
+18681:           }
+18682:         }
+18683:       } else if (target.key === "k" && activeStores.kStoreId) {
+18684:         const best = await findBestKMatchForStore(itemName, activeStores.kStoreId, itemEan);
+18685:         if (best && best.price > 0 && (!itemEan || normalizeEan(best.ean) === itemEan)) {
+18686:           match = convertKProductToProduct(best);
+18687:         }
+18688:       } else if (target.key === "lidl" && selectedLidlStoreV750) {
+18689:         // Lidl public catalog currently supplies names only. A research result
+18690:         // must never become a priced match through generic name ranking.
+18691:         const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
+18692:         match = itemEan
+18693:           ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
+19360:     setVisibleNormalCount(8);
+19361:     setSingleProductCompareTerm(term);
+19362:     setSingleProductCompareResults([]);
+19363:     setSingleProductCompareLoading(true);
+19364:     setActiveResult("singleCompare");
+19365: 
+19366:     try {
+19367:       const nextResults: SingleProductCompareResult[] = [];
+19368: 
+19369:       try {
+19370:         let sBest: Product | undefined;
+19371: 
+19372:         for (const sSearchTerm of getNormalSearchQueries(term).slice(0, 6)) {
+19373:           const sItems = await fetchSProducts(
+19374:             sSearchTerm,
+19375:             activeStores.sStoreId,
+19376:           );
+19377:           sBest = pickBestSProduct(sItems, term);
+19378:           if (sBest && getProductPrice(sBest) > 0) break;
+19379:         }
+19380: 
+19381:         if (sBest && getProductPrice(sBest) > 0) {
+19382:           nextResults.push({
+19383:             key: "s",
+19384:             chain: "S-ryhmä",
+19385:             storeName: activeStores.sStoreName,
+19386:             productName: fixText(sBest.name),
+19387:             price: getProductPrice(sBest),
+19388:             ean: sBest.ean,
+19389:             image: sBest.pictureUrl,
+19390:             comparisonPrice: formatComparisonPrice(sBest),
+19391:           });
+## preview/legacy-desktop-ui total_lines=24436
+rankNormalSearchResults: 3 hits, lines [1634, 12397, 12493]
+rankProductResultsByRelevanceAndPrice: 0 hits, lines []
+setNormalSearchResults: 0 hits, lines []
+setSearchResults: 0 hits, lines []
+normalSearchCache: 13 hits, lines [4150, 4162, 4247, 4249, 4279, 4303, 4349, 4358, 4360, 4364, 12182, 12183, 12539]
+cache-hit: 0 hits, lines []
+cache-read: 0 hits, lines []
+searchCache: 13 hits, lines [4150, 4162, 4247, 4249, 4279, 4303, 4349, 4358, 4360, 4364, 12182, 12183, 12539]
+displayedProducts: 0 hits, lines []
+getNormalSearchQueries: 11 hits, lines [943, 1565, 6854, 6897, 12232, 12836, 12950, 13118, 16021, 17507, 18208]
+searchNormalProducts: 0 hits, lines []
+isWrongMilkSearchProduct: 1 hits, lines [1621]
+931: 
+932: // V117_OPENFOODFACTS_CART_NAME_CLEAN_INFO
+933: // Korjaus: Open Food Facts -fallback pidetään saman EAN-haun sisällä loppuun asti.
+934: // V117: Open Food Facts -tuotteen nimeen ei enää lisätä status-tekstiä koriin.
+935: // Status näytetään ilmoituksena: tunnistettu, mutta ei mukana hintavertailussa.
+936: // Tuntematon EAN ei enää ehdi lisätä rinnakkaista riviä ennen OFF-vastausta.
+937: // V130_RECOGNIZED_SCAN_BLOCKS_PARALLEL_UNKNOWN: tunnistetun EAN-skannauksen jälkeen saman lukutapahtuman tuntematon fallback blokataan.
+938: // Jos tuntematon rivi on jo ehtinyt koriin, OFF-osuma päivittää saman rivin tunnistetuksi eikä lisää toista ilmoitusta/riviä.
+939: 
+940: // V723_SEARCH_FAIL_OPEN_FIX
+941: // Pohjana V722.
+942: // Korjaus hakumoottoriin:
+943: // - getNormalSearchQueries(term) ei saa enää kaataa hakua, jos se palauttaa tyhjän/huonon listan
+944: // - alkuperäinen käyttäjän kirjoittama termi lisätään aina hakujonoon fallbackiksi
+945: // - low-signal early return ei enää pysäytä tavallisia vähintään 2 merkin hakusanoja
+946: // - lisätty debug-merkintä, jos hakukyselylista jäi tyhjäksi ennen fallbackia.
+947: 
+948: // V722_TOPBAR_LABEL_AND_PRICE_ALIGN_FIX
+949: // Pohjana V721.
+950: // Korjaukset:
+951: // - SAA -> SÄÄ ja SAHKO -> SÄHKÖ diakriittien kanssa
+952: // - sää- ja sähköotsikot nostettu samalle vaakalinjalle kuin AJOAINE ja KES
+953: // - sähkön "Laskee/Nousee/Vakaa" alateksti poistettu
+954: // - lämpötila ja sähkön hinta asetettu samalle pystylinjalle
+955: // - lämpötilan ja sähkön hinnan fonttia pienennetty hieman, jotta hinta mahtuu paremmin
+956: // - c/kWh siirretty oikeammalle ja pidetty pienempänä.
+957: 
+958: // V721_TOPBAR_TEXT_FIT_AND_CALENDAR_IN_APP
+959: // Pohjana V720.
+960: // Korjaukset:
+961: // - sääkortista poistettu säätilateksti, koska kuvake kertoo säätyypin
+962: // - sääkorttiin jätetty kuvake + lämpötila, jolloin tila mahtuu paremmin
+1553:   SEARCH_ALIASES,
+1554:   getSearchQuery,
+1555:   getColaSpecificSearchQueries,
+1556:   uniqueNormalizedQueries,
+1557:   SEARCH_INTENTS,
+1558:   detectSearchIntent,
+1559:   isMilkSearchTerm,
+1560:   isColaSearchTerm,
+1561:   getPrimaryProductNounQuery,
+1562:   isVerySpecificSearch,
+1563:   normalizeLooseProductMatch,
+1564:   getMetricSizeKey,
+1565:   getNormalSearchQueries,
+1566:   isAliasSearch,
+1567:   formatEuro,
+1568:   formatComparisonPrice,
+1569:   getProductCategoryLabel,
+1570:   triggerHaptic,
+1571:   playScanSuccessFeedback,
+1572:   getScannerVideoElement,
+1573:   getScannerVideoTrack,
+1574:   applyBestEffortScannerCameraTuning,
+1575:   focusScannerCameraAtPoint,
+1576:   formatDate,
+1577:   getProductPrice,
+1578:   isManualShoppingItem,
+1579:   getPriceHistoryKeyFromProduct,
+1580:   getPriceHistoryKeyFromCartItem,
+1581:   getPriceChangeInfo,
+1582:   getSizeToken,
+1583:   hasWord,
+1584:   getNormalizedWords,
+1609:   PREMIUM_BRANDS,
+1610:   isValueBrandProduct,
+1611:   isKOwnBrandProduct,
+1612:   isPremiumBrandProduct,
+1613:   productGroupGate,
+1614:   isHardRejectedKMatch,
+1615:   scoreNameMatch,
+1616:   scoreDirectQueryNameMatch,
+1617:   getProductSearchText,
+1618:   getPreferredSizeScore,
+1619:   looksLikeNonFoodProduct,
+1620:   getGroceryNonFoodPenalty,
+1621:   isWrongMilkSearchProduct,
+1622:   hasStrongMilkSignal,
+1623:   getCategoryConfidence,
+1624:   getImportantQueryWordsForStrictMatch,
+1625:   getStrictMultiWordMatchScore,
+1626:   scoreBaseNormalResult,
+1627:   scoreMilkProduct,
+1628:   scoreCoffeeProduct,
+1629:   scoreColaProduct,
+1630:   scoreButtermilkProduct,
+1631:   scoreCookingOilProduct,
+1632:   scoreCategorySpecificResult,
+1633:   scoreNormalSResult,
+1634:   rankNormalSearchResults,
+1635:   isNonFoodOffer,
+1636:   isBadNormalResult,
+1637:   findArea,
+1638:   storeText,
+1639:   isPrisma,
+1640:   isKCitymarket,
+1641:   isSLocalStore,
+1642:   isKLocalStore,
+1643:   pickStore,
+1644:   offerToProduct,
+1645:   scoreOfferForTerm,
+1646:   rankOfferSearchResults,
+1647:   convertKProductToProduct,
+1648:   getPrimaryBrand,
+1649:   isAllowedByQualityMode,
+1650:   scoreQualityMode,
+1651:   pickBestSProduct,
+1652:   pickBestKProduct,
+1653: } from "./components/ziiply/ziiplyCore";
+4138:       : "";
+4139:     const totalLabel = missingCount > 0 ? `Löytyneiden tuotteiden osasumma ${total}` : `Yhteensä ${total}`;
+4140:     const text = [`Ziiply kori: ${storeName}`, missingNotice, total ? totalLabel : "", ...lines]
+4141:       .filter(Boolean)
+4142:       .join("\n");
+4143: 
+4144:     void shareTextV729(`Ziiply kori: ${storeName}`, text);
+4145:   }
+4146: 
+4147: 
+4148:   const [normalResults, setNormalResults] = useState<Product[]>([]);
+4149:   const normalResultsLatestRefV441 = useRef<Product[]>([]);
+4150:   const normalSearchCacheRefV441 = useRef<
+4151:     Map<
+4152:       string,
+4153:       {
+4154:         results: Product[];
+4155:         debug: SearchDebugEntry[];
+4156:         readyQuery: string;
+4157:         savedAt: number;
+4158:       }
+4159:     >
+4160:   >(new Map());
+4161:   const activeNormalSearchRequestRefV441 = useRef(0);
+4162:   const normalSearchCacheHydratedRefV441 = useRef(false);
+4163:   const NORMAL_SEARCH_CACHE_STORAGE_KEY_V441 = "ziiply-normal-search-cache-v441";
+4164:   const NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441 = 1000 * 60 * 20;
+4165:   const NORMAL_SEARCH_CACHE_MAX_ITEMS_V441 = 24;
+4166:   const [normalSearchAttempted, setNormalSearchAttempted] = useState(false);
+4167:   const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
+4168:   const [loadingNormal, setLoadingNormal] = useState(false);
+4169:   const [singleProductCompareResults, setSingleProductCompareResults] =
+4170:     useState<SingleProductCompareResult[]>([]);
+4171:   const [singleProductCompareLoading, setSingleProductCompareLoading] =
+4172:     useState(false);
+4173:   const [singleProductCompareTerm, setSingleProductCompareTerm] = useState("");
+4174:   const searchNavigationLocked =
+4175:     loadingOffers || loadingNormal || singleProductCompareLoading;
+4176:   const withinChainStoresReadyV320 = Boolean(
+4177:     storeCompareScope === "within_chain" &&
+4178:     withinChain &&
+4179:     (withinChain === "S"
+4180:       ? (activeArea.sStoreId || activeArea.sStoreName) &&
+4181:         (activeArea.sLocalStoreId || activeArea.sLocalStoreName)
+4235:     usingOwnLocation,
+4236:     foundStores,
+4237:   ]);
+4238: 
+4239: 
+4240: 
+4241:   useEffect(() => {
+4242:     normalResultsLatestRefV441.current = normalResults;
+4243:   }, [normalResults]);
+4244: 
+4245:   useEffect(() => {
+4246:     if (typeof window === "undefined") return;
+4247:     if (normalSearchCacheHydratedRefV441.current) return;
+4248: 
+4249:     normalSearchCacheHydratedRefV441.current = true;
+4250: 
+4251:     try {
+4252:       const raw = window.sessionStorage.getItem(NORMAL_SEARCH_CACHE_STORAGE_KEY_V441);
+4253:       if (!raw) return;
+4254: 
+4255:       const parsed = JSON.parse(raw) as Array<[
+4256:         string,
+4257:         {
+4258:           results: Product[];
+4259:           debug: SearchDebugEntry[];
+4260:           readyQuery: string;
+4261:           savedAt: number;
+4262:         },
+4263:       ]>;
+4264: 
+4265:       const now = Date.now();
+4266:       const next = new Map<string, {
+4267:         results: Product[];
+4268:         debug: SearchDebugEntry[];
+4269:         readyQuery: string;
+4270:         savedAt: number;
+4271:       }>();
+4272: 
+4273:       for (const [key, value] of Array.isArray(parsed) ? parsed : []) {
+4274:         if (!value || !Array.isArray(value.results) || value.results.length === 0) continue;
+4275:         if (now - Number(value.savedAt || 0) > NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441) continue;
+4276:         next.set(key, value);
+4277:       }
+4278: 
+4279:       normalSearchCacheRefV441.current = next;
+4280:     } catch {}
+4281:   }, []);
+4282: 
+4283:   function getNormalResultsSignatureV441(items: Product[]) {
+4284:     return items
+4285:       .map((item: any) => {
+4286:         const id = item?.id ?? item?.ean ?? item?.name ?? "";
+4287:         const price = item?.price ?? item?.comparisonPrice ?? item?.comparisonPriceValue ?? "";
+4288:         return `${id}:${price}`;
+4289:       })
+4290:       .join("|");
+4291:   }
+4292: 
+4293:   function setNormalResultsStableV441(next: Product[]) {
+4294:     const currentSignature = getNormalResultsSignatureV441(normalResultsLatestRefV441.current);
+4295:     const nextSignature = getNormalResultsSignatureV441(next);
+4296: 
+4297:     if (currentSignature !== nextSignature) {
+4298:       normalResultsLatestRefV441.current = next;
+4299:       setNormalResults(next);
+4300:     }
+4301:   }
+4302: 
+4303:   function buildNormalSearchCacheKeyV441(searchTerms: string[], forceEan: boolean) {
+4304:     const withinChainStoreSignature =
+4305:       storeCompareScope === "within_chain"
+4306:         ? withinChain === "S"
+4307:           ? [
+4308:               activeArea.sStoreId || "",
+4309:               activeArea.sStoreName || "",
+4310:               activeArea.sLocalStoreId || "",
+4311:               activeArea.sLocalStoreName || "",
+4312:             ]
+4313:           : withinChain === "K"
+4314:             ? [
+4315:                 activeArea.kStoreId || "",
+4316:                 activeArea.kStoreName || "",
+4317:                 activeArea.kLocalStoreId || "",
+4318:                 activeArea.kLocalStoreName || "",
+4319:               ]
+4320:             : []
+4321:         : [];
+4322: 
+4337:       selectedEurosparStoreV751?.id || "",
+4338:       selectedEurosparStoreV751?.name || "",
+4339:       withinChain || "",
+4340:       activeStores.sStoreId || "",
+4341:       activeStores.kStoreId || "",
+4342:       activeStores.sStoreName || "",
+4343:       activeStores.kStoreName || "",
+4344:       ...withinChainStoreSignature,
+4345:       searchTerms.map((term) => normalize(String(term || ""))).join(","),
+4346:     ].join("|");
+4347:   }
+4348: 
+4349:   function rememberNormalSearchCacheV441(
+4350:     cacheKey: string,
+4351:     value: {
+4352:       results: Product[];
+4353:       debug: SearchDebugEntry[];
+4354:       readyQuery: string;
+4355:       savedAt: number;
+4356:     },
+4357:   ) {
+4358:     normalSearchCacheRefV441.current.set(cacheKey, value);
+4359: 
+4360:     const entries = Array.from(normalSearchCacheRefV441.current.entries())
+4361:       .sort((a, b) => Number(b[1]?.savedAt || 0) - Number(a[1]?.savedAt || 0))
+4362:       .slice(0, NORMAL_SEARCH_CACHE_MAX_ITEMS_V441);
+4363: 
+4364:     normalSearchCacheRefV441.current = new Map(entries);
+4365: 
+4366:     try {
+4367:       window.sessionStorage.setItem(
+4368:         NORMAL_SEARCH_CACHE_STORAGE_KEY_V441,
+4369:         JSON.stringify(entries),
+4370:       );
+4371:     } catch {}
+4372:   }
+4373: 
+4374:   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
+4375:   const [haeReadyBadgeTimerVisibleV520, setHaeReadyBadgeTimerVisibleV520] =
+4376:     useState(false);
+4377:   const previousSearchReadySignatureV320 = useRef("");
+4378:   const suppressHaeReadyBadgeUntilRefV541 = useRef(0);
+4379: 
+4380:   const searchReadySignatureV320 = storesReadyForSearch
+4381:     ? [
+4382:         storeCompareScope,
+4383:         storeMode,
+6842:     variants: string[],
+6843:     nameCandidates: string[],
+6844:     storeId: string | number,
+6845:   ): Promise<Product | null> {
+6846:     if (getProductPrice(candidate) > 0) return candidate;
+6847: 
+6848:     const candidateName = fixText(candidate.name || "");
+6849:     const searchTerms = Array.from(
+6850:       new Map(
+6851:         [
+6852:           candidateName,
+6853:           ...nameCandidates,
+6854:           ...getNormalSearchQueries(candidateName).slice(0, 8),
+6855:         ]
+6856:           .map((term) => fixText(String(term || "")).trim())
+6857:           .filter(Boolean)
+6858:           .map((term) => [normalize(term), term]),
+6859:       ).values(),
+6860:     ).slice(0, 12);
+6861: 
+6862:     for (const term of searchTerms) {
+6863:       const pricedProducts = await fetchSProducts(term, storeId).catch(
+6864:         () => [] as Product[],
+6865:       );
+6866: 
+6867:       const exactEanMatch = pricedProducts.find(
+6868:         (product) =>
+6869:           getProductPrice(product) > 0 && isSameEan(product.ean, variants),
+6870:       );
+6871:       if (exactEanMatch) return mergeSProductPriceV463(candidate, exactEanMatch);
+6872: 
+6873:       const looseNameMatch = pricedProducts.find(
+6885:     ean: string,
+6886:     variants: string[],
+6887:     nameCandidates: string[],
+6888:   ): Promise<EanSearchResult[]> {
+6889:     const exactCandidatesByKey = new Map<string, Product>();
+6890:     const storeId = activeStores.sStoreId;
+6891: 
+6892:     const searchTerms = Array.from(
+6893:       new Map(
+6894:         [
+6895:           ...variants,
+6896:           ...nameCandidates,
+6897:           ...nameCandidates.flatMap((name) => getNormalSearchQueries(name).slice(0, 6)),
+6898:         ]
+6899:           .map((term) => fixText(String(term || "")).trim())
+6900:           .filter(Boolean)
+6901:           .map((term) => [normalize(term), term]),
+6902:       ).values(),
+6903:     ).slice(0, 16);
+6904: 
+6905:     for (const term of searchTerms) {
+6906:       const products = await fetchSProductsAllowUnpricedV463(term, storeId).catch(
+6907:         () => [] as Product[],
+6908:       );
+6909: 
+6910:       for (const product of products) {
+6911:         if (!isSameEan(product.ean, variants)) continue;
+6912:         exactCandidatesByKey.set(
+6913:           `S-v463-${normalizeEan(product.ean || ean)}-${product.id}`,
+6914:           product,
+6915:         );
+6916:       }
+12170:     }
+12171: 
+12172:     if (isMainSearch) {
+12173:       // Normaali Hae-haku ei koske korin vertailuosumiin.
+12174:       // Vertailu rakentaa/päivittää osumat vasta kun käyttäjä avaa Vertailu-näkymän.
+12175:       // Näin uuden tuotteen hakeminen ei pyyhi jo korissa olevien tuotteiden S/K-osumia.
+12176:       setLastOptimizationSnapshot(null);
+12177:     }
+12178: 
+12179:     // V441 Freeze Screen:
+12180:     // Älä tyhjennä tuloksia haun alussa. Pidetään viimeisin vakaa näkymä ruudulla,
+12181:     // näytetään mahdollinen cache heti ja päivitetään vasta kun uusi data on valmis.
+12182:     const normalSearchCacheKeyV441 = buildNormalSearchCacheKeyV441(focusedSearchTerms, forceEan);
+12183:     const cachedNormalSearchV441 = normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
+12184: 
+12185:     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
+12186:       setNormalResultsStableV441(cachedNormalSearchV441.results);
+12187:       setSearchDebug(cachedNormalSearchV441.debug || []);
+12188:       setMobileResultsReadyQueryV537(cachedNormalSearchV441.readyQuery || focusedSearchTerms[0] || useTerms[0] || "");
+12189:       setVisibleNormalCount(8);
+12190:       setLoadingNormal(false);
+12191:       setNormalSearchAttempted(true);
+12192:       setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
+12193:       setActiveResult("none");
+12194:       return;
+12195:     }
+12196: 
+12197:     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
+12198: 
+12199:     // Hide previous-query products immediately while the new query is running.
+12200:     // Otherwise the heading updates before the old product cards disappear.
+12201:     setNormalResults([]);
+12202:     setSingleProductCompareResults([]);
+12220: 
+12221:     const debugEntries: SearchDebugEntry[] = [];
+12222: 
+12223:     try {
+12224:       const all: Product[] = [];
+12225: 
+12226:       for (const term of focusedSearchTerms) {
+12227:         // Normaali haku on S-first: haetaan S-tuote ensin /api/s-products-routesta.
+12228:         // Monen tuotteen haussa näytetään vain seuraavan jonossa olevan tuotteen kandidaatit.
+12229:         // Näin "maito, kahvi, cola" käyttää samaa relevance-logiikkaa kuin yksittäinen haku:
+12230:         // valitse maito -> valitse kahvi -> valitse cola.
+12231:         // K-vastine haetaan vasta ostoskori-/vertailuvaiheessa.
+12232:         const generatedSearchQueries = getNormalSearchQueries(term)
+12233:           .map((query) => fixText(String(query || "")).trim())
+12234:           .filter(Boolean);
+12235: 
+12236:         const originalSearchFallback = fixText(String(term || "")).trim();
+12237: 
+12238:         const detectedIntentV799 = detectSearchIntent(term);
+12239:         const strongCategoryIntentV799 = detectedIntentV799.category !== "generic";
+12240:         const searchQueryLimitV799 = detectedIntentV799.category === 'ketchup' ? 6 : strongCategoryIntentV799 ? 2 : 6;
+12241: 
+12242:         // V799: tunnettu tuoteryhmä ei tarvitse koko varianttilistan verkkohakua.
+12243:         // Esim. "maito" palauttaa jo maitotuotteet yhdellä laajalla haulla ja
+12244:         // nykyinen intent-filtteri/rankkaus rajaa väärät osumat. Pidetään toinen
+12245:         // kysely turvallisena alias/canonical-fallbackina. Tuntemattomalle
+12246:         // tuotteelle säilytetään laajempi fallback.
+12247:         const searchQueries = Array.from(
+12248:           new Map(
+12249:             [...generatedSearchQueries, originalSearchFallback]
+12250:               .filter(Boolean)
+12251:               .map((query) => [normalize(query), query]),
+12385:             : normalFiltered.length > 0
+12386:               ? normalFiltered
+12387:               : pricedItems;
+12388: 
+12389:           const safeItems = filterPetProductsFromFoodSearchV443(
+12390:             safeItemsBeforePetFilter,
+12391:             term,
+12392:             searchQuery,
+12393:           );
+12394: 
+12395:           const finalItems = (betweenSingleLidl
+12396:             ? safeItems.filter((product) => Boolean(product.name?.trim()) && (product as Product & { source?: string }).source === "lidl.fi-public-research")
+12397:             : rankNormalSearchResults(searchQuery, safeItems))
+12398:             .slice(0, 40)
+12399:             .map((product) => {
+12400:               const withMeta = {
+12401:                 ...product,
+12402:                 originalSearchTerm: term,
+12403:                 usedSearchQuery: searchQuery,
+12404:                 fallbackStoreName: fallbackStoreName || undefined,
+12405:               } as Product & {
+12406:                 originalSearchTerm?: string;
+12407:                 usedSearchQuery?: string;
+12408:                 fallbackStoreName?: string;
+12409:               };
+12410: 
+12411:               return withMeta;
+12412:             });
+12413: 
+12414:           debugEntries.push({
+12415:             term,
+12416:             query: searchQuery,
+12481:             useTerms[0] ||
+12482:             "";
+12483:           const bOriginalQuery =
+12484:             (b as Product & { originalSearchTerm?: string })
+12485:               .originalSearchTerm ||
+12486:             useTerms[0] ||
+12487:             "";
+12488: 
+12489:           // Kaikkien alihakujen yhdistämisen jälkeen käytetään samaa
+12490:           // tuoteryhmätietoista rankkausta kuin yksittäisessä haussa.
+12491:           // Vanha directName-first -sorttaus nosti esim. piimäleivät oikeiden
+12492:           // piimien edelle ja "Maitokolmio"-brändin rasvaseoksen maitojen edelle.
+12493:           const rankedPair = rankNormalSearchResults(
+12494:             aOriginalQuery,
+12495:             [a, b],
+12496:           );
+12497: 
+12498:           // Tuoteryhmän oikeellisuus / normaali relevance ratkaisee aina ensin.
+12499:           // Oppiminen ei saa nostaa väärää tuoteryhmää oikean tuotteen edelle.
+12500:           if (rankedPair[0]?.id === a.id && rankedPair[1]?.id === b.id) return -1;
+12501:           if (rankedPair[0]?.id === b.id && rankedPair[1]?.id === a.id) return 1;
+12502: 
+12503:           // Vasta relevance-tasapelin jälkeen käytetään käyttäjän aiemmista
+12504:           // valinnoista opittua EAN-riippumatonta rakenneprofiilia.
+12505:           const aLearnedStructureBoost = getLearnedStructureBoost(aOriginalQuery, a).boost;
+12506:           const bLearnedStructureBoost = getLearnedStructureBoost(bOriginalQuery, b).boost;
+12507:           if (aLearnedStructureBoost !== bLearnedStructureBoost) {
+12508:             return bLearnedStructureBoost - aLearnedStructureBoost;
+12509:           }
+12510: 
+12511:           return (
+12512:             scoreNormalSResult(bOriginalQuery, b) -
+12527: 
+12528:         return next;
+12529:       });
+12530: 
+12531:       if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+12532: 
+12533:       const readyQueryV441 = unique.length > 0 ? focusedSearchTerms[0] || useTerms[0] || "" : "";
+12534:       setSearchDebug(debugEntries);
+12535:       setNormalResultsStableV441(unique);
+12536:       setMobileResultsReadyQueryV537(readyQueryV441);
+12537: 
+12538:       // Never persist an empty response: transient upstream failures must be retryable.
+12539:       if (unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
+12540:         results: unique,
+12541:         debug: debugEntries,
+12542:         readyQuery: readyQueryV441,
+12543:         savedAt: Date.now(),
+12544:       });
+12545: 
+12546:       if (unique.length === 0) {
+12547:         const missingTerm = focusedSearchTerms[0] || useTerms[0] || "";
+12548:         if (missingTerm) {
+12549:           // V471: ilmoitus tehdään vasta valmiin tuloksen jälkeen.
+12550:           // Tämä on erillinen notifikaatiotila, jotta äänihaun päättyminen
+12551:           // tai voicePromptTextin nollaus ei piilota "ei löydy" -viestiä.
+12552:           // If every query to the selected S store returned zero raw rows,
+12553:           // distinguish unavailable store data from a missing individual product.
+12554:           // Applies to all S stores, not a hardcoded Prisma list.
+12555:           const sOnlySearch =
+12556:             (storeCompareScope === "within_chain" && withinChain === "S") ||
+12557:             (storeCompareScope === "between_chains" &&
+12558:               betweenChainSelectionModeV749 === "one" &&
+12824:             hyperBest = pickBestSProduct(await fetchSForMatchV801(item.name, hyperId), item.name, itemEan);
+12825:           }
+12826:           if (hyperBest && getProductPrice(hyperBest) > 0) {
+12827:             s = { product: { ...hyperBest, storeName: hyperName } as Product, price: getProductPrice(hyperBest), quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+12828:           }
+12829: 
+12830:           if (localId) {
+12831:             const localSearchTerms = Array.from(
+12832:               new Map(
+12833:                 [
+12834:                   itemEan,
+12835:                   item.name,
+12836:                   ...getNormalSearchQueries(item.name).slice(0, 6),
+12837:                 ]
+12838:                   .map((term) => fixText(String(term || "")).trim())
+12839:                   .filter(Boolean)
+12840:                   .map((term) => [normalize(term), term]),
+12841:               ).values(),
+12842:             ).slice(0, 8);
+12843: 
+12844:             let localBest: Product | undefined;
+12845:             let localMatchType: "ean" | "name" = "name";
+12846: 
+12847:             // 1) Täsmävastine aina ensisijaisesti EANilla.
+12848:             if (itemEan) {
+12849:               const eanItems = await fetchSForMatchV801(itemEan, localId).catch(
+12850:                 () => [] as Product[],
+12851:               );
+12852:               localBest = eanItems.find(
+12853:                 (candidate) =>
+12854:                   normalizeEan(candidate.ean) === itemEan &&
+12855:                   getProductPrice(candidate) > 0,
+12938:               k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", storeId: localId, storeName: localN
+12939:             }
+12940:           }
+12941:         } catch { failed = true; }
+12942:       } else {
+12943:         if (item.chain === "S" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.sStoreName || "")) {
+12944:           s = { product: item.product, price: item.price, quantity: 1, matchType: comparisonSourceEan && normalizeEan(item.product.ean) === comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
+12945:         } else {
+12946:           try {
+12947:             const sTerms = Array.from(new Set([
+12948:               comparisonSourceEan,
+12949:               comparisonSourceName,
+12950:               ...getNormalSearchQueries(comparisonSourceName).slice(0, 6),
+12951:             ].map((term) => fixText(String(term || "")).trim()).filter(Boolean)));
+12952:             const sBatches = await Promise.all(
+12953:               sTerms.map((term) => fetchSForMatchV801(term, activeStores.sStoreId).catch(() => [] as Product[])),
+12954:             );
+12955:             const sCandidates = sBatches.flat();
+12956:             const exactS = comparisonSourceEan
+12957:               ? sCandidates.find((candidate) =>
+12958:                   normalizeEan(candidate.ean) === comparisonSourceEan && getProductPrice(candidate) > 0)
+12959:               : undefined;
+12960:             const best = exactS || (sourceFamilyKnownV823
+12961:               ? pickBestSProduct(sCandidates, comparisonSourceName, comparisonSourceEan)
+12962:               : undefined);
+12963:             if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: normalizeEan(best.ean) === comparisonSourceEan && comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
+12964:           } catch { failed = true; }
+12965:         }
+12966:         if (item.chain === "K" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")) {
+12967:           k = { product: item.product, price: item.price, quantity: 1, matchType: comparisonSourceEan && normalizeEan(item.product.ean) === comparisonSourceEan ? "ean" : "name", cartItemId: item.id };
+12968:         } else {
+12969:           try {
+13106:           const lookupItemV793 = originalItemV793 || item;
+13107:           const itemEan = normalizeEan(lookupItemV793.ean || lookupItemV793.product?.ean);
+13108:           const itemName = fixText(String(lookupItemV793.name || lookupItemV793.product?.name || "")).trim();
+13109:           if (!itemName) return item;
+13110: 
+13111:           let match: Product | undefined;
+13112:           let storeName = item.storeName || "";
+13113: 
+13114:           try {
+13115:             if (selectedKey === "s" && activeStores.sStoreId) {
+13116:               storeName = activeStores.sStoreName || storeName;
+13117:               const neutralName = itemName.replace(/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow)\s+/i, "").trim();
+13118:               const queries = Array.from(new Set([itemEan, itemName, neutralName, ...getNormalSearchQueries(itemName).slice(0, 6), ...getNormalSearchQueries(neutralName).slice(0, 6)].filter(Boolean)));
+13119:               // Search all queries before selecting a different EAN: exact identity wins globally.
+13120:               const found: Product[] = [];
+13121:               for (const query of queries) {
+13122:                 const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
+13123:                 found.push(...candidates);
+13124:                 if (itemEan) {
+13125:                   const exact = candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0);
+13126:                   if (exact) { match = exact; break; }
+13127:                 }
+13128:               }
+13129:               if (!match) {
+13130:                 const safe = found.filter((candidate) =>
+13131:                   getProductPrice(candidate) > 0 &&
+13132:                   isComparisonAttributeCompatible(itemName, String(candidate.name || ""))
+13133:                 );
+13134:                 match = pickBestSProduct(safe, neutralName || itemName);
+13135:               }
+13136:             } else if (selectedKey === "k" && activeStores.kStoreId) {
+13137:               storeName = activeStores.kStoreName || storeName;
+16009:               storeName: activeStores.kStoreName,
+16010:               productName: fixText(kBest.name),
+16011:               price: kBest.price,
+16012:               ean: kBest.ean,
+16013:               image: kBest.pictureUrl,
+16014:               comparisonPrice: null,
+16015:             });
+16016:           }
+16017:         } else {
+16018:           let sBest: Product | undefined;
+16019:           const selectedEan = normalizeEan(result.product.ean);
+16020: 
+16021:           for (const sSearchTerm of getNormalSearchQueries(selectedName).slice(
+16022:             0,
+16023:             6,
+16024:           )) {
+16025:             const sItems = await fetchSProducts(
+16026:               sSearchTerm,
+16027:               activeStores.sStoreId,
+16028:             );
+16029:             sBest = pickBestSProduct(sItems, selectedName, selectedEan);
+16030:             if (sBest && getProductPrice(sBest) > 0) break;
+16031:           }
+16032: 
+16033:           if (sBest && getProductPrice(sBest) > 0) {
+16034:             nextResults.push({
+16035:               key: "s",
+16036:               chain: "S-ryhmä",
+16037:               storeName: activeStores.sStoreName,
+16038:               productName: fixText(sBest.name),
+16039:               price: getProductPrice(sBest),
+16040:               ean: sBest.ean,
+17495:           const data = response?.ok ? await response.json().catch(() => null) : null;
+17496:           const exact = data?.product as Product | undefined;
+17497:           if (
+17498:             exact &&
+17499:             normalizeEan((exact as any).ean || itemEan) === itemEan &&
+17500:             getProductPrice(exact) > 0
+17501:           ) {
+17502:             match = exact;
+17503:           }
+17504:         }
+17505: 
+17506:         if (!match) {
+17507:           const queries = Array.from(new Set([itemEan, itemName, ...getNormalSearchQueries(itemName).slice(0, 5)].filter(Boolean)));
+17508:           for (const query of queries) {
+17509:             const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
+17510:             match = itemEan
+17511:               ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
+17512:               : pickBestSProduct(candidates, itemName, itemEan) || null;
+17513:             if (match && getProductPrice(match) > 0) break;
+17514:           }
+17515:         }
+17516:       } else if (target.key === "k" && activeStores.kStoreId) {
+17517:         const best = await findBestKMatchForStore(itemName, activeStores.kStoreId, itemEan);
+17518:         if (best && best.price > 0 && (!itemEan || normalizeEan(best.ean) === itemEan)) {
+17519:           match = convertKProductToProduct(best);
+17520:         }
+17521:       } else if (target.key === "lidl" && selectedLidlStoreV750) {
+17522:         // Lidl public catalog currently supplies names only. A research result
+17523:         // must never become a priced match through generic name ranking.
+17524:         const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
+17525:         match = itemEan
+17526:           ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
+18196:     setVisibleNormalCount(8);
+18197:     setSingleProductCompareTerm(term);
+18198:     setSingleProductCompareResults([]);
+18199:     setSingleProductCompareLoading(true);
+18200:     setActiveResult("singleCompare");
+18201: 
+18202:     try {
+18203:       const nextResults: SingleProductCompareResult[] = [];
+18204: 
+18205:       try {
+18206:         let sBest: Product | undefined;
+18207: 
+18208:         for (const sSearchTerm of getNormalSearchQueries(term).slice(0, 6)) {
+18209:           const sItems = await fetchSProducts(
+18210:             sSearchTerm,
+18211:             activeStores.sStoreId,
+18212:           );
+18213:           sBest = pickBestSProduct(sItems, term);
+18214:           if (sBest && getProductPrice(sBest) > 0) break;
+18215:         }
+18216: 
+18217:         if (sBest && getProductPrice(sBest) > 0) {
+18218:           nextResults.push({
+18219:             key: "s",
+18220:             chain: "S-ryhmä",
+18221:             storeName: activeStores.sStoreName,
+18222:             productName: fixText(sBest.name),
+18223:             price: getProductPrice(sBest),
+18224:             ean: sBest.ean,
+18225:             image: sBest.pictureUrl,
+18226:             comparisonPrice: formatComparisonPrice(sBest),
+18227:           });
