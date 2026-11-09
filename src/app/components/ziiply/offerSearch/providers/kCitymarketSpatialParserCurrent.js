@@ -407,7 +407,14 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 // text layer supplies exactly one longer word close to the original title.
 // Never infer a completion from a dictionary or modify prices/quantities.
 function restoreUniquePublisherClippedTitle(row,boxes){
- const m=String(row.title||'').match(/([A-ZÅÄÖ]{5,})-$/);
+ const title=String(row.title||'').trim();
+ // The publisher occasionally clips the entire product heading, leaving
+ // only a generic suffix or a short prefix followed by a pack size.
+ // Such fragments cannot be reconstructed from nearby cards safely.
+ // Record them for preflight instead of borrowing a neighbour's name.
+ if(/^(?:TUOTTEET|SIT(?:\\s+\\d+[–-]\\d+\\s*g)?)$/i.test(title))
+   return {...row,debugSuspiciousPublisherTitle:{title,reason:'incomplete-publisher-heading'}};
+ const m=title.match(/([A-ZÅÄÖ]{5,})-$/);
  if(!m)return row;
  const prefix=m[1],anchor=row.debugAnchor;
  if(!anchor||!Number.isFinite(anchor.left)||!Number.isFinite(anchor.top))return row;
