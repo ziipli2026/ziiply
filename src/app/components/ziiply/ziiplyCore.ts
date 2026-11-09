@@ -1938,7 +1938,7 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const excludedPrepared: Record<string, RegExp> = {
     sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen|vartalo|kuorinta|kosmeti|ihonhoito|shampoo|saippua|suihkugeeli/i,
     merisuola: /riisikak|sips|perunalast|näkkilei|keks|pähkin|pretzel|suolatik|napostel|snack|maissinaks/i,
-    etikka: /mausteseos|grillimauste|kastike|sips|etikkapunajuuri|maalaissips|pretzel|puhdistusliina/i,
+    etikka: /mausteseos|grillimauste|kastike|sips|perunalast|etikkapunajuuri|maalaissips|pretzel|puhdistusliina|puhdistusaine|pesuaine/i,
     silakka: /silakkalaatikko|silakkapihvi|silakkasäilyke|silakkapyörykkä/i,
   };
   if (exactGroups[requested]) {
