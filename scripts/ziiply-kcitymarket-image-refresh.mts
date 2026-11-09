@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { fetchKCitymarketOffers } from "../src/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { enrichStoredKCitymarketOfferImages } from "../src/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
 
 if (!process.env.DATABASE_URL) throw new Error("ZIIPLY_DATABASE_URL GitHub secret missing");
 const sql=neon(process.env.DATABASE_URL);
@@ -16,7 +16,12 @@ const read=async()=>await sql`
 const before=await read();
 console.log("BEFORE",JSON.stringify(before));
 if(!before.length)throw new Error("No active K-Citymarket approved or candidate publication in database");
-const offers=await fetchKCitymarketOffers();
+const stored=await sql`
+  SELECT offers FROM ziiply_offer_publications
+  WHERE publication_id=${before[0].publication_id} AND chain='K-Citymarket'
+    AND approval_state=${before[0].approval_state} LIMIT 1`;
+if(!stored.length)throw new Error("Selected Citymarket publication disappeared before image enrichment");
+const offers=await enrichStoredKCitymarketOfferImages(stored[0].offers as Parameters<typeof enrichStoredKCitymarketOfferImages>[0]);
 console.log("ENRICHED",JSON.stringify({offers:offers.length,withImage:offers.filter(o=>!!o.imageUrl).length}));
 const imageFormats:Record<string,number>={};
 for(const offer of offers){
