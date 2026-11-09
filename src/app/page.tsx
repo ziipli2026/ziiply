@@ -12916,8 +12916,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
       // Revalidate cached results against the current product-group gate.
       const cachedTerm = focusedSearchTerms[0] || useTerms[0] || "";
-      const cachedValidated = cachedNormalSearchV441.results.filter((product: Product) =>
-        productGroupGate(cachedTerm, product.name) && !isBadNormalResult(product, cachedTerm),
+      const cachedValidated = rankProductResultsByRelevanceAndPrice(
+        cachedTerm,
+        cachedNormalSearchV441.results.filter((product: Product) =>
+          getProductPrice(product) > 0 &&
+          productGroupGate(cachedTerm, product.name) &&
+          !isBadNormalResult(product, cachedTerm),
+        ),
+        getProductPrice,
       );
       traceSearch("cache-read", { raw: traceProducts(cachedNormalSearchV441.results),
         accepted: traceProducts(cachedValidated),
@@ -13305,7 +13311,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         });
 
-      const unique=recipeIngredient?prioritizeRecipeFishProducts(recipeIngredient.name,rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0],normalUnique.filter(recipeAllows),getProductPrice),recipeIngredient):normalUnique;
+      const unique = recipeIngredient
+        ? prioritizeRecipeFishProducts(recipeIngredient.name, rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0], normalUnique.filter(recipeAllows), getProductPrice), recipeIngredient)
+        : rankProductResultsByRelevanceAndPrice(
+            focusedSearchTerms[0] || useTerms[0] || "",
+            normalUnique.filter((product: Product) =>
+              getProductPrice(product) > 0 &&
+              productGroupGate(focusedSearchTerms[0] || useTerms[0] || "", product.name) &&
+              !isBadNormalResult(product, focusedSearchTerms[0] || useTerms[0] || ""),
+            ),
+            getProductPrice,
+          );
       if(recipeContext&&recipeContext.runId!==mobileRecipeRunRef.current)return;
       if(recipeIngredient)appendRecipeDebug("recipe-ranked-results",{ingredient:recipeIngredient,products:unique});
 
