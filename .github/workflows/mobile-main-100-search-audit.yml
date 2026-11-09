@@ -54,6 +54,7 @@ jobs:
               if(term==='limonadi') return /(?:jaatelo|jaapuikko|limonadijaa|mehujaa|sorbet|karkki|siirappi)/.test(name);
               if(term==='cola') return /(?:colada|mocktail|jaatelo|limonadijaa|pre.workout|shot)/.test(name);
               if(term==='maito') return /(?:maitorahka|rasvaseos|kerma|suklaa|jogurtti|jaatelo|maitojuoma)/.test(name);
+              if(term==='etikka') return /(?:perunalast|sips|mausteseos|puhdistusliina|puhdistusaine|pesuaine|kastike)/.test(name);
               return false;
             });
             return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,unexpectedEmpty,wrongGroup:wrong.slice(0,5).map(p=>p.name),top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rawSample:ranked.length===0?priced.slice(0,12).map(p=>p.name):undefined,rejected:priced.length-ranked.length};
