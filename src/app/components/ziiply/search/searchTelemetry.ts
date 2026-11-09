@@ -63,3 +63,12 @@ export function cancelSearchTelemetry(session: SearchSession): void {
   active.delete(session.id);
   safeCapture("search_cancelled", { search_id: session.id, search_kind: session.kind });
 }
+
+/** Track a real user cart selection, not merely displaying search results.
+ * Never transmit product names, EANs, search terms, or cart contents.
+ */
+export function recordSearchProductAddedToCart(): void {
+  const id = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  safeCapture("product_added_to_cart", { search_id: id, search_kind: "normal" });
+}
