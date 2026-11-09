@@ -1012,7 +1012,7 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
     const packageSizes=(value:string)=>{
       // Tjek normalizes decimal commas to spaces; composite offers can list several sizes.
       const raw=repair(value).toLowerCase()
-        .replace(/\b0\s+(\d{1,3})\s*(kg|g|ml|cl|dl|l)\b/g,"0.$1 $2");
+        .replace(/\b(\d{1,2})\s+(\d{2})\s*(kg|g|ml|cl|dl|l)\b/g,"$1.$2 $3");
       return [...raw.matchAll(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/gi)]
         .map(match=>match[0].replace(/\s+/g,"").replace(",","."));
     };
@@ -1022,6 +1022,7 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
     const tokens=(value:string)=>{
       const cleaned=repair(value)
         .replace(/\b(?:Spannmålsfritt|Portionsask(?:ar|-ar)|Airfry-produkter|Godisask|Alkoholfri|Träbaserad|Mywear friluftskläder)\b.*$/i," ")
+        .replace(/\b(?:Mikromåltider|Chokladstänger|Vitamindrycker|Energidrycker)\b/gi," ")
         .replace(/\b(?:Suomi|Peru|Kolombia|Marokko|Espanja)(?:\s*\/\s*(?:Peru|Kolombia|Marokko|Espanja))*\b/gi," ")
         .replace(/\([^)]*\/\s*(?:kg|l)[^)]*\)/gi," ").replace(/\([^)]*\)/g," ").replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/gi," ");
       return new Set(norm(cleaned).split(" ").filter(word=>word.length>=4&&!stop.has(word)));
