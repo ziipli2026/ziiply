@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths: [".github/workflows/inspect-search-telemetry.yml"]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   inspect:
     runs-on: ubuntu-latest
@@ -44,3 +46,33 @@ jobs:
             for i in hits[:5]:
               print('DESKTOP_CONTEXT',i+1,' '.join(x.strip()[:130] for x in data[max(0,i-3):i+5]))
           PY
+
+      - name: Save narrow search source extracts for review
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          out=[]
+          terms=['rankNormalSearchResults','rankProductResultsByRelevanceAndPrice','setNormalSearchResults','setSearchResults','normalSearchCache','cache-hit','cache-read','searchCache','displayedProducts','getNormalSearchQueries','searchNormalProducts','isWrongMilkSearchProduct']
+          for branch in ['main','preview/legacy-desktop-ui']:
+            data=(Path('src/app/page.tsx').read_text() if branch=='main' else subprocess.check_output(['git','show','FETCH_HEAD:src/app/page.tsx'],text=True)).splitlines()
+            out.append(f'## {branch} total_lines={len(data)}')
+            selected=set()
+            for term in terms:
+              hits=[i for i,line in enumerate(data) if term.lower() in line.lower()]
+              out.append(f'{term}: {len(hits)} hits, lines {[i+1 for i in hits[:50]]}')
+              for i in hits[:18]:
+                selected.update(range(max(0,i-12),min(len(data),i+20)))
+            for i in sorted(selected):
+              line=data[i]
+              if any(secret in line.lower() for secret in ['process.env','api_key','apikey','authorization','password','secret','bearer ','token:']):
+                line='<redacted>'
+              out.append(f'{i+1}: {line[:250]}')
+          Path('diagnostics').mkdir(exist_ok=True)
+          Path('diagnostics/mobile-desktop-search-paths.txt').write_text('\n'.join(out))
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add diagnostics/mobile-desktop-search-paths.txt
+          git diff --cached --quiet || (git commit -m "diagnostics: capture mobile desktop search call sites" && git push origin HEAD:main)
