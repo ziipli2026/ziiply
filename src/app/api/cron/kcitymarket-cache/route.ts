@@ -31,7 +31,15 @@ export async function GET(request: Request) {
         result.errors.push("active snapshot: " + (error instanceof Error ? error.message : String(error)));
       }
     }
-    const activeOffers = await readActivePublicationOffers<Record<string,unknown>>("K-Citymarket",startedAt).catch(() => []);
+    // A missing approved publication is a release-blocking condition, not
+    // an empty but healthy cache. Keep the database error visible in the
+    // diagnostics instead of silently converting it to an empty array.
+    let activeOffers: Record<string,unknown>[] = [];
+    try {
+      activeOffers = await readActivePublicationOffers<Record<string,unknown>>("K-Citymarket",startedAt);
+    } catch (error) {
+      result.errors.push("approved snapshot read: " + (error instanceof Error ? error.message : String(error)));
+    }
     const activeQuality = inspectCitymarketOffers(activeOffers);
     const activeImages = {total:activeQuality.total,withImage:activeQuality.total-activeQuality.missingImages,missingImage:activeQuality.missingImages};
     // On Wednesday the publisher can roll the AV entry forward while its approved snapshot is still valid.
