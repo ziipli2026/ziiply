@@ -2707,35 +2707,19 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   products: T[],
   priceOf: (product: T) => number,
 ): T[] {
+  // Preserve the shared intent/relevance filter, then sort every accepted
+  // priced result by ascending price regardless of the search term.
+  // In particular, never reintroduce products rejected by the intent filter.
   const ranked = rankNormalSearchResults(query, products);
   const accepted = new Set<Product>(ranked);
   const order = new Map(ranked.map((product, index) => [product, index]));
-  // Rank only the accepted products. Sorting the original list reintroduced
-  // rejected milk types (e.g. rasvaton maito for a täysmaito query).
-  return products.filter((product) => accepted.has(product)).sort((a, b) => {
-    // For the generic milk query, every accepted product is a valid milk type.
-    // Price must decide the order instead of search-score tiers.
-    if (normalize(query).trim() === "maito") {
-      const aPrice = priceOf(a);
-      const bPrice = priceOf(b);
-      const aValid = Number.isFinite(aPrice) && aPrice > 0;
-      const bValid = Number.isFinite(bPrice) && bPrice > 0;
-      if (aValid !== bValid) return aValid ? -1 : 1;
-      if (aValid && aPrice !== bPrice) return aPrice - bPrice;
-    }
-    const aScore = scoreNormalSResult(query, a);
-    const bScore = scoreNormalSResult(query, b);
-    const aTier = Math.floor(aScore / 40);
-    const bTier = Math.floor(bScore / 40);
-    if (aTier !== bTier) return bTier - aTier;
-    const aPrice = priceOf(a);
-    const bPrice = priceOf(b);
-    const validA = Number.isFinite(aPrice) && aPrice > 0;
-    const validB = Number.isFinite(bPrice) && bPrice > 0;
-    if (validA !== validB) return validA ? -1 : 1;
-    if (validA && aPrice !== bPrice) return aPrice - bPrice;
-    return (order.get(a) ?? 0) - (order.get(b) ?? 0);
-  });
+  return products
+    .filter((product) => accepted.has(product) && Number.isFinite(priceOf(product)) && priceOf(product) > 0)
+    .sort((a, b) => {
+      const priceDifference = priceOf(a) - priceOf(b);
+      if (priceDifference !== 0) return priceDifference;
+      return (order.get(a) ?? 0) - (order.get(b) ?? 0);
+    });
 }
 
 export function rankNormalSearchResults(query: string, products: Product[]) {
