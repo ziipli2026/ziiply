@@ -24,7 +24,7 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
     if (!title) problem("missingNames");
     if (!(price > 0) && !(discount > 0 && discount < 100)) problem("missingPrices");
     if (!category || category === "Muut") problem("missingCategories");
-    if (/^(?:tai|ja)\s/i.test(title) || /(?:\s(?:tai|ja)|\/)$/i.test(title) || /^(?:ERIAT|AUHOINEN|6KLASSIKOT)\b/i.test(title)) problem("suspiciousTitles");
+    if (/^(?:tai|ja)\s/i.test(title) || /(?:\s(?:tai|ja)|\/)$/i.test(title) || /^(?:ERIAT|AUHOINEN|6KLASSIKOT|TUOTTEET|SIT(?:\s|$))\b/i.test(title)) problem("suspiciousTitles");
     // Only test a single unambiguous mass/volume. Do not guess ranges or pieces.
     const size = title.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l)\b/i);
     if (price > 0 && unitPrice > 0 && size && !/[–-]\s*\d+/.test(title) && !/\d+\s*kpl\s*\//i.test(title)) {
