@@ -605,6 +605,32 @@ jobs:
           console.log('SAFE_SUMMARY functional piimä regression passed');
           NODE
 
+      - name: Functional cheapest-first normal search including cached cola candidates
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const products = [
+            {id:1,name:'Coca-Cola Zero Vanilja virvoitusjuoma 0,33l 6-pack',price:499},
+            {id:2,name:'Coca-Cola Zero Sugar virvoitusjuoma muovipullo 1,5 L',price:295},
+            {id:3,name:'Xtra sokeriton cola virvoitusjuoma 1,5l',price:119},
+            {id:4,name:'Coop Cola Sokeriton virvoitusjuoma 0,5 l kmp',price:115},
+            {id:5,name:'Pirulo Cool limonadijää Cola 100g/99ml',price:95},
+            {id:6,name:'Mocktail Piña Colada 0,0% 0,33l',price:159},
+            {id:7,name:'Puls Pre-Workout Shot Cola Kick 60ml',price:189},
+            {id:8,name:'Coop Piña colada mocktail 750ml',price:299},
+            {id:9,name:'Cola ilman hintaa',price:0},
+          ];
+          // Both fresh and cached normal-search paths call this shared ranker.
+          for (const candidateOrder of [products, products.slice().reverse()]) {
+            const result = core.rankProductResultsByRelevanceAndPrice('cola', candidateOrder, p => p.price);
+            assert.deepEqual(result.map(p => p.price), [115,119,295,499]);
+            assert.deepEqual(result.map(p => p.id), [4,3,2,1]);
+          }
+          console.log('SAFE_SUMMARY normal search cheapest-first cola and wrong-group regression passed');
+          NODE
+
       - name: Functional maito ranking regression
         shell: bash
         run: |
