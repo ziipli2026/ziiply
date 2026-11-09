@@ -26,16 +26,16 @@ jobs:
           from pathlib import Path
           p=Path('src/app/page.tsx')
           s=p.read_text()
-          old='''       const unique=recipeIngredient?prioritizeRecipeFishProducts(recipeIngredient.name,rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0],normalUnique.filter(recipeAllows),getProductPrice),recipeIngredient):normalUnique;'''
+          old='''      const unique=recipeIngredient?prioritizeRecipeFishProducts(recipeIngredient.name,rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0],normalUnique.filter(recipeAllows),getProductPrice),recipeIngredient):normalUnique;'''
           new='''       const unique=recipeIngredient
              ? prioritizeRecipeFishProducts(recipeIngredient.name,rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0],normalUnique.filter(recipeAllows),getProductPrice),recipeIngredient)
              : rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0] || useTerms[0] || "",normalUnique.filter((product: Product) => getProductPrice(product) > 0 && productGroupGate(focusedSearchTerms[0] || useTerms[0] || "", product.name) && !isBadNormalResult(product, focusedSearchTerms[0] || useTerms[0] || "")),getProductPrice);'''
           assert s.count(old)==1, 'fresh results anchor mismatch'
           s=s.replace(old,new)
-          old='''       const cachedValidated = cachedNormalSearchV441.results.filter((product: Product) =>
-                 productGroupGate(cachedTerm, product.name) && !isBadNormalResult(product, cachedTerm),
-               );'''
-          new='''       const cachedValidated = rankProductResultsByRelevanceAndPrice(
+          old='''      const cachedValidated = cachedNormalSearchV441.results.filter((product: Product) =>
+        productGroupGate(cachedTerm, product.name) && !isBadNormalResult(product, cachedTerm),
+      );'''
+          new='''      const cachedValidated = rankProductResultsByRelevanceAndPrice(
                  cachedTerm,
                  cachedNormalSearchV441.results.filter((product: Product) =>
                    getProductPrice(product) > 0 &&
