@@ -83,8 +83,10 @@ export function cancelSearchTelemetry(session: SearchSession): void {
  * Never transmit product names, EANs, search terms, or cart contents.
  */
 export function recordSearchProductAddedToCart(): void {
-  if (lastCompletedSearch) lastCompletedSearch.selected = true;
-  const id = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-    ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  safeCapture("product_added_to_cart", { search_id: id, search_kind: "normal" });
+  const previous = lastCompletedSearch;
+  // A cart selection belongs to the actual displayed search, not a new random ID.
+  // Multiple selections from the same results intentionally share the search_id.
+  if (!previous || previous.closed) return;
+  previous.selected = true;
+  safeCapture("product_added_to_cart", { search_id: previous.id, search_kind: previous.kind });
 }
