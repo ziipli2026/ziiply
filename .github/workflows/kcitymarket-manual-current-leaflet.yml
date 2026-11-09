@@ -88,7 +88,14 @@ jobs:
             exit 1
           fi
           jq -e '.activeOk == true' cache.json >/dev/null
-          echo "Citymarket active refresh inspected; 46AV quality is checked separately"
+          # activeOk only proves that the parser fetched a leaflet. It does not
+          # prove that a usable, approved offer snapshot reached consumers.
+          if ! jq -e '.ok == true and .activeQuality.total > 0 and .activeQuality.blocking == false' cache.json >/dev/null; then
+            echo "::error::Citymarket parser fetched the leaflet, but no quality-approved active offers are visible to consumers"
+            jq '{active,activeImages,activeQuality,errors}' cache.json
+            exit 1
+          fi
+          echo "Citymarket active publication is populated and passes the quality gate"
       - name: Enforce upcoming edition quality after both refreshes
         if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
         run: |
