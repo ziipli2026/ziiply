@@ -44,6 +44,9 @@ jobs:
             const reverseOrdered=rankedReversed.every((p,i)=>i===0||rankedReversed[i-1].price<=p.price);
             const sameTop=JSON.stringify(ranked.slice(0,10).map(p=>[p.name,p.price]))===JSON.stringify(rankedReversed.slice(0,10).map(p=>[p.name,p.price]));
             const ordered=ranked.every((p,i)=>i===0||ranked[i-1].price<=p.price);
+            // A known real grocery ingredient must not silently disappear.
+            const requiredNonEmpty=new Set(['voi','raejuusto','silakka','sokeri','ruokaöljy','etikka']);
+            const unexpectedEmpty=requiredNonEmpty.has(term)&&ranked.length===0;
             const normalized=s=>String(s||'').toLocaleLowerCase('fi').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
             const wrong=ranked.filter(p=>{
               const name=normalized(p.name);
@@ -53,7 +56,7 @@ jobs:
               if(term==='maito') return /(?:maitorahka|rasvaseos|kerma|suklaa|jogurtti|jaatelo|maitojuoma)/.test(name);
               return false;
             });
-            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,wrongGroup:wrong.slice(0,5).map(p=>p.name),top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rawSample:ranked.length===0?priced.slice(0,12).map(p=>p.name):undefined,rejected:priced.length-ranked.length};
+            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,unexpectedEmpty,wrongGroup:wrong.slice(0,5).map(p=>p.name),top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rawSample:ranked.length===0?priced.slice(0,12).map(p=>p.name):undefined,rejected:priced.length-ranked.length};
           }
           (async()=>{
             for(let i=0;i<terms.length;i+=5){
@@ -62,10 +65,10 @@ jobs:
               }));
               for(const r of batch){results.push(r);console.log(JSON.stringify(r))}
             }
-            const summary={queries:terms.length,completed:results.filter(r=>!r.error).length,errors:results.filter(r=>r.error).length,empty:results.filter(r=>!r.error&&r.accepted===0).length,unsorted:results.filter(r=>r.sorted===false).length,unstableTop:results.filter(r=>r.stableTop===false).length,wrongGroup:results.filter(r=>r.wrongGroup?.length).length,source:'live Prisma API + production shared ranking code',commit:process.env.GITHUB_SHA};
+            const summary={queries:terms.length,completed:results.filter(r=>!r.error).length,errors:results.filter(r=>r.error).length,empty:results.filter(r=>!r.error&&r.accepted===0).length,unsorted:results.filter(r=>r.sorted===false).length,unstableTop:results.filter(r=>r.stableTop===false).length,wrongGroup:results.filter(r=>r.wrongGroup?.length).length,unexpectedEmpty:results.filter(r=>r.unexpectedEmpty).map(r=>r.term),source:'live Prisma API + production shared ranking code',commit:process.env.GITHUB_SHA};
             fs.writeFileSync('mobile-main-100-search-results.json',JSON.stringify({summary,results},null,2));
             console.log('SUMMARY '+JSON.stringify(summary));
-            if(summary.errors||summary.unsorted||summary.unstableTop||summary.wrongGroup)process.exitCode=1;
+            if(summary.errors||summary.unsorted||summary.unstableTop||summary.wrongGroup||summary.unexpectedEmpty.length)process.exitCode=1;
           })();
           NODE
       - uses: actions/upload-artifact@v4
