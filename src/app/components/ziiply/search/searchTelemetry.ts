@@ -1,18 +1,23 @@
 "use client";
 
-import posthog from "posthog-js";
-
 /** Privacy-safe search outcome measurement. Call at actual UI state transitions. */
 export type SearchOutcome = "priced_results" | "no_priced_results" | "partial_source_failure" | "error";
 export type SearchKind = "normal" | "ean" | "offer";
 export type SearchSession = { id: string; kind: SearchKind; startedAt: number; firstPriceReported: boolean; finished: boolean };
 
 const active = new Map<string, SearchSession>();
-// PostHog queues capture calls made before async initialization completes.
-// Never silently discard a search event merely because __loaded is still false.
+// Deliver via Ziiply's own server endpoint so Safari content blockers cannot
+// silently suppress the PostHog SDK. The server logs the upstream HTTP result.
 const safeCapture = (event: string, props: Record<string, string | number | boolean>) => {
-  try { if (typeof window !== "undefined") posthog.capture(event, props); }
-  catch { /* analytics must never block a search */ }
+  if (typeof window === "undefined") return;
+  try {
+    void fetch("/api/analytics/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event, ...props }),
+      keepalive: true,
+    }).catch(() => { /* analytics must never block search */ });
+  } catch { /* analytics must never block search */ }
 };
 
 export function beginSearchTelemetry(kind: SearchKind): SearchSession {
