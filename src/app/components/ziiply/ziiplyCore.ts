@@ -1708,6 +1708,8 @@ export function isClearlyColaProduct(name: string) {
     "jaatelo",
     "mehujää",
     "mehujaa",
+    "limonadijää",
+    "limonadijaa",
     "sorbetti",
     "jogurtti",
     "rahka",
