@@ -53,7 +53,7 @@ jobs:
               if(term==='maito') return /(?:maitorahka|rasvaseos|kerma|suklaa|jogurtti|jaatelo|maitojuoma)/.test(name);
               return false;
             });
-            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,wrongGroup:wrong.slice(0,5).map(p=>p.name),top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rejected:priced.length-ranked.length};
+            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,wrongGroup:wrong.slice(0,5).map(p=>p.name),top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rawSample:ranked.length===0?priced.slice(0,12).map(p=>p.name):undefined,rejected:priced.length-ranked.length};
           }
           (async()=>{
             for(let i=0;i<terms.length;i+=5){
