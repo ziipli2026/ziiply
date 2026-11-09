@@ -623,17 +623,27 @@ jobs:
 
           for (const query of ['maito', 'maitoa']) {
             const ranked = core.rankNormalSearchResults(query, products);
-            const positions = new Map(ranked.map((product, index) => [product.id, index]));
+            const ids = ranked.map(product => product.id);
             const milkIds = [11, 12, 13];
             const wrongIds = [14, 15, 16, 17];
-            const lastMilk = Math.max(...milkIds.map(id => positions.get(id)));
-            const firstWrong = Math.min(...wrongIds.map(id => positions.get(id)));
 
-            if (!(lastMilk < firstWrong)) {
-              console.error('FAIL milk ranking for', query, ranked.map(product => product.name));
+            // Hard filtering is stricter than the previous "bad products last"
+            // behavior. Confirm all real milks remain and invalid foods are gone.
+            const missingMilk = milkIds.filter(id => !ids.includes(id));
+            const leakedWrong = wrongIds.filter(id => ids.includes(id));
+            if (missingMilk.length || leakedWrong.length) {
+              console.error('FAIL milk filtering for', query,
+                { missingMilk, leakedWrong, results: ranked.map(p => p.name) });
               process.exit(1);
             }
-            console.log('PASS milk ranking:', query, 'keeps true milk before incidental/wrong products');
+            for (const id of wrongIds) {
+              const product = products.find(p => p.id === id);
+              if (!core.isBadNormalResult(product, query)) {
+                console.error('FAIL milk gate accepted invalid product', query, product.name);
+                process.exit(1);
+              }
+            }
+            console.log('PASS milk filtering:', query, 'keeps true milks and rejects wrong products');
           }
 
           console.log('SAFE_SUMMARY functional maito regression passed');
