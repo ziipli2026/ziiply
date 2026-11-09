@@ -1,4 +1,4 @@
-name: Inspect search telemetry integration points
+name: Inspect mobile vs desktop normal search
 on:
   push:
     branches: [main]
@@ -9,7 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Locate search lifecycle without logging user data
+        with:
+          fetch-depth: 1
+      - name: Compare search paths and cache processing
+        shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -17,20 +20,27 @@ jobs:
           p=Path('src/app/page.tsx')
           lines=p.read_text().splitlines()
           print('PAGE_LINES',len(lines))
-          terms=['activeNormalSearchRequestRefV441','normalSearchRequestIdV441','unregisterProductRecovery','setLoadingNormal(','onNormalSearch=','rankNormalSearchResults(','setNormalSearchResults(','setSearchResults(','loadingNormal','registerZiiplyRecoverableRequest(']
-          for term in terms:
-              hits=[i for i,line in enumerate(lines) if term in line]
-              print('MATCH',term,'COUNT',len(hits),'LINES',','.join(str(i+1) for i in hits[:35]))
-          anchors=[i for i,line in enumerate(lines) if 'normalSearchRequestIdV441' in line or 'unregisterProductRecovery' in line]
-          shown=set()
-          for anchor in anchors[:14]:
-              start=max(0,anchor-12);end=min(len(lines),anchor+19)
-              print('CONTEXT',start+1,end)
-              for i in range(start,end):
-                  if i in shown: continue
-                  shown.add(i)
-                  s=lines[i]
-                  # Avoid printing literals that could include user queries or secrets
-                  s=re.sub(r'(["\x27\x60])(?:\\.|(?!\1).)*?\1','<literal>',s)
-                  print(f'{i+1}: {s[:210]}')
+          patterns=['rankNormalSearchResults','rankProductResultsByRelevanceAndPrice','setNormalSearchResults','setSearchResults','normalSearchCache','cache-read','cache-hit','searchCache','normalSearchRequest','displayedProducts','isWrongMilkSearchProduct','getNormalSearchQueries','searchNormalProducts']
+          for pat in patterns:
+            hits=[i for i,l in enumerate(lines) if pat.lower() in l.lower()]
+            print('PATTERN',pat,'COUNT',len(hits),'LINES',[i+1 for i in hits[:40]])
+            for i in hits[:7]:
+              for j in range(max(0,i-7),min(len(lines),i+11)):
+                line=lines[j]
+                line=re.sub(r'(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*[^,;}]+',r'\1=<redacted>',line)
+                print(f'{j+1}: {line[:220]}')
+          PY
+      - name: Check alternate desktop branch
+        shell: bash
+        run: |
+          git fetch --depth=1 origin preview/legacy-desktop-ui
+          python3 - <<'PY'
+          import subprocess
+          data=subprocess.check_output(['git','show','FETCH_HEAD:src/app/page.tsx'],text=True).splitlines()
+          print('DESKTOP_PAGE_LINES',len(data))
+          for pat in ['rankNormalSearchResults','rankProductResultsByRelevanceAndPrice','setNormalSearchResults','setSearchResults','searchCache','getNormalSearchQueries']:
+            hits=[i for i,s in enumerate(data) if pat.lower() in s.lower()]
+            print('DESKTOP',pat,'COUNT',len(hits),'LINES',[i+1 for i in hits[:30]])
+            for i in hits[:5]:
+              print('DESKTOP_CONTEXT',i+1,' '.join(x.strip()[:130] for x in data[max(0,i-3):i+5]))
           PY
