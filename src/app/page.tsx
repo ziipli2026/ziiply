@@ -696,7 +696,7 @@
 "use client";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "./components/ziiply/comparisonBrand";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
-import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordFirstPricedResults } from "./components/ziiply/search/searchTelemetry";
+import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordFirstPricedResults, recordSearchProductAddedToCart } from "./components/ziiply/search/searchTelemetry";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { recordArrivalDiagnostic, getArrivalDiagnostics, clearArrivalDiagnostics } from "./components/ziiply/location/ziiplyArrivalDiagnostics";
@@ -18210,7 +18210,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         })()}:item);
         cartRefV124.current=next;setCart(next);persistCartImmediately(next);
         appendRecipeDebug("recipe-cart-quantity-added",{product:product.name,quantity});
-        showCartToast("✓ Lisätty ostoskoriin");return true;
+        showCartToast("✓ Lisätty ostoskoriin");
+        recordSearchProductAddedToCart();
+        return true;
       }
       const nextInputForDuplicate = remainingTerms.join(",");
       setInput(nextInputForDuplicate);
@@ -18324,6 +18326,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     cartRefV124.current = nextCart;
     setCart(nextCart);
     persistCartImmediately(nextCart);
+    recordSearchProductAddedToCart();
     showCartToast("✓ Lisätty ostoskoriin");
 
     const nextInput = remainingTerms.join(",");
