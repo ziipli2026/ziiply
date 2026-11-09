@@ -631,6 +631,36 @@ jobs:
           console.log('SAFE_SUMMARY normal search cheapest-first cola and wrong-group regression passed');
           NODE
 
+      - name: Functional oil and lemonade product-group filtering
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const oil = [
+            {id:1,name:'Coop tonnikala paloina oliiviöljyssä MSC 135/104 g',price:172},
+            {id:2,name:'Risella jasmiini valmisriisi 200g valkosipuli & oliiviöljy',price:179},
+            {id:3,name:'Coop oliiviöljyä ja merisuolaa sisältävät krutongit 100 g',price:194},
+            {id:4,name:'Coop extra virgin oliiviöljy 500ml',price:599},
+            {id:5,name:'Borges oliiviöljy 1l',price:899},
+          ];
+          const lemonade = [
+            {id:11,name:'Pirulo Cool Orange limonadijää 100g/99ml',price:75},
+            {id:12,name:'Lipsi limonadijäätelö 72g vadelma',price:95},
+            {id:13,name:'Coop sitruunalimonadi virvoitusjuoma 1,5l',price:139},
+            {id:14,name:'Hartwall Jaffa appelsiini virvoitusjuoma 1,5l',price:249},
+          ];
+          for (const input of [oil, oil.slice().reverse()]) {
+            const ranked = core.rankProductResultsByRelevanceAndPrice('oliiviöljy',input,p=>p.price);
+            assert.deepEqual(ranked.map(p=>p.id),[4,5]);
+          }
+          for (const input of [lemonade, lemonade.slice().reverse()]) {
+            const ranked = core.rankProductResultsByRelevanceAndPrice('limonadi',input,p=>p.price);
+            assert.deepEqual(ranked.map(p=>p.id),[13,14]);
+          }
+          console.log('SAFE_SUMMARY oil and lemonade product-group filtering passed');
+          NODE
+
       - name: Functional maito ranking regression
         shell: bash
         run: |
