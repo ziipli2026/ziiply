@@ -1,4 +1,5 @@
 name: Mobile main 100 product search audit
+# Re-run against updated shared product-group gates
 on:
   push:
     branches: [main]
