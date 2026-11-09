@@ -661,6 +661,26 @@ jobs:
           console.log('SAFE_SUMMARY oil and lemonade product-group filtering passed');
           NODE
 
+      - name: Regression for formerly empty grocery searches
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert=require('node:assert/strict');
+          const core=require('./.tmp-search-regression/ziiplyCore.js');
+          const cases=[
+            ['voi','Valio voi normaalisuolainen 500g'],
+            ['raejuusto','Valio raejuusto 200g'],
+            ['silakka','Kotimainen silakkafilee 400g'],
+            ['sokeri','Dansukker taloussokeri 1kg'],
+            ['etikka','Rajamäen väkiviinaetikka 0,5l']
+          ];
+          for(const [term,name] of cases){
+            const actual=core.rankProductResultsByRelevanceAndPrice(term,[{id:1,name,price:199}],p=>p.price);
+            assert.equal(actual.length,1,term+' rejected '+name);
+          }
+          console.log('SAFE_SUMMARY five formerly empty grocery gates passed');
+          NODE
+
       - name: Functional maito ranking regression
         shell: bash
         run: |
