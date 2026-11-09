@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-const EVENTS = new Set(["search_started", "search_first_price_shown", "search_completed", "search_cancelled"]);
+const EVENTS = new Set(["search_started", "search_first_price_shown", "search_completed", "search_cancelled", "product_added_to_cart"]);
 const KINDS = new Set(["normal", "ean", "offer"]);
 const OUTCOMES = new Set(["priced_results", "no_priced_results", "partial_source_failure", "error"]);
 const KEY = "phc_yUGdeyjeZABknZazoazcsLfBhDwuZ8NBTDxXUxN2EweJ";
