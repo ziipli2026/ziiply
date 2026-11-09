@@ -2707,22 +2707,15 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   products: T[],
   priceOf: (product: T) => number,
 ): T[] {
-  // Preserve the shared intent/relevance filter, then sort every accepted
-  // priced result by ascending price regardless of the search term.
-  // In particular, never reintroduce products rejected by the intent filter.
-  const ranked = rankNormalSearchResults(query, products);
-  const accepted = new Set<Product>(ranked);
-  const order = new Map(ranked.map((product, index) => [product, index]));
-  return products
-    .filter((product) => accepted.has(product) && Number.isFinite(priceOf(product)) && priceOf(product) > 0)
-    .sort((a, b) => {
-      const priceDifference = priceOf(a) - priceOf(b);
-      if (priceDifference !== 0) return priceDifference;
-      return (order.get(a) ?? 0) - (order.get(b) ?? 0);
-    });
+  return rankNormalSearchResults(query, products, priceOf)
+    .filter((product) => Number.isFinite(priceOf(product)) && priceOf(product) > 0);
 }
 
-export function rankNormalSearchResults(query: string, products: Product[]) {
+export function rankNormalSearchResults<T extends Product>(
+  query: string,
+  products: T[],
+  priceOf: (product: T) => number = getProductPrice,
+): T[] {
   const intent = detectSearchIntent(query);
   const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
 
@@ -2734,6 +2727,11 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
       // Varsinainen piimätuote (myös esim. AB-piimä) ennen tuotteita,
       // joissa piimä esiintyy vain yhdyssanan/raaka-aineen osana.
       return isClearlyButtermilkProduct(product) ? 1 : 0;
+    }
+
+    if (intent.category === "ketchup") {
+      // Tuoteryhmään kuuluva ketsuppi aina ennen pelkkää maku- tai ainesosamainintaa.
+      return /ketsuppi|ketchup/.test(normalize(product.name)) ? 1 : 0;
     }
 
     if (intent.category === "milk") {
@@ -2759,10 +2757,10 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
   }
 
   return products
-    // Reject incompatible milk variants instead of merely pushing them to the end.
-    .filter((product: Product) => !comparisonProductType(query) || comparisonProductType(product.name) === comparisonProductType(query))
-    .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
-    .map((product: Product): ScoredProduct & { coreProductIntentRank: number } => ({
+    .filter((product: T) => !comparisonProductType(query) || comparisonProductType(product.name) === comparisonProductType(query))
+    .filter((product: T) => !isBadNormalResult(product, query) && productGroupGate(query, product.name))
+    .filter((product: T) => !queryIsEgg || isClearlyEggProduct(product.name))
+    .map((product: T): ScoredProduct & { coreProductIntentRank: number; product: T } => ({
       product,
       score: scoreNormalSResult(query, product),
       categoryConfidence: getCategoryConfidence(intent, product),
@@ -2791,10 +2789,19 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
       const nonFoodDifference = b.nonFoodPenalty - a.nonFoodPenalty;
       if (Math.abs(nonFoodDifference) > 100) return nonFoodDifference;
 
-      return getProductPrice(a.product) - getProductPrice(b.product);
+      // Cheapest comparable product wins only after semantic relevance,
+      // category, size and non-food checks have been applied. Missing prices
+      // are always placed after priced results.
+      const ap = priceOf(a.product);
+      const bp = priceOf(b.product);
+      const comparableA = Number.isFinite(ap) && ap > 0 ? ap : Number.POSITIVE_INFINITY;
+      const comparableB = Number.isFinite(bp) && bp > 0 ? bp : Number.POSITIVE_INFINITY;
+      if (comparableA === comparableB) return 0;
+      return comparableA - comparableB;
     })
     .map(({ product }) => product);
 }
+
 
 export function isNonFoodOffer(offer: ZiiplyOffer) {
   const text = normalize(`${offer.offer.item.name} ${offer.offer.item.category || ""}`);
@@ -2845,15 +2852,27 @@ export function isBadNormalResult(product: Product, query: string) {
   const category = normalize(product.category || "");
   const productText = `${normalizedName} ${category}`;
 
+  // Shared product-group validation for all normal searches and offer searches.
+  const intentCategory = detectSearchIntent(query).category;
+  if (intentCategory === "butter") {
+    if (!/(?:^|[\\s-])(?:voi|meijerivoi)(?:$|[\\s-])/.test(normalizedName)) return true;
+    if (/(?:voitäyte|voitäytte|voiherkku|kasvovoi|vartalovoi|hiusvoi|voide|pullapitko|leivonnainen|margariini)/.test(normalizedName)) return true;
+    if (/(?:kosmetiikka|hygienia|leipomo|leivonnaiset)/.test(category)) return true;
+  }
+  if (intentCategory === "meat" && /jauheliha/.test(normalizedQuery)) {
+    if (!/jauheliha/.test(normalizedName) || /(?:lastenateria|lastenruoka|piltti|kastike|perunasose|spagetti|lasagne|ateria|keitto|pizza|pitsa|mauste)/.test(normalizedName)) return true;
+  }
+  if (intentCategory === "soft_drink") {
+    if (!/(?:virvoitusjuoma|limsa|limu|cola|coca-cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes|mountain dew|dr pepper)/.test(normalizedName)) return true;
+    if (/(?:karkki|makeinen|pastilli|purukumi|jaatelo|sorbet|siirappi|energiajuoma|olut|lonkero|alkohol|keksi|suklaa|kastike|jogurtti|rahka)/.test(normalizedName)) return true;
+    if (/(?:makeis|kark|leipom|maito|liha|pakaste|alkohol)/.test(category)) return true;
+  }
+
   if (normalizedQuery.includes("jauheliha") && !productText.includes("jauheliha")) return true;
+  if ((normalizedQuery.includes("jogurtti") || normalizedQuery.includes("jogurt")) && /(?:kastike|kuorrute|myslipatukka|patukka)/.test(normalizedName)) return true;
 
   const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
   if (queryIsMilk) {
-    // Ingredient mentions are not milk products (e.g. Paindelice maitoleipä).
-    // Apply the same gate to fresh searches and cached results.
-    if (/(?:leip|sampyl|pull|brioss|bread|buns?)/i.test(normalizedName)) return true;
-    // A full-milk query must never show skimmed or low-fat milk, even at the end of the results.
-    if (comparisonProductType(query) && comparisonProductType(product.name) !== comparisonProductType(query)) return true;
     const positiveMilkSignals = [
       "maito",
       "kevytmaito",
@@ -2903,13 +2922,20 @@ export function isBadNormalResult(product: Product, query: string) {
       "maito-kahvijauhe",
       "maitokahvijauhe",
       "maitojauhe",
+      "pullotutti",
+      "tutti",
       "cappuccino",
     ];
 
     if (!hasAnyToken(normalizedName, positiveMilkSignals)) return true;
-    const plainLactoseFreeMilkDrink = /\blaktoositon\b/.test(normalizedQuery) && /\bmaitojuoma\b/.test(normalizedName) && !/(?:kahvi|kaakao|suklaa|makuinen|maustettu|proteiin|pirtelo|latte|cappuccino)/.test(normalizedName);
-    if (hasAnyToken(productText, forbiddenMilkContext) && !plainLactoseFreeMilkDrink) return true;
+    if (hasAnyToken(productText, forbiddenMilkContext)) return true;
+    // Reject adjacent dairy categories by product name, not category metadata:
+    // store category paths may legitimately contain "maidot-ja-piimat".
+    if (hasAnyToken(normalizedName, ["äidinmaidonkorvike", "aidinmaidonkorvike", "vieroitusvalmiste", "vierotusvalmiste", "piimä", "piima", "maitopirtelö", "maitopirtelo"])) return true;
   }
+
+  if (detectSearchIntent(query).category === "ketchup" &&
+      !/ketsuppi|ketchup/.test(normalizedName)) return true;
 
   const queryIsCoffee = isCoffeeSearchTerm(normalizedQuery) || normalizedQuery.includes("juhla mokka");
   if (queryIsCoffee) {
@@ -2933,9 +2959,11 @@ export function isBadNormalResult(product: Product, query: string) {
     if (!targetIsYogurt || forbiddenWords) return true;
   }
 
-  if (normalizedQuery.includes("juusto")) {
-    const targetIsCheese = hasAnyToken(normalizedName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
-    const forbiddenWords = hasAnyToken(productText, ["tuorejuusto", "sulatejuusto", "raejuusto", "juustodippi", "dippi", "nacho", "kastike"]);
+  if (normalizedQuery.replace(/\bjuustoportti(?:n)?\b/g, " ").includes("juusto")) {
+    // Brand names such as Juustoportti must not qualify unrelated foods as cheese.
+    const productTypeName = normalizedName.replace(/\bjuustoportti(?:n)?\b/g, " ").trim();
+    const targetIsCheese = hasAnyToken(productTypeName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+    const forbiddenWords = hasAnyToken(`${productTypeName} ${category}`, ["juustodippi", "dippi", "nacho", "kastike"]);
     if (!targetIsCheese || forbiddenWords) return true;
   }
 
