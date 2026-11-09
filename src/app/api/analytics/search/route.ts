@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-const EVENTS = new Set(["search_started", "search_first_price_shown", "search_completed", "search_cancelled", "product_added_to_cart", "search_results_dismissed", "search_no_selection"]);
+const EVENTS = new Set(["search_started", "search_completed", "search_cancelled", "product_added_to_cart", "search_results_dismissed", "search_no_selection"]);
 const KINDS = new Set(["normal", "ean", "offer"]);
 const OUTCOMES = new Set(["priced_results", "no_priced_results", "partial_source_failure", "error"]);
 const KEY = "phc_yUGdeyjeZABknZazoazcsLfBhDwuZ8NBTDxXUxN2EweJ";
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       ziiply_analytics_schema: 2,
     };
     if (typeof body.outcome === "string" && OUTCOMES.has(body.outcome)) props.outcome = body.outcome;
-    for (const key of ["priced_count", "elapsed_ms", "time_to_first_price_ms"]) {
+    for (const key of ["results_count", "elapsed_ms"]) {
       const n = body[key];
       if (typeof n === "number" && Number.isFinite(n) && n >= 0) props[key] = Math.min(Math.round(n), 3600000);
     }
