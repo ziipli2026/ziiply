@@ -125,6 +125,11 @@ export async function GET(request: Request) {
     "nakit": "nakki",
   };
   const upstreamSearch = normalizedSearch === "limsa" ? "limonadi" : (singularByPlural[normalizedSearch] || search);
+  // Generic cooking oil is not a literal product title in Ruoanhinta.
+  // Search actual oil types and merge their store-specific prices.
+  const oilSearchAliases = /^(?:ruokaöljy|ruokaoljy)$/.test(normalizedSearch)
+    ? ["rypsiöljy", "auringonkukkaöljy", "oliiviöljy"]
+    : [];
 
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
     upstreamSearch
@@ -140,7 +145,7 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) throw new Error("Upstream HTTP " + response.status);
-    const additionalTerms = [...new Set([...(MEAT_SEARCH_ALIASES[normalizedSearch] || []), ...(BASKET_SEARCH_ALIASES[normalizedSearch] || [])])];
+    const additionalTerms = [...new Set([...(MEAT_SEARCH_ALIASES[normalizedSearch] || []), ...(BASKET_SEARCH_ALIASES[normalizedSearch] || []), ...oilSearchAliases])];
     const extraResponses = await Promise.all(additionalTerms.map(async (term) => {
       try {
         const extraUrl = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&storeIds=${storeId}&skip=0&take=80`;
