@@ -37,7 +37,7 @@ test('45AV: printed Innocent price includes deposit and has product-specific uni
   assert.match(provider,/if\(innocent45AV\) price=3\.49/);
   assert.match(provider,/depositAmount:0\.20/);
   assert.match(provider,/TÄYSMEHUT\/i\.test\(title\)\?3\.66:4\.39/);
-  assert.match(quality,/\(price - deposit\) \/ \(amount \* quantity\)/);
+  assert.match(quality,/\(price - deposit\) \/ \(amount \* quantity \* packCount\)/);
   assert.equal(Math.round((3.49-.20)/.9*100)/100,3.66);
   assert.equal(Math.round((3.49-.20)/.75*100)/100,4.39);
 });
