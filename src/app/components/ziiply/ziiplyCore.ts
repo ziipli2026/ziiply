@@ -2855,6 +2855,9 @@ export function isBadNormalResult(product: Product, query: string) {
 
   const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
   if (queryIsMilk) {
+    // Ingredient mentions are not milk products (e.g. Paindelice maitoleipä).
+    // Apply the same gate to fresh searches and cached results.
+    if (/(?:leip|sampyl|pull|brioss|bread|buns?)/i.test(normalizedName)) return true;
     // A full-milk query must never show skimmed or low-fat milk, even at the end of the results.
     if (comparisonProductType(query) && comparisonProductType(product.name) !== comparisonProductType(query)) return true;
     const positiveMilkSignals = [
