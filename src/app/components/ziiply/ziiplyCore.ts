@@ -1948,12 +1948,13 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
-  // Only sellable oil products qualify for an oil query, not foods containing oil.
-  if (/^(?:oliiviöljy|oliiviöljyä|oliivioljy|oliivioljya|ruokaöljy|ruokaöljyä|ruokaoljy|ruokaoljya)$/.test(source)) {
-    const oilName = /(?:oliiviöljy|oliivioljy|rypsiöljy|rypsioljy|rapsiöljy|rapsioljy|auringonkukkaöljy|auringonkukkaoljy|kasviöljy|kasvioljy|ruokaöljy|ruokaoljy|paistoöljy|paistooljy)/;
-    const preparedFood = /(?:öljyssä|öljyssa|öljyllä|öljylla|öljyä sisält|öljya sisalt|tonnikala|sardiin|valmisriisi|krutonk|krutonki|edamame|pähkin|pahkin|sips|perunalast|kastike|majoneesi|marinadi|salaatti|säilyke|sailyke|oliiviöljyuute)/;
-    if (!oilName.test(target) || preparedFood.test(target)) return false;
-    if (/^oliivi/.test(source) && !/(?:oliiviöljy|oliivioljy)/.test(target)) return false;
+  // Oil is the product, not merely an ingredient or flavour. Normalize the
+  // user query and product name equally (accents and inflections included).
+  if (/^(?:oliivioljya?|ruokaoljya?)$/.test(source)) {
+    const standaloneOil = /(?:^|[\s-])(?:extra virgin |ekstra neitsyt |neitsyt |luomu |kylmapuristettu |kevyt )*(?:oliivioljy|rypsioljy|rapsioljy|auringonkukkaoljy|kasvioljy|ruokaoljy|paistooljy)(?:[\s,.-]|$)/;
+    const wrongOilProduct = /(?:oljyssa|oljylla|oljya sisalt|tonnikala|sardiin|muikku|valmisriisi|krutonk|krutonki|edamame|pahkin|sips|perunalast|kastike|majoneesi|marinadi|salaatti|sailyke|lohkoperuna|voileipakeksi|keksi|oivariini|levite|voi\b|tuorejuusto|mauste|oliivioljy(?:uute|lla|ssa))/;
+    if (!standaloneOil.test(target) || wrongOilProduct.test(target)) return false;
+    if (source.startsWith("oliivi") && !/(?:^|[\s-])oliivioljy(?:[\s,.-]|$)/.test(target)) return false;
   }
 
   // Frozen lemonade-flavoured products are not bottled/canned soft drinks.
