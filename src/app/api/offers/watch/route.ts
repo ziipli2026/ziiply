@@ -22,6 +22,15 @@ function matches(query:string,offer:Record<string,unknown>){
   // Source-first watcher invariant: every published, priced offer is always
   // retrievable by its own full product name, regardless of catalog taxonomy.
   if(q===n)return true;
+  // For pet-food offers, an isolated ingredient word is not a grocery-food
+  // offer. Keep full product-name searches and pet-category searches working.
+  // Use source taxonomy rather than product-specific or query-specific exceptions.
+  const category=norm([offer.categoryPath,offer.productGroup,offer.mainCategory,offer.department].filter(Boolean).join(" "));
+  const petCategory=/(?:^| )(?:lemmikit|lemmikki|koirat|koiran|kissat|kissan|pet|pets|dog|dogs|cat|cats)(?: |$)/.test(category);
+  if(petCategory && terms.length===1 && !category.split(" ").includes(q)) {
+    const brand=norm(offer.brandName||offer.brand||"");
+    if(q!==brand && !brand.split(" ").includes(q))return false;
+  }
   // Generic terms must be complete words, not arbitrary substrings:
   // "spagetti" must not match "spagettikurpitsa".
   // For multiword queries, require the full contiguous phrase.
