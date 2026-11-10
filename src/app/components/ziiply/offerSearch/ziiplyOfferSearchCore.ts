@@ -1340,6 +1340,8 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     productName: item.title,
     storeName: item.storeLabel,
     chain: item.chain,
+    source: source.source ?? source.provider ?? null,
+    provider: source.provider ?? null,
     // Preserve the source's numeric selling price for the watch API's
     // validation/sorting. A display string may contain unit rates, normal
     // prices or Plussa conditions and must not replace the numeric value.
