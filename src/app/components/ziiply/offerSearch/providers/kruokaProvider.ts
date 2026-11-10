@@ -407,6 +407,10 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b\w*mysli\w*\b/.test(productTitle)) return "Kuivatuotteet";
   if (/\bleivoskeksi\w*\b/.test(productTitle)) return "Makeiset & keksit";
 
+  // Product-family compound recognition takes priority over unreliable leaflet taxonomy.
+  // Finnish prefixes such as "jyvä-" or "maissi-" must not hide broileri/kananpoika.
+  if (/(?:^|\s)[a-z0-9]*broileri\w*\b/.test(productTitle) || /(?:^|\s)[a-z0-9]*kananpoika\w*\b/.test(productTitle)) return "Liha & makkarat";
+
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
 
