@@ -2361,6 +2361,8 @@ function KauppiasMobileTopBar({
   const [electricityChartRows, setElectricityChartRows] = useState<Array<{time:number;price:number}>>([]);
   const [electricityChartStatus, setElectricityChartStatus] = useState("Haetaan hintoja…");
   const [electricitySelectedIndex, setElectricitySelectedIndex] = useState<number | null>(null);
+  const [electricityOffersOpen, setElectricityOffersOpen] = useState(false);
+  const [mobileElectricityOfferTypes, setMobileElectricityOfferTypes] = useState<string[]>([]);
   const [electricityValue, setElectricityValue] = useState("…");
   const [electricityText, setElectricityText] = useState("haetaan");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
@@ -3133,6 +3135,45 @@ function KauppiasMobileTopBar({
         />
       )}
       {mobileFuelReportOpen && <DesktopFuelPhotoReport onClose={() => setMobileFuelReportOpen(false)} />}
+      {electricityOffersOpen && (
+        <div className="fixed inset-0 z-[260] flex items-start justify-center bg-black/50 px-3 pt-[calc(env(safe-area-inset-top)+80px)] pb-[calc(env(safe-area-inset-bottom)+24px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Sähkötarjoukset">
+          <section className="flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-3 shadow-2xl">
+            <div className="flex shrink-0 items-start justify-between gap-2">
+              <div><h2 className="text-xl font-black text-[#164b38]">⚡ Sähkötarjoukset</h2><p className="text-[11px] font-bold text-[#6d604c]">Hintapoiminta 11.10.2026 · tarkista myyjältä</p></div>
+              <button type="button" onClick={() => setElectricityOffersOpen(false)} aria-label="Sulje sähkötarjoukset" className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold">×</button>
+            </div>
+            <p className="mt-2 shrink-0 text-xs text-[#6d604c]">Sähköenergian myyntisopimukset. Siirto ja sähkövero eivät sisälly. Tarjoukset voivat muuttua.</p>
+            <div className="mt-3 flex shrink-0 flex-wrap gap-1.5" role="group" aria-label="Rajaa sähkösopimuksia">
+              {([{id:"all",label:"Kaikki"},{id:"Pörssi",label:"Spot – varttihinta"},{id:"Kuukausikeskiarvo",label:"Spot – kk-keskihinta"},{id:"Kiinteä",label:"Kiinteähintainen"},{id:"Kulutusvaikutus",label:"Kulutusvaikutus"},{id:"Kampanja",label:"Kampanjatarjoukset"}] as const).map(option => {
+                const selected = option.id === "all" ? mobileElectricityOfferTypes.length === 0 : mobileElectricityOfferTypes.includes(option.id);
+                return <button key={option.id} type="button" aria-pressed={selected} onClick={() => setMobileElectricityOfferTypes(current => option.id === "all" ? [] : current.includes(option.id) ? current.filter(v => v !== option.id) : [...current, option.id])} className={`rounded-full border px-2.5 py-1.5 text-xs font-bold ${selected ? "border-[#174c35] bg-[#174c35] text-white" : "border-[#caa15d] bg-white text-[#174c35]"}`}>{option.label}</button>;
+              })}
+            </div>
+            <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-2">
+              {([{seller:"Helen",name:"Perussähkö 24 kk",type:"Kiinteä",price:"10,45 snt/kWh",fee:"1,79 €/kk tarjous (norm. 5,99 €)",detail:"24 kk · tarjousperusmaksun kesto tarkistettava",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Helen",name:"Välkkysähkö 24 kk",type:"Kulutusvaikutus",price:"9,98 snt/kWh ± vaikutus",fee:"1,79 €/kk tarjous (norm. 5,99 €)",detail:"24 kk · lopullinen hinta riippuu kulutuksesta",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Helen",name:"Pörssisähkö",type:"Pörssi",price:"Spot + 0,49 snt/kWh",fee:"0 €/kk ensimmäiset 6 kk (norm. 4,96 €)",detail:"Toistaiseksi voimassa",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Oomi",name:"Aktiivinen",type:"Pörssi",price:"Spot + 0,60 snt/kWh",fee:"0 €/kk ensimmäiset 5 kk, sitten 4,96 €",detail:"Toistaiseksi voimassa",url:"https://oomi.fi/sahko/sahkosopimukset/"},
+                      {seller:"Oomi",name:"Jousto 24 kk",type:"Kulutusvaikutus",price:"9,09 snt/kWh ± vaikutus",fee:"0 €/kk ensimmäiset 5 kk, sitten 5,90 €",detail:"24 kk · kulutusvaikutus muuttaa hintaa",url:"https://oomi.fi/sahko/sahkosopimukset/"},
+                      {seller:"Oomi",name:"Kiinteä 12 kk",type:"Kiinteä",price:"11,19 snt/kWh",fee:"5,90 €/kk",detail:"12 kk · lähdesivun poiminta",url:"https://oomi.fi/sahko/sahkosopimukset/"},
+                      {seller:"Fortum",name:"Tarkka",type:"Pörssi",price:"Spot + 0,59 snt/kWh",fee:"5,99 €/kk",detail:"Toistaiseksi voimassa · myyjän verkkosivu",url:"https://www.fortum.com/fi/sahkoa/sahkoa-kotiin"},
+                      {seller:"Fortum",name:"Duo 12 kk",type:"Kulutusvaikutus",price:"10,99 snt/kWh ± vaikutus",fee:"5,99 €/kk",detail:"12 kk · myyjän verkkosivu",url:"https://www.fortum.com/fi/sahkoa/sahkoa-kotiin/duo-sahkosopimus"},
+                      {seller:"Fortum",name:"Duo 24 kk",type:"Kulutusvaikutus",price:"9,69 snt/kWh ± vaikutus",fee:"5,99 €/kk",detail:"24 kk · myyjän verkkosivu",url:"https://www.fortum.com/fi/sahkoa/sahkoa-kotiin/duo-sahkosopimus"},
+                      {seller:"Vattenfall",name:"Optimi Pörssisähkö",type:"Pörssi",price:"Spot + 0,50 snt/kWh",fee:"5,95 €/kk",detail:"Toistaiseksi voimassa · myyjän verkkosivu",url:"https://www.vattenfall.fi/sahkosopimukset/porssisahko/"},
+                      {seller:"Vattenfall",name:"Helppo Pörssisähkö",type:"Pörssi",price:"Spot + 0 snt/kWh (350 kWh/kk asti)",fee:"Tarkista myyjältä",detail:"Yli 350 kWh/kk: ylimenevältä osalta marginaali 0,50 snt/kWh",url:"https://www.vattenfall.fi/sahkosopimukset/porssisahko/"}
+              ] as const).filter(offer => mobileElectricityOfferTypes.length === 0 || mobileElectricityOfferTypes.some(type => type === "Kampanja" ? offer.fee.includes("tarjous") || offer.fee.includes("ensimmäiset") : type === "Kuukausikeskiarvo" ? false : offer.type === type)).map(offer =>
+                <a key={offer.seller + offer.name} href={offer.url} target="_blank" rel="noopener noreferrer" className="block rounded-xl border border-[#caa15d] bg-[#fffdf1] p-3 text-[#174c35]">
+                  <div className="flex items-start justify-between gap-2"><strong className="text-sm">{offer.seller} · {offer.name}</strong><span className="shrink-0 text-[10px] font-bold">{offer.type} ↗</span></div>
+                  <div className="mt-1 text-lg font-black">{offer.price}</div>
+                  <div className="text-xs font-bold">Perusmaksu: {offer.fee}</div>
+                  <div className="mt-1 text-[11px] text-[#6d604c]">{offer.detail}</div>
+                  <div className="mt-1 text-[11px] font-bold underline">Alkuperäinen tarjous ja ehdot ↗</div>
+                </a>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
       {electricityChartOpen && (
         <div className="fixed inset-0 z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-[calc(env(safe-area-inset-top)+108px)] pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
           <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
@@ -3140,6 +3181,7 @@ function KauppiasMobileTopBar({
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
               <button type="button" onClick={() => setElectricityChartOpen(false)} className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
             </div>
+            <button type="button" onClick={() => setElectricityOffersOpen(true)} className="mb-3 w-full rounded-xl border-2 border-[#174c35] bg-[#174c35] px-4 py-3 text-sm font-black text-[#fff9e7]">Näytä sähkötarjoukset</button>
             {electricityChartStatus ? <div className="h-[260px]" aria-live="off" /> : (
               <>
                 {(() => {
