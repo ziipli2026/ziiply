@@ -91,6 +91,10 @@ const ETARJOUSLEHDET_BATCH_URL = "https://etarjouslehdet.fi/";
 const TJEK_RPC_URL = "https://squid-api.tjek.com/v4/rpc";
 const MASTER_QUERY = "__ziiply_all_offers__";
 
+function withGostaDisplayCategories(rows: UnknownRecord[]): UnknownRecord[] {
+  return rows.map((offer) => ({ ...offer, category: getResolvedGostaCategoryV166(offer as any) }));
+}
+
 function asRecord(value: unknown): UnknownRecord | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as UnknownRecord)
@@ -591,7 +595,7 @@ export async function GET(request: Request) {
       const fetched = storeName ? await fetchEurosparOffers(storeName, now) : [];
       const results = await enrichOfferCategoriesFromNeon((fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer)));
       return NextResponse.json(
-        { ok: true, query: q, provider: "eurospar", storeName, results },
+        { ok: true, query: q, provider: "eurospar", storeName, results: withGostaDisplayCategories(results) },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
       );
     }
@@ -821,7 +825,7 @@ export async function GET(request: Request) {
       const results = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
       return NextResponse.json(
         {
-          ok: true, query: q, provider: "lidl", storeKey, storeName, results,
+          ok: true, query: q, provider: "lidl", storeKey, storeName, results: withGostaDisplayCategories(results),
           lidlSourceAudit: {
             structuredAndManual: enriched.length,
             structuredFeedError: structuredFeedError || null,
@@ -846,7 +850,7 @@ export async function GET(request: Request) {
         .filter((offer) => offerMatchesQuery(q, offer));
       const enrichedResults = await enrichOfferCategoriesFromNeon(results);
       return NextResponse.json(
-        { ok: true, query: q, provider: "tokmanni", storeName, results: enrichedResults },
+        { ok: true, query: q, provider: "tokmanni", storeName, results: withGostaDisplayCategories(enrichedResults) },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
       );
     }
