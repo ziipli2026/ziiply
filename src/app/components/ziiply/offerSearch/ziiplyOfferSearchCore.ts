@@ -440,7 +440,7 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     // K-local weekly leaflets can have stale fish/dairy categories. The product
     // form must win for all poultry compounds and prepared porridges, not just
     // individual brands or offers. Applied at the final desktop card resolver.
-    if (/(?:^|\s)[a-z0-9]*broileri\w*\b|(?:^|\s)[a-z0-9]*kananpoika\w*\b/.test(productTitle)) return "Liha & makkarat";
+    if (/(?:^|\s)[a-z0-9]*broiler\w*\b|(?:^|\s)[a-z0-9]*kananpoika\w*\b/.test(productTitle)) return "Liha & makkarat";
     if (/\bpuuro\w*\b/.test(productTitle) && !/\b(?:vauva|lasten|\d+\s*kk)\b/.test(productTitle)) return "Valmisruoka";
     if (/\b(pizza|pizzat|pizzapala|pizzapalat|pitsa|pitsat)\b/.test(productTitle)) {
       return /\b(pakaste|pakastettu|pakastepizza|pakastepitsa)\b/.test(productTitle) ? "Pakasteet" : "Valmisruoka";
