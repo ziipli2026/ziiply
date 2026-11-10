@@ -973,7 +973,25 @@ export async function GET(request: Request) {
     // Preserve provider metadata and the original category for diagnostics.
     // Do not show price-less leaflet campaigns as priced product offers.
     // Preserve price-bearing items from all other sources unchanged.
+    const localCitymarketPriceEvidence = imageEnrichedResults.filter((offer) =>
+      String(offer.source || "") === "K-Citymarket kauppakohtainen julkaisu" &&
+      offer.price != null && Number(offer.price) > 0,
+    );
     const displayResults = imageEnrichedResults
+      .filter((offer) => {
+        // A national spatial parser may mistake a nearby printed number for a price.
+        // Reject only a strongly contradicted price, never invent a replacement.
+        if (String(offer.source || "") !== "K-Citymarket tarjouslehti") return true;
+        const title = normalizeText(String(offer.title || ""));
+        const price = Number(offer.price);
+        const contradicted = localCitymarketPriceEvidence.some((local) => {
+          const localTitle = normalizeText(String(local.title || ""));
+          const words = localTitle.split(/\\s+/).filter((word) => word.length >= 5);
+          return words.length >= 2 && words.every((word) => title.includes(word)) &&
+            Number(local.price) > 0 && price > Number(local.price) * 5;
+        });
+        return !contradicted;
+      })
       .filter((offer) => {
         if (String(offer.source || "") !== "K-Citymarket tarjouslehti") return true;
         const price = Number(offer.price);
