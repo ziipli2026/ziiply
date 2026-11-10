@@ -51,11 +51,11 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     if(!watchKey){setWatchCount(null);return;}
     // A full browser reload starts with a hidden bag. A later background
     // refresh in this mounted session must not clear already visible offers.
-    setWatchCount(null);
-    let lastScan=0;
+    const cachedAt=readShared();
+    let lastScan=cachedAt;
     let cancelled=false;
     let running=false;
-    const sync=()=>{if(!running && lastScan>0)readShared();};
+    const sync=()=>{if(!running)readShared();};
     const scan=async()=>{
       if(cancelled||running||document.visibilityState!=="visible")return;
       if(lastScan&&Date.now()-lastScan<20*1000)return;
@@ -67,14 +67,16 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
         if(!cancelled){
-          setWatchCount(current => !data.partial || offers.length>0 || current===null ? offers.length : current);
+          if(!data.partial) setWatchCount(offers.length);
+          else if(offers.length>0) setWatchCount(current => current===null ? offers.length : Math.max(current,offers.length));
           lastScan=Date.now();
           if(!data.partial){
             const cached={key:watchKey,offers:offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((query:string)=>({query:String(query),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.sourceType||offer.chain||"")}))),at:lastScan,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI")};
             try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify(cached));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}
           }
         }
-      }catch{/* Preserve confirmed results when refresh fails. */}
+      }catch{/* Preserve confirmed results when refresh fails. */
+        if(!cancelled)readShared();}
       finally{running=false;if(!cancelled)setWatchScanning(false);}
     };
     const timer=window.setTimeout(()=>{void scan();},300);
