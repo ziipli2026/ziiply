@@ -959,6 +959,7 @@ export async function searchZiiplyOffers(
     ? await safelySearchSource(
         isGostaMasterQuery ? "K-local K-Ruoka master V33" : "K-local K-Ruoka V33",
         () => searchSelectedKruokaOffersV10(cleanQuery, options),
+        diagnostics,
       )
     : [];
 
@@ -970,6 +971,7 @@ export async function searchZiiplyOffers(
           const names = normalizeOfferStoreListV11(options?.kStoreNames, options?.kStoreName ?? options?.storeName);
           return fetchKLocalCampaignOffers(cleanQuery, names.map((name, index) => ({ id: ids[index] ?? "", name })));
         },
+        diagnostics,
       )
     : [];
 
