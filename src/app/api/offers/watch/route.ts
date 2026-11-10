@@ -87,7 +87,7 @@ export async function GET(request: Request) {
   const lon = Number(url.searchParams.get("lon"));
   const validLocation = url.searchParams.has("lat") && url.searchParams.has("lon") && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat)<=90 && Math.abs(lon)<=180;
   if (!validLocation) return runWatch(request);
-  const key = [lat.toFixed(3),lon.toFixed(3),canonicalWatchQueries(url.searchParams.get("q"))].join("|");
+  const key = [lat.toFixed(3),lon.toFixed(3),canonicalWatchQueries(url.searchParams.get("q")),url.searchParams.get("audit")==="1"?"audit":"normal"].join("|");
   const now = Date.now();
   const existing = watchScanCache.get(key);
   if (existing && existing.expires > now) {
@@ -115,8 +115,9 @@ export async function GET(request: Request) {
 async function runWatch(request: Request) {
   const started = Date.now();
   const params = new URL(request.url).searchParams;
+  const audit = params.get("audit")==="1";
   const queries = canonicalWatchQueries(params.get("q")).split("|").filter(Boolean);
-  if (!queries.length) return NextResponse.json({ok:false,error:"Hakusanat puuttuvat",results:[]},{status:400});
+  if (!queries.length && !audit) return NextResponse.json({ok:false,error:"Hakusanat puuttuvat",results:[]},{status:400});
   if (!process.env.DATABASE_URL) return NextResponse.json({ok:false,error:"DATABASE_URL puuttuu",results:[]},{status:503});
   try {
     const sql = neon(process.env.DATABASE_URL);
@@ -254,6 +255,25 @@ async function runWatch(request: Request) {
           }
         }
       }));
+    }
+    if(audit){
+      // Audit every currently published, priced offer, not hand-picked search terms.
+      // Tokmanni is explicitly out of scope. Return aggregate diagnostics only.
+      const reports=nearbyOffers.filter(row=>!/tokmanni/i.test(String(row.publication_id))).map(row=>{
+        const offers=(Array.isArray(row.offers)?row.offers:[]) as Record<string,unknown>[];
+        const priced=offers.filter(offer=>Number.isFinite(priceNumber(offer)));
+        const missingFullName=priced.filter(offer=>!matches(String(offer.title||offer.name||offer.productName||""),offer));
+        const tokenChecks=priced.flatMap(offer=>{
+          const name=String(offer.title||offer.name||offer.productName||"");
+          const terms=[...new Set(norm(name).split(" ").filter(t=>t.length>=5 && !/^\\d+$/.test(t)))];
+          return terms.map(term=>({term,name,matched:matches(term,offer)}));
+        });
+        return {store:String(row.publication_id),total:offers.length,priced:priced.length,
+          fullNameMatched:priced.length-missingFullName.length,fullNameMisses:missingFullName.slice(0,12).map(o=>String(o.title||o.name||"")),
+          tokenChecks:tokenChecks.length,tokenMatches:tokenChecks.filter(x=>x.matched).length,
+          tokenMisses:tokenChecks.filter(x=>!x.matched).slice(0,20).map(x=>({term:x.term,title:x.name}))};
+      });
+      return NextResponse.json({ok:true,audit:true,stores:reports,diagnostic:{inspected:reports.reduce((n,r)=>n+r.total,0),priced:reports.reduce((n,r)=>n+r.priced,0),fullNameMatched:reports.reduce((n,r)=>n+r.fullNameMatched,0),tokenChecks:reports.reduce((n,r)=>n+r.tokenChecks,0),tokenMatches:reports.reduce((n,r)=>n+r.tokenMatches,0),durationMs:Date.now()-started}}, {headers:{"Cache-Control":"no-store"}});
     }
     const seen = new Set<string>();
     const results: Array<Record<string,unknown>> = [];
