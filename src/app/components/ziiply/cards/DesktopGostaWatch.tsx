@@ -17,13 +17,14 @@ export default function DesktopGostaWatch(){
  const [checkedKey,setCheckedKey]=React.useState("");
  const key=terms.map(x=>x.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
  React.useEffect(()=>{
-  const read=()=>{try{const v=JSON.parse(localStorage.getItem(TERMS)||"[]");setTerms(Array.isArray(v)?v.filter((x:unknown):x is string=>typeof x==="string"&&!!x.trim()).slice(0,30):[]);const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached&&Array.isArray(cached.offers)&&cached.offers.length){setOffers(cached.offers);setReady(true);setOpen(true);}}catch{setTerms([]);}};
+  const read=()=>{try{const v=JSON.parse(localStorage.getItem(TERMS)||"[]");setTerms(Array.isArray(v)?v.filter((x:unknown):x is string=>typeof x==="string"&&!!x.trim()).slice(0,30):[]);const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===v.map((x:string)=>x.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|")&&Array.isArray(cached.offers)&&cached.offers.length){setOffers(cached.offers);setReady(true);setOpen(true);}}catch{setTerms([]);}};
   read();window.addEventListener("storage",read);window.addEventListener("ziiply-gosta-watch-changed",read);
   return()=>{window.removeEventListener("storage",read);window.removeEventListener("ziiply-gosta-watch-changed",read);};
  },[]);
  React.useEffect(()=>{
   setError("");
   setLoading(false);
+  setOffers([]);setReady(false);
   if(!key)return;
   try{const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===key&&Array.isArray(cached.offers)&&cached.offers.length){setOffers(cached.offers);setReady(true);setOpen(true);}}catch{}
   let cancelled=false,running=false,last=0;
@@ -49,7 +50,7 @@ export default function DesktopGostaWatch(){
      if(!data.partial&&next.length>0){try{localStorage.setItem(RESULTS,JSON.stringify({key,offers:next,at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
      last=Date.now();
     }
-   }catch(e){if(!cancelled)setError((e instanceof Error && /Sijaintitieto/.test(e.message))?"Salli selaimessa sijainti Göstan lähikauppatarjousten hakemiseksi. Aiemmat tulokset säilyvät.":"Päivitys epäonnistui; aiemmat tulokset säilyvät.");}
+   }catch(e){if(!cancelled)setError((e instanceof Error && (/Sijaintitieto/.test(e.message)||e.name==="GeolocationPositionError"))?"Salli selaimessa sijainti Göstan lähikauppatarjousten hakemiseksi. Aiemmat tulokset säilyvät.":"Päivitys epäonnistui; aiemmat tulokset säilyvät.");}
    finally{running=false;if(!cancelled)setLoading(false);}
   };
   const timer=window.setTimeout(()=>{void scan();},0); // Every newly saved term changes key and triggers this immediately.
