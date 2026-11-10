@@ -979,6 +979,14 @@ export async function GET(request: Request) {
     );
     const displayResults = imageEnrichedResults
       .filter((offer) => {
+        // Exclude a visibly merged 46AV card: the MSC fish label and garlic-potato
+        // product text were combined into one offer. Do not alter the parser or
+        // invent a clean title/price; keep this invalid display row out of search.
+        if (String(offer.source || "") !== "K-Citymarket tarjouslehti") return true;
+        const title = normalizeText(String(offer.title || ""));
+        return !(title.includes("msc") && title.includes("valkosipu") && title.includes("perunat"));
+      })
+      .filter((offer) => {
         // A national spatial parser may mistake a nearby printed number for a price.
         // Reject only a strongly contradicted price, never invent a replacement.
         if (String(offer.source || "") !== "K-Citymarket tarjouslehti") return true;
