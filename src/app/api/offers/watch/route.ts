@@ -48,6 +48,10 @@ function watchDuplicateIdentity(title:string,ean:string){
     return "same-product:valio-normaalisuolainen-meijerivoi-500g";
   if(n==="tuore kokonainen kirjolohi"||n==="tuore kokonainen kirjolohi kasvatettu suomi")
     return "same-product:tuore-kokonainen-kirjolohi";
+  if(n==="kokkikartano puurot"||n==="kokkikartano puurot 250 300 g")
+    return "same-product:kokkikartano-puurot-250-300g";
+  if(n==="oksasen puutarha juicy salaatti"||n==="oksasen puutarha juicy salaatti 125 g suomi")
+    return "same-product:oksasen-juicy-salaatti-125g";
   return /^\d{8,14}$/.test(ean)?"ean:"+ean:"name:"+n;
 }
 function priceNumber(offer:Record<string,unknown>){
