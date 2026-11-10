@@ -281,14 +281,23 @@ async function runWatch(request: Request) {
           if(seen.has(key)){duplicateRows++;if(duplicates.length<12)duplicates.push({title,source});}
           else seen.add(key);
         }
+        // Simulate the actual watch result path for every source title:
+        // matching -> priced filter -> same-source dedup -> published bag.
+        const watchVisible=priced.filter(offer=>matches(String(offer.title||offer.name||offer.productName||""),offer));
+        const visibleKeys=new Set(watchVisible.map(offer=>{
+          const title=String(offer.title||offer.name||offer.productName||"");
+          const store=String(offer.storeName||offer.store||row.publication_id||"");
+          const source=String(offer.source||offer.provider||"unknown").trim().toLocaleLowerCase("fi");
+          return [row.chain,store,source,watchDuplicateIdentity(title,String(offer.ean||"").trim()),priceNumber(offer)].join("|");
+        }));
         return {store:String(row.publication_id),total:offers.length,priced:priced.length,
           unpriced:unpriced.length,unpricedSamples:unpriced.slice(0,12).map(o=>({title:String(o.title||o.name||""),price:o.offerPrice??o.price??null})),
-          uniqueAfterDedup:seen.size,duplicateRows,duplicates,
+          uniqueAfterDedup:seen.size,watchVisibleUnique:visibleKeys.size,watchMissingUnique:[...seen].filter(key=>!visibleKeys.has(key)).length,duplicateRows,duplicates,
           fullNameMatched:priced.length-missingFullName.length,fullNameMisses:missingFullName.slice(0,12).map(o=>String(o.title||o.name||"")),
           tokenChecks:tokenChecks.length,tokenMatches:tokenChecks.filter(x=>x.matched).length,
           tokenMisses:tokenChecks.filter(x=>!x.matched).slice(0,20).map(x=>({term:x.term,title:x.name}))};
       });
-      return NextResponse.json({ok:true,audit:true,stores:reports,diagnostic:{inspected:reports.reduce((n,r)=>n+r.total,0),priced:reports.reduce((n,r)=>n+r.priced,0),uniqueAfterDedup:reports.reduce((n,r)=>n+r.uniqueAfterDedup,0),unpriced:reports.reduce((n,r)=>n+r.unpriced,0),fullNameMatched:reports.reduce((n,r)=>n+r.fullNameMatched,0),tokenChecks:reports.reduce((n,r)=>n+r.tokenChecks,0),tokenMatches:reports.reduce((n,r)=>n+r.tokenMatches,0),durationMs:Date.now()-started}}, {headers:{"Cache-Control":"no-store"}});
+      return NextResponse.json({ok:true,audit:true,stores:reports,diagnostic:{inspected:reports.reduce((n,r)=>n+r.total,0),priced:reports.reduce((n,r)=>n+r.priced,0),uniqueAfterDedup:reports.reduce((n,r)=>n+r.uniqueAfterDedup,0),watchVisibleUnique:reports.reduce((n,r)=>n+r.watchVisibleUnique,0),watchMissingUnique:reports.reduce((n,r)=>n+r.watchMissingUnique,0),unpriced:reports.reduce((n,r)=>n+r.unpriced,0),fullNameMatched:reports.reduce((n,r)=>n+r.fullNameMatched,0),tokenChecks:reports.reduce((n,r)=>n+r.tokenChecks,0),tokenMatches:reports.reduce((n,r)=>n+r.tokenMatches,0),durationMs:Date.now()-started}}, {headers:{"Cache-Control":"no-store"}});
     }
     const seen = new Set<string>();
     const results: Array<Record<string,unknown>> = [];
