@@ -4,7 +4,7 @@ const pending=new Map<string,Promise<{response:Response;data:WatchResponse}>>();
 export function fetchSharedGostaWatch(url:string):Promise<{response:Response;data:WatchResponse}>{
  const existing=pending.get(url);
  if(existing)return existing;
- const promise=fetch(url,{cache:"no-store",signal:AbortSignal.timeout(12000)}).then(async response=>{
+ const promise=fetch(url,{cache:"no-store",signal:AbortSignal.timeout(30000)}).then(async response=>{
   const data=await response.json() as WatchResponse;
   if(!response.ok||!data.ok||!Array.isArray(data.results))throw new Error(String(data.error||"Tarjousvahdin API epäonnistui"));
   return {response,data};
