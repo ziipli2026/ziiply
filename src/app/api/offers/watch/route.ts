@@ -224,7 +224,10 @@ async function runWatch(request: Request) {
         // normalized product identity instead of provider-specific row IDs.
         const ean=String(offer.ean||"").trim();
         const identity=/^\\d{8,14}$/.test(ean) ? "ean:"+ean : "name:"+norm(title);
-        const key=[row.chain,store,identity,priceNumber(offer)].join("|");
+        // Keep separate offers when their original publishers/providers differ.
+        // Deduplicate only identical product/price entries from the same source.
+        const offerSource=String(offer.source||offer.provider||"unknown").trim().toLocaleLowerCase("fi");
+        const key=[row.chain,store,offerSource,identity,priceNumber(offer)].join("|");
         if (seen.has(key)) continue;
         seen.add(key);
         results.push({...offer,title,storeName:store,chain:String(row.chain),watchQueries:matchingQueries});
