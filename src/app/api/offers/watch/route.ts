@@ -33,11 +33,11 @@ function matches(query:string,offer:Record<string,unknown>){
 // collapsing distinct brands, pack sizes or offers from different sources.
 function watchDuplicateIdentity(title:string,ean:string){
   const n=norm(title);
-  if(/\\bvalio\\b/.test(n)&&/\\bnormaalisuolainen\\b/.test(n)&&/\\bmeijerivoi\\b/.test(n)&&(!/\\b\\d+\\s*g\\b/.test(n)||/\\b500\\s*g\\b/.test(n)))
+  if(/\bvalio\b/.test(n)&&/\bnormaalisuolainen\b/.test(n)&&/\bmeijerivoi\b/.test(n)&&(!/\b\d+\s*g\b/.test(n)||/\b500\s*g\b/.test(n)))
     return "same-product:valio-normaalisuolainen-meijerivoi-500g";
-  if(/\\btuore\\b/.test(n)&&/\\bkokonainen\\b/.test(n)&&/\\bkirjolohi\\b/.test(n))
+  if(/\btuore\b/.test(n)&&/\bkokonainen\b/.test(n)&&/\bkirjolohi\b/.test(n))
     return "same-product:tuore-kokonainen-kirjolohi";
-  return /^\\d{8,14}$/.test(ean)?"ean:"+ean:"name:"+n;
+  return /^\d{8,14}$/.test(ean)?"ean:"+ean:"name:"+n;
 }
 function priceNumber(offer:Record<string,unknown>){
   for(const raw of [offer.offerPrice,offer.price]){
