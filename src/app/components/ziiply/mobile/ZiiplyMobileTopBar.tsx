@@ -223,6 +223,7 @@ export default function ZiiplyMobileTopBar({
   const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
   const [chartError, setChartError] = useState("");
   const [chartLoading, setChartLoading] = useState(false);
+  const [selectedPriceIndex, setSelectedPriceIndex] = useState<number | null>(null);
   const [autoWeatherValue, setAutoWeatherValue] = useState("+18°");
   const [autoWeatherText, setAutoWeatherText] = useState(areaLabel);
   const [autoElectricityValue, setAutoElectricityValue] = useState("—");
@@ -529,6 +530,7 @@ export default function ZiiplyMobileTopBar({
     let cancelled = false;
     setChartLoading(true);
     setChartError("");
+    setSelectedPriceIndex(null);
     fetch("/api/desktop-electricity", { cache: "no-store" })
       .then(async response => { if (!response.ok) throw new Error("Hintatietojen lataus epäonnistui"); return response.json(); })
       .then(data => {
@@ -694,17 +696,32 @@ export default function ZiiplyMobileTopBar({
             </div>
             {chartLoading ? <p className="py-10 text-center">Haetaan tuntihintoja…</p> : chartError ? <p className="py-10 text-center">{chartError}</p> : (
               <>
-                <div className="relative h-[210px] border-b-2 border-[#b99961]">
-                  <div className="flex h-full items-end gap-[2px]">
-                    {chartPrices.map((item, index) => {
-                      const min = Math.min(0, ...chartPrices.map(row => row.price));
-                      const max = Math.max(10, ...chartPrices.map(row => row.price));
-                      const height = Math.max(3, (item.price - min + 0.4) / (max - min + 0.4) * 100);
-                      const color = item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544";
-                      return <div key={item.start + index} title={new Date(item.start).toLocaleString("fi-FI", {hour:"2-digit",minute:"2-digit"}) + ": " + fmtFi(item.price) + " snt/kWh"} className="min-w-0 flex-1 rounded-t-[3px]" style={{height: height + "%", backgroundColor: color}} />;
-                    })}
-                  </div>
-                </div>
+                {(() => {
+                  const min = Math.min(0, ...chartPrices.map(row => row.price));
+                  const max = Math.max(10, ...chartPrices.map(row => row.price));
+                  const range = Math.max(1, max - min);
+                  const selected = selectedPriceIndex == null ? null : chartPrices[selectedPriceIndex] ?? null;
+                  return <>
+                    <div className="relative h-[210px] border-b-2 border-[#b99961]">
+                      <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#aa8158]" style={{bottom: ((10 - min) / range * 100) + "%"}}>
+                        <span className="absolute -top-6 left-0 rounded bg-[#fff8e6]/95 px-1 text-[11px] font-bold text-[#805a36]">10 snt/kWh</span>
+                      </div>
+                      <div className="flex h-full items-end gap-[2px]">
+                        {chartPrices.map((item, index) => {
+                          const height = Math.max(2, (item.price - min) / range * 100);
+                          const color = item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544";
+                          const label = new Date(item.start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"}) + " – " + fmtFi(item.price, 2) + " snt/kWh";
+                          return <button type="button" key={item.start + index} aria-label={label} aria-pressed={selectedPriceIndex === index} onClick={() => setSelectedPriceIndex(index)} className="relative flex h-full min-w-0 flex-1 items-end touch-manipulation" title={label}>
+                            <span className={selectedPriceIndex === index ? "block w-full rounded-t-[3px] outline outline-2 outline-[#164b38]" : "block w-full rounded-t-[3px]"} style={{height: height + "%", minHeight: "3px", backgroundColor: color}} />
+                          </button>;
+                        })}
+                      </div>
+                    </div>
+                    <div className="mt-2 min-h-[36px] rounded-lg bg-[#f3e6c9] px-2 py-2 text-center text-[12px] font-bold text-[#164b38]" aria-live="polite">
+                      {selected ? new Date(selected.start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"}) + " – " + fmtFi(selected.price, 2) + " snt/kWh" : "Kosketa pylvästä nähdäksesi kellonajan ja hinnan"}
+                    </div>
+                  </>;
+                })()}
                 <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
                   <span>{chartPrices[0] ? new Date(chartPrices[0].start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit"}) : ""}</span>
                   <span>snt/kWh</span>
