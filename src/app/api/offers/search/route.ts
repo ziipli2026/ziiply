@@ -986,8 +986,8 @@ export async function GET(request: Request) {
         const price = Number(offer.price);
         const contradicted = localCitymarketPriceEvidence.some((local) => {
           const localTitle = normalizeText(String(local.title || ""));
-          const words = localTitle.split(/\s+/).filter((word) => word.length >= 5);
-          return words.length >= 2 && words.every((word) => title.includes(word)) &&
+          const words = title.split(/\s+/).filter((word) => /^[a-zåäö]{5,}$/i.test(word));
+          return words.length >= 2 && words.every((word) => localTitle.split(/\s+/).includes(word)) &&
             Number(local.price) > 0 && price > Number(local.price) * 5;
         });
         return !contradicted;
