@@ -16,8 +16,14 @@ const price = (o: Offer) => {
 };
 const matches = (term:string,o:Offer) => {
   const title=normalized(o.title||o.name||o.productName);
-  const tokens=normalized(term).split(" ").filter(Boolean);
-  return !!title && tokens.length>0 && tokens.every(token=>title.split(" ").some(word=>word.startsWith(token)));
+  const query=normalized(term);
+  if(!title||!query)return false;
+  // Published offer titles are the source of truth. Never reject a full
+  // product-name search because of category or brand classification.
+  if(title===query)return true;
+  // Match complete words and contiguous multiword phrases, never arbitrary
+  // substrings (spaghetti is not spaghetti squash).
+  return title.startsWith(query+" ")||title.endsWith(" "+query)||title.includes(" "+query+" ");
 };
 export async function GET(request:Request) {
   const url=new URL(request.url);
@@ -58,8 +64,9 @@ export async function GET(request:Request) {
       if(!watchQueries.length)continue;
       const title=text(offer.title||offer.name||offer.productName);
       const storeName=text(offer.storeName||offer.store||row.publication_id);
-      const id=text(offer.ean||offer.id||title);
-      const key=[row.chain,storeName,id,p].join("|");
+      const id=text(offer.ean||normalized(title));
+      const source=text(offer.source||offer.provider||"unknown").toLocaleLowerCase("fi");
+      const key=[row.chain,storeName,source,id,p].join("|");
       if(seen.has(key))continue;
       seen.add(key);
       results.push({...offer,title,offerPrice:p,storeName,chain:row.chain,watchQueries});
