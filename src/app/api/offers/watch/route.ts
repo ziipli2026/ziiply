@@ -23,7 +23,7 @@ function matches(query:string,offer:Record<string,unknown>){
   // Keep this narrow so a generic term does not match unrelated products.
   const q=norm(query);
   const words=norm(name).split(" ");
-  if(q==="lohi")return words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
+  if(q==="lohi")return !/\b(koiran|koira|dog|kissan|kissa|cat|lemmikki|pet)\b/i.test(norm(name)) && words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
   if(q==="voi")return words.some(w=>w==="voi"||w.endsWith("meijerivoi")||w.endsWith("ruokavoi")||w==="voita");
   return false;
 }
