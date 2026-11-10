@@ -19,6 +19,8 @@ function norm(value: unknown) {
 function matches(query:string,offer:Record<string,unknown>){
   const name=String(offer.title||offer.name||offer.productName||"");
   const decision=desktopSearchDecision(query,{...offer,name,title:name} as Parameters<typeof desktopSearchDecision>[1]);
+  // A vegetable named spagettikurpitsa is not spaghetti pasta.
+  if(norm(query)==="spagetti" && norm(name).split(" ").some(w=>w.includes("spagettikurpitsa")))return false;
   if(decision.accepted)return true;
   // The watcher scans already-published offer rows, not the broad product
   // catalog. A literal standalone product word must remain searchable even
@@ -26,7 +28,7 @@ function matches(query:string,offer:Record<string,unknown>){
   // E.g. an active "naudan jauheliha" offer must match "jauheliha".
   const literalQuery=norm(query);
   const literalName=norm(name);
-  if(literalQuery.length>=4 && !literalQuery.includes(" ") && literalName.split(" ").includes(literalQuery))return true;
+  if(literalQuery.length>=4 && literalName.split(" ").join(" ").includes(literalQuery) && (literalName===literalQuery || literalName.startsWith(literalQuery+" ") || literalName.endsWith(" "+literalQuery) || literalName.includes(" "+literalQuery+" ")))return true;
   // The saved-offer watcher should also recognize a generic product inside a
   // compound Finnish product name: lohi -> kirjolohi, voi -> meijerivoi.
   // Keep this narrow so a generic term does not match unrelated products.
