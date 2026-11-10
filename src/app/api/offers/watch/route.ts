@@ -257,23 +257,38 @@ async function runWatch(request: Request) {
       }));
     }
     if(audit){
-      // Audit every currently published, priced offer, not hand-picked search terms.
-      // Tokmanni is explicitly out of scope. Return aggregate diagnostics only.
+      // Audit all live source rows, and the same priced/deduplicated output
+      // rules used by the actual watcher. No hard-coded test products.
       const reports=nearbyOffers.filter(row=>!/tokmanni/i.test(String(row.publication_id))).map(row=>{
         const offers=(Array.isArray(row.offers)?row.offers:[]) as Record<string,unknown>[];
         const priced=offers.filter(offer=>Number.isFinite(priceNumber(offer)));
+        const unpriced=offers.filter(offer=>!Number.isFinite(priceNumber(offer)));
         const missingFullName=priced.filter(offer=>!matches(String(offer.title||offer.name||offer.productName||""),offer));
         const tokenChecks=priced.flatMap(offer=>{
           const name=String(offer.title||offer.name||offer.productName||"");
           const terms=[...new Set(norm(name).split(" ").filter(t=>t.length>=5 && !/^\d+$/.test(t)))];
           return terms.map(term=>({term,name,matched:matches(term,offer)}));
         });
+        const seen=new Set<string>();
+        let duplicateRows=0;
+        const duplicates:Array<{title:string;source:string}>=[];
+        for(const offer of priced){
+          const title=String(offer.title||offer.name||offer.productName||"");
+          const store=String(offer.storeName||offer.store||row.publication_id||"");
+          const source=String(offer.source||offer.provider||"unknown").trim().toLocaleLowerCase("fi");
+          const identity=watchDuplicateIdentity(title,String(offer.ean||"").trim());
+          const key=[row.chain,store,source,identity,priceNumber(offer)].join("|");
+          if(seen.has(key)){duplicateRows++;if(duplicates.length<12)duplicates.push({title,source});}
+          else seen.add(key);
+        }
         return {store:String(row.publication_id),total:offers.length,priced:priced.length,
+          unpriced:unpriced.length,unpricedSamples:unpriced.slice(0,12).map(o=>({title:String(o.title||o.name||""),price:o.offerPrice??o.price??null})),
+          uniqueAfterDedup:seen.size,duplicateRows,duplicates,
           fullNameMatched:priced.length-missingFullName.length,fullNameMisses:missingFullName.slice(0,12).map(o=>String(o.title||o.name||"")),
           tokenChecks:tokenChecks.length,tokenMatches:tokenChecks.filter(x=>x.matched).length,
           tokenMisses:tokenChecks.filter(x=>!x.matched).slice(0,20).map(x=>({term:x.term,title:x.name}))};
       });
-      return NextResponse.json({ok:true,audit:true,stores:reports,diagnostic:{inspected:reports.reduce((n,r)=>n+r.total,0),priced:reports.reduce((n,r)=>n+r.priced,0),fullNameMatched:reports.reduce((n,r)=>n+r.fullNameMatched,0),tokenChecks:reports.reduce((n,r)=>n+r.tokenChecks,0),tokenMatches:reports.reduce((n,r)=>n+r.tokenMatches,0),durationMs:Date.now()-started}}, {headers:{"Cache-Control":"no-store"}});
+      return NextResponse.json({ok:true,audit:true,stores:reports,diagnostic:{inspected:reports.reduce((n,r)=>n+r.total,0),priced:reports.reduce((n,r)=>n+r.priced,0),uniqueAfterDedup:reports.reduce((n,r)=>n+r.uniqueAfterDedup,0),unpriced:reports.reduce((n,r)=>n+r.unpriced,0),fullNameMatched:reports.reduce((n,r)=>n+r.fullNameMatched,0),tokenChecks:reports.reduce((n,r)=>n+r.tokenChecks,0),tokenMatches:reports.reduce((n,r)=>n+r.tokenMatches,0),durationMs:Date.now()-started}}, {headers:{"Cache-Control":"no-store"}});
     }
     const seen = new Set<string>();
     const results: Array<Record<string,unknown>> = [];
