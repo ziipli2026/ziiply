@@ -302,17 +302,17 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
     anyItem?.title || anyItem?.name || anyItem?.productName || "",
   ));
-  if (/\\b(?:voileipagrilli|juomapullo|evasrasia)\\b/.test(productTitle)) return "Koti";
-  if (/\\bjuustokakku\\w*\\b/.test(productTitle)) return "Leipomo";
-  if (/\\brosolli\\w*\\b/.test(productTitle)) return "Valmisruoka";
-  if (/\\b(?:kasvirasvalevite|margariini|leviterasva)\\w*\\b/.test(productTitle)) return "Maitotuotteet";
-  if (/\\b(?:paaryna|paarynat)\\b/.test(productTitle) && !/\\b(?:mehu|sose|hillo|kakku|jogurtti|juoma|makeinen)\\b/.test(productTitle)) return "Hevi";
-  if (/(?:^|\\s)[a-z0-9]*broiler\\w*\\b|(?:^|\\s)[a-z0-9]*kananpoika\\w*\\b/.test(productTitle)) {
-    return /\\b(?:pakaste\\w*|pakastettu\\w*)\\b/.test(productTitle) ||
+  if (/\b(?:voileipagrilli|juomapullo|evasrasia)\b/.test(productTitle)) return "Koti";
+  if (/\bjuustokakku\w*\b/.test(productTitle)) return "Leipomo";
+  if (/\brosolli\w*\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(?:kasvirasvalevite|margariini|leviterasva)\w*\b/.test(productTitle)) return "Maitotuotteet";
+  if (/\b(?:paaryna|paarynat)\b/.test(productTitle) && !/\b(?:mehu|sose|hillo|kakku|jogurtti|juoma|makeinen)\b/.test(productTitle)) return "Hevi";
+  if (/(?:^|\s)[a-z0-9]*broiler\w*\b|(?:^|\s)[a-z0-9]*kananpoika\w*\b/.test(productTitle)) {
+    return /\b(?:pakaste\w*|pakastettu\w*)\b/.test(productTitle) ||
       normalizeGostaCoreText(sourceItem?.category || "") === "pakasteet"
       ? "Pakasteet" : "Liha & makkarat";
   }
-  if (/\\bpuuro\\w*\\b/.test(productTitle) && !/\\b(?:vauva\\w*|lasten\\w*|\\d+\\s*kk)\\b/.test(productTitle)) return "Valmisruoka";
+  if (/\bpuuro\w*\b/.test(productTitle) && !/\b(?:vauva\w*|lasten\w*|\d+\s*kk)\b/.test(productTitle)) return "Valmisruoka";
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
   // Run before legacy title rules and stale EAN labels, including cached rows.
   const tokmanniSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
