@@ -21,6 +21,10 @@ function priceNumber(offer:Record<string,unknown>){
   for(const raw of [offer.offerPrice,offer.price]){
     const value=String(raw??"").trim().replace(/\s*€$/,"").replace(",",".");
     if(/^\d+(?:\.\d+)?$/.test(value)&&Number(value)>0)return Number(value);
+    // Gösta cards may carry the verified selling price as "8,99 €/kg".
+    // Accept a clearly marked euro unit price, not arbitrary comparison text.
+    const unit=String(raw??"").trim().match(/^(\d{1,5}(?:[,.]\d{1,2})?)\s*(?:€|eur)\s*\/\s*(?:kg|l|kpl)\s*$/i);
+    if(unit&&Number(unit[1].replace(",","."))>0)return Number(unit[1].replace(",","."));
   }
   return Number.POSITIVE_INFINITY;
 }
