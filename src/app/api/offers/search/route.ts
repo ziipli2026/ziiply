@@ -1,4 +1,5 @@
 import { getCitymarketFailureNotice, type CitymarketAvailabilityNotice } from "../../../components/ziiply/offerSearch/citymarketAvailability";
+import { getResolvedGostaCategoryV166 } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 // ============================================================================
 // ZIIPLY_OFFERS_SEARCH_ROUTE_V20_KCITYMARKET_HTML_DIAGNOSTIC
 // Revision: V20-KCITYMARKET-HTML-DIAGNOSTIC
@@ -964,12 +965,18 @@ export async function GET(request: Request) {
       void queueMissingOfferImagesBestEffort(imageEnrichedResults).catch(error =>
         console.warn("[Ziiply offers] optional image queue failed", error));
     }
+    // Normalize final API categories using the exact resolver used by Gösta desktop cards.
+    // Preserve provider metadata and the original category for diagnostics.
+    const displayResults = imageEnrichedResults.map((offer) => ({
+      ...offer,
+      category: getResolvedGostaCategoryV166(offer as any),
+    }));
     return NextResponse.json(
       {
         ok: true,
         query: q,
         context,
-        results: imageEnrichedResults,
+        results: displayResults,
         citymarketNotice,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
           const debug = getKruokaOfferPipelineDebugV34();
