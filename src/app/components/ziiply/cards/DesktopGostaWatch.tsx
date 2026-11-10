@@ -32,7 +32,13 @@ export default function DesktopGostaWatch(){
    running=true;setLoading(true);
    try{
     const params=new URLSearchParams({q:key});
-    // The watcher reads stored offers only; GPS must not delay the request.
+    // Store-scoped offer watch requires coordinates, just like the mobile API.
+    // Never silently fall back to old nationwide publication-only results.
+    if(!navigator.geolocation)throw Error("Sijaintitieto ei ole käytettävissä");
+    const position=await new Promise<GeolocationPosition>((resolve,reject)=>
+      navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:false,maximumAge:300000,timeout:6000}));
+    params.set("lat",String(position.coords.latitude));
+    params.set("lon",String(position.coords.longitude));
     const {response,data}=await fetchSharedGostaWatch("/api/offers/watch?"+params.toString());
     if(!response.ok||!data.ok||!Array.isArray(data.results))throw Error(String(data.error||"Tarjoushaku epäonnistui"));
     const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
@@ -43,7 +49,7 @@ export default function DesktopGostaWatch(){
      if(!data.partial&&next.length>0){try{localStorage.setItem(RESULTS,JSON.stringify({key,offers:next,at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
      last=Date.now();
     }
-   }catch(e){if(!cancelled)setError("Päivitys epäonnistui; aiemmat tulokset säilyvät.");}
+   }catch(e){if(!cancelled)setError((e instanceof Error && /Sijaintitieto/.test(e.message))?"Salli selaimessa sijainti Göstan lähikauppatarjousten hakemiseksi. Aiemmat tulokset säilyvät.":"Päivitys epäonnistui; aiemmat tulokset säilyvät.");}
    finally{running=false;if(!cancelled)setLoading(false);}
   };
   const timer=window.setTimeout(()=>{void scan();},0); // Every newly saved term changes key and triggers this immediately.
