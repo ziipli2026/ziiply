@@ -29,6 +29,16 @@ function matches(query:string,offer:Record<string,unknown>){
   if(q==="voi")return words.some(w=>w==="voi"||w.endsWith("meijerivoi")||w.endsWith("ruokavoi")||w==="voita");
   return false;
 }
+// Normalize a few verified same-product leaflet title variants without
+// collapsing distinct brands, pack sizes or offers from different sources.
+function watchDuplicateIdentity(title:string,ean:string){
+  const n=norm(title);
+  if(/\\bvalio\\b/.test(n)&&/\\bnormaalisuolainen\\b/.test(n)&&/\\bmeijerivoi\\b/.test(n)&&(!/\\b\\d+\\s*g\\b/.test(n)||/\\b500\\s*g\\b/.test(n)))
+    return "same-product:valio-normaalisuolainen-meijerivoi-500g";
+  if(/\\btuore\\b/.test(n)&&/\\bkokonainen\\b/.test(n)&&/\\bkirjolohi\\b/.test(n))
+    return "same-product:tuore-kokonainen-kirjolohi";
+  return /^\\d{8,14}$/.test(ean)?"ean:"+ean:"name:"+n;
+}
 function priceNumber(offer:Record<string,unknown>){
   for(const raw of [offer.offerPrice,offer.price]){
     const value=String(raw??"").trim().replace(/\s*€$/,"").replace(",",".");
@@ -246,7 +256,7 @@ async function runWatch(request: Request) {
         // Prefer a verified EAN, scoped to the store and price; otherwise use
         // normalized product identity instead of provider-specific row IDs.
         const ean=String(offer.ean||"").trim();
-        const identity=/^\\d{8,14}$/.test(ean) ? "ean:"+ean : "name:"+norm(title);
+        const identity=watchDuplicateIdentity(title,ean);
         // Keep separate offers when their original publishers/providers differ.
         // Deduplicate only identical product/price entries from the same source.
         const offerSource=String(offer.source||offer.provider||"unknown").trim().toLocaleLowerCase("fi");
