@@ -287,6 +287,12 @@ async function fetchTokmanniOffersFresh() {
       .filter((item): item is TokmanniOffer => Boolean(item)),
   );
 
+  // An empty scrape is not evidence that a live weekly-offer source has no
+  // offers. Fail visibly instead of marking the watch scan complete.
+  if (items.length === 0) {
+    throw new Error(`Tokmanni weekly offer parser returned zero qualified rows (advertised=${total ?? "unknown"}, rawCards=${rawProductCardCount}, pages=${pageCount}); source layout or upstream listing requires inspection`);
+  }
+
   const weeklyValidity = currentTokmanniWeeklyValidity();
   const seen = new Set<string>();
   const dedupedItems = items.filter((item) => {
