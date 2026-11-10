@@ -2,6 +2,7 @@ import { cleanZiiplyGostaOfferResultsV146, mapZiiplyGostaOfferToCardOfferV147 } 
 import { desktopSearchDecision } from "../../../components/ziiply/search/desktopNormalRelevance";
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
+import { GET as searchOffersGET } from "../search/route";
 
 export const dynamic = "force-dynamic";
 // The watcher aggregates six independent retail providers; allow slow upstream
@@ -176,7 +177,10 @@ async function runWatch(request: Request) {
               offerParams.set("kStoreId",id);
               offerParams.set("kStoreName",name);
             }
-            const response=await fetch(origin+"/api/offers/search?"+offerParams.toString(),{cache:"no-store",signal:AbortSignal.timeout(42000)});
+            // Call the search handler directly: a server-side HTTP self-fetch can be
+            // intercepted by Vercel Deployment Protection and return HTML instead of JSON.
+            const searchUrl=origin+"/api/offers/search?"+offerParams.toString();
+            const response=await searchOffersGET(new Request(searchUrl));
             if(!response.ok)throw new Error("Offer source HTTP "+response.status);
             const payload=await response.json();
             if(!payload.ok)throw new Error(String(payload.error||"Offer source unavailable"));
