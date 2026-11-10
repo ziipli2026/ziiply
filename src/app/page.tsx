@@ -2360,6 +2360,7 @@ function KauppiasMobileTopBar({
   const [electricityChartOpen, setElectricityChartOpen] = useState(false);
   const [electricityChartRows, setElectricityChartRows] = useState<Array<{time:number;price:number}>>([]);
   const [electricityChartStatus, setElectricityChartStatus] = useState("Haetaan hintoja…");
+  const [electricitySelectedIndex, setElectricitySelectedIndex] = useState<number | null>(null);
   const [electricityValue, setElectricityValue] = useState("…");
   const [electricityText, setElectricityText] = useState("haetaan");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
@@ -3141,14 +3142,29 @@ function KauppiasMobileTopBar({
             </div>
             {electricityChartStatus ? <div className="h-[260px]" aria-live="off" /> : (
               <>
-                <div className="flex h-[210px] animate-[fadeIn_350ms_ease-out] items-end gap-[2px] border-b-2 border-[#b99961]">
-                  {electricityChartRows.map((item,index) => {
-                    const min = Math.min(0,...electricityChartRows.map(row=>row.price));
-                    const max = Math.max(10,...electricityChartRows.map(row=>row.price));
-                    const height = Math.max(3,(item.price-min+0.4)/(max-min+0.4)*100);
-                    return <div key={item.time+index} className="min-w-0 flex-1 rounded-t-[3px]" style={{height:height+"%",backgroundColor:item.price>=10?"#b84c32":item.price>=6?"#dba32b":"#77a544"}} title={new Date(item.time).toLocaleString("fi-FI",{hour:"2-digit",minute:"2-digit"})+": "+item.price.toFixed(2)+" snt/kWh"}/>;
-                  })}
-                </div>
+                {(() => {
+                  const min = Math.min(0, ...electricityChartRows.map(row => row.price));
+                  const max = Math.max(10, ...electricityChartRows.map(row => row.price));
+                  const range = Math.max(1, max - min);
+                  const selected = electricitySelectedIndex === null ? null : electricityChartRows[electricitySelectedIndex] ?? null;
+                  return <>
+                    <div className="relative h-[210px] animate-[fadeIn_350ms_ease-out] border-b-2 border-[#b99961]">
+                      <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#805a36]" style={{ bottom: ((10 - min) / range * 100) + "%" }}>
+                        <span className="absolute -top-5 left-0 bg-[#fff8e6] px-1 text-[11px] font-bold text-[#805a36]">10 snt/kWh</span>
+                      </div>
+                      <div className="flex h-full items-end gap-[2px]">
+                        {electricityChartRows.map((item, index) => {
+                          const height = Math.max(2, (item.price - min) / range * 100);
+                          const label = new Date(item.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) + ": " + item.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh";
+                          return <button type="button" key={item.time + index} aria-label={label} aria-pressed={electricitySelectedIndex === index} onClick={() => setElectricitySelectedIndex(index)} className="min-w-0 flex-1 rounded-t-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#164b38]" style={{ height: height + "%", minHeight: 3, backgroundColor: item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544", outline: electricitySelectedIndex === index ? "2px solid #164b38" : undefined }} />;
+                        })}
+                      </div>
+                    </div>
+                    <div className="mt-2 min-h-[28px] text-center text-[13px] font-bold text-[#164b38]" aria-live="polite">
+                      {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Kosketa pylvästä nähdäksesi ajan ja hinnan"}
+                    </div>
+                  </>;
+                })()}
                 <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
                   <span>{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit"})}</span>
                   <span>snt/kWh</span>
