@@ -37,7 +37,7 @@ function matches(query:string,offer:Record<string,unknown>){
   if(decision.accepted)return true;
   // Finnish compounds: only the product-family suffix, never an arbitrary
   // substring. Avoid pet-food salmon being treated as fresh fish.
-  if(q==="lohi")return !/\\b(koiran|koira|dog|kissan|kissa|cat|lemmikki|pet)\\b/i.test(n) && words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
+  if(q==="lohi")return !/\b(koiran|koira|dog|kissan|kissa|cat|lemmikki|pet)\b/i.test(n) && words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
   if(q==="voi")return words.some(w=>w==="voi"||w.endsWith("meijerivoi")||w.endsWith("ruokavoi")||w==="voita");
   return false;
 }
