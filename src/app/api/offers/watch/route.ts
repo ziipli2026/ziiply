@@ -180,6 +180,10 @@ async function runWatch(request: Request) {
             if(!response.ok)throw new Error("Offer source HTTP "+response.status);
             const payload=await response.json();
             if(!payload.ok)throw new Error(String(payload.error||"Offer source unavailable"));
+            if(Array.isArray(payload.sourceFailures)&&payload.sourceFailures.length){
+              const details=payload.sourceFailures.map((failure:{source?:string;message?:string})=>String(failure.source||"provider")+": "+String(failure.message||"failed")).join("; ");
+              throw new Error("Offer provider failed: "+details.slice(0,500));
+            }
             const raw=(Array.isArray(payload.results)?payload.results:[]) as Parameters<typeof cleanZiiplyGostaOfferResultsV146>[0];
             const normalized=cleanZiiplyGostaOfferResultsV146(raw).map(mapZiiplyGostaOfferToCardOfferV147) as Record<string,unknown>[];
             lastGoodStoreOffers.set(kind+"|"+id,{at:Date.now(),offers:normalized});
