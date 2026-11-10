@@ -56,8 +56,8 @@ function watchDuplicateIdentity(title:string,ean:string){
   return /^\d{8,14}$/.test(ean)?"ean:"+ean:"name:"+n;
 }
 function priceNumber(offer:Record<string,unknown>){
-  for(const raw of [offer.offerPrice,offer.price]){
-    const value=String(raw??"").trim().replace(/\s*€$/,"").replace(",",".");
+  for(const raw of [offer.offerPrice,offer.price,offer.priceText]){
+    const value=String(raw??"").trim().replace(/\s*(?:€|eur)$/i,"").replace(",",".");
     if(/^\d+(?:\.\d+)?$/.test(value)&&Number(value)>0)return Number(value);
     // Gösta cards may carry the verified selling price as "8,99 €/kg".
     // Accept a clearly marked euro unit price, not arbitrary comparison text.
@@ -239,7 +239,7 @@ async function runWatch(request: Request) {
               throw new Error("Offer provider failed: "+details.slice(0,500));
             }
             const raw=(Array.isArray(payload.results)?payload.results:[]) as Record<string,unknown>[];
-            const normalized=raw.map(o=>({...o,title:String(o.title||o.name||o.productName||""),storeName:name}));
+            const normalized=raw.map(o=>({...o,title:String(o.title||o.name||o.productName||""),storeName:name,offerPrice:Number.isFinite(priceNumber(o))?priceNumber(o):o.offerPrice}));
             lastGoodStoreOffers.set(kind+"|"+id,{at:Date.now(),offers:normalized});
             while(lastGoodStoreOffers.size>120)lastGoodStoreOffers.delete(lastGoodStoreOffers.keys().next().value!);
             nearbyOffers.push({chain:kind==="lidl"?"LIDL":kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
