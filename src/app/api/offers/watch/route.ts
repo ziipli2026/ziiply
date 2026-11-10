@@ -39,7 +39,7 @@ function watchDuplicateIdentity(title:string,ean:string){
     return "same-product:valio-normaalisuolainen-meijerivoi-500g";
   if(n==="tuore kokonainen kirjolohi"||n==="tuore kokonainen kirjolohi kasvatettu suomi")
     return "same-product:tuore-kokonainen-kirjolohi";
-  return /^\\d{8,14}$/.test(ean)?"ean:"+ean:"name:"+n;
+  return /^\d{8,14}$/.test(ean)?"ean:"+ean:"name:"+n;
 }
 function priceNumber(offer:Record<string,unknown>){
   for(const raw of [offer.offerPrice,offer.price]){
