@@ -18,23 +18,26 @@ function norm(value: unknown) {
 // Search the product identity, not offer conditions or store metadata.
 function matches(query:string,offer:Record<string,unknown>){
   const name=String(offer.title||offer.name||offer.productName||"");
+  const q=norm(query),n=norm(name);
+  if(!q||!n)return false;
+  const words=n.split(" "),terms=q.split(" ");
+  // Source-first watcher invariant: every published, priced offer is always
+  // retrievable by its own full product name, regardless of catalog taxonomy.
+  if(q===n)return true;
+  // Generic terms must be complete words, not arbitrary substrings:
+  // "spagetti" must not match "spagettikurpitsa".
+  // For multiword queries, require the full contiguous phrase.
+  if(q.length>=4 && (n.startsWith(q+" ")||n.endsWith(" "+q)||n.includes(" "+q+" ")))return true;
+  // Inflected standalone Finnish words in active leaflet titles are allowed
+  // without guessing new products or searching offer conditions.
+  if(terms.length===1 && q.length>=5 && words.some(w=>w===q+"t"||w===q+"n"||w===q+"a"||w===q+"ja"))return true;
   const decision=desktopSearchDecision(query,{...offer,name,title:name} as Parameters<typeof desktopSearchDecision>[1]);
-  // A vegetable named spagettikurpitsa is not spaghetti pasta.
-  if(norm(query)==="spagetti" && norm(name).split(" ").some(w=>w.includes("spagettikurpitsa")))return false;
+  // Prevent known false category acceptance from the shared catalog classifier.
+  if(q==="spagetti" && words.some(w=>w.includes("spagettikurpitsa")))return false;
   if(decision.accepted)return true;
-  // The watcher scans already-published offer rows, not the broad product
-  // catalog. A literal standalone product word must remain searchable even
-  // when normal-search intent classification rejects its category metadata.
-  // E.g. an active "naudan jauheliha" offer must match "jauheliha".
-  const literalQuery=norm(query);
-  const literalName=norm(name);
-  if(literalQuery.length>=4 && literalName.split(" ").join(" ").includes(literalQuery) && (literalName===literalQuery || literalName.startsWith(literalQuery+" ") || literalName.endsWith(" "+literalQuery) || literalName.includes(" "+literalQuery+" ")))return true;
-  // The saved-offer watcher should also recognize a generic product inside a
-  // compound Finnish product name: lohi -> kirjolohi, voi -> meijerivoi.
-  // Keep this narrow so a generic term does not match unrelated products.
-  const q=norm(query);
-  const words=norm(name).split(" ");
-  if(q==="lohi")return !/\b(koiran|koira|dog|kissan|kissa|cat|lemmikki|pet)\b/i.test(norm(name)) && words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
+  // Finnish compounds: only the product-family suffix, never an arbitrary
+  // substring. Avoid pet-food salmon being treated as fresh fish.
+  if(q==="lohi")return !/\\b(koiran|koira|dog|kissan|kissa|cat|lemmikki|pet)\\b/i.test(n) && words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
   if(q==="voi")return words.some(w=>w==="voi"||w.endsWith("meijerivoi")||w.endsWith("ruokavoi")||w==="voita");
   return false;
 }
