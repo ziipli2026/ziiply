@@ -16,7 +16,16 @@ function norm(value: unknown) {
 // Search the product identity, not offer conditions or store metadata.
 function matches(query:string,offer:Record<string,unknown>){
   const name=String(offer.title||offer.name||offer.productName||"");
-  return desktopSearchDecision(query,{...offer,name,title:name} as Parameters<typeof desktopSearchDecision>[1]).accepted;
+  const decision=desktopSearchDecision(query,{...offer,name,title:name} as Parameters<typeof desktopSearchDecision>[1]);
+  if(decision.accepted)return true;
+  // The saved-offer watcher should also recognize a generic product inside a
+  // compound Finnish product name: lohi -> kirjolohi, voi -> meijerivoi.
+  // Keep this narrow so a generic term does not match unrelated products.
+  const q=norm(query);
+  const words=norm(name).split(" ");
+  if(q==="lohi")return words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
+  if(q==="voi")return words.some(w=>w==="voi"||w.endsWith("meijerivoi")||w.endsWith("ruokavoi")||w==="voita");
+  return false;
 }
 function priceNumber(offer:Record<string,unknown>){
   for(const raw of [offer.offerPrice,offer.price]){
