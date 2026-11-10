@@ -25726,7 +25726,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {arrivalDebugVisible && <div style={{position:"fixed",bottom:80,right:12,zIndex:2147483647,background:"#fff",color:"#111",padding:12,borderRadius:12}}><button type="button" onClick={()=>{const blob=new Blob([JSON.stringify({events:getArrivalDiagnostics()},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-gps-debug.json";a.click();URL.revokeObjectURL(url);}}>Lataa GPS-loki</button><button type="button" onClick={()=>clearArrivalDiagnostics()}>Tyhjennä</button><button type="button" onClick={()=>setArrivalDebugVisible(false)}>Sulje</button></div>}
-        <button type="button" style={{position:"fixed",bottom:12,right:12,zIndex:2147483645,padding:8,borderRadius:12,background:"#174b36",color:"#fff"}} onClick={()=>setArrivalDebugVisible(v=>!v)}>GPS debug</button>
+        {/* GPS debug -painike piilotettu mobiilista; diagnostiikka ja lokien käsittely säilytetty. */}
         <ZiiplyArrivalNotice
           notice={arrivalNotice.notice}
           onDismiss={arrivalNotice.dismiss}
