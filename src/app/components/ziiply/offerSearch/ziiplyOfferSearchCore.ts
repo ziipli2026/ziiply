@@ -319,6 +319,8 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   if (/\b(?:kosteusvoide\w*|tehokosteusvoide\w*)\b/.test(productTitle)) return "Hygienia & kosmetiikka";
   if (/\b(?:paistopussi\w*|paistopussit)\b/.test(productTitle)) return "Kodinhoito";
   if (/\b(?:lautapeli\w*|poytapeli\w*|nukke\w*|tyokalupenkki\w*|yovalo\w*|askarteluampari\w*|lel(u|ut|uja)\w*|paita\w*|hanska\w*|rukka\w*|pusero\w*|tunika\w*|astiat\w*)\b/.test(productTitle)) return "Koti & vapaa-aika";
+  // Audited Citymarket merchandise: these are toys, books, or seasonal home goods.
+  if (/\b(?:ferrari 488 pista|puhelinsetti|elainlaakariklinikka|dino truck|halikujan joulu|puppe paivakodissa|neiti hiiri|elfie tonttu)\b/.test(productTitle)) return "Koti & vapaa-aika";
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
   // Run before legacy title rules and stale EAN labels, including cached rows.
   const tokmanniSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
