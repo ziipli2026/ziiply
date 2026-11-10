@@ -302,7 +302,7 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     anyItem?.title || anyItem?.name || anyItem?.productName || "",
   ));
   if (/(?:^|\s)[a-z0-9]*broiler\w*\b|(?:^|\s)[a-z0-9]*kananpoika\w*\b/.test(productTitle)) return "Liha & makkarat";
-  if (/\bpuuro\w*\b/.test(productTitle) && !/\b(?:vauva|lasten|\d+\s*kk)\b/.test(productTitle)) return "Valmisruoka";
+  if (/\bpuuro\w*\b/.test(productTitle) && !/\b(?:vauva\w*|lasten\w*|\d+\s*kk)\b/.test(productTitle)) return "Valmisruoka";
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
   // Run before legacy title rules and stale EAN labels, including cached rows.
   const tokmanniSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
