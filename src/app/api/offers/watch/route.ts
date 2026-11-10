@@ -265,7 +265,7 @@ async function runWatch(request: Request) {
         const missingFullName=priced.filter(offer=>!matches(String(offer.title||offer.name||offer.productName||""),offer));
         const tokenChecks=priced.flatMap(offer=>{
           const name=String(offer.title||offer.name||offer.productName||"");
-          const terms=[...new Set(norm(name).split(" ").filter(t=>t.length>=5 && !/^\\d+$/.test(t)))];
+          const terms=[...new Set(norm(name).split(" ").filter(t=>t.length>=5 && !/^\d+$/.test(t)))];
           return terms.map(term=>({term,name,matched:matches(term,offer)}));
         });
         return {store:String(row.publication_id),total:offers.length,priced:priced.length,
