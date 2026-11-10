@@ -143,12 +143,17 @@ export default function ZiiplyMobileAssistantPanel({
         if(data.partial){
           // Background partial scans are diagnostic only; do not alarm the user.
         }
-        if(!data.partial){setWatchOffers(matched);setWatchChecked(true);}else{
-          // Never replace a previously complete snapshot with a timed-out subset.
-          try{const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-            if(previous?.key===watchKey&&Array.isArray(previous.offers)&&Date.now()-Number(previous.at)<30*60*1000&&previous.offers.length>matched.length){setWatchOffers(previous.offers);setWatchChecked(true);}
-            else{setWatchOffers(matched);setWatchChecked(true);}
-          }catch{setWatchOffers(matched);setWatchChecked(true);}
+        if(!data.partial){setWatchOffers(matched);setWatchChecked(true);}
+        else {
+          // A partial scan must never replace a previously confirmed snapshot.
+          try {
+            const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
+            if(previous?.key===watchKey&&Array.isArray(previous.offers)){
+              setWatchOffers(previous.offers);setWatchChecked(true);
+            } else if(!watchChecked && matched.length>0){
+              setWatchOffers(matched);setWatchChecked(true);
+            }
+          }catch{}
         }
         if(!data.partial){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }catch(error){
