@@ -971,10 +971,18 @@ export async function GET(request: Request) {
     }
     // Normalize final API categories using the exact resolver used by Gösta desktop cards.
     // Preserve provider metadata and the original category for diagnostics.
-    const displayResults = imageEnrichedResults.map((offer) => ({
-      ...offer,
-      category: getResolvedGostaCategoryV166(offer as any),
-    }));
+    // Do not show price-less leaflet campaigns as priced product offers.
+    // Preserve price-bearing items from all other sources unchanged.
+    const displayResults = imageEnrichedResults
+      .filter((offer) => {
+        if (String(offer.source || "") !== "K-Citymarket tarjouslehti") return true;
+        const price = Number(offer.price);
+        return offer.price != null && Number.isFinite(price) && price > 0;
+      })
+      .map((offer) => ({
+        ...offer,
+        category: getResolvedGostaCategoryV166(offer as any),
+      }));
     return NextResponse.json(
       {
         ok: true,
