@@ -1,6 +1,8 @@
 import { cleanZiiplyGostaOfferResultsV146, mapZiiplyGostaOfferToCardOfferV147 } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { desktopSearchDecision } from "../../../components/ziiply/search/desktopNormalRelevance";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { GET as lidlStoresGET } from "../../lidl/store-search/route";
+import { GET as eurosparStoresGET } from "../../eurospar-stores/route";
 import { neon } from "@neondatabase/serverless";
 import { GET as searchOffersGET } from "../search/route";
 
@@ -114,7 +116,10 @@ async function runWatch(request: Request) {
       }));
       const origin=new URL(request.url).origin;
       const independent=await Promise.allSettled(["/api/lidl/store-search","/api/eurospar-stores?lat="+encodeURIComponent(String(lat))+"&lon="+encodeURIComponent(String(lon))].map(async path=>{
-        const response=await fetch(origin+path,{cache:"no-store",signal:AbortSignal.timeout(7000)});
+        // Avoid Vercel protected self-fetch HTML responses for store discovery.
+        const response=path.startsWith("/api/lidl/")
+          ? await lidlStoresGET(new NextRequest(origin+path))
+          : await eurosparStoresGET(new NextRequest(origin+path));
         if(!response.ok)throw new Error("Store list HTTP "+response.status);
         const data=await response.json();
         return Array.isArray(data)?data:Array.isArray(data.items)?data.items:[];
