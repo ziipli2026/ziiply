@@ -1340,8 +1340,12 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     productName: item.title,
     storeName: item.storeLabel,
     chain: item.chain,
-    price: item.priceText ?? item.price,
-    offerPrice: item.priceText ?? item.price,
+    // Preserve the source's numeric selling price for the watch API's
+    // validation/sorting. A display string may contain unit rates, normal
+    // prices or Plussa conditions and must not replace the numeric value.
+    price: item.price ?? item.priceText,
+    offerPrice: source.offerPrice ?? item.price ?? item.priceText,
+    priceText: item.priceText,
     // Explicit metadata: bundle total is not the price of one item.
     bundleTotalPrice: bundleTotal,
     bundleQuantity,
