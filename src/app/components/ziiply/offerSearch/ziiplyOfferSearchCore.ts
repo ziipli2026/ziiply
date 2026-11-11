@@ -1368,7 +1368,7 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
       // Lidl's original base-price line may carry the pack size even when
       // the normalized product title does not. Only use a real unit measure.
       const raw=String(source.rawText || source.__sourceOfferSearchResult?.rawText || "");
-      const match=raw.match(/\\b(?:\\d+\\s*[x×]\\s*)?\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l)\\b/i);
+      const match=raw.match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i);
       return match ? match[0].trim() : "";
     })(),
     // Never render a category label as a price promotion. For S-group rows,
