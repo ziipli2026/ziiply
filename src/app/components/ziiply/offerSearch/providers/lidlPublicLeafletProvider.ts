@@ -149,17 +149,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     if (!name || price == null || !validFrom || !validUntil) continue;
     if (publicationState({ validFrom, validUntil }, date) === "invalid") continue;
     const baseText = String(product.price?.basePrice?.text || "");
-    const packageText = (() => {
-      const explicit = [product.packageSize, product.packSize, product.keyfacts?.packageSize,
-        product.keyfacts?.quantity, product.quantity, product.price?.basePrice?.quantity]
-        .map(v=>String(v??"").trim())
-        .find(v=>/\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i.test(v));
-      if(explicit)return explicit;
-      const prefix=baseText.split("|")[0].trim();
-      const candidate=[prefix, name, product.keyfacts?.fullTitle, product.description]
-        .map(v=>String(v??"")).join(" ");
-      return candidate.match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0]||"";
-    })();
+    const packageText = baseText.match(/^([^|]+)\|/)?.[1]?.trim() || "";
     const fullName = packageText && !normalize(name).includes(normalize(packageText)) ? `${name} ${packageText}` : name;
     const discountText = String(product.price?.discount?.discountText || "");
     const limitedBatch = /erä/i.test(discountText);
