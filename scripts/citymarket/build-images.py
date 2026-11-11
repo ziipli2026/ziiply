@@ -328,6 +328,35 @@ def build(folder,manifest_path,public_folder,review_path):
     accepted[row['id']].extend(b for b,_ in group)
     print(f'Citymarket page {number+1}: isolated publisher image cluster '
           f'for {row["title"]}: {len(group)} objects, distance {distance:.3f}')
+   # A second publisher layout also occurs: a title above a wide row of
+   # product packages. These pictures are too far below the title for the
+   # side-by-side matcher. Require full horizontal overlap, a tight vertical
+   # band, no competing offer anchor in the panel, and exactly one group.
+   # Work on remaining unowned objects only; do not alter earlier matches.
+   for row in rows:
+    if accepted[row['id']]:continue
+    anchor=row['anchor'];ax0=anchor['left'];ax1=ax0+anchor['width'];ay=anchor['top']
+    suggestions=[]
+    for group in grouped.values():
+     if any(any(b in owned for owned in accepted.values()) for b,_ in group):
+      continue
+     x0=min(v[0] for _,v in group);y0=min(v[1] for _,v in group)
+     x1=max(v[2] for _,v in group);y1=max(v[3] for _,v in group)
+     if not (2<=len(group)<=8 and x1-x0<=.53 and y1-y0<=.28
+             and ay+.04<y0<ay+.17 and y1<ay+.33):
+      continue
+     overlap=max(0,min(ax1,x1)-max(ax0,x0))
+     if overlap<min(anchor['width'],x1-x0)*.25:continue
+     if any(other['id']!=row['id']
+            and x0-.025<=other['anchor']['left']+other['anchor']['width']/2<=x1+.025
+            and ay-.04<other['anchor']['top']<y1+.04 for other in rows):
+      continue
+     if any(blocked(page,anchor,b['bbox']) for b,_ in group):continue
+     suggestions.append(group)
+    if len(suggestions)!=1:continue
+    accepted[row['id']].extend(b for b,_ in suggestions[0])
+    print(f'Citymarket page {number+1}: isolated below-title publisher '
+          f'package group for {row["title"]}: {len(suggestions[0])} objects')
   # An image object must not be assigned to two different offers.
   # Ambiguous ownership is sent to review rather than silently duplicating
   # a product picture in the published leaflet.
