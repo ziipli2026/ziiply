@@ -103,7 +103,7 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchNotice, setWatchNotice] = React.useState("");
   const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string;packageSize?:string;unit?:string;imageUrl?:string;validUntil?:string;comparisonPrice?:string;priceBasis?:string}>>(()=>{
     if(typeof window==="undefined")return [];
-    try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");return Array.isArray(snapshot?.offers)?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(o.validUntil+"T23:59:59")>=Date.now()):[];}catch{return [];}
+    try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");const watches=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");const key=Array.isArray(watches)?watches.map((q:unknown)=>String(q).trim().toLocaleLowerCase("fi")).filter(Boolean).join("|"):"";return snapshot?.key===key&&Array.isArray(snapshot.offers)?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(o.validUntil+"T23:59:59")>=Date.now()):[];}catch{return [];}
   });
   const [watchLoading,setWatchLoading]=React.useState(false);
   const [watchChecked,setWatchChecked]=React.useState(false);
