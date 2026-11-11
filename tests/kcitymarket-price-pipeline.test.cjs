@@ -64,7 +64,7 @@ test('API through final price rendering retains all source offers and hides prod
  counts.rendered={};
  for(const tab of ['offer','campaign']){
   const tabItems=mapped.filter(r=>(r.campaignType==='campaign'?'campaign':'offer')===tab);
-  const html=renderToStaticMarkup(React.createElement(cards.default,{open:true,offers:tabItems,filter:'kaikki',contentTab:tab==='offer'?'offers':'campaigns',categorySuggestions:[],onAddOffer:()=>{}}));
+  const html=renderToStaticMarkup(React.createElement(cards.default,{open:true,offers:tabItems,filter:'kaikki',query:'citymarket',contentTab:tab==='offer'?'offers':'campaigns',categorySuggestions:[],onAddOffer:()=>{}}));
   const articles=(html.match(/<article\b/g)||[]).length;
   assert.equal(articles,tabItems.length,'Final card rendering lost rows');
   const basisCount=(html.match(/class="block w-full text-center text-\[0\.76rem\]/g)||[]).length;
