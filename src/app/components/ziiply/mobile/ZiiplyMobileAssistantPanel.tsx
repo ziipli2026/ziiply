@@ -187,8 +187,9 @@ export default function ZiiplyMobileAssistantPanel({
           store:String(offer.storeName||offer.chain||""),
           source:String(offer.source||offer.sourceType||offer.chain||""),
           chain:String(offer.chain||""),
-          packageSize:String(offer.packageSize||offer.packSize||offer.size||offer.quantityText||""),
+          packageSize:String(offer.packageSize||offer.packSize||offer.size||offer.quantityText||offer.packageSizeText||offer.packagingSize||""),
           imageUrl:String(offer.imageUrl||offer.pictureUrl||offer.image||""),
+          unit:String(offer.unit||offer.unitPriceUnit||""),
           validUntil:String(offer.validUntil||""),
           comparisonPrice:String(offer.comparisonPriceText||offer.unitPrice||offer.comparisonPrice||""),
           priceBasis:String(offer.priceBasis||"")
