@@ -3,8 +3,18 @@
 // another card or turn a unit-rate calculation into the displayed transaction.
 export function verifiedOwnedPublisherOverprint(row) {
   const anchor=row.debugCardAnchor||row.debugAnchor;
-  if(!anchor)return null;
   const card=row.debugCardPrice;
+  // In frozen publisher OCR replays the price has a complete page-local
+  // glyph anchor even when the parser cannot recover an offer title anchor.
+  // Accept that fallback only for a high-confidence same-card full price;
+  // reject loose, unit-less or low-score fragments.
+  const reliableCardOnly=!anchor&&
+    row.spatialResolved?.source==='printed-unitrate-quantity-reconciled'&&
+    card?.unit&&Number(card.score)<=.025&&
+    Array.isArray(card.parts)&&card.parts.length===2&&
+    card.anchor;
+  const ownAnchor=anchor||(reliableCardOnly?card.anchor:null);
+  if(!ownAnchor)return null;
   const title=String(row.title||'');
   const nearby=row.nearby||[];
   const boxes=row.debugNearbyBoxes||[];
@@ -46,8 +56,8 @@ export function verifiedOwnedPublisherOverprint(row) {
   if(row.spatialResolved?.source==='printed-unitrate-quantity-reconciled'&&
     card?.unit&&Number(card.score)<=.025&&Number(card.value)>0&&
     Array.isArray(card.parts)&&card.parts.length===2&&card.anchor&&
-    Math.abs(Number(card.anchor.left)-Number(anchor.left))<.065&&
-    Math.abs(Number(card.anchor.top)-Number(anchor.top))<.15){
+    Math.abs(Number(card.anchor.left)-Number(ownAnchor.left))<.065&&
+    Math.abs(Number(card.anchor.top)-Number(ownAnchor.top))<.15){
     const [e,c]=card.parts;
     const digits=/^\d{1,2}$/;
     if(digits.test(String(e.text))&&/^\d{2}$/.test(String(c.text))&&
