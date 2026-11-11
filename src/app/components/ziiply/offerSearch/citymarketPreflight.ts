@@ -89,8 +89,8 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
     timeZone: "Europe/Helsinki", hour: "2-digit", hourCycle: "h23",
   }).format(new Date()));
   // Do not hide an unresolved image pipeline forever. The final evening
-  // preflight reports a real failure if images are still absent after 22:00.
-  const imageDeadlineReached = helsinkiHour >= 22;
+  // preflight reports a real failure if images are still absent after 23:00.
+  const imageDeadlineReached = helsinkiHour >= 23;
   const parserReady = Boolean(input.parsed && errors.length === 0 && quality &&
     quality.total === input.parsed.offers && quality.total > 0 &&
     quality.missing_names === 0 && quality.suspicious_names === 0 &&
