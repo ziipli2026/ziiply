@@ -22,11 +22,13 @@ export type ZiiplyMobileAssistantPanelProps = {
   onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string}) => void;
 };
 
-function watchStoreLabel(store: string): string {
-  return String(store || "Kauppa")
+function watchStoreLabel(store: string, chain = ""): string {
+  const name = String(store || "Kauppa")
     .replace(/\s*[·|–-]\s*(?:lidl-fi|etarjouslehdet|e-tarjouslehdet)\s*$/i, "")
     .replace(/\s*\((?:lidl-fi|etarjouslehdet|e-tarjouslehdet)\)\s*$/i, "")
     .trim();
+  if (/^(?:Hyvinkää|Järvenpää|Tuusula|Helsinki|Espoo|Vantaa|Lahti|Tampere|Turku)\s*-\s*[^-]+$/i.test(name) && (chain.toUpperCase() === "LIDL" || /keskusta/i.test(name))) return "Lidl " + name;
+  return name;
 }
 
 const assistantContent: Record<
@@ -86,7 +88,7 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchFilter,setWatchFilter]=React.useState<string|null>(null);
   const [savedWatches, setSavedWatches] = React.useState<string[]>([]);
   const [watchNotice, setWatchNotice] = React.useState("");
-  const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string}>>([]);
+  const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string}>>([]);
   const [watchLoading,setWatchLoading]=React.useState(false);
   const [watchChecked,setWatchChecked]=React.useState(false);
   const [watchError,setWatchError]=React.useState("");
@@ -113,7 +115,8 @@ export default function ZiiplyMobileAssistantPanel({
           title:String(offer.title||offer.name||offer.productName||"Tarjous"),
           price:String(offer.offerPrice??offer.price??""),
           store:String(offer.storeName||offer.chain||""),
-          source:String(offer.source||offer.sourceType||offer.chain||"")
+          source:String(offer.source||offer.sourceType||offer.chain||""),
+          chain:String(offer.chain||"")
         }));
         setWatchOffers(matched);setWatchChecked(true);
         if(!data.partial){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
@@ -298,7 +301,7 @@ export default function ZiiplyMobileAssistantPanel({
               {!savedWatches.length&&<p className="rounded-xl bg-white/70 p-4 text-sm">Tallenna ensin hakusana. Löydetyt tarjoukset näkyvät tässä kortteina.</p>}
               <div className="grid grid-cols-1 gap-3">
                 {watchOffers.filter(o=>!watchFilter||o.query===watchFilter).map((offer,index)=><article key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="rounded-2xl border-2 border-[#caa15d] bg-[#fffaf0] p-3 shadow-sm">
-                  <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store)}</div>
+                  <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store,offer.chain)}</div>
                   <h4 className="mt-1 text-base font-black text-[#174c35]">{offer.title}</h4>
                   <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{/[€]/.test(offer.price)?offer.price:offer.price+" €"}</strong>}</div>
                   {onAddWatchOfferToCart&&<button type="button" onClick={()=>{const price=Number(offer.price.replace(/\s|€/g,"").replace(",","."));if(!Number.isFinite(price)||price<=0){setWatchNotice("Tarjouksella ei ole kelvollista hintaa.");return;}onAddWatchOfferToCart({name:offer.title,title:offer.title,price,priceAmountUnit:"eur",storeName:watchStoreLabel(offer.store),source:offer.source});setWatchNotice("Tarjous lisätty ostoskoriin.");}} className="mt-2 mr-2 rounded-lg border border-[#174c35] bg-[#174c35] px-3 py-2 text-sm font-bold text-white">Lisää ostoskoriin</button>}
