@@ -19,10 +19,10 @@ on:
   schedule:
     # Publisher may publish late. Retry the following morning as well.
     # Both UTC offsets are listed; Helsinki clock guard skips extras.
-    - cron: '0,30 13-20 * * 0,3'
+    - cron: '0,30 13-21 * * 0,3'
     - cron: '15 4,5,6,7 * * 1,4'
     # Retry incomplete upcoming editions throughout publication evening.
-    - cron: '15,45 13-20 * * 0,3'
+    - cron: '15,45 13-21 * * 0,3'
 permissions:
   contents: write
   actions: write
