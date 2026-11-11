@@ -6,7 +6,7 @@ import { appendRecipeDebug, RECIPE_DEBUG_KEY } from "../mobile/ZiiplyRecipeSearc
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
-export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenChange}:{onSearchIngredients?:(terms:string[])=>void;onCameraOpenChange?:(open:boolean)=>void}){
+export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenChange}:{onSearchIngredients?:(terms:string[],items?:import("./recipeCore").RecipeIngredient[])=>void;onCameraOpenChange?:(open:boolean)=>void}){
   const [draft,setDraft]=useState<RecipeDraft|null>(null);
   const [text,setText]=useState("");
   const [original,setOriginal]=useState("");
