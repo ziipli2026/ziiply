@@ -318,13 +318,15 @@ function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackD
     const category = categoryFor(name, sourceUrl);
     if (!GROCERY_CATEGORIES.has(category)) continue;
     if (publicationState({ validFrom, validUntil }, fallbackDate) !== "current") continue;
+    const nearbySize = window.slice(Math.max(0, priceIndex - 3), priceIndex + 1).join(" ").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "";
+
 
     const key = normalize([name, price, validFrom, validUntil].join(" ")).replace(/\s+/g, "-");
     output.push({
       id: `lidl-fi-campaign-visible-${key}`, source: "lidl-fi-public", chain: "Lidl",
       title: name, name, productName: name, brandName: "",
       price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €`,
-      originalPrice: null, normalPrice: null, priceBasis: "unit",
+      originalPrice: null, normalPrice: null, packageSize: nearbySize, packageText: nearbySize, priceBasis: "unit",
       requiresLidlPlus: false, eligibility: "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl: "", image: "", pictureUrl: "",
