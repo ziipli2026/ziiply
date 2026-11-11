@@ -31,6 +31,16 @@ function watchStoreLabel(store: string, chain = ""): string {
   return name;
 }
 
+function watchPackageSize(offer: {title:string;packageSize?:string;unit?:string}): string {
+  const explicit=String(offer.packageSize||"").trim();
+  if (explicit && /\d/.test(explicit)) return explicit;
+  // Lidl and other leaflet feeds may include the size only in the product title.
+  // Extract an actual printed measurement, never infer a missing package size.
+  const title=String(offer.title||"");
+  const matches=[...title.matchAll(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi)];
+  return matches.length ? matches[matches.length-1][0].replace(/\s+/g," ").trim() : "";
+}
+
 const assistantContent: Record<
   ZiiplyAssistantKey,
   {
@@ -308,7 +318,7 @@ export default function ZiiplyMobileAssistantPanel({
               <div className="grid grid-cols-1 gap-3">
                 {watchOffers.filter(o=>!watchFilter||o.query===watchFilter).map((offer,index)=><article key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="rounded-2xl border-2 border-[#caa15d] bg-[#fffaf0] p-3 shadow-sm">
                   <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store,offer.chain)}</div>
-                  <div className="mt-2 flex items-start gap-3">{offer.imageUrl&&<img src={offer.imageUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain" onError={event=>{event.currentTarget.style.display="none";}}/>}<div className="min-w-0 flex-1"><h4 className="text-base font-black text-[#174c35]">{offer.title}</h4>{offer.packageSize&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{offer.packageSize}</div>}</div></div>
+                  <div className="mt-2 flex items-start gap-3">{offer.imageUrl&&<img src={offer.imageUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain" onError={event=>{event.currentTarget.style.display="none";}}/>}<div className="min-w-0 flex-1"><h4 className="text-base font-black text-[#174c35]">{offer.title}</h4>{watchPackageSize(offer)&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{watchPackageSize(offer)}</div>}</div></div>
                   <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{/[€]/.test(offer.price)?offer.price:offer.price+" €"}</strong>}</div>
                   {onAddWatchOfferToCart&&<button type="button" onClick={()=>{const price=Number(offer.price.replace(/\s|€/g,"").replace(",","."));if(!Number.isFinite(price)||price<=0){setWatchNotice("Tarjouksella ei ole kelvollista hintaa.");return;}const added=onAddWatchOfferToCart({name:offer.title,title:offer.title,price,priceAmountUnit:"eur",storeName:watchStoreLabel(offer.store,offer.chain),source:offer.source,imageUrl:offer.imageUrl,packageSize:offer.packageSize,chain:offer.chain});if(added)setWatchNotice("Tarjous lisätty ostoskoriin.");}} className="mt-2 mr-2 rounded-lg border border-[#174c35] bg-[#174c35] px-3 py-2 text-sm font-bold text-white">Lisää ostoskoriin</button>}
                   <button type="button" onClick={()=>void shareWatchOffer(offer)} className="mt-2 rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-sm font-bold text-[#174c35]">Jaa / lähetä tarjous</button>
