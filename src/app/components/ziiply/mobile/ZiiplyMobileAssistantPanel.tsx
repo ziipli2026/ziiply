@@ -66,6 +66,19 @@ export default function ZiiplyMobileAssistantPanel({
   locationLabel,
   onOpenStoreSettings,
 }: ZiiplyMobileAssistantPanelProps) {
+  const shareWatchOffer = async (offer: {title:string;price:string;store:string}) => {
+    const price = offer.price ? (offer.price.includes("€") ? offer.price : offer.price + " €") : "";
+    const text = [offer.title, price, watchStoreLabel(offer.store)].filter(Boolean).join(" · ");
+    try {
+      if (navigator.share) await navigator.share({title:offer.title,text});
+      else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        setWatchNotice("Tarjouksen tiedot kopioitu.");
+      } else setWatchNotice("Jakaminen ei ole käytettävissä tässä selaimessa.");
+    } catch (error) {
+      if ((error as Error)?.name !== "AbortError") setWatchNotice("Tarjouksen jakaminen epäonnistui.");
+    }
+  };
   const [watchQuery, setWatchQuery] = React.useState("");
   const [showWatchNotebook,setShowWatchNotebook]=React.useState(false);
   const [watchFilter,setWatchFilter]=React.useState<string|null>(null);
@@ -286,6 +299,7 @@ export default function ZiiplyMobileAssistantPanel({
                   <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store)}</div>
                   <h4 className="mt-1 text-base font-black text-[#174c35]">{offer.title}</h4>
                   <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{/[€]/.test(offer.price)?offer.price:offer.price+" €"}</strong>}</div>
+                  <button type="button" onClick={()=>void shareWatchOffer(offer)} className="mt-2 rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-sm font-bold text-[#174c35]">Jaa / lähetä tarjous</button>
                 </article>)}
               </div>
             </div>
