@@ -151,8 +151,8 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     const baseText = String(product.price?.basePrice?.text || "");
     const packageText = (() => {
       const explicit = [product.packageSize, product.packSize, product.keyfacts?.packageSize,
-        product.keyfacts?.quantity, product.quantity, product.price?.basePrice?.quantity,
-        product.price?.basePrice?.unit].map(v=>String(v??"").trim())
+        product.keyfacts?.quantity, product.quantity, product.price?.basePrice?.quantity]
+        .map(v=>String(v??"").trim())
         .find(v=>/\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i.test(v));
       if(explicit)return explicit;
       const prefix=baseText.split("|")[0].trim();
