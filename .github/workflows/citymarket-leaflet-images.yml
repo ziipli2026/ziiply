@@ -17,6 +17,7 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/kCitymarket45LVPriceGuard.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketOCRRepair.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketProductRows.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js"
       - "src/app/components/ziiply/offerSearch/citymarketQuality.ts"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
   schedule:
@@ -72,6 +73,9 @@ jobs:
       - name: Regression test wrapped percentage publisher headings
         if: steps.clock.outputs.run == 'true'
         run: node scripts/citymarket/test-wrapped-percentage-headings.mjs
+      - name: Regression test verified shared publisher price
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-shared-printed-alternatives.mjs
       - name: Regression test multi-pack quality audit
         if: steps.clock.outputs.run == 'true'
         run: |
