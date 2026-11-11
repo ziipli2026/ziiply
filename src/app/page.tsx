@@ -22517,6 +22517,39 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
                   onClose={() => setActiveAssistant(null)}
+                  onAddWatchOfferToCart={(offer) => {
+                    const name = fixText(offer.name || offer.title);
+                    if (!name || cart.length >= MAX_ITEMS || cart.some(item => normalize(item.name) === normalize(name))) return false;
+                    const weighted = Boolean(offer.ziiplyPricePendingWeight || offer.isWeightedProduct || offer.priceBasis === "per-kg");
+                    const item: CartItem = {
+                      id: `gosta-watch-${Date.now()}-${cart.length}`,
+                      name,
+                      price: weighted ? 0 : offer.price,
+                      image: offer.imageUrl || "",
+                      chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
+                      storeName: offer.storeName,
+                      quantity: 1,
+                      source: "offer",
+                      product: {
+                        id: `gosta-watch-product-${Date.now()}-${cart.length}`,
+                        name,
+                        price: weighted ? 0 : offer.price,
+                        pictureUrl: offer.imageUrl || "",
+                        ...(weighted ? {
+                          ziiplyWeightLabel: true,
+                          ziiplyWeightOffer: true,
+                          ziiplyPricePendingWeight: true,
+                          comparisonPrice: offer.price,
+                          comparisonPriceUnit: "kg",
+                        } : {}),
+                      } as unknown as Product,
+                    };
+                    const nextCart = [...cart, item];
+                    setCart(nextCart);
+                    persistCartImmediately(nextCart);
+                    showCartToast(weighted ? `Vaakatuote lisätty listalle: ${name}` : `Lisätty ostoskoriin: ${name}`);
+                    return true;
+                  }}
                 />
               </>
             )}
