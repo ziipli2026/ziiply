@@ -1360,9 +1360,17 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     comparisonUnit: item.comparisonUnit,
     // Keep the original publisher's pack measurement across the desktop
     // normalization layer and the mobile offer-watch API.
-    packageSize: String(source.packageSize || source.packSize || source.packageText ||
-      source.__sourceOfferSearchResult?.packageSize ||
-      source.__sourceOfferSearchResult?.packageText || "").trim(),
+    packageSize: (() => {
+      const explicit=String(source.packageSize || source.packSize || source.packageText ||
+        source.__sourceOfferSearchResult?.packageSize ||
+        source.__sourceOfferSearchResult?.packageText || "").trim();
+      if (explicit) return explicit;
+      // Lidl's original base-price line may carry the pack size even when
+      // the normalized product title does not. Only use a real unit measure.
+      const raw=String(source.rawText || source.__sourceOfferSearchResult?.rawText || "");
+      const match=raw.match(/\\b(?:\\d+\\s*[x×]\\s*)?\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l)\\b/i);
+      return match ? match[0].trim() : "";
+    })(),
     // Never render a category label as a price promotion. For S-group rows,
     // recover explicit multi-buy wording from the publisher evidence when the
     // mapped benefitText was overwritten by a category in a parallel feed.
