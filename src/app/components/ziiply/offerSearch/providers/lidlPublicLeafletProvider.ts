@@ -150,7 +150,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     if (!name || price == null || !validFrom || !validUntil) continue;
     if (publicationState({ validFrom, validUntil }, date) === "invalid") continue;
     const baseText = String(product.price?.basePrice?.text || "");
-    const packageText = [baseText.split("|")[0], product.packageSize, product.packSize, product.keyfacts?.packageSize, product.keyfacts?.quantity, name].map(value => String(value ?? "").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "").find(Boolean) || "";
+    const packageText = [product.packageSize, product.packSize, product.keyfacts?.packageSize, product.keyfacts?.quantity, name, baseText.split("|")[0]].map(value => { const text=String(value ?? ""); if (/(?:€|eur)\s*\/|\b(?:kg|l)\s*=\s*\d/i.test(text)) return ""; return text.match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || ""; }).find(Boolean) || "";
     const comparisonPriceText = baseText.match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "";
     const fullName = packageText && !normalize(name).includes(normalize(packageText)) ? `${name} ${packageText}` : name;
     const discountText = String(product.price?.discount?.discountText || "");
