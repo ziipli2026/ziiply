@@ -1,152 +1,277 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { parseRecipeText, scaleIngredients, prepareRecipeSearch, type RecipeDraft } from "./recipeCore";
-
-import { startDesktopRecipeDebug, appendDesktopRecipeDebug } from "../desktop/justiina/DesktopRecipeSearchDebug";
+import { appendRecipeDebug, RECIPE_DEBUG_KEY } from "../mobile/ZiiplyRecipeSearchDebug";
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
-export default function JustiinaRecipeEditor({onSearchIngredients}:{onSearchIngredients?:(terms:string[],items:RecipeDraft["ingredients"])=>void}){
+export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenChange}:{onSearchIngredients?:(terms:string[])=>void;onCameraOpenChange?:(open:boolean)=>void}){
   const [draft,setDraft]=useState<RecipeDraft|null>(null);
   const [text,setText]=useState("");
   const [original,setOriginal]=useState("");
   const [target,setTarget]=useState("");
   const [editing,setEditing]=useState(false);
-  const [detailsOpen,setDetailsOpen]=useState(false);
   const [importing,setImporting]=useState(false);
-  const [savedRecipeId,setSavedRecipeId]=useState<string|null>(null);
+  const [instructionsOpen,setInstructionsOpen]=useState(false);
   const [notice,setNotice]=useState("");
   const [hydrated,setHydrated]=useState(false);
-  const [showSwitchHint,setShowSwitchHint]=useState(false);
-  const dismissSwitchHint=()=>{setShowSwitchHint(false);try{sessionStorage.setItem("ziiply-recipe-switch-hint-seen-v1","1")}catch{}};
+  const imageInputRef=useRef<HTMLInputElement|null>(null);
+  const [imagePreview,setImagePreview]=useState("");
+  const [readingImage,setReadingImage]=useState(false);
+  const [cameraOpen,setCameraOpen]=useState(false);
+  useEffect(()=>{onCameraOpenChange?.(cameraOpen);return()=>onCameraOpenChange?.(false)},[cameraOpen,onCameraOpenChange]);
+  const [cameraShot,setCameraShot]=useState(false);
+  const [cameraReview,setCameraReview]=useState(false);
+  const [cameraError,setCameraError]=useState("");
+  const [cameraCountdown,setCameraCountdown]=useState<number|null>(null);
+  const imageReadIdRef=useRef(0);
+  const [voiceRecording,setVoiceRecording]=useState(false);
+  const [notebookOpen,setNotebookOpen]=useState(true);
+  const [notebook,setNotebook]=useState<Array<{id:string;title:string;ingredients:string;instructions:string;sourceText?:string;servings?:number|null}>>([]);
+  const [notebookFilter,setNotebookFilter]=useState("");
+  const [clipboardText,setClipboardText]=useState("");
+  const [saving,setSaving]=useState(false);
+  const [expandedRecipe,setExpandedRecipe]=useState<string|null>(null);
+  const [recipePopup,setRecipePopup]=useState<{top:number;left:number;width:number;maxHeight:number}|null>(null);
+  const textareaRef=useRef<HTMLTextAreaElement|null>(null);
+  const clipboardRequestRef=useRef(0);
+  const [savedId,setSavedId]=useState<string|null>(null);
+  const cameraVideoRef=useRef<HTMLVideoElement|null>(null);
+  const cameraStreamRef=useRef<MediaStream|null>(null);
+  const capturedFileRef=useRef<File|null>(null);
+  const refreshNotebook=()=>{try{const value=JSON.parse(localStorage.getItem("ziiply-desktop-vihkonen-recipes-v1")||"[]");setNotebook(Array.isArray(value)?value:[])}catch{setNotebook([])}};
+  const refreshClipboard=async()=>{
+    if(!navigator.clipboard?.readText)return;
+    try{
+      const permissions=navigator.permissions;
+      if(!permissions)return;
+      const permission=await permissions.query({name:"clipboard-read" as PermissionName});
+      // Never prompt for or read the clipboard automatically unless access was already granted.
+      if(permission.state!=="granted")return;
+      const value=await navigator.clipboard.readText();
+      setClipboardText(value.trim()?value:"");
+    }catch{setClipboardText("")}
+  };
+  useEffect(()=>{
+    void refreshClipboard();
+    const visible=()=>{if(document.visibilityState==="visible")void refreshClipboard()};
+    window.addEventListener("focus",visible);document.addEventListener("visibilitychange",visible);
+    return()=>{clipboardRequestRef.current++;window.removeEventListener("focus",visible);document.removeEventListener("visibilitychange",visible)};
+  },[]);
+  useEffect(()=>{if(importing&&!cameraOpen)textareaRef.current?.focus()},[importing,cameraOpen]);
+  useEffect(()=>{
+    if(!expandedRecipe)return;
+    const close=()=>{setExpandedRecipe(null);setRecipePopup(null)};
+    const scroll=(event:Event)=>{if(event.target instanceof Element&&event.target.closest("#mobile-recipe-popup"))return;close()};
+    const key=(event:KeyboardEvent)=>{if(event.key==="Escape")close()};
+    window.addEventListener("resize",close);window.addEventListener("scroll",scroll,true);document.addEventListener("keydown",key);
+    return()=>{window.removeEventListener("resize",close);window.removeEventListener("scroll",scroll,true);document.removeEventListener("keydown",key)};
+  },[expandedRecipe]);
+  const beginRecipe=()=>{
+    const request=++clipboardRequestRef.current;
+    setSavedId(null);setDraft(null);setText(clipboardText);setImporting(true);setEditing(false);setNotice("");setExpandedRecipe(null);setRecipePopup(null);
+    // Safari may require a paste permission after this user gesture. Manual paste remains available.
+    if(navigator.clipboard?.readText)void navigator.clipboard.readText().then(value=>{
+      setClipboardText(value.trim()?value:"");
+      if(clipboardRequestRef.current===request&&value.trim())setText(value);
+    }).catch(()=>{});
+  };
+  const showRecipe=(id:string,button:HTMLButtonElement)=>{
+    if(expandedRecipe===id){setExpandedRecipe(null);setRecipePopup(null);return}
+    const box=button.getBoundingClientRect();
+    const view=window.visualViewport;
+    const viewTop=view?.offsetTop??0,viewHeight=view?.height??window.innerHeight;
+    const topLimit=viewTop+12,bottomLimit=viewTop+viewHeight-100;
+    const height=Math.max(100,Math.min(340,bottomLimit-topLimit));
+    const top=box.bottom+8+height<=bottomLimit?box.bottom+8:Math.max(topLimit,box.top-height-8);
+    const width=Math.min(window.innerWidth-24,480);
+    setRecipePopup({top,left:Math.max(12,Math.min(box.left,window.innerWidth-width-12)),width,maxHeight:height});
+    setExpandedRecipe(id);
+  };
+  const recipeSource=(item:(typeof notebook)[number])=>item.sourceText||[item.title,item.servings?item.servings+" annosta":"","Ainekset:",item.ingredients,"Valmistus:",item.instructions].filter(Boolean).join("\n");
+  const stopCamera=()=>{setCameraCountdown(null);cameraStreamRef.current?.getTracks().forEach(track=>track.stop());cameraStreamRef.current=null};
+  useEffect(()=>{if(cameraOpen&&!cameraShot&&!cameraReview&&cameraVideoRef.current&&cameraStreamRef.current){cameraVideoRef.current.srcObject=cameraStreamRef.current;void cameraVideoRef.current.play().catch(()=>{})}},[cameraOpen,cameraShot,cameraReview]);
+  const recordRecipe=()=>{
+    const browser=window as unknown as {SpeechRecognition?:new()=>any;webkitSpeechRecognition?:new()=>any};
+    const Speech=browser.SpeechRecognition||browser.webkitSpeechRecognition;
+    if(!Speech){setNotice("Puheentunnistus ei ole käytettävissä tässä selaimessa.");return}
+    const recognition=new Speech();recognition.lang="fi-FI";recognition.continuous=false;recognition.interimResults=false;
+    recognition.onresult=(event:any)=>{const result=String(event.results?.[0]?.[0]?.transcript||"").trim();if(result){setText(old=>[old,result].filter(Boolean).join("\n"));setImporting(true)}};
+    recognition.onerror=()=>{setVoiceRecording(false);setNotice("Puheentunnistus epäonnistui.")};
+    recognition.onend=()=>setVoiceRecording(false);
+    try{recognition.start();setVoiceRecording(true)}catch{setVoiceRecording(false);setNotice("Mikrofoni ei auennut.")}
+  };
+  const closeCamera=()=>{imageReadIdRef.current++;setReadingImage(false);stopCamera();setCameraOpen(false);setCameraShot(false);setCameraReview(false);setCameraError("")};
+  const startCamera=async(autoCapture=false)=>{
+    imageReadIdRef.current++;setReadingImage(false);setImagePreview("");setText("");setSavedId(null);
+    setCameraOpen(true);setCameraShot(false);setCameraReview(false);setCameraError("");capturedFileRef.current=null;
+    stopCamera();
+    try{
+      let stream:MediaStream;
+      try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false})}
+      catch{stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false})}
+      cameraStreamRef.current=stream;
+      if(autoCapture)setCameraCountdown(5);
+      requestAnimationFrame(()=>{if(cameraVideoRef.current){cameraVideoRef.current.srcObject=stream;void cameraVideoRef.current.play().catch(()=>{})}});
+    }catch{setCameraError("Kamera ei auennut. Voit liittää kuvan laitteen kuvista.");}
+  };
+  const takePicture=()=>{
+    const video=cameraVideoRef.current;if(!video||!video.videoWidth)return;
+    const canvas=document.createElement("canvas");canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+    canvas.getContext("2d")?.drawImage(video,0,0);
+    canvas.toBlob(blob=>{if(!blob)return;capturedFileRef.current=new File([blob],"resepti.jpg",{type:"image/jpeg"});setImagePreview(old=>{if(old)URL.revokeObjectURL(old);return URL.createObjectURL(blob)});setCameraShot(true);stopCamera()},"image/jpeg",0.9);
+  };
+  const saveNotebook=(source:string)=>{
+    if(!source.trim()){setNotice("Kirjoita tai liitä reseptin teksti.");return}
+    const parsed=parseRecipeText(source);if(!parsed.title.trim()){setNotice("Anna reseptille nimi.");return}
+    const key="ziiply-desktop-vihkonen-recipes-v1";
+    try{const entries=JSON.parse(localStorage.getItem(key)||"[]");const list=Array.isArray(entries)?entries:[];const id=savedId||String(Date.now());const entry={id,title:parsed.title,ingredients:parsed.ingredients.map(item=>[item.amount,item.unit,item.name].filter(x=>x!==null&&x!=="").join(" ")).join("\n"),instructions:parsed.instructions,sourceText:source,servings:parsed.servings,createdAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify([entry,...list.filter((item:{id:string})=>item.id!==id)]));setSavedId(id);refreshNotebook();load(source);setImporting(false);setEditing(false);setText("");setDraft(null);setNotebookFilter("");setExpandedRecipe(null);setRecipePopup(null);clipboardRequestRef.current++;setClipboardText("");setNotice("Resepti tallennettu.");window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));closeCamera()}catch{setNotice("Tallennus epäonnistui.")}
+  };
+  useEffect(()=>{refreshNotebook();return()=>{cameraStreamRef.current?.getTracks().forEach(track=>track.stop())}},[]);
+
+  const prepareRecipeImage=(file?:File)=>{
+    if(!file)return;
+    if(!file.type.startsWith("image/")){setCameraError("Valitse kuvatiedosto.");return}
+    if(file.size>12*1024*1024){setCameraError("Kuva on liian suuri (enintään 12 Mt).");return}
+    imageReadIdRef.current++;setReadingImage(false);stopCamera();
+    capturedFileRef.current=file;
+    setCameraOpen(true);setCameraShot(true);setCameraReview(false);setCameraError("");
+    setText("");setSavedId(null);
+    setImagePreview(old=>{if(old)URL.revokeObjectURL(old);return URL.createObjectURL(file)});
+  };
+  const readRecipeImage=async()=>{
+    const file=capturedFileRef.current;
+    if(!file||readingImage)return;
+    const requestId=++imageReadIdRef.current;
+    setReadingImage(true);setCameraError("");
+    try{
+      const image=new Image();image.src=imagePreview;await image.decode();
+      const canvas=document.createElement("canvas");canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+      const context=canvas.getContext("2d");if(!context)throw Error("Kuvan avaaminen epäonnistui.");
+      context.drawImage(image,0,0);
+      const response=await fetch("/api/recipe/read-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({image:canvas.toDataURL("image/jpeg",0.88)})});
+      const result=await response.json();
+      if(!response.ok)throw Error(result.error||"Reseptin lukeminen epäonnistui.");
+      const title=String(result.title||"").trim();
+      const ingredients=String(result.ingredients||"").trim();
+      const instructions=String(result.instructions||"").trim();
+      const raw=String(result.rawText||"").trim();
+      if(!title&&!ingredients&&!instructions&&!raw)throw Error("Kuvasta ei löytynyt luettavaa reseptiä.");
+      const recognized=[title,ingredients&&"Ainekset:\n"+ingredients,instructions&&"Valmistus:\n"+instructions].filter(Boolean).join("\n\n")||raw;
+      if(requestId!==imageReadIdRef.current)return;
+      setText(recognized);setCameraReview(true);
+    }catch(error){
+      if(requestId===imageReadIdRef.current)setCameraError(error instanceof Error?error.message:"Kuvan tekstinlukeminen epäonnistui.");
+    }finally{if(requestId===imageReadIdRef.current)setReadingImage(false)}
+  };
+  useEffect(()=>{
+    if(cameraCountdown===null)return;
+    if(cameraCountdown===0){takePicture();setCameraCountdown(null);return}
+    const timer=window.setTimeout(()=>setCameraCountdown(value=>value===null?null:value-1),1000);
+    return()=>window.clearTimeout(timer);
+  },[cameraCountdown]);
+
   useEffect(()=>{try{
-    setShowSwitchHint(sessionStorage.getItem("ziiply-recipe-switch-hint-seen-v1")!=="1");
-    const selected=JSON.parse(sessionStorage.getItem(STORAGE)||"null");
-    if(selected?.draft&&Array.isArray(selected.draft.ingredients)&&selected.text){
-      setDraft(selected.draft);setText(String(selected.text));
-      setOriginal(String(selected.original||selected.draft.servings||4));
-      setTarget(String(selected.target||selected.draft.servings||4));
-      setSavedRecipeId(sessionStorage.getItem("ziiply-justiina-active-recipe-id-v1"));
-      setHydrated(true);return;
+    const saved=JSON.parse(sessionStorage.getItem(STORAGE)||"null");
+    if(saved?.draft&&Array.isArray(saved.draft.ingredients)){
+      setDraft(saved.draft);setText(String(saved.text||""));
+      setOriginal(String(saved.original||saved.draft.servings||""));setTarget(String(saved.target||saved.draft.servings||""));
     }
-    const stored=JSON.parse(localStorage.getItem("ziiply-desktop-vihkonen-recipes-v1")||"[]");
-    const recipes=Array.isArray(stored)?stored.filter((item:any)=>item&&typeof item.ingredients==="string"&&item.ingredients.trim()):[];
-    const suggestion=recipes.length?recipes[Math.floor(Math.random()*recipes.length)]:null;
-    const source=suggestion?[String(suggestion.title||"Oma resepti"),"4 annosta","Ainekset:",suggestion.ingredients,"Valmistus:",String(suggestion.instructions||"")].join("\n").replace(/\\n/g,"\n"):EXAMPLE;
-    const parsed=parseRecipeText(source);
-    const people=String(parsed.servings||4);
-    setDraft(parsed);setText(source);setOriginal(people);setTarget(people);
-    setSavedRecipeId(suggestion?String(suggestion.id||""):null);
-  }catch{
-    const parsed=parseRecipeText(EXAMPLE);
-    setDraft(parsed);setText(EXAMPLE);setOriginal(String(parsed.servings||4));setTarget(String(parsed.servings||4));
-  }setHydrated(true)},[]);
+  }catch{}setHydrated(true)},[]);
   const persist=(next:RecipeDraft|null=draft,source=text,base=original,people=target)=>{
     try{sessionStorage.setItem(STORAGE,JSON.stringify({draft:next,text:source,original:base,target:people}))}catch{}
   };
   useEffect(()=>{if(hydrated)persist()},[hydrated,draft,text,original,target]);
-  useEffect(()=>{const onSelect=(event:Event)=>{const detail=(event as CustomEvent<{id?:string;title?:string;ingredients?:string;instructions?:string}>).detail;if(!detail)return;const source=[detail.title||"Resepti","4 annosta","Ainekset:",detail.ingredients||"","Valmistus:",detail.instructions||""].join("\n");load(source);setSavedRecipeId(detail.id||null)};window.addEventListener("ziiply-vihkonen-recipe-select",onSelect);return()=>window.removeEventListener("ziiply-vihkonen-recipe-select",onSelect)},[]);
-  const clearRecipe=()=>{
-    if(!draft)return;
-    const empty={...draft,title:"",ingredients:[],instructions:""};
-    setDraft(empty);setText("");setSavedRecipeId(null);
-    setEditing(false);setImporting(false);setNotice("");
-    try{
-      sessionStorage.setItem(STORAGE,JSON.stringify({draft:empty,text:"",original,target}));
-      sessionStorage.removeItem("ziiply-justiina-active-ingredients-v1");
-    }catch{}
-    window.dispatchEvent(new Event("ziiply-clear-active-recipe"));
-  };
-  const saveToNotebook=(asNew:boolean)=>{if(!draft)return;const key="ziiply-desktop-vihkonen-recipes-v1";try{const existing=JSON.parse(localStorage.getItem(key)||"[]");const recipes=Array.isArray(existing)?existing:[];const id=!asNew&&savedRecipeId?savedRecipeId:String(Date.now());const recipe={id,title:draft.title,ingredients:draft.ingredients.map(item=>[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")).join("\n"),instructions:draft.instructions,createdAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify([recipe,...recipes.filter((item:{id:string})=>item.id!==id)]));setSavedRecipeId(id);setNotice(asNew?"Tallennettu uutena Vihkoseen.":"Resepti tallennettu Vihkoseen.");window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));setEditing(false)}catch{setNotice("Reseptin tallennus epäonnistui.")}};
   const load=(source:string)=>{
     const next=parseRecipeText(source);const people=next.servings?String(next.servings):"";
-    setSavedRecipeId(null);setText(source);setDraft(next);setOriginal(people);setTarget(people);setEditing(false);setImporting(false);
-    setNotice(next.ingredients.length?"":"Ainesrivejä ei löytynyt. Tarkista teksti tai lisää ainekset muokkaamalla.");
+    setText(source);setDraft(next);setOriginal(people);setTarget(people);setEditing(false);setImporting(false);
+    setNotice(next.ingredients.length?"":"Ainesrivejä ei löytynyt. Lisää Ainekset:-otsikko tai muokkaa aineksia.");
     persist(next,source,people,people);return next;
   };
   const startSearch=(recipe:RecipeDraft|null=draft,base=original,people=target)=>{
-    startDesktopRecipeDebug({title:recipe?.title||null,sourceText:text,draft:recipe,originalServings:base,targetServings:people});
-    if(!recipe||!recipe.ingredients.length||!onSearchIngredients)return;
-    const originalServings=Number(base)>0?Number(base):1;const targetServings=Number(people)>0?Number(people):originalServings;
+    if(!recipe||!onSearchIngredients)return;
+    const originalServings=Number(base)>0?Number(base):recipe.servings||1;
+    const targetServings=Number(people)>0?Number(people):originalServings;
     const items=scaleIngredients(recipe.ingredients,originalServings,targetServings).filter(item=>!item.atHome&&item.name.trim());
-    if(!items.length){setNotice("Ei haettavia aineksia. Kaikki ovat kotona tai lista on tyhjä.");return}
     const search=prepareRecipeSearch(items,recipe.instructions,recipe.title);
-    appendDesktopRecipeDebug("recipe_search_plan",{originalServings,targetServings,scaledIngredients:items,searchTerms:search.terms,searchItems:search.items});
-    if(!search.terms.length){setNotice("Reseptissä ei ole ostettavia aineksia.");return;}
+    if(!search.terms.length){setNotice("Reseptissä ei ole haettavia aineksia.");return;}
+    try{sessionStorage.removeItem(RECIPE_DEBUG_KEY);}catch{}
+    appendRecipeDebug("recipe-search-plan",{title:recipe.title,sourceText:text,originalServings,targetServings,items:search.items,terms:search.terms});
     persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items:search.items}))}catch{}
-    onSearchIngredients(search.terms,search.items);
+    onSearchIngredients(search.terms);
   };
-  const handleTargetServingsChange=(value:string)=>{
-    setTarget(value);
-    if(!draft)return;
-    const base=Number(original)>0?Number(original):Number(draft.servings||1);
-    const people=Number(value);
-    if(!Number.isFinite(people)||people<1||!Number.isFinite(base)||base<1)return;
-    const scaledItems=scaleIngredients(draft.ingredients,base,people).filter(item=>!item.atHome&&item.name.trim());
-    const prepared=prepareRecipeSearch(scaledItems,draft.instructions,draft.title);
-    try{window.dispatchEvent(new CustomEvent("ziiply-recipe-servings-changed",{detail:{title:draft.title,servings:people,items:prepared.items}}))}catch{}
-  };
-  const hasRecipe=Boolean(draft?.title.trim()||draft?.ingredients.length);
   const ingredients=draft?.ingredients||[];
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;
   const update=(id:string,patch:Partial<RecipeDraft["ingredients"][number]>)=>{
     if(!draft)return;setDraft({...draft,ingredients:ingredients.map(item=>{
-      if(item.id!==id)return item;const next={...item,...patch,...(patch.name!==undefined?{sourceLine:undefined,proteinRequirement:undefined}: {})};
+      if(item.id!==id)return item;const next={...item,...patch};
       return {...next,uncertain:!next.name.trim()||next.amount===null||!Number.isFinite(next.amount)||next.amount<=0||!next.unit?.trim()};
     })});
   };
-  return <><style>{`@keyframes recipe-switch-nudge{0%,58%,100%{transform:translateX(0)}72%{transform:translateX(-12px)}86%{transform:translateX(0)}}`}</style><div className="relative mt-4 w-full min-w-0 shrink-0">{hasRecipe&&<div className="absolute bottom-full left-2 mb-0.5 flex items-center gap-1.5 whitespace-nowrap text-[10px] leading-tight"><span className="font-semibold text-[#76684f]">{savedRecipeId?"Vihkosesta ehdotus":"Ehdotus"}</span><button type="button" onClick={clearRecipe} aria-label="Tyhjennä resepti" title="Poista valittu resepti hakukortista" className="font-bold text-[#923c2f]">Tyhjennä ×</button></div>}<section aria-label="Justiinan resepti" onClickCapture={dismissSwitchHint} onChangeCapture={dismissSwitchHint} className="w-full min-w-0 rounded-xl border border-[#d0aa58] bg-[#fffdf5] p-2 text-left text-sm text-[#27412a]">
-    {draft&&<div className="flex w-full min-w-0 flex-col gap-2">
-      {hasRecipe?<div className="flex min-w-0 items-center gap-1.5 rounded-lg border border-[#e3c98f] bg-[#fff5d9] px-1.5 py-2">
-        <label className="flex h-9 shrink-0 items-center gap-0.5 rounded-lg border-2 border-[#b89959] bg-[#fffdf5] px-1 text-[11px] font-bold text-[#174c3a]"><input aria-label="Reseptin henkilömäärä" type="number" min="1" value={target} onChange={event=>handleTargetServingsChange(event.target.value)} className="w-7 min-w-0 bg-transparent text-center text-[11px] font-bold outline-none"/>hlö</label>
-        <button type="button" onClick={()=>setDetailsOpen(true)} title="Avaa koko resepti" aria-label={`Avaa resepti ${draft.title}`} className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md px-0.5 py-2 text-[#174c3a] transition hover:bg-[#ffedbc]">
-          <strong className="min-w-0 whitespace-nowrap text-center font-sans text-[clamp(11px,1vw,15px)] font-extrabold leading-tight tracking-tight">{draft.title}</strong>
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-4 w-4 shrink-0 self-start" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-        </button>
-      </div>:<div className="min-h-[36px] px-1 py-2 text-[12px] text-[#333]">ei valittua reseptiä</div>}
-      <div className="grid w-full min-w-0 grid-cols-3 gap-1.5">
-        <button type="button" disabled={!onSearchIngredients} onClick={()=>startSearch()} className="flex h-9 min-w-0 items-center justify-center rounded-md border border-[#174c3a] bg-[#174c3a] px-2 text-[11px] font-bold text-white disabled:opacity-40">Hae</button>
-        <button type="button" aria-expanded={editing} onClick={()=>{setEditing(value=>!value);setImporting(false)}} className="flex h-9 min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[11px] font-bold text-[#27412a]">{editing?"Sulje":hasRecipe?"Muokkaa":"Luo resepti"}</button>
-        <button type="button" onClick={()=>{setEditing(false);window.dispatchEvent(new Event("ziiply-open-recipe-notebook"))}} className="flex h-9 min-w-0 items-center justify-center rounded-md border border-[#b89959] bg-[#f7eed8] px-1 text-[11px] font-bold text-[#27412a]">{hasRecipe?"Vaihda":"Lisää"}</button>
-      </div>
-    </div>}
-    {detailsOpen&&draft&&typeof document!=="undefined"&&createPortal(<div className="fixed inset-0 z-[9998] flex items-center justify-center bg-[#17352a]/40 p-6" onClick={()=>setDetailsOpen(false)}>
-      <section role="dialog" aria-modal="true" aria-label={`Resepti: ${draft.title}`} onClick={event=>event.stopPropagation()} className="flex max-h-[min(82vh,800px)] w-[min(760px,94vw)] flex-col overflow-hidden rounded-[24px] border-[3px] border-[#b89959] bg-[#fff9e8] text-[#27412a] shadow-[0_25px_80px_rgba(20,40,31,.35)]">
-        <header className="flex shrink-0 items-center justify-between gap-4 border-b border-[#d0aa58] bg-[#f8ebc8] px-6 py-4"><div><div className="text-xs font-black uppercase tracking-widest text-[#8a6c3c]">Vihkosen resepti · {target||original||4} hlö</div><h2 className="font-serif text-3xl font-black italic text-[#174c3a]">{draft.title}</h2></div><button type="button" onClick={()=>setDetailsOpen(false)} aria-label="Sulje resepti" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-[#8e6739] bg-[#fffdf5] text-2xl font-black">×</button></header>
-        <div className="min-h-0 overflow-y-auto p-6"><h3 className="mb-3 font-serif text-xl font-bold">Ainekset</h3><div className="grid gap-2 sm:grid-cols-2">{scaled.map((item,index)=><div key={`${item.id}-${index}`} className="rounded-lg border border-[#e0c99a] bg-white/70 px-3 py-2 text-sm">{[item.amount,item.unit,item.name].filter(value=>value!==null&&value!=="").join(" ")}{item.atHome&&<span className="ml-2 text-xs text-[#777]">(löytyy kotoa)</span>}</div>)}</div>{draft.instructions&&<><h3 className="mb-2 mt-6 font-serif text-xl font-bold">Valmistusohje</h3><p className="whitespace-pre-wrap text-sm leading-relaxed">{draft.instructions}</p></>}</div>
-        <footer className="flex shrink-0 justify-end gap-3 border-t border-[#d0aa58] bg-[#f8ebc8] px-6 py-4"><button type="button" onClick={()=>{setDetailsOpen(false);setEditing(true)}} className="rounded-lg border border-[#b89959] px-5 py-2 font-bold">Muokkaa</button><button type="button" onClick={()=>setDetailsOpen(false)} className="rounded-lg bg-[#174c3a] px-6 py-2 font-bold text-white">Sulje</button></footer>
-      </section>
-    </div>,document.body)}
-    {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
-    {hydrated && typeof document !== "undefined" && (importing||editing) && createPortal(<div className="fixed left-1/2 top-3 z-[9999] w-[min(520px,calc(100vw-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto -translate-x-1/2 rounded-2xl border-2 border-[#b89959] bg-[#fffdf5] p-3 text-[#27412a] shadow-2xl">
-      <div className="mb-2 flex items-center justify-between gap-2"><strong className="text-sm">{editing?"Muokkaa reseptiä":importing?"Vaihda resepti":"Valmistusohje"}</strong><button type="button" onClick={()=>{setEditing(false);setImporting(false)}} className="rounded-lg border border-[#b89959] px-3 py-1 font-bold">Sulje ×</button></div>
-    {importing&&<div className="space-y-2"><textarea aria-label="Reseptiteksti" rows={3} value={text} onChange={event=>setText(event.target.value)} placeholder="Liitä reseptin teksti" className="w-full rounded-lg border p-2"/><button type="button" onClick={()=>load(text)} className="rounded-lg border px-3 py-2 font-bold">Tuo resepti</button></div>}
-    {editing&&draft&&<div className="space-y-3 border-t border-[#d0aa58] pt-3 text-sm">
-      <div className="grid grid-cols-[minmax(0,1fr)_76px] items-end gap-3">
-        <label className="block min-w-0 text-xs font-semibold">Ruoan nimi<input value={draft.title} onChange={event=>setDraft({...draft,title:event.target.value})} className="mt-1 w-full rounded-lg border border-[#b89959] bg-white p-2 text-sm"/></label>
-        <label className="block text-xs font-semibold">Annoksia<input aria-label="Alkuperäinen annosmäärä" type="number" min="1" value={original} onChange={event=>setOriginal(event.target.value)} className="mt-1 w-full rounded-lg border border-[#b89959] bg-white p-2 text-sm"/></label>
-      </div>
-      <div>
-        <strong className="text-xs">Ainekset</strong>
-        <div className="mt-1 space-y-1">
-          {ingredients.map((item,index)=><div key={item.id} className="grid grid-cols-[minmax(0,1fr)_64px_44px_28px] items-center gap-1">
-            <input aria-label={"Aines "+(index+1)} placeholder="Aines" value={item.name} onChange={event=>update(item.id,{name:event.target.value})} className="min-w-0 rounded-md border border-[#d0c3a4] bg-white px-2 py-1.5 text-xs"/>
-            <input aria-label={"Määrä "+(index+1)} type="number" step="any" min="0" value={item.amount??""} onChange={event=>update(item.id,{amount:event.target.value===""?null:Number(event.target.value)})} className="min-w-0 rounded-md border border-[#d0c3a4] bg-white px-1 py-1.5 text-xs"/>
-            <input aria-label={"Yksikkö "+(index+1)} value={item.unit??""} onChange={event=>update(item.id,{unit:event.target.value})} className="min-w-0 rounded-md border border-[#d0c3a4] bg-white px-1 py-1.5 text-xs"/>
-            <button type="button" aria-label={"Poista aines "+(index+1)} title="Poista aines" onClick={()=>setDraft({...draft,ingredients:ingredients.filter(value=>value.id!==item.id)})} className="text-lg text-[#934b3a]">×</button>
-          </div>)}
+  return <section aria-label="Justiinan resepti" className={`w-full min-w-0 shrink-0 rounded-xl border p-2 text-left text-sm text-[#27412a] ${cameraOpen?"border-transparent bg-transparent":"border-[#d0aa58] bg-[#fff5d8]"}`}>
+    <div className={`rounded-xl bg-[#fff5d8] p-1 ${cameraOpen?"invisible":""}`}>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-stretch gap-2">
+        <button type="button" onClick={recordRecipe} aria-label={voiceRecording?"Äänitetään reseptiä":"Äänitä resepti"} className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src={voiceRecording?"/ui/voice/aanita-on.webp":"/ui/voice/aanita-off.webp"} alt="Äänitä" className="mx-auto h-[clamp(84px,25vw,120px)] w-full object-contain"/></button>
+        <div className="flex min-w-0 flex-col items-center justify-between gap-3 pb-1">
+          <strong className="whitespace-nowrap text-center font-serif text-[clamp(21px,6.2vw,36px)] leading-tight text-[#174c3a]">Reseptit</strong>
+          <button type="button" disabled={saving||readingImage} onClick={()=>{
+            if(importing&&text.trim()){setSaving(true);try{saveNotebook(text)}finally{setSaving(false)}}
+            else if(!importing)beginRecipe();
+            else textareaRef.current?.focus();
+          }} className="min-h-10 w-full rounded-lg bg-[#174c3a] px-1 py-2 text-[clamp(11px,3.2vw,15px)] font-bold text-white disabled:opacity-50">{importing&&text.trim()?"Tallenna":clipboardText.trim()?"Tuo resepti":"Luo resepti"}</button>
         </div>
-        <button type="button" onClick={()=>setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now()),name:"",amount:null,unit:null,uncertain:true,atHome:false}]})} className="mt-2 rounded-md border border-[#b89959] px-3 py-1 text-xs font-semibold">+ Lisää aines</button>
+        <button type="button" onClick={()=>{setCameraOpen(true);setCameraShot(false);setCameraReview(false);setCameraError("");setImagePreview("");setText("");setSavedId(null);stopCamera()}} aria-label="Filmaa resepti" className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/ui/scanner/scanner-idle.webp" alt="Filmaa" className="mx-auto h-[clamp(84px,25vw,120px)] w-full object-contain"/></button>
       </div>
-      <label className="block text-xs font-semibold">Valmistusohje<textarea aria-label="Valmistusohje" rows={3} value={draft.instructions} onChange={event=>setDraft({...draft,instructions:event.target.value})} className="mt-1 w-full rounded-lg border border-[#b89959] bg-white p-2 text-sm"/></label>
-      <div className="grid grid-cols-3 gap-2 text-xs font-bold">
-        <button type="button" onClick={()=>saveToNotebook(false)} className="rounded-lg bg-[#174c3a] px-1 py-2 text-white">Tallenna</button>
-        <button type="button" onClick={()=>saveToNotebook(true)} className="rounded-lg border border-[#b89959] px-1 py-2">Tallenna uutena</button>
-        <button type="button" onClick={()=>setEditing(false)} className="rounded-lg border border-[#b89959] px-1 py-2">Peruuta</button>
+      <div className="mt-3 flex justify-center"><input aria-label="Hae reseptiä omista" value={notebookFilter} onChange={event=>setNotebookFilter(event.target.value)} placeholder="Hae reseptiä omista..." className="min-w-0 w-[90%] rounded-lg border border-[#b99d62] bg-[#fffdf5] px-3 py-3 text-base"/></div>
+      {importing&&!cameraOpen?<div className="mt-2">
+        <textarea ref={textareaRef} aria-label="Reseptiteksti" rows={6} value={text} onChange={event=>{clipboardRequestRef.current++;setText(event.target.value)}} onPaste={()=>{clipboardRequestRef.current++}} placeholder="Liitä reseptin teksti tai kirjoita itse" className="min-h-[140px] w-full resize-y rounded-xl border-2 border-[#27412a] bg-[#fffdf5] p-3 text-base font-normal leading-relaxed text-[#27412a]"/>
+        <button type="button" onClick={()=>{clipboardRequestRef.current++;setText("");setImporting(false);setEditing(false);setDraft(null);setSavedId(null);setNotice("")}} className="mt-1 text-xs text-[#76684f] underline">Peruuta</button>
+      </div>:<div className="mt-3 min-h-[120px] max-h-[min(36dvh,340px)] space-y-2 overflow-y-auto overscroll-contain rounded-lg bg-[#fff9e9] p-1">
+        {notebook.filter(item=>[item.title,item.ingredients].join(" ").toLocaleLowerCase("fi").includes(notebookFilter.toLocaleLowerCase("fi"))).map(item=><div key={item.id} className="rounded-xl border border-[#b99d62] bg-[#fff5d8] p-2">
+          <div className="flex items-center gap-2"><button type="button" aria-expanded={expandedRecipe===item.id} aria-controls={expandedRecipe===item.id?"mobile-recipe-popup":undefined} className="min-w-0 flex-1 break-words text-left font-bold" onClick={event=>showRecipe(item.id,event.currentTarget)}>{item.title} {expandedRecipe===item.id?"▴":"▾"}</button><button type="button" onClick={()=>{clipboardRequestRef.current++;setText(recipeSource(item));setSavedId(item.id);setImporting(true);setEditing(false);setExpandedRecipe(null);setRecipePopup(null);setNotice("")}} className="shrink-0 rounded-full bg-[#174c3a] px-2 py-1 text-xs font-bold text-white">Muokkaa</button><button type="button" onClick={()=>{if(!window.confirm("Poistetaanko resepti?"))return;try{const next=notebook.filter(recipe=>recipe.id!==item.id);localStorage.setItem("ziiply-desktop-vihkonen-recipes-v1",JSON.stringify(next));setNotebook(next);setExpandedRecipe(null);setRecipePopup(null);window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"))}catch{setNotice("Reseptin poisto epäonnistui.")}}} className="shrink-0 rounded-full border border-[#923c2f] px-2 py-1 text-xs text-[#923c2f]">Poista</button></div>
+        </div>)}
+        {!notebook.length&&<p className="p-3 text-center text-xs font-normal text-[#76684f]">Ei vielä tallennettuja reseptejä.</p>}
+        {notebook.length>0&&!notebook.some(item=>[item.title,item.ingredients].join(" ").toLocaleLowerCase("fi").includes(notebookFilter.toLocaleLowerCase("fi")))&&<p className="p-3 text-center text-xs text-[#76684f]">Ei hakua vastaavia reseptejä.</p>}
+      </div>}
+    </div>
+    {hydrated&&expandedRecipe&&recipePopup&&typeof document!=="undefined"&&createPortal(<>
+      <div className="fixed inset-0 z-[210]" onClick={()=>{setExpandedRecipe(null);setRecipePopup(null)}}/>
+      <div id="mobile-recipe-popup" role="dialog" aria-label={notebook.find(item=>item.id===expandedRecipe)?.title||"Resepti"} style={recipePopup} className="fixed z-[211] overflow-y-auto overscroll-contain rounded-xl border-2 border-[#b99d62] bg-[#fffdf5] p-3 text-sm text-[#27412a] shadow-[0_14px_32px_rgba(20,40,31,.3)]">
+        {(()=>{const item=notebook.find(value=>value.id===expandedRecipe);if(!item)return null;return <><div className="mb-2 flex items-center justify-between gap-2"><strong className="font-serif text-lg">{item.title}</strong><button type="button" aria-label="Sulje resepti" onClick={()=>{setExpandedRecipe(null);setRecipePopup(null)}} className="rounded-full px-2 py-1 text-xl">×</button></div><div className="whitespace-pre-wrap font-normal">{recipeSource(item)}</div><button type="button" onClick={()=>{setText(recipeSource(item));setSavedId(item.id);setImporting(true);setExpandedRecipe(null);setRecipePopup(null)}} className="mt-3 rounded-lg bg-[#174c3a] px-3 py-2 font-bold text-white">Muokkaa reseptiä</button></>})()}
+      </div>
+    </>,document.body)}
+    {cameraOpen&&<div className="absolute inset-x-[-3px] bottom-[-3px] top-[var(--recipe-panel-header-height,82px)] z-[200] flex min-h-0 flex-col overflow-hidden rounded-b-[22px] rounded-t-none border-[4px] border-double border-[#b99d62] bg-[#14271e] p-3 text-[#fff7df] shadow-2xl">
+      <div className="flex h-full min-h-0 w-full flex-col">
+        <div className="mb-3 flex shrink-0 items-center justify-between"><h3 className="font-serif text-xl font-bold">Kuvaa resepti {cameraReview&&<span className="text-sm font-sans">Tarkasta / muokkaa</span>}</h3><button type="button" aria-label="Sulje kamera" onClick={closeCamera} className="rounded-xl border border-[#b99d62] px-3 py-2">×</button></div>
+        {!cameraReview&&<div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">{cameraShot?<img src={imagePreview} alt="Otettu reseptikuva" className="h-full w-full object-contain"/>:<><video ref={cameraVideoRef} autoPlay playsInline muted className="h-full w-full object-contain"/>{cameraCountdown!==null&&<div aria-live="polite" className="absolute inset-0 grid place-items-center bg-black/30 text-[72px] font-black text-white">{cameraCountdown||"●"}</div>}</>}</div>}
+        {cameraReview&&<textarea aria-label="Tarkasta reseptiteksti" value={text} onChange={event=>setText(event.target.value)} rows={9} className="min-h-0 w-full flex-1 resize-none rounded-xl bg-[#fffdf5] p-3 text-[#183b2a]"/>}
+        {cameraError&&<p className="mt-2 shrink-0 text-sm">{cameraError}</p>}
+        <div className="mt-3 flex shrink-0 flex-wrap justify-center gap-2">
+          {cameraShot?<><button type="button" disabled={readingImage} onClick={()=>void startCamera(true)} className="rounded-xl bg-[#e8d8a9] px-3 py-2 text-sm font-bold text-[#14271e] disabled:opacity-50">Ota uusi</button>
+          {!cameraReview&&<button type="button" disabled={readingImage} onClick={()=>void readRecipeImage()} className="rounded-xl border border-white px-3 py-2 text-sm font-bold disabled:opacity-50">{readingImage?"Luetaan…":"Lue resepti"}</button>}
+          <button type="button" onClick={closeCamera} className="rounded-xl border border-white px-3 py-2 text-sm font-bold">Peruuta</button>
+          {cameraReview&&<button type="button" disabled={!text.trim()} onClick={()=>saveNotebook(text)} className="rounded-xl bg-[#e8d8a9] px-3 py-2 text-sm font-bold text-[#14271e] disabled:opacity-50">Tallenna</button>}</>:<>
+          <button type="button" disabled={cameraCountdown!==null} onClick={()=>{if(cameraStreamRef.current)setCameraCountdown(5);else void startCamera(true)}} className="rounded-xl bg-[#e8d8a9] px-3 py-2 text-sm font-bold text-[#14271e] disabled:opacity-50">Ota kuva</button>
+          <button type="button" onClick={()=>{stopCamera();imageInputRef.current?.click()}} className="rounded-xl border border-white px-3 py-2 text-sm font-bold">Liitä kuva</button>
+          <button type="button" onClick={closeCamera} className="rounded-xl border border-white px-3 py-2 text-sm font-bold">Peruuta</button></>}
+        </div>
       </div>
     </div>}
-    </div>, document.body)}
-  </section></div></>;
+    <input ref={imageInputRef} type="file" accept="image/*" aria-label="Liitä reseptikuva" className="sr-only" onChange={event=>{prepareRecipeImage(event.target.files?.[0]);event.target.value=""}}/>
+    {notice&&<p role="status" className="mt-2 text-xs font-bold">{notice}</p>}
+
+    {instructionsOpen&&draft&&<p className="mt-3 whitespace-pre-wrap text-xs">{draft.instructions||"Valmistusohjetta ei ole vielä annettu."}</p>}
+    {editing&&draft&&<div className="mt-3 max-h-[35dvh] space-y-2 overflow-y-auto overscroll-contain border-t pt-2">
+      <label className="block text-xs">Reseptin nimi<input value={draft.title} onChange={event=>setDraft({...draft,title:event.target.value})} className="w-full rounded border p-1"/></label>
+      <label className="flex items-center gap-2 text-xs">Alkuperäinen annosmäärä<input aria-label="Alkuperäinen annosmäärä" type="number" min="1" value={original} onChange={event=>setOriginal(event.target.value)} className="w-16 rounded border p-1"/></label>
+      {ingredients.map((item,index)=><div key={item.id} className="rounded-lg border p-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_52px_44px] gap-1"><input aria-label={"Aines "+(index+1)} value={item.name} onChange={event=>update(item.id,{name:event.target.value})} className="min-w-0 rounded border p-1"/><input aria-label={"Määrä "+(index+1)} type="number" step="any" min="0" value={item.amount??""} onChange={event=>update(item.id,{amount:event.target.value===""?null:Number(event.target.value)})} className="min-w-0 rounded border p-1"/><input aria-label={"Yksikkö "+(index+1)} value={item.unit??""} onChange={event=>update(item.id,{unit:event.target.value})} className="min-w-0 rounded border p-1"/></div>
+        <div className="mt-1 flex items-center justify-between text-xs"><label><input type="checkbox" checked={item.atHome} onChange={event=>update(item.id,{atHome:event.target.checked})}/> On jo kotona</label><button type="button" onClick={()=>setDraft({...draft,ingredients:ingredients.filter(value=>value.id!==item.id)})} className="underline">Poista</button></div>
+      </div>)}
+      <button type="button" onClick={()=>setDraft({...draft,ingredients:[...ingredients,{id:String(Date.now()),name:"",amount:null,unit:null,uncertain:true,atHome:false}]})} className="rounded border px-2 py-1 text-xs">+ Lisää aines</button>
+      <textarea aria-label="Valmistusohje" rows={3} value={draft.instructions} onChange={event=>setDraft({...draft,instructions:event.target.value})} className="w-full rounded border p-2"/>
+    </div>}
+  </section>;
 }
