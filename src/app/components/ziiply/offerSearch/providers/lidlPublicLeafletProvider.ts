@@ -18,6 +18,7 @@ export type LidlPublicOffer = {
   priceBasis: "unit" | "per-kg" | "multi-buy-total";
   packageSize?: string;
   packageText?: string;
+  comparisonPriceText?: string;
   multiBuyQuantity?: number;
   multiBuyTotalPrice?: number;
   requiresLidlPlus: boolean;
@@ -149,7 +150,8 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     if (!name || price == null || !validFrom || !validUntil) continue;
     if (publicationState({ validFrom, validUntil }, date) === "invalid") continue;
     const baseText = String(product.price?.basePrice?.text || "");
-    const packageText = baseText.match(/^([^|]+)\|/)?.[1]?.trim() || "";
+    const packageText = [product.packageSize, product.packSize, product.keyfacts?.packageSize, product.keyfacts?.quantity, name, baseText.split("|")[0]].map(value => { const text=String(value ?? ""); if (/(?:€|eur)\s*\/|\b(?:kg|l)\s*=\s*\d/i.test(text)) return ""; return text.match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || ""; }).find(Boolean) || "";
+    const comparisonPriceText = baseText.match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "";
     const fullName = packageText && !normalize(name).includes(normalize(packageText)) ? `${name} ${packageText}` : name;
     const discountText = String(product.price?.discount?.discountText || "");
     const limitedBatch = /erä/i.test(discountText);
@@ -171,7 +173,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
       id: `lidl-fi-grid-${product.productId || product.itemId || normalize(fullName)}-${validFrom}`,
       source: "lidl-fi-public", chain: "Lidl", title: fullName, name: fullName, productName: fullName, brandName,
       price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €${quantity >= 2 ? ` / ${quantity} kpl` : ""}`, originalPrice: money(product.price?.oldPrice), normalPrice: money(product.price?.oldPrice),
-      priceBasis, packageSize: packageText, packageText, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
+      priceBasis, packageSize: packageText, packageText, comparisonPriceText, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
       requiresLidlPlus: false, eligibility: limitedBatch ? "limited-batch" : "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
@@ -206,6 +208,8 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       const rawWindow = textIndex >= 0 ? normalize(pageText).slice(Math.max(0, textIndex - 100), textIndex + needle.length + 500) : normalize([product.description, offer.description].filter(Boolean).join(" "));
       const requiresLidlPlus = /lidl plus|lidlplus/.test(rawWindow);
       const limitedBatch = /\bera\b|erä/.test(rawWindow);
+      const packageSize = [product.size, product.weight, product.description, name].map(value => String(value ?? "").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "").find(Boolean) || "";
+      const comparisonPriceText = [offer.description, product.description].map(value => String(value ?? "").match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "").find(Boolean) || "";
       const quantity = Number(name.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
       const weighted = /(?:€|eur)\s*\/\s*kg|hinta\s*\/\s*kg|\birto\b/i.test([product.description, offer.description, rawWindow].join(" "));
       const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
@@ -224,6 +228,7 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
         title: name, name, productName: name, brandName,
         price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €${quantity >= 2 ? ` / ${quantity} kpl` : ""}`,
         originalPrice: original, normalPrice: original,
+        packageSize, packageText: packageSize, comparisonPriceText,
         priceBasis, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
         requiresLidlPlus, eligibility: requiresLidlPlus ? "lidl-plus" : limitedBatch ? "limited-batch" : "open",
         validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
@@ -421,7 +426,19 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
     if (publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date) !== "current") continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
-    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+    if (!old) byKey.set(key, row);
+    else {
+      // Preserve complementary details when the same offer is discovered on
+      // category and product pages; neither source is always complete.
+      const preferred = row.imageUrl && !old.imageUrl ? row : old;
+      const other = preferred === row ? old : row;
+      byKey.set(key, {
+        ...preferred,
+        packageSize: preferred.packageSize || other.packageSize || "",
+        packageText: preferred.packageText || other.packageText || "",
+        comparisonPriceText: preferred.comparisonPriceText || other.comparisonPriceText || "",
+      });
+    }
   }
 
   return {

@@ -103,7 +103,7 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchNotice, setWatchNotice] = React.useState("");
   const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string;packageSize?:string;unit?:string;imageUrl?:string;validUntil?:string;comparisonPrice?:string;priceBasis?:string}>>(()=>{
     if(typeof window==="undefined")return [];
-    try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");return Array.isArray(snapshot?.offers)?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(o.validUntil+"T23:59:59")>=Date.now()):[];}catch{return [];}
+    try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");const watches=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");const key=Array.isArray(watches)?watches.map((q:unknown)=>String(q).trim().toLocaleLowerCase("fi")).filter(Boolean).join("|"):"";return snapshot?.key===key&&Array.isArray(snapshot.offers)?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(o.validUntil+"T23:59:59")>=Date.now()):[];}catch{return [];}
   });
   const [watchLoading,setWatchLoading]=React.useState(false);
   const [watchChecked,setWatchChecked]=React.useState(false);
@@ -140,8 +140,9 @@ export default function ZiiplyMobileAssistantPanel({
           comparisonPrice:String(offer.comparisonPriceText||offer.unitPrice||offer.comparisonPrice||""),
           priceBasis:String(offer.priceBasis||"")
         }));
-        setWatchOffers(matched);setWatchChecked(true);
-        if(!data.partial){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+        // Debug must obey the same snapshot rules as automatic refresh.
+        if(!data.partial&&matched.length>0&&watchKey){setWatchOffers(matched);setWatchChecked(true);}
+        if(!data.partial&&matched.length>0&&watchKey){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }
       setWatchRawDebug("Tarjousvahdin oikea hakureitti | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | osumia="+offers.length+" | hakusanakohtaiset="+JSON.stringify(counts)+" | tarkistettu="+String(diagnostic.inspected??"?")+" | lähteet="+JSON.stringify(diagnostic.sources||[])+" | lähikaupat="+JSON.stringify(diagnostic.nearby||[])+" | virhe="+String(data?.error||"ei")+" | esimerkki="+JSON.stringify(offers.slice(0,4)).slice(0,1200));
     }catch(error){setWatchRawDebug("Tarjousvahdin DEBUG-virhe: "+String(error));}
@@ -161,7 +162,8 @@ export default function ZiiplyMobileAssistantPanel({
         if(typeof cached.debug==="string")setWatchDebug(cached.debug);
       }
     }catch{}
-    if(!watchKey){return;}
+    try { const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null"); if(snapshot?.key!==watchKey){setWatchOffers([]);setWatchChecked(false);} } catch {setWatchOffers([]);setWatchChecked(false);}
+    if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
     let cancelled=false;
     let running=false;
     const scan=async()=>{
@@ -196,19 +198,19 @@ export default function ZiiplyMobileAssistantPanel({
         if(data.partial){
           // Background partial scans are diagnostic only; do not alarm the user.
         }
-        if(!data.partial){setWatchOffers(matched);setWatchChecked(true);}
+        if(!data.partial&&matched.length>0){setWatchOffers(matched);setWatchChecked(true);}
         else {
           // A partial scan must never replace a previously confirmed snapshot.
           try {
             const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
             if(previous?.key===watchKey&&Array.isArray(previous.offers)){
-              setWatchOffers(previous.offers);setWatchChecked(true);
+              setWatchOffers(previous.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));setWatchChecked(true);
             } else if(!watchChecked && matched.length>0){
               setWatchOffers(matched);setWatchChecked(true);
             }
           }catch{}
         }
-        if(!data.partial){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+        if(!data.partial&&matched.length>0){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
         // Automatic watcher refresh failures remain in diagnostics; retain the last successful offers.
