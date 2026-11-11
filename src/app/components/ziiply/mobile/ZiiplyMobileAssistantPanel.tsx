@@ -103,7 +103,7 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchNotice, setWatchNotice] = React.useState("");
   const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string;packageSize?:string;unit?:string;imageUrl?:string;validUntil?:string;comparisonPrice?:string;priceBasis?:string}>>(()=>{
     if(typeof window==="undefined")return [];
-    try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");const watches=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");const key=Array.isArray(watches)?watches.map((q:unknown)=>String(q).trim().toLocaleLowerCase("fi")).filter(Boolean).sort().join("|"):"";return Array.isArray(snapshot?.offers)&&key?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(o.validUntil+"T23:59:59")>=Date.now()):[];}catch{return [];}
+    try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");const watches=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");const key=Array.isArray(watches)?watches.map((q:unknown)=>String(q).trim().toLocaleLowerCase("fi")).filter(Boolean).sort().join("|"):"";return Array.isArray(snapshot?.offers)&&key?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil).includes("T")?String(o.validUntil):String(o.validUntil)+"T23:59:59")>=Date.now()):[];}catch{return [];}
   });
   const [watchLoading,setWatchLoading]=React.useState(false);
   const [watchChecked,setWatchChecked]=React.useState(false);
@@ -156,7 +156,7 @@ export default function ZiiplyMobileAssistantPanel({
       if(Array.isArray(cached?.offers)&&watchKey){
         // Show recent confirmed offers immediately while a fresh scan runs.
         if(Number.isFinite(cached.at)){
-          setWatchOffers(cached.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));
+          setWatchOffers(cached.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil).includes("T")?String(o.validUntil):String(o.validUntil)+"T23:59:59")>=Date.now()));
           setWatchChecked(true);
         }
         if(typeof cached.debug==="string")setWatchDebug(cached.debug);
@@ -205,7 +205,7 @@ export default function ZiiplyMobileAssistantPanel({
           try {
             const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
             if(Array.isArray(previous?.offers)&&watchKey){
-              setWatchOffers(previous.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));setWatchChecked(true);
+              setWatchOffers(previous.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil).includes("T")?String(o.validUntil):String(o.validUntil)+"T23:59:59")>=Date.now()));setWatchChecked(true);
             } else if(!watchChecked && matched.length>0){
               setWatchOffers(matched);setWatchChecked(true);
             }
