@@ -1358,6 +1358,11 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     comparisonPriceText: item.unitPriceText,
     unitPrice: item.unitPriceText,
     comparisonUnit: item.comparisonUnit,
+    // Keep the original publisher's pack measurement across the desktop
+    // normalization layer and the mobile offer-watch API.
+    packageSize: String(source.packageSize || source.packSize || source.packageText ||
+      source.__sourceOfferSearchResult?.packageSize ||
+      source.__sourceOfferSearchResult?.packageText || "").trim(),
     // Never render a category label as a price promotion. For S-group rows,
     // recover explicit multi-buy wording from the publisher evidence when the
     // mapped benefitText was overwritten by a category in a parallel feed.
