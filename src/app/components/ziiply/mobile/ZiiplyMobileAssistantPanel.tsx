@@ -199,7 +199,7 @@ export default function ZiiplyMobileAssistantPanel({
         if(data.partial){
           // Background partial scans are diagnostic only; do not alarm the user.
         }
-        if(!data.partial&&matched.length>0){setWatchOffers(matched);setWatchChecked(true);}
+        if(!data.partial){setWatchOffers(matched);setWatchChecked(true);}
         else {
           // A partial scan must never replace a previously confirmed snapshot.
           try {
@@ -211,7 +211,7 @@ export default function ZiiplyMobileAssistantPanel({
             }
           }catch{}
         }
-        if(!data.partial&&matched.length>0){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+        if(!data.partial){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
         // Automatic watcher refresh failures remain in diagnostics; retain the last successful offers.
