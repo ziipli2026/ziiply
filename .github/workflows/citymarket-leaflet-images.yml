@@ -36,7 +36,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          # Scheduled runs use the default branch; manual test-branch runs use their own ref.
+          ref: ${{ github.ref_name }}
       - name: Helsinki publication clock
         id: clock
         env:
@@ -168,7 +169,7 @@ jobs:
       - name: Publish verified image data and recheck the publication
         env:
           GH_TOKEN: ${{ github.token }}
-        if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success'
+        if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success' && github.ref == 'refs/heads/main'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
