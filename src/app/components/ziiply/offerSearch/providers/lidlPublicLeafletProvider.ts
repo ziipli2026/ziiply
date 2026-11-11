@@ -18,6 +18,7 @@ export type LidlPublicOffer = {
   priceBasis: "unit" | "per-kg" | "multi-buy-total";
   packageSize?: string;
   packageText?: string;
+  comparisonPriceText?: string;
   multiBuyQuantity?: number;
   multiBuyTotalPrice?: number;
   requiresLidlPlus: boolean;
@@ -150,6 +151,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     if (publicationState({ validFrom, validUntil }, date) === "invalid") continue;
     const baseText = String(product.price?.basePrice?.text || "");
     const packageText = [baseText.split("|")[0], product.packageSize, product.packSize, product.keyfacts?.packageSize, product.keyfacts?.quantity, name].map(value => String(value ?? "").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "").find(Boolean) || "";
+    const comparisonPriceText = baseText.match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "";
     const fullName = packageText && !normalize(name).includes(normalize(packageText)) ? `${name} ${packageText}` : name;
     const discountText = String(product.price?.discount?.discountText || "");
     const limitedBatch = /erä/i.test(discountText);
@@ -171,7 +173,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
       id: `lidl-fi-grid-${product.productId || product.itemId || normalize(fullName)}-${validFrom}`,
       source: "lidl-fi-public", chain: "Lidl", title: fullName, name: fullName, productName: fullName, brandName,
       price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €${quantity >= 2 ? ` / ${quantity} kpl` : ""}`, originalPrice: money(product.price?.oldPrice), normalPrice: money(product.price?.oldPrice),
-      priceBasis, packageSize: packageText, packageText, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
+      priceBasis, packageSize: packageText, packageText, comparisonPriceText, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
       requiresLidlPlus: false, eligibility: limitedBatch ? "limited-batch" : "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
