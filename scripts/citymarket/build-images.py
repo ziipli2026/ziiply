@@ -375,6 +375,15 @@ def build(folder,manifest_path,public_folder,review_path):
     preview.save(str(folder/filename))
     item['fallbackRenderedPreview']=filename
     item['fallbackRenderedClip']=[round(v,2) for v in clip]
+    # The audit report is a separate dictionary from the unresolved row.
+    # Attach the preview metadata to its matching diagnostic entry, otherwise
+    # the rendered fallback cannot be discovered by automated reviewers.
+    diagnostic=next((entry for entry in report if entry.get('id')==item['id']
+                     and entry.get('diagnosticReason')),None)
+    if diagnostic is not None:
+     diagnostic['fallbackRenderedPreview']=filename
+     diagnostic['fallbackRenderedClip']=item['fallbackRenderedClip']
+     diagnostic['fallbackStatus']='review-required-not-published'
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
    print(f'::warning::Citymarket PDF page {number+1}: {len(unresolved)} unresolved images of {len(rows)} offers')
