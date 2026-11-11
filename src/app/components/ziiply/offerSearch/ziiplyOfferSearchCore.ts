@@ -1355,8 +1355,8 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     originalPrice: item.normalPrice,
     ean: item.ean,
     comparisonPrice: item.comparisonPrice,
-    comparisonPriceText: item.unitPriceText,
-    unitPrice: item.unitPriceText,
+    comparisonPriceText: item.unitPriceText || source.comparisonPriceText || source.__sourceOfferSearchResult?.comparisonPriceText || "",
+    unitPrice: item.unitPriceText || source.comparisonPriceText || source.__sourceOfferSearchResult?.comparisonPriceText || "",
     comparisonUnit: item.comparisonUnit,
     // Keep the original publisher's pack measurement across the desktop
     // normalization layer and the mobile offer-watch API.
