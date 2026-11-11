@@ -29,8 +29,10 @@ permissions:
   contents: write
   actions: write
 concurrency:
-  group: citymarket-publisher-images
-  cancel-in-progress: false
+  # Isolate test-branch audits from production publication runs.
+  group: citymarket-publisher-images-${{ github.ref_name }}
+  # Only replace stale test-branch audits; never cancel production publication.
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
 jobs:
   extract:
     runs-on: ubuntu-latest
