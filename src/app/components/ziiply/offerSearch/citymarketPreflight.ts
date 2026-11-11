@@ -95,7 +95,8 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
     quality.total === input.parsed.offers && quality.total > 0 &&
     quality.missing_names === 0 && quality.suspicious_names === 0 &&
     quality.missing_prices === 0 && quality.unverified_prices === 0);
-  const awaitingImages = Boolean(!imageDeadlineReached && parserReady && quality && quality.missing_images > 0);
+  const awaitingImages = Boolean(!imageDeadlineReached && parserReady && quality &&
+    quality.missing_images > 0 && quality.missing_categories === 0);
   const failed = !input.parsed || errors.length > 0 || !quality || quality.total === 0 ||
     quality.total !== input.parsed.offers || quality.missing_names > 0 ||
     quality.suspicious_names > 0 || quality.missing_prices > 0 ||
