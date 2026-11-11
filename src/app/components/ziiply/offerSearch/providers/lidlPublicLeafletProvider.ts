@@ -16,6 +16,8 @@ export type LidlPublicOffer = {
   originalPrice: number | null;
   normalPrice: number | null;
   priceBasis: "unit" | "per-kg" | "multi-buy-total";
+  packageSize?: string;
+  packageText?: string;
   multiBuyQuantity?: number;
   multiBuyTotalPrice?: number;
   requiresLidlPlus: boolean;
