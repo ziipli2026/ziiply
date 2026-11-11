@@ -149,7 +149,18 @@ export function recoverWrappedPercentageCards(rawBoxes, page, existingRows=[]){
       if(!next)break;block.push(next);last=next;
     }
     for(const l of block)consumed.add(l);
-    const title=block.map(l=>l.words.map(b=>b.text).join(' ')).join(' ').replace(/- TUOTTEET/g,'TUOTTEET');
+    let title=block.map(l=>l.words.map(b=>b.text).join(' ')).join(' ').replace(/- TUOTTEET/g,'TUOTTEET');
+    // A detached suffix such as "-TUOTTEET" must not become a nameless
+    // publisher offer. Recover its heading only from the preceding printed
+    // line in the same column and exactly the same font-size layer.
+    if(/^-[A-ZÅÄÖ]{4,}$/.test(title)){
+      const preceders=lines.filter(l=>l!==start&&
+        Math.abs(l.left-start.left)<.025&&
+        start.top-l.top>.005&&start.top-l.top<.02&&
+        Math.abs(l.height-start.height)<.001&&
+        l.words.length<=5&&l.words.every(w=>/^[A-ZÅÄÖ][A-ZÅÄÖ-]*$/.test(w.text)));
+      if(preceders.length===1)title=preceders[0].words.map(w=>w.text).join(' ')+' '+title;
+    }
     if(!/IHONHOITO|HIUSTENHOITO|HIUSTENMUOTOILU|ITSERUSKETTAVAT|PUUTERIT|KULMATUOTTEET|MEIKIT|SUOJAPAPERIT|LAUTASLIINAT|(?:^|[ -])TUOTTEET$/.test(title))continue;
     if(existingRows.some(r=>r.title===title))continue;
     const badges=unique.filter(b=>/^[-−–]\d{1,2}%$/.test(b.text)&&b.height>=.05&&
@@ -165,6 +176,12 @@ export function recoverWrappedPercentageCards(rawBoxes, page, existingRows=[]){
       l.top>last.top&&l.top<badges[0].top))continue;
     const percent=Number(badges[0].text.replace(/[^\d]/g,''));
     if(!(percent>0&&percent<100))continue;
+    // Do not create a second percentage offer from the last line of an
+    // existing multiline offer with the same publisher-printed discount.
+    const canonical=t=>String(t||'').normalize('NFKC').replace(/\\s+/g,' ').trim().toUpperCase();
+    if(existingRows.some(row=>row.page===page&&
+      Number(row.percentageOffer?.percent)===percent&&
+      canonical(row.title).endsWith(' '+canonical(title))))continue;
     result.push({page,title,package:null,unitPrice:null,normal:null,spatialResolved:null,
       percentageOffer:{percent,source:'wrapped-column-printed-percentage',confidence:'high'},
       debugCardAnchor:{...start,text:title},debugNearbyBoxes:unique.filter(b=>
