@@ -152,7 +152,7 @@ export default function ZiiplyMobileAssistantPanel({
     // Restore the latest successful scan when this panel is remounted.
     try {
       const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-      if(Array.isArray(cached?.offers)){
+      if(cached?.key===watchKey&&Array.isArray(cached.offers)){
         // Show recent confirmed offers immediately while a fresh scan runs.
         if(Number.isFinite(cached.at)){
           setWatchOffers(cached.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));
@@ -161,7 +161,8 @@ export default function ZiiplyMobileAssistantPanel({
         if(typeof cached.debug==="string")setWatchDebug(cached.debug);
       }
     }catch{}
-    if(!watchKey){return;}
+    try { const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null"); if(snapshot?.key!==watchKey){setWatchOffers([]);setWatchChecked(false);} } catch {setWatchOffers([]);setWatchChecked(false);}
+    if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
     let cancelled=false;
     let running=false;
     const scan=async()=>{
@@ -201,7 +202,7 @@ export default function ZiiplyMobileAssistantPanel({
           // A partial scan must never replace a previously confirmed snapshot.
           try {
             const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-            if(Array.isArray(previous?.offers)){
+            if(previous?.key===watchKey&&Array.isArray(previous.offers)){
               setWatchOffers(previous.offers);setWatchChecked(true);
             } else if(!watchChecked && matched.length>0){
               setWatchOffers(matched);setWatchChecked(true);
@@ -220,7 +221,7 @@ export default function ZiiplyMobileAssistantPanel({
     // Switching between cards remounts this panel. A recent successful
     // snapshot remains visible; do not start another network search on remount.
     let lastSuccessful=0;
-    try{const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");if(Array.isArray(cached?.offers))lastSuccessful=Number(cached.at)||0;}catch{}
+    try{const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");if(cached?.key===watchKey&&Array.isArray(cached.offers))lastSuccessful=Number(cached.at)||0;}catch{}
     const initial=window.setTimeout(()=>{if(!lastSuccessful||Date.now()-lastSuccessful>=60*60*1000||watchRefresh>0)void scan();},200);
     const interval=window.setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=60*60*1000)void scan();},60*60*1000);
     const resume=()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=5*60*1000)void scan();};
