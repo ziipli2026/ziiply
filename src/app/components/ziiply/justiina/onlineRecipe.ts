@@ -1,5 +1,23 @@
 import { parseRecipeIngredient, prepareRecipeSearch, classifyRecipeIngredient, type RecipeIngredient } from "./recipeCore";
 
+/** Bound each provider request, including body reading, without losing parent cancellation. */
+export async function fetchOnlineRecipeJson(url:string,signal:AbortSignal,timeoutMs=15000):Promise<any>{
+ const controller=new AbortController();
+ let timer:ReturnType<typeof setTimeout>|undefined;
+ let onAbort:()=>void=()=>{};
+ try{
+  return await Promise.race([
+   (async()=>{const response=await fetch(url,{signal:controller.signal});if(!response.ok)throw new Error("Reseptipalvelu HTTP "+response.status);const data=await response.json();if(data.error)throw new Error(data.error.info||"Reseptipalvelun virhe");return data;})(),
+   new Promise<never>((_,reject)=>{
+    onAbort=()=>{controller.abort();reject(new Error("Reseptihaku keskeytettiin"));};
+    signal.addEventListener("abort",onAbort,{once:true});
+    if(signal.aborted){onAbort();return;}
+    timer=setTimeout(()=>{controller.abort();reject(new Error("Reseptipalvelun aikaraja ylittyi"));},timeoutMs);
+   }),
+  ]);
+ }finally{if(timer)clearTimeout(timer);signal.removeEventListener("abort",onAbort);}
+}
+
 /** Keep the displayed ingredient and the item sent to Justiina on the same parser. */
 export function onlineRecipeIngredients(content:string): RecipeIngredient[] {
   const items:RecipeIngredient[]=[];
@@ -60,8 +78,11 @@ export function onlineRecipeTitleMatches(title:string,query:string):boolean {
 
 /** Use the same plan as the editor, including protein requirements and tap-water exclusion. */
 export function onlineRecipeSearchPlan(content:string,title:string){
- const method=content.split(/\n(?:Valmistus|Valmistaminen|Ohje|Valmistusohje)\s*:?\s*\n/i);
- return prepareRecipeSearch(onlineRecipeIngredients(content),method.length>1?method.slice(1).join("\n"):"",title);
+ // Wikikirjasto may split a compound ingredient at a rendered line break.
+ const normalizedContent=content.replace(/\bmusta\s*-\s*(?:\n\s*)?pippur(?:i|ia|in)\b/gi,"mustapippuri");
+ const method=normalizedContent.split(/\n(?:Valmistus|Valmistaminen|Ohje|Valmistusohje)\s*:?\s*\n/i);
+ const ingredients=onlineRecipeIngredients(normalizedContent).map(item=>/^(?:musta-?|mustapippur(?:i|ia|in))$/i.test(item.name.trim())?{...item,name:"mustapippuri"}:item);
+ return prepareRecipeSearch(ingredients,method.length>1?method.slice(1).join("\n"):"",title);
 }
 
 /** Query changes must not leave a prior dish visible during debounce/network work. */
