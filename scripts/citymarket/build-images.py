@@ -354,6 +354,27 @@ def build(folder,manifest_path,public_folder,review_path):
                   'nearestEligibleDistance':nearest_distance,'secondEligibleDistance':next_distance,'nearestDistanceGap':nearest_gap,
                   'titleWords':title_words,'closestCandidateOCRWords':closest_label_words,'candidateOCREvidence':candidate_ocr_evidence,'anchor':anchor})
   if unresolved:
+   # Independent fallback: render the actual PDF page around each unresolved
+   # offer. Unlike embedded-image extraction this also captures vector art,
+   # masks and images split into multiple PDF objects. These previews are
+   # evidence for a second OCR/layout pass, NEVER automatically published as
+   # a product image without independent ownership verification.
+   for item in unresolved:
+    anchor=item.get('anchor')
+    if not anchor:continue
+    center_x=(anchor['left']+anchor['width']/2)*page.rect.width
+    center_y=(anchor['top']+anchor['height']/2)*page.rect.height
+    half_w=min(page.rect.width*.19,155)
+    half_h=min(page.rect.height*.16,145)
+    clip=fitz.Rect(max(0,center_x-half_w),max(0,center_y-half_h),
+                   min(page.rect.width,center_x+half_w),min(page.rect.height,center_y+half_h))
+    if clip.is_empty:continue
+    preview=page.get_pixmap(matrix=fitz.Matrix(2,2),clip=clip,alpha=False)
+    fragment=hashlib.sha256(item['id'].encode()).hexdigest()[:12]
+    filename=f'fallback-render-page-{number+1}-{fragment}.png'
+    preview.save(str(folder/filename))
+    item['fallbackRenderedPreview']=filename
+    item['fallbackRenderedClip']=[round(v,2) for v in clip]
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
    print(f'::warning::Citymarket PDF page {number+1}: {len(unresolved)} unresolved images of {len(rows)} offers')
