@@ -93,7 +93,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
   const imageDeadlineReached = helsinkiHour >= 23;
   const parserReady = Boolean(input.parsed && errors.length === 0 && quality &&
     quality.total === input.parsed.offers && quality.total > 0 &&
-    quality.missing_names === 0 && quality.suspicious_names === 0 &&
+    quality.missing_names === 0 && (quality.suspicious_names ?? 0) === 0 &&
     quality.missing_prices === 0 && quality.unverified_prices === 0);
   const awaitingImages = Boolean(!imageDeadlineReached && parserReady && quality &&
     quality.missing_images > 0 && quality.missing_categories === 0);
