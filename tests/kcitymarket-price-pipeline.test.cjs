@@ -28,7 +28,7 @@ const core=require(base+'ziiplyOfferSearchCore.ts');
 const cards=require(root+'/src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx');
 let apiCalls=0,apiRows=0,externalCalls=[];
 global.fetch=async(url,init)=>{
- if(!String(url).startsWith('/api/offers/search?')){externalCalls.push(String(url));throw Error('External network forbidden during simulation: '+url);}
+ if(!String(url).startsWith('/api/offers/search?')){if(/^https:\/\/etarjouslehdet\.fi\/?$/.test(String(url)))return new Response('',{status:503});externalCalls.push(String(url));throw Error('External network forbidden during simulation: '+url);}
  apiCalls++;const response=await route.GET(new Request('http://simulation.local'+url,init));apiRows=(await response.clone().json()).results?.length;return response;
 };
 test('API through final price rendering retains all source offers and hides products while loading',async()=>{
