@@ -1,5 +1,5 @@
 // Share one offer-watcher request across desktop consumers, as on mobile.
-type WatchResponse={ok?:boolean;partial?:boolean;results?:unknown[];error?:string;diagnostic?:unknown};
+type WatchResponse={ok?:boolean;partial?:boolean;results?:unknown[];error?:string;diagnostic?:{publications?:number;inspected?:number;sources?:unknown[];nearby?:unknown[]}};
 const pending=new Map<string,Promise<{response:Response;data:WatchResponse}>>();
 export function fetchSharedGostaWatch(url:string):Promise<{response:Response;data:WatchResponse}>{
  const existing=pending.get(url);
