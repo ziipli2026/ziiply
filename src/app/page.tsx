@@ -23727,6 +23727,47 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   onChangeChain={(chain, enabled) => setSelectedChains(current => ({...current, [chain]: enabled}))}
                   locationLabel={activeArea.label || locationInput}
                   onOpenStoreSettings={() => { setActiveAssistant(null); setShopsPanelOpen(true); }}
+                  onAddWatchOfferToCart={(offer) => {
+                    const name = String(offer.name || "").trim();
+                    const price = Number(offer.price);
+                    if (!name || !Number.isFinite(price) || price <= 0) return false;
+                    const current = cartRefV124.current;
+                    const storeName = String(offer.storeName || "").trim();
+                    const identity = name.toLocaleLowerCase("fi") + "|" + storeName.toLocaleLowerCase("fi");
+                    const existingIndex = current.findIndex(item =>
+                      String(item.name || "").toLocaleLowerCase("fi") + "|" +
+                      String(item.storeName || "").toLocaleLowerCase("fi") === identity
+                    );
+                    if (existingIndex < 0 && current.length >= MAX_ITEMS) {
+                      showCartToast("Ostoskori on täynnä");
+                      return false;
+                    }
+                    const chain = /^(?:lidl|l\b)/i.test(offer.chain || storeName) ? "LIDL"
+                      : /^(?:s-market|prisma|sale|s\b)/i.test(offer.chain || storeName) ? "S"
+                      : /^(?:k-|k\b)/i.test(offer.chain || storeName) ? "K"
+                      : /^(?:tokmanni|spar)/i.test(offer.chain || storeName) ? "TOKMANNI"
+                      : undefined;
+                    const next: CartItem[] = existingIndex >= 0
+                      ? current.map((item, index) => index === existingIndex
+                        ? {...item, quantity: Number(item.quantity || 1) + 1}
+                        : item)
+                      : [...current, {
+                          id: "gosta-watch-" + Date.now() + "-" + current.length,
+                          name,
+                          price,
+                          image: offer.imageUrl || undefined,
+                          storeName,
+                          chain: chain as CartItem["chain"],
+                          quantity: 1,
+                          source: "offer" as const,
+                        }];
+                    cartRefV124.current = next;
+                    setCart(next);
+                    persistCartImmediately(next);
+                    showCartToast("✓ Lisätty ostoskoriin");
+                    return true;
+                  }}
+
 
                 />
               </>
