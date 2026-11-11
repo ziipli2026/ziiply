@@ -108,7 +108,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
     quality, missingCategoryTitles, missingImageTitles, suspiciousNameTitles, errors,
     severity: pending ? "warning" : "error", pdfReview: "pending", imageEnrichment: awaitingImages ? "pending" : quality?.missing_images ? "failed" : "complete" };
-  await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:pending,
+  await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:false,
     count:quality?.total??input.parsed?.offers??0,outcome,details }, databaseUrl);
-  return {ok:pending,outcome,...details};
+  return {ok:false,pending,outcome,...details};
 }
