@@ -728,7 +728,9 @@ const getCachedKCitymarketPeriod=unstable_cache(
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
   ["ziiply-kcitymarket-printed-transactions-v169-20261108-46av-ocr-repair"],
-  {revalidate:false},
+  // Retry discovery of upcoming editions after a late publisher release. A permanent
+  // cache otherwise freezes the first incomplete parse until another deployment.
+  {revalidate:300},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
   const payload=await getCachedKCitymarketPeriod(period);
