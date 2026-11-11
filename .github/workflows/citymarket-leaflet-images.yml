@@ -16,6 +16,7 @@ on:
       - "scripts/citymarket/**"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarket45LVPriceGuard.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketOCRRepair.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketProductRows.js"
       - "src/app/components/ziiply/offerSearch/citymarketQuality.ts"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
   schedule:
@@ -68,6 +69,9 @@ jobs:
       - name: Regression test reusable OCR cleanup
         if: steps.clock.outputs.run == 'true'
         run: node scripts/citymarket/test-ocr-repair.mjs
+      - name: Regression test wrapped percentage publisher headings
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-wrapped-percentage-headings.mjs
       - name: Regression test multi-pack quality audit
         if: steps.clock.outputs.run == 'true'
         run: |
