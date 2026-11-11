@@ -204,7 +204,7 @@ export default function ZiiplyMobileAssistantPanel({
           try {
             const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
             if(previous?.key===watchKey&&Array.isArray(previous.offers)){
-              setWatchOffers(previous.offers);setWatchChecked(true);
+              setWatchOffers(previous.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));setWatchChecked(true);
             } else if(!watchChecked && matched.length>0){
               setWatchOffers(matched);setWatchChecked(true);
             }
