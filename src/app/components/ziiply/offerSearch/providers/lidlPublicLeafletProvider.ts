@@ -426,7 +426,19 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
     if (publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date) !== "current") continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
-    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+    if (!old) byKey.set(key, row);
+    else {
+      // Preserve complementary details when the same offer is discovered on
+      // category and product pages; neither source is always complete.
+      const preferred = row.imageUrl && !old.imageUrl ? row : old;
+      const other = preferred === row ? old : row;
+      byKey.set(key, {
+        ...preferred,
+        packageSize: preferred.packageSize || other.packageSize || "",
+        packageText: preferred.packageText || other.packageText || "",
+        comparisonPriceText: preferred.comparisonPriceText || other.comparisonPriceText || "",
+      });
+    }
   }
 
   return {
