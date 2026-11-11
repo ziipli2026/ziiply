@@ -141,7 +141,7 @@ export default function ZiiplyMobileAssistantPanel({
           priceBasis:String(offer.priceBasis||"")
         }));
         setWatchOffers(matched);setWatchChecked(true);
-        if(!data.partial){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+        if(!data.partial&&matched.length>0){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }
       setWatchRawDebug("Tarjousvahdin oikea hakureitti | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | osumia="+offers.length+" | hakusanakohtaiset="+JSON.stringify(counts)+" | tarkistettu="+String(diagnostic.inspected??"?")+" | lähteet="+JSON.stringify(diagnostic.sources||[])+" | lähikaupat="+JSON.stringify(diagnostic.nearby||[])+" | virhe="+String(data?.error||"ei")+" | esimerkki="+JSON.stringify(offers.slice(0,4)).slice(0,1200));
     }catch(error){setWatchRawDebug("Tarjousvahdin DEBUG-virhe: "+String(error));}
@@ -152,7 +152,7 @@ export default function ZiiplyMobileAssistantPanel({
     // Restore the latest successful scan when this panel is remounted.
     try {
       const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-      if(cached?.key===watchKey&&Array.isArray(cached.offers)){
+      if(Array.isArray(cached?.offers)){
         // Show recent confirmed offers immediately while a fresh scan runs.
         if(Number.isFinite(cached.at)){
           setWatchOffers(cached.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));
@@ -196,19 +196,19 @@ export default function ZiiplyMobileAssistantPanel({
         if(data.partial){
           // Background partial scans are diagnostic only; do not alarm the user.
         }
-        if(!data.partial){setWatchOffers(matched);setWatchChecked(true);}
+        if(!data.partial&&matched.length>0){setWatchOffers(matched);setWatchChecked(true);}
         else {
           // A partial scan must never replace a previously confirmed snapshot.
           try {
             const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-            if(previous?.key===watchKey&&Array.isArray(previous.offers)){
+            if(Array.isArray(previous?.offers)){
               setWatchOffers(previous.offers);setWatchChecked(true);
             } else if(!watchChecked && matched.length>0){
               setWatchOffers(matched);setWatchChecked(true);
             }
           }catch{}
         }
-        if(!data.partial){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+        if(!data.partial&&matched.length>0){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
         // Automatic watcher refresh failures remain in diagnostics; retain the last successful offers.
@@ -220,7 +220,7 @@ export default function ZiiplyMobileAssistantPanel({
     // Switching between cards remounts this panel. A recent successful
     // snapshot remains visible; do not start another network search on remount.
     let lastSuccessful=0;
-    try{const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");if(cached?.key===watchKey&&Array.isArray(cached.offers))lastSuccessful=Number(cached.at)||0;}catch{}
+    try{const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");if(Array.isArray(cached?.offers))lastSuccessful=Number(cached.at)||0;}catch{}
     const initial=window.setTimeout(()=>{if(!lastSuccessful||Date.now()-lastSuccessful>=60*60*1000||watchRefresh>0)void scan();},200);
     const interval=window.setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=60*60*1000)void scan();},60*60*1000);
     const resume=()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=5*60*1000)void scan();};
