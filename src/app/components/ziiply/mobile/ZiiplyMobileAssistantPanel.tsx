@@ -153,7 +153,7 @@ export default function ZiiplyMobileAssistantPanel({
     // Restore the latest successful scan when this panel is remounted.
     try {
       const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-      if(cached?.key===watchKey&&Array.isArray(cached.offers)){
+      if(Array.isArray(cached?.offers)&&watchKey){
         // Show recent confirmed offers immediately while a fresh scan runs.
         if(Number.isFinite(cached.at)){
           setWatchOffers(cached.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));
@@ -204,7 +204,7 @@ export default function ZiiplyMobileAssistantPanel({
           // A partial scan must never replace a previously confirmed snapshot.
           try {
             const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-            if(previous?.key===watchKey&&Array.isArray(previous.offers)){
+            if(Array.isArray(previous?.offers)&&watchKey){
               setWatchOffers(previous.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));setWatchChecked(true);
             } else if(!watchChecked && matched.length>0){
               setWatchOffers(matched);setWatchChecked(true);
