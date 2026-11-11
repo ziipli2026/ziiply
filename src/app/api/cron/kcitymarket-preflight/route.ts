@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     const report = await recordCitymarketPreflight({
       period: period.key, startedAt: details.parserStartedAt, parsed: result.next, errors: result.errors,
     });
-    return NextResponse.json(report, { status: report.ok ? 200 : 503 });
+    return NextResponse.json(report, { status: report.pending ? 200 : 503 });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[K-Citymarket] Advance preflight failed", period.key, message);
