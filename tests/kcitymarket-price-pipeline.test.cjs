@@ -20,7 +20,7 @@ const sql=async(strings,...params)=>{const query=Array.isArray(strings)?strings.
  if(/SELECT/i.test(query)&&query.includes('ziiply_offer_publications'))return[{offers}];
  return[];
 };
-const original=Module._load;Module._load=function(id,parent,isMain){if(id==='@neondatabase/serverless')return{neon:()=>sql};if(id.startsWith('@/'))id=root+'/src/'+id.slice(2);return original.call(this,id,parent,isMain);};
+const original=Module._load;Module._load=function(id,parent,isMain){if(id==='next/server'){const next=original.call(this,id,parent,isMain);return {...next,after:()=>{}};}if(id==='@neondatabase/serverless')return{neon:()=>sql};if(id.startsWith('@/'))id=root+'/src/'+id.slice(2);return original.call(this,id,parent,isMain);};
 process.env.DATABASE_URL='postgresql://simulation@localhost/simulation';
 const base=root+'/src/app/components/ziiply/offerSearch/';
 const route=require(root+'/src/app/api/offers/search/route.ts');
