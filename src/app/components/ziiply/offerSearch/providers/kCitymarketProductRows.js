@@ -178,7 +178,7 @@ export function recoverWrappedPercentageCards(rawBoxes, page, existingRows=[]){
     if(!(percent>0&&percent<100))continue;
     // Do not create a second percentage offer from the last line of an
     // existing multiline offer with the same publisher-printed discount.
-    const canonical=t=>String(t||'').normalize('NFKC').replace(/\\s+/g,' ').trim().toUpperCase();
+    const canonical=t=>String(t||'').normalize('NFKC').replace(/\s+/g,' ').trim().toUpperCase();
     if(existingRows.some(row=>row.page===page&&
       Number(row.percentageOffer?.percent)===percent&&
       canonical(row.title).endsWith(' '+canonical(title))))continue;
