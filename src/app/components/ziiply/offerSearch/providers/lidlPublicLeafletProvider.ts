@@ -365,6 +365,7 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
       title: name, name, productName: name, brandName, price, priceText: `${price.toFixed(2).replace(".", ",")} €`, offerPrice: price,
       originalPrice: money(product.originalPrice ?? offer.originalPrice),
       normalPrice: money(product.normalPrice ?? offer.normalPrice ?? product.originalPrice ?? offer.originalPrice),
+      packageSize: String(product.packageSize || product.packSize || product.keyfacts?.packageSize || "").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || [name,product.description].join(" ").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "",
       priceBasis: "unit", isWeightedProduct: false, requiresLidlPlus: false, eligibility: "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
