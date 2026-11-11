@@ -55,8 +55,17 @@ const rows=parsed.rows.flatMap(row=>{
  }
  const priced=resolved&&Number(resolved.value)>0;
  if(!priced&&!(percent>0&&percent<100))return [];
+ // Wrapped percentage cards have a precise, printed glyph anchor even when
+ // the spatial parser has no ordinary imageAnchor. Preserve it separately:
+ // broad geometry passes may not silently treat it as an approved image link.
+ const glyph=row.percentageOffer?.source==='wrapped-column-printed-percentage'
+   ?row.debugCardAnchor:null;
+ const wrappedAnchor=glyph&&[glyph.left,glyph.top,glyph.right,glyph.height].every(Number.isFinite)
+   ?{left:glyph.left,top:glyph.top,width:glyph.right-glyph.left,height:glyph.height}
+   :null;
  return [{id:`kcm:spatial:${row.page}:${title.toLowerCase()}:${priced?Number(resolved.value):'percent:'+percent}`,
-  page:row.page,title,normalizedTitle:repairCitymarketOCRTitle(title),anchor:row.imageAnchor??null,nearby:row.nearby??[]}];
+  page:row.page,title,normalizedTitle:repairCitymarketOCRTitle(title),
+  anchor:row.imageAnchor??null,wrappedAnchor,nearby:row.nearby??[]}];
 });
 await fs.writeFile(path.join(folder,'leaflet.json'),JSON.stringify({leaflet:leaflet.href,pdfUrl:pdfUrl.href,pdfSha256,pageCount:parsed.pageCount,rows},null,2));
 // Retain the complete parser output (including geometry/price candidates) so
