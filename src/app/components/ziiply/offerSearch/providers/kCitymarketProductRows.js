@@ -89,6 +89,73 @@ export function canonicalCitymarketProductRows(rows) {
   });
 }
 
+/** Merge two adjacent alternatives only when they share one independently
+ * printed, large-font price and unit. Never merge merely because arithmetic
+ * or a catalogue suggests the same price. */
+export function mergeVerifiedSharedPrintedAlternatives(rows) {
+  const used=new Set();
+  const uniqueBoxes=row=>[...new Map((row.debugNearbyBoxes||[]).map(b=>[
+    [String(b.text),Number(b.left).toFixed(5),Number(b.top).toFixed(5),
+     Number(b.height).toFixed(5)].join(':'),b])).values()];
+  const printed=row=>{
+    const anchor=row.imageAnchor||row.debugCardAnchor;
+    if(!anchor)return null;
+    const boxes=uniqueBoxes(row),start=Number(anchor.left),top=Number(anchor.top);
+    const wholes=boxes.filter(b=>/^\d{1,2}$/.test(String(b.text))&&
+      b.height>=.085&&b.height<=.16&&b.left>=start-.025&&b.left<=start+.045&&
+      b.top>=top+.005&&b.top<top+.095);
+    const prices=[];
+    for(const whole of wholes){
+      const cents=boxes.filter(b=>/^\d{2}$/.test(String(b.text))&&
+        b.height>=.04&&b.height<=.085&&
+        b.left>=whole.left+whole.width-.02&&b.left<=whole.left+whole.width+.10&&
+        b.top>=whole.top&&b.top<=whole.top+.08);
+      for(const fraction of cents){
+        const unit=boxes.some(b=>/^(?:PL|PLO|TLK|KPL|PKT|PS)$/i.test(String(b.text))&&
+          b.left>=whole.left-.01&&b.left<whole.left+.17&&
+          b.top>=whole.top+.045&&b.top<=whole.top+.14);
+        const price=Number(whole.text)+Number(fraction.text)/100;
+        if(unit&&price>=.5&&price<=100)prices.push(price);
+      }
+    }
+    const distinct=[...new Set(prices.map(p=>p.toFixed(2)))];
+    return distinct.length===1?Number(distinct[0]):null;
+  };
+  const result=[];
+  for(let i=0;i<rows.length;i++){
+    if(used.has(i))continue;
+    const first=rows[i],a=first.imageAnchor||first.debugCardAnchor;
+    if(!a||!/\btai\s*$/i.test(String(first.title||''))||
+       !String(first.spatialResolved?.source||'').includes('unitrate-derived')){
+      result.push(first);continue;
+    }
+    const candidates=rows.map((second,j)=>({second,j})).filter(({second,j})=>
+      j!==i&&!used.has(j)&&second.page===first.page&&
+      second.package?.min>0&&first.package?.min>0&&
+      String(second.spatialResolved?.source||'').includes('unitrate-derived')&&
+      /^[A-ZÅÄÖ]/.test(String(second.title||''))&&
+      (()=>{const b=second.imageAnchor||second.debugCardAnchor;
+        return b&&Math.abs(Number(b.left)-Number(a.left))<.004&&
+          Number(b.top)-Number(a.top)>.005&&Number(b.top)-Number(a.top)<.019;})());
+    if(candidates.length!==1){result.push(first);continue;}
+    const {second,j}=candidates[0],firstPrice=printed(first),secondPrice=printed(second);
+    if(!firstPrice||firstPrice!==secondPrice){result.push(first);continue;}
+    used.add(j);
+    result.push({...first,title:String(first.title).trim()+' '+String(second.title).trim(),
+      package:{min:Math.min(first.package.min,second.package.min),
+        max:Math.max(first.package.max,second.package.max),
+        raw:first.package.raw+' / '+second.package.raw,
+        variantSizes:[first.package.raw,second.package.raw]},
+      unitPrice:null,percentageOffer:null,
+      spatialResolved:{value:firstPrice,quantity:1,unit:'PL',
+        source:'shared-card-verified-printed-large-price-glyph',
+        sanity:'pass',confidence:'high'},
+      nearby:[...(first.nearby||[]),...(second.nearby||[])],
+      debugMergedPublisherAlternatives:[first.title,second.title]});
+  }
+  return result;
+}
+
 /** A mixed-set badge cannot become a discount for one component alone. */
 export function rejectUnownedMixedSetPercentage(row){
   const context=(row.nearby||[]).join(' ');
