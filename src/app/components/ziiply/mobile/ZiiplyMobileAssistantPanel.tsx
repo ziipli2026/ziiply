@@ -88,7 +88,7 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchFilter,setWatchFilter]=React.useState<string|null>(null);
   const [savedWatches, setSavedWatches] = React.useState<string[]>([]);
   const [watchNotice, setWatchNotice] = React.useState("");
-  const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string}>>([]);
+  const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string;packageSize?:string;unit?:string}>>([]);
   const [watchLoading,setWatchLoading]=React.useState(false);
   const [watchChecked,setWatchChecked]=React.useState(false);
   const [watchError,setWatchError]=React.useState("");
@@ -116,7 +116,9 @@ export default function ZiiplyMobileAssistantPanel({
           price:String(offer.offerPrice??offer.price??""),
           store:String(offer.storeName||offer.chain||""),
           source:String(offer.source||offer.sourceType||offer.chain||""),
-          chain:String(offer.chain||"")
+          chain:String(offer.chain||""),
+          packageSize:String(offer.packageSize||offer.packSize||offer.size||offer.quantityText||""),
+          unit:String(offer.unit||"")
         }));
         setWatchOffers(matched);setWatchChecked(true);
         if(!data.partial){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
@@ -303,6 +305,7 @@ export default function ZiiplyMobileAssistantPanel({
                 {watchOffers.filter(o=>!watchFilter||o.query===watchFilter).map((offer,index)=><article key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="rounded-2xl border-2 border-[#caa15d] bg-[#fffaf0] p-3 shadow-sm">
                   <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store,offer.chain)}</div>
                   <h4 className="mt-1 text-base font-black text-[#174c35]">{offer.title}</h4>
+                  {offer.packageSize&&<div className="mt-1 text-sm font-semibold text-[#76502b]">Pakkauskoko: {offer.packageSize}</div>}
                   <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{/[€]/.test(offer.price)?offer.price:offer.price+" €"}</strong>}</div>
                   {onAddWatchOfferToCart&&<button type="button" onClick={()=>{const price=Number(offer.price.replace(/\s|€/g,"").replace(",","."));if(!Number.isFinite(price)||price<=0){setWatchNotice("Tarjouksella ei ole kelvollista hintaa.");return;}onAddWatchOfferToCart({name:offer.title,title:offer.title,price,priceAmountUnit:"eur",storeName:watchStoreLabel(offer.store),source:offer.source});setWatchNotice("Tarjous lisätty ostoskoriin.");}} className="mt-2 mr-2 rounded-lg border border-[#174c35] bg-[#174c35] px-3 py-2 text-sm font-bold text-white">Lisää ostoskoriin</button>}
                   <button type="button" onClick={()=>void shareWatchOffer(offer)} className="mt-2 rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-sm font-bold text-[#174c35]">Jaa / lähetä tarjous</button>
