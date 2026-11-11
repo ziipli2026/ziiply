@@ -91,8 +91,11 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
   // Do not hide an unresolved image pipeline forever. The final evening
   // preflight reports a real failure if images are still absent after 22:00.
   const imageDeadlineReached = helsinkiHour >= 22;
-  const awaitingImages = Boolean(!imageDeadlineReached && input.parsed && errors.length === 0 && quality &&
-    quality.total === input.parsed.offers && quality.total > 0 && quality.missing_images > 0);
+  const parserReady = Boolean(input.parsed && errors.length === 0 && quality &&
+    quality.total === input.parsed.offers && quality.total > 0 &&
+    quality.missing_names === 0 && quality.suspicious_names === 0 &&
+    quality.missing_prices === 0 && quality.unverified_prices === 0);
+  const awaitingImages = Boolean(!imageDeadlineReached && parserReady && quality && quality.missing_images > 0);
   const failed = !input.parsed || errors.length > 0 || !quality || quality.total === 0 ||
     quality.total !== input.parsed.offers || quality.missing_names > 0 ||
     quality.suspicious_names > 0 || quality.missing_prices > 0 ||
