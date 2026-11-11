@@ -361,13 +361,17 @@ def build(folder,manifest_path,public_folder,review_path):
    # a product image without independent ownership verification.
    for item in unresolved:
     anchor=item.get('anchor')
-    if not anchor:continue
-    center_x=(anchor['left']+anchor['width']/2)*page.rect.width
-    center_y=(anchor['top']+anchor['height']/2)*page.rect.height
-    half_w=min(page.rect.width*.19,155)
-    half_h=min(page.rect.height*.16,145)
-    clip=fitz.Rect(max(0,center_x-half_w),max(0,center_y-half_h),
-                   min(page.rect.width,center_x+half_w),min(page.rect.height,center_y+half_h))
+    if anchor:
+     center_x=(anchor['left']+anchor['width']/2)*page.rect.width
+     center_y=(anchor['top']+anchor['height']/2)*page.rect.height
+     half_w=min(page.rect.width*.19,155)
+     half_h=min(page.rect.height*.16,145)
+     clip=fitz.Rect(max(0,center_x-half_w),max(0,center_y-half_h),
+                    min(page.rect.width,center_x+half_w),min(page.rect.height,center_y+half_h))
+    else:
+     # Without a publisher text anchor, keep the entire page as evidence.
+     # Never pretend this full-page image belongs to a specific offer.
+     clip=page.rect
     if clip.is_empty:continue
     preview=page.get_pixmap(matrix=fitz.Matrix(2,2),clip=clip,alpha=False)
     fragment=hashlib.sha256(item['id'].encode()).hexdigest()[:12]
@@ -384,6 +388,7 @@ def build(folder,manifest_path,public_folder,review_path):
      diagnostic['fallbackRenderedPreview']=filename
      diagnostic['fallbackRenderedClip']=item['fallbackRenderedClip']
      diagnostic['fallbackStatus']='review-required-not-published'
+     diagnostic['fallbackScope']='offer-neighborhood' if anchor else 'full-page-missing-anchor'
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
    print(f'::warning::Citymarket PDF page {number+1}: {len(unresolved)} unresolved images of {len(rows)} offers')
