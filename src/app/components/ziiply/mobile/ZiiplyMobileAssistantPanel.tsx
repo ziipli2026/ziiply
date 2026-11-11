@@ -96,9 +96,15 @@ export default function ZiiplyMobileAssistantPanel({
   const [watchQuery, setWatchQuery] = React.useState("");
   const [showWatchNotebook,setShowWatchNotebook]=React.useState(false);
   const [watchFilter,setWatchFilter]=React.useState<string|null>(null);
-  const [savedWatches, setSavedWatches] = React.useState<string[]>([]);
+  const [savedWatches, setSavedWatches] = React.useState<string[]>(()=>{
+    if(typeof window==="undefined")return [];
+    try{const saved=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");return Array.isArray(saved)?saved.filter((x:unknown):x is string=>typeof x==="string").slice(0,30):[];}catch{return [];}
+  });
   const [watchNotice, setWatchNotice] = React.useState("");
-  const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string;packageSize?:string;unit?:string;imageUrl?:string}>>([]);
+  const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string;packageSize?:string;unit?:string;imageUrl?:string;validUntil?:string}>>(()=>{
+    if(typeof window==="undefined")return [];
+    try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");return Array.isArray(snapshot?.offers)?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(o.validUntil+"T23:59:59")>=Date.now()):[];}catch{return [];}
+  });
   const [watchLoading,setWatchLoading]=React.useState(false);
   const [watchChecked,setWatchChecked]=React.useState(false);
   const [watchError,setWatchError]=React.useState("");
@@ -129,7 +135,8 @@ export default function ZiiplyMobileAssistantPanel({
           chain:String(offer.chain||""),
           packageSize:String(offer.packageSize||offer.packSize||offer.size||offer.quantityText||""),
           imageUrl:String(offer.imageUrl||offer.pictureUrl||offer.image||""),
-          unit:String(offer.unit||"")
+          unit:String(offer.unit||""),
+          validUntil:String(offer.validUntil||"")
         }));
         setWatchOffers(matched);setWatchChecked(true);
         if(!data.partial){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
@@ -146,13 +153,13 @@ export default function ZiiplyMobileAssistantPanel({
       if(cached?.key===watchKey&&Array.isArray(cached.offers)){
         // Show recent confirmed offers immediately while a fresh scan runs.
         if(Number.isFinite(cached.at)){
-          setWatchOffers(cached.offers);
+          setWatchOffers(cached.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));
           setWatchChecked(true);
         }
         if(typeof cached.debug==="string")setWatchDebug(cached.debug);
       }
     }catch{}
-    if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
+    if(!watchKey){return;}
     let cancelled=false;
     let running=false;
     const scan=async()=>{
@@ -177,7 +184,8 @@ export default function ZiiplyMobileAssistantPanel({
           source:String(offer.source||offer.sourceType||offer.chain||""),
           chain:String(offer.chain||""),
           packageSize:String(offer.packageSize||offer.packSize||offer.size||offer.quantityText||""),
-          imageUrl:String(offer.imageUrl||offer.pictureUrl||offer.image||"")
+          imageUrl:String(offer.imageUrl||offer.pictureUrl||offer.image||""),
+          validUntil:String(offer.validUntil||"")
         }));
         setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,600)+" | lähikaupat: "+JSON.stringify(data.diagnostic?.nearby||[]).slice(0,1500));
         if(cancelled)return;
@@ -205,7 +213,11 @@ export default function ZiiplyMobileAssistantPanel({
         // No visible loading state for automatic refreshes.
       }
     };
-    const initial=window.setTimeout(()=>{void scan();},200);
+    // Switching between cards remounts this panel. A recent successful
+    // snapshot remains visible; do not start another network search on remount.
+    let lastSuccessful=0;
+    try{const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");if(cached?.key===watchKey&&Array.isArray(cached.offers))lastSuccessful=Number(cached.at)||0;}catch{}
+    const initial=window.setTimeout(()=>{if(!lastSuccessful||Date.now()-lastSuccessful>=60*60*1000||watchRefresh>0)void scan();},200);
     const interval=window.setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=60*60*1000)void scan();},60*60*1000);
     const resume=()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=5*60*1000)void scan();};
     document.addEventListener("visibilitychange",resume);
