@@ -105,22 +105,6 @@ export default function ZiiplyMobileAssistantPanel({
     if(typeof window==="undefined")return [];
     try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");return Array.isArray(snapshot?.offers)?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(o.validUntil+"T23:59:59")>=Date.now()):[];}catch{return [];}
   });
-  // Preserve the last visible result set even when the assistant card unmounts.
-  // Restore on every return to Gösta; do not wait for a network request.
-  React.useEffect(()=>{
-    if(activeAssistant!=="gosta")return;
-    try {
-      const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-      if(!Array.isArray(cached?.offers))return;
-      const valid=cached.offers.filter((o:any)=>{
-        if(!o.validUntil)return true;
-        const end=Date.parse(String(o.validUntil).slice(0,10)+"T23:59:59");
-        return !Number.isFinite(end)||end>=Date.now();
-      });
-      setWatchOffers(valid);
-      setWatchChecked(true);
-    } catch {}
-  },[activeAssistant]);
   const [watchLoading,setWatchLoading]=React.useState(false);
   const [watchChecked,setWatchChecked]=React.useState(false);
   const [watchError,setWatchError]=React.useState("");
