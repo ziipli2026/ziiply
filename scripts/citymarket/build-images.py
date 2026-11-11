@@ -251,6 +251,83 @@ def build(folder,manifest_path,public_folder,review_path):
    accepted[row['id']].append(b)
    eligible.remove(b)
    print(f'Citymarket page {number+1}: unique reciprocal spatial image match for {row["title"]}')
+  # Second pass: reconstruct a single publisher product photo from adjacent
+  # PDF image pieces. Publishers commonly split one pack shot into several
+  # embedded objects. The first pass treats each object as a competitor and
+  # cannot clear its distance margin (e.g. packets and multiple bottles).
+  # This uses page geometry, not a hardcoded leaflet ID, product or price.
+  if not any(not row.get('anchor') for row in rows):
+   available=[b for b in eligible if all(b not in group for group in accepted.values())]
+   boxes=[]
+   for b in available:
+    x0,y0,x1,y1=b['bbox']
+    boxes.append((b,(x0/page.rect.width,y0/page.rect.height,
+                    x1/page.rect.width,y1/page.rect.height)))
+   parent=list(range(len(boxes)))
+   def cluster_root(index):
+    while parent[index]!=index:
+     index=parent[index]
+    return index
+   def cluster_join(first,second):
+    parent[cluster_root(second)]=cluster_root(first)
+   for i,(_,a) in enumerate(boxes):
+    for j in range(i):
+     b=boxes[j][1]
+     # Require nearly equal columns in addition to touching rectangles.
+     # Otherwise adjacent unrelated product groups can form one cluster.
+     if (abs((a[0]+a[2]-b[0]-b[2])/2)<.11
+         and a[0]<=b[2]+.02 and b[0]<=a[2]+.02
+         and a[1]<=b[3]+.015 and b[1]<=a[3]+.015):
+      cluster_join(i,j)
+   grouped={}
+   for i,pair in enumerate(boxes):
+    grouped.setdefault(cluster_root(i),[]).append(pair)
+   clusters=[]
+   for group in grouped.values():
+    box=(min(v[0] for _,v in group),min(v[1] for _,v in group),
+         max(v[2] for _,v in group),max(v[3] for _,v in group))
+    if box[2]-box[0]>.34 or box[3]-box[1]>.28 or len(group)>8:
+     continue
+    clusters.append((group,box))
+   proposals={}
+   for row in rows:
+    if accepted[row['id']]:continue
+    anchor=row['anchor'];rx=anchor['left']+anchor['width']/2;ry=anchor['top']
+    competitors=[other for other in rows if other['id']!=row['id']
+                 and abs(other['anchor']['left']+other['anchor']['width']/2-rx)<.19]
+    choices=[]
+    for group,(x0,y0,x1,y1) in clusters:
+     cx=(x0+x1)/2;cy=(y0+y1)/2
+     if abs(cy-ry)>.155 or abs(cx-rx)>.38:continue
+     # The package must be beside, not directly behind, the title.
+     if not (x1<anchor['left']+.035 or x0>anchor['left']+anchor['width']-.035):continue
+     # Resolve publisher columns by row bands, not by title-to-image
+     # Euclidean distance alone. Two offers on the same band are ambiguous.
+     if any(abs(cy-other['anchor']['top'])<=abs(cy-ry)+.03 for other in competitors):
+      continue
+     if any(blocked(page,anchor,b['bbox']) for b,_ in group):continue
+     distance=math.hypot((cx-rx)*1.4,(cy-ry)*1.3)
+     if distance>.45:continue
+     choices.append((distance,group,box))
+    choices.sort(key=lambda choice:choice[0])
+    if not choices:continue
+    # More than one plausible package group requires a decisive margin.
+    if len(choices)>1 and choices[1][0]-choices[0][0]<.12:continue
+    proposals[row['id']]=choices[0]
+   # Reciprocal uniqueness: never assign one image object to two offers.
+   owners={}
+   for row_id,(_,group,_) in proposals.items():
+    for b,_ in group:
+     owners.setdefault(tuple(round(v,3) for v in b['bbox']),set()).add(row_id)
+   for row in rows:
+    suggestion=proposals.get(row['id'])
+    if not suggestion:continue
+    distance,group,_=suggestion
+    if any(len(owners[tuple(round(v,3) for v in b['bbox'])])!=1 for b,_ in group):
+     continue
+    accepted[row['id']].extend(b for b,_ in group)
+    print(f'Citymarket page {number+1}: isolated publisher image cluster '
+          f'for {row["title"]}: {len(group)} objects, distance {distance:.3f}')
   # An image object must not be assigned to two different offers.
   # Ambiguous ownership is sent to review rather than silently duplicating
   # a product picture in the published leaflet.
