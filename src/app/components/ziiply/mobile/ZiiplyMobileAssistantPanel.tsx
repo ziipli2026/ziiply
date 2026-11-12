@@ -1,7 +1,7 @@
 "use client";
 import { gostaWatchUrl } from "./gostaWatchLocation";
 import { fetchSharedGostaWatch } from "./gostaWatchSharedRequest";
-import { matchesGostaWatch } from "./gostaWatchMatch";
+import { mapWatchOffers, readWatchResults, saveWatchResults, watchCartPrice, watchPackageSize, watchResultsChanged, type WatchOffer } from "./gostaWatchResults";
 import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
 import type { RecipeIngredient } from "../justiina/recipeCore";
 import JustiinaOnlineRecipes from "../justiina/JustiinaOnlineRecipes";
@@ -19,7 +19,7 @@ export type ZiiplyMobileAssistantPanelProps = {
   onChangeChain?: (chain: "s"|"k"|"lidl"|"tokmanni", enabled:boolean) => void;
   locationLabel?: string;
   onOpenStoreSettings?: () => void;
-  onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string;imageUrl?:string;packageSize?:string;chain?:string;isWeightedProduct?:boolean;ziiplyPricePendingWeight?:boolean;comparisonPriceText?:string;priceBasis?:string}) => boolean;
+  onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string;imageUrl?:string;packageSize?:string;chain?:string;isWeightedProduct?:boolean;ziiplyPricePendingWeight?:boolean;estimatedWeightKg?:number}) => boolean;
 };
 
 function watchStoreLabel(store: string, chain = ""): string {
@@ -29,16 +29,6 @@ function watchStoreLabel(store: string, chain = ""): string {
     .trim();
   if (/^(?:Hyvinkää|Järvenpää|Tuusula|Helsinki|Espoo|Vantaa|Lahti|Tampere|Turku)\s*-\s*[^-]+$/i.test(name) && (chain.toUpperCase() === "LIDL" || /keskusta/i.test(name))) return "Lidl " + name;
   return name;
-}
-
-function watchPackageSize(offer: {title:string;packageSize?:string;unit?:string}): string {
-  const explicit=String(offer.packageSize||"").trim();
-  if (explicit && /\d/.test(explicit)) return explicit;
-  // Lidl and other leaflet feeds may include the size only in the product title.
-  // Extract an actual printed measurement, never infer a missing package size.
-  const title=String(offer.title||"");
-  const matches=[...title.matchAll(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/gi)];
-  return matches.length ? matches[matches.length-1][0].replace(/\s+/g," ").trim() : "";
 }
 
 const assistantContent: Record<
@@ -80,9 +70,9 @@ export default function ZiiplyMobileAssistantPanel({
   onOpenStoreSettings,
   onAddWatchOfferToCart,
 }: ZiiplyMobileAssistantPanelProps) {
-  const shareWatchOffer = async (offer: {title:string;price:string;store:string}) => {
+  const shareWatchOffer = async (offer: WatchOffer) => {
     const price = offer.price ? (offer.price.includes("€") ? offer.price : offer.price + " €") : "";
-    const text = [offer.title, price, watchStoreLabel(offer.store)].filter(Boolean).join(" · ");
+    const text = [offer.title, price + (offer.priceBasis === "per-kg" && !price.includes("/kg") ? "/kg" : ""), watchStoreLabel(offer.store)].filter(Boolean).join(" · ");
     try {
       if (navigator.share) await navigator.share({title:offer.title,text});
       else if (navigator.clipboard?.writeText) {
@@ -101,10 +91,7 @@ export default function ZiiplyMobileAssistantPanel({
     try{const saved=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");return Array.isArray(saved)?saved.filter((x:unknown):x is string=>typeof x==="string").slice(0,30):[];}catch{return [];}
   });
   const [watchNotice, setWatchNotice] = React.useState("");
-  const [watchOffers,setWatchOffers]=React.useState<Array<{query:string;title:string;price:string;store:string;source:string;chain?:string;packageSize?:string;unit?:string;imageUrl?:string;validUntil?:string;comparisonPrice?:string;priceBasis?:string}>>(()=>{
-    if(typeof window==="undefined")return [];
-    try{const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");const watches=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");const key=Array.isArray(watches)?watches.map((q:unknown)=>String(q).trim().toLocaleLowerCase("fi")).filter(Boolean).join("|"):"";return snapshot?.key===key&&Array.isArray(snapshot.offers)?snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(o.validUntil+"T23:59:59")>=Date.now()):[];}catch{return [];}
-  });
+  const [watchOffers,setWatchOffers]=React.useState<WatchOffer[]>([]);
   const [watchLoading,setWatchLoading]=React.useState(false);
   const [watchChecked,setWatchChecked]=React.useState(false);
   const [watchError,setWatchError]=React.useState("");
@@ -124,25 +111,7 @@ export default function ZiiplyMobileAssistantPanel({
       const offers=Array.isArray(data?.results)?data.results:[];
       const counts=Object.fromEntries(terms.map(q=>[q,offers.filter((offer:any)=>(Array.isArray(offer.watchQueries)?offer.watchQueries:[]).some((w:string)=>w.toLocaleLowerCase("fi")===q.toLocaleLowerCase("fi"))).length]));
       if(response.ok&&data?.ok&&Array.isArray(data.results)){
-        // The API has already deduplicated offers by their product identity.
-        // Never collapse distinct API offers by identical display title and price.
-        const matched=offers.map((offer:any)=>({
-          query:String((Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:terms.filter(query=>matchesGostaWatch(query,offer)))[0]||""),
-          title:String(offer.title||offer.name||offer.productName||"Tarjous"),
-          price:String(offer.offerPrice??offer.price??""),
-          store:String(offer.storeName||offer.chain||""),
-          source:String(offer.source||offer.sourceType||offer.chain||""),
-          chain:String(offer.chain||""),
-          packageSize:String(offer.packageSize||offer.packSize||offer.size||offer.quantityText||""),
-          imageUrl:String(offer.imageUrl||offer.pictureUrl||offer.image||""),
-          unit:String(offer.unit||""),
-          validUntil:String(offer.validUntil||""),
-          comparisonPrice:String(offer.comparisonPriceText||offer.unitPrice||offer.comparisonPrice||""),
-          priceBasis:String(offer.priceBasis||"")
-        }));
-        // Debug must obey the same snapshot rules as automatic refresh.
-        if(!data.partial&&matched.length>0&&watchKey){setWatchOffers(matched);setWatchChecked(true);}
-        if(!data.partial&&matched.length>0&&watchKey){try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+        if (watchKey) saveWatchResults(watchKey, mapWatchOffers(offers, terms), Boolean(data.partial), started);
       }
       setWatchRawDebug("Tarjousvahdin oikea hakureitti | HTTP "+response.status+" | "+(Date.now()-started)+"ms | ok="+String(data?.ok)+" | osumia="+offers.length+" | hakusanakohtaiset="+JSON.stringify(counts)+" | tarkistettu="+String(diagnostic.inspected??"?")+" | lähteet="+JSON.stringify(diagnostic.sources||[])+" | lähikaupat="+JSON.stringify(diagnostic.nearby||[])+" | virhe="+String(data?.error||"ei")+" | esimerkki="+JSON.stringify(offers.slice(0,4)).slice(0,1200));
     }catch(error){setWatchRawDebug("Tarjousvahdin DEBUG-virhe: "+String(error));}
@@ -150,20 +119,18 @@ export default function ZiiplyMobileAssistantPanel({
   };
   const watchKey=savedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
   React.useEffect(()=>{
-    // Restore the latest successful scan when this panel is remounted.
-    try {
-      const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-      if(cached?.key===watchKey&&Array.isArray(cached.offers)){
-        // Show recent confirmed offers immediately while a fresh scan runs.
-        if(Number.isFinite(cached.at)){
-          setWatchOffers(cached.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));
-          setWatchChecked(true);
-        }
-        if(typeof cached.debug==="string")setWatchDebug(cached.debug);
-      }
-    }catch{}
-    // Do not erase the last confirmed offers when navigating between mobile cards.\n    // A missing or temporarily mismatched cache is not evidence that offers expired.\n    try { const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null"); if(snapshot?.key===watchKey&&Array.isArray(snapshot.offers)){setWatchOffers(snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));setWatchChecked(true);} } catch {}
-    if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
+    if (!watchKey) {
+      setWatchOffers([]);
+      setWatchChecked(false);
+      return;
+    }
+    const sync = () => {
+      const snapshot = readWatchResults();
+      setWatchOffers(snapshot?.offers ?? []);
+      setWatchChecked(Boolean(snapshot));
+    };
+    sync();
+    window.addEventListener(watchResultsChanged, sync);
     let cancelled=false;
     let running=false;
     const scan=async()=>{
@@ -178,39 +145,10 @@ export default function ZiiplyMobileAssistantPanel({
         const {response,data}=await fetchSharedGostaWatch(await gostaWatchUrl(terms));
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahtien API epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
-        // The API has already deduplicated offers by their product identity.
-        // Never collapse distinct API offers by identical display title and price.
-        const matched=offers.map((offer:any)=>({
-          query:String((Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:terms.filter(query=>matchesGostaWatch(query,offer)))[0]||""),
-          title:String(offer.title||offer.name||offer.productName||"Tarjous"),
-          price:String(offer.offerPrice??offer.price??""),
-          store:String(offer.storeName||offer.chain||""),
-          source:String(offer.source||offer.sourceType||offer.chain||""),
-          chain:String(offer.chain||""),
-          packageSize:String(offer.packageSize||offer.packSize||offer.size||offer.quantityText||""),
-          imageUrl:String(offer.imageUrl||offer.pictureUrl||offer.image||""),
-          validUntil:String(offer.validUntil||""),
-          comparisonPrice:String(offer.comparisonPriceText||offer.unitPrice||offer.comparisonPrice||""),
-          priceBasis:String(offer.priceBasis||"")
-        }));
-        setWatchDebug("Aika: "+new Date().toLocaleTimeString("fi-FI")+" | kesto "+(Date.now()-started)+" ms | Neon-julkaisuja: "+data.diagnostic?.publications+" | tarjouksia tarkistettu: "+data.diagnostic?.inspected+" | osumia: "+matched.length+" | lähteet: "+JSON.stringify(data.diagnostic?.sources||[]).slice(0,600)+" | lähikaupat: "+JSON.stringify(data.diagnostic?.nearby||[]).slice(0,1500));
-        if(cancelled)return;
-        if(data.partial){
-          // Background partial scans are diagnostic only; do not alarm the user.
-        }
-        if(!data.partial&&matched.length>0){setWatchOffers(matched);setWatchChecked(true);}
-        else {
-          // A partial scan must never replace a previously confirmed snapshot.
-          try {
-            const previous=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-            if(previous?.key===watchKey&&Array.isArray(previous.offers)){
-              setWatchOffers(previous.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));setWatchChecked(true);
-            } else if(!watchChecked && matched.length>0){
-              setWatchOffers(matched);setWatchChecked(true);
-            }
-          }catch{}
-        }
-        if(!data.partial&&matched.length>0){try {window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify({key:watchKey,offers:matched,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI"),at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+        if (cancelled) return;
+        const matched = mapWatchOffers(offers, terms);
+        setWatchDebug("Tarkistettu " + new Date().toLocaleTimeString("fi-FI") + " | osumia: " + matched.length);
+        saveWatchResults(watchKey, matched, Boolean(data.partial), started);
       }catch(error){
         setWatchDebug("VIRHE "+new Date().toLocaleTimeString("fi-FI")+" | "+String(error));
         // Automatic watcher refresh failures remain in diagnostics; retain the last successful offers.
@@ -221,13 +159,13 @@ export default function ZiiplyMobileAssistantPanel({
     };
     // Switching between cards remounts this panel. A recent successful
     // snapshot remains visible; do not start another network search on remount.
-    let lastSuccessful=0;
-    try{const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");if(cached?.key===watchKey&&Array.isArray(cached.offers))lastSuccessful=Number(cached.at)||0;}catch{}
+    const cached = readWatchResults();
+    const lastSuccessful = cached?.key === watchKey && cached.current && !cached.partial ? cached.at : 0;
     const initial=window.setTimeout(()=>{if(!lastSuccessful||Date.now()-lastSuccessful>=60*60*1000||watchRefresh>0)void scan();},200);
     const interval=window.setInterval(()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=60*60*1000)void scan();},60*60*1000);
     const resume=()=>{if(document.visibilityState==="visible"&&Date.now()-watchLastAutoScan.current>=5*60*1000)void scan();};
     document.addEventListener("visibilitychange",resume);
-    return()=>{cancelled=true;window.clearTimeout(initial);window.clearInterval(interval);document.removeEventListener("visibilitychange",resume);};
+    return()=>{cancelled=true;window.removeEventListener(watchResultsChanged,sync);window.clearTimeout(initial);window.clearInterval(interval);document.removeEventListener("visibilitychange",resume);};
   },[watchKey,watchRefresh]);
 
   React.useEffect(() => {
@@ -328,17 +266,30 @@ export default function ZiiplyMobileAssistantPanel({
                 <button type="submit" disabled={!watchQuery.trim()} className="rounded-xl border-2 border-[#9c6d36] bg-[#fff4cf] px-3 py-3 font-black text-[#174c35] disabled:opacity-50">Tallenna</button>
               </form>
               {watchNotice&&<p role="status" className="rounded-xl bg-white/70 p-3 text-sm text-[#174c35]">{watchNotice}</p>}
-              <div className="flex items-center justify-between gap-2"><h3 className="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||o.query===watchFilter).length+")":""}</h3>
+              <div className="flex items-center justify-between gap-2"><h3 className="font-serif text-lg font-black text-[#174c35]">{watchFilter?watchFilter:"Tarjousvahdin osumat"} {watchChecked?"("+watchOffers.filter(o=>!watchFilter||(o.queries ?? [o.query]).includes(watchFilter)).length+")":""}</h3>
                 {watchFilter&&<button type="button" onClick={()=>setWatchFilter(null)} className="rounded-lg border border-[#b58a46] px-2 py-1 text-xs">Kaikki vahdit</button>}
               </div>
 
               {!savedWatches.length&&<p className="rounded-xl bg-white/70 p-4 text-sm">Tallenna ensin hakusana. Löydetyt tarjoukset näkyvät tässä kortteina.</p>}
               <div className="grid grid-cols-1 gap-3">
-                {watchOffers.filter(o=>!watchFilter||o.query===watchFilter).map((offer,index)=><article key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="rounded-2xl border-2 border-[#caa15d] bg-[#fffaf0] p-3 shadow-sm">
+                {watchOffers.filter(o=>!watchFilter||(o.queries ?? [o.query]).includes(watchFilter)).map((offer,index)=><article key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="rounded-2xl border-2 border-[#caa15d] bg-[#fffaf0] p-3 shadow-sm">
                   <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store,offer.chain)}</div>
-                  <div className="mt-2 flex items-start gap-3">{offer.imageUrl&&<img src={offer.imageUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain" onError={event=>{event.currentTarget.style.display="none";}}/>}<div className="min-w-0 flex-1"><h4 className="text-base font-black text-[#174c35]">{offer.title}</h4>{watchPackageSize(offer)&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{watchPackageSize(offer)}</div>}{offer.comparisonPrice&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{offer.comparisonPrice}</div>}{!offer.comparisonPrice&&offer.priceBasis==="per-kg"&&<div className="mt-1 text-sm font-semibold text-[#76502b]">Hinta / kg</div>}</div></div>
-                  <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{/[€]/.test(offer.price)?offer.price:offer.price+" €"}</strong>}</div>
-                  {onAddWatchOfferToCart&&<button type="button" onClick={()=>{const price=Number(offer.price.replace(/\s|€/g,"").replace(",","."));if(!Number.isFinite(price)||price<=0){setWatchNotice("Tarjouksella ei ole kelvollista hintaa.");return;}const added=onAddWatchOfferToCart({name:offer.title,title:offer.title,price,priceAmountUnit:"eur",storeName:watchStoreLabel(offer.store,offer.chain),source:offer.source,imageUrl:offer.imageUrl,packageSize:watchPackageSize(offer),chain:offer.chain,isWeightedProduct:offer.priceBasis==="per-kg"||(!watchPackageSize(offer)&&/(?:€|eur)\s*\/\s*kg\b/i.test([offer.comparisonPrice,offer.price,offer.unit].join(" "))),ziiplyPricePendingWeight:offer.priceBasis==="per-kg"||(!watchPackageSize(offer)&&/(?:€|eur)\s*\/\s*kg\b/i.test([offer.comparisonPrice,offer.price,offer.unit].join(" "))),comparisonPriceText:offer.comparisonPrice,priceBasis:offer.priceBasis});if(added)setWatchNotice("Tarjous lisätty ostoskoriin.");}} className="mt-2 mr-2 rounded-lg border border-[#174c35] bg-[#174c35] px-3 py-2 text-sm font-bold text-white">Lisää ostoskoriin</button>}
+                  <div className="mt-2 flex items-start gap-3">{offer.imageUrl&&<img src={offer.imageUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain" onError={event=>{event.currentTarget.style.display="none";}}/>}<div className="min-w-0 flex-1"><h4 className="text-base font-black text-[#174c35]">{offer.title}</h4>{watchPackageSize(offer)&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{watchPackageSize(offer)}</div>}{offer.comparisonPrice&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{offer.comparisonPrice}</div>}</div></div>
+                  <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{offer.price.includes("€") ? offer.price : offer.price.replace(".", ",") + " €"}{offer.priceBasis === "per-kg" && !offer.price.includes("/kg") ? "/kg" : ""}</strong>}</div>
+                  {onAddWatchOfferToCart&&<button type="button" onClick={() => {
+                    const pricing = watchCartPrice(offer);
+                    if (!pricing) {
+                      setWatchNotice("Tarjouksella ei ole kelvollista hintaa.");
+                      return;
+                    }
+                    const added = onAddWatchOfferToCart({
+                      name: offer.title, title: offer.title, price: pricing.price, priceAmountUnit: "eur",
+                      storeName: watchStoreLabel(offer.store, offer.chain), source: offer.source, imageUrl: offer.imageUrl,
+                      packageSize: watchPackageSize(offer), chain: offer.chain, isWeightedProduct: pricing.weighted,
+                      ziiplyPricePendingWeight: pricing.weighted, estimatedWeightKg: pricing.estimatedWeightKg,
+                    });
+                    if (added) setWatchNotice("Tarjous lisätty ostoskoriin.");
+                  }} className="mt-2 mr-2 rounded-lg border border-[#174c35] bg-[#174c35] px-3 py-2 text-sm font-bold text-white">Lisää ostoskoriin</button>}
                   <button type="button" onClick={()=>void shareWatchOffer(offer)} className="mt-2 rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-sm font-bold text-[#174c35]">Jaa / lähetä tarjous</button>
                 </article>)}
               </div>

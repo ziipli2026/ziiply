@@ -1,7 +1,7 @@
 "use client";
 import { gostaWatchUrl } from "./gostaWatchLocation";
 import { fetchSharedGostaWatch } from "./gostaWatchSharedRequest";
-import { matchesGostaWatch } from "./gostaWatchMatch";
+import { mapWatchOffers, readWatchResults, saveWatchResults, watchResultsChanged } from "./gostaWatchResults";
 
 import React from "react";
 import { searchZiiplyGostaOffersV146 } from "../offerSearch/ziiplyOfferSearchCore";
@@ -39,18 +39,11 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
   const watchKey=watchTerms.map(q=>q.trim().toLocaleLowerCase("fi")).join("|");
   React.useEffect(()=>{
     const readShared=()=>{
-      try{
-        const cached=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null");
-        if(cached?.key===watchKey&&Array.isArray(cached.offers)&&Number.isFinite(cached.at)){
-          setWatchCount(cached.offers.length);
-          return Number(cached.at)||0;
-        }
-      }catch{}
-      return 0;
+      const snapshot = readWatchResults();
+      setWatchCount(snapshot?.offers.length ?? null);
+      return snapshot?.key === watchKey && snapshot.current && !snapshot.partial ? snapshot.at : 0;
     };
     if(!watchKey){setWatchCount(null);return;}
-    // A full browser reload starts with a hidden bag. A later background
-    // refresh in this mounted session must not clear already visible offers.
     const cachedAt=readShared();
     let lastScan=cachedAt;
     let cancelled=false;
@@ -61,19 +54,16 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
       if(lastScan&&Date.now()-lastScan<20*1000)return;
       running=true;
       setWatchScanning(true);
+      const started = Date.now();
       try{
         const terms=watchKey.split("|");
         const {response,data}=await fetchSharedGostaWatch(await gostaWatchUrl(terms));
         if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
         const offers=Array.isArray(data.results)?data.results:[];
         if(!cancelled){
-          if(!data.partial) setWatchCount(offers.length);
-          else if(offers.length>0) setWatchCount(current => current===null ? offers.length : Math.max(current,offers.length));
-          lastScan=Date.now();
-          if(!data.partial){
-            const cached={key:watchKey,offers:offers.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((query:string)=>({query:String(query),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.sourceType||offer.chain||"")}))),at:lastScan,debug:"Tarkistettu "+new Date().toLocaleTimeString("fi-FI")};
-            try{window.localStorage.setItem("ziiply-gosta-watch-results-v1",JSON.stringify(cached));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}
-          }
+          lastScan = Date.now();
+          saveWatchResults(watchKey, mapWatchOffers(offers, terms), Boolean(data.partial), started);
+          readShared();
         }
       }catch{/* Preserve confirmed results when refresh fails. */
         if(!cancelled)readShared();}
@@ -82,11 +72,11 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     const timer=window.setTimeout(()=>{void scan();},300);
     const onResume=()=>{sync();if(Date.now()-lastScan>5*60*1000)void scan();};
     const interval=window.setInterval(onResume,60*1000);
-    window.addEventListener("ziiply-gosta-watch-results-changed",sync);
+    window.addEventListener(watchResultsChanged,sync);
     window.addEventListener("storage",sync);
     window.addEventListener("focus",onResume);
     document.addEventListener("visibilitychange",onResume);
-    return()=>{cancelled=true;window.clearTimeout(timer);window.clearInterval(interval);window.removeEventListener("ziiply-gosta-watch-results-changed",sync);window.removeEventListener("storage",sync);window.removeEventListener("focus",onResume);document.removeEventListener("visibilitychange",onResume);};
+    return()=>{cancelled=true;window.clearTimeout(timer);window.clearInterval(interval);window.removeEventListener(watchResultsChanged,sync);window.removeEventListener("storage",sync);window.removeEventListener("focus",onResume);document.removeEventListener("visibilitychange",onResume);};
   },[watchKey,watchRevision]);
   return (
     <main

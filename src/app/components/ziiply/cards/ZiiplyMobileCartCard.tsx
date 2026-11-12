@@ -232,7 +232,7 @@ function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
   if (isPendingWeightPriceV794(item)) return 0;
   const normalizeTotalPrice = (value: number) => {
     if (!Number.isFinite(value)) return 0;
-    return Math.abs(value) > 20 ? value / 100 : value;
+    return item.priceAmountUnit !== "eur" && Math.abs(value) > 20 ? value / 100 : value;
   };
 
   // A confirmed scale row price must override the original €/kg quote.
@@ -794,9 +794,9 @@ export default function ZiiplyMobileCartCard({
                     : pendingWeightV794 ? 0 : item.price;
                 const stickerRegularPrice = Number((item as any).ziiplyRegularPrice);
                 const hasStickerDiscount = Number((item as any).ziiplyDiscountPercent) > 0 && getNumericPrice(stickerRegularPrice) > getNumericPrice(rowPriceInputV802) && !pendingWeightV794;
-                const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(rowPriceInputV802);
+                const numericRowPriceV792 = pendingWeightV794 ? 0 : item.priceAmountUnit === "eur" ? Number(rowPriceInputV802) : getNumericPrice(rowPriceInputV802);
                 const price = numericRowPriceV792 > 0
-                  ? ((item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) && !pendingWeightV794
+                  ? (item.priceAmountUnit === "eur" || ((item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) && !pendingWeightV794)
                     ? Number(rowPriceInputV802).toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
                     : normalizePrice(rowPriceInputV802))
                   : "";
@@ -810,6 +810,12 @@ export default function ZiiplyMobileCartCard({
                         maximumFractionDigits: 2,
                       }) + " €"
                     : "";
+                const estimate = pendingWeightV794 && Number(item.ziiplyEstimatedWeightKg) > 0
+                  ? Math.round(Number(item.ziiplyEstimatedWeightKg) * Number(item.comparisonPrice) * 100) / 100
+                  : 0;
+                const estimatedPrice = estimate > 0
+                  ? estimate.toLocaleString("fi-FI", { style: "currency", currency: "EUR" })
+                  : "";
                 const checked = Boolean(item.checked);
                 const quantity = Number(item.quantity ?? item.amount ?? 1);
                 const safeQuantity = Number.isFinite(quantity) ? Math.max(1, quantity) : 1;
@@ -867,7 +873,7 @@ export default function ZiiplyMobileCartCard({
                           : "text-[0.84rem] text-[#3f321f]",
                       )}
                       style={{ fontFamily: serifFont }}
-                      aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : `Hinta ${price}`}
+                      aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : pendingWeightV794 ? [pendingWeightUnitPriceV796 && pendingWeightUnitPriceV796 + "/kg", estimatedPrice ? "Arvio " + estimatedPrice : "Punnitse"].filter(Boolean).join(", ") : `Hinta ${price}`}
                     >
                       {isAlcoholCartItemV8(item)
                         ? "kassa"
@@ -878,7 +884,7 @@ export default function ZiiplyMobileCartCard({
                                 {pendingWeightUnitPriceV796 ? `${pendingWeightUnitPriceV796}/kg` : "—"}
                               </span>
                               <span className="mt-1 text-[0.60rem] font-black uppercase tracking-[-0.01em] text-[#b42318]">
-                                Punnitse
+                                {estimatedPrice ? "n. " + estimatedPrice : "Punnitse"}
                               </span>
                             </div>
                           )

@@ -7586,6 +7586,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       id: item.id,
       name: fixText(item.name),
       price: item.price,
+      priceAmountUnit: item.priceAmountUnit,
+      ziiplyEstimatedWeightKg: item.ziiplyEstimatedWeightKg,
       image: item.image,
       chain: item.chain,
       storeName: item.storeName,
@@ -7701,6 +7703,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           // Older saved baskets may carry an estimated or €/kg price for an
           // unweighed item. Restore those items as pending, never payable.
           const safeRestoredItems = restoredItems.map((item: any) => {
+            // Repair the previously saved Citymarket row whose €/kg was stored as a package price.
+            if (String(item?.id).startsWith("gosta-watch-") && item.source === "offer" &&
+                /^K-Citymarket/i.test(String(item.storeName)) && Number(item.price) === 29.95 &&
+                /^savustettu kirjolohifilee n\. 700 g$/i.test(String(item.name))) {
+              return {
+                ...item, price: 0, quantity: 1, priceAmountUnit: "eur", ziiplyEstimatedWeightKg: 0.7,
+                ziiplyPricePendingWeight: true, ziiplyWeightOffer: true,
+                product: {
+                  ...item.product, name: item.name, price: 0, ziiplyPricePendingWeight: true,
+                  ziiplyWeightLabel: true, ziiplyWeightOffer: true, comparisonPrice: 29.95, comparisonPriceUnit: "kg",
+                },
+              };
+            }
             const pending = Boolean(item?.ziiplyPricePendingWeight || item?.product?.ziiplyPricePendingWeight);
             if (!pending) return item;
             const finalValue = item?.ziiplyWeightFinalPrice ?? item?.product?.ziiplyWeightFinalPrice;
@@ -23747,20 +23762,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       : /^(?:k-|k\b)/i.test(offer.chain || storeName) ? "K"
                       : /^(?:tokmanni|spar)/i.test(offer.chain || storeName) ? "TOKMANNI"
                       : undefined;
-                    const next: CartItem[] = existingIndex >= 0
-                      ? current.map((item, index) => index === existingIndex
-                        ? {...item, quantity: Number(item.quantity || 1) + 1}
-                        : item)
-                      : [...current, {
-                          id: "gosta-watch-" + Date.now() + "-" + current.length,
-                          name,
-                          price,
-                          image: offer.imageUrl || undefined,
-                          storeName,
-                          chain: chain as CartItem["chain"],
-                          quantity: 1,
-                          source: "offer" as const,
-                        }];
+                    const weighted = offer.ziiplyPricePendingWeight === true;
+                    const existing = current[existingIndex];
+                    if (weighted && (existing?.product as any)?.ziiplyPricePendingWeight) {
+                      showCartToast("Punnittava tuote on jo ostoskorissa");
+                      return false;
+                    }
+                    const item: CartItem = {
+                      id: existing?.id || "gosta-watch-" + Date.now() + "-" + current.length,
+                      name,
+                      price: weighted ? 0 : price,
+                      priceAmountUnit: "eur",
+                      image: offer.imageUrl || undefined,
+                      storeName,
+                      chain: chain as CartItem["chain"],
+                      quantity: weighted ? 1 : Number(existing?.quantity || 0) + 1,
+                      source: "offer",
+                      ...(weighted ? {
+                        ziiplyEstimatedWeightKg: offer.estimatedWeightKg,
+                        product: {
+                          name, price: 0, ziiplyWeightLabel: true, ziiplyWeightOffer: true,
+                          ziiplyPricePendingWeight: true, comparisonPrice: price, comparisonPriceUnit: "kg",
+                        } as unknown as Product,
+                      } : {}),
+                    };
+                    const next = existingIndex >= 0
+                      ? current.map((row, index) => index === existingIndex ? item : row)
+                      : [...current, item];
                     cartRefV124.current = next;
                     setCart(next);
                     persistCartImmediately(next);

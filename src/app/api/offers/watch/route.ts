@@ -330,7 +330,30 @@ async function runWatch(request: Request) {
     }
     const partial=selectedStoreCount!==6||nearbyDiagnostics.length!==6||nearbyDiagnostics.some(item=>Boolean(item.error));
     results.sort((a,b)=>priceNumber(a)-priceNumber(b));
-    const publishedResults=results;
+    // Carry the selling unit from the provider through the desktop card adapter.
+    // Alternate feeds for the same Citymarket row may omit its selling unit.
+    const weightedCitymarket = new Set<string>();
+    const citymarketKey = (offer: Record<string, unknown>) =>
+      [offer.storeName, norm(offer.title), priceNumber(offer)].join("|");
+    const publishedResults: Record<string, unknown>[] = results.map(offer => {
+      const source = (offer.__sourceOfferSearchResult ?? offer) as Record<string, unknown>;
+      const basis = String(source.priceBasis || offer.priceBasis || "");
+      const weighted = /^per[-_]kg$/i.test(basis) || String(source.offerUnit).toUpperCase() === "KG" ||
+        source.isWeightedProduct === true || /(?:€|eur)\s*\/\s*kg\b/i.test(String(source.priceText || ""));
+      if (weighted && /^K-Citymarket/i.test(String(offer.storeName))) weightedCitymarket.add(citymarketKey(offer));
+      const comparison = String(offer.comparisonPriceText || source.comparisonPriceText || "");
+      const unit = String(source.comparisonUnit || source.unit || offer.comparisonUnit || "").toLowerCase();
+      const rate = Number(source.unitPrice ?? offer.comparisonPrice);
+      return {
+        ...offer,
+        priceBasis: weighted ? "per-kg" : basis,
+        validUntil: String(source.validUntil || ""),
+        comparisonPriceText: comparison || (rate > 0 && /^(kg|l)$/.test(unit)
+          ? rate.toFixed(2).replace(".", ",") + " €/" + unit : ""),
+      };
+    }).map(offer => !offer.priceBasis && weightedCitymarket.has(citymarketKey(offer))
+      ? { ...offer, priceBasis: "per-kg" } : offer);
+
     const matchesByQuery=Object.fromEntries(queries.map(q=>[q,publishedResults.filter(r=>(r.watchQueries as string[]).includes(q)).length]));
     return NextResponse.json({ok:true,partial, warning:partial?"Osa kaupoista jäi tarkistamatta; näytetään vain onnistuneiden kauppojen vahvistetut tarjoukset.":undefined,queries,results:publishedResults,diagnostic:{partial,expectedStores:6,selectedStores:selectedStoreCount,completedStores:nearbyDiagnostics.length,matchesByQuery,publications:rows.length,inspected,matched:publishedResults.length,sources,nearby:nearbyDiagnostics,durationMs:Date.now()-started}},
       {headers:{"Cache-Control":"no-store"}});
