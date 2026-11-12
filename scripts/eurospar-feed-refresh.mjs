@@ -77,7 +77,7 @@ const uniqueNames=new Set(parsedOffers.map(x=>x.name));
 const validityCurrentOrFuture=Boolean(validity?.to && validity.to>=today);
 const previousIssue=String(oldFeed?.issue??"");
 const previousOfferCount=Array.isArray(oldFeed?.offers)?oldFeed.offers.length:0;
-const sameIssue=Boolean(issue&&previousIssue&&issue===previousIssue);
+// Publisher issue numbers may be reused across different weekly offer periods.\n// Treat a publication as the same edition only when both issue and validity match.\nconst sameIssue=Boolean(issue&&previousIssue&&issue===previousIssue\n  && validity?.from===oldFeed?.validity?.from\n  && validity?.to===oldFeed?.validity?.to);
 const minimumOfferCount=sameIssue
   ? previousOfferCount
   : previousOfferCount>0
@@ -119,7 +119,7 @@ const candidate={
   validation:{
     previousIssue,
     previousOfferCount,
-    sameIssue,
+    sameIssue,\n    samePublication:sameIssue,
     minimumOfferCount,
     parsedOfferCount:parsedOffers.length,
     coverageHealthy,
