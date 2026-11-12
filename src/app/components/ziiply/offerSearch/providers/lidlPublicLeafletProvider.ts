@@ -574,7 +574,16 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     // Ignore quantity-only markers (e.g. 2 kpl) and ambiguous multi-size pages.
     const visibleText = decode(result.value.html.replace(new RegExp('<script[^>]*>[\\s\\S]*?</script>', 'gi'), ' ').replace(new RegExp('<style[^>]*>[\\s\\S]*?</style>', 'gi'), ' ').replace(new RegExp('<[^>]+>', 'g'), ' '));
     const physicalSizes = [...new Set([...visibleText.matchAll(new RegExp('\\b\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l)\\b', 'gi'))].map(match => match[0].replace(new RegExp('\\s+', 'g'), ' ').toLowerCase()))];
-    const productTitle = decode(metaTitle).replace(new RegExp('\\s*-\\s*Lidl\\s*
+    const productTitle = decode(metaTitle).split(' - Lidl')[0];
+    const nameParts = productTitle.split('|').map(part => normalize(part)).filter(Boolean);
+    if (physicalSizes.length === 1 && nameParts.length) {
+      for (const key of [nameParts.join(' '), nameParts[nameParts.length - 1]]) {
+        if (!key) continue;
+        if (!detailSizes.has(key)) detailSizes.set(key, new Set());
+        detailSizes.get(key)!.add(physicalSizes[0]);
+      }
+    }
+    const ownSize = lidlPackageSize(decode(metaTitle), decode(metaDescription));
     if (ownSize && metaTitle) {
       const key = normalize(metaTitle.replace(/\s*[|–-]\s*Lidl.*$/i, ""));
       if (key) {
