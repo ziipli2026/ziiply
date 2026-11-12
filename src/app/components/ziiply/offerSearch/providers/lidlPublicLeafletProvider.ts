@@ -570,6 +570,72 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
       const near = needle ? normalize(visible).indexOf(needle) : -1;
       productDetailSamples.push({ url: result.value.url, title: decode(metaTitle).slice(0, 120), description: decode(metaDescription).slice(0, 180), visibleMeasures: measures, nearbyText: near >= 0 ? normalize(visible).slice(near, near + 260) : "" });
     }
+    // Only accept a single physical size from the product's own detail page.
+    // Ignore quantity-only markers (e.g. 2 kpl) and ambiguous multi-size pages.
+    const visibleText = decode(result.value.html.replace(new RegExp('<script[^>]*>[\\s\\S]*?</script>', 'gi'), ' ').replace(new RegExp('<style[^>]*>[\\s\\S]*?</style>', 'gi'), ' ').replace(new RegExp('<[^>]+>', 'g'), ' '));
+    const physicalSizes = [...new Set([...visibleText.matchAll(new RegExp('\\b\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l)\\b', 'gi'))].map(match => match[0].replace(new RegExp('\\s+', 'g'), ' ').toLowerCase()))];
+    const productTitle = decode(metaTitle).replace(new RegExp('\\s*-\\s*Lidl\\s*
+    if (ownSize && metaTitle) {
+      const key = normalize(metaTitle.replace(/\s*[|–-]\s*Lidl.*$/i, ""));
+      if (key) {
+        productDetailMetaSizes++;
+        if (!detailSizes.has(key)) detailSizes.set(key, new Set());
+        detailSizes.get(key)!.add(ownSize);
+      }
+    }
+    if (/application\/ld\+json/i.test(result.value.html)) productDetailJsonLdPages++;
+    if (/data-grid-data=/i.test(result.value.html)) productDetailGridPages++;
+    if (LIDL_PACKAGE_MEASURE.test(decode(result.value.html.replace(/<script\b[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ")))) productDetailVisibleSizePages++;
+    const detailRows = parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category));
+    productDetailParsedRows += detailRows.length;
+    productDetailPackageRows += detailRows.filter(row => Boolean(row.packageSize || row.packageText)).length;
+    parsed.push(...detailRows);
+  }
+
+  let enrichedFromDetail = 0;
+  const offerNameKeys = new Set(parsed.map(row => normalize(row.name)));
+  const detailNameMatches = [...detailSizes.keys()].filter(key => offerNameKeys.has(key)).length;
+  const detailNameSamples = [...detailSizes.keys()].slice(0, 8);
+  const offerNameSamples = [...offerNameKeys].slice(0, 8);
+  const byKey = new Map<string, LidlPublicOffer>();
+  for (const originalRow of parsed) {
+    const sizes = detailSizes.get(normalize(originalRow.name));
+    const matchedSize = sizes?.size === 1 ? [...sizes][0] : "";
+    const row = matchedSize && !originalRow.packageSize
+      ? { ...originalRow, packageSize: matchedSize, packageText: originalRow.packageText || matchedSize }
+      : originalRow;
+    if (row !== originalRow) enrichedFromDetail++;
+
+    const state = publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date);
+    if (state === "expired" || state === "invalid" || (!options.includeUpcoming && state !== "current")) continue;
+    const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
+    const old = byKey.get(key);
+    if (!old) byKey.set(key, row);
+    else {
+      const preferred = row.imageUrl && !old.imageUrl ? row : old;
+      const other = preferred === row ? old : row;
+      byKey.set(key, {
+        ...preferred,
+        packageSize: preferred.packageSize || other.packageSize || "",
+        packageText: preferred.packageText || other.packageText || "",
+        comparisonPriceText: preferred.comparisonPriceText || other.comparisonPriceText || "",
+      });
+    }
+  }
+  return {
+    offers: [...byKey.values()],
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, prioritizedMatchingPaths, strongProductPathMatches, productPathSamples, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, productDetailMetaSizes, productDetailSamples, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
+  };
+}
+, 'i'), '');
+    const nameParts = productTitle.split('|').map(part => normalize(part)).filter(Boolean);
+    if (physicalSizes.length === 1 && nameParts.length) {
+      for (const key of [nameParts.join(' '), nameParts[nameParts.length - 1]]) {
+        if (!key) continue;
+        if (!detailSizes.has(key)) detailSizes.set(key, new Set());
+        detailSizes.get(key)!.add(physicalSizes[0]);
+      }
+    }
     const ownSize = lidlPackageSize(decode(metaTitle), decode(metaDescription));
     if (ownSize && metaTitle) {
       const key = normalize(metaTitle.replace(/\s*[|–-]\s*Lidl.*$/i, ""));
