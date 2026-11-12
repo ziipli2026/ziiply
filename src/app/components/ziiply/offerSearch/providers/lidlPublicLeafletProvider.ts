@@ -534,7 +534,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     // Extract package metadata independently of campaign price/validity. Only
     // JSON-LD Product names can be used to match an offer; never borrow an
     // arbitrary weight from the page (it may belong to another product).
-    for (const match of result.value.html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)) {
+    for (const match of result.value.html.matchAll(/<script\b[^>]*type=["\x27]application\/ld\+json["\x27][^>]*>([\s\S]*?)<\/script>/gi)) {
       try {
         const products: AnyRecord[] = [];
         visitProducts(JSON.parse(decode(match[1])), products);
