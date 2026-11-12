@@ -47,11 +47,11 @@
     },
     {
       "path": "/api/cron/future-publications",
-      "schedule": "35 2,8,14,20 * * *"
+      "schedule": "35 12 * * 3"
     },
     {
       "path": "/api/cron/chain-parser-health",
-      "schedule": "50 3,9,15,21 * * *"
+      "schedule": "50 6 * * 4"
     },
     {
       "path": "/api/cron/fuel-photo-learning",
