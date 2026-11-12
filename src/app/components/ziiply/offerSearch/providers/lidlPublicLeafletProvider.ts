@@ -450,8 +450,15 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
     ].filter(row => GROCERY_CATEGORIES.has(row.category)));
   }
 
+  let enrichedFromDetail = 0;
   const byKey = new Map<string, LidlPublicOffer>();
-  for (const row of parsed) {
+  for (const originalRow of parsed) {
+    const sizes = detailSizes.get(normalize(originalRow.name));
+    const matchedSize = sizes?.size === 1 ? [...sizes][0] : "";
+    const row = matchedSize && !originalRow.packageSize
+      ? { ...originalRow, packageSize: matchedSize, packageText: originalRow.packageText || matchedSize }
+      : originalRow;
+    if (row !== originalRow) enrichedFromDetail++;
     if (publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date) !== "current") continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
@@ -520,8 +527,27 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   let productDetailJsonLdPages = 0;
   let productDetailGridPages = 0;
   let productDetailVisibleSizePages = 0;
+  const detailSizes = new Map<string, Set<string>>();
+  let productDetailNamedSizes = 0;
   for (const result of productPages) {
     if (result.status === "rejected") { failedProductPages++; continue; }
+    // Extract package metadata independently of campaign price/validity. Only
+    // JSON-LD Product names can be used to match an offer; never borrow an
+    // arbitrary weight from the page (it may belong to another product).
+    for (const match of result.value.html.matchAll(/<script\\b[^>]*type=["']application\\/ld\\+json["'][^>]*>([\\s\\S]*?)<\\/script>/gi)) {
+      try {
+        const products: AnyRecord[] = [];
+        visitProducts(JSON.parse(decode(match[1])), products);
+        for (const product of products) {
+          const key = normalize(product.name);
+          const size = lidlPackageSize(product.packageSize, product.packSize, product.keyfacts?.packageSize, product.keyfacts?.quantity, product.keyfacts?.weight, product.keyfacts?.netWeight, product.size, product.weight, product.description, product.name);
+          if (!key || !size) continue;
+          productDetailNamedSizes++;
+          if (!detailSizes.has(key)) detailSizes.set(key, new Set());
+          detailSizes.get(key)!.add(size);
+        }
+      } catch { /* unrelated malformed JSON-LD */ }
+    }
     if (/application\/ld\+json/i.test(result.value.html)) productDetailJsonLdPages++;
     if (/data-grid-data=/i.test(result.value.html)) productDetailGridPages++;
     if (LIDL_PACKAGE_MEASURE.test(decode(result.value.html.replace(/<script\b[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ")))) productDetailVisibleSizePages++;
@@ -551,6 +577,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
