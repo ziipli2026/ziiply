@@ -371,13 +371,14 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
       }
       return "";
     })();
+    const packageSize = lidlPackageSize(product.packageSize, product.packSize, product.packageText, product.keyfacts?.packageSize, product.keyfacts?.quantity, product.keyfacts?.netWeight, product.size, product.weight, product.description, offer.description, name);
     output.push({
       id: "lidl-fi-campaign-" + normalize([brandName, name, price, validFrom, validUntil].join("-")),
       source: "lidl-fi-public", chain: "Lidl",
       title: name, name, productName: name, brandName, price, priceText: `${price.toFixed(2).replace(".", ",")} €`, offerPrice: price,
       originalPrice: money(product.originalPrice ?? offer.originalPrice),
       normalPrice: money(product.normalPrice ?? offer.normalPrice ?? product.originalPrice ?? offer.originalPrice),
-      priceBasis: "unit", isWeightedProduct: false, requiresLidlPlus: false, eligibility: "open",
+      priceBasis: "unit", packageSize, packageText: packageSize, isWeightedProduct: false, requiresLidlPlus: false, eligibility: "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
       rawText: [brandName, name, product.description, category].filter(Boolean).join(" "), sourceUrl, hasConcretePrice: true, ean: "",
