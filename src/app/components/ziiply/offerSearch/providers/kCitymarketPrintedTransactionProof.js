@@ -164,7 +164,18 @@ export function verifyPrintedTransaction(row,rawBoxes){
      exactUnit !== null && ownRates.length === 1 && sameCardGlyph &&
      quantity <= 5 && rateUnit) {
    const expectedTotal = Number((pk.min * exactUnit * quantity).toFixed(2));
-   if (expectedTotal >= 0.05 && expectedTotal < 1000 &&
+   // A complete large-font euro/cents pair and its printed sale unit are
+   // stronger evidence than a quantity inferred from the unit-rate label.
+   // Do not replace that transaction when the rate arithmetic differs.
+   const [euroGlyph,centsGlyph]=card.parts||[];
+   const explicitlyPrintedSingle=quantity===1&&card.parts?.length===2&&
+     card.unit&&Number(card.score)<=.025&&
+     Number(euroGlyph?.height)>=.08&&Number(centsGlyph?.height)>=.035&&
+     Number(centsGlyph?.height)<Number(euroGlyph?.height)&&
+     /^\\d{1,2}$/.test(String(euroGlyph?.text))&&
+     /^\\d{2}$/.test(String(centsGlyph?.text))&&
+     Math.abs(Number(card.value)-(Number(euroGlyph.text)+Number(centsGlyph.text)/100))<.005;
+   if (!explicitlyPrintedSingle && expectedTotal >= 0.05 && expectedTotal < 1000 &&
        Math.abs(Number(card.value) - expectedTotal) > 0.04) {
      proof = {value:expectedTotal,quantity:quantity > 1 ? quantity : null,
        unit:quantity > 1 ? (card.unit || current?.unit || null) : null,
