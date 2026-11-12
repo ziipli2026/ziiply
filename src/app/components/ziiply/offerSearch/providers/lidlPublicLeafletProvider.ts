@@ -610,9 +610,16 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   for (const originalRow of parsed) {
     const sizes = detailSizes.get(normalize(originalRow.name));
     const matchedSize = sizes?.size === 1 ? [...sizes][0] : "";
-    const row = matchedSize && !originalRow.packageSize
+    const enrichedRow = matchedSize && !originalRow.packageSize
       ? { ...originalRow, packageSize: matchedSize, packageText: originalRow.packageText || matchedSize }
       : originalRow;
+    // A 24-pack contains 24 units of the displayed bottle/can size.
+    // Preserve packageSize as the individual unit and show the full pack in packageText.
+    const packMatch = enrichedRow.name.match(/\\b(\\d{1,2})\\s*[- ]?pack\\b/i);
+    const packCount = packMatch ? Number(packMatch[1]) : 0;
+    const row = packCount > 1 && packCount <= 48 && enrichedRow.packageSize && !/^\\d+\\s*[x×]/i.test(enrichedRow.packageText || "")
+      ? { ...enrichedRow, packageText: `${packCount} × ${enrichedRow.packageSize}` }
+      : enrichedRow;
     if (row !== originalRow) enrichedFromDetail++;
 
     const state = publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date);
