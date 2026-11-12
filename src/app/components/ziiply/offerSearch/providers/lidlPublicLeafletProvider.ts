@@ -450,15 +450,8 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
     ].filter(row => GROCERY_CATEGORIES.has(row.category)));
   }
 
-  let enrichedFromDetail = 0;
   const byKey = new Map<string, LidlPublicOffer>();
-  for (const originalRow of parsed) {
-    const sizes = detailSizes.get(normalize(originalRow.name));
-    const matchedSize = sizes?.size === 1 ? [...sizes][0] : "";
-    const row = matchedSize && !originalRow.packageSize
-      ? { ...originalRow, packageSize: matchedSize, packageText: originalRow.packageText || matchedSize }
-      : originalRow;
-    if (row !== originalRow) enrichedFromDetail++;
+  for (const row of parsed) {
     if (publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date) !== "current") continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
@@ -557,8 +550,16 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     parsed.push(...detailRows);
   }
 
+  let enrichedFromDetail = 0;
   const byKey = new Map<string, LidlPublicOffer>();
-  for (const row of parsed) {
+  for (const originalRow of parsed) {
+    const sizes = detailSizes.get(normalize(originalRow.name));
+    const matchedSize = sizes?.size === 1 ? [...sizes][0] : "";
+    const row = matchedSize && !originalRow.packageSize
+      ? { ...originalRow, packageSize: matchedSize, packageText: originalRow.packageText || matchedSize }
+      : originalRow;
+    if (row !== originalRow) enrichedFromDetail++;
+
     const state = publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date);
     if (state === "expired" || state === "invalid" || (!options.includeUpcoming && state !== "current")) continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
