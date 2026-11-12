@@ -19,7 +19,7 @@ export type ZiiplyMobileAssistantPanelProps = {
   onChangeChain?: (chain: "s"|"k"|"lidl"|"tokmanni", enabled:boolean) => void;
   locationLabel?: string;
   onOpenStoreSettings?: () => void;
-  onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string;imageUrl?:string;packageSize?:string;chain?:string}) => boolean;
+  onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string;imageUrl?:string;packageSize?:string;chain?:string;isWeightedProduct?:boolean;ziiplyPricePendingWeight?:boolean;comparisonPriceText?:string;priceBasis?:string}) => boolean;
 };
 
 function watchStoreLabel(store: string, chain = ""): string {
