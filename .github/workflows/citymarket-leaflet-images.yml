@@ -10,7 +10,7 @@ on:
   push:
     # Run an isolated extraction audit when this recovery workflow changes.
     # Publishing remains guarded by github.ref == 'refs/heads/main'.
-    branches: [main, fix/citymarket-preflight-recovery-20261111]
+    branches: [main, fix/citymarket-preflight-recovery-20261111, fix/citymarket-46lv-active-quality-20261112]
     paths:
       - ".github/workflows/citymarket-leaflet-images.yml"
       - "scripts/citymarket/**"
