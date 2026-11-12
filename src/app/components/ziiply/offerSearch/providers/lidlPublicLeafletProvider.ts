@@ -55,6 +55,18 @@ const SEEDS = [
   "/h/paistopiste-leipaet-ja-leivonnaiset/h10096086",
 ];
 
+const LIDL_PACKAGE_MEASURE = /\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl|pkt|pss)\b/i;
+function lidlPackageSize(...values: unknown[]): string {
+  for (const value of values) {
+    if (value == null) continue;
+    const text = typeof value === "string" || typeof value === "number" ? String(value) : "";
+    if (!text || /(?:€|eur)\s*\/|\b(?:kg|l)\s*=\s*\d/i.test(text)) continue;
+    const match = text.match(LIDL_PACKAGE_MEASURE);
+    if (match) return match[0].replace(/\s+/g, " ").trim();
+  }
+  return "";
+}
+
 const HEADERS = {
   accept: "text/html,application/xhtml+xml",
   "accept-language": "fi-FI,fi;q=0.9",
@@ -150,7 +162,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     if (!name || price == null || !validFrom || !validUntil) continue;
     if (publicationState({ validFrom, validUntil }, date) === "invalid") continue;
     const baseText = String(product.price?.basePrice?.text || "");
-    const packageText = [product.packageSize, product.packSize, product.keyfacts?.packageSize, product.keyfacts?.quantity, name, baseText.split("|")[0]].map(value => { const text=String(value ?? ""); if (/(?:€|eur)\s*\/|\b(?:kg|l)\s*=\s*\d/i.test(text)) return ""; return text.match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || ""; }).find(Boolean) || "";
+    const packageText = lidlPackageSize(product.packageSize, product.packSize, product.keyfacts?.packageSize, product.keyfacts?.quantity, product.keyfacts?.weight, product.keyfacts?.netWeight, product.weight, product.size, product.description, name, baseText.split("|")[0]);
     const comparisonPriceText = baseText.match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "";
     const fullName = packageText && !normalize(name).includes(normalize(packageText)) ? `${name} ${packageText}` : name;
     const discountText = String(product.price?.discount?.discountText || "");
@@ -208,7 +220,7 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       const rawWindow = textIndex >= 0 ? normalize(pageText).slice(Math.max(0, textIndex - 100), textIndex + needle.length + 500) : normalize([product.description, offer.description].filter(Boolean).join(" "));
       const requiresLidlPlus = /lidl plus|lidlplus/.test(rawWindow);
       const limitedBatch = /\bera\b|erä/.test(rawWindow);
-      const packageSize = [product.size, product.weight, product.description, name].map(value => String(value ?? "").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "").find(Boolean) || "";
+      const packageSize = lidlPackageSize(product.packageSize, product.packSize, product.keyfacts?.packageSize, product.keyfacts?.quantity, product.keyfacts?.weight, product.keyfacts?.netWeight, product.size, product.weight, product.description, name);
       const comparisonPriceText = [offer.description, product.description].map(value => String(value ?? "").match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "").find(Boolean) || "";
       const quantity = Number(name.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
       const weighted = /(?:€|eur)\s*\/\s*kg|hinta\s*\/\s*kg|\birto\b/i.test([product.description, offer.description, rawWindow].join(" "));
