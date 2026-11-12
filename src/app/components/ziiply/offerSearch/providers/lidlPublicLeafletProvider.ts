@@ -515,9 +515,14 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   // preventing a site-wide crawl if Lidl changes navigation markup.
   const productPages = await Promise.allSettled([...productPaths].slice(0, 220).map(fetchHtml));
   let failedProductPages = 0;
+  let productDetailParsedRows = 0;
+  let productDetailPackageRows = 0;
   for (const result of productPages) {
     if (result.status === "rejected") { failedProductPages++; continue; }
-    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
+    const detailRows = parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category));
+    productDetailParsedRows += detailRows.length;
+    productDetailPackageRows += detailRows.filter(row => Boolean(row.packageSize || row.packageText)).length;
+    parsed.push(...detailRows);
   }
 
   const byKey = new Map<string, LidlPublicOffer>();
@@ -540,6 +545,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
