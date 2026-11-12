@@ -49,6 +49,7 @@ const SEEDS = [
   "/c/w5-siivotut-hinnat/",
   "/h/hedelmaet-ja-vihannekset/h10071012",
   "/h/lihat-ja-makkarat/h10071016",
+  "/h/lihat/h10095752",
   "/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
   "/h/kuivatuotteet/h10096095",
   "/h/valmisateriat/h10097147",

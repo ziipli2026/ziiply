@@ -1,6 +1,7 @@
 import { matchesGostaWatch } from "./gostaWatchMatch";
 
 const snapshotKey = "ziiply-gosta-watch-results-v1";
+const snapshotVersion = 3;
 export const watchResultsChanged = "ziiply-gosta-watch-results-changed";
 
 export type WatchOffer = {
@@ -53,7 +54,7 @@ export function readWatchResults() {
       return !date || date >= today;
     });
     return { key: String(snapshot.key || ""), offers, at: Number(snapshot.at) || 0,
-      current: snapshot.version === 2, partial: Boolean(snapshot.partial) };
+      current: snapshot.version === snapshotVersion, partial: Boolean(snapshot.partial) };
   } catch {
     return null;
   }
@@ -64,7 +65,7 @@ export function saveWatchResults(key: string, offers: WatchOffer[], partial: boo
   if (previous?.key === key && previous.current && previous.at > startedAt) return;
   if (partial && (!offers.length || (previous?.offers.length && !previous.partial && previous.current))) return;
   try {
-    window.localStorage.setItem(snapshotKey, JSON.stringify({ key, offers, partial, version: 2, at: Date.now() }));
+    window.localStorage.setItem(snapshotKey, JSON.stringify({ key, offers, partial, version: snapshotVersion, at: Date.now() }));
     window.dispatchEvent(new Event(watchResultsChanged));
   } catch {}
 }

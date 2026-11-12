@@ -681,7 +681,28 @@ export async function GET(request: Request) {
       // photographed/verified rows plus exact first-party Lidl data. Do not split
       // this by transport source: some real leaflet rows are supplied by Lidl Plus.
       // The previous source-based split incorrectly cut the leaflet from 25 to 13.
-      const combined = dedupe([...imageEnriched, ...staged, ...directPublicLeaflet]);
+      // The staged row can win dedupe even when it was saved before packaging
+      // metadata was parsed. Fill it from the exact current Lidl offer first.
+      const lidlPublicationKey = (offer: UnknownRecord) => [
+        firstString(offer.id),
+        Number(offer.offerPrice ?? offer.price),
+        firstString(offer.validFrom).slice(0, 10),
+        firstString(offer.validUntil).slice(0, 10),
+      ].join("|");
+      const currentPackaging = new Map(directPublicLeaflet
+        .filter(offer => firstString(offer.id) && firstString(offer.packageSize, offer.comparisonPriceText))
+        .map(offer => [lidlPublicationKey(offer), offer]));
+      const stagedWithPackaging = staged.map(offer => {
+        const current = currentPackaging.get(lidlPublicationKey(offer));
+        if (!current) return offer;
+        return {
+          ...offer,
+          packageSize: firstString(offer.packageSize, current.packageSize),
+          packageText: firstString(offer.packageText, current.packageText),
+          comparisonPriceText: firstString(offer.comparisonPriceText, current.comparisonPriceText),
+        };
+      });
+      const combined = dedupe([...imageEnriched, ...stagedWithPackaging, ...directPublicLeaflet]);
 
       // Lidl has two Gösta tabs just like Prisma/Citymarket:
       // 1) "Tarjoukset" = the dated paper/public leaflet publication
@@ -830,6 +851,7 @@ export async function GET(request: Request) {
             structuredAndManual: enriched.length,
             structuredFeedError: structuredFeedError || null,
             staged: staged.length,
+            currentPackaging: currentPackaging.size,
             combined: masterCombined.length,
             publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
             campaigns: masterCombined.filter((offer) => offer.campaignType === "campaign").length,
