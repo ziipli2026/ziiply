@@ -8,14 +8,18 @@ const { chromium } = require("playwright");
  await page.waitForTimeout(4000);
  await page.evaluate(() => {
   localStorage.setItem("ziiply-gosta-offer-watches-v1", JSON.stringify(["kirjolohi"]));
-  localStorage.setItem("ziiply-gosta-watch-results-v1", JSON.stringify({key:"kirjolohi",offers:[{query:"kirjolohi",title:"Kirjolohi tuore",price:"9,99",store:"Lidl Hyvinkää",source:"lidl-fi-public",chain:"Lidl",priceBasis:"per-kg",comparisonPrice:"9,99 €/kg",imageUrl:"/storelogos/lidl.png",validUntil:"2099-12-31"}]}));
+  localStorage.setItem("ziiply-gosta-watch-results-v1", JSON.stringify({key:"kirjolohi",offers:[{query:"kirjolohi",title:"Kirjolohi tuore",price:"9,99",store:"Lidl Hyvinkää",source:"lidl-fi-public",chain:"Lidl",priceBasis:"per-kg",comparisonPrice:"9,99 €/kg",imageUrl:"/storelogos/lidl.png",validUntil:"2099-12-31"}],at:Date.now(),debug:"Browser fixture"}));
  });
  await page.reload({waitUntil:"domcontentloaded"});
  await page.getByRole("button",{name:/Gösta/i}).first().click({timeout:15000});
+ await page.getByRole("heading",{name:"Göstan tarjoushaku"}).waitFor({timeout:15000});
  await page.getByText("Kirjolohi tuore",{exact:true}).first().waitFor({timeout:15000});
  const image=page.locator("article").filter({hasText:"Kirjolohi tuore"}).locator("img").first();
- if(await image.count()){await image.waitFor({state:"visible"});if(!await image.evaluate(i=>i.complete&&i.naturalWidth>0))throw new Error("Offer image did not load");}
- await page.getByRole("button",{name:"Lisää ostoskoriin"}).first().click({timeout:15000});
+ if(await image.count()!==1)throw new Error("Watch offer image missing");
+ await image.scrollIntoViewIfNeeded();
+ await image.waitFor({state:"visible"});
+ if(!await image.evaluate(i=>i.complete&&i.naturalWidth>0))throw new Error("Watch offer image did not load");
+ await page.locator("article").filter({hasText:"Kirjolohi tuore"}).getByRole("button",{name:"Lisää ostoskoriin"}).click({timeout:15000});
  await page.getByText("Tarjous lisätty ostoskoriin.").first().waitFor({timeout:10000});
  console.log("GOSTA_CART_BROWSER_TEST_PASS: weighted offer added and offer image loaded");
 
