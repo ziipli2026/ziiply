@@ -97,6 +97,9 @@ export function category(t:string){
   if(/(?:crispy fish)/.test(joined)) return "Kala";
   if(/(?:nugget|mozzarellatiku|cheddar.jalapeno)/.test(joined)) return "Pakasteet";
   if(/(?:kasvovoite|kasvovoide)/.test(joined)) return "Hygienia & kosmetiikka";
+  // Dr Jackson personal-care range: the publisher often prints only a brand
+  // followed by a detached -TUOTTEET suffix, without a product form.
+  if(/\bdr\s+jackson\b/.test(joined)) return "Hygienia & kosmetiikka";
   if(/(?:mocktail|long drink|siiderit|big time p.ssit)/.test(joined)) return "Juomat";
   if(/konvehteja|piparkakut/.test(joined)) return "Makeiset & keksit";
   if(/mikroateriat|mikromåltider/.test(joined)) return "Valmisruoka";
