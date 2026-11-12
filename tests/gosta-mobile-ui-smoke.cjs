@@ -6,6 +6,19 @@ const { chromium } = require("playwright");
  page.on("pageerror",e=>errors.push(e.message));
  await page.goto(process.env.TEST_BASE_URL||"http://127.0.0.1:3000",{waitUntil:"domcontentloaded",timeout:60000});
  await page.waitForTimeout(4000);
+ await page.evaluate(() => {
+  localStorage.setItem("ziiply-gosta-offer-watches-v1", JSON.stringify(["kirjolohi"]));
+  localStorage.setItem("ziiply-gosta-watch-results-v1", JSON.stringify({key:"kirjolohi",offers:[{query:"kirjolohi",title:"Kirjolohi tuore",price:"9,99",store:"Lidl Hyvinkää",source:"lidl-fi-public",chain:"Lidl",priceBasis:"per-kg",comparisonPrice:"9,99 €/kg",imageUrl:"/storelogos/lidl.png",validUntil:"2099-12-31"}]}));
+ });
+ await page.reload({waitUntil:"domcontentloaded"});
+ await page.getByRole("button",{name:/^Gösta$/i}).first().click({timeout:15000});
+ await page.getByText("Kirjolohi tuore",{exact:true}).first().waitFor({timeout:15000});
+ const image=page.locator("article").filter({hasText:"Kirjolohi tuore"}).locator("img").first();
+ if(await image.count()){await image.waitFor({state:"visible"});if(!await image.evaluate(i=>i.complete&&i.naturalWidth>0))throw new Error("Offer image did not load");}
+ await page.getByRole("button",{name:"Lisää ostoskoriin"}).first().click({timeout:15000});
+ await page.getByText("Tarjous lisätty ostoskoriin.").first().waitFor({timeout:10000});
+ console.log("GOSTA_CART_BROWSER_TEST_PASS: weighted offer added and offer image loaded");
+
  await page.screenshot({path:"gosta-mobile-smoke.png",fullPage:true});
  const data=await page.evaluate(()=>({title:document.title,images:[...document.images].map(i=>({src:i.currentSrc||i.src,loaded:i.complete&&i.naturalWidth>0,visible:!!(i.offsetWidth||i.offsetHeight||i.getClientRects().length)})),buttons:[...document.querySelectorAll("button")].map(b=>(b.textContent||b.getAttribute("aria-label")||"").trim()).filter(Boolean).slice(0,100)}));
  console.log(JSON.stringify({data,errors},null,2));
