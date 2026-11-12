@@ -17,7 +17,7 @@ for(const [title,price,quantity,unitPrice] of [
   ['LONG DRINK 0 % 0,33 l/tlk',3.1,2,4.24],
   ['MOCKTAILIT 0,33 l/tlk',4.3,3,3.89],
 ]){
-  const result=inspect([{...base,title,price,offerQuantity:quantity,unitPrice}]);
+  const result=inspect([{...base,title,price,offerQuantity:quantity,unitPrice,depositAmount:0}]);
   assert.equal(result.inconsistentUnitPrices,0,title+' must exclude the 0.15 euro/can deposit');
 }
 assert.equal(inspect([{...base,title:'KANANPOJAN FILEEPIHVIT 1 kg (7,99/kg)',price:4.99,unitPrice:7.99}]).inconsistentUnitPrices,1,'unverified chicken price mismatch must stay blocked');
