@@ -387,6 +387,21 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
   return output;
 }
 
+function gridProductLinks(html: string): string[] {
+  const paths = new Set<string>();
+  for (const match of html.matchAll(/data-grid-data="([^"]+)"/gi)) {
+    try {
+      const product = JSON.parse(decode(match[1])) as AnyRecord;
+      for (const value of [product.url, product.productUrl, product.canonicalUrl, product.link, product.href, product.keyfacts?.url]) {
+        if (typeof value !== "string") continue;
+        const path = value.startsWith(BASE) ? value.slice(BASE.length) : value;
+        if (/^\/p\/[a-z0-9åäö_-]+\/p\d{5,}(?:[/?#]|$)/i.test(path)) paths.add(path.split(/[?#]/)[0]);
+      }
+    } catch { /* skip malformed grid payload */ }
+  }
+  return [...paths];
+}
+
 function productLinks(html: string) {
   const decoded = html.replace(/\\u002F/g, "/").replace(/\\\//g, "/");
   return [...new Set(
@@ -484,7 +499,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   let failedPages = 0;
   for (const result of pages) {
     if (result.status === "rejected") { failedPages++; continue; }
-    for (const link of productLinks(result.value.html)) productPaths.add(link);
+    for (const link of [...productLinks(result.value.html), ...gridProductLinks(result.value.html)]) productPaths.add(link);
     parsed.push(...parseLidlGridDataOffers(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
     parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
     // Campaign landing pages also embed their own product-card payloads. Parse
