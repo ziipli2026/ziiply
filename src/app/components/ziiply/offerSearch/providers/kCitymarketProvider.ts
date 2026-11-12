@@ -97,6 +97,9 @@ export function category(t:string){
   if(/(?:crispy fish)/.test(joined)) return "Kala";
   if(/(?:nugget|mozzarellatiku|cheddar.jalapeno)/.test(joined)) return "Pakasteet";
   if(/(?:kasvovoite|kasvovoide)/.test(joined)) return "Hygienia & kosmetiikka";
+  // Dr Jackson personal-care range: the publisher often prints only a brand
+  // followed by a detached -TUOTTEET suffix, without a product form.
+  if(/\bdr\s+jackson\b/.test(joined)) return "Hygienia & kosmetiikka";
   if(/(?:mocktail|long drink|siiderit|big time p.ssit)/.test(joined)) return "Juomat";
   if(/konvehteja|piparkakut/.test(joined)) return "Makeiset & keksit";
   if(/mikroateriat|mikromåltider/.test(joined)) return "Valmisruoka";
@@ -573,7 +576,17 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     }
 
     const verified45LV=verified45LVTransaction(leafletUrl,Number(row?.page),campaignTitle);
-    let price=verified45LV?.price??Number(resolved.value);
+    // Publisher-PDF reviewed 46LV transactions. Apply only to the exact edition,
+    // page and printed heading; never infer a total from a unit price alone.
+    const reviewed46LV=/_46LV_KCM/i.test(leafletUrl) && Number(row?.page)===1 &&
+      /^KANANPOJAN FILEEPIHVIT 1 kg \(7,99\/kg\)$/i.test(campaignTitle)
+        ? {price:7.99,source:"publisher-pdf-reviewed-46lv-chicken"}
+        : /_46LV_KCM/i.test(leafletUrl) && Number(row?.page)===9 &&
+          /^VIRVOITUSJUOMAT 0,33 l\/tlk 6-PACK \(2,57\/l\)/i.test(campaignTitle) &&
+          (row?.debugNearbyBoxes||[]).some((b:any)=>String(b.text)==="599" && Number(b.height)>.08)
+          ? {price:5.99,quantity:6,depositAmount:0.90,source:"publisher-pdf-reviewed-46lv-printed-pack-total"}
+          : null;
+    let price=reviewed46LV?.price??verified45LV?.price??Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
 
     // A printed discount badge or detached page/list numeral may precede the
@@ -589,7 +602,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(innocent45AV) price=3.49;
 
     const normalMin=Number(row?.normal?.min);
-    const offerQuantity=verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
+    const offerQuantity=reviewed46LV?.quantity??verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
     // the same basis so UI comparisons and strike-through prices are meaningful.
@@ -624,6 +637,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       normalPrice,
       unitPrice,
       ...(innocent45AV?{depositAmount:0.20}:{}),
+      ...(reviewed46LV?.depositAmount!=null?{depositAmount:reviewed46LV.depositAmount}:{}),
       ...(verified45LV?.depositAmount!=null?{depositAmount:verified45LV.depositAmount}:{}),
       unit:verified45LV?.reviewedCard?verified45LV.unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       ...(!verified45LV?.reviewedCard?citymarketTransactionMetadata(row):{}),
@@ -634,8 +648,9 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       ...(verified45LV?{priceBasis:verified45LV.reviewedCard?(verified45LV.quantity>1?"set-total":"package-total"):verified45LV.unit==="PKT"?"package-total":"set-total",priceText:price.toFixed(2).replace(".",",")+" € / "+(verified45LV.priceLabel??(verified45LV.unit==="PKT"?"24-pack":"2 kpl"))}:{}),
       packageSize:verified45LV?.reviewedCard?null:row?.package?.raw??null,
       offerQuantity,
-      offerUnit:verified45LV?.unit??(resolved?.unit?String(resolved.unit).toUpperCase():null),
-      resolutionSource:resolved?.source?String(resolved.source):null,
+      ...(reviewed46LV?.quantity?{priceBasis:"package-total",priceText:price.toFixed(2).replace(".",",")+" € / "+reviewed46LV.quantity+"-pack"}:{}),
+      offerUnit:verified45LV?.unit??(reviewed46LV?.quantity?"PACK":resolved?.unit?String(resolved.unit).toUpperCase():null),
+      resolutionSource:reviewed46LV?.source??(resolved?.source?String(resolved.source):null),
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
       plussa:verified45LV?.reviewedCard||/plussa/i.test(nearbyText),
       benefitText:verified45LV?.reviewedCard?"Plussa-etu":benefitText,
