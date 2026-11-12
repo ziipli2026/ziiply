@@ -559,9 +559,9 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     // A product's own metadata can contain the pack size even when JSON-LD
     // omits it. Do not search the entire page: recommendations and navigation
     // contain unrelated product weights.
-    const metaTitle = result.value.html.match(/<meta\\s+property=["']og:title["']\\s+content=["']([^"']+)["']/i)?.[1]
-      || result.value.html.match(/<title[^>]*>([^<]+)<\\/title>/i)?.[1] || "";
-    const metaDescription = result.value.html.match(/<meta\\s+name=["']description["']\\s+content=["']([^"']+)["']/i)?.[1] || "";
+    const metaTitle = result.value.html.match(new RegExp('<meta\\s+property=["\\x27]og:title["\\x27]\\s+content=["\\x27]([^"\\x27]+)["\\x27]', 'i'))?.[1]
+      || result.value.html.match(new RegExp('<title[^>]*>([^<]+)</title>', 'i'))?.[1] || "";
+    const metaDescription = result.value.html.match(new RegExp('<meta\\s+name=["\\x27]description["\\x27]\\s+content=["\\x27]([^"\\x27]+)["\\x27]', 'i'))?.[1] || "";
     const ownSize = lidlPackageSize(decode(metaTitle), decode(metaDescription));
     if (ownSize && metaTitle) {
       const key = normalize(metaTitle.replace(/\s*[|–-]\s*Lidl.*$/i, ""));
