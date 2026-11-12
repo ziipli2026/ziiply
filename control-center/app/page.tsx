@@ -342,6 +342,8 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       <a href="https://github.com/ziipli2026/ziiply/actions/workflows/kcitymarket-manual-current-leaflet.yml" target="_blank" rel="noopener noreferrer" style={{display:"inline-block",padding:"11px 16px",borderRadius:9,background:"#1d4ed8",color:"#fff",fontWeight:800,textDecoration:"none"}}>Avaa manuaaliajo ↗</a>
     </section>
 
+    {latestApprovedCitymarket&&<section style={{padding:16,background:"#ecfdf5",border:"1px solid #86efac",borderRadius:12,marginBottom:18}}><strong>🟢 K-Citymarket – hyväksytty tarjousjulkaisu</strong><div style={{fontSize:15,marginTop:5}}>{latestApprovedCitymarket.offer_count} tarjousta · päivitetty {new Date(latestApprovedCitymarket.parsed_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</div><div style={{fontSize:12,color:"#475569",marginTop:5}}>{latestApprovedCitymarket.publication_id} · Julkaisu hyväksytty. Ennakkoparserin vanhat epäonnistuneet tarkistukset näkyvät erikseen historiassa.</div></section>}
+
     <nav aria-label="Control Center -näkymät" style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:20}}>{([{id:"overview",label:"Yleiskatsaus"},{id:"publications",label:"Tarjousten päivitykset"},{id:"data",label:"Tuotteet ja skanneri"}] as const).map(tab=><a key={tab.id} href={tab.id==="overview"?"/":"/?view="+tab.id} aria-current={view===tab.id?"page":undefined} style={{padding:"12px 18px",borderRadius:12,textDecoration:"none",fontWeight:800,background:view===tab.id?"#0f172a":"#fff",color:view===tab.id?"#fff":"#334155",border:"1px solid #cbd5e1"}}>{tab.label}</a>)}</nav>
     {view!=="data"&&<section aria-label="Citymarket esitarkastus" style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:14,padding:18,marginBottom:18}}>
       <h2 style={{margin:"0 0 12px",fontSize:19}}>Citymarket – ennakkoparserointi SU ja KE</h2>
@@ -605,7 +607,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     <section style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:18}}>
       <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
         <h2 style={{marginTop:0}}>Tarkistusten tapahtumahistoria</h2>
-        {latestApprovedCitymarket&&<p style={{padding:"10px 12px",background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:8,fontSize:13}}><strong>🟢 Citymarket – hyväksytty tarjousjulkaisu:</strong> {latestApprovedCitymarket.offer_count} tarjousta, {new Date(latestApprovedCitymarket.parsed_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})} ({latestApprovedCitymarket.publication_id}). Julkaisun tila on eri tieto kuin ennakkoparserin tarkistusloki; aiemmat virheet säilyvät historiassa.</p>}
+        
         <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
           <thead><tr>{["Aika","Ketju","Lähde","Tulos","Määrä","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
           <tbody>{d.runs.slice(0,80).map((r,i)=><tr key={i}>
