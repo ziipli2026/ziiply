@@ -5,8 +5,12 @@ name: Tokmanni SPAR offer freshness audit
 on:
   workflow_dispatch:
   schedule:
-    # Frequent prefetch: publication can appear before its validity starts.
-    - cron: "17 2,5,8,11,14,17,20,23 * * *"
+    # EUROSPAR: Thursday 06:00 Finland winter time (04:00 UTC).
+    - cron: "0 4 * * 4"
+    # Retry only if the first Thursday run failed or the new issue is missing.
+    - cron: "0 7 * * 4"
+    # Tokmanni general leaflet discovery: Sunday 18:15 Finland winter time.
+    - cron: "15 16 * * 0"
   push:
     branches: [main, "fix/tokmanni-spar-offer-freshness"]
     paths:
@@ -42,6 +46,8 @@ permissions:
 
 jobs:
   audit:
+    # The Sunday run is discovery only; Thursday handles the EUROSPAR PDF refresh.
+    if: github.event_name != 'schedule' || github.event.schedule != '15 16 * * 0'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
