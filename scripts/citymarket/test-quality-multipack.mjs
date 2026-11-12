@@ -9,6 +9,8 @@ const inspect=mod.exports.inspectCitymarketOffers;
 const base={category:'Juomat',imageUrl:'/verified.png',price:12.99,depositAmount:2.40,unitPrice:1.34,offerQuantity:1};
 const pack=inspect([{...base,title:'VIRVOITUSJUOMAT 0,33 l/pl 24-pack'}]);
 assert.equal(pack.inconsistentUnitPrices,0,'24-pack must divide total liquid volume by 24');
+const categorySource=readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+assert.match(categorySource,/dr\\s\+jackson/, 'Dr Jackson range needs an explicit category mapping');
 const single=inspect([{...base,title:'VIRVOITUSJUOMAT 0,33 l/pl'}]);
 assert.equal(single.inconsistentUnitPrices,1,'A single bottle must not inherit the 24-pack exemption');
 const bad=inspect([{...base,title:'VIRVOITUSJUOMAT 0,33 l/pl 24-pack',unitPrice:4.44}]);
