@@ -41,7 +41,9 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
       const expectedDeposit = is033Can && packCount === 1 && quantity > 1
         ? .15 * quantity : 0;
       const depositToCheck = deposit > 0 ? deposit : expectedDeposit;
-      const expected = (price - depositToCheck) / (amount * quantity * packCount);
+      // A 6-pack may also expose offerQuantity=6 as package metadata. Do not multiply twice.
+      const effectiveCount = packCount > 1 ? packCount : quantity;
+      const expected = (price - depositToCheck) / (amount * effectiveCount);
       if (amount > 0 && Math.abs(expected - unitPrice) > Math.max(.08, expected * .06)) problem("inconsistentUnitPrices");
     }
     if (!String(offer.imageUrl ?? "").trim() && !String(offer.imageData ?? "").trim()) result.missingImages++;
