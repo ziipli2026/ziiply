@@ -83,6 +83,10 @@ jobs:
       # Run and report the publication refresh before optional diagnostics.
       # Previously a failed discovery/test step prevented the refresh and left
       # Control Center with a misleading "unreported" status.
+      - name: Validate EUROSPAR scripts syntax before refresh
+        run: |
+          node --check scripts/eurospar-feed-refresh.mjs
+          node --check scripts/run-eurospar-refresh.mjs
       - name: Refresh EUROSPAR and report result to Control Center
         run: node scripts/run-eurospar-refresh.mjs
         env:
