@@ -510,7 +510,17 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     if (state === "expired" || state === "invalid" || (!options.includeUpcoming && state !== "current")) continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
-    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+    if (!old) byKey.set(key, row);
+    else {
+      const preferred = row.imageUrl && !old.imageUrl ? row : old;
+      const other = preferred === row ? old : row;
+      byKey.set(key, {
+        ...preferred,
+        packageSize: preferred.packageSize || other.packageSize || "",
+        packageText: preferred.packageText || other.packageText || "",
+        comparisonPriceText: preferred.comparisonPriceText || other.comparisonPriceText || "",
+      });
+    }
   }
   return {
     offers: [...byKey.values()],
