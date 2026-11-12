@@ -517,8 +517,14 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   let failedProductPages = 0;
   let productDetailParsedRows = 0;
   let productDetailPackageRows = 0;
+  let productDetailJsonLdPages = 0;
+  let productDetailGridPages = 0;
+  let productDetailVisibleSizePages = 0;
   for (const result of productPages) {
     if (result.status === "rejected") { failedProductPages++; continue; }
+    if (/application\/ld\+json/i.test(result.value.html)) productDetailJsonLdPages++;
+    if (/data-grid-data=/i.test(result.value.html)) productDetailGridPages++;
+    if (LIDL_PACKAGE_MEASURE.test(decode(result.value.html.replace(/<script\b[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ")))) productDetailVisibleSizePages++;
     const detailRows = parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category));
     productDetailParsedRows += detailRows.length;
     productDetailPackageRows += detailRows.filter(row => Boolean(row.packageSize || row.packageText)).length;
@@ -545,6 +551,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
