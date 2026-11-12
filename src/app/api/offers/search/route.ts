@@ -499,7 +499,26 @@ function dedupe(items: UnknownRecord[]) {
       ? ["tjek", String(item.source ?? ""), publicationId, sourceOfferId, normalizeText(item.storeName)].join("|")
       : [item.campaignType === "campaign" ? "campaign" : "offer", String(item.source ?? ""), item.ean, normalizeText(item.title), item.priceText, normalizeText(item.storeName)].join("|");
     // Deduplicate only within the same source identity, never across independent sources.
-    if (seen.has(key)) continue;
+    if (seen.has(key)) {
+      // Lidl may supply the same product from both a stored publication and
+      // the live official page. Keep verified size metadata from either row.
+      if (String(item.source ?? "").startsWith("lidl-")) {
+        const existing = out.find(row =>
+          String(row.source ?? "") === String(item.source ?? "") &&
+          String(row.ean ?? "") === String(item.ean ?? "") &&
+          normalizeText(row.title) === normalizeText(item.title) &&
+          String(row.priceText ?? "") === String(item.priceText ?? "") &&
+          normalizeText(row.storeName) === normalizeText(item.storeName) &&
+          (row.campaignType === "campaign") === (item.campaignType === "campaign")
+        );
+        if (existing) {
+          for (const field of ["packageSize", "packageText", "comparisonPriceText"] as const) {
+            if (!existing[field] && item[field]) existing[field] = item[field];
+          }
+        }
+      }
+      continue;
+    }
     seen.add(key);
     out.push(item);
   }
