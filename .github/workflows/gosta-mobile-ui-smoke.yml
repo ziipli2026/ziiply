@@ -1,0 +1,33 @@
+name: Gosta mobile UI and image smoke
+on:
+  push:
+    branches:
+      - fix/gosta-mobile-weight-lidl-isolated-20261111
+  workflow_dispatch:
+jobs:
+  mobile-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Start mobile UI
+        run: |
+          npm run dev > /tmp/ziiply-next.log 2>&1 &
+          for i in $(seq 1 90); do curl -fsS http://127.0.0.1:3000/ >/dev/null && exit 0; sleep 2; done
+          cat /tmp/ziiply-next.log
+          exit 1
+      - name: Verify UI controls and visible images
+        run: node tests/gosta-mobile-ui-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gosta-mobile-screenshot
+          path: gosta-mobile-smoke.png
+          if-no-files-found: ignore
