@@ -1720,6 +1720,15 @@ out.rows=out.rows.map(row=>restoreUniquePublisherClippedTitle(row,publicationWor
 out.rows=out.rows.map(row=>verifyPrintedTransaction(row,[...(publicationWordBoxes.get(row.page)||[]),...(row.debugNearbyBoxes||[])]));
 // Reconcile clipped publisher names only after the regular transaction proofs.
 out.rows=out.rows.map(row=>restoreSplitPublisherCard(row,publicationWordBoxes.get(row.page)));
+// A publisher card can have a correctly resolved standalone printed price
+// even when an earlier title-anchored transaction proof retained an inferred
+// unit-rate total. Apply the strict glyph check after all transaction proofs,
+// immediately before the rows leave the parser.
+out.rows=out.rows.map(row=>{
+ const printed=verifiedOwnedPublisherOverprint(row);
+ return printed?{...row,debugReplacedConflictingPrice:row.spatialResolved,
+  spatialResolved:printed,percentageOffer:null}:row;
+});
 // Only merge adjacent "tai" alternatives if both share a uniquely verified
 // publisher large-font whole-euro/cents price and printed sale unit.
 out.rows=mergeVerifiedSharedPrintedAlternatives(out.rows);
