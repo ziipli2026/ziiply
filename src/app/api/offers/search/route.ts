@@ -656,8 +656,10 @@ export async function GET(request: Request) {
       // A stored publication can be partial. Merge the current official leaflet
       // even when stored rows exist, and keep the stored rows if the fetch fails.
       let directPublicLeaflet: UnknownRecord[] = [];
+      let directPublicAudit: UnknownRecord = {};
       try {
         const publicFeed = await fetchLidlPublicLeafletOffers({ date: todayFi });
+        directPublicAudit = publicFeed.audit as unknown as UnknownRecord;
         directPublicLeaflet = publicFeed.offers.map((offer) => ({
           ...(offer as unknown as UnknownRecord),
           storeKey, storeName, storeLabel: storeName, shopName: storeName,
@@ -850,6 +852,7 @@ export async function GET(request: Request) {
             structuredFeedError: structuredFeedError || null,
             staged: staged.length,
             directPublicLeaflet: directPublicLeaflet.length,
+            directPublicAudit,
             directPublicWithPackageSize: directPublicLeaflet.filter(offer => Boolean(offer.packageSize || offer.packageText)).length,
             stagedWithPackageSize: staged.filter(offer => Boolean(offer.packageSize || offer.packageText)).length,
             combined: masterCombined.length,
