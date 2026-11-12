@@ -525,6 +525,8 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }).sort((a, b) => b.score - a.score);
   const prioritizedProductPaths = rankedProductPaths.slice(0, 220);
   const prioritizedMatchingPaths = prioritizedProductPaths.filter(item => item.score > 0).length;
+  const strongProductPathMatches = prioritizedProductPaths.filter(item => item.score >= 2).length;
+  const productPathSamples = prioritizedProductPaths.filter(item => item.score >= 2).slice(0, 8).map(item => ({ path: item.path, score: item.score }));
   const productPages = await Promise.allSettled(prioritizedProductPaths.map(item => fetchHtml(item.path)));
   let failedProductPages = 0;
   let productDetailParsedRows = 0;
@@ -594,6 +596,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, prioritizedMatchingPaths, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, prioritizedMatchingPaths, strongProductPathMatches, productPathSamples, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
