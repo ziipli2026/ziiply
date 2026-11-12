@@ -105,6 +105,10 @@ jobs:
             exit 0
           fi
           jq -e '.quality != null and .parsed != null' preflight.json >/dev/null
+          if jq -e '.outcome == "preflight-awaiting-images"' preflight.json >/dev/null; then
+            echo "::notice::Citymarket images still pending; final quality verdict deferred"
+            exit 0
+          fi
           jq -r '"Upcoming Citymarket: " + .period + " — " + (.quality.missing_images|tostring) + " missing images, " + (.quality.missing_categories|tostring) + " missing categories"' preflight.json
           if ! jq -e '.quality.missing_images == 0 and .quality.missing_categories == 0 and .quality.missing_prices == 0 and .quality.unverified_prices == 0 and (.quality.suspicious_names // 0) == 0' preflight.json >/dev/null; then
             echo "::error::Upcoming Citymarket edition is incomplete; automated repair must continue"

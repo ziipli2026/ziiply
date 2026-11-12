@@ -3,8 +3,18 @@
 // another card or turn a unit-rate calculation into the displayed transaction.
 export function verifiedOwnedPublisherOverprint(row) {
   const anchor=row.debugCardAnchor||row.debugAnchor;
-  if(!anchor)return null;
   const card=row.debugCardPrice;
+  // In frozen publisher OCR replays the price has a complete page-local
+  // glyph anchor even when the parser cannot recover an offer title anchor.
+  // Accept that fallback only for a high-confidence same-card full price;
+  // reject loose, unit-less or low-score fragments.
+  const reliableCardOnly=!anchor&&
+    row.spatialResolved?.source==='printed-unitrate-quantity-reconciled'&&
+    card?.unit&&Number(card.score)<=.025&&
+    Array.isArray(card.parts)&&card.parts.length===2&&
+    card.anchor;
+  const ownAnchor=anchor||(reliableCardOnly?card.anchor:null);
+  if(!ownAnchor)return null;
   const title=String(row.title||'');
   const nearby=row.nearby||[];
   const boxes=row.debugNearbyBoxes||[];
@@ -37,6 +47,34 @@ export function verifiedOwnedPublisherOverprint(row) {
       Math.abs(Number(card.value)-Number(e.text)-Number(c.text)/100)<.005)
       return {value:Number(Number(card.value).toFixed(2)),quantity:null,
         unit:card.unit,source:'owned-printed-split-euro-cents',sanity:'pass',confidence:'high'};
+  }
+
+  // Publisher's intact large-font sale price wins over an inferred unit-rate
+  // reconciliation, but only if its euro and cents glyphs form one verified
+  // same-card pair with an explicit sale unit and a tight publisher score.
+  // Never use a distant price or an arithmetic-only candidate.
+  if(row.spatialResolved?.source==='printed-unitrate-quantity-reconciled'&&
+    card?.unit&&Number(card.score)<=.025&&Number(card.value)>0&&
+    Array.isArray(card.parts)&&card.parts.length===2&&card.anchor&&
+    (Math.abs(Number(card.anchor.left)-Number(ownAnchor.left))<.065&&
+     Math.abs(Number(card.anchor.top)-Number(ownAnchor.top))<.15 ||
+     // A complete, tightly scored euro+cents+unit card is independent
+     // printed evidence when a distant title anchor was reconstructed.
+     // Only permit this for a unit-rate-derived price, never a competing
+     // publisher-owned price or an unverified arithmetic candidate.
+     (row.spatialResolved?.source==='printed-unitrate-quantity-reconciled'&&
+      Number(card.score)<=.018&&card.anchor.height>=.08))){
+    const [e,c]=card.parts;
+    const digits=/^\d{1,2}$/;
+    if(digits.test(String(e.text))&&/^\d{2}$/.test(String(c.text))&&
+      Number(e.height)>=.08&&Number(c.height)>=.035&&
+      Number(c.height)<Number(e.height)&&
+      Math.abs(Number(card.value)-Number(e.text)-Number(c.text)/100)<.005&&
+      Math.abs(Number(card.value)-Number(row.spatialResolved.value))>.011){
+      return {value:Number(Number(card.value).toFixed(2)),quantity:null,
+        unit:card.unit,source:'owned-printed-card-before-unitrate-reconciliation',
+        sanity:'pass',confidence:'high'};
+    }
   }
 
   // A whole-euro glyph may be fused with a discount badge, e.g. "6-30%".

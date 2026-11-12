@@ -20,7 +20,7 @@ const sql=async(strings,...params)=>{const query=Array.isArray(strings)?strings.
  if(/SELECT/i.test(query)&&query.includes('ziiply_offer_publications'))return[{offers}];
  return[];
 };
-const original=Module._load;Module._load=function(id,parent,isMain){if(id==='@neondatabase/serverless')return{neon:()=>sql};if(id.startsWith('@/'))id=root+'/src/'+id.slice(2);return original.call(this,id,parent,isMain);};
+const original=Module._load;Module._load=function(id,parent,isMain){if(id==='next/server'){const next=original.call(this,id,parent,isMain);return {...next,after:()=>{}};}if(id==='@neondatabase/serverless')return{neon:()=>sql};if(id.startsWith('@/'))id=root+'/src/'+id.slice(2);return original.call(this,id,parent,isMain);};
 process.env.DATABASE_URL='postgresql://simulation@localhost/simulation';
 const base=root+'/src/app/components/ziiply/offerSearch/';
 const route=require(root+'/src/app/api/offers/search/route.ts');
@@ -28,7 +28,7 @@ const core=require(base+'ziiplyOfferSearchCore.ts');
 const cards=require(root+'/src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx');
 let apiCalls=0,apiRows=0,externalCalls=[];
 global.fetch=async(url,init)=>{
- if(!String(url).startsWith('/api/offers/search?')){externalCalls.push(String(url));throw Error('External network forbidden during simulation: '+url);}
+ if(!String(url).startsWith('/api/offers/search?')){if(/^https:\/\/etarjouslehdet\.fi\/?$/.test(String(url)))return new Response('',{status:503});externalCalls.push(String(url));throw Error('External network forbidden during simulation: '+url);}
  apiCalls++;const response=await route.GET(new Request('http://simulation.local'+url,init));apiRows=(await response.clone().json()).results?.length;return response;
 };
 test('API through final price rendering retains all source offers and hides products while loading',async()=>{
@@ -64,14 +64,14 @@ test('API through final price rendering retains all source offers and hides prod
  counts.rendered={};
  for(const tab of ['offer','campaign']){
   const tabItems=mapped.filter(r=>(r.campaignType==='campaign'?'campaign':'offer')===tab);
-  const html=renderToStaticMarkup(React.createElement(cards.default,{open:true,offers:tabItems,filter:'kaikki',contentTab:tab==='offer'?'offers':'campaigns',categorySuggestions:[],onAddOffer:()=>{}}));
+  const html=renderToStaticMarkup(React.createElement(cards.default,{open:true,initialOfferChain:'K',offers:tabItems,filter:'kaikki',query:'citymarket',contentTab:tab==='offer'?'offers':'campaigns',categorySuggestions:[],onAddOffer:()=>{}}));
   const articles=(html.match(/<article\b/g)||[]).length;
   assert.equal(articles,tabItems.length,'Final card rendering lost rows');
   const basisCount=(html.match(/class="block w-full text-center text-\[0\.76rem\]/g)||[]).length;
   const expected=tabItems.filter(r=>cards.splitOfferDisplayPrice(cards.getOfferPrice(r)).basis).length;
   assert.equal(basisCount,expected,'A price basis is missing from the rendered card');
   counts.rendered[tab]={articles,bases:basisCount};
-  const loading=renderToStaticMarkup(React.createElement(cards.default,{open:true,offers:tabItems,filter:'kaikki',loading:true,categorySuggestions:[]}));
+  const loading=renderToStaticMarkup(React.createElement(cards.default,{open:true,initialOfferChain:'K',offers:tabItems,filter:'kaikki',loading:true,categorySuggestions:[]}));
   assert.equal((loading.match(/<article\b/g)||[]).length,0,'Loading leaked partial products');
  }
  for(const row of rows){

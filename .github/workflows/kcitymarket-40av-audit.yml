@@ -13,6 +13,9 @@ on:
       - "src/app/components/ziiply/cards/ZiiplyMobileOfferSearchCard.tsx"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketOwnedPublisherOverprints.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketPrintedTransactionProof.js"
       - "src/app/components/ziiply/offerSearch/kOfferTabPolicy.ts"
       - "tests/k-offer-tab-policy.test.cjs"
 permissions:

@@ -5,7 +5,7 @@ import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
 import {reattachDetachedPackage,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
-import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy} from './kCitymarketProductRows.js';
+import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy,mergeVerifiedSharedPrintedAlternatives} from './kCitymarketProductRows.js';
 import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle,verifiedSplitAcrossCardsSingle} from './kCitymarketPrintedBundleProof.js';
 // Publisher coordinates, rather than PDF reading order, define price ownership.
 const norm=s=>String(s).toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"");
@@ -1720,6 +1720,18 @@ out.rows=out.rows.map(row=>restoreUniquePublisherClippedTitle(row,publicationWor
 out.rows=out.rows.map(row=>verifyPrintedTransaction(row,[...(publicationWordBoxes.get(row.page)||[]),...(row.debugNearbyBoxes||[])]));
 // Reconcile clipped publisher names only after the regular transaction proofs.
 out.rows=out.rows.map(row=>restoreSplitPublisherCard(row,publicationWordBoxes.get(row.page)));
+// A publisher card can have a correctly resolved standalone printed price
+// even when an earlier title-anchored transaction proof retained an inferred
+// unit-rate total. Apply the strict glyph check after all transaction proofs,
+// immediately before the rows leave the parser.
+out.rows=out.rows.map(row=>{
+ const printed=verifiedOwnedPublisherOverprint(row);
+ return printed?{...row,debugReplacedConflictingPrice:row.spatialResolved,
+  spatialResolved:printed,percentageOffer:null}:row;
+});
+// Only merge adjacent "tai" alternatives if both share a uniquely verified
+// publisher large-font whole-euro/cents price and printed sale unit.
+out.rows=mergeVerifiedSharedPrintedAlternatives(out.rows);
 return out;
 }
 

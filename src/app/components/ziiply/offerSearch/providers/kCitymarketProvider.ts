@@ -92,6 +92,12 @@ export function category(t:string){
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
+  // Reusable product-form taxonomy for the 46LV quality gaps.
+  if(/(?:cocktailpasteij|pannukakku)/.test(joined)) return "Leipomo";
+  if(/(?:crispy fish)/.test(joined)) return "Kala";
+  if(/(?:nugget|mozzarellatiku|cheddar.jalapeno)/.test(joined)) return "Pakasteet";
+  if(/(?:kasvovoite|kasvovoide)/.test(joined)) return "Hygienia & kosmetiikka";
+  if(/(?:mocktail|long drink|siiderit|big time p.ssit)/.test(joined)) return "Juomat";
   if(/konvehteja|piparkakut/.test(joined)) return "Makeiset & keksit";
   if(/mikroateriat|mikromåltider/.test(joined)) return "Valmisruoka";
   if(/\bnoodles\b|\bnuudeli/.test(joined)) return "Kuivatuotteet";
@@ -728,7 +734,9 @@ const getCachedKCitymarketPeriod=unstable_cache(
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
   ["ziiply-kcitymarket-printed-transactions-v169-20261108-46av-ocr-repair"],
-  {revalidate:false},
+  // Retry discovery of upcoming editions after a late publisher release. A permanent
+  // cache otherwise freezes the first incomplete parse until another deployment.
+  {revalidate:300},
 );
 async function readCachedPeriod(period:KCitymarketPeriod){
   const payload=await getCachedKCitymarketPeriod(period);

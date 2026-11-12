@@ -251,6 +251,182 @@ def build(folder,manifest_path,public_folder,review_path):
    accepted[row['id']].append(b)
    eligible.remove(b)
    print(f'Citymarket page {number+1}: unique reciprocal spatial image match for {row["title"]}')
+  # Second pass: reconstruct a single publisher product photo from adjacent
+  # PDF image pieces. Publishers commonly split one pack shot into several
+  # embedded objects. The first pass treats each object as a competitor and
+  # cannot clear its distance margin (e.g. packets and multiple bottles).
+  # This uses page geometry, not a hardcoded leaflet ID, product or price.
+  if not any(not row.get('anchor') for row in rows):
+   available=[b for b in eligible if all(b not in group for group in accepted.values())]
+   boxes=[]
+   for b in available:
+    x0,y0,x1,y1=b['bbox']
+    boxes.append((b,(x0/page.rect.width,y0/page.rect.height,
+                    x1/page.rect.width,y1/page.rect.height)))
+   parent=list(range(len(boxes)))
+   def cluster_root(index):
+    while parent[index]!=index:
+     index=parent[index]
+    return index
+   def cluster_join(first,second):
+    parent[cluster_root(second)]=cluster_root(first)
+   for i,(_,a) in enumerate(boxes):
+    for j in range(i):
+     b=boxes[j][1]
+     # Require nearly equal columns in addition to touching rectangles.
+     # Otherwise adjacent unrelated product groups can form one cluster.
+     if (abs((a[0]+a[2]-b[0]-b[2])/2)<.11
+         and a[0]<=b[2]+.02 and b[0]<=a[2]+.02
+         and a[1]<=b[3]+.015 and b[1]<=a[3]+.015):
+      cluster_join(i,j)
+   grouped={}
+   for i,pair in enumerate(boxes):
+    grouped.setdefault(cluster_root(i),[]).append(pair)
+   clusters=[]
+   for group in grouped.values():
+    box=(min(v[0] for _,v in group),min(v[1] for _,v in group),
+         max(v[2] for _,v in group),max(v[3] for _,v in group))
+    if box[2]-box[0]>.34 or box[3]-box[1]>.28 or len(group)>8:
+     continue
+    clusters.append((group,box))
+   proposals={}
+   for row in rows:
+    if accepted[row['id']]:continue
+    anchor=row['anchor'];rx=anchor['left']+anchor['width']/2;ry=anchor['top']
+    competitors=[other for other in rows if other['id']!=row['id']
+                 and abs(other['anchor']['left']+other['anchor']['width']/2-rx)<.19]
+    choices=[]
+    for group,(x0,y0,x1,y1) in clusters:
+     cx=(x0+x1)/2;cy=(y0+y1)/2
+     if abs(cy-ry)>.155 or abs(cx-rx)>.38:continue
+     # The package must be beside, not directly behind, the title.
+     if not (x1<anchor['left']+.035 or x0>anchor['left']+anchor['width']-.035):continue
+     # Resolve publisher columns by row bands, not by title-to-image
+     # Euclidean distance alone. Two offers on the same band are ambiguous.
+     if any(abs(cy-other['anchor']['top'])<=abs(cy-ry)+.03 for other in competitors):
+      continue
+     if any(blocked(page,anchor,b['bbox']) for b,_ in group):continue
+     distance=math.hypot((cx-rx)*1.4,(cy-ry)*1.3)
+     if distance>.45:continue
+     choices.append((distance,group,box))
+    choices.sort(key=lambda choice:choice[0])
+    if not choices:continue
+    # More than one plausible package group requires a decisive margin.
+    if len(choices)>1 and choices[1][0]-choices[0][0]<.12:continue
+    proposals[row['id']]=choices[0]
+   # Reciprocal uniqueness: never assign one image object to two offers.
+   owners={}
+   for row_id,(_,group,_) in proposals.items():
+    for b,_ in group:
+     owners.setdefault(tuple(round(v,3) for v in b['bbox']),set()).add(row_id)
+   for row in rows:
+    suggestion=proposals.get(row['id'])
+    if not suggestion:continue
+    distance,group,_=suggestion
+    if any(len(owners[tuple(round(v,3) for v in b['bbox'])])!=1 for b,_ in group):
+     continue
+    accepted[row['id']].extend(b for b,_ in group)
+    print(f'Citymarket page {number+1}: isolated publisher image cluster '
+          f'for {row["title"]}: {len(group)} objects, distance {distance:.3f}')
+   # A second publisher layout also occurs: a title above a wide row of
+   # product packages. These pictures are too far below the title for the
+   # side-by-side matcher. Require full horizontal overlap, a tight vertical
+   # band, no competing offer anchor in the panel, and exactly one group.
+   # Work on remaining unowned objects only; do not alter earlier matches.
+   for row in rows:
+    if accepted[row['id']]:continue
+    anchor=row['anchor'];ax0=anchor['left'];ax1=ax0+anchor['width'];ay=anchor['top']
+    suggestions=[]
+    for group in grouped.values():
+     if any(any(b in owned for owned in accepted.values()) for b,_ in group):
+      continue
+     x0=min(v[0] for _,v in group);y0=min(v[1] for _,v in group)
+     x1=max(v[2] for _,v in group);y1=max(v[3] for _,v in group)
+     if not (2<=len(group)<=8 and x1-x0<=.53 and y1-y0<=.28
+             and ay+.04<y0<ay+.17 and y1<ay+.33):
+      continue
+     overlap=max(0,min(ax1,x1)-max(ax0,x0))
+     if overlap<min(anchor['width'],x1-x0)*.25:continue
+     if any(other['id']!=row['id']
+            and x0-.025<=other['anchor']['left']+other['anchor']['width']/2<=x1+.025
+            and ay-.04<other['anchor']['top']<y1+.04 for other in rows):
+      continue
+     if any(blocked(page,anchor,b['bbox']) for b,_ in group):continue
+     suggestions.append(group)
+    if len(suggestions)!=1:continue
+    accepted[row['id']].extend(b for b,_ in suggestions[0])
+    print(f'Citymarket page {number+1}: isolated below-title publisher '
+          f'package group for {row["title"]}: {len(suggestions[0])} objects')
+  # Fourth pass: small publisher image objects and single wide image plates.
+  # On dense magazine layouts the real product photo can be sliced into
+  # sub-5%-height strips, or supplied as one wide composite image. Compare
+  # only pictures immediately LEFT of their own printed heading, requiring
+  # a tight horizontal gap, matching vertical band, unique ownership and
+  # original PDF glyph coordinates. No rendered full-page crops are published.
+  small=[]
+  already_owned={tuple(round(v,3) for v in b['bbox'])
+                 for group in accepted.values() for b in group}
+  for block in blocks:
+   x0,y0,x1,y1=block['bbox']
+   w=(x1-x0)/page.rect.width;h=(y1-y0)/page.rect.height
+   if (w<.035 or h<.035 or w*h<.002 or w*h>.25
+       or y0<0 or y1>page.rect.height*.95):continue
+   if tuple(round(v,3) for v in block['bbox']) in already_owned:continue
+   small.append((block,(x0/page.rect.width,y0/page.rect.height,
+                        x1/page.rect.width,y1/page.rect.height)))
+  parents=list(range(len(small)))
+  def root_of(index):
+   while parents[index]!=index:index=parents[index]
+   return index
+  for i,(_,a) in enumerate(small):
+   for j in range(i):
+    b=small[j][1]
+    # Smaller y-padding prevents adjacent stacked publisher offer panels
+    # (e.g. two different cosmetics promotions) from merging into one.
+    if (abs((a[0]+a[2]-b[0]-b[2])/2)<.11
+        and a[0]<=b[2]+.02 and b[0]<=a[2]+.02
+        and a[1]<=b[3]+.009 and b[1]<=a[3]+.009):
+     parents[root_of(i)]=root_of(j)
+  small_groups={}
+  for i,pair in enumerate(small):
+   small_groups.setdefault(root_of(i),[]).append(pair)
+  proposed={}
+  for row in rows:
+   if accepted[row['id']] or not words(row.get('normalizedTitle',row['title'])):
+    continue
+   anchor=row.get('anchor') or row.get('wrappedAnchor')
+   if not anchor:continue
+   left=anchor['left'];top=anchor['top']
+   choices=[]
+   for group in small_groups.values():
+    x0=min(v[0] for _,v in group);y0=min(v[1] for _,v in group)
+    x1=max(v[2] for _,v in group);y1=max(v[3] for _,v in group)
+    if not (1<=len(group)<=12 and x1-x0<=.48 and y1-y0<=.30):
+     continue
+    # A single tiny icon is not a product photo; full publisher product
+    # plates can safely be one sufficiently large native image object.
+    if len(group)==1 and (x1-x0<.14 or y1-y0<.11):continue
+    gap=left-x1;dy=abs((y0+y1)/2-top)
+    if not (-.015<=gap<=.115 and y0<=top+.08
+            and y1>=top-.06 and dy<=.16):continue
+    if any(blocked(page,anchor,b['bbox']) for b,_ in group):continue
+    choices.append((gap*1.5+dy*1.5,group))
+   choices.sort(key=lambda choice:choice[0])
+   if not choices or len(choices)>1 and choices[1][0]-choices[0][0]<.08:
+    continue
+   proposed[row['id']]=choices[0][1]
+  owners={}
+  for row_id,group in proposed.items():
+   for b,_ in group:
+    owners.setdefault(tuple(round(v,3) for v in b['bbox']),set()).add(row_id)
+  for row in rows:
+   group=proposed.get(row['id'])
+   if not group:continue
+   if any(len(owners[tuple(round(v,3) for v in b['bbox'])])!=1 for b,_ in group):
+    continue
+   accepted[row['id']].extend(b for b,_ in group)
+   print(f'Citymarket page {number+1}: reciprocal left-of-title publisher '
+         f'image proof for {row["title"]}: {len(group)} objects')
   # An image object must not be assigned to two different offers.
   # Ambiguous ownership is sent to review rather than silently duplicating
   # a product picture in the published leaflet.
@@ -354,6 +530,41 @@ def build(folder,manifest_path,public_folder,review_path):
                   'nearestEligibleDistance':nearest_distance,'secondEligibleDistance':next_distance,'nearestDistanceGap':nearest_gap,
                   'titleWords':title_words,'closestCandidateOCRWords':closest_label_words,'candidateOCREvidence':candidate_ocr_evidence,'anchor':anchor})
   if unresolved:
+   # Independent fallback: render the actual PDF page around each unresolved
+   # offer. Unlike embedded-image extraction this also captures vector art,
+   # masks and images split into multiple PDF objects. These previews are
+   # evidence for a second OCR/layout pass, NEVER automatically published as
+   # a product image without independent ownership verification.
+   for item in unresolved:
+    anchor=item.get('anchor')
+    if anchor:
+     center_x=(anchor['left']+anchor['width']/2)*page.rect.width
+     center_y=(anchor['top']+anchor['height']/2)*page.rect.height
+     half_w=min(page.rect.width*.19,155)
+     half_h=min(page.rect.height*.16,145)
+     clip=fitz.Rect(max(0,center_x-half_w),max(0,center_y-half_h),
+                    min(page.rect.width,center_x+half_w),min(page.rect.height,center_y+half_h))
+    else:
+     # Without a publisher text anchor, keep the entire page as evidence.
+     # Never pretend this full-page image belongs to a specific offer.
+     clip=page.rect
+    if clip.is_empty:continue
+    preview=page.get_pixmap(matrix=fitz.Matrix(2,2),clip=clip,alpha=False)
+    fragment=hashlib.sha256(item['id'].encode()).hexdigest()[:12]
+    filename=f'fallback-render-page-{number+1}-{fragment}.png'
+    preview.save(str(folder/filename))
+    item['fallbackRenderedPreview']=filename
+    item['fallbackRenderedClip']=[round(v,2) for v in clip]
+    # The audit report is a separate dictionary from the unresolved row.
+    # Attach the preview metadata to its matching diagnostic entry, otherwise
+    # the rendered fallback cannot be discovered by automated reviewers.
+    diagnostic=next((entry for entry in report if entry.get('id')==item['id']
+                     and entry.get('diagnosticReason')),None)
+    if diagnostic is not None:
+     diagnostic['fallbackRenderedPreview']=filename
+     diagnostic['fallbackRenderedClip']=item['fallbackRenderedClip']
+     diagnostic['fallbackStatus']='review-required-not-published'
+     diagnostic['fallbackScope']='offer-neighborhood' if anchor else 'full-page-missing-anchor'
    for item in unresolved:
     print('::warning::Unresolved Citymarket image page '+str(number+1)+': '+item['title']+' ['+item['id']+']')
    print(f'::warning::Citymarket PDF page {number+1}: {len(unresolved)} unresolved images of {len(rows)} offers')

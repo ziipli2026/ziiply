@@ -8,27 +8,33 @@ on:
         required: false
         type: string
   push:
-    branches: [main]
+    # Run an isolated extraction audit when this recovery workflow changes.
+    # Publishing remains guarded by github.ref == 'refs/heads/main'.
+    branches: [main, fix/citymarket-preflight-recovery-20261111]
     paths:
       - ".github/workflows/citymarket-leaflet-images.yml"
       - "scripts/citymarket/**"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarket45LVPriceGuard.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketOCRRepair.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketProductRows.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js"
       - "src/app/components/ziiply/offerSearch/citymarketQuality.ts"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
   schedule:
     # Publisher may publish late. Retry the following morning as well.
     # Both UTC offsets are listed; Helsinki clock guard skips extras.
-    - cron: '15 12,13,14,15 * * 0,3'
+    - cron: '0,30 13-20 * * 0,3'
     - cron: '15 4,5,6,7 * * 1,4'
     # Retry incomplete upcoming editions throughout publication evening.
-    - cron: '0,30 14-20 * * 0,3'
+    - cron: '15,45 13-20 * * 0,3'
 permissions:
   contents: write
   actions: write
 concurrency:
-  group: citymarket-publisher-images
-  cancel-in-progress: false
+  # Isolate test-branch audits from production publication runs.
+  group: citymarket-publisher-images-${{ github.ref_name }}
+  # Only replace stale test-branch audits; never cancel production publication.
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
 jobs:
   extract:
     runs-on: ubuntu-latest
@@ -36,7 +42,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          # Scheduled runs use the default branch; manual test-branch runs use their own ref.
+          ref: ${{ github.ref_name }}
       - name: Helsinki publication clock
         id: clock
         env:
@@ -63,6 +70,12 @@ jobs:
       - name: Regression test reusable OCR cleanup
         if: steps.clock.outputs.run == 'true'
         run: node scripts/citymarket/test-ocr-repair.mjs
+      - name: Regression test wrapped percentage publisher headings
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-wrapped-percentage-headings.mjs
+      - name: Regression test verified shared publisher price
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-shared-printed-alternatives.mjs
       - name: Regression test multi-pack quality audit
         if: steps.clock.outputs.run == 'true'
         run: |
@@ -168,7 +181,7 @@ jobs:
       - name: Publish verified image data and recheck the publication
         env:
           GH_TOKEN: ${{ github.token }}
-        if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success'
+        if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success' && github.ref == 'refs/heads/main'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
