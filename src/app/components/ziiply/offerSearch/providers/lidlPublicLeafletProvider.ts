@@ -551,6 +551,10 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
 
   let enrichedFromDetail = 0;
+  const offerNameKeys = new Set(parsed.map(row => normalize(row.name)));
+  const detailNameMatches = [...detailSizes.keys()].filter(key => offerNameKeys.has(key)).length;
+  const detailNameSamples = [...detailSizes.keys()].slice(0, 8);
+  const offerNameSamples = [...offerNameKeys].slice(0, 8);
   const byKey = new Map<string, LidlPublicOffer>();
   for (const originalRow of parsed) {
     const sizes = detailSizes.get(normalize(originalRow.name));
@@ -578,6 +582,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
