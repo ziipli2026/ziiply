@@ -56,8 +56,14 @@ export function verifiedOwnedPublisherOverprint(row) {
   if(row.spatialResolved?.source==='printed-unitrate-quantity-reconciled'&&
     card?.unit&&Number(card.score)<=.025&&Number(card.value)>0&&
     Array.isArray(card.parts)&&card.parts.length===2&&card.anchor&&
-    Math.abs(Number(card.anchor.left)-Number(ownAnchor.left))<.065&&
-    Math.abs(Number(card.anchor.top)-Number(ownAnchor.top))<.15){
+    (Math.abs(Number(card.anchor.left)-Number(ownAnchor.left))<.065&&
+     Math.abs(Number(card.anchor.top)-Number(ownAnchor.top))<.15 ||
+     // A complete, tightly scored euro+cents+unit card is independent
+     // printed evidence when a distant title anchor was reconstructed.
+     // Only permit this for a unit-rate-derived price, never a competing
+     // publisher-owned price or an unverified arithmetic candidate.
+     (row.spatialResolved?.source==='printed-unitrate-quantity-reconciled'&&
+      Number(card.score)<=.018&&card.anchor.height>=.08))){
     const [e,c]=card.parts;
     const digits=/^\d{1,2}$/;
     if(digits.test(String(e.text))&&/^\d{2}$/.test(String(c.text))&&
