@@ -7,7 +7,8 @@ const CHAINS=[
   {key:"S",name:"S-ryhmä / Prisma / S-market",match:(v:string)=>/^(s(?::|$)|prisma|s-?market|sale|alepa)/i.test(v)},
   {key:"K",name:"K-ryhmä / Citymarket / K-Supermarket / K-Market",match:(v:string)=>/^(k(?::|$)|k-?citymarket|citymarket|k-?supermarket|k-?market)/i.test(v)},
   {key:"Lidl",name:"Lidl",match:(v:string)=>/^lidl(?::|$)/i.test(v)},
-  {key:"Tokmanni",name:"Tokmanni / SPAR",match:(v:string)=>/^(tokmanni(?:-spar)?|spar|eurospar)(?::|$)/i.test(v)}
+  {key:"Tokmanni",name:"Tokmanni",match:(v:string)=>/^tokmanni(?::|$)/i.test(v)},
+  {key:"EUROSPAR",name:"EUROSPAR",match:(v:string)=>/^(tokmanni-spar|spar|eurospar)(?::|$)/i.test(v)}
 ];
 
 type HistoryRow={chain:string;source:string;total:number;succeeded:number;days:number;previous_total:number;previous_succeeded:number;previous_days:number};
@@ -151,7 +152,13 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const parserRegressionYellow=parserRegressions.filter(x=>x.level==="yellow").length;
   const activeCandidates=candidatePubs.filter(p=>p.valid_from<=todayFi&&p.valid_until>=todayFi);
   const expiringToday=activePubs.filter(p=>p.valid_until===todayFi);
-  const latestBySource=[...d.runs.reduce((m,r)=>{const k=`${r.chain}::${explainSource(r.source)}`;if(!m.has(k))m.set(k,r);return m},new Map<string,Row>()).values()];
+  // A verified publication supersedes the older health probe for the same EUROSPAR feed.
+  // Keep the original events in history, but do not show a stale warning for the superseded probe.
+  const supersededHealthSources=new Set<string>();
+  if(d.runs.some(r=>r.chain==="TOKMANNI-SPAR"&&r.ok&&["eurospar-publication-refresh","eurospar-verified-publication"].includes(r.source))){
+    supersededHealthSources.add("eurospar-validated-feed");
+  }
+  const latestBySource=[...d.runs.filter(r=>!supersededHealthSources.has(r.source)).reduce((m,r)=>{const k=`${r.chain}::${explainSource(r.source)}`;if(!m.has(k))m.set(k,r);return m},new Map<string,Row>()).values()];
   const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count>0?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const firstOkIndex=recent.findIndex(x=>x.ok);const streak=firstOkIndex>=0?firstOkIndex:recent.length;const isProbe=r.source.startsWith("github-workflow:")||r.source==="s-kaupat-protocol"||r.source==="future-publication-discovery";const level=!r.ok?(r.source==="future-publication-discovery"?"yellow":"red"):(!isProbe&&r.offer_count===0)?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const latestSuccessBySource=sourceHealth.map(s=>{const okRun=d.runs.find(r=>r.chain===s.chain&&r.source===s.source&&r.ok);const successAgeH=okRun?(Date.now()-new Date(okRun.checked_at).getTime())/3600000:null;return {...s,lastSuccess:okRun?.checked_at??null,successAgeH};});
   const successStale=latestSuccessBySource.filter(s=>s.successAgeH!==null&&s.successAgeH>48);
@@ -205,7 +212,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     ...futureDiscovery.filter(x=>!x.run).map(x=>({level:"yellow",priority:180,title:x.chain,detail:"Future discoveryn ensimmäinen ajo puuttuu"})),
   ].sort((a,b)=>(a.level==="red"?0:1)-(b.level==="red"?0:1)||a.priority-b.priority);
   const chainHistory=CHAINS.map(ch=>{
-    const rows=d.runs.filter(r=>ch.match(r.chain.trim())&&r.source!=="future-publication-discovery"&&r.source!=="s-kaupat-protocol").slice(0,6);
+    const rows=d.runs.filter(r=>ch.match(r.chain.trim())&&r.source!=="future-publication-discovery"&&r.source!=="s-kaupat-protocol"&&!supersededHealthSources.has(r.source)).slice(0,6);
     const successful=rows.filter(r=>r.ok);
     const newest=successful[0]??null, previous=successful[1]??null;
     const delta=newest&&previous&&previous.offer_count>0?Math.round((newest.offer_count-previous.offer_count)/previous.offer_count*100):null;
