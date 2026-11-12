@@ -162,7 +162,7 @@ export default function ZiiplyMobileAssistantPanel({
         if(typeof cached.debug==="string")setWatchDebug(cached.debug);
       }
     }catch{}
-    try { const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null"); if(snapshot?.key!==watchKey){setWatchOffers([]);setWatchChecked(false);} } catch {setWatchOffers([]);setWatchChecked(false);}
+    // Do not erase the last confirmed offers when navigating between mobile cards.\n    // A missing or temporarily mismatched cache is not evidence that offers expired.\n    try { const snapshot=JSON.parse(window.localStorage.getItem("ziiply-gosta-watch-results-v1")||"null"); if(snapshot?.key===watchKey&&Array.isArray(snapshot.offers)){setWatchOffers(snapshot.offers.filter((o:any)=>!o.validUntil||Date.parse(String(o.validUntil)+"T23:59:59")>=Date.now()));setWatchChecked(true);} } catch {}
     if(!watchKey){setWatchOffers([]);setWatchChecked(false);return;}
     let cancelled=false;
     let running=false;
