@@ -11,7 +11,7 @@ const { chromium } = require("playwright");
   localStorage.setItem("ziiply-gosta-watch-results-v1", JSON.stringify({key:"kirjolohi",offers:[{query:"kirjolohi",title:"Kirjolohi tuore",price:"9,99",store:"Lidl Hyvinkää",source:"lidl-fi-public",chain:"Lidl",priceBasis:"per-kg",comparisonPrice:"9,99 €/kg",imageUrl:"/storelogos/lidl.png",validUntil:"2099-12-31"}]}));
  });
  await page.reload({waitUntil:"domcontentloaded"});
- await page.getByRole("button",{name:/^Gösta$/i}).first().click({timeout:15000});
+ await page.getByRole("button",{name:/Gösta/i}).first().click({timeout:15000});
  await page.getByText("Kirjolohi tuore",{exact:true}).first().waitFor({timeout:15000});
  const image=page.locator("article").filter({hasText:"Kirjolohi tuore"}).locator("img").first();
  if(await image.count()){await image.waitFor({state:"visible"});if(!await image.evaluate(i=>i.complete&&i.naturalWidth>0))throw new Error("Offer image did not load");}
