@@ -536,6 +536,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   let productDetailVisibleSizePages = 0;
   const detailSizes = new Map<string, Set<string>>();
   let productDetailNamedSizes = 0;
+  let productDetailMetaSizes = 0;
   for (const result of productPages) {
     if (result.status === "rejected") { failedProductPages++; continue; }
     // Extract package metadata independently of campaign price/validity. Only
@@ -554,6 +555,21 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
           detailSizes.get(key)!.add(size);
         }
       } catch { /* unrelated malformed JSON-LD */ }
+    }
+    // A product's own metadata can contain the pack size even when JSON-LD
+    // omits it. Do not search the entire page: recommendations and navigation
+    // contain unrelated product weights.
+    const metaTitle = result.value.html.match(/<meta\\s+property=["']og:title["']\\s+content=["']([^"']+)["']/i)?.[1]
+      || result.value.html.match(/<title[^>]*>([^<]+)<\\/title>/i)?.[1] || "";
+    const metaDescription = result.value.html.match(/<meta\\s+name=["']description["']\\s+content=["']([^"']+)["']/i)?.[1] || "";
+    const ownSize = lidlPackageSize(decode(metaTitle), decode(metaDescription));
+    if (ownSize && metaTitle) {
+      const key = normalize(metaTitle.replace(/\\s*[|–-]\\s*Lidl.*$/i, ""));
+      if (key) {
+        productDetailMetaSizes++;
+        if (!detailSizes.has(key)) detailSizes.set(key, new Set());
+        detailSizes.get(key)!.add(ownSize);
+      }
     }
     if (/application\/ld\+json/i.test(result.value.html)) productDetailJsonLdPages++;
     if (/data-grid-data=/i.test(result.value.html)) productDetailGridPages++;
@@ -596,6 +612,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, prioritizedMatchingPaths, strongProductPathMatches, productPathSamples, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, prioritizedMatchingPaths, strongProductPathMatches, productPathSamples, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, productDetailMetaSizes, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
