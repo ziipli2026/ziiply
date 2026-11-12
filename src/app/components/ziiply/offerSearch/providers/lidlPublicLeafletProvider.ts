@@ -564,7 +564,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     const metaDescription = result.value.html.match(/<meta\\s+name=["']description["']\\s+content=["']([^"']+)["']/i)?.[1] || "";
     const ownSize = lidlPackageSize(decode(metaTitle), decode(metaDescription));
     if (ownSize && metaTitle) {
-      const key = normalize(metaTitle.replace(/\\s*[|–-]\\s*Lidl.*$/i, ""));
+      const key = normalize(metaTitle.replace(/\s*[|–-]\s*Lidl.*$/i, ""));
       if (key) {
         productDetailMetaSizes++;
         if (!detailSizes.has(key)) detailSizes.set(key, new Set());
