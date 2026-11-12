@@ -45,6 +45,22 @@ permissions:
   contents: write
 
 jobs:
+  tokmanni-discovery:
+    if: github.event_name == 'schedule' && github.event.schedule == '15 16 * * 0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/tokmanni-leaflet-discovery.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tokmanni-sunday-discovery
+          path: tokmanni-leaflet-discovery.json
+          if-no-files-found: ignore
   audit:
     # The Sunday run is discovery only; Thursday handles the EUROSPAR PDF refresh.
     if: github.event_name != 'schedule' || github.event.schedule != '15 16 * * 0'
