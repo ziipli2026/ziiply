@@ -6,10 +6,6 @@
       "schedule": "45 3 * * *"
     },
     {
-      "path": "/api/cron/kcitymarket-cache",
-      "schedule": "15 * * * *"
-    },
-    {
       "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 13 * * 3"
     },
