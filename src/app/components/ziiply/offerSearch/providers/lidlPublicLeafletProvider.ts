@@ -617,7 +617,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     // Preserve packageSize as the individual unit and show the full pack in packageText.
     const packMatch = enrichedRow.name.match(new RegExp(String.raw`\b(\d{1,2})\s*[- ]?pack\b`, "i"));
     const packCount = packMatch ? Number(packMatch[1]) : 0;
-    const row = packCount > 1 && packCount <= 48 && enrichedRow.packageSize && !new RegExp(String.raw`^\d+\s*[x×]`, "i").test(enrichedRow.packageText || "")
+    const row = packCount > 1 && packCount <= 48 && /(?:ml|cl|dl|l)$/i.test(enrichedRow.packageSize || "") && enrichedRow.packageSize && !new RegExp(String.raw`^\d+\s*[x×]`, "i").test(enrichedRow.packageText || "")
       ? { ...enrichedRow, packageText: `${packCount} × ${enrichedRow.packageSize}` }
       : enrichedRow;
     if (row !== originalRow) enrichedFromDetail++;
