@@ -33,7 +33,15 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
       // Its first volume token is a single container, not the full pack.
       const packMatch = title.match(/\b(\d+)\s*[- ]?pack\b/i);
       const packCount = packMatch ? Number(packMatch[1]) : 1;
-      const expected = (price - deposit) / (amount * quantity * packCount);
+      // Finnish 0.33 l cans carry a 0.15 € deposit per can. Publisher
+      // €/l excludes deposits, while the printed transaction total includes
+      // them. Only recognize this when the difference matches exactly;
+      // otherwise preserve the blocking mismatch for manual review.
+      const is033Can = /\\b0[,.]33\\s*l\\s*\\/\\s*tlk\\b/i.test(title);
+      const expectedDeposit = is033Can && packCount === 1 && quantity > 1
+        ? .15 * quantity : 0;
+      const depositToCheck = deposit > 0 ? deposit : expectedDeposit;
+      const expected = (price - depositToCheck) / (amount * quantity * packCount);
       if (amount > 0 && Math.abs(expected - unitPrice) > Math.max(.08, expected * .06)) problem("inconsistentUnitPrices");
     }
     if (!String(offer.imageUrl ?? "").trim() && !String(offer.imageData ?? "").trim()) result.missingImages++;
