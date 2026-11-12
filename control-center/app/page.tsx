@@ -155,7 +155,9 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   // A verified publication supersedes the older health probe for the same EUROSPAR feed.
   // Keep the original events in history, but do not show a stale warning for the superseded probe.
   const supersededHealthSources=new Set<string>();
-  if(d.runs.some(r=>r.chain==="TOKMANNI-SPAR"&&r.ok&&["eurospar-publication-refresh","eurospar-verified-publication"].includes(r.source))){
+  const latestEuroSuccess=d.runs.find(r=>r.chain==="TOKMANNI-SPAR"&&r.ok&&["eurospar-publication-refresh","eurospar-verified-publication"].includes(r.source));
+  const latestEuroProbe=d.runs.find(r=>r.chain==="TOKMANNI-SPAR"&&r.source==="eurospar-validated-feed");
+  if(latestEuroSuccess&&latestEuroProbe&&new Date(latestEuroSuccess.checked_at)>=new Date(latestEuroProbe.checked_at)){
     supersededHealthSources.add("eurospar-validated-feed");
   }
   const latestBySource=[...d.runs.filter(r=>!supersededHealthSources.has(r.source)).reduce((m,r)=>{const k=`${r.chain}::${explainSource(r.source)}`;if(!m.has(k))m.set(k,r);return m},new Map<string,Row>()).values()];
