@@ -37,7 +37,7 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
       // €/l excludes deposits, while the printed transaction total includes
       // them. Only recognize this when the difference matches exactly;
       // otherwise preserve the blocking mismatch for manual review.
-      const is033Can = /\\b0[,.]33\\s*l\\s*\\/\\s*tlk\\b/i.test(title);
+      const is033Can = /\b0[,.]33\s*l\s*\/\s*tlk\b/i.test(title);
       const expectedDeposit = is033Can && packCount === 1 && quantity > 1
         ? .15 * quantity : 0;
       const depositToCheck = deposit > 0 ? deposit : expectedDeposit;
