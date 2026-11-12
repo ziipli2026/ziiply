@@ -89,6 +89,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const view=requestedView==="publications"?"publications":requestedView==="data"?"data":"overview";
   const d=await load();
   const citymarketPreflights=citymarketPreflightSchedule(d.preflights);
+  const latestApprovedCitymarket=d.pubs.filter(p=>p.chain==="K-Citymarket"&&p.approval_state==="approved").sort((a,b)=>b.parsed_at.localeCompare(a.parsed_at))[0]??null;
   const localCitymarketRuns=d.runs.filter(r=>r.source==="k-citymarket-local-benefits");
   const latestLocalCitymarket=localCitymarketRuns[0]??null;
   const localCitymarketAgeH=latestLocalCitymarket?(Date.now()-new Date(latestLocalCitymarket.checked_at).getTime())/3600000:null;
@@ -604,6 +605,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     <section style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:18}}>
       <article style={{background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
         <h2 style={{marginTop:0}}>Tarkistusten tapahtumahistoria</h2>
+        {latestApprovedCitymarket&&<p style={{padding:"10px 12px",background:"#ecfdf5",border:"1px solid #a7f3d0",borderRadius:8,fontSize:13}}><strong>🟢 Citymarket – hyväksytty tarjousjulkaisu:</strong> {latestApprovedCitymarket.offer_count} tarjousta, {new Date(latestApprovedCitymarket.parsed_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})} ({latestApprovedCitymarket.publication_id}). Julkaisun tila on eri tieto kuin ennakkoparserin tarkistusloki; aiemmat virheet säilyvät historiassa.</p>}
         <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
           <thead><tr>{["Aika","Ketju","Lähde","Tulos","Määrä","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
           <tbody>{d.runs.slice(0,80).map((r,i)=><tr key={i}>
