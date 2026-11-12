@@ -564,9 +564,9 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
       || result.value.html.match(new RegExp('<title[^>]*>([^<]+)</title>', 'i'))?.[1] || "";
     const metaDescription = result.value.html.match(new RegExp('<meta\\s+name=["\\x27]description["\\x27]\\s+content=["\\x27]([^"\\x27]+)["\\x27]', 'i'))?.[1] || "";
     if (productDetailSamples.length < 6 && /(?:juusto|maito|kaura|filee|makkara)/i.test(result.value.url)) {
-      const visible = decode(result.value.html.replace(/<script\\b[\\s\\S]*?<\\/script>/gi, " ").replace(/<style\\b[\\s\\S]*?<\\/style>/gi, " ").replace(/<[^>]+>/g, " ")).replace(/\\s+/g, " ");
-      const measures = [...visible.matchAll(/\\b\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l|kpl)\\b/gi)].slice(0, 12).map(match => match[0]);
-      const needle = normalize(metaTitle.split("|").pop()?.replace(/- Lidl.*/i, "") || "");
+      const visible = decode(result.value.html.replace(new RegExp('<script[^>]*>[\\s\\S]*?</script>', 'gi'), " ").replace(new RegExp('<style[^>]*>[\\s\\S]*?</style>', 'gi'), " ").replace(new RegExp('<[^>]+>', 'g'), " ")).replace(new RegExp('\\s+', 'g'), " ");
+      const measures = [...visible.matchAll(new RegExp('\\b\\d+(?:[,.]\\d+)?\\s*(?:kg|g|ml|cl|dl|l|kpl)\\b', 'gi'))].slice(0, 12).map(match => match[0]);
+      const needle = normalize(metaTitle.split("|").pop()?.replace(new RegExp('- Lidl.*', 'i'), "") || "");
       const near = needle ? normalize(visible).indexOf(needle) : -1;
       productDetailSamples.push({ url: result.value.url, title: decode(metaTitle).slice(0, 120), description: decode(metaDescription).slice(0, 180), visibleMeasures: measures, nearbyText: near >= 0 ? normalize(visible).slice(near, near + 260) : "" });
     }
