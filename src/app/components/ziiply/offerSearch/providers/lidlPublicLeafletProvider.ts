@@ -513,7 +513,19 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
 
   // Bound the fan-out: enough for the current grocery campaign surface while
   // preventing a site-wide crawl if Lidl changes navigation markup.
-  const productPages = await Promise.allSettled([...productPaths].slice(0, 220).map(fetchHtml));
+  // Prefer product links whose URL slug actually overlaps a parsed offer name.
+  // Generic navigation links otherwise consume the 220-page budget before the
+  // grocery offers are reached. Keep unrelated links only as a fallback.
+  const offerTokens = parsed.map(row => new Set(normalize(row.name).split(" ").filter(token => token.length >= 4)));
+  const rankedProductPaths = [...productPaths].map(path => {
+    const slug = normalize(decodeURIComponent(path.split("/p/")[1] || ""));
+    const tokens = slug.split(" ").filter(token => token.length >= 4);
+    const score = offerTokens.reduce((best, nameTokens) => Math.max(best, tokens.filter(token => nameTokens.has(token)).length), 0);
+    return { path, score };
+  }).sort((a, b) => b.score - a.score);
+  const prioritizedProductPaths = rankedProductPaths.slice(0, 220);
+  const prioritizedMatchingPaths = prioritizedProductPaths.filter(item => item.score > 0).length;
+  const productPages = await Promise.allSettled(prioritizedProductPaths.map(item => fetchHtml(item.path)));
   let failedProductPages = 0;
   let productDetailParsedRows = 0;
   let productDetailPackageRows = 0;
@@ -582,6 +594,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, prioritizedMatchingPaths, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
