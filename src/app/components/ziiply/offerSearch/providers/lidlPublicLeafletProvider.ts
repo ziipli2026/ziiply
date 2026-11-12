@@ -537,6 +537,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   const detailSizes = new Map<string, Set<string>>();
   let productDetailNamedSizes = 0;
   let productDetailMetaSizes = 0;
+  const productDetailSamples: Array<{ url: string; title: string; description: string }> = [];
   for (const result of productPages) {
     if (result.status === "rejected") { failedProductPages++; continue; }
     // Extract package metadata independently of campaign price/validity. Only
@@ -562,6 +563,9 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     const metaTitle = result.value.html.match(new RegExp('<meta\\s+property=["\\x27]og:title["\\x27]\\s+content=["\\x27]([^"\\x27]+)["\\x27]', 'i'))?.[1]
       || result.value.html.match(new RegExp('<title[^>]*>([^<]+)</title>', 'i'))?.[1] || "";
     const metaDescription = result.value.html.match(new RegExp('<meta\\s+name=["\\x27]description["\\x27]\\s+content=["\\x27]([^"\\x27]+)["\\x27]', 'i'))?.[1] || "";
+    if (productDetailSamples.length < 6 && /(?:juusto|maito|kaura|filee|makkara)/i.test(result.value.url)) {
+      productDetailSamples.push({ url: result.value.url, title: decode(metaTitle).slice(0, 120), description: decode(metaDescription).slice(0, 180) });
+    }
     const ownSize = lidlPackageSize(decode(metaTitle), decode(metaDescription));
     if (ownSize && metaTitle) {
       const key = normalize(metaTitle.replace(/\s*[|–-]\s*Lidl.*$/i, ""));
@@ -612,6 +616,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   }
   return {
     offers: [...byKey.values()],
-    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, prioritizedMatchingPaths, strongProductPathMatches, productPathSamples, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, productDetailMetaSizes, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
+    audit: { date, discoveredCategoryPages: paths.length, fetchedCategoryPages: pages.length - failedPages, failedPages, discoveredProductPages: productPaths.size, prioritizedMatchingPaths, strongProductPathMatches, productPathSamples, fetchedProductPages: productPages.length - failedProductPages, failedProductPages, productDetailParsedRows, productDetailPackageRows, productDetailJsonLdPages, productDetailGridPages, productDetailVisibleSizePages, productDetailNamedSizes, productDetailMetaSizes, productDetailSamples, detailNameMatches, detailNameSamples, offerNameSamples, enrichedFromDetail, parsedRows: parsed.length, uniqueRows: byKey.size },
   };
 }
