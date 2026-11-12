@@ -121,7 +121,8 @@ const candidate={
   validation:{
     previousIssue,
     previousOfferCount,
-    sameIssue,\n    samePublication:sameIssue,
+    sameIssue,
+    samePublication:sameIssue,
     minimumOfferCount,
     parsedOfferCount:parsedOffers.length,
     coverageHealthy,
