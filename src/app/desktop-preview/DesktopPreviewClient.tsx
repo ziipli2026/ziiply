@@ -2669,7 +2669,8 @@ export default function DesktopPreviewPage() {
       // A named product may be indexed under a shorter current shop name.
       // Try at most two observed identities. Abbreviated brand punctuation
       // can hide one EAN even when a different product already has a quote.
-      if(searchWords(query).length>=2){
+      if(searchWords(query).length>=1 && neonRows.length>0){
+        // Also recover missing catalog EANs for single-word searches such as maito.
         // Shop search can distinguish punctuation such as pesty/mullattu.
         // Only skip identities actually requested, not word-equivalent names.
         const lookupKey=(name:string)=>name.normalize('NFKC').toLocaleLowerCase('fi-FI').trim().replace(/\s+/g,' ');
