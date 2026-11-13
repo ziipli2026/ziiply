@@ -1506,7 +1506,8 @@ import DesktopFuelPhotoReport from "./components/ziiply/desktop/DesktopFuelPhoto
 // V397_FUNCTIONAL_ROLLBACK: palautettu P394:n oma toimiva mobiili-Kori/Vertailu/Hae-renderöinti.
 // V401_REMOVE_OLD_MOBILE_SHOPS_RENDER: vanha Kaupat-paneelin JSX poistettu ja ohjattu ZiiplyMobileShopsView-komponenttiin.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
 import { createPortal } from "react-dom";
 import type {
   Offer,
@@ -3276,7 +3277,30 @@ function getGostaCartPriceV758(offer: any): { total: number; unit: number } {
   return { total, unit };
 }
 
+const DesktopView = dynamic(() => import("./desktop-preview/DesktopPreviewClient"), { ssr: false });
+const desktopViewport = "(min-width: 1024px) and (hover: hover) and (pointer: fine)";
+
+function subscribeToDesktopViewport(onChange: () => void) {
+  const media = window.matchMedia(desktopViewport);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function getDesktopViewport() {
+  return window.matchMedia(desktopViewport).matches;
+}
+
+function getServerViewport() {
+  return null;
+}
+
 export default function Page() {
+  const desktop = useSyncExternalStore(subscribeToDesktopViewport, getDesktopViewport, getServerViewport);
+  if (desktop === null) return null;
+  return desktop ? <DesktopView /> : <MobilePage />;
+}
+
+function MobilePage() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
     (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
     (TopbarResponsiveCardModule as any).ZiiplyTopBar ||

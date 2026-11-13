@@ -384,7 +384,7 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   return "";
 }
 
-function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
+export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const anyItem = item as any;
   // V181: K-Citymarket must be resolved before the generic trusted-category
   // branch. Otherwise a stale top-level category such as "Muut" wins before

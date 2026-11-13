@@ -1923,6 +1923,24 @@ export function isPremiumBrandProduct(name: string) {
 //
 // Maito ja kahvi jätetään tarkoituksella
 // hieman löysemmiksi, jotta hakutuloksia ei katoa liikaa.
+export function isSameRetailPackage(source: string, candidate: string): boolean {
+  function measure(name: string) {
+    const normalized = String(name).toLocaleLowerCase("fi").replace(/,/g, ".");
+    const match = Array.from(normalized.matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml|kpl)\b/g)).pop();
+    if (!match) return null;
+
+    const unit = match[2];
+    const count = normalized.slice(0, match.index).match(/\b(\d+)\s*[x×]\s*$/)?.[1];
+    const kind = unit === "kg" || unit === "g" ? "mass" : unit === "kpl" ? "count" : "volume";
+    const scale = unit === "kg" || unit === "l" ? 1000 : unit === "dl" ? 100 : 1;
+    return { kind, count, amount: Number(match[1]) * scale };
+  }
+
+  const a = measure(source);
+  const b = measure(candidate);
+  return a !== null && b !== null && a.kind === b.kind && a.count === b.count && a.amount === b.amount;
+}
+
 export function productGroupGate(sourceName: string, targetName: string) {
   // Classify the requested grocery product before accepting ingredient mentions.
   // Applies to every entry point using the shared product-group gate.

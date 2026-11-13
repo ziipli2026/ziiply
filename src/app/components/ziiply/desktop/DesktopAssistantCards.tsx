@@ -1,0 +1,50 @@
+"use client";
+
+/** Desktop assistant cards: full-height cards with stable description baselines; notices overlay instead of reflowing the card. */
+type Assistant = "gosta" | "justiina" | "arvo";
+const assistants = [
+  { key: "gosta" as const, name: "Gösta", title: "Tarjoukset", subtitle: "Hinnat ja säästövinkit", description: "Tarjoukset, hintahavainnot, säästövinkit ja tarjousvahdit.", image: "/assistants/gosta.png", frame: "border-[#8bb56d] bg-gradient-to-b from-[#f4ffe3] via-[#e0f0bd] to-[#c6dc91]", ink: "text-[#244a28]" },
+  { key: "justiina" as const, name: "Justiina", title: "Hintahaku", subtitle: "Hintahaku ja ruokaideat", description: "Reseptihaku, ateriavinkit ja korin perusteella ehdotetut ruoat.", image: "/assistants/justiina.png", frame: "border-[#c69655] bg-gradient-to-b from-[#fff6da] via-[#ffe9a2] to-[#edc66c]", ink: "text-[#6b331e]" },
+  { key: "arvo" as const, name: "Arvo", title: "Asetukset", subtitle: "Omat valinnat", description: "Ruokavaliot, suosikit, kaupat, sijainti ja muut pysyvät valinnat.", image: "/assistants/arvo.png", frame: "border-[#b99d62] bg-gradient-to-b from-[#fff3d0] via-[#ead4a1] to-[#d3b474]", ink: "text-[#314633]" },
+];
+
+export default function DesktopAssistantCards({active,hasSelectedStores,chooseStoresNoticeFor,onSelect,onlyGosta=false,fuelMode=false,onReportFuel,onGostaDetails,onGostaHomeSearch,onJustiinaRecipeSearch,onArvoScanner,gostaWatchCount=0,gostaWatchActive=false,onGostaWatchOpen}:{onReportFuel?:()=>void;onGostaDetails?:()=>void;onGostaHomeSearch?:()=>void;onJustiinaRecipeSearch?:()=>void;onArvoScanner?:()=>void;gostaWatchCount?:number;gostaWatchActive?:boolean;onGostaWatchOpen?:()=>void;fuelMode?:boolean;onlyGosta?:boolean;active:Assistant|null;hasSelectedStores:boolean;chooseStoresNoticeFor:Assistant|null;onSelect:(assistant:Assistant)=>void}){
+  return (
+    <div className="grid h-full min-h-0 grid-cols-3 gap-3 xl:gap-4 -mt-3">
+      {(onlyGosta ? assistants.filter(item=>item.key==="gosta") : assistants).map((item) => {
+        const selected = active === item.key;
+        const showStoreNotice = (item.key==="gosta" || item.key==="justiina") && chooseStoresNoticeFor===item.key && !hasSelectedStores;
+        return (
+          <div key={item.key} className={[
+            "group relative flex h-full min-h-0 flex-col items-center overflow-hidden rounded-[34px] border-[3px] px-5 pb-0 pt-5 text-center transition duration-200 active:translate-y-[2px]",
+            item.frame,
+            selected ? "ring-4 ring-[#0a7f3a]/18 shadow-[0_22px_42px_rgba(35,54,42,0.18)]" : "shadow-[0_14px_30px_rgba(35,54,42,0.12)] ring-1 ring-white/70",
+          ].join(" ")}>
+            <button type="button" aria-label={`Avaa ${item.name}`} onClick={()=>item.key==="arvo"?onArvoScanner?.():onSelect(item.key)} className={`absolute inset-0 z-20 rounded-[31px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-[#17573c] ${(item.key==="gosta"||item.key==="justiina"||item.key==="arvo")&&!fuelMode?"bottom-[145px]":""}`} />
+            <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#7f6a3e_1px,transparent_1px)] [background-size:12px_12px]" />
+              {item.key==="gosta"&&!fuelMode&&gostaWatchActive&&<button type="button" aria-label={`Avaa tarjousvahdin ${gostaWatchCount} osumaa`} onClick={event=>{event.stopPropagation();onGostaWatchOpen?.();}} className="pointer-events-auto absolute bottom-[145px] left-1/2 z-40 flex min-h-12 -translate-x-1/2 translate-y-1/2 items-center justify-center gap-2 rounded-full border-[3px] border-white bg-[#17573c] py-1.5 pl-2.5 pr-3.5 text-[17px] font-black text-white shadow-[0_5px_14px_rgba(23,87,60,.3)] transition hover:scale-105 hover:bg-[#10442f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#17573c]" title="Näytä tallennetut tarjousvahdit"><span aria-hidden="true" className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center"><svg viewBox="0 0 36 36" fill="none" className="h-8 w-8" aria-hidden="true"><path d="M8 12h20l2 19H6l2-19Z" fill="#d8edb3" stroke="#fff" strokeWidth="2" strokeLinejoin="round"/><path d="M13 14V9a5 5 0 0 1 10 0v5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/><path d="m16 18 13-3 4 7-13 3-4-7Z" fill="#b72b42" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round"/><text x="24.5" y="22" fill="#fff" fontSize="8" fontWeight="900" textAnchor="middle">%</text></svg></span><span className="tabular-nums">{gostaWatchCount}</span></button>}
+            {selected && <div className={`absolute ${item.key==="gosta"&&!fuelMode&&gostaWatchActive?"left-4":"right-4"} top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-[#0a7f3a] text-lg font-black text-white shadow-md`}>✓</div>}
+            <div className="relative z-10 mt-5 h-[clamp(150px,19vh,205px)] w-[clamp(150px,19vh,205px)] shrink-0 self-center overflow-hidden rounded-full border-[6px] border-[#f7e7c4] bg-[#f5e5c1] shadow-[0_11px_0_rgba(65,45,20,0.16),0_24px_38px_rgba(40,55,38,0.18)]">
+              <img src={item.image} alt={item.name} className="h-full w-full object-contain object-center transition duration-300 group-hover:scale-[1.025]" />
+            </div>
+            <div className={["relative z-10 mt-6 text-[36px] font-black leading-none tracking-[-0.045em] drop-shadow-[0_1px_0_rgba(255,255,255,0.5)]", item.ink].join(" ")}>{item.name}</div>
+            <div className="relative z-10 mt-3 text-[13px] font-black uppercase tracking-[0.12em] text-[#1e2f2a]">{fuelMode && item.key==="gosta" ? "Polttoainehinnat" : item.title}</div>
+            <div className="relative z-10 mt-1 min-h-[2.5rem] text-[14px] font-bold leading-5 text-[#687285]">{fuelMode && item.key==="gosta" ? "Lähiasemien hinnat ja hintavertailu" : item.subtitle}</div>
+            {item.key==="arvo" && <div className="pointer-events-none absolute bottom-[145px] left-0 right-0 z-30 text-center text-xs font-bold text-[#314633]">Yläosa: ruoka-aineskanneri · Alaosa: asetukset</div>}
+            {showStoreNotice && (
+              <div role="status" aria-live="polite" className="absolute bottom-[155px] left-1/2 z-30 w-[calc(100%-2.5rem)] max-w-[270px] -translate-x-1/2 rounded-xl border-2 border-[#986c20] bg-[#fff4cc] px-3 py-2 text-center text-[16px] font-black leading-snug text-[#5d3c12] shadow-md">
+                Valitse ensin kaupat
+              </div>
+            )}
+            <div className={`pointer-events-none relative z-30 -mx-5 mt-auto flex w-[calc(100%+2.5rem)] shrink-0 flex-col items-center justify-start gap-3 border-t-2 border-[#8d805e]/25 px-4 pt-3 pb-5 ${fuelMode && item.key==="gosta"?"min-h-[176px]":"h-[145px]"}`}>
+
+              {item.key==="arvo" && <button type="button" aria-label="Avaa Arvon asetukset" onClick={()=>onSelect("arvo")} className="pointer-events-auto absolute inset-x-0 bottom-0 z-20 h-[145px] cursor-pointer" />}
+              <p onClick={item.key==="gosta"&&!fuelMode?onGostaDetails:item.key==="justiina"?(event)=>{event.stopPropagation();onJustiinaRecipeSearch?.();}:item.key==="arvo"?(event)=>{event.stopPropagation();onSelect("arvo");}:undefined} role={(item.key==="gosta"&&!fuelMode)||item.key==="justiina"||item.key==="arvo"?"button":undefined} tabIndex={(item.key==="gosta"&&!fuelMode)||item.key==="justiina"||item.key==="arvo"?0:undefined} onKeyDown={(item.key==="gosta"&&!fuelMode)||item.key==="justiina"||item.key==="arvo"?(event)=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();if(item.key==="justiina")onJustiinaRecipeSearch?.();else if(item.key==="arvo")onSelect("arvo");else onGostaDetails?.();}}:undefined} className={`w-full font-bold text-[#3f4654] ${((item.key==="gosta"&&!fuelMode)||item.key==="justiina"||item.key==="arvo")?"pointer-events-auto relative z-30 cursor-pointer rounded-lg p-2 hover:bg-white/40 focus-visible:outline focus-visible:outline-2":""} ${fuelMode && item.key==="gosta"?"text-[13px] leading-[1.35]":"text-[15px] leading-snug"}`}>{fuelMode && item.key==="gosta" ? "Valittujen asemien hinnat ja havaintoajat. Lähin ensin." : item.description}</p>
+              {fuelMode && item.key==="gosta" && onReportFuel && <button type="button" onClick={event=>{event.stopPropagation();onReportFuel();}} className="pointer-events-auto relative z-30 flex h-[48px] shrink-0 items-center justify-center gap-3 whitespace-nowrap rounded-xl border-2 border-[#17573c] bg-[#fff4cf] px-6 text-[13px] font-black text-[#174c35] shadow-[0_3px_0_rgba(23,87,60,.2)] transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"><img src="/fuel/nozzle-photo.png" alt="" className="h-7 w-7 shrink-0 object-contain"/><span>Ilmoita hintoja</span></button>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

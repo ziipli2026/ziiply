@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { parseRecipeText, scaleIngredients, prepareRecipeSearch, type RecipeDraft } from "./recipeCore";
+import { parseRecipeText, scaleIngredients, prepareRecipeSearch, type RecipeDraft, type RecipeIngredient } from "./recipeCore";
 import { appendRecipeDebug, RECIPE_DEBUG_KEY } from "../mobile/ZiiplyRecipeSearchDebug";
 
 const STORAGE = "ziiply-justiina-recipe-draft-v1";
 const EXAMPLE = "Uunilohi\n4 annosta\nAinekset:\n600 g lohta\n1 tl suolaa\nValmistus:\nKypsennä lohi uunissa.";
-export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenChange}:{onSearchIngredients?:(terms:string[])=>void;onCameraOpenChange?:(open:boolean)=>void}){
+export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenChange}:{onSearchIngredients?:(terms:string[],items:RecipeIngredient[])=>void;onCameraOpenChange?:(open:boolean)=>void}){
   const [draft,setDraft]=useState<RecipeDraft|null>(null);
   const [text,setText]=useState("");
   const [original,setOriginal]=useState("");
@@ -200,7 +200,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenCh
     appendRecipeDebug("recipe-search-plan",{title:recipe.title,sourceText:text,originalServings,targetServings,items:search.items,terms:search.terms});
     persist(recipe,recipe===draft?text:EXAMPLE,String(originalServings),String(targetServings));
     try{sessionStorage.setItem("ziiply-justiina-active-ingredients-v1",JSON.stringify({title:recipe.title,servings:targetServings,items:search.items}))}catch{}
-    onSearchIngredients(search.terms);
+    onSearchIngredients(search.terms,search.items);
   };
   const ingredients=draft?.ingredients||[];
   const scaled=Number(original)>0&&Number(target)>0?scaleIngredients(ingredients,Number(original),Number(target)):ingredients;

@@ -11,7 +11,7 @@ import React from "react";
 export type ZiiplyCompareSelectionStore = {
   id: string;
   name: string;
-  chain?: "S" | "K";
+  chain?: "S" | "K" | "LIDL" | "SPAR";
   totalPrice?: number;
   itemCount?: number;
   savingsVsHighest?: number;
@@ -52,6 +52,7 @@ export type ZiiplyCompareSelectionItem = {
 export type ZiiplyMobileCompareSelectionCardProps = {
   open?: boolean;
   embedded?: boolean;
+  compact?: boolean;
   store: ZiiplyCompareSelectionStore;
   items?: unknown[];
   isBest?: boolean;
@@ -163,9 +164,11 @@ function getProductImage(item: unknown) {
   return data?.image || data?.imageUrl || data?.product?.image || data?.product?.imageUrl || "";
 }
 
-function getStoreOwnBrandExample(chain?: "S" | "K") {
+function getStoreOwnBrandExample(chain?: ZiiplyCompareSelectionStore["chain"]) {
   if (chain === "K") return "Pirkka / K-Menu";
   if (chain === "S") return "Coop / Xtra / Kotimaista";
+  if (chain === "LIDL") return "Milbona / Pikok / Combino";
+  if (chain === "SPAR") return "SPAR / First Price";
   return "Kaupan oma";
 }
 
@@ -175,7 +178,7 @@ function getProductBrandExample(item: unknown) {
   return comparisonBrand(name, data?.brandName || (data?.product as { brandName?: string })?.brandName) || "Sama brändi";
 }
 
-function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
+function getQualityHint(mode: QualityMode, item: unknown, chain?: ZiiplyCompareSelectionStore["chain"]) {
   switch (mode) {
     case "cheapest":
       return "Halvin sopiva";
@@ -191,6 +194,7 @@ function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
 export default function ZiiplyMobileCompareSelectionCard({
   open = true,
   embedded = false,
+  compact = false,
   store,
   items = [],
   isBest = false,
@@ -249,7 +253,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                     key={String(item.id ?? item.product?.id ?? index)}
                     data-compare-product-row className="border-b border-[#d4bd86]/72"
                   >
-                    <div className="grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5">
+                    <div className={compact ? "grid min-h-[3.4rem] grid-cols-[minmax(0,1fr)_4.25rem] items-center border-b border-[#d4bd86]/72 px-1.5 py-1" : "grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5"}>
                       <div className="flex min-w-0 items-center gap-2.5 pr-2">
                         {image ? (
                           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.55rem] border border-[#b99d5c] bg-[#fff8e5]">
