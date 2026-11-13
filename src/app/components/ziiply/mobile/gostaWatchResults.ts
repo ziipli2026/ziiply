@@ -1,7 +1,7 @@
 import { matchesGostaWatch } from "./gostaWatchMatch";
 
 const snapshotKey = "ziiply-gosta-watch-results-v1";
-const snapshotVersion = 4;
+const snapshotVersion = 5;
 export const watchResultsChanged = "ziiply-gosta-watch-results-changed";
 
 export type WatchOffer = {

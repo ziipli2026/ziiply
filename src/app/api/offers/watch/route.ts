@@ -1,4 +1,5 @@
-import { cleanZiiplyGostaOfferResultsV146, mapZiiplyGostaOfferToCardOfferV147 } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchCore";
+import { isBadOfferSearchResultV106 } from "../../../components/ziiply/offerSearch/ziiplyOfferCategoryCore";
+import { mapZiiplyGostaOfferToCardOfferV147 } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { desktopSearchDecision } from "../../../components/ziiply/search/desktopNormalRelevance";
 import { NextRequest, NextResponse } from "next/server";
 import { GET as lidlStoresGET } from "../../lidl/store-search/route";
@@ -31,7 +32,8 @@ function matches(query:string,offer:Record<string,unknown>){
   // Inflected standalone Finnish words in active leaflet titles are allowed
   // without guessing new products or searching offer conditions.
   if(terms.length===1 && q.length>=5 && words.some(w=>w===q+"t"||w===q+"n"||w===q+"a"||w===q+"ja"))return true;
-  const decision=desktopSearchDecision(query,{...offer,name,title:name} as Parameters<typeof desktopSearchDecision>[1]);
+  const searchableName=name.replace(/\bsuodatin-\s+tai\s+papukahvit?\b/gi,"suodatinkahvi papukahvi");
+  const decision=desktopSearchDecision(query,{...offer,name:searchableName,title:name} as Parameters<typeof desktopSearchDecision>[1]);
   // Prevent known false category acceptance from the shared catalog classifier.
   if(q==="spagetti" && words.some(w=>w.includes("spagettikurpitsa")))return false;
   if(decision.accepted)return true;
@@ -68,6 +70,28 @@ function priceNumber(offer:Record<string,unknown>){
   }
   return Number.POSITIVE_INFINITY;
 }
+function watchOfferKey(chain: string, store: string, offer: Record<string, unknown>) {
+  const source = (offer.__sourceOfferSearchResult ?? offer) as Record<string, unknown>;
+  const title = String(offer.title || offer.name || offer.productName || "");
+  const ean = String(offer.ean || source.ean || "").trim();
+  const from = String(offer.validFrom || source.validFrom || "").trim();
+  const until = String(offer.validUntil || source.validUntil || source.validTo || "").trim();
+  const publisher = String(offer.source || offer.provider || "");
+  const terms = [
+    String(offer.priceBasis || source.priceBasis || "").toLowerCase().replaceAll("_", "-"),
+    offer.bundleQuantity || source.multiBuyQuantity || source.offerQuantity || 1,
+    String(source.offerUnit || "").toLowerCase(),
+    Boolean(source.plussa || source.isPlussaOffer || /plussa/i.test(String(source.benefitText || ""))),
+    Boolean(source.requiresLidlPlus), source.eligibility || "",
+    source.depositTotal ?? source.depositAmount ?? "",
+    source.limitText || source.conditions || source.terms || "",
+    source.restrictionText || source.maxQuantity || "",
+  ];
+  const verifiedDuplicate = /^\d{8,14}$/.test(ean) && from && until;
+  return JSON.stringify([chain, store, watchDuplicateIdentity(title, ean), priceNumber(offer), from, until, terms,
+    verifiedDuplicate ? "" : publisher, verifiedDuplicate || (from && until) ? "" : offer.id || ""]);
+}
+
 // Reuse completed scans and coalesce concurrent requests on a warm server instance.
 // Cache keys include location and watched terms; failed scans are never retained.
 function canonicalWatchQueries(value: string | null): string {
@@ -240,8 +264,8 @@ async function runWatch(request: Request) {
               const details=payload.sourceFailures.map((failure:{source?:string;message?:string})=>String(failure.source||"provider")+": "+String(failure.message||"failed")).join("; ");
               throw new Error("Offer provider failed: "+details.slice(0,500));
             }
-            const raw=(Array.isArray(payload.results)?payload.results:[]) as Parameters<typeof cleanZiiplyGostaOfferResultsV146>[0];
-            const normalized=cleanZiiplyGostaOfferResultsV146(raw).map(mapZiiplyGostaOfferToCardOfferV147) as Record<string,unknown>[];
+            const raw=(Array.isArray(payload.results)?payload.results:[]) as Parameters<typeof mapZiiplyGostaOfferToCardOfferV147>[0][];
+            const normalized=raw.filter(item => !isBadOfferSearchResultV106(item)).map(mapZiiplyGostaOfferToCardOfferV147) as Record<string,unknown>[];
             lastGoodStoreOffers.set(kind+"|"+id,{at:Date.now(),offers:normalized});
             while(lastGoodStoreOffers.size>120)lastGoodStoreOffers.delete(lastGoodStoreOffers.keys().next().value!);
             nearbyOffers.push({chain:kind==="lidl"?"LIDL":kind==="spar"?"SPAR":isS?"S":"K",publication_id:name,offers:normalized.map(o=>({...o,storeName:name}))});
@@ -276,8 +300,7 @@ async function runWatch(request: Request) {
           const title=String(offer.title||offer.name||offer.productName||"");
           const store=String(offer.storeName||offer.store||row.publication_id||"");
           const source=String(offer.source||offer.provider||"unknown").trim().toLocaleLowerCase("fi");
-          const identity=watchDuplicateIdentity(title,String(offer.ean||"").trim());
-          const key=[row.chain,store,source,identity,priceNumber(offer)].join("|");
+          const key=watchOfferKey(String(row.chain),store,offer);
           if(seen.has(key)){duplicateRows++;if(duplicates.length<12)duplicates.push({title,source});}
           else seen.add(key);
         }
@@ -287,8 +310,7 @@ async function runWatch(request: Request) {
         const visibleKeys=new Set(watchVisible.map(offer=>{
           const title=String(offer.title||offer.name||offer.productName||"");
           const store=String(offer.storeName||offer.store||row.publication_id||"");
-          const source=String(offer.source||offer.provider||"unknown").trim().toLocaleLowerCase("fi");
-          return [row.chain,store,source,watchDuplicateIdentity(title,String(offer.ean||"").trim()),priceNumber(offer)].join("|");
+          return watchOfferKey(String(row.chain),store,offer);
         }));
         return {store:String(row.publication_id),total:offers.length,priced:priced.length,
           unpriced:unpriced.length,unpricedSamples:unpriced.slice(0,12).map(o=>({title:String(o.title||o.name||""),price:o.offerPrice??o.price??null})),
@@ -314,15 +336,7 @@ async function runWatch(request: Request) {
         if (!matchingQueries.length) continue;
         const title=String(offer.title||offer.name||offer.productName||"");
         const store=String(offer.storeName||offer.store||row.chain||"");
-        // The same product can arrive under different publication offer IDs.
-        // Prefer a verified EAN, scoped to the store and price; otherwise use
-        // normalized product identity instead of provider-specific row IDs.
-        const ean=String(offer.ean||"").trim();
-        const identity=watchDuplicateIdentity(title,ean);
-        // Keep separate offers when their original publishers/providers differ.
-        // Deduplicate only identical product/price entries from the same source.
-        const offerSource=String(offer.source||offer.provider||"unknown").trim().toLocaleLowerCase("fi");
-        const key=[row.chain,store,offerSource,identity,priceNumber(offer)].join("|");
+        const key = watchOfferKey(String(row.chain),store,offer);
         if (seen.has(key)) continue;
         seen.add(key);
         results.push({...offer,title,storeName:store,chain:String(row.chain),watchQueries:matchingQueries});
@@ -347,7 +361,8 @@ async function runWatch(request: Request) {
       return {
         ...offer,
         priceBasis: weighted ? "per-kg" : basis,
-        validUntil: String(source.validUntil || ""),
+        validFrom: String(source.validFrom || ""),
+        validUntil: String(source.validUntil || source.validTo || ""),
         comparisonPriceText: comparison || (rate > 0 && /^(kg|l)$/.test(unit)
           ? rate.toFixed(2).replace(".", ",") + " €/" + unit : ""),
       };
