@@ -252,7 +252,8 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       outcome:"approved-publication",checked_at:p.parsed_at
     }));
     const newest=rows[0]??null,previous=rows[1]??null;
-    const delta=newest&&previous&&previous.offer_count>0?Math.round((newest.offer_count-previous.offer_count)/previous.offer_count*100):null;
+    // Editions may be overlapping segments, not successive snapshots; a percent change would be misleading.
+    const delta=null;
     const failures=0;
     const current=activePubs.some(p=>ch.match(p.chain.trim()));
     const ageH=newest?(Date.now()-new Date(newest.checked_at).getTime())/3600000:null;
@@ -261,7 +262,22 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   });
   const publicationGroups=[...new Map(activePubs.map(p=>[p.chain,activePubs.filter(q=>q.chain===p.chain)])).entries()];
   const chainQuality=publicationGroups.map(([chain,pubs])=>({chain,offers:pubs.reduce((n,p)=>n+p.offer_count,0),missingPrice:pubs.reduce((n,p)=>n+p.missing_price,0),missingImage:pubs.reduce((n,p)=>n+p.missing_image,0),missingCategory:pubs.reduce((n,p)=>n+p.missing_category,0),publications:pubs.length}));
-  const chainHealth=CHAINS.map(ch=>{const pubs=activePubs.filter(p=>ch.match(p.chain.trim()));const runs=sourceHealth.filter(r=>ch.match(r.chain.trim())&&r.source!=="future-publication-discovery"&&r.source!=="s-kaupat-protocol");const offers=pubs.reduce((n,p)=>n+p.offer_count,0);const missingPrice=pubs.reduce((n,p)=>n+p.missing_price,0);const missingImage=pubs.reduce((n,p)=>n+p.missing_image,0);const missingCategory=pubs.reduce((n,p)=>n+p.missing_category,0);const badRun=runs.some(r=>r.level==="red");const stale=!runs.length||runs.every(r=>r.ageH>36);const level=badRun||missingPrice>0?"red":stale||missingImage>0||missingCategory>0?"yellow":"green";return {chain:ch.key,name:ch.name,offers,missingPrice,missingImage,missingCategory,runs:runs.length,badRun,stale,level};});
+  const chainHealth=CHAINS.map(ch=>{
+    const pubs=activePubs.filter(p=>ch.match(p.chain.trim()));
+    const runs=sourceHealth.filter(r=>ch.match(r.chain.trim())&&r.source!=="future-publication-discovery"&&r.source!=="s-kaupat-protocol");
+    const offers=pubs.reduce((n,p)=>n+p.offer_count,0);
+    const missingPrice=pubs.reduce((n,p)=>n+p.missing_price,0);
+    const missingImage=pubs.reduce((n,p)=>n+p.missing_image,0);
+    const missingCategory=pubs.reduce((n,p)=>n+p.missing_category,0);
+    const verifiedEuro=ch.key==="EUROSPAR"&&Boolean(latestEuroSuccess);
+    const hasPublication=pubs.length>0||verifiedEuro;
+    // Stale diagnostics must not turn a fresh approved publication red.
+    // Missing data quality fields remain visible and actionable.
+    const badRun=!hasPublication&&runs.some(r=>r.level==="red");
+    const stale=!hasPublication&&(!runs.length||runs.every(r=>r.ageH>36));
+    const level=missingPrice>0?"red":hasPublication?(missingImage>0||missingCategory>0?"yellow":"green"):badRun?"red":"yellow";
+    return {chain:ch.key,name:ch.name,offers,missingPrice,missingImage,missingCategory,runs:runs.length,badRun,stale,level};
+  });
   const rolloverGaps=rolloverChains.filter(r=>r.gap);
   const rolloverWithoutNext=rolloverChains.filter(r=>r.current&&r.current.valid_until<=todayFi&&!r.future);
   const thinNext=rolloverChains.filter(r=>r.current&&r.future&&r.future.offer_count<Math.max(3,Math.floor(r.current.offer_count*.5)));
