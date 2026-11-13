@@ -2701,7 +2701,17 @@ export default function DesktopPreviewPage() {
           try{
             report('catalog_name_lookup',{chain:batch.chain,store:store.name,names:lookupNames});
             const recovered=await fetchSearchData(url,lookupNames);
-            batch.data={...batch.data,products:[...itemsOf(batch.data),...itemsOf(recovered)]};
+            // Name-based catalog lookups can return similarly named but
+            // different-EAN products. Only recover identities actually
+            // present in the Neon catalog; the primary store search above
+            // remains free to return other relevant priced products.
+            const missingEans=new Set(neonRows.map((item:any)=>String(item.ean||"").replace(/\\D/g,"")).filter(Boolean));
+            const matchingCatalogQuotes=itemsOf(recovered).filter(item=>{
+              const ean=String(item.ean||item.barcode||item.product?.ean||"").replace(/\\D/g,"");
+              const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
+              return missingEans.has(ean) && Number.isFinite(price) && price>0;
+            });
+            batch.data={...batch.data,products:[...itemsOf(batch.data),...matchingCatalogQuotes]};
           }catch(error){failures.push(String(error));report('catalog_name_lookup_error',{chain:batch.chain,error:String(error)});}
         }));
       }
