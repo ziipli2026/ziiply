@@ -93,7 +93,8 @@ jobs:
           const report=[];
           const norm=p=>[String(p.ean||''),String(p.name||'').toLocaleLowerCase('fi'),Number(p.price||0).toFixed(2)].join('|');
           (async()=>{
-            for(const term of terms){
+            for(let offset=0;offset<terms.length;offset+=5){
+              await Promise.all(terms.slice(offset,offset+5).map(async term=>{
               try{
                 const url='https://ziiply.vercel.app/api/s-products?store=292&search='+encodeURIComponent(term);
                 const response=await fetch(url,{signal:AbortSignal.timeout(25000)});
@@ -108,7 +109,9 @@ jobs:
                 const desktopOnly=b.filter(p=>!ak.has(norm(p))).slice(0,10).map(p=>p.name);
                 report.push({term,raw:raw.length,mobile:a.length,desktop:b.length,mobileOnly,desktopOnly,sameOrder:JSON.stringify(a.map(norm))===JSON.stringify(b.map(norm))});
               }catch(error){report.push({term,error:String(error)})}
+              }));
             }
+            report.sort((a,b)=>terms.indexOf(a.term)-terms.indexOf(b.term));
             fs.writeFileSync('mobile-desktop-search-comparison.json',JSON.stringify(report,null,2));
             console.log('MOBILE_DESKTOP_COMPARISON '+JSON.stringify(report));
             if(report.some(x=>x.error))process.exitCode=1;
