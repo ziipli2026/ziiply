@@ -112,9 +112,17 @@ jobs:
               }));
             }
             report.sort((a,b)=>terms.indexOf(a.term)-terms.indexOf(b.term));
-            fs.writeFileSync('mobile-desktop-search-comparison.json',JSON.stringify(report,null,2));
-            console.log('MOBILE_DESKTOP_COMPARISON '+JSON.stringify(report));
-            if(report.some(x=>x.error))process.exitCode=1;
+            const summary={
+              queries:terms.length,
+              completed:report.filter(x=>!x.error).length,
+              errors:report.filter(x=>x.error).length,
+              differentProductSets:report.filter(x=>!x.error&&(x.mobileOnly.length||x.desktopOnly.length)).length,
+              differentOrder:report.filter(x=>!x.error&&!x.sameOrder).length,
+              examples:report.filter(x=>!x.error&&(x.mobileOnly.length||x.desktopOnly.length)).slice(0,20).map(x=>({term:x.term,mobileOnly:x.mobileOnly,desktopOnly:x.desktopOnly}))
+            };
+            fs.writeFileSync('mobile-desktop-search-comparison.json',JSON.stringify({summary,results:report},null,2));
+            console.log('MOBILE_DESKTOP_SUMMARY '+JSON.stringify(summary));
+            if(summary.errors)process.exitCode=1;
           })();
           NODE
       - uses: actions/upload-artifact@v4
