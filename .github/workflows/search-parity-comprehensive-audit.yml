@@ -44,5 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: search-parity-audit-log
-          path: |\n            search-parity-audit.log\n            search-live-chain-audit.log
+          path: |
+            search-parity-audit.log
+            search-live-chain-audit.log
           if-no-files-found: warn
