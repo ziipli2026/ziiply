@@ -13311,6 +13311,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Only a matching EAN with a verified shop price can enter the picker.
         if (catalogEligible) {
           const catalogRows = await catalogPromise;
+          if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
           const seenEans = new Set(all.map(item => normalizeEan(item.ean)).filter(Boolean));
           const missing = catalogRows.filter(row => {
             const ean = normalizeEan(row.ean);
@@ -13334,7 +13335,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               ...convertKProductToProduct(item), ean: item.ean,
               __recipeChain: "K", __recipeStoreName: singleK ? activeArea.kStoreName : activeStores.kStoreName,
             }))));
+            if (requests.length === 0) continue;
             const responses = await Promise.allSettled(requests);
+            if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
             const recovered = responses.flatMap(response => response.status === "fulfilled" ? response.value : [])
               .filter(item => normalizeEan(item.ean) === normalizeEan(catalog.ean) &&
                 getProductPrice(item) > 0 && !isBadNormalResult(item, term) &&
