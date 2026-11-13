@@ -13067,11 +13067,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const all: Product[] = [];
 
       for (const term of focusedSearchTerms) {
-        // Normaali haku on S-first: haetaan S-tuote ensin /api/s-products-routesta.
-        // Monen tuotteen haussa näytetään vain seuraavan jonossa olevan tuotteen kandidaatit.
-        // Näin "maito, kahvi, cola" käyttää samaa relevance-logiikkaa kuin yksittäinen haku:
-        // valitse maito -> valitse kahvi -> valitse cola.
-        // K-vastine haetaan vasta ostoskori-/vertailuvaiheessa.
+        // Normal search collects selected-store prices without chain preference.
+        // Multi-item selection remains sequential (maito -> kahvi -> cola).
+        // The Neon catalog is metadata only; no catalog-only price is displayed.
+        const catalogPromise: Promise<any[]> = recipeIngredient ? Promise.resolve([]) :
+          fetch("/api/neon-first-search?desktop=1&q=" + encodeURIComponent(term), { cache: "no-store" })
+            .then(async response => response.ok ? response.json() : null)
+            .then(data => Array.isArray(data?.products) ? data.products : [])
+            .catch(() => []);
         const coverageQueries=recipeCoverageQueries(term,recipeIngredient,[...new Set(getNormalSearchQueries(term))].slice(0,6));
         const generatedSearchQueries = (coverageQueries.length?coverageQueries:getNormalSearchQueries(term))
           .map((query) => fixText(String(query || "")).trim())
@@ -13298,6 +13301,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           if(recipeIngredient)appendRecipeDebug("recipe-product-decisions",{term,searchQuery,ingredient:recipeIngredient,rawCount:rawItems.length,decisions:rawItems.map(product=>({name:product.name,category:product.category,price:getProductPrice(product),rejection:recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient)})),accepted:finalItems.map(product=>product.name)});
           all.push(...finalItems);
+        }
+        // Recover up to two missing catalog identities from the selected stores.
+        // Only a matching EAN with a verified shop price can enter the picker.
+        if (!recipeIngredient && !forceEan) {
+          const catalogRows = await catalogPromise;
+          const seenEans = new Set(all.map(item => normalizeEan(item.ean)).filter(Boolean));
+          const missing = catalogRows.filter(row => {
+            const ean = normalizeEan(row.ean);
+            return isUsableEan(ean) && !seenEans.has(ean) &&
+              Boolean(row.name) && productGroupGate(term, String(row.name));
+          }).slice(0, 2);
+          for (const catalog of missing) {
+            const lookup = String(catalog.name).trim();
+            const requests: Array<Promise<Product[]>> = [];
+            const singleS = storeCompareScope === "within_chain" && withinChain === "S";
+            const singleK = storeCompareScope === "within_chain" && withinChain === "K";
+            const oneMode = storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one";
+            const useS = singleS || (!singleK && selectedChains.s && !(oneMode && selectedChains.k && !selectedChains.s));
+            const useK = singleK || (!singleS && selectedChains.k && !(oneMode && selectedChains.s && !selectedChains.k));
+            const sId = singleS ? activeArea.sStoreId : activeStores.sStoreId;
+            const kId = singleK ? activeArea.kStoreId : activeStores.kStoreId;
+            if (useS && sId) requests.push(fetchSProducts(lookup, sId).then(items => items.map(item => ({
+              ...item, __recipeChain: "S", __recipeStoreName: singleS ? activeArea.sStoreName : activeStores.sStoreName,
+            }))));
+            if (useK && kId) requests.push(fetchKProducts(lookup, kId).then(items => items.map(item => ({
+              ...convertKProductToProduct(item), ean: item.ean,
+              __recipeChain: "K", __recipeStoreName: singleK ? activeArea.kStoreName : activeStores.kStoreName,
+            }))));
+            const responses = await Promise.allSettled(requests);
+            const recovered = responses.flatMap(response => response.status === "fulfilled" ? response.value : [])
+              .filter(item => normalizeEan(item.ean) === normalizeEan(catalog.ean) &&
+                getProductPrice(item) > 0 && !isBadNormalResult(item, term) &&
+                productGroupGate(term, item.name));
+            all.push(...recovered.map(item => ({ ...item, originalSearchTerm: term, usedSearchQuery: lookup })));
+            if (recovered.length) seenEans.add(normalizeEan(catalog.ean));
+          }
         }
       }
 
