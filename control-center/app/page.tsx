@@ -213,6 +213,13 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     ...parserRegressions.filter(x=>x.level==="yellow").map(x=>({level:"yellow",priority:140,title:x.name,detail:"Parseriregressiovaroitus · "+x.signals.join(" · ")})),
     ...futureDiscovery.filter(x=>!x.run).map(x=>({level:"yellow",priority:180,title:x.chain,detail:"Future discoveryn ensimmäinen ajo puuttuu"})),
   ].sort((a,b)=>(a.level==="red"?0:1)-(b.level==="red"?0:1)||a.priority-b.priority);
+  // Publication timestamps are authoritative for offer freshness; health probes are separate diagnostics.
+  const latestApprovedByChain=CHAINS.map(ch=>({
+    key:ch.key,
+    name:ch.name,
+    latest:d.pubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved")
+      .sort((a,b)=>b.parsed_at.localeCompare(a.parsed_at))[0]??null
+  }));
   const chainHistory=CHAINS.map(ch=>{
     const rows=d.runs.filter(r=>ch.match(r.chain.trim())&&r.source!=="future-publication-discovery"&&r.source!=="s-kaupat-protocol"&&!supersededHealthSources.has(r.source)).slice(0,6);
     const successful=rows.filter(r=>r.ok);
@@ -519,6 +526,21 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
         </tr>)}</tbody>
       </table></div>
       <div style={{fontSize:12,color:"#667085",marginTop:10}}>Tarjousmäärän trendistä on rajattu pois future-discovery ja protokollaprobet, jotta nollatulokset eivät vääristä varsinaisen parserin kehitystä. Muutos vertaa kahta viimeisintä onnistunutta ajoa.</div>
+    </section>
+
+    <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
+      <h2 style={{marginTop:0}}>Tarjousten todellinen päivitys (hyväksytyt julkaisut)</h2>
+      <p style={{fontSize:13,color:"#475467"}}>Julkaisuaika luetaan tarjousjulkaisujen parsed_at-kentästä. Alla oleva health-loki on erillinen tarkistusloki, eikä sen vanha päivämäärä tarkoita, ettei tarjouksia olisi päivitetty.</p>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+        <thead><tr>{["Ketju","Viimeisin hyväksytty julkaisu","Tarjouksia","Voimassaolo","Julkaisun ikä"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <tbody>{latestApprovedByChain.map(x=><tr key={x.key}>
+          <td style={{padding:8,fontWeight:800}}>{x.name}</td>
+          <td style={{padding:8}}>{x.latest?new Date(x.latest.parsed_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"Ei hyväksyttyä julkaisua"}</td>
+          <td style={{padding:8}}>{x.latest?.offer_count??"—"}</td>
+          <td style={{padding:8}}>{x.latest?x.latest.valid_from+" – "+x.latest.valid_until:"—"}</td>
+          <td style={{padding:8}}>{x.latest?Math.round((Date.now()-new Date(x.latest.parsed_at).getTime())/3600000)+" h":"—"}</td>
+        </tr>)}</tbody>
+      </table></div>
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
