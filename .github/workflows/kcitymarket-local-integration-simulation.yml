@@ -271,7 +271,7 @@ jobs:
                 // then seed a deterministic store selection before search.
                 await search.goto(url);
                 await search.evaluate(async () => {
-                  const cache = await caches.open('ziiply-boot-v778');
+                  const cache = await caches.open('ziiply-boot-marker-v778');
                   await cache.put('/__ziiply_boot_marker_v778__', new Response('1'));
                   localStorage.setItem('ziiply-store-selection-v536', JSON.stringify({
                     version: 1, savedAt: Date.now(),
