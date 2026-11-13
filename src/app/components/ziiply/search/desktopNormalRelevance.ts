@@ -124,14 +124,6 @@ function desktopSearchNameDecision(query: string, product: Row) {
     if(index>=0)productWords=[...productWords.slice(0,index),...productWords.slice(index+brand.length)];
   }
   const name=parse(productWords.join(' '));
-  // Finnish compound forms can express the requested ingredient without
-  // separating it into a standalone word (kuohukerma, tomaattiketsuppi).
-  if(q.terms.length===1 && q.terms[0]==='kerma' &&
-     /(?:^| )(?:kuohu|vispi|ruoka|kahvi|laktoositon|kasvi)kerma(?: |$)/.test(productWords.join(' ')))
-    return {accepted:true,score:85,reason:'recognized_cream_compound'};
-  if(q.terms.length===1 && q.terms[0]==='ketsuppi' &&
-     /(?:^| )tomaattiketsuppi(?: |$)/.test(productWords.join(' ')))
-    return {accepted:true,score:85,reason:'recognized_ketchup_compound'};
   const categoryLeaf=String(product.category || '').split('/').at(-1) || '';
   const category=parse(categoryLeaf).terms;
   const intent=resolveSearchIntentAI(q.terms.map(term=>term==='tomaattiketsuppi'?'ketsuppi':term).join(' '));
@@ -279,6 +271,8 @@ function desktopSearchNameDecision(query: string, product: Row) {
       : name.terms.some(w=>v.length>=3 && w.startsWith(v) && ((!rawIngredientTerms.has(v) && !['cola','pepsi','coke','kahvi'].includes(v)) || (['kana','broileri'].includes(v) && /^(?:n)?(?:filee|rinta|reis|siipi|suikale|koipi|paisti|pihvi|jauheliha)/.test(w.slice(v.length))))) ? 65
       : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0; }));
     if(strength) score+=strength;
+    else if(term==='kerma' && /(?:^| )(?:kuohu|vispi|ruoka|kahvi|laktoositon|kasvi)kerma(?: |$)/.test(nameText)) score+=65;
+    else if(term==='ketsuppi' && /(?:^| )tomaattiketsuppi(?: |$)/.test(nameText)) score+=65;
     else if(term==='ruodoton' && salmonDcutIsBoneless(product.name || product.title)) score+=60;
     else if(term==='pakaste' && /^pakasteet(?:\/|$)/i.test(String(product.category || ''))) score+=60;
     else if(!alternatives[term] && brand.includes(term) && (q.terms.length>1 || brand.join(" ")===term)) score+=25;
