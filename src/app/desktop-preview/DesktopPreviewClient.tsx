@@ -2736,7 +2736,7 @@ export default function DesktopPreviewPage() {
       // The shared ranker sorts cheapest first, so the first quote per EAN wins.
       const seen = new Set<string>();
       const sortedRows = relevanceAndPriceRows.filter(product => {
-        const ean = String(product.ean || product.barcode || product.product?.ean || "").replace(/\D/g, "");
+        const ean = normalizeEan(product.ean || product.barcode || product.product?.ean);
         const key = ean || `name:${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`;
         if (seen.has(key)) return false;
         seen.add(key);
