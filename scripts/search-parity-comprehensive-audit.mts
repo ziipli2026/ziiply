@@ -81,6 +81,25 @@ for (const p of realNeonMilk) {
 }
 console.log('REAL_NEON_MILK_FIXTURE',JSON.stringify({products:realNeonMilk.length,failures:realNeonFailures}));
 if(realNeonFailures) process.exitCode=1;
+// Integration contract: a Neon catalog identity has no store price until a
+// selected chain returns an EAN-matched price. Simulate that join without DB writes.
+const catalogOnly=realNeonMilk.map(({price,...p})=>({...p,price:0}));
+const selectedStorePrices=new Map<string,number>([
+  ['6413300101010',1.69],['6413300101515',1.19],['6408653125622',1.25]
+]);
+const joined=rankProductResultsByRelevanceAndPrice('maito',
+  catalogOnly.map(p=>({...p,price:selectedStorePrices.get(p.ean)??0})),p=>p.price);
+assert.deepEqual(joined.map(p=>p.ean),
+  ['6413300101515','6408653125622','6413300101010'],
+  'only priced matching EANs from selected store, cheapest first');
+assertions++;
+assert(joined.every(p=>selectedStorePrices.has(p.ean) && p.price>0),
+  'catalog-only and wrong-category rows must never appear as priced results');
+assertions++;
+const noStorePrices=rankProductResultsByRelevanceAndPrice('maito',catalogOnly,p=>p.price);
+assert.equal(noStorePrices.length,0,'Neon catalog alone cannot produce priced results');
+assertions++;
+console.log('NEON_CHAIN_PRICE_JOIN_FIXTURE',JSON.stringify({catalog:catalogOnly.length,priced:joined.length,unpricedVisible:noStorePrices.length,eanOrder:joined.map(p=>p.ean)}));
 const expectedGood=cases.reduce((n,c)=>n+c.good.length,0);
 const expectedBad=cases.reduce((n,c)=>n+c.bad.length,0);
 // The exact same EAN normalization must be used for formatted and raw codes.
