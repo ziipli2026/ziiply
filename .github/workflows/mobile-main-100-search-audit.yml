@@ -74,6 +74,52 @@ jobs:
             if(summary.errors||summary.unsorted||summary.unstableTop||summary.wrongGroup||summary.unexpectedEmpty.length)process.exitCode=1;
           })();
           NODE
+      - name: Check out desktop preview for side-by-side comparison
+        uses: actions/checkout@v4
+        with:
+          ref: preview/legacy-desktop-ui
+          path: .desktop-preview
+      - name: Compile desktop preview search core
+        run: |
+          npx tsc .desktop-preview/src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-desktop-audit
+      - name: Compare mobile and desktop ranking on identical live products
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const mobile=require('./.tmp-100-audit/ziiplyCore.js');
+          const desktop=require('./.tmp-desktop-audit/ziiplyCore.js');
+          const terms=['maito','kevytmaito','täysmaito','rasvaton maito','kahvi','jauheliha','kirjolohi','ruokaöljy','mustapippuri','leipä','voi','kananmuna'];
+          const report=[];
+          const norm=p=>[String(p.ean||''),String(p.name||'').toLocaleLowerCase('fi'),Number(p.price||0).toFixed(2)].join('|');
+          (async()=>{
+            for(const term of terms){
+              try{
+                const url='https://ziiply.vercel.app/api/s-products?store=292&search='+encodeURIComponent(term);
+                const response=await fetch(url,{signal:AbortSignal.timeout(25000)});
+                if(!response.ok)throw Error('HTTP '+response.status);
+                const body=await response.json();
+                const raw=Array.isArray(body)?body:(body.items||body.products||[]);
+                const priced=raw.map(p=>({...p,price:Number(p.price||p.storeItems?.[0]?.price||0)})).filter(p=>Number.isFinite(p.price)&&p.price>0);
+                const a=mobile.rankProductResultsByRelevanceAndPrice(term,priced,p=>p.price);
+                const b=desktop.rankProductResultsByRelevanceAndPrice(term,priced,p=>p.price);
+                const ak=new Set(a.map(norm)),bk=new Set(b.map(norm));
+                const mobileOnly=a.filter(p=>!bk.has(norm(p))).slice(0,10).map(p=>p.name);
+                const desktopOnly=b.filter(p=>!ak.has(norm(p))).slice(0,10).map(p=>p.name);
+                report.push({term,raw:raw.length,mobile:a.length,desktop:b.length,mobileOnly,desktopOnly,sameOrder:JSON.stringify(a.map(norm))===JSON.stringify(b.map(norm))});
+              }catch(error){report.push({term,error:String(error)})}
+            }
+            fs.writeFileSync('mobile-desktop-search-comparison.json',JSON.stringify(report,null,2));
+            console.log('MOBILE_DESKTOP_COMPARISON '+JSON.stringify(report));
+            if(report.some(x=>x.error))process.exitCode=1;
+          })();
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-desktop-search-comparison
+          path: mobile-desktop-search-comparison.json
+          if-no-files-found: warn
       - uses: actions/upload-artifact@v4
         if: always()
         with:
