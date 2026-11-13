@@ -12,7 +12,7 @@ import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferenc
 import { useEffect, useRef, useState } from "react";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "../components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, type ZiiplyArrivalDecision } from "../components/ziiply/location/ziiplyArrivalSequence";
-import { comparePricedSearchResults, getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
+import { getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList, autocorrectNormalSearchTerm } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -2721,24 +2721,17 @@ export default function DesktopPreviewPage() {
         }
       }
       const relevanceAndPriceRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
-      const selectedStoreEans=new Set(relevanceAndPriceRows.map((x:any)=>String(x.ean||x.barcode||x.product?.ean||"").replace(/\D/g,"")).filter(Boolean));
-      // A store result wins by EAN; catalog-only products never enter the visible list.
-      // Do not imply that a Neon catalog match is stocked in a selected store.
-      const neonOnly=neonRows.filter((x:any)=>!selectedStoreEans.has(String(x.ean||x.barcode||x.product?.ean||"").replace(/\D/g,"")));
-      // Combine catalog metadata and shop records before the final priced-only policy.
-      // Preserve store-priced records when the same EAN exists in both sources.
-      const combinedByEan=new Map<string,any>();
-      for(const product of [...neonOnly,...relevanceAndPriceRows]){
-        const ean=String(product.ean||product.barcode||product.product?.ean||"").replace(/\D/g,"");
-        const key=ean||`name:${String(product.name||"").toLocaleLowerCase("fi")}:${String(product.__store||"")}`;
-        const previous=combinedByEan.get(key);
-        if(!previous||(Number.isFinite(product.__price)&&(!Number.isFinite(previous.__price)||product.__price<previous.__price)))combinedByEan.set(key,product);
-      }
-      const sortedRows = [...combinedByEan.values()]
-        .filter(product => Number.isFinite(product.__price) && product.__price > 0 && desktopSearchDecision(query, product).accepted)
-        .sort((a, b) => comparePricedSearchResults(a, b, product => product.__price))
-        .slice(0, 100);
-      if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,neonOnlyCount:neonOnly.length,failures,products:sortedRows});
+      // Catalog rows supply identity evidence above. Only priced store rows enter the picker.
+      // The shared ranker sorts cheapest first, so the first quote per EAN wins.
+      const seen = new Set<string>();
+      const sortedRows = relevanceAndPriceRows.filter(product => {
+        const ean = String(product.ean || product.barcode || product.product?.ean || "").replace(/\D/g, "");
+        const key = ean || `name:${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, 100);
+      if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
       if(generation!==desktopVoiceRunRef.current)return false;
