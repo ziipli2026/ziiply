@@ -131,7 +131,13 @@ jobs:
             };
             fs.writeFileSync('mobile-desktop-search-comparison.json',JSON.stringify({summary,results:report},null,2));
             console.log('MOBILE_DESKTOP_SUMMARY '+JSON.stringify(summary));
-            if(summary.errors)process.exitCode=1;
+            // Mobile and desktop must accept the same products in the same order.
+            // Fail parity explicitly; both branches should use the same hard
+            // product-group filters and cheapest-first ordering.
+            if(summary.errors || summary.differentProductSets || summary.differentOrder) {
+              console.error('MOBILE_DESKTOP_PARITY_FAILED '+JSON.stringify(summary));
+              process.exitCode=1;
+            }
           })();
           NODE
       - uses: actions/upload-artifact@v4
