@@ -221,12 +221,25 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       .sort((a,b)=>b.parsed_at.localeCompare(a.parsed_at))[0]??null
   }));
   const chainHistory=CHAINS.map(ch=>{
-    const rows=d.runs.filter(r=>ch.match(r.chain.trim())&&r.source!=="future-publication-discovery"&&r.source!=="s-kaupat-protocol"&&!supersededHealthSources.has(r.source)).slice(0,6);
-    const successful=rows.filter(r=>r.ok);
-    const newest=successful[0]??null, previous=successful[1]??null;
+    // This summary is about publications, not diagnostic probes. A successful
+    // parser run can be older than an already approved, published offer set.
+    const pubs=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved")
+      .sort((a,b)=>b.parsed_at.localeCompare(a.parsed_at));
+    const latestByEdition=[...pubs.reduce((m,p)=>{
+      const key=p.chain+"::"+p.valid_from+"::"+p.valid_until;
+      if(!m.has(key))m.set(key,p);
+      return m;
+    },new Map<string,Pub>()).values()].slice(0,6);
+    const rows:Row[]=latestByEdition.map(p=>({
+      chain:p.chain,source:"approved-publication",ok:true,offer_count:p.offer_count,
+      outcome:"approved-publication",checked_at:p.parsed_at
+    }));
+    const newest=rows[0]??null,previous=rows[1]??null;
     const delta=newest&&previous&&previous.offer_count>0?Math.round((newest.offer_count-previous.offer_count)/previous.offer_count*100):null;
-    const failures=rows.filter(r=>!r.ok).length;
-    const level=!rows.length?"gray":!newest?"red":failures>=2?"red":failures===1||delta!==null&&delta<=-40?"yellow":"green";
+    const failures=0;
+    const current=activePubs.some(p=>ch.match(p.chain.trim()));
+    const ageH=newest?(Date.now()-new Date(newest.checked_at).getTime())/3600000:null;
+    const level=!newest?"gray":current?(ageH!==null&&ageH>72?"yellow":"green"):"yellow";
     return {key:ch.key,name:ch.name,rows,newest,previous,delta,failures,level};
   });
   const publicationGroups=[...new Map(activePubs.map(p=>[p.chain,activePubs.filter(q=>q.chain===p.chain)])).entries()];
@@ -514,18 +527,18 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Viimeisten tarkistusten tulokset ketjuittain</h2>
+      <h2 style={{marginTop:0}}>Viimeisimmät hyväksytyt tarjousjulkaisut ketjuittain</h2>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-        <thead><tr>{["Tila","Ketju","Viimeisin onnistunut","Muutos","Virheitä / 6 ajoa","Viimeiset ajot"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <thead><tr>{["Tila","Ketju","Viimeisin onnistunut","Muutos","Virheitä / julkaisuja","Viimeiset ajot"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
         <tbody>{chainHistory.map(x=><tr key={x.key}>
           <td style={{padding:8}}>{dot(x.level)}</td><td style={{padding:8,fontWeight:900}}>{x.name}</td>
           <td style={{padding:8}}>{x.newest?x.newest.offer_count+" · "+new Date(x.newest.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"—"}</td>
           <td style={{padding:8,fontWeight:800}}>{x.delta===null?"—":(x.delta>0?"+":"")+x.delta+" %"}</td>
-          <td style={{padding:8}}>{x.failures} / {x.rows.length}</td>
+          <td style={{padding:8}}>{x.rows.length} hyväksyttyä</td>
           <td style={{padding:8}}><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{x.rows.length?x.rows.map((r,i)=><span key={i} title={r.source+" · "+r.outcome+" · "+new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})} style={{padding:"3px 6px",borderRadius:7,background:r.ok?"#ecfdf3":"#fef2f2",fontWeight:800}}>{r.ok?"✓":"✕"} {r.offer_count}</span>):"Ei ajoja"}</div></td>
         </tr>)}</tbody>
       </table></div>
-      <div style={{fontSize:12,color:"#667085",marginTop:10}}>Tarjousmäärän trendistä on rajattu pois future-discovery ja protokollaprobet, jotta nollatulokset eivät vääristä varsinaisen parserin kehitystä. Muutos vertaa kahta viimeisintä onnistunutta ajoa.</div>
+      <div style={{fontSize:12,color:"#667085",marginTop:10}}>Tässä taulukossa näkyvät hyväksytyt tarjousjulkaisut, eivät erilliset tekniset tarkistukset. Teknisten tarkistusten virheet ja niiden alkuperäiset päivämäärät näkyvät alempana. Muutos vertaa kahta viimeisintä hyväksyttyä tarjousjaksoa.</div>
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
