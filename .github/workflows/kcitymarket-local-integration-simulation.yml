@@ -260,7 +260,7 @@ jobs:
                   }
                   if (/Maitolaakson/i.test(params.get('search') || '')) {
                     return route.fulfill({ json: { products: [
-                      { id: 99, name: 'Maitolaakson kevytmaito 1 l', ean: '6411001000991', price: 109 },
+                      { id: 99, name: 'Maitolaakson kevytmaito 1 l', ean: '6411 0010-00991', price: 109 },
                       { id: 100, name: 'Maitolaakson kevytmaito 1 l', ean: '6411001000984', price: 89 }
                     ] } });
                   }
@@ -332,6 +332,8 @@ jobs:
                 const recovered = search.getByText('Maitolaakson kevytmaito 1 l', { exact: true }).filter({ visible: true });
                 await recovered.first().waitFor({ timeout: 10000 });
                 assert.equal(await recovered.count(), 1);
+                // EAN normalization must also handle punctuation in provider
+                // identifiers, not only already-normalized numeric fixtures.
                 // The recovered quote must be the matching EAN at 1.09 euros,
                 // never the cheaper same-name 0.89-euro different-EAN quote.
                 const recoveredCardText = await recovered.first().locator('xpath=../../../..').innerText();
