@@ -13340,8 +13340,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
+      // Keep distinct EANs, not provider-specific IDs. When two selected
+      // stores quote the same EAN, retain the cheaper verified quote.
+      // Recipe selection retains its existing chain-specific identity.
+      const sortedForDedup = recipeIngredient ? all : [...all].sort((a, b) => getProductPrice(a) - getProductPrice(b));
       const dedupedNormalItems = Array.from(
-        new Map(all.map((item) => [recipeIngredient?`${(item as Product & MobileRecipeProduct).__recipeChain||""}:${item.id}`:item.id, item])).values(),
+        new Map(sortedForDedup.map(item => {
+          const ean = normalizeEan(item.ean);
+          const key = recipeIngredient
+            ? `${(item as Product & MobileRecipeProduct).__recipeChain || ""}:${item.id}`
+            : isUsableEan(ean) ? `ean:${ean}` : `id:${item.id}`;
+          return [key, item] as const;
+        }).reverse()).values(),
       );
 
       // K-Ruoka's product search is anchored to the user's literal query. Our
