@@ -55,6 +55,17 @@ async function ensureSchema(sql: ReturnType<typeof db>) {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  // Older EAN catalogs predate optional product columns. CREATE TABLE IF NOT
+  // EXISTS does not add missing columns to an existing Neon table.
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS brand TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS quantity TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS image_url TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS category TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS source TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS aliases TEXT[] NOT NULL DEFAULT '{}'`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`;
 }
 
 export async function GET(request: NextRequest) {
