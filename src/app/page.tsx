@@ -13194,7 +13194,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const useK = !withinChainS && storeCompareScope === "between_chains" &&
               selectedChains.k && Boolean(kPrimaryStoreId);
             if (useS) requests.push(
-              fetchSProducts(searchQuery, sPrimaryStoreId).then(items =>
+              fetchSProducts(searchQuery, sPrimaryStoreId!).then(items =>
                 items.map(product => ({ ...product, __recipeChain: "S", __recipeStoreName: withinChainS ? activeArea.sStoreName : activeStores.sStoreName }))
               ),
             );
