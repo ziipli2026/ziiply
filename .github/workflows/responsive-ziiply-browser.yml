@@ -168,8 +168,8 @@ jobs:
                 } else {
                   await input.press('Enter');
                 }
-                const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).first();
-                const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).first();
+                const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).first();
+                const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).filter({ visible: true }).first();
                 try {
                   if (!desktop) {
                     const openResults = search.getByRole('button', { name: /Avaa löytöluettelo/ }).filter({ visible: true });
