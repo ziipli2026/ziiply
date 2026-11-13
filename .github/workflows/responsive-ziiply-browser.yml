@@ -1,4 +1,5 @@
 name: Responsive Ziiply browser smoke test
+# Isolated search parity browser validation.
 on:
   push:
     branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113]
