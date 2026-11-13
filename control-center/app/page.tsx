@@ -224,10 +224,18 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
       ?d.runs.find(r=>r.chain==="TOKMANNI-SPAR"&&r.ok&&r.offer_count>0&&
         ["eurospar-publication-refresh","eurospar-verified-publication"].includes(r.source))??null
       :null;
-    const latestAt=latest?.parsed_at??verifiedEuro?.checked_at??null;
-    return {key:ch.key,name:ch.name,latest,verifiedEuro,latestAt,
-      offerCount:latest?.offer_count??verifiedEuro?.offer_count??null,
-      evidence:latest?"Hyväksytty tarjousjulkaisu":verifiedEuro?"Vahvistettu EUROSPAR-julkaisu":"Ei julkaisuvahvistusta tässä tietolähteessä"};
+    // Legacy S/K offer processors only wrote run-log rows. Show their
+    // last *observed* successful run with explicit provenance, never as a
+    // freshly approved publication or as evidence of a current update.
+    const historicalRun=!latest&&!verifiedEuro
+      ?d.runs.find(r=>ch.match(r.chain.trim())&&r.ok&&r.offer_count>0&&
+          !["future-publication-discovery","s-kaupat-protocol"].includes(r.source)&&
+          !r.source.startsWith("github-workflow:"))??null
+      :null;
+    const latestAt=latest?.parsed_at??verifiedEuro?.checked_at??historicalRun?.checked_at??null;
+    return {key:ch.key,name:ch.name,latest,verifiedEuro,historicalRun,latestAt,
+      offerCount:latest?.offer_count??verifiedEuro?.offer_count??historicalRun?.offer_count??null,
+      evidence:latest?"Hyväksytty tarjousjulkaisu":verifiedEuro?"Vahvistettu EUROSPAR-julkaisu":historicalRun?"Vain vanha onnistunut hakuloki – uutta julkaisua ei vahvistettu":"Ei julkaisuvahvistusta tässä tietolähteessä"};
   });
   const chainHistory=CHAINS.map(ch=>{
     // This summary is about publications, not diagnostic probes. A successful
