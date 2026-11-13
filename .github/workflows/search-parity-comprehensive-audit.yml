@@ -1,0 +1,20 @@
+name: Search parity comprehensive audit
+on:
+  push:
+    branches: [test/search-parity-audit-20261113]
+    paths:
+      - 'scripts/search-parity-comprehensive-audit.mts'
+      - '.github/workflows/search-parity-comprehensive-audit.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npx --yes tsx scripts/search-parity-comprehensive-audit.mts
