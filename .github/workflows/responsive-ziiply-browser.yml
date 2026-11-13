@@ -126,7 +126,12 @@ jobs:
                 const input = desktop ? search.getByRole('textbox', { name: 'Hae tuotteita' })
                   : search.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({ visible: true });
                 await input.fill('maito');
-                await input.press('Enter'); // Submit the normal search; filling alone may not trigger a request
+                if (!desktop) {
+                  // Mobile Enter adds an abstract cart item and suppresses search; Justiina button submits the search.
+                  await search.getByRole('button', { name: 'Justiina', exact: true }).filter({ visible: true }).click();
+                } else {
+                  await input.press('Enter');
+                }
                 const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).first();
                 const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).first();
                 try {
