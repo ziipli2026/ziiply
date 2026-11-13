@@ -92,7 +92,7 @@ const serifFont = '"Baskerville", Georgia, serif';
 const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
 
 const SEARCH_TEMPO_OPTIONS = [
-  { key: "slow", label: "Rauhallinen", delayMs: 3500, angle: -38 },
+  { key: "slow", label: "Rauhallinen", delayMs: 3000, angle: -38 },
   { key: "normal", label: "Normaali", delayMs: 2000, angle: 0 },
   { key: "fast", label: "Nopea", delayMs: 1000, angle: 38 },
 ] as const;
