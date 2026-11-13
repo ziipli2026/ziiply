@@ -1,29 +1,30 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { rankProductResultsByRelevanceAndPrice, type Product } from '../src/app/components/ziiply/ziiplyCore';
 import { desktopSearchDecision } from '../src/app/components/ziiply/search/desktopNormalRelevance';
-type P=Product;
-const base=process.env.ZIIPLY_TEST_URL||'https://ziiply-9y3fsg8m1-ziipli2026s-projects.vercel.app';
+
+// Frozen real S/K responses read via authenticated Vercel connector on 2026-11-13.
+// Protected preview URL returns HTML to unauthenticated GitHub runner; use the
+// exact returned product records rather than silently interpreting login HTML as JSON.
+type Snapshot={metadata:{retrieved:string;source:string};items:Record<string,Product[]>};
+const snapshot=JSON.parse(readFileSync(new URL('./fixtures/search-live-chain-response-20261113.json',import.meta.url),'utf8')) as Snapshot;
 const queries=['maito','kahvi','kirjolohi'];
 let checks=0,failures=0;
-async function main(){
- for(const q of queries) for(const [chain,store] of [['s','292'],['k','3221']]){
-  const url=base+'/api/'+chain+'-products?search='+encodeURIComponent(q)+'&store='+store;
-  const response=await fetch(url,{signal:AbortSignal.timeout(30000)});
-  assert.equal(response.status,200,'HTTP '+url);
-  const body=await response.json() as {items?:P[]};
-  const raw=body.items||[];
-  assert(raw.length>0,'empty upstream '+q+' '+chain);
-  const ranked=rankProductResultsByRelevanceAndPrice(q,raw,p=>Number(p.price ?? p.storeItems?.[0]?.price ?? 0));
-  const rankedIds=new Set(ranked.map(p=>p.id));
-  const wrong=ranked.filter(p=>q==='maito'?/suklaa|jäätelö|leipä|vanukas|maitorahka/i.test(p.name):q==='kirjolohi'?/lemmik|koira|kissa|kirjolohiöljy/i.test(p.name+' '+(p.category||'')):false);
-  const parity=raw.filter(p=>!desktopSearchDecision(q,{...p,__price:Number(p.price ?? p.storeItems?.[0]?.price ?? 0)}).accepted&&rankedIds.has(p.id));
-  const unpriced=ranked.filter(p=>!Number.isFinite(Number(p.price ?? 0))||Number(p.price ?? 0)<=0);
-  const unordered=ranked.some((p,i)=>i>0&&Number(ranked[i-1]?.price ?? 0)>Number(p.price ?? 0));
-  checks+=raw.length+3;
-  if(wrong.length||parity.length||unpriced.length||unordered) failures++;
-  console.log('LIVE_CHAIN_RELEVANCE',JSON.stringify({query:q,chain,raw:raw.length,accepted:ranked.length,wrong:wrong.map(p=>p.name),parity:parity.map(p=>p.name),unpriced:unpriced.length,unordered}));
- }
- console.log('LIVE_CHAIN_SUMMARY',JSON.stringify({queries:queries.length,chains:2,checks,failures}));
- assert.equal(failures,0,'Live chain relevance failures');
+for(const q of queries) for(const chain of ['s','k']){
+ const raw=snapshot.items[q+'_'+chain]||[];
+ assert(raw.length>0,'empty real chain response fixture '+q+' '+chain);
+ // Products carry cents, exactly as supplied by original S/K endpoints.
+ const price=(p:Product)=>Number(p.price ?? p.storeItems?.[0]?.price ?? 0);
+ const ranked=rankProductResultsByRelevanceAndPrice(q,raw,price);
+ const acceptedIds=new Set(ranked.map((p)=>String(p.id)+'|'+String(p.ean||'')+'|'+p.name));
+ const bad=ranked.filter(p=>q==='maito'?/suklaa|jäätelö|leipä|vanukas|maitorahka/i.test(p.name):
+    q==='kirjolohi'?/lemmik|koira|kissa|kirjolohiöljy/i.test(p.name+' '+(p.category||'')):false);
+ const desktopMismatch=raw.filter(p=>!desktopSearchDecision(q,{...p,__price:price(p)}).accepted&&acceptedIds.has(String(p.id)+'|'+String(p.ean||'')+'|'+p.name));
+ const unpriced=ranked.filter(p=>!Number.isFinite(price(p))||price(p)<=0);
+ const unordered=ranked.some((p,i)=>i>0&&price(ranked[i-1]!)>price(p));
+ checks+=raw.length+3;
+ if(bad.length||desktopMismatch.length||unpriced.length||unordered)failures++;
+ console.log('REAL_S_K_FILTER_RESULT',JSON.stringify({query:q,chain,raw:raw.length,accepted:ranked.length,wrong:bad.map(p=>p.name),desktopMismatch:desktopMismatch.map(p=>p.name),unpriced:unpriced.length,unordered,top:ranked.slice(0,5).map(p=>({name:p.name,ean:p.ean,priceCents:price(p)}))}));
 }
-main().catch(e=>{console.error(e);process.exitCode=1});
+console.log('REAL_S_K_FILTER_SUMMARY',JSON.stringify({chains:2,queries:queries.length,checks,failures,source:snapshot.metadata.source,retrieved:snapshot.metadata.retrieved}));
+assert.equal(failures,0,'real S/K filter regression failures');
