@@ -1,4 +1,3 @@
-import ProductEnergy from "./ProductEnergy";
 // ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V55_K_EMPTY_STATE_FIX
 // Revision: V55-K-EMPTY-STATE-FIX
@@ -207,6 +206,7 @@ import ProductEnergy from "./ProductEnergy";
 // ============================================================================
 
 "use client";
+import ProductEnergy from "./ProductEnergy";
 
 // ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V35_CATEGORY_LABELS_DEBUG
