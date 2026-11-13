@@ -162,8 +162,21 @@ jobs:
                     disabled: el.disabled, ariaDisabled: el.getAttribute('aria-disabled'), title: el.getAttribute('title')
                   })));
                 }
-                if (!desktop) {
-                  // Mobile Enter adds an abstract cart item and suppresses search; Justiina button submits the search.
+                if (name === 'phone') {
+                  // A real user types a term and waits. Verify the normal 2-second
+                  // automatic Justiina search, not only manual button submission.
+                  const startedAt = Date.now();
+                  await search.waitForRequest(request => {
+                    const parsed = new URL(request.url());
+                    return parsed.pathname === '/api/s-products'
+                      && parsed.searchParams.get('search') === 'maito';
+                  }, { timeout: 10000 });
+                  const elapsedMs = Date.now() - startedAt;
+                  console.log('phone automatic search delay ms', elapsedMs);
+                  assert.ok(elapsedMs >= 700 && elapsedMs <= 5000,
+                    'mobile automatic search should start after its 1-3 second configured delay');
+                } else if (!desktop) {
+                  // Tablet/narrow window verify immediate Justiina button submission.
                   await search.getByRole('button', { name: 'Justiina', exact: true }).filter({ visible: true }).click();
                 } else {
                   await input.press('Enter');
