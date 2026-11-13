@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/mobile-main-100-search-audit.yml"
       - "src/app/components/ziiply/ziiplyCore.ts"
+      - "src/app/components/ziiply/cards/ProductEnergy.tsx"
+      - "src/app/components/ziiply/search/**"
   workflow_dispatch:
 permissions:
   contents: read
