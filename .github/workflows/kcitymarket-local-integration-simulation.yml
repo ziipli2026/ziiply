@@ -261,6 +261,7 @@ jobs:
                   return route.fulfill({ json: { products: [
                     { id: 1, name: 'Valio täysmaito 1 l', ean: '6408430106443', price: 179 },
                     { id: 2, name: 'Kotimaista kevytmaito 1 l', ean: '6438460292804', price: 95 },
+                    { id: 22, name: 'Kotimaista kevytmaito 1 l', ean: '6438460292804', price: 125 },
                     { id: 3, name: 'Maitokolmio ruisleipä', ean: '6411001000111', price: 49 },
                     { id: 4, name: 'Arla rasvaton maito 1 l', ean: '6413300101713', price: 0 }
                   ] } });
@@ -303,6 +304,11 @@ jobs:
                 await expensive.waitFor();
                 assert.ok(queries > 0);
                 assert.ok((await cheap.boundingBox()).y <= (await expensive.boundingBox()).y);
+                // Same EAN from two provider rows must appear once; the cheapest
+                // quote (95 cents) wins over the 125-cent duplicate.
+                assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
+                const cheapRowText = await cheap.locator('xpath=..').innerText();
+                assert.ok(cheapRowText.includes('0,95') || (await search.locator('body').innerText()).includes('0,95 €'));
                 assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
                 assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
                 console.log(name + ' passed');
