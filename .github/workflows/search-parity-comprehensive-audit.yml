@@ -6,6 +6,10 @@ on:
       - 'scripts/search-parity-comprehensive-audit.mts'
       - '.github/workflows/search-parity-comprehensive-audit.yml'
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/search-parity-comprehensive-audit.mts'
+      - '.github/workflows/search-parity-comprehensive-audit.yml'
 jobs:
   audit:
     runs-on: ubuntu-latest
