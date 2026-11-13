@@ -62,5 +62,7 @@ const eanCases:[string,string][]=[
 for(const [input,expected] of eanCases){assert.equal(normalizeEan(input),expected,'EAN '+input);assertions++;}
 assert.equal(new Set(['6410401234567','641-0401-234567','641 0401 234567'].map(normalizeEan)).size,1,'same EAN must share one key');assertions++;
 console.log(JSON.stringify({queries:cases.length,products:expectedGood+expectedBad,expectedGood,expectedBad,assertions,disagreements,mobileFalsePositives:falsePositives,mobileFalseNegatives:falseNegatives,desktopFalsePositives,desktopFalseNegatives,differences},null,2));
-if(disagreements || falsePositives || falseNegatives || desktopFalsePositives || desktopFalseNegatives) console.log('AUDIT_DIFFERENCES_DETECTED: review before unification');
-else console.log('AUDIT_PARITY_OK');
+if(disagreements || falsePositives || falseNegatives || desktopFalsePositives || desktopFalseNegatives) {
+ console.error('AUDIT_DIFFERENCES_DETECTED: review before unification');
+ process.exitCode=1;
+} else console.log('AUDIT_PARITY_OK');
