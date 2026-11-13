@@ -206,6 +206,7 @@
 // ============================================================================
 
 "use client";
+import ProductEnergy from "./ProductEnergy";
 
 // ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V35_CATEGORY_LABELS_DEBUG
@@ -1536,6 +1537,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="break-words text-[0.92rem] font-black leading-tight text-[#233020]">{productName}</div>
+                          <ProductEnergy ean={ean} />
                           {embeddedComparisonPrice ? (
                             <div className="clear-both mt-[0.18rem] text-[0.70rem] font-extrabold leading-tight text-[#74694f]">
                               {embeddedComparisonPrice}
