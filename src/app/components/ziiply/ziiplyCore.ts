@@ -1946,6 +1946,31 @@ export function isPremiumBrandProduct(name: string) {
   }
 
 export function productGroupGate(sourceName: string, targetName: string) {
+  // Classify the requested grocery product before accepting ingredient mentions.
+  // Applies to every entry point using the shared product-group gate.
+  // Identify the requested grocery ingredient BEFORE scoring by price.
+  // Recipe modifiers (such as "etikkaa 10 %") must not turn into unrelated matches.
+  const requestedRaw = correctSearchQuery(sourceName).toLocaleLowerCase("fi").trim();
+  const requested = /^(?:etikkaa?|väkiviinaetikkaa?)(?:\s+10\s*%)?$/.test(requestedRaw)
+    ? "etikka"
+    : requestedRaw;
+  const candidate = targetName.toLocaleLowerCase("fi").trim();
+  const exactGroups: Record<string, RegExp> = {
+    sokeri: /\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\b/i,
+    merisuola: /\bmerisuola(?:a)?\b/i,
+    etikka: /(?:^|\s|-)etikka\b|väkiviinaetikka|omenaviinietikka|viinietikka/i,
+    silakka: /\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\b/i,
+  };
+  const excludedPrepared: Record<string, RegExp> = {
+    sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen|vartalo|kuorinta|kosmeti|ihonhoito|shampoo|saippua|suihkugeeli/i,
+    merisuola: /riisikak|sips|perunalast|näkkilei|keks|pähkin|pretzel|suolatik|napostel|snack|maissinaks/i,
+    etikka: /mausteseos|grillimauste|kastike|sips|perunalast|etikkapunajuuri|maalaissips|pretzel|puhdistusliina|puhdistusaine|pesuaine/i,
+    silakka: /silakkalaatikko|silakkapihvi|silakkasäilyke|silakkapyörykkä/i,
+  };
+  if (exactGroups[requested]) {
+    if (!exactGroups[requested].test(candidate) || excludedPrepared[requested].test(candidate)) return false;
+  }
+
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
@@ -1959,6 +1984,21 @@ export function productGroupGate(sourceName: string, targetName: string) {
   }
   const sourceBiscuit = /(?:keksi|cookie|biscuit|domino)/.test(source);
   if (sourceBiscuit && /(?:suklaalevy|suklaalev|chocolate bar)/.test(target)) return false;
+
+  // Oil is the product, not merely an ingredient or flavour. Normalize the
+  // user query and product name equally (accents and inflections included).
+  if (/^(?:oliivioljya?|ruokaoljya?)$/.test(source)) {
+    const standaloneOil = /(?:^|[\s-])(?:extra virgin |ekstra neitsyt |neitsyt |luomu |kylmapuristettu |kevyt )*(?:oliivioljy|rypsioljy|rapsioljy|auringonkukkaoljy|kasvioljy|ruokaoljy|paistooljy)(?:[\s,.-]|$)/;
+    const wrongOilProduct = /(?:oljyssa|oljylla|oljya sisalt|tonnikala|sardiin|muikku|valmisriisi|krutonk|krutonki|edamame|pahkin|sips|perunalast|kastike|majoneesi|marinadi|salaatti|sailyke|lohkoperuna|voileipakeksi|keksi|oivariini|levite|margariini|voi\b|tuorejuusto|mauste|oliivioljy(?:uute|lla|ssa))/;
+    if (!standaloneOil.test(target) || wrongOilProduct.test(target)) return false;
+    if (source.startsWith("oliivi") && !/(?:^|[\s-])oliivioljy(?:[\s,.-]|$)/.test(target)) return false;
+  }
+
+  // Frozen lemonade-flavoured products are not bottled/canned soft drinks.
+  if (/^(?:limonadi|limonadia|limsa|limua|virvoitusjuoma)$/.test(source)) {
+    if (/(?:jäätelö|jaatelo|limonadijää|limonadijaa|jääpuikko|jaapuikko|mehujää|mehujaa|sorbet|karkki|makeinen|pastilli|siirappi|tiiviste|cocktail|mocktail)/.test(target)) return false;
+    if (!/(?:limonadi(?!jää|jaa)|limsa|limu|virvoitusjuoma|cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes)/.test(target)) return false;
+  }
 
   if (source.includes("jauheliha") && !target.includes("jauheliha")) return false;
 
@@ -2013,11 +2053,6 @@ export function productGroupGate(sourceName: string, targetName: string) {
   // Maito ja kahvi eivät saa käyttää kovaa tuoteryhmäporttia:
   // aiempi versio pudotti liikaa oikeita tuotteita pois.
 
-  if (["limsa","limsat","limu","limut","virvoitusjuoma","virvoitusjuomat"].includes(source)) {
-    if (/(karkki|makeinen|pastilli|purukumi|jaatelo|siirappi|tiiviste|energiajuoma|olut|alkohol|kastike)/.test(target)) return false;
-    if (!/(virvoitusjuoma|limsa|limu|cola|coca-cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes|mountain dew|dr pepper)/.test(target)) return false;
-  }
-
   const sourceIsCola = hasAnyToken(source, ["cola", "coca-cola", "coca cola", "pepsi", "kokis"]);
   if (sourceIsCola) {
     if (!isClearlyColaProduct(targetName)) return false;
@@ -2041,10 +2076,13 @@ export function productGroupGate(sourceName: string, targetName: string) {
     if (targetIsWrongYogurtProduct) return false;
   }
 
-  const sourceIsCheese = hasAnyToken(source.replace(/\bjuustoportti(?:n)?\b/g, " "), ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+  const sourceIsCheese = hasAnyToken(source, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
-    const targetIsCheese = hasAnyToken(target.replace(/\bjuustoportti(?:n)?\b/g, " "), ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
-    const targetIsWrongCheeseProduct = hasAnyToken(target, [
+    const targetIsCheese = hasAnyToken(target, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+    const targetIsWrongCheeseProduct = !source.includes("raejuusto") && hasAnyToken(target, [
+      "tuorejuusto",
+      "sulatejuusto",
+      "raejuusto",
       "juustodippi",
       "dippi",
       "nacho",
