@@ -139,7 +139,10 @@ jobs:
                   throw error;
                 }
                 await expensive.waitFor();
-                assert.ok(queries > 0);
+                assert.ok(queries > 0, 'selected S store must receive a maito search');
+                const maitoApiCalls = searchRequests.filter(value => /[?&]search=maito(?:&|$)/i.test(value));
+                assert.ok(maitoApiCalls.some(value => value.includes('/api/s-products?')), 'maito search must use selected S store API');
+                assert.equal(maitoApiCalls.filter(value => /\/api\/(?:k-products|store-search)\?/i.test(value)).length, 0, 'single S-chain search must not query K-chain or generic store search');
                 assert.ok((await cheap.boundingBox()).y <= (await expensive.boundingBox()).y);
                 assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
                 assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
