@@ -15,6 +15,7 @@ function parseEnergy(data: unknown): Energy | null {
   const kcal = numeric(values.kcal_100g ?? values["energy-kcal_100g"] ?? values.ENERC);
   const kj = numeric(values.kj_100g ?? values["energy-kj_100g"] ?? values.ENERC_KJ);
   if (kcal === null && kj === null) return null;
+  if ((kcal !== null && kcal > 1000) || (kj !== null && kj > 4184)) return null;
   return { kcal: kcal ?? (kj === null ? null : kj / 4.184), kj: kj ?? (kcal === null ? null : kcal * 4.184), estimated: n.estimated === true || n.source === "fineli-generic" };
 }
 function load(ean: string): Promise<Energy | null> {
