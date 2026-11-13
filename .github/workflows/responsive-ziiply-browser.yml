@@ -3,6 +3,11 @@ on:
   push:
     branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113]
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/responsive-ziiply-browser.yml'
+      - 'src/app/components/ziiply/ziiplyCore.ts'
+      - 'src/app/components/ziiply/search/desktopNormalRelevance.ts'
 permissions:
   contents: read
 jobs:
