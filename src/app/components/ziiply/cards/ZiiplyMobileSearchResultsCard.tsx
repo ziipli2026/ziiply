@@ -1,5 +1,5 @@
-import ProductEnergy from "./ProductEnergy";
 "use client";
+import ProductEnergy from "./ProductEnergy";
 
 // ZiiplyMobileSearchResultsCard v14-loytoluettelo
 // - Pitkälle / loputtomalle listalle optimoitu matala tuoterivi.
