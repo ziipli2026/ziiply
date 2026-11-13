@@ -354,7 +354,8 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   ].map(check=>{
     const run=d.runs.find(r=>r.source===check.source)??null;
     const ageH=run?(Date.now()-new Date(run.checked_at).getTime())/3600000:null;
-    const warnAfterH=check.source==="official-lidl-combined"?30:check.source==="k-citymarket-cache"?24:8;
+    const dailyParserSources=new Set(["s-prisma-hyvinkaa","k-supermarket-jokela","k-market-hakalantori","eurospar-validated-feed","s-kaupat-protocol"]);
+    const warnAfterH=dailyParserSources.has(check.source)?30:check.source==="official-lidl-combined"?30:check.source==="k-citymarket-cache"?24:8;
     const level=!run?"gray":!run.ok?"red":ageH!==null&&ageH>warnAfterH?"yellow":"green";
     const checkedDate=run?new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(run.checked_at)):null;
     const clock=run?new Intl.DateTimeFormat("fi-FI",{timeZone:"Europe/Helsinki",hour:"2-digit",minute:"2-digit"}).format(new Date(run.checked_at)):null;
