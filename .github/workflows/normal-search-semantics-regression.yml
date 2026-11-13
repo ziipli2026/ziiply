@@ -96,6 +96,27 @@ jobs:
           assert(coffee.some(p=>p.name.includes('Mokka')), 'real coffee must remain');
           assert(!coffee.some(p=>p.name.includes('suklaakeksi')), 'coffee-like brand must not match');
           for(const result of [milk,coffee]) assert(result.every((p,i)=>!i||result[i-1].price<=p.price),'price order');
+          // Butter is not butter-flavoured crisps, spreads or ready food.
+          const butterSamples = [
+            {name:'Valio voi 200 g normaalisuolainen',price:2.59},
+            {name:'Kotimaista normaalisuolainen voi 200 g',price:2.19},
+            {name:'Flora & voi 500g',price:1.79},
+            {name:'Estrella Ruskistettu Voi & Chili sipsipussi 275g',price:1.99},
+            {name:'Gårdschips Ruskistettu voi & punasipuli 150g',price:1.75},
+          ];
+          const butter = core.rankProductResultsByRelevanceAndPrice('voi',butterSamples,p=>p.price);
+          assert.deepEqual(butter.map(p=>p.name),[
+            'Kotimaista normaalisuolainen voi 200 g',
+            'Valio voi 200 g normaalisuolainen',
+          ],'butter-only and cheapest-first');
+
+          const colaSamples = [
+            {name:'Coca-Cola Zero 0,33 l tölkki',price:1.45},
+            {name:'Puls Pre-Workout Shot Cola Kick 60ml',price:0.99},
+          ];
+          const cola = core.rankProductResultsByRelevanceAndPrice('cola',colaSamples,p=>p.price);
+          assert(cola.some(p=>p.name.startsWith('Coca-Cola')),'real cola retained');
+          assert(!cola.some(p=>/workout|shot/i.test(p.name)),'cola-flavoured sports shots excluded');
           console.log('PASS cross-category brand-name and product-name regression');
           NODE
       - name: Verify normal-search semantics
