@@ -101,7 +101,7 @@ jobs:
                 let queries = 0;
                 const searchRequests = [];
                 search.on('request', request => {
-                  if (request.url().includes('/api/')) searchRequests.push(request.method() + ' ' + request.url().replace(/^https?:\\/\\/[^/]+/, ''));
+                  if (request.url().includes('/api/')) searchRequests.push(request.method() + ' ' + new URL(request.url()).pathname + new URL(request.url()).search);
                 });
                 search.on('response', response => {
                   if (response.url().includes('/api/')) console.log(name, 'API response', response.status(), response.url());
