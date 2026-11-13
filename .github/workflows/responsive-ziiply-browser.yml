@@ -127,6 +127,15 @@ jobs:
                   : search.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({ visible: true });
                 await input.fill('maito');
                 if (!desktop) {
+                  console.log('Mobile store configuration', await search.evaluate(() => ({
+                    mobile: localStorage.getItem('ziiply-store-selection-v536'),
+                    desktop: localStorage.getItem('ziiply-desktop-store-choices-v1')
+                  })));
+                  console.log('Mobile search button', await search.getByRole('button', { name: 'Justiina', exact: true }).filter({ visible: true }).evaluate(el => ({
+                    disabled: el.disabled, ariaDisabled: el.getAttribute('aria-disabled'), title: el.getAttribute('title')
+                  })));
+                }
+                if (!desktop) {
                   // Mobile Enter adds an abstract cart item and suppresses search; Justiina button submits the search.
                   await search.getByRole('button', { name: 'Justiina', exact: true }).filter({ visible: true }).click();
                 } else {
