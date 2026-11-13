@@ -16,6 +16,20 @@ for(const q of queries) for(const chain of ['s','k']){
  // Products carry cents, exactly as supplied by original S/K endpoints.
  const price=(p:Product)=>Number(p.price ?? p.storeItems?.[0]?.price ?? 0);
  const ranked=rankProductResultsByRelevanceAndPrice(q,raw,price);
+ if(q==='maito'&&chain==='k') {
+  for(const expected of [
+    {ean:'6410405082626',name:'Pirkka suomalainen rasvaton maito 1l',price:95},
+    {ean:'6408430000531',name:'Valio vapaan lehmän rasvaton maito 1,75l',price:199}
+  ]) {
+    const source=raw.find(p=>p.ean===expected.ean);
+    const visible=ranked.find(p=>p.ean===expected.ean);
+    assert(source,'K chain must return missing-Neon-list EAN '+expected.ean);
+    assert(visible,'Final shared relevance filter must retain K chain EAN '+expected.ean);
+    assert.equal(price(visible),expected.price,'K chain price must survive filter '+expected.ean);
+    console.log('NEON_TRUNCATION_CHAIN_RECOVERY_OK',JSON.stringify({ean:expected.ean,name:visible.name,priceCents:price(visible),source:'real K chain snapshot',note:'EAN absent from truncated Neon maito name response but available in Neon exact EAN lookup'}));
+    checks+=3;
+  }
+}
  const acceptedIds=new Set(ranked.map((p)=>String(p.id)+'|'+String(p.ean||'')+'|'+p.name));
  const bad=ranked.filter(p=>q==='maito'?/suklaa|jäätelö|leipä|vanukas|maitorahka/i.test(p.name):
     q==='kirjolohi'?/lemmik|koira|kissa|kirjolohiöljy/i.test(p.name+' '+(p.category||'')):false);
