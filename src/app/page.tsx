@@ -21764,11 +21764,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   const price = pricing.weighted ? 0 : Math.round(pricing.price * 100);
                   const id = "gosta-watch-" + Date.now() + "-" + current.length;
                   const next: CartItem[] = [...current, {
-                    id, name: offer.title, price, quantity: 1, source: "offer",
+                    id, name: offer.title, price, ean: offer.ean, quantity: 1, source: "offer",
                     storeName: offer.store, image: offer.imageUrl,
                     chain: offer.chain === "K" || offer.chain === "S" ? offer.chain : undefined,
                     product: {
-                      id, name: offer.title, price, pictureUrl: offer.imageUrl,
+                      id, name: offer.title, price, ean: offer.ean, pictureUrl: offer.imageUrl,
                       ...(pricing.weighted ? {
                         ziiplyWeightLabel: true, ziiplyWeightOffer: true, ziiplyPricePendingWeight: true,
                         ziiplyEstimatedWeightKg: pricing.estimatedWeightKg,

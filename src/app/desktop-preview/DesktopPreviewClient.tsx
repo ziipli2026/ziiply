@@ -2076,6 +2076,9 @@ export default function DesktopPreviewPage() {
   });
   function flashCartNotice(message:string){setCartNotice(message);window.setTimeout(()=>setCartNotice(current=>current===message?"":current),2200)}
   function addDesktopCartItem(p:any){
+    const ean = [p?.ean, p?.__sourceOfferSearchResult?.ean, p?.product?.ean]
+      .map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value));
+    if (ean && p.ean !== ean) p = { ...p, ean };
     if(desktopScannerOpen && desktopPhysicalCollectionRef.current && p?.__physicalScannerAdd===true){p={...p,collected:true};}
     if(p?.__physicalScannerAdd!==undefined){const {__physicalScannerAdd,...clean}=p;p=clean;}
     if (desktopCartWeightOffer(p)) {

@@ -1,7 +1,7 @@
 import { matchesGostaWatch } from "./gostaWatchMatch";
 
 const snapshotKey = "ziiply-gosta-watch-results-v1";
-const snapshotVersion = 3;
+const snapshotVersion = 4;
 export const watchResultsChanged = "ziiply-gosta-watch-results-changed";
 
 export type WatchOffer = {
@@ -13,6 +13,7 @@ export type WatchOffer = {
   store: string;
   source: string;
   chain?: string;
+  ean?: string;
   packageSize?: string;
   imageUrl?: string;
   validUntil?: string;
@@ -35,6 +36,8 @@ export function mapWatchOffers(offers: unknown[], terms: string[]): WatchOffer[]
       store: String(offer.storeName || offer.chain || ""),
       source: String(offer.source || offer.sourceType || offer.chain || ""),
       chain: String(offer.chain || ""),
+      ean: [offer.ean, (offer.__sourceOfferSearchResult as Record<string, unknown> | undefined)?.ean]
+        .map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value)),
       packageSize: String(offer.packageSize || offer.packSize || offer.size || offer.quantityText || ""),
       imageUrl: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
       validUntil: String(offer.validUntil || ""),
