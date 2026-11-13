@@ -610,7 +610,7 @@ export default function ZiiplyMobileTopBar({
   if (hidden) return null;
 
   return (
-    <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[10020] mx-auto block w-full px-[6px] pt-[4px] sm:hidden">
+    <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[10020] mx-auto block w-full px-[6px] pt-[4px]">
       <button type="button" onClick={captureDebug} className="absolute right-[8px] top-[85px] z-[10030] rounded-lg border-2 border-white bg-red-600 px-3 py-2 text-sm font-black text-white shadow-xl">DEBUG</button>
       <div className="pointer-events-none absolute left-[16px] top-[0px] z-[999] rounded-full bg-fuchsia-600 px-3 py-0.5 text-[11px] font-black text-white shadow-[0_2px_6px_rgba(0,0,0,0.35)]">
         TOPBAR DEBUG V6
@@ -687,7 +687,7 @@ export default function ZiiplyMobileTopBar({
       </div>
     </div>
       {chartOpen && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4 sm:hidden" style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", backgroundColor: "rgba(0,0,0,0.40)" }} onClick={() => setChartOpen(false)}>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4" style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", backgroundColor: "rgba(0,0,0,0.40)" }} onClick={() => setChartOpen(false)}>
           <div className="w-full max-w-[520px] max-h-[calc(100dvh-32px)] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Pörssisähkön 24 tunnin hintakäyrä" onClick={(event) => event.stopPropagation()}>
           <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-2">
@@ -739,7 +739,7 @@ export default function ZiiplyMobileTopBar({
         document.body
       )}
 
-      {debugOpen && typeof document !== "undefined" && createPortal(<div className="fixed inset-0 z-[100001] flex items-center justify-center bg-black/75 p-3 sm:hidden"><section className="flex max-h-[85dvh] w-full max-w-lg flex-col rounded-xl bg-white p-3 text-black"><div className="mb-2 flex justify-between"><strong>Yläpalkin debug</strong><button type="button" onClick={() => setDebugOpen(false)}>Sulje ×</button></div><textarea readOnly value={debugSnapshot} className="min-h-0 flex-1 resize-none rounded border p-2 font-mono text-xs" rows={18}/><button type="button" className="mt-2 rounded bg-green-800 p-3 font-bold text-white" onClick={() => { const blob = new Blob([debugSnapshot], {type:"application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href=url; a.download="ziiply-topbar-debug.json"; a.click(); URL.revokeObjectURL(url); }}>Lataa debug JSON</button></section></div>, document.body)}
+      {debugOpen && typeof document !== "undefined" && createPortal(<div className="fixed inset-0 z-[100001] flex items-center justify-center bg-black/75 p-3"><section className="flex max-h-[85dvh] w-full max-w-lg flex-col rounded-xl bg-white p-3 text-black"><div className="mb-2 flex justify-between"><strong>Yläpalkin debug</strong><button type="button" onClick={() => setDebugOpen(false)}>Sulje ×</button></div><textarea readOnly value={debugSnapshot} className="min-h-0 flex-1 resize-none rounded border p-2 font-mono text-xs" rows={18}/><button type="button" className="mt-2 rounded bg-green-800 p-3 font-bold text-white" onClick={() => { const blob = new Blob([debugSnapshot], {type:"application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href=url; a.download="ziiply-topbar-debug.json"; a.click(); URL.revokeObjectURL(url); }}>Lataa debug JSON</button></section></div>, document.body)}
       {activeUtility === "fuel" && typeof document !== "undefined" && createPortal(
         <ZiiplyMobileFuelMenu onClose={() => setActiveUtility(null)} onReport={() => { setActiveUtility(null); setFuelReportOpen(true); }} onShowPrices={() => { setActiveUtility(null); onOpenFuel?.(); }} />, document.body
       )}

@@ -251,7 +251,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   return (
     <div
-      className={`fixed inset-0 z-[92] flex min-h-0 items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
+      className={`fixed inset-0 z-[92] flex min-h-0 items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
     >
       <section className="ziiply-mobile-compare-pop relative flex h-full max-h-full min-h-0 min-w-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div

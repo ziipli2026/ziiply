@@ -80,7 +80,7 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
   },[watchKey,watchRevision]);
   return (
     <main
-      className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 max-[389px]:overflow-y-auto max-[389px]:pb-[calc(env(safe-area-inset-bottom)+120px)] sm:hidden"
+      className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 max-[389px]:overflow-y-auto max-[389px]:pb-[calc(env(safe-area-inset-bottom)+120px)]"
       style={{
         background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, rgba(233,243,240,0) 100%)",
       }}

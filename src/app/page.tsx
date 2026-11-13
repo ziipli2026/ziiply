@@ -3022,7 +3022,7 @@ function KauppiasMobileTopBar({
   if (hidden) return null;
 
   return (
-    <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[300] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
+    <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[300] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px]">
       <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
         <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,0.96fr)_minmax(0,1.20fr)_minmax(0,1.12fr)_minmax(0,0.96fr)] gap-[clamp(2px,1.4vw,6px)]">
           {panels.map((panel) => {
@@ -3117,7 +3117,7 @@ function KauppiasMobileTopBar({
       </div>
     </div>
       {/* Compact mobile speed sign — fixed 0 preview, space reserved for three digits. */}
-      {showSpeedIndicator && !hidden && !mobileFuelMenuOpen && !mobileFuelReportOpen && !electricityChartOpen && mobileDrivingSpeed !== null && <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+84px)] z-[299] -translate-x-1/2 sm:hidden">
+      {showSpeedIndicator && !hidden && !mobileFuelMenuOpen && !mobileFuelReportOpen && !electricityChartOpen && mobileDrivingSpeed !== null && <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+84px)] z-[299] -translate-x-1/2">
         <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[0.9rem] border-[3px] border-[#073d32] bg-[#fff5d9] text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
           <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
           <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
@@ -3137,7 +3137,7 @@ function KauppiasMobileTopBar({
       )}
       {mobileFuelReportOpen && <DesktopFuelPhotoReport onClose={() => setMobileFuelReportOpen(false)} />}
       {electricityOffersOpen && (
-        <div className="fixed inset-0 z-[260] flex items-start justify-center bg-black/50 px-3 pt-[calc(env(safe-area-inset-top)+80px)] pb-[calc(env(safe-area-inset-bottom)+24px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Sähkötarjoukset">
+        <div className="fixed inset-0 z-[260] flex items-start justify-center bg-black/50 px-3 pt-[calc(env(safe-area-inset-top)+80px)] pb-[calc(env(safe-area-inset-bottom)+24px)]" role="dialog" aria-modal="true" aria-label="Sähkötarjoukset">
           <section className="flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-3 shadow-2xl">
             <div className="flex shrink-0 items-start justify-between gap-2">
               <div><h2 className="text-xl font-black text-[#164b38]">⚡ Sähkötarjoukset</h2><p className="text-[11px] font-bold text-[#6d604c]">Hintapoiminta 11.10.2026 · tarkista myyjältä</p></div>
@@ -3176,7 +3176,7 @@ function KauppiasMobileTopBar({
         </div>
       )}
       {electricityChartOpen && (
-        <div className="fixed inset-0 z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-[calc(env(safe-area-inset-top)+108px)] pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
+        <div className="fixed inset-0 z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-[calc(env(safe-area-inset-top)+108px)] pb-[calc(env(safe-area-inset-bottom)+96px)]" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
           <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-3">
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
@@ -22807,7 +22807,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   return (
     <>
       {mobileLandscapeBlockedV441 && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf] sm:hidden">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf]">
           <div className="max-w-[24rem] rounded-[1.6rem] border-[3px] border-[#d8bd75] bg-[#173f2f] px-6 py-7 shadow-[0_8px_0_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.12)]">
             <div className="mb-3 text-[2.4rem]">↻</div>
             <div className="text-[1.25rem] font-black leading-tight" style={{ fontFamily: '"Cooper Black", Georgia, serif' }}>
@@ -23502,7 +23502,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       </section>
 
       <main
-        className={`ziiply-mobile-landscape-force min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
+        className={`min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
         <style>{`
         html,
@@ -23513,49 +23513,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         #__next {
           background: #EAF4F1 !important;
           min-height: 100dvh;
-        }
-
-        @media (orientation: landscape) and (hover: none) and (pointer: coarse) {
-          .ziiply-legacy-desktop-hero,
-          .ziiply-desktop-only-legacy {
-            display: none !important;
-          }
-        }
-
-        /* V440: iPhone/Android landscape must remain mobile UI.
-           Tailwind sm/md breakpoints are width-based, so mobile landscape can
-           accidentally open desktop debug/legacy views. Coarse pointer wins. */
-        @media (hover: none) and (pointer: coarse) {
-          .ziiply-mobile-landscape-force .ziiply-desktop-only-legacy,
-          .ziiply-mobile-landscape-force .ziiply-desktop-debug-board,
-          .ziiply-mobile-landscape-force .ziiply-legacy-desktop-hero {
-            display: none !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:grid,
-          .ziiply-mobile-landscape-force .sm\:block,
-          .ziiply-mobile-landscape-force .md\:block,
-          .ziiply-mobile-landscape-force .lg\:block {
-            display: none !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:hidden {
-            display: block !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:mx-auto {
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:max-w-\[1180px\] {
-            max-width: none !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:px-4 {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-          }
         }
 
         @media (min-width: 640px) {
@@ -23699,30 +23656,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             pulling the mobile home artwork upward after idle/reload/viewport restore. */}
         <div
           aria-hidden="true"
-          className="block h-[104px] shrink-0 select-none sm:hidden"
+          className="block h-[104px] shrink-0 select-none"
         />
 <div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
-          <section
-            className="hidden ziiply-legacy-desktop-hero ziiply-desktop-only-legacy"
-          >
-            <div className="mx-auto max-w-6xl">
-              <div className="overflow-hidden rounded-[1.25rem] bg-[#fff8df]/95 px-4 py-2 shadow-sm ring-1 ring-slate-100 sm:rounded-[1.5rem] sm:px-5 sm:py-2">
-                <img
-                  src="/ziiply.png"
-                  alt="Ziiply"
-                  className="mx-auto max-h-[90px] w-auto object-contain py-1 sm:max-h-[108px] sm:py-1"
-                />
-                <div className="mx-auto mt-1 max-w-3xl text-center">
-                  <p className="text-base font-black leading-tight tracking-[-0.04em] text-slate-950">
-                    Viilaa ruokakorisi huokeammaks
-                  </p>
-                  <p className="mt-1 text-sm font-semibold leading-snug text-[#8a7349]">
-                    Gösta ja Justiina auttavat arjen valinnoissa.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
 
           {!showLaunchScreen &&
             !searchPanelOpen &&
@@ -23749,7 +23685,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 </div>
 
                 {arvoNutritionScannerOpen && (
-                  <div className="fixed inset-0 z-[2147483600] sm:hidden">
+                  <div className="fixed inset-0 z-[2147483600]">
                     <ArvoNutritionScannerPreview
                       onClose={() => setArvoNutritionScannerOpen(false)}
                       onAddToCart={addArvoNutritionProductToCart}
@@ -24107,284 +24043,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </div>
           )}
 
-          {/* v358_DESKTOP_DEBUG_ALL_FLOWS:
-            Desktop-only debug board. Mobile CSS/classes below 640px are not touched.
-            Purpose: keep the existing mobile app flow intact, but expose the main states and actions
-            side-by-side on desktop so debugging does not require opening one mobile bottom-sheet at a time. */}
-          {!showLaunchScreen && (
-            <section className="hidden ziiply-desktop-debug-board ziiply-desktop-only-legacy sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-4 rounded-[2rem] bg-[#fff8df]/95 p-4 shadow-sm ring-1 ring-slate-100">
-              <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-wide text-[#b7aa8d]">
-                      Debug
-                    </p>
-                    <h2 className="text-lg font-black tracking-[-0.03em] text-slate-950">
-                      Haku
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-800 ring-1 ring-green-200">
-                    {searchCompareMode === "single"
-                      ? "Yksi tuote"
-                      : "Koko kori"}
-                  </span>
-                </div>
-
-                <textarea
-                  value={input}
-                  onChange={(event) =>
-                    setSearchInputForMode(event.target.value)
-                  }
-                  placeholder={
-                    searchCompareMode === "single"
-                      ? "Kirjoita yksi tuote"
-                      : "maito, kahvi, jauheliha"
-                  }
-                  className="h-28 w-full resize-none rounded-[1.15rem] border border-slate-300 bg-[#fff8df] px-3 py-3 text-[15px] font-semibold text-slate-950 outline-none focus:border-green-600 focus:ring-4 focus:ring-green-100"
-                />
-
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSearchCompareMode("cart")}
-                    className={`rounded-[1rem] px-3 py-2 text-sm font-black ring-1 transition ${searchCompareMode === "cart" ? "bg-green-700 text-white ring-green-800" : "bg-[#fff8df] text-slate-700 ring-slate-200"}`}
-                  >
-                    Koko kori
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchCompareMode("single");
-                      setInput((currentInput) =>
-                        getSingleSearchTerm(currentInput),
-                      );
-                    }}
-                    className={`rounded-[1rem] px-3 py-2 text-sm font-black ring-1 transition ${searchCompareMode === "single" ? "bg-green-700 text-white ring-green-800" : "bg-[#fff8df] text-slate-700 ring-slate-200"}`}
-                  >
-                    Yksi tuote
-                  </button>
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={handleMainNormalSearch}
-                    disabled={
-                      !hasSearchInput ||
-                      loadingNormal ||
-                      singleProductCompareLoading
-                    }
-                    className="rounded-[1rem] bg-slate-900 px-3 py-3 text-sm font-black text-white transition disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-[#b7aa8d]"
-                  >
-                    {loadingNormal || singleProductCompareLoading
-                      ? "Haetaan..."
-                      : "Hae"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={openEanModal}
-                    className="rounded-[1rem] bg-green-700 px-3 py-3 text-sm font-black text-white"
-                  >
-                    EAN / Skannaa
-                  </button>
-                </div>
-
-                <div className="mt-3 max-h-64 overflow-auto rounded-[1.15rem] bg-[#fff8df] p-2 ring-1 ring-slate-200">
-                  <p className="mb-2 px-1 text-xs font-black uppercase tracking-wide text-[#b7aa8d]">
-                    Hakutulokset
-                  </p>
-                  {visibleNormalResults.length === 0 &&
-                  singleProductCompareResults.length === 0 ? (
-                    <p className="px-1 py-6 text-center text-sm font-bold text-[#b7aa8d]">
-                      Ei hakutuloksia vielä.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {visibleNormalResults.slice(0, 6).map((product) => (
-                        <div
-                          key={`desktop-normal-${product.id}-${product.ean || product.name}`}
-                          className="flex items-center gap-2 rounded-xl bg-slate-50 p-2"
-                        >
-                          {product.pictureUrl && (
-                            <img
-                              src={product.pictureUrl}
-                              alt=""
-                              className="h-10 w-10 shrink-0 rounded-lg object-contain bg-[#fff8df]"
-                            />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-black text-[#17322a]">
-                              {fixText(product.name)}
-                            </p>
-                            <p className="text-xs font-bold text-green-700">
-                              {formatEuro(getProductPrice(product))}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => addProductToCart(product)}
-                            className="rounded-xl bg-green-600 px-3 py-2 text-xs font-black text-white"
-                          >
-                            Lisää
-                          </button>
-                        </div>
-                      ))}
-                      {singleProductCompareResults.slice(0, 4).map((result) => (
-                        <div
-                          key={`desktop-single-${result.key}-${result.storeName}-${result.productName}`}
-                          className="rounded-xl bg-slate-50 p-2"
-                        >
-                          <p className="truncate text-sm font-black text-[#17322a]">
-                            {fixText(result.productName)}
-                          </p>
-                          <p className="text-xs font-bold text-[#8a7349]">
-                            {result.storeName} · {formatEuro(result.price)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-wide text-[#b7aa8d]">
-                      Debug
-                    </p>
-                    <h2 className="text-lg font-black tracking-[-0.03em] text-slate-950">
-                      Kori
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-black text-white">
-                    {cart.length} tuotetta
-                  </span>
-                </div>
-                <div className="max-h-[27rem] overflow-auto rounded-[1.15rem] bg-[#fff8df] p-2 ring-1 ring-slate-200">
-                  {cart.length === 0 ? (
-                    <p className="px-1 py-10 text-center text-sm font-bold text-[#b7aa8d]">
-                      Kori on tyhjä.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {cart.map((item, cartIndex) => (
-                    <div
-                      key={item.id}
-                      className="relative min-w-0 overflow-hidden rounded-[1.65rem] border-[3px] border-[#c2a05e] bg-gradient-to-b from-[#fff8e8] via-[#f6e8c5] to-[#ead19a] p-3 text-[#20301f] shadow-[0_5px_0_rgba(80,58,25,0.22),inset_0_0_0_2px_rgba(255,255,255,0.55)]"
-                    >
-                      <div className="pointer-events-none absolute inset-0 opacity-[0.13] [background-image:radial-gradient(#b59c67_1px,transparent_1px)] [background-size:13px_13px]" />
-                      <div className="relative grid min-w-0 grid-cols-[42px_82px_minmax(0,1fr)_auto] items-center gap-3">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[#b99d62] bg-[#fff7df] text-lg font-black text-[#7a6842] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.65)]">
-                          {cartIndex + 1}
-                        </span>
-
-                        <span className="flex h-[74px] w-[82px] shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] border-2 border-[#d6bf8f] bg-[#fff8df] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.7)]">
-                          {item.image ? (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="h-full w-full object-contain p-1"
-                            />
-                          ) : (
-                            <span className="text-2xl">🛒</span>
-                          )}
-                        </span>
-
-                        <div className="min-w-0 overflow-hidden">
-                          <p className="line-clamp-2 break-words text-[17px] font-black leading-[1.05] text-[#20301f]">
-                            {item.name}
-                          </p>
-                          <p className="mt-1 truncate text-[12px] font-bold text-[#6f6b59]">
-                            {item.storeName
-                              ? `${item.storeName} · ${item.chain}`
-                              : "Muistilistarivi"}
-                          </p>
-                          <p className="mt-1 text-[13px] font-black text-[#6f6b59]">
-                            {item.quantity} kpl
-                          </p>
-                        </div>
-
-                        <div className="shrink-0 text-right">
-                          <p className="whitespace-nowrap text-[18px] font-black text-[#20301f]">
-                            {Number(item.price || 0) > 0 ? formatEuro(Number(item.price || 0) * item.quantity) : "—"}
-                          </p>
-                          {Number(item.price || 0) > 0 ? (
-                            <p className="mt-1 whitespace-nowrap text-[11px] font-bold text-[#6f6b59]">
-                              {formatEuro(Number(item.price || 0))} / kpl
-                            </p>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="relative mt-3 grid grid-cols-[1fr_auto] items-center gap-3">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <button
-                            type="button"
-                            disabled
-                            className="min-w-0 rounded-full border-2 border-[#d6bf8f] bg-[#fff4cf] px-3 py-2 text-[11px] font-black leading-none text-[#8a3f16] opacity-75 shadow-[0_2px_0_rgba(91,72,44,0.14)]"
-                            title="Tuotekohtainen hinnanhuojennushaku rakennetaan myöhemmin"
-                            aria-label="Hinnanhuojennukset tulossa"
-                          >
-                            🔥 Hinnanhuojennukset
-                          </button>
-                          {item.price
-                            ? renderPriceHistoryBadge(
-                                getPriceHistoryKeyFromCartItem(item),
-                                item.price,
-                              )
-                            : null}
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-2">
-                          <div className="flex items-center rounded-full border-2 border-[#d6bf8f] bg-[#fff7df] p-1 shadow-[0_2px_0_rgba(91,72,44,0.14)]">
-                            <button
-                              type="button"
-                              onClick={() => changeQuantity(item.id, -1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f7ecd0] text-xl font-black text-[#8a7a52] transition active:scale-[0.94]"
-                              aria-label={
-                                item.quantity <= 1
-                                  ? `Poista ${item.name} ostoskorista`
-                                  : `Vähennä tuotteen ${item.name} määrää`
-                              }
-                              title={item.quantity <= 1 ? "Poista korista" : "Vähennä määrää"}
-                            >
-                              −
-                            </button>
-                            <span
-                              className="min-w-[30px] px-1 text-center text-base font-black text-[#20301f]"
-                              aria-label={`Määrä ${item.quantity}`}
-                            >
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => changeQuantity(item.id, 1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#07a445] text-xl font-black text-white shadow-sm transition active:scale-[0.94]"
-                              aria-label={`Lisää tuotteen ${item.name} määrää`}
-                              title="Lisää määrää"
-                            >
-                              +
-                            </button>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => removeCartItem(item.id)}
-                            className="flex h-10 min-w-[68px] shrink-0 items-center justify-center rounded-full border-2 border-[#8a3f16] bg-[#a4471c] px-3 text-[13px] font-black leading-none text-[#fff7df] shadow-[0_2px_0_rgba(91,72,44,0.22)] transition active:scale-[0.98]"
-                            aria-label={`Poista ${item.name} ostoskorista`}
-                          >
-                            Pois
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}                </div>
-              )}
-            </div>
-          </div>
-        </section>
-        )}
         </div>
 
         {restoredCartPromptV320.open &&
@@ -24437,7 +24095,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <>
             {/* Opaque Hae backdrop: the transparent search-card frame must not reveal
                 the home/three-logo screen during Compare -> Hae navigation. */}
-            <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[71] bg-[#f1dfad] sm:hidden" />
+            <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[71] bg-[#f1dfad]" />
             {!mobileRecipeSearchActive && <ZiiplyMobileSearchCard
               open={true}
               title="HAKU"
@@ -24500,7 +24158,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {!mobileRecipeSearchActive && (voiceNoticeTextV516 || voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className={`pointer-events-none fixed z-[9998] -translate-x-1/2 rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 text-center font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden ${!voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? "top-[calc(env(safe-area-inset-top)+25rem)] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] whitespace-normal break-words px-3 py-2 text-[0.78rem] leading-[1.35]" : "top-[calc(env(safe-area-inset-top)+20.02rem)] inline-block min-h-[1.28rem] w-auto max-w-[72vw] whitespace-nowrap px-2.5 py-[0.10rem] text-[0.72rem] leading-[1.0]"}`}
+                className={`pointer-events-none fixed z-[9998] -translate-x-1/2 rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 text-center font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] ${!voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? "top-[calc(env(safe-area-inset-top)+25rem)] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] whitespace-normal break-words px-3 py-2 text-[0.78rem] leading-[1.35]" : "top-[calc(env(safe-area-inset-top)+20.02rem)] inline-block min-h-[1.28rem] w-auto max-w-[72vw] whitespace-nowrap px-2.5 py-[0.10rem] text-[0.72rem] leading-[1.0]"}`}
                 style={{
                   fontFamily: '"Cooper Black", Georgia, serif',
                   // V517: keskitetään Äänitä-napin vaakakeskilinjaan.
@@ -24649,7 +24307,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     </div>
                   )}
 
-                  <div className="fixed inset-0 z-[160] h-[100dvh] w-screen overflow-hidden bg-[#fff5d9] sm:hidden">
+                  <div className="fixed inset-0 z-[160] h-[100dvh] w-screen overflow-hidden bg-[#fff5d9]">
                     <button
                       type="button"
                       onClick={closeEanModal}
@@ -24789,7 +24447,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 {eanLoading && (
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none fixed left-4 right-4 z-[181] rounded-[2rem] bg-slate-700/45 backdrop-blur-[1px] sm:hidden"
+                    className="pointer-events-none fixed left-4 right-4 z-[181] rounded-[2rem] bg-slate-700/45 backdrop-blur-[1px]"
                     style={{
                       top: "calc(env(safe-area-inset-top) + 5.35rem)",
                       height: "min(54dvh, 430px)",
@@ -24803,7 +24461,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {eanResults.length > 1 &&
                 !desktopKeyboardScannerOpen &&
                 (eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
-                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:hidden">
+                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)]">
                     <ZiiplyMobileProductPickCard
                       title="Valitse lisättävä tuote"
                       subtitle="Sama EAN löytyi useammasta kaupasta"
@@ -24883,7 +24541,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           !eanModalOpen &&
           activeResult !== "compare" &&
           !(loadingNormal || normalResults.length > 0) && (
-            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl sm:hidden">
+            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] font-black uppercase tracking-wide text-green-300">
@@ -25505,7 +25163,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {!eanModalOpen && comparisonLoading && storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && (
-          <div className="pointer-events-none fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2 sm:hidden">
+          <div className="pointer-events-none fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2">
             <div className="rounded-2xl bg-emerald-600 px-3 py-2.5 text-center text-[0.78rem] leading-[1.35] font-bold text-white shadow-2xl">
               {(() => {
                 const selectedKey = (["s", "k", "lidl", "tokmanni"] as const).find(
@@ -25528,7 +25186,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeCompareScope === "between_chains" &&
           betweenChainSelectionModeV749 === "one"
         ) && (
-          <div className={`fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2 sm:hidden ${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "pointer-events-auto" : "pointer-events-none"}`}>
+          <div className={`fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2 ${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "pointer-events-auto" : "pointer-events-none"}`}>
             <div className={`${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "" : "animate-[ziiplyFade_2.6s_ease-in-out]"} rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl`}>
               <div>{lastCartToast}</div>
               {lastCartToast.startsWith("Useamman tuotteen vertailu:") && (
@@ -25540,7 +25198,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {/* V531_HAE_READY_MICRO_BADGE_RENDER */}
           {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-[39%] z-[10001] animate-[ziiplyMicroReady_2.15s_ease-out_forwards] sm:hidden">
+            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-[39%] z-[10001] animate-[ziiplyMicroReady_2.15s_ease-out_forwards]">
               <div className="relative rounded-[0.58rem] border-[2px] border-[#0b5b31] bg-[linear-gradient(180deg,#0c9143_0%,#087237_100%)] px-2.5 py-[3px] text-[9px] font-black italic leading-none text-[#fff1c8] shadow-[0_3px_0_#064a26,0_8px_18px_rgba(8,75,42,0.24),inset_0_0_0_1px_rgba(255,255,255,0.20)]">
                 <span className="absolute -left-[5px] -top-[6px] text-[10px] leading-none text-[#f8c94b] drop-shadow-[0_1px_0_#6c4a10]">✦</span>
                 {haeReadyBadgeTextV502}
@@ -25735,7 +25393,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
 
         {mapStoresOverlayOpenV433 && (
-          <div className="fixed inset-0 z-[120] flex min-h-0 flex-col bg-[#062f29]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm sm:hidden">
+          <div className="fixed inset-0 z-[120] flex min-h-0 flex-col bg-[#062f29]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm">
             <div className="mx-auto flex h-full min-h-0 w-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border-[3px] border-[#c9a85c] bg-[#fff8dc] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
               <div className="flex items-center justify-between border-b border-[#d6bd76] bg-[#073d32] px-4 py-3 text-white">
                 <div className="flex items-center gap-3">

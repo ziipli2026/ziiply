@@ -269,7 +269,7 @@ export default function ZiiplyMobileSearchResultsCard({
   if (!open) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[95] flex items-stretch justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-[3px] sm:hidden">
+    <div className="pointer-events-none fixed inset-0 z-[95] flex items-stretch justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-[3px]">
       <section className={`pointer-events-auto relative flex h-full w-full ${compact ? "max-w-[25rem] rounded-[1.35rem]" : "max-w-[28rem] rounded-[2rem]"} flex-col overflow-hidden border-[5px] border-[#6d5128] bg-[#fff6db] shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]`}>
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.055]"

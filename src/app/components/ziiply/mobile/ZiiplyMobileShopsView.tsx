@@ -49,7 +49,7 @@ export default function ZiiplyMobileShopsView({
   onStoreCompareScopeChange,
 }: ZiiplyMobileShopsViewProps) {
   return (
-    <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-[#efe2bc] sm:hidden">
+    <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-[#efe2bc]">
       <div className="h-[86px] shrink-0" aria-hidden="true" />
 
       <div className="relative z-[75] shrink-0 bg-[#efe2bc]/95 px-2 pb-1 pt-1 backdrop-blur">
