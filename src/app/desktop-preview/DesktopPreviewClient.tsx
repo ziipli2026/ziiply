@@ -373,7 +373,7 @@ export default function DesktopPreviewPage() {
   const gostaHomeHistoryKey="ziiply-gosta-home-search-history-v1";
   const gostaHomeCacheTtl=15*60*1000; // Unknown validity: recheck after 15 minutes.
   const gostaHomeCacheMap=useRef<Record<string,{query:string;time:number;results:any[]}>>({});
-  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validFrom","validTo","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
+  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validFrom","validTo","validityText","priceBasis","offerUnit","isWeightedProduct","packageSize","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
   function gostaCacheExpiry(offer:any){
     const raw=String(offer.validUntil||"").trim();
     if(!raw)return null;
@@ -435,7 +435,10 @@ export default function DesktopPreviewPage() {
       const source=offer.__sourceOfferSearchResult || {};
       const datedOffer={...offer,validFrom:offer.validFrom || source.validFrom,
         validUntil:offer.validUntil || source.validUntil,validTo:offer.validTo || source.validTo,
-        validityText:offer.validityText || source.validityText};
+        validityText:offer.validityText || source.validityText,
+        priceBasis:offer.priceBasis || source.priceBasis,offerUnit:offer.offerUnit || source.offerUnit,
+        isWeightedProduct:offer.isWeightedProduct ?? source.isWeightedProduct,
+        packageSize:offer.packageSize || source.packageSize || source.packageText};
       return Object.fromEntries(gostaHomeCacheFields.filter(key=>datedOffer[key]!==undefined).map(key=>[key,datedOffer[key]]));
     });
     const saved={query,results,time};
@@ -2009,7 +2012,31 @@ export default function DesktopPreviewPage() {
     const bundle = desktopCartBundle(item);
     return bundle ? Math.ceil(quantity / bundle.quantity) * bundle.quantity : quantity;
   }
+  function desktopCartWeightOffer(item: any) {
+    const source = item.__sourceOfferSearchResult || {};
+    const title = String(item.title || item.name || "");
+    const legacyCitymarket = /^savustettu kirjolohifilee n\. 700 g$/i.test(title) &&
+      desktopCartPrice(item.offerPrice ?? item.price) === 29.95 &&
+      (/citymarket/i.test(String(item.__gostaHomeStore || item.storeName || item.source || "")) ||
+        String(item.id || "").startsWith("kcm:"));
+    const display = splitOfferDisplayPrice(getOfferPrice(item));
+    const printedRate = /^\/\s*kg$/i.test(display.basis);
+    const weighted = legacyCitymarket || item.isWeightedProduct === true || source.isWeightedProduct === true ||
+      /^per[-_]kg$/i.test(String(item.priceBasis || source.priceBasis || "")) ||
+      /^kg$/i.test(String(item.offerUnit || source.offerUnit || "")) || printedRate;
+    if (!weighted) return null;
+
+    const rate = desktopCartPrice(printedRate ? display.amount : item.offerPrice ?? source.offerPrice ?? source.price ?? item.price);
+    const weight = [item.packageSize, source.packageSize, title]
+      .map(value => String(value ?? "").match(/(?:^|\s)(?:n\.?\s*|noin\s+)?(\d+(?:[,.]\d+)?)\s*(kg|g)\s*$/i))
+      .find(Boolean);
+    const kilograms = weight ? Number(weight[1].replace(",", ".")) / (weight[2].toLowerCase() === "g" ? 1000 : 1) : 0;
+    return { estimate: rate !== null && kilograms > 0
+      ? Math.round(rate * kilograms * Number(item.quantity || 1) * 100) / 100 : null };
+  }
+
   function desktopCartRowPrice(item: any) {
+    if (desktopCartWeightOffer(item)) return null;
     const bundle = desktopCartBundle(item);
     const quantity = Number(item.quantity || 1);
     if (bundle) return desktopCartQuantity(item) / bundle.quantity * bundle.total;
@@ -2037,6 +2064,9 @@ export default function DesktopPreviewPage() {
   function addDesktopCartItem(p:any){
     if(desktopScannerOpen && desktopPhysicalCollectionRef.current && p?.__physicalScannerAdd===true){p={...p,collected:true};}
     if(p?.__physicalScannerAdd!==undefined){const {__physicalScannerAdd,...clean}=p;p=clean;}
+    if (desktopCartWeightOffer(p)) {
+      p = { ...p, offerPrice: p.offerPrice ?? p.price, price: null, ziiplyWeightLabel: true };
+    }
     const key=desktopCartKey(p);if(!key)return;
     if(p?.source==="justiina" && p?.__chain && justiinaQuery.trim())rememberSearchChoice(justiinaQuery,{...p,name:String(p.name||p.title||""),ean:p.ean==null?null:String(p.ean)},"added_to_cart");
     setCartItems(current=>{const found=current.find(x=>desktopCartKey(x)===key);if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900);return isDesktopMemoItem(found)?current:current.map(x=>desktopCartKey(x)===key?{...x,collected:p.collected?true:Boolean(x.collected),quantity:p.collected&&!x.collected?Number(x.quantity||1):desktopCartQuantity(x)+(desktopCartBundle(p)?.quantity ?? Math.max(1,Number(p.__recipeQuantity||1))),...(p.source==="justiina"&&p.__recipeIngredient?{source:"justiina",__recipeTitle:p.__recipeTitle,__recipeIngredient:p.__recipeIngredient,__recipeQuantity:p.__recipeQuantity,__recipeBaseQuantity:Number(x.__recipeBaseQuantity??(x.source==="justiina"?Math.max(0,Number(x.quantity||1)-Number(x.__recipeQuantity||1)):x.quantity||1))+(x.source==="justiina"?Math.max(0,Number(x.__recipeQuantity||1)):0)}:p.source!=="justiina"&&x.source==="justiina"&&x.__recipeIngredient?{__recipeBaseQuantity:Math.max(0,Number(x.__recipeBaseQuantity??Math.max(0,Number(x.quantity||1)-Number(x.__recipeQuantity||1))))+1}:{})}:x)}flashCartNotice(`Lisätty: ${p?.title||p?.name||"tuote"}`);return [...current,{...p,source:p?.source||"normal",quantity:desktopCartBundle(p)?.quantity ?? Math.max(1,Number(p.__recipeQuantity||1))}]});
@@ -3227,11 +3257,11 @@ export default function DesktopPreviewPage() {
      : (()=>{const priced=cartItems.filter((p:any)=>desktopCartPrice(p.price)!=null&&!p.priceNeedsRefresh);const fresh=priced.filter((p:any)=>Number(p.priceCheckedAt)>0&&Date.now()-Number(p.priceCheckedAt)<24*60*60*1000);if(!priced.length||fresh.length!==priced.length||cartItems.some((p:any)=>p.priceNeedsRefresh))return "Hinnat tarkistettava";const oldest=Math.min(...fresh.map((p:any)=>Number(p.priceCheckedAt)));return "Hinnat tarkistettu "+new Date(oldest).toLocaleString("fi-FI",{day:"numeric",month:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"});})()}
  </div>
  <div className="absolute inset-x-[4.5%] bottom-[65px] top-[calc(27.8%+4px)] overflow-y-auto">
- {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=>{const validity=gostaOfferValidity(p,"");const bundle=desktopCartBundle(p);const rowPrice=desktopCartRowPrice(p);return <div key={desktopCartKey(p)||i} className="grid min-h-[86px] grid-cols-[60px_minmax(0,1fr)_220px_220px] items-center border-b border-[#8f744f]/25 py-[4px] text-[#3c2c1b]">
+ {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=>{const validity=gostaOfferValidity(p,"");const bundle=desktopCartBundle(p);const rowPrice=desktopCartRowPrice(p);const weightOffer=desktopCartWeightOffer(p);return <div key={desktopCartKey(p)||i} className="grid min-h-[86px] grid-cols-[60px_minmax(0,1fr)_220px_220px] items-center border-b border-[#8f744f]/25 py-[4px] text-[#3c2c1b]">
   <span aria-hidden="true" className="text-center font-serif text-[20px]">{p.collected?"☑":"☐"}</span>
-  <div className="flex min-w-0 items-center gap-3 pl-[30px] pr-[12px]"><div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{p.storeName||""} {p.collected?"· Kerätty":"· Ei kerätty"}</div>{(p.__recipeWeightNeedsReview||p.__recipeIngredient?.amount===null)&&!isDesktopMemoItem(p)&&<div className="text-[14px] font-bold text-[#8b4e35]">{p.__recipeWeightNeedsReview?"Reseptin paino puuttuu — tarkista ennen hintavertailua":"Reseptin määrä puuttuu — tarkista tarvittava määrä"}</div>}{gostaOfferDiscount(p)&&<div className="truncate text-[14px] italic text-[#77513c]">{gostaOfferDiscount(p)}</div>}{p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{validity&&<div className="text-[14px] text-[#66543d]">{validity}</div>}</div></div>
+  <div className="flex min-w-0 items-center gap-3 pl-[30px] pr-[12px]"><div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{[p.storeName || p.__gostaHomeStore,p.collected?"Kerätty":"Ei kerätty"].filter(Boolean).join(" · ")}</div>{(p.__recipeWeightNeedsReview||p.__recipeIngredient?.amount===null)&&!isDesktopMemoItem(p)&&<div className="text-[14px] font-bold text-[#8b4e35]">{p.__recipeWeightNeedsReview?"Reseptin paino puuttuu — tarkista ennen hintavertailua":"Reseptin määrä puuttuu — tarkista tarvittava määrä"}</div>}{gostaOfferDiscount(p)&&<div className="truncate text-[14px] italic text-[#77513c]">{gostaOfferDiscount(p)}</div>}{!weightOffer&&p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{validity&&<div className="text-[14px] text-[#66543d]">{validity}</div>}</div></div>
   <div className="flex w-full translate-x-[13px] items-center justify-center gap-2">{!isDesktopMemoItem(p)&&<><button onClick={()=>changeDesktopCartQuantity(p,-1)} aria-label="Vähennä määrää" className="grid h-10 w-10 place-items-center rounded-full border border-[#315d45] bg-[#fff8df] font-bold">−</button><span className="min-w-6 text-center text-[19px] font-bold">{desktopCartQuantity(p)}</span><button onClick={()=>changeDesktopCartQuantity(p,1)} aria-label="Lisää määrää" className="grid h-10 w-10 place-items-center rounded-full border border-[#315d45] bg-[#fff8df] font-bold">+</button></>}</div>
-  <div className="flex items-center justify-center px-2">{!isDesktopMemoItem(p)&&<span className="whitespace-nowrap font-serif text-[clamp(17px,1.35vw,23px)] font-bold">{rowPrice!==null?rowPrice.toFixed(2).replace(".",",")+" €":"—"}{bundle&&<small className="block whitespace-normal text-center text-xs">{bundle.total.toFixed(2).replace(".",",")} € / {bundle.quantity} kpl</small>}</span>}</div>
+  <div className="flex items-center justify-center px-2">{!isDesktopMemoItem(p)&&<span className="whitespace-nowrap font-serif text-[clamp(17px,1.35vw,23px)] font-bold">{weightOffer ? (weightOffer.estimate === null ? "Punnitse" : "Arvio " + weightOffer.estimate.toFixed(2).replace(".",",")+" €") : rowPrice!==null?rowPrice.toFixed(2).replace(".",",")+" €":"—"}{bundle&&<small className="block whitespace-normal text-center text-xs">{bundle.total.toFixed(2).replace(".",",")} € / {bundle.quantity} kpl</small>}</span>}</div>
  </div>})}
  </div>
  <div className="absolute left-[65px] top-[72px] z-10 flex items-center gap-[70px]"><button onClick={()=>{setCartOpen(false);setNotebookOpen(true)}} title="Ostoslistat" aria-label="Ostoslistat" className="grid h-[60px] w-[68px] place-items-center border-0 bg-transparent p-0 text-[#65431e] drop-shadow-[0_2px_2px_#6a4b2955] disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[49px] w-[49px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#624522" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><rect x="12" y="9" width="39" height="48" rx="5" fill="#fff4d3"/><path d="M22 9v48M27 20h17M27 30h17M27 40h13" stroke="#906b3d"/><rect x="7" y="16" width="10" height="35" rx="3" fill="#d4ae69"/><path d="M9 24h7M9 33h7M9 42h7" stroke="#fff1cb"/></svg></button><button disabled={!cartItems.length} onClick={shareDesktopCart} title="Lähetä ostoskori" className="grid h-[60px] w-[68px] place-items-center border-0 bg-transparent p-0 text-[#65431e] drop-shadow-[0_2px_2px_#6a4b2955] disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[49px] w-[49px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#624522" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="16" width="50" height="34" rx="5" fill="#fff3d1"/><path d="m9 19 23 18 23-18" strokeWidth="3"/><path d="m10 47 17-15m27 15L37 32" stroke="#b18a4d"/><path d="M40 8h15m-5-5 5 5-5 5" stroke="#28644b" strokeWidth="3"/></svg></button><button disabled={!cartItems.length} onClick={()=>setDesktopCheckoutOpen(true)} title="Osta" className="grid h-[60px] w-[68px] place-items-center border-0 bg-transparent p-0 text-[#65431e] drop-shadow-[0_2px_2px_#6a4b2955] disabled:opacity-40"><svg aria-hidden="true" viewBox="0 0 64 64" className="h-[52px] w-[52px] drop-shadow-[1px_2px_1px_#5b411f66]" fill="none" stroke="#58381b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 26 Q9 13 22 12 H45 Q55 13 55 26 V49 H9Z" fill="#c99b51"/><path d="M11 27 Q12 17 23 16 H44 Q52 17 53 27" fill="#e6c17d"/><rect x="21" y="6" width="26" height="12" rx="3" fill="#a97735"/><rect x="25" y="8" width="18" height="7" rx="1" fill="#fff0b6"/><path d="M29 12h10" stroke="#68451f"/><path d="M12 28H52" strokeWidth="2.5"/><rect x="15" y="32" width="34" height="15" rx="3" fill="#e6bc72"/><g fill="#8b5d2a" stroke="#553617" strokeWidth="1"><circle cx="21" cy="36" r="2.2"/><circle cx="30" cy="36" r="2.2"/><circle cx="39" cy="36" r="2.2"/><circle cx="21" cy="43" r="2.2"/><circle cx="30" cy="43" r="2.2"/><circle cx="39" cy="43" r="2.2"/></g><path d="M8 49h48v9H8z" fill="#91632f"/><rect x="13" y="51" width="38" height="4" rx="1" fill="#dcb878"/><path d="M13 22h38" stroke="#fff0b5" strokeWidth="1.4"/><path d="M9 49h46" stroke="#5a391c" strokeWidth="2.5"/></svg></button></div>
