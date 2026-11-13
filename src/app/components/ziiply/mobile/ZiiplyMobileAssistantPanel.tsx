@@ -1,7 +1,7 @@
 "use client";
 import { gostaWatchUrl } from "./gostaWatchLocation";
 import { fetchSharedGostaWatch } from "./gostaWatchSharedRequest";
-import { mapWatchOffers, readWatchResults, saveWatchResults, watchCartPrice, watchPackageSize, watchResultsChanged, type WatchOffer } from "./gostaWatchResults";
+import { mapWatchOffers, readWatchResults, saveWatchResults, watchCartPrice, watchPackageSize, watchValidity, watchResultsChanged, type WatchOffer } from "./gostaWatchResults";
 import JustiinaRecipeEditor from "../justiina/JustiinaRecipeEditor";
 import type { RecipeIngredient } from "../justiina/recipeCore";
 import JustiinaOnlineRecipes from "../justiina/JustiinaOnlineRecipes";
@@ -19,7 +19,7 @@ export type ZiiplyMobileAssistantPanelProps = {
   onChangeChain?: (chain: "s"|"k"|"lidl"|"tokmanni", enabled:boolean) => void;
   locationLabel?: string;
   onOpenStoreSettings?: () => void;
-  onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string;imageUrl?:string;packageSize?:string;chain?:string;isWeightedProduct?:boolean;ziiplyPricePendingWeight?:boolean;estimatedWeightKg?:number}) => boolean;
+  onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string;imageUrl?:string;packageSize?:string;chain?:string;isWeightedProduct?:boolean;ziiplyPricePendingWeight?:boolean;estimatedWeightKg?:number;ean?:string;bundleQuantity:number;validityText?:string}) => boolean;
 };
 
 function watchStoreLabel(store: string, chain = ""): string {
@@ -27,7 +27,8 @@ function watchStoreLabel(store: string, chain = ""): string {
     .replace(/\s*[·|–-]\s*(?:lidl-fi|etarjouslehdet|e-tarjouslehdet)\s*$/i, "")
     .replace(/\s*\((?:lidl-fi|etarjouslehdet|e-tarjouslehdet)\)\s*$/i, "")
     .trim();
-  if (/^(?:Hyvinkää|Järvenpää|Tuusula|Helsinki|Espoo|Vantaa|Lahti|Tampere|Turku)\s*-\s*[^-]+$/i.test(name) && (chain.toUpperCase() === "LIDL" || /keskusta/i.test(name))) return "Lidl " + name;
+  if (/^lidl$/i.test(chain)) return "Lidl " + name.replace(/^(?:Lidl\b\s*)+/i, "");
+  if (/^tokmanni$/i.test(chain)) return "Tokmanni " + name.replace(/^(?:Tokmanni\b\s*)+/i, "");
   return name;
 }
 
@@ -72,7 +73,7 @@ export default function ZiiplyMobileAssistantPanel({
 }: ZiiplyMobileAssistantPanelProps) {
   const shareWatchOffer = async (offer: WatchOffer) => {
     const price = offer.price ? (offer.price.includes("€") ? offer.price : offer.price + " €") : "";
-    const text = [offer.title, price + (offer.priceBasis === "per-kg" && !price.includes("/kg") ? "/kg" : ""), watchStoreLabel(offer.store)].filter(Boolean).join(" · ");
+    const text = [offer.title, price + (offer.priceBasis === "per-kg" && !price.includes("/kg") ? "/kg" : ""), watchStoreLabel(offer.store, offer.chain), watchValidity(offer)].filter(Boolean).join(" · ");
     try {
       if (navigator.share) await navigator.share({title:offer.title,text});
       else if (navigator.clipboard?.writeText) {
@@ -274,8 +275,9 @@ export default function ZiiplyMobileAssistantPanel({
               <div className="grid grid-cols-1 gap-3">
                 {watchOffers.filter(o=>!watchFilter||(o.queries ?? [o.query]).includes(watchFilter)).map((offer,index)=><article key={offer.query+"-"+offer.title+"-"+offer.store+"-"+offer.source+"-"+index} className="rounded-2xl border-2 border-[#caa15d] bg-[#fffaf0] p-3 shadow-sm">
                   <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store,offer.chain)}</div>
-                  <div className="mt-2 flex items-start gap-3">{offer.imageUrl&&<img src={offer.imageUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain" onError={event=>{event.currentTarget.style.display="none";}}/>}<div className="min-w-0 flex-1"><h4 className="text-base font-black text-[#174c35]">{offer.title}</h4>{watchPackageSize(offer)&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{watchPackageSize(offer)}</div>}{offer.comparisonPrice&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{offer.comparisonPrice}</div>}</div></div>
-                  <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{offer.price.includes("€") ? offer.price : offer.price.replace(".", ",") + " €"}{offer.priceBasis === "per-kg" && !offer.price.includes("/kg") ? "/kg" : ""}</strong>}</div>
+                  <div className="mt-2 flex items-start gap-3">{offer.imageUrl&&<img src={offer.imageUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain" onError={event=>{event.currentTarget.style.display="none";}}/>}<div className="min-w-0 flex-1"><h4 className="text-base font-black text-[#174c35] [overflow-wrap:anywhere]">{offer.title}</h4>{watchPackageSize(offer)&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{watchPackageSize(offer)}</div>}{offer.comparisonPrice&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{offer.comparisonPrice}</div>}</div></div>
+                  {watchValidity(offer) && <div className="mt-2 text-sm font-semibold">{watchValidity(offer)}</div>}
+                  <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{offer.price.includes("€") ? offer.price : offer.price.replace(".", ",") + " €"}{offer.priceBasis === "per-kg" && !offer.price.includes("/kg") ? "/kg" : ""}{(watchCartPrice(offer)?.bundleQuantity || 1) > 1 && !/kpl/i.test(offer.price) ? " / " + watchCartPrice(offer)?.bundleQuantity + " kpl" : ""}</strong>}</div>
                   {onAddWatchOfferToCart&&<button type="button" onClick={() => {
                     const pricing = watchCartPrice(offer);
                     if (!pricing) {
@@ -286,7 +288,8 @@ export default function ZiiplyMobileAssistantPanel({
                       name: offer.title, title: offer.title, price: pricing.price, priceAmountUnit: "eur",
                       storeName: watchStoreLabel(offer.store, offer.chain), source: offer.source, imageUrl: offer.imageUrl,
                       packageSize: watchPackageSize(offer), chain: offer.chain, isWeightedProduct: pricing.weighted,
-                      ziiplyPricePendingWeight: pricing.weighted, estimatedWeightKg: pricing.estimatedWeightKg,
+                      ziiplyPricePendingWeight: pricing.weighted, estimatedWeightKg: pricing.estimatedWeightKg, ean: offer.ean,
+                      bundleQuantity: pricing.bundleQuantity, validityText: watchValidity(offer),
                     });
                     if (added) setWatchNotice("Tarjous lisätty ostoskoriin.");
                   }} className="mt-2 mr-2 rounded-lg border border-[#174c35] bg-[#174c35] px-3 py-2 text-sm font-bold text-white">Lisää ostoskoriin</button>}

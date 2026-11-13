@@ -4408,9 +4408,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         if (key !== targetKey) return cartItem;
 
         const currentQuantity = Number(cartItem.quantity ?? cartItem.amount ?? 1);
+        const step = Math.max(1, Number(cartItem.ziiplyOfferBundleQuantity) || 1);
         const nextQuantity = Math.max(
-          1,
-          (Number.isFinite(currentQuantity) ? currentQuantity : 1) + delta,
+          step,
+          (Number.isFinite(currentQuantity) ? currentQuantity : step) + delta * step,
         );
 
         return {
@@ -7588,6 +7589,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       price: item.price,
       priceAmountUnit: item.priceAmountUnit,
       ziiplyEstimatedWeightKg: item.ziiplyEstimatedWeightKg,
+      validityText: item.validityText,
       image: item.image,
       chain: item.chain,
       storeName: item.storeName,
@@ -23748,8 +23750,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     if (!name || !Number.isFinite(price) || price <= 0) return false;
                     const current = cartRefV124.current;
                     const storeName = String(offer.storeName || "").trim();
+                    const ean = offer.ean;
+                    const bundleQuantity = offer.bundleQuantity;
                     const identity = name.toLocaleLowerCase("fi") + "|" + storeName.toLocaleLowerCase("fi");
                     const existingIndex = current.findIndex(item =>
+                      (item.ean || item.product?.ean || "") === (ean || "") &&
+                      (item.ziiplyOfferBundleQuantity || 1) === bundleQuantity &&
                       String(item.name || "").toLocaleLowerCase("fi") + "|" +
                       String(item.storeName || "").toLocaleLowerCase("fi") === identity
                     );
@@ -23771,17 +23777,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     const item: CartItem = {
                       id: existing?.id || "gosta-watch-" + Date.now() + "-" + current.length,
                       name,
-                      price: weighted ? 0 : price,
+                      price: weighted ? 0 : price / bundleQuantity,
+                      ean, validityText: offer.validityText,
+                      ziiplyOfferBundleQuantity: bundleQuantity > 1 ? bundleQuantity : undefined,
                       priceAmountUnit: "eur",
                       image: offer.imageUrl || undefined,
                       storeName,
                       chain: chain as CartItem["chain"],
-                      quantity: weighted ? 1 : Number(existing?.quantity || 0) + 1,
+                      quantity: weighted ? 1 : Number(existing?.quantity || 0) + bundleQuantity,
                       source: "offer",
                       ...(weighted ? {
                         ziiplyEstimatedWeightKg: offer.estimatedWeightKg,
                         product: {
-                          name, price: 0, ziiplyWeightLabel: true, ziiplyWeightOffer: true,
+                          name, ean, price: 0, ziiplyWeightLabel: true, ziiplyWeightOffer: true,
                           ziiplyPricePendingWeight: true, comparisonPrice: price, comparisonPriceUnit: "kg",
                         } as unknown as Product,
                       } : {}),
@@ -25032,7 +25040,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const itemEanV814 = normalizeEan(item.ean || item.product?.ean || "");
               // V814: EAN-tuotetta ei koskaan kuitata käsin kerätyksi tai takaisin.
               // Fyysisen EAN-tuotteen keräilykuittaus syntyy vain oikeasta skannauksesta.
-              if (isUsableEan(itemEanV814)) {
+              if (item.source === "offer" || isUsableEan(itemEanV814)) {
                 showCartToast("EAN-tuote kuitataan kerätyksi vain skannaamalla viivakoodi.");
                 return;
               }

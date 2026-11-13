@@ -367,7 +367,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => {
-          if (quantity > 1) onDecrease?.(item);
+          if (quantity > (item.ziiplyOfferBundleQuantity || 1)) onDecrease?.(item);
           else onRequestRemove?.(item);
         }}
         className="absolute left-[min(17.52rem,calc(100%-2.5rem))] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12] drop-shadow-[0_0_0.4px_rgba(120,0,0,0.45)] active:translate-y-[1px] active:bg-[#fff1c6]/38"
@@ -786,12 +786,13 @@ export default function ZiiplyMobileCartCard({
                 // Sisäinen 0 säilyy laskentaa varten, mutta sitä ei esitetä käyttäjälle 0,00 € hintana.
                 const pendingWeightV794 = isPendingWeightPriceV794(item);
                 const confirmedWeightFinalV802 = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
+                const bundleQuantity = Number(item.ziiplyOfferBundleQuantity) || 1;
                 const rowPriceInputV802 = !pendingWeightV794 &&
                   (item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) &&
                   confirmedWeightFinalV802 != null && confirmedWeightFinalV802 !== "" &&
                   Number.isFinite(Number(confirmedWeightFinalV802)) && Number(confirmedWeightFinalV802) >= 0
                     ? Number(confirmedWeightFinalV802)
-                    : pendingWeightV794 ? 0 : item.price;
+                    : pendingWeightV794 ? 0 : bundleQuantity > 1 ? Number(item.price) * bundleQuantity : item.price;
                 const stickerRegularPrice = Number((item as any).ziiplyRegularPrice);
                 const hasStickerDiscount = Number((item as any).ziiplyDiscountPercent) > 0 && getNumericPrice(stickerRegularPrice) > getNumericPrice(rowPriceInputV802) && !pendingWeightV794;
                 const numericRowPriceV792 = pendingWeightV794 ? 0 : item.priceAmountUnit === "eur" ? Number(rowPriceInputV802) : getNumericPrice(rowPriceInputV802);
@@ -824,6 +825,7 @@ export default function ZiiplyMobileCartCard({
                     <button
                       type="button"
                       onClick={() => onToggleItem?.(item)}
+                      disabled={item.source === "offer"}
                       className="absolute left-[0.36rem] top-[0.64rem] grid h-[1.9rem] w-[1.95rem] place-items-center text-center text-[1.08rem] font-extrabold leading-none text-[#4a3921] active:translate-y-[1px]"
                       style={{ fontFamily: serifFont }}
                       aria-label={checked ? "Poista keräilymerkintä" : "Merkitse kerätyksi"}
@@ -840,6 +842,8 @@ export default function ZiiplyMobileCartCard({
                       title={originalName}
                     >
                       {name}
+                      {String(item.id || "").startsWith("gosta-watch-") && item.storeName && <span className="mt-1 block text-[0.65rem] font-semibold">{item.storeName}</span>}
+                      {item.validityText && <span className="mt-1 block text-[0.65rem] font-semibold">{item.validityText}</span>}
                     </div>
 
                     <div data-v65-remove-choice={pendingRemoveV65 ? "true" : undefined}>
@@ -876,7 +880,7 @@ export default function ZiiplyMobileCartCard({
                             : <span className="text-[0.72rem]">Punnitse</span>)
                           : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
                             ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
-                            : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.72rem] font-bold text-[#3f321f] decoration-[1.5px]" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : price || "—"}
+                            : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.72rem] font-bold text-[#3f321f] decoration-[1.5px]" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : bundleQuantity > 1 && price ? <span>{price}<small className="block">/ {bundleQuantity} kpl</small></span> : price || "—"}
                     </div>
                     {item.ziiplyIsSubstituteV793 &&
                       typeof item.ziiplyOriginalProductName === "string" &&
