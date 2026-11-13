@@ -2858,16 +2858,18 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   // but must never group provider queries/brands ahead of a cheaper match.
   return rankNormalSearchResults(query, products, priceOf)
     .filter((product) => Number.isFinite(priceOf(product)) && priceOf(product) > 0)
-    .sort((a, b) => {
-      const priceDelta = priceOf(a) - priceOf(b);
-      if (priceDelta !== 0) return priceDelta;
-      // Equal prices must not depend on provider input order or cache order.
-      const nameDelta = normalize(a.name).localeCompare(normalize(b.name), "fi");
-      if (nameDelta !== 0) return nameDelta;
-      const eanDelta = String(a.ean || "").localeCompare(String(b.ean || ""));
-      if (eanDelta !== 0) return eanDelta;
-      return String(a.id ?? "").localeCompare(String(b.id ?? ""));
-    });
+    .sort((a, b) => comparePricedSearchResults(a, b, priceOf));
+}
+
+export function comparePricedSearchResults<T extends { name: string; ean?: string; id?: number | string }>(
+  a: T,
+  b: T,
+  priceOf: (product: T) => number,
+): number {
+  return priceOf(a) - priceOf(b)
+    || normalize(a.name).localeCompare(normalize(b.name), "fi")
+    || String(a.ean || "").localeCompare(String(b.ean || ""))
+    || String(a.id ?? "").localeCompare(String(b.id ?? ""));
 }
 
 export function rankNormalSearchResults<T extends Product>(

@@ -1,6 +1,6 @@
 "use client";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonProductType, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "../components/ziiply/comparisonBrand";
-import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, rankDesktopNormalRows, withDesktopCatalogEvidence, searchWords } from "../components/ziiply/search/desktopNormalRelevance";
+import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence, searchWords } from "../components/ziiply/search/desktopNormalRelevance";
 import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
 import { citymarketFailureNotice } from "../components/ziiply/offerSearch/citymarketAvailability";
@@ -12,7 +12,7 @@ import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferenc
 import { useEffect, useRef, useState } from "react";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "../components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, type ZiiplyArrivalDecision } from "../components/ziiply/location/ziiplyArrivalSequence";
-import { getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
+import { comparePricedSearchResults, getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList, autocorrectNormalSearchTerm } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -2734,8 +2734,10 @@ export default function DesktopPreviewPage() {
         const previous=combinedByEan.get(key);
         if(!previous||(Number.isFinite(product.__price)&&(!Number.isFinite(previous.__price)||product.__price<previous.__price)))combinedByEan.set(key,product);
       }
-      const eligibleRows=[...combinedByEan.values()].filter(product=>desktopSearchDecision(query,product).accepted);
-      const sortedRows=rankDesktopNormalRows(query,eligibleRows,{requirePrice:true}).slice(0,100);
+      const sortedRows = [...combinedByEan.values()]
+        .filter(product => Number.isFinite(product.__price) && product.__price > 0 && desktopSearchDecision(query, product).accepted)
+        .sort((a, b) => comparePricedSearchResults(a, b, product => product.__price))
+        .slice(0, 100);
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,neonOnlyCount:neonOnly.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
