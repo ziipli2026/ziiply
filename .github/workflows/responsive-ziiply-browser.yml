@@ -65,6 +65,7 @@ jobs:
                 assert.equal(await (desktop ? mobileHome : desktopHome).count(), 0);
                 assert.equal(page.url(), url);
                 await page.getByRole('button', { name: 'Avaa tarjousvahdin 1 osumaa' }).click({ timeout: 30000 });
+                if (desktop) await page.getByRole('button', { name: /Tavaratalot · 1 tarjousta/ }).click();
                 await page.getByText('Testikahvi 500 g', { exact: true }).first().waitFor({ timeout: 10000 });
                 await page.getByRole('button', { name: 'Lisää ostoskoriin', exact: true }).first().click();
                 assert.deepEqual(errors, []);
