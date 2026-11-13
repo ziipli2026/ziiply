@@ -11,9 +11,9 @@ function numeric(value: unknown): number | null {
 function parseEnergy(data: unknown): Energy | null {
   if (!data || typeof data !== "object") return null;
   const n = data as Record<string, unknown>;
-  const values = n.nutrients && typeof n.nutrients === "object" ? n.nutrients as Record<string, unknown> : n;
-  const kcal = numeric(values.kcal_100g ?? values.energy_kcal_100g ?? values.energyKcal100g ?? values["energy-kcal_100g"]);
-  const kj = numeric(values.kj_100g ?? values.energy_kj_100g ?? values["energy-kj_100g"] ?? values.ENERC_KJ ?? values.ENERC);
+  const values = n.nutrients && typeof n.nutrients === "object" ? n.nutrients as Record<string, unknown> : n.nutriments && typeof n.nutriments === "object" ? n.nutriments as Record<string, unknown> : n;
+  const kcal = numeric(values.kcal_100g ?? values.energy_kcal_100g ?? values.energyKcal100g ?? values["energy-kcal_100g"] ?? values.energy_kcal ?? values["energy-kcal"]);
+  const kj = numeric(values.kj_100g ?? values.energy_kj_100g ?? values["energy-kj_100g"] ?? values.ENERC_KJ ?? values.ENERC ?? values.energy_kj ?? values["energy-kj"]);
   if (kcal === null && kj === null) return null;
   if ((kcal !== null && kcal > 1000) || (kj !== null && kj > 4184)) return null;
   return { kcal: kcal ?? (kj === null ? null : kj / 4.184), kj: kj ?? (kcal === null ? null : kcal * 4.184), estimated: n.estimated === true || n.source === "fineli-generic" };
@@ -35,11 +35,11 @@ export default function ProductEnergy({ ean, nutrition, quantity }: { ean?: stri
   const valid = /^\d{8,14}$/.test(code) ? code : "";
   const [state, setState] = useState<{ean:string;energy:Energy|null}>({ean:"",energy:null});
   useEffect(() => {
-    if (!valid) return;
+    if (!valid || parseEnergy(nutrition)) return;
     let active = true;
     load(valid).then(energy => { if (active) setState({ean:valid,energy}); });
     return () => { active = false; };
-  }, [valid]);
+  }, [valid, nutrition]);
   const energy = parseEnergy(nutrition) ?? (state.ean === valid ? state.energy : null);
   if (!energy) return null;
   const format = (n:number|null) => n === null ? "—" : Math.round(n).toLocaleString("fi-FI");
