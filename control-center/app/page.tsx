@@ -214,12 +214,21 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     ...futureDiscovery.filter(x=>!x.run).map(x=>({level:"yellow",priority:180,title:x.chain,detail:"Future discoveryn ensimmäinen ajo puuttuu"})),
   ].sort((a,b)=>(a.level==="red"?0:1)-(b.level==="red"?0:1)||a.priority-b.priority);
   // Publication timestamps are authoritative for offer freshness; health probes are separate diagnostics.
-  const latestApprovedByChain=CHAINS.map(ch=>({
-    key:ch.key,
-    name:ch.name,
-    latest:d.pubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved")
-      .sort((a,b)=>b.parsed_at.localeCompare(a.parsed_at))[0]??null
-  }));
+  const latestApprovedByChain=CHAINS.map(ch=>{
+    const latest=d.pubs.filter(p=>ch.match(p.chain.trim())&&p.approval_state==="approved")
+      .sort((a,b)=>b.parsed_at.localeCompare(a.parsed_at))[0]??null;
+    // EUROSPAR uses a separately verified feed and publication log, not the
+    // generic approved-publications state. Never present an old health probe
+    // as proof of a new publication for other chains.
+    const verifiedEuro=ch.key==="EUROSPAR"
+      ?d.runs.find(r=>r.chain==="TOKMANNI-SPAR"&&r.ok&&r.offer_count>0&&
+        ["eurospar-publication-refresh","eurospar-verified-publication"].includes(r.source))??null
+      :null;
+    const latestAt=latest?.parsed_at??verifiedEuro?.checked_at??null;
+    return {key:ch.key,name:ch.name,latest,verifiedEuro,latestAt,
+      offerCount:latest?.offer_count??verifiedEuro?.offer_count??null,
+      evidence:latest?"Hyväksytty tarjousjulkaisu":verifiedEuro?"Vahvistettu EUROSPAR-julkaisu":"Ei julkaisuvahvistusta tässä tietolähteessä"};
+  });
   const chainHistory=CHAINS.map(ch=>{
     // This summary is about publications, not diagnostic probes. A successful
     // parser run can be older than an already approved, published offer set.
@@ -542,16 +551,16 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
-      <h2 style={{marginTop:0}}>Tarjousten todellinen päivitys (hyväksytyt julkaisut)</h2>
-      <p style={{fontSize:13,color:"#475467"}}>Julkaisuaika luetaan tarjousjulkaisujen parsed_at-kentästä. Alla oleva health-loki on erillinen tarkistusloki, eikä sen vanha päivämäärä tarkoita, ettei tarjouksia olisi päivitetty.</p>
+      <h2 style={{marginTop:0}}>Tarjousten todellinen päivitys (julkaisuvahvistukset)</h2>
+      <p style={{fontSize:13,color:"#475467"}}>Hyväksytyt julkaisut luetaan parsed_at-kentästä. EUROSPARin erillinen vahvistettu julkaisu luetaan julkaisulokista. Muilla ketjuilla vanha tarkistusloki ei todista uutta julkaisua eikä julkaisuvahvistuksen puuttuminen tarkoita, ettei kaupassa olisi tarjouksia.</p>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-        <thead><tr>{["Ketju","Viimeisin hyväksytty julkaisu","Tarjouksia","Voimassaolo","Julkaisun ikä"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
+        <thead><tr>{["Ketju","Viimeisin vahvistus","Tarjouksia","Voimassaolo","Vahvistuksen lähde ja ikä"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
         <tbody>{latestApprovedByChain.map(x=><tr key={x.key}>
           <td style={{padding:8,fontWeight:800}}>{x.name}</td>
-          <td style={{padding:8}}>{x.latest?new Date(x.latest.parsed_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"Ei hyväksyttyä julkaisua"}</td>
-          <td style={{padding:8}}>{x.latest?.offer_count??"—"}</td>
+          <td style={{padding:8}}>{x.latestAt?new Date(x.latestAt).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"Ei julkaisuvahvistusta"}</td>
+          <td style={{padding:8}}>{x.offerCount??"—"}</td>
           <td style={{padding:8}}>{x.latest?x.latest.valid_from+" – "+x.latest.valid_until:"—"}</td>
-          <td style={{padding:8}}>{x.latest?Math.round((Date.now()-new Date(x.latest.parsed_at).getTime())/3600000)+" h":"—"}</td>
+          <td style={{padding:8}}>{x.evidence}{x.latestAt?" · "+Math.round((Date.now()-new Date(x.latestAt).getTime())/3600000)+" h":""}</td>
         </tr>)}</tbody>
       </table></div>
     </section>
