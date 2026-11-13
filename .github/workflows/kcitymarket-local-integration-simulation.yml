@@ -165,3 +165,136 @@ jobs:
           if(!national.length||!local.length||!jumbo.length||foreign.length||wrongTab.length||visible.length!==campaigns.length||campaigns.length>local.length||unexpectedFallbacks.length)process.exitCode=1;
           NODE
           npx --yes tsx citymarket-test-3.mts
+  browser:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - name: Check the same address on phone, tablet and desktop
+        run: |
+          npm run start -- -H 127.0.0.1 -p 3100 &
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3100/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node <<'NODE'
+          const { chromium, devices } = require('playwright');
+          const assert = require('node:assert/strict');
+          const url = 'http://127.0.0.1:3100/';
+          (async () => {
+            const browser = await chromium.launch();
+            try {
+              for (const [name, options, desktop] of [
+                ['phone', devices['iPhone 13'], false],
+                ['touch tablet', { viewport: { width: 1024, height: 1366 }, hasTouch: true, isMobile: true }, false],
+                ['narrow window', { viewport: { width: 800, height: 900 } }, false],
+                ['desktop', { viewport: { width: 1440, height: 900 } }, true],
+              ]) {
+                const context = await browser.newContext(options);
+                await context.grantPermissions(['geolocation']);
+                await context.setGeolocation({ latitude: 60.63, longitude: 24.86 });
+                await context.addInitScript(() => {
+                  const store = { id: '634976534', name: 'Prisma Hyvinkää', chain: 'S', latitude: 60.63, longitude: 24.86 };
+                  if (!localStorage.getItem('ziiply-desktop-store-choices-v1')) {
+                    localStorage.setItem('ziiply-desktop-store-choices-v1', JSON.stringify({
+                      storeMode: 'hyper', storeModeChosen: true, selectedChain: 'S',
+                      betweenMode: 'one', storeCompareScope: 'between_chains',
+                      allStoreSelections: { hyper: { [store.id]: store }, local: {} }
+                    }));
+                  }
+                  if (!localStorage.getItem('ziiply-store-selection-v536')) {
+                    localStorage.setItem('ziiply-store-selection-v536', JSON.stringify({
+                      activeArea: { label: 'Hyvinkää', sStoreId: store.id, sStoreName: store.name },
+                      storeMode: 'hyper', storeModeChosenV299: true,
+                      storeCompareScope: 'between_chains', betweenChainSelectionModeV749: 'one',
+                      selectedChains: { s: true }
+                    }));
+                  }
+                  localStorage.setItem('ziiply-gosta-offer-watches-v1', JSON.stringify(['kahvi']));
+                });
+                const page = await context.newPage();
+                await page.route('**/api/offers/watch?*', route => route.fulfill({ json: {
+                  ok: true, partial: false, results: [{
+                    id: '6411001000110', ean: '6411001000110', title: 'Testikahvi 500 g',
+                    name: 'Testikahvi 500 g', chain: 'S', storeName: 'Prisma Hyvinkää',
+                    offerPrice: 4.99, price: 4.99, source: 'fixture', watchQueries: ['kahvi'],
+                    validFrom: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+                    validUntil: new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+                  }]
+                }}));
+                const errors = [];
+                page.on('pageerror', error => errors.push(error.message));
+                const response = await page.goto(url);
+                assert.equal(response.status(), 200);
+                const mobileHome = page.getByRole('region', { name: 'Ziiplyn avustajat' });
+                const desktopHome = page.locator('[data-desktop-layout]');
+                await (desktop ? desktopHome : mobileHome).waitFor({ timeout: 25000 });
+                assert.equal(await (desktop ? mobileHome : desktopHome).count(), 0);
+                assert.equal(page.url(), url);
+                await page.getByRole('button', { name: 'Avaa tarjousvahdin 1 osumaa' }).click({ timeout: 30000 });
+                if (desktop) await page.getByRole('button', { name: /Tavaratalot · 1 tarjousta/ }).click();
+                await page.getByText('Testikahvi 500 g', { exact: true }).first().waitFor({ timeout: 10000 });
+                await page.getByRole('button', { name: 'Lisää ostoskoriin', exact: true }).first().click();
+                await page.waitForFunction(({ desktop, ean }) => {
+                  const saved = desktop
+                    ? JSON.parse(sessionStorage.getItem('ziiply-desktop-current-cart-v1') || '[]')
+                    : JSON.parse(localStorage.getItem('ziiply-cart-v1') || '{}').items || [];
+                  return saved.some(item => String(item.ean ?? item.product?.ean) === ean);
+                }, { desktop, ean: '6411001000110' }, { timeout: 10000 });
+                assert.deepEqual(errors, []);
+                const search = await context.newPage();
+                let queries = 0;
+                await search.route('**/api/s-products?*', route => {
+                  const params = new URL(route.request().url()).searchParams;
+                  if (/maito/i.test(params.get('search') || '')) {
+                    assert.equal(params.get('store'), '634976534');
+                    queries++;
+                  }
+                  return route.fulfill({ json: { products: [
+                    { id: 1, name: 'Valio täysmaito 1 l', ean: '6408430106443', price: 179 },
+                    { id: 2, name: 'Kotimaista kevytmaito 1 l', ean: '6438460292804', price: 95 },
+                    { id: 3, name: 'Maitokolmio ruisleipä', ean: '6411001000111', price: 49 },
+                    { id: 4, name: 'Arla rasvaton maito 1 l', ean: '6413300101713', price: 0 }
+                  ] } });
+                });
+                await search.route('**/api/neon-first-search?*', route => route.fulfill({ json: { products: [] } }));
+                await search.goto(url);
+                if (desktop) await search.getByRole('button', { name: 'Avaa Justiina', exact: true }).click();
+                else await search.getByRole('button', { name: 'Justiina: Tuotehaku', exact: true }).click();
+                const input = desktop ? search.getByRole('textbox', { name: 'Hae tuotteita' })
+                  : search.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({ visible: true });
+                await input.fill('maito');
+                const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).first();
+                const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).first();
+                try {
+                  if (!desktop) {
+                    const openResults = search.getByRole('button', { name: /Avaa löytöluettelo/ }).filter({ visible: true });
+                    await cheap.or(openResults).first().waitFor({ timeout: 20000 });
+                    if (!(await cheap.isVisible()) && await openResults.count() === 1) await openResults.click();
+                  }
+                  await cheap.waitFor({ timeout: 10000 });
+                } catch (error) {
+                  console.log('Search state', name, 'store queries:', queries, (await search.locator('body').innerText()).slice(0, 2500));
+                  throw error;
+                }
+                await expensive.waitFor();
+                assert.ok(queries > 0);
+                assert.ok((await cheap.boundingBox()).y <= (await expensive.boundingBox()).y);
+                assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
+                assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
+                console.log(name + ' passed');
+                await context.close();
+              }
+            } finally {
+              await browser.close();
+            }
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
