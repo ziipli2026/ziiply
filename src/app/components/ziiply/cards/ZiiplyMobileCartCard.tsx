@@ -355,7 +355,7 @@ function QuantityCell({
     return (
       <>
         <button type="button" onClick={() => onRequestRemove?.(item)}
-          className="absolute left-[min(17.52rem,calc(100%-2.5rem))] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12]"
+          className="absolute left-[calc(min(13.20rem,100%-6.8rem)+0.45rem)] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12]"
           aria-label="Poista punnittava tuote" title="Poista punnittava tuote">−</button>
         <span className="absolute left-[min(13.20rem,calc(100%-6.8rem))] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center text-[0.70rem] font-extrabold text-[#3d301a]" title="Punnitusrivi, ei kappalemäärää">kg</span>
       </>
@@ -800,20 +800,10 @@ export default function ZiiplyMobileCartCard({
                     ? Number(rowPriceInputV802).toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
                     : normalizePrice(rowPriceInputV802))
                   : "";
-                const pendingWeightUnitPriceV796 =
-                  pendingWeightV794 &&
-                  (item as any).comparisonPrice != null &&
-                  Number.isFinite(Number((item as any).comparisonPrice)) &&
-                  Number((item as any).comparisonPrice) > 0
-                    ? Number((item as any).comparisonPrice).toLocaleString("fi-FI", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }) + " €"
-                    : "";
                 const estimate = pendingWeightV794 && Number(item.ziiplyEstimatedWeightKg) > 0
                   ? Math.round(Number(item.ziiplyEstimatedWeightKg) * Number(item.comparisonPrice) * 100) / 100
                   : 0;
-                const estimatedPrice = estimate > 0
+                const estimatedPrice = Number.isFinite(estimate) && estimate > 0
                   ? estimate.toLocaleString("fi-FI", { style: "currency", currency: "EUR" })
                   : "";
                 const checked = Boolean(item.checked);
@@ -873,21 +863,17 @@ export default function ZiiplyMobileCartCard({
                           : "text-[0.84rem] text-[#3f321f]",
                       )}
                       style={{ fontFamily: serifFont }}
-                      aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : pendingWeightV794 ? [pendingWeightUnitPriceV796 && pendingWeightUnitPriceV796 + "/kg", estimatedPrice ? "Arvio " + estimatedPrice : "Punnitse"].filter(Boolean).join(", ") : `Hinta ${price}`}
+                      aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : pendingWeightV794 ? (estimatedPrice ? "Arvio " + estimatedPrice : "Punnitse") : `Hinta ${price}`}
                     >
                       {isAlcoholCartItemV8(item)
                         ? "kassa"
                         : pendingWeightV794
-                          ? (
-                            <div className="flex flex-col items-end leading-none">
-                              <span className="text-[0.72rem] font-black tracking-[-0.02em] text-[#473719]">
-                                {pendingWeightUnitPriceV796 ? `${pendingWeightUnitPriceV796}/kg` : "—"}
+                          ? (estimatedPrice
+                            ? <span className="flex flex-col items-center gap-0.5">
+                                <span className="text-[0.66rem]">Arvio</span>
+                                <span className="whitespace-nowrap">{estimatedPrice}</span>
                               </span>
-                              <span className="mt-1 text-[0.60rem] font-black uppercase tracking-[-0.01em] text-[#b42318]">
-                                {estimatedPrice ? "n. " + estimatedPrice : "Punnitse"}
-                              </span>
-                            </div>
-                          )
+                            : <span className="text-[0.72rem]">Punnitse</span>)
                           : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
                             ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
                             : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.72rem] font-bold text-[#3f321f] decoration-[1.5px]" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : price || "—"}
