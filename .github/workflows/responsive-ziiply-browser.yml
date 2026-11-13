@@ -40,7 +40,21 @@ jobs:
                 ['desktop', { viewport: { width: 1440, height: 900 } }, true],
               ]) {
                 const context = await browser.newContext(options);
+                await context.grantPermissions(['geolocation']);
+                await context.setGeolocation({ latitude: 60.63, longitude: 24.86 });
+                await context.addInitScript(() => {
+                  localStorage.setItem('ziiply-gosta-offer-watches-v1', JSON.stringify(['kahvi']));
+                });
                 const page = await context.newPage();
+                await page.route('**/api/offers/watch?*', route => route.fulfill({ json: {
+                  ok: true, partial: false, results: [{
+                    id: '6411001000110', ean: '6411001000110', title: 'Testikahvi 500 g',
+                    name: 'Testikahvi 500 g', chain: 'S', storeName: 'Prisma Hyvinkää',
+                    offerPrice: 4.99, price: 4.99, source: 'fixture', watchQueries: ['kahvi'],
+                    validFrom: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+                    validUntil: new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+                  }]
+                }}));
                 const errors = [];
                 page.on('pageerror', error => errors.push(error.message));
                 const response = await page.goto(url);
@@ -50,6 +64,9 @@ jobs:
                 await (desktop ? desktopHome : mobileHome).waitFor({ timeout: 25000 });
                 assert.equal(await (desktop ? mobileHome : desktopHome).count(), 0);
                 assert.equal(page.url(), url);
+                await page.getByRole('button', { name: 'Avaa tarjousvahdin 1 osumaa' }).click({ timeout: 30000 });
+                await page.getByText('Testikahvi 500 g', { exact: true }).first().waitFor({ timeout: 10000 });
+                await page.getByRole('button', { name: 'Lisää ostoskoriin', exact: true }).first().click();
                 assert.deepEqual(errors, []);
                 console.log(name + ' passed');
                 await context.close();
