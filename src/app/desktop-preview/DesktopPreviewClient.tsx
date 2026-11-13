@@ -373,7 +373,7 @@ export default function DesktopPreviewPage() {
   const gostaHomeHistoryKey="ziiply-gosta-home-search-history-v1";
   const gostaHomeCacheTtl=15*60*1000; // Unknown validity: recheck after 15 minutes.
   const gostaHomeCacheMap=useRef<Record<string,{query:string;time:number;results:any[]}>>({});
-  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validFrom","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
+  const gostaHomeCacheFields=["id","ean","title","name","pictureUrl","price","offerPrice","normalPrice","unitPrice","discountText","validUntil","validFrom","validTo","validityText","storeName","category","categoryName","__gostaHomeStore","__gostaHomeChain","__gostaHomeCity","__gostaHomeDistance","__gostaHomeGroup"];
   function gostaCacheExpiry(offer:any){
     const raw=String(offer.validUntil||"").trim();
     if(!raw)return null;
@@ -431,7 +431,13 @@ export default function DesktopPreviewPage() {
   function persistGostaHomeCache(queryInput:string,offers:any[],time:number){
     const query=queryInput.trim().toLocaleLowerCase("fi");
     if(!query)return;
-    const results=offers.slice(0,120).map((offer:any)=>Object.fromEntries(gostaHomeCacheFields.filter(key=>offer[key]!==undefined).map(key=>[key,offer[key]])));
+    const results=offers.slice(0,120).map((offer:any)=>{
+      const source=offer.__sourceOfferSearchResult || {};
+      const datedOffer={...offer,validFrom:offer.validFrom || source.validFrom,
+        validUntil:offer.validUntil || source.validUntil,validTo:offer.validTo || source.validTo,
+        validityText:offer.validityText || source.validityText};
+      return Object.fromEntries(gostaHomeCacheFields.filter(key=>datedOffer[key]!==undefined).map(key=>[key,datedOffer[key]]));
+    });
     const saved={query,results,time};
     gostaHomeCache.current=saved;
     gostaHomeCacheMap.current[query]=saved;
@@ -466,42 +472,53 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{if(!gostaWatchNotice)return;const timer=window.setTimeout(()=>setGostaWatchNotice(""),2500);return()=>window.clearTimeout(timer);},[gostaWatchNotice]);
   const [gostaSelectedOfferKeys,setGostaSelectedOfferKeys]=useState<string[]>([]);
   const [gostaShareStatus,setGostaShareStatus]=useState("");
+  function parseGostaValidityDate(value: unknown) {
+    const text = String(value ?? "").trim();
+    const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})(?=$|[T ])/);
+    const local = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})?$/);
+    const [year, month, day] = iso ? iso.slice(1) : local ? [local[3], local[2], local[1]] : [];
+    if (!month || !day || Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > 31) return undefined;
+    return { year, month: Number(month), day: Number(day) };
+  }
+
+  function isGostaValidityText(text: string) {
+    return /^(?:voimassa(?:oloaika)?\b|(?:\d{4}-\d{2}-\d{2}|\d{1,2}\.(?:\d{1,2}\.)?)\s*(?:[–—-]|$))/i.test(text);
+  }
+
   function gostaOfferValidity(p: any) {
     const source = p.__sourceOfferSearchResult || {};
-    const explicit = String(p.validityText || source.validityText || "").trim();
-    const discount = String(p.discountText || "").trim();
-    const range = (explicit || discount).match(/(\d{4}-\d{2}-\d{2})\s*[–—-]\s*(\d{4}-\d{2}-\d{2})/);
-    const isoDate = (value: unknown) => String(value ?? "").match(/^\d{4}-\d{2}-\d{2}/)?.[0];
-    const from = isoDate(p.validFrom || source.validFrom) || range?.[1];
-    const until = isoDate(p.validUntil || source.validUntil || p.validTo || source.validTo) || range?.[2];
-    const shortDate = (value: string) => {
-      const [year, month, day] = value.split("-");
-      return { day: Number(day), month: Number(month), year };
-    };
+    const text = [p.validityText, source.validityText, p.discountText]
+      .map(value => String(value ?? "").trim()).find(isGostaValidityText) || "";
+    const isoRange = text.match(/(\d{4}-\d{2}-\d{2})\s*[–—-]\s*(\d{4}-\d{2}-\d{2})/);
+    const localRange = text.match(/(\d{1,2})\.(?:\s*(\d{1,2})\.)?\s*[–—-]\s*(\d{1,2})\.(\d{1,2})\./);
+    const single = text.match(/\d{4}-\d{2}-\d{2}|\d{1,2}\.\d{1,2}\.(?:\d{4})?/)?.[0];
+    const startsOnly = /\balkaen\b/i.test(text);
+    const from = [p.validFrom, source.validFrom, isoRange?.[1],
+      localRange && `${localRange[1]}.${localRange[2] || localRange[4]}.`, startsOnly && single]
+      .map(parseGostaValidityDate).find(Boolean);
+    const until = [p.validUntil, p.validTo, source.validUntil, source.validTo, isoRange?.[2],
+      localRange && `${localRange[3]}.${localRange[4]}.`, !startsOnly && single]
+      .map(parseGostaValidityDate).find(Boolean);
+    const short = (date: NonNullable<ReturnType<typeof parseGostaValidityDate>>) => `${date.day}.${date.month}.`;
 
-    if (from && until && from !== until) {
-      const start = shortDate(from);
-      const end = shortDate(until);
-      if (start.year !== end.year) return `Voimassa ${start.day}.${start.month}.${start.year}–${end.day}.${end.month}.${end.year}`;
-      const startLabel = start.month === end.month ? `${start.day}.` : `${start.day}.${start.month}.`;
-      return `Voimassa ${startLabel}–${end.day}.${end.month}.`;
+    if (from && until) {
+      if (from.year && until.year && from.year !== until.year) {
+        return `Voimassa ${short(from)}${from.year}–${short(until)}${until.year}`;
+      }
+      if (from.day === until.day && from.month === until.month) return `Voimassa ${short(until)}${until.year || ""} saakka`;
+      return `Voimassa ${from.month === until.month ? `${from.day}.` : short(from)}–${short(until)}`;
     }
-    if (until) {
-      const end = shortDate(until);
-      return `Voimassa ${end.day}.${end.month}.${from ? "" : " asti"}`;
-    }
-    if (from) {
-      const start = shortDate(from);
-      return `Voimassa alkaen ${start.day}.${start.month}.`;
-    }
-    return explicit || (/^voimassa\b/i.test(discount) ? discount : String(p.validUntil || "").trim());
+    if (until) return `Voimassa ${short(until)}${until.year || ""} saakka`;
+    if (from) return `Voimassa alkaen ${short(from)}`;
+    return text || "Voimassaoloa ei ilmoitettu";
   }
+
   function gostaOfferDiscount(p: any) {
     const text = String(p.discountText || "").trim();
-    return /^voimassa\b/i.test(text) || /^\d{4}-\d{2}-\d{2}\s*[–—-]\s*\d{4}-\d{2}-\d{2}$/.test(text) ? "" : text;
+    return isGostaValidityText(text) ? "" : text;
   }
   const gostaOfferKey=(p:any)=>String(p.__gostaHomeStore||"")+"|"+String(p.id||p.ean||p.title||p.name||"");
-  async function shareGostaOffers(){const selected=gostaHomeResults.filter((p:any)=>gostaSelectedOfferKeys.includes(gostaOfferKey(p)));const chosen=selected.length?selected:gostaHomeResults;if(!chosen.length){setGostaShareStatus("Hae ensin tarjoukset.");return;}const lines=["Ziiply – Göstan tarjoukset",selected.length?"Valitut tarjoukset":"Kaikki hakutulokset","Hakusana: "+gostaHomeQuery.trim(),""];for(const p of chosen){const price=splitOfferDisplayPrice(getOfferPrice(p));lines.push(String(p.title||p.name||"Tuote"),String(p.__gostaHomeStore||"Kauppa")+(Number.isFinite(p.__gostaHomeDistance)?" · "+p.__gostaHomeDistance.toFixed(1)+" km":""),"Tarjoushinta: "+price.amount+(price.basis?" "+price.basis:""),...(p.normalPrice!=null?["Normaalihinta: "+p.normalPrice+" €"]:[]),...(p.validityText||p.validUntil?["Voimassa: "+String(p.validityText||p.validUntil)]:[]),"");}lines.push("Tarjoukset koottu Ziiplyllä");const message=lines.join("\n");try{if(navigator.share){await navigator.share({title:"Ziiply – Göstan tarjoukset",text:message});setGostaShareStatus("Tarjoukset lähetetty jakovalikkoon.");}else{await navigator.clipboard.writeText(message);setGostaShareStatus("Tarjoukset kopioitu leikepöydälle.");}}catch{setGostaShareStatus("Jakaminen peruutettu tai epäonnistui.");}}
+  async function shareGostaOffers(){const selected=gostaHomeResults.filter((p:any)=>gostaSelectedOfferKeys.includes(gostaOfferKey(p)));const chosen=selected.length?selected:gostaHomeResults;if(!chosen.length){setGostaShareStatus("Hae ensin tarjoukset.");return;}const lines=["Ziiply – Göstan tarjoukset",selected.length?"Valitut tarjoukset":"Kaikki hakutulokset","Hakusana: "+gostaHomeQuery.trim(),""];for(const p of chosen){const price=splitOfferDisplayPrice(getOfferPrice(p));lines.push(String(p.title||p.name||"Tuote"),String(p.__gostaHomeStore||"Kauppa")+(Number.isFinite(p.__gostaHomeDistance)?" · "+p.__gostaHomeDistance.toFixed(1)+" km":""),"Tarjoushinta: "+price.amount+(price.basis?" "+price.basis:""),...(p.normalPrice!=null?["Normaalihinta: "+p.normalPrice+" €"]:[]),gostaOfferValidity(p),"");}lines.push("Tarjoukset koottu Ziiplyllä");const message=lines.join("\n");try{if(navigator.share){await navigator.share({title:"Ziiply – Göstan tarjoukset",text:message});setGostaShareStatus("Tarjoukset lähetetty jakovalikkoon.");}else{await navigator.clipboard.writeText(message);setGostaShareStatus("Tarjoukset kopioitu leikepöydälle.");}}catch{setGostaShareStatus("Jakaminen peruutettu tai epäonnistui.");}}
 
   useEffect(()=>{try{const saved=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");if(Array.isArray(saved))setGostaSavedWatches(saved.filter((value:unknown):value is string=>typeof value==="string").slice(0,30));}catch{}},[]);
   // A watch badge is shown only for actual offer rows already cached for its saved query.
@@ -3352,7 +3369,7 @@ export default function DesktopPreviewPage() {
   {p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}
   {p.unitPrice&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{p.unitPrice}</div>}
   {gostaOfferDiscount(p) && <div className="mt-3 font-serif text-[13px] font-bold italic text-[#796b4d]">{gostaOfferDiscount(p)}</div>}
-  {gostaOfferValidity(p) && <div className="mt-3 inline-block max-w-full rounded-lg border border-[#d7bf82] bg-[#fff9e7] px-2.5 py-1.5 text-[12px] font-extrabold leading-snug text-[#506143]">{gostaOfferValidity(p)}</div>}
+  <div className="mt-3 inline-block max-w-full rounded-lg border border-[#d7bf82] bg-[#fff9e7] px-2.5 py-1.5 text-[12px] font-extrabold leading-snug text-[#506143]">{gostaOfferValidity(p)}</div>
 </div>
 </div>)}</div>}</section>})}</div>:<p className="p-6 text-center font-bold text-[#174c35]">{gostaHomeLoading?"Haetaan tarjouksia…":gostaHomeHasSearched?(gostaWatchResultsMode?"Tallennetuilla hakusanoilla ei löytynyt voimassa olevia tarjouksia.":"Tarjouksia ei löytynyt tällä hakusanalla."):gostaWatchNotice?"Tarjousvahti tallennettu. Odotetaan tarkistuksen valmistumista.":"Kirjoita hakusana ja paina Hae."}</p>}</div>{gostaWatchNotice&&<div role="status" className="pointer-events-none absolute left-1/2 top-[126px] z-[110] -translate-x-1/2 rounded-xl border-2 border-[#4c7851] bg-[#edf5df] px-5 py-3 text-center text-sm font-black text-[#174c35] shadow-lg">{gostaWatchNotice}</div>}{gostaShowSavedWatches&&<div role="region" aria-label="Tallennetut tarjousvahdit" className="absolute left-1/2 top-[125px] z-[100] w-[min(340px,calc(100%-40px))] -translate-x-1/2 max-h-[min(380px,65vh)] overflow-y-auto rounded-2xl border-2 border-[#b58a46] bg-[#fff9e9] p-4 shadow-[0_12px_32px_rgba(45,30,12,.3)]"><div className="mb-3 flex items-center justify-between gap-2"><strong className="font-serif text-lg text-[#174c35]">Tallennetut tarjousvahdit</strong><button type="button" onClick={()=>setGostaShowSavedWatches(false)} aria-label="Sulje tallennetut tarjousvahdit" className="rounded-full border border-[#b58a46] px-2.5 py-1 font-black">×</button></div>{gostaSavedWatches.length?gostaSavedWatches.map(query=><div key={query} className="flex items-center justify-between gap-3 py-1"><button type="button" onClick={()=>openGostaWatchResults(query)} aria-label={`Näytä vahdin ${query} tarjoukset tavallisina tarjouskortteina`} className="min-w-0 flex-1 rounded-lg px-2 py-2 text-left font-bold hover:bg-[#e8d5a8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#17573c]">{query}</button><button type="button" onClick={()=>{setGostaSavedWatches(previous=>{const next=previous.filter(item=>item!==query);try{window.localStorage.setItem("ziiply-gosta-offer-watches-v1",JSON.stringify(next));}catch{}return next;});}} className="rounded-lg border px-3 py-1">Poista</button></div>):<p>Ei tallennettuja tarjousvahteja.</p>}</div>}</div>}
                         {electricityOpen && <div role="dialog" aria-modal="true" aria-label="Göstan sähkövertailu" className={`${GOSTA_DESKTOP_OVERLAY_SHELL} z-[70]`}>
@@ -3502,7 +3519,7 @@ export default function DesktopPreviewPage() {
   {p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}
   {p.unitPrice&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{p.unitPrice}</div>}
   {gostaOfferDiscount(p) && <div className="mt-3 font-serif text-[13px] font-bold italic text-[#796b4d]">{gostaOfferDiscount(p)}</div>}
-  {gostaOfferValidity(p) && <div className="mt-3 inline-block max-w-full rounded-lg border border-[#d7bf82] bg-[#fff9e7] px-2.5 py-1.5 text-[12px] font-extrabold leading-snug text-[#506143]">{gostaOfferValidity(p)}</div>}
+  <div className="mt-3 inline-block max-w-full rounded-lg border border-[#d7bf82] bg-[#fff9e7] px-2.5 py-1.5 text-[12px] font-extrabold leading-snug text-[#506143]">{gostaOfferValidity(p)}</div>
 </div>
 </div>)}</div>}</div></>}</div>})()}
 
