@@ -384,7 +384,7 @@ export default function ZiiplyMobileSearchResultsCard({
                           EAN {String(product.ean || product.product?.ean)}
                         </div>
                       )}
-                      <ProductEnergy ean={product.ean || product.product?.ean} />
+                      <ProductEnergy ean={product.ean || product.product?.ean} nutrition={product.nutrition ?? product.product?.nutrition} quantity={product.packageSize ?? product.product?.packageSize ?? product.product?.quantity} />
                       {researchOnly && (
                         <div className="mt-1 text-[0.65rem] font-bold leading-tight text-[#78633a]">
                           {observedPrice ? `Havaittu ${observedPrice} (${product.observedDate ?? "päiväys puuttuu"}) · ei vahvistettu` : "Hinta ei vahvistettu"}
