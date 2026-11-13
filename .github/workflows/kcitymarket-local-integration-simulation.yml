@@ -258,6 +258,12 @@ jobs:
                     assert.equal(params.get('store'), '634976534');
                     queries++;
                   }
+                  if (/Maitolaakson/i.test(params.get('search') || '')) {
+                    return route.fulfill({ json: { products: [
+                      { id: 99, name: 'Maitolaakson kevytmaito 1 l', ean: '6411001000999', price: 109 },
+                      { id: 100, name: 'Maitolaakson kevytmaito 1 l', ean: '6411001000998', price: 89 }
+                    ] } });
+                  }
                   return route.fulfill({ json: { products: [
                     { id: 1, name: 'Valio täysmaito 1 l', ean: '6408430106443', price: 179 },
                     { id: 2, name: 'Kotimaista kevytmaito 1 l', ean: '6438460292804', price: 95 },
@@ -270,7 +276,8 @@ jobs:
                 await search.route('**/api/neon-first-search?*', route => {
                   catalogQueries++;
                   return route.fulfill({ json: { products: [
-                    { id: 'catalog-only', name: 'Maitolaakson kevytmaito 1 l', ean: '6411001000999', price: 0 }
+                    { id: 'catalog-only', name: 'Maitolaakson kevytmaito 1 l', ean: '6411001000999', price: 0 },
+                    { id: 'catalog-unpriced', name: 'Maitolaakson täysmaito 1 l', ean: '6411001000997', price: 0 }
                   ] } });
                 });
                 // On first boot the app intentionally clears store selections when
@@ -317,10 +324,14 @@ jobs:
                 assert.ok(cheapRowText.includes('0,95') || (await search.locator('body').innerText()).includes('0,95 €'));
                 assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
                 assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
-                // A Neon catalog match without a selected-store price is metadata,
-                // not a purchasable search result.
+                // Neon metadata may recover a product only from a matching EAN
+                // with a positive price at the selected store. A cheaper but
+                // different-EAN lookup result must not be substituted.
                 assert.ok(catalogQueries > 0);
-                assert.equal(await search.getByText('Maitolaakson kevytmaito 1 l', { exact: true }).count(), 0);
+                const recovered = search.getByText('Maitolaakson kevytmaito 1 l', { exact: true }).filter({ visible: true });
+                await recovered.first().waitFor({ timeout: 10000 });
+                assert.equal(await recovered.count(), 1);
+                assert.equal(await search.getByText('Maitolaakson täysmaito 1 l', { exact: true }).count(), 0);
                 console.log(name + ' passed');
                 await context.close();
               }
