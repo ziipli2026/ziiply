@@ -93,7 +93,7 @@ jobs:
                 assert.deepEqual(errors, []);
                 const search = await context.newPage();
                 let queries = 0;
-                await search.route(/\/api\/s-products\?/, route => {
+                await search.route('**/api/s-products?*', route => {
                   const params = new URL(route.request().url()).searchParams;
                   if (/maito/i.test(params.get('search') || '')) {
                     assert.equal(params.get('store'), '634976534');
