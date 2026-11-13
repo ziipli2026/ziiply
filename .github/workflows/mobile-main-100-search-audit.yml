@@ -89,7 +89,7 @@ jobs:
           const fs=require('node:fs');
           const mobile=require('./.tmp-100-audit/ziiplyCore.js');
           const desktop=require('./.tmp-desktop-audit/ziiplyCore.js');
-          const terms=['maito','kevytmaito','täysmaito','rasvaton maito','kahvi','jauheliha','kirjolohi','ruokaöljy','mustapippuri','leipä','voi','kananmuna'];
+          const terms=["maito","kevytmaito","täysmaito","rasvaton maito","kauramaito","piimä","kerma","ruokakerma","voi","margariini","juusto","emmental","mozzarella","raejuusto","rahka","jogurtti","viili","kananmuna","leipä","ruisleipä","paahtoleipä","sämpylä","näkkileipä","cola","kaurahiutale","puuro","murot","mysli","riisi","pasta","makaroni","spagetti","nuudeli","peruna","porkkana","sipuli","valkosipuli","tomaatti","kurkku","paprika","salaatti","kaali","parsakaali","kukkakaali","banaani","omena","päärynä","appelsiini","mandariini","sitruuna","viinirypäle","mansikka","mustikka","vadelma","avokado","kiivi","vesimeloni","jauheliha","naudanliha","porsaanliha","broileri","kanafilee","nakki","makkara","kinkku","pekoni","lohi","kirjolohi","tonnikala","silakka","katkarapu","kalapuikko","kahvi","tee","kaakao","sokeri","suola","mustapippuri","kaneli","vehnäjauho","ruisjauho","leivinjauhe","hiiva","ruokaöljy","oliiviöljy","etikka","ketsuppi","sinappi","majoneesi","tomaattimurska","herne","maissi","pavut","linssit","mehu","limonadi","kivennäisvesi","jäätelö","suklaa","keksi"];
           const report=[];
           const norm=p=>[String(p.ean||''),String(p.name||'').toLocaleLowerCase('fi'),Number(p.price||0).toFixed(2)].join('|');
           (async()=>{
