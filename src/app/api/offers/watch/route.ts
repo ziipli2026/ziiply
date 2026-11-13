@@ -206,15 +206,10 @@ async function runWatch(request: Request) {
         if(/^(K-Market|K-Supermarket)\b/i.test(name))return "kLocal";
         return "";
       };
-      // For the Jokela/Hyvinkää watch region, use the intended Hyvinkää
-      // Keskusta Lidl rather than the geographically closer Järvenpää Lidl.
-      const inJokelaRegion=stores.some((store:any)=>/^(K-Supermarket|S-market) Jokela$/i.test(String(store.name||"")));
-      if(inJokelaRegion){
-        stores.sort((a:any,b:any)=>{
-          const preference=(store:any)=>category(String(store.name||""),String(store.chain||""))==="lidl" && /Hyvinkää\s*-\s*Keskusta/i.test(String(store.name||"")) ? -1 : 0;
-          return preference(a)-preference(b)||distance(a)-distance(b);
-        });
-      }
+      // Gösta's offer watch always selects the geographically closest store
+      // in each of six groups. Never prefer a named town or a saved store:
+      // S local, K local, Prisma, K-Citymarket, Lidl, Tokmanni/Spar.
+      // This rule is intentionally scoped to /api/offers/watch only.
       const picked=new Set<string>();
       const selectedStores=stores.filter((store:any)=>{
         const kind=category(String(store.name||""),String(store.chain||""));
