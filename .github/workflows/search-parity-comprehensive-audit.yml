@@ -1,4 +1,5 @@
 name: Search parity comprehensive audit
+# CI trigger verification on isolated audit-only pull request.
 on:
   push:
     branches: [test/search-parity-audit-20261113]
