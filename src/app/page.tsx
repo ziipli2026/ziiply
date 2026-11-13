@@ -13178,46 +13178,41 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 }));
             }
           } else {
-            const sPrimaryStoreId = withinChainS
-              ? activeArea.sStoreId
-              : activeStores.sStoreId;
-            usedStoreName = withinChainS
-              ? activeArea.sStoreName || "S-tavaratalo"
-              : activeStores.sStoreName;
-
-            if (sPrimaryStoreId) {
-              try {
-                rawItems = await fetchSProducts(searchQuery, sPrimaryStoreId);
-              } catch (error) {
-                console.error("S-first text search failed; trying selected K fallback", error);
-                rawItems = [];
-              }
-            }
-
-            // If S is not selected/available, ordinary text search must still use K.
-            // In multi-chain mode the old S-first path could return zero for every term.
-            if (!withinChainS && rawItems.length === 0 && activeStores.kStoreId && (selectedChains.k || (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "many"))) {
-              try {
-                const kItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
-                rawItems = kItems.filter((item) => Number(item.price) > 0).map((item) => ({
+            // Ordinary multi-chain search: S and K are equal providers, never fallbacks.
+            // One-chain mode is handled by the explicit branches above.
+            const requests: Array<Promise<Product[]>> = [];
+            const sPrimaryStoreId = activeStores.sStoreId;
+            const kPrimaryStoreId = activeStores.kStoreId;
+            const useS = selectedChains.s && Boolean(sPrimaryStoreId);
+            const useK = selectedChains.k && Boolean(kPrimaryStoreId);
+            if (useS) requests.push(
+              fetchSProducts(searchQuery, sPrimaryStoreId).then(items =>
+                items.map(product => ({ ...product, __recipeChain: "S", __recipeStoreName: activeStores.sStoreName }))
+              ),
+            );
+            if (useK) requests.push(
+              fetchKProducts(searchQuery, kPrimaryStoreId).then(items =>
+                items.filter(item => Number(item.price) > 0).map(item => ({
                   ...convertKProductToProduct(item),
-                  ...(recipeIngredient?{category:(item as KProduct & {category?:string}).category}:{}),
                   ean: item.ean,
-                }));
-                if (rawItems.length > 0) {
-                  usedStoreName = activeStores.kStoreName || "K-tavaratalo";
-                  fallbackStoreName = usedStoreName;
-                }
-              } catch (error) {
-                console.error("Selected K text-search fallback failed", error);
-              }
-            }
-
-            if (!withinChainS && rawItems.length === 0 && selectedChains.s && shouldUseLocalFallback("S")) {
-              if (activeArea.sStoreId)
+                  __recipeChain: "K",
+                  __recipeStoreName: activeStores.kStoreName,
+                }))
+              ),
+            );
+            const responses = await Promise.allSettled(requests);
+            rawItems = responses.flatMap(response => response.status === "fulfilled" ? response.value : []);
+            const failures = responses.filter(response => response.status === "rejected");
+            if (failures.length) traceSearch("provider-errors", { term, searchQuery, failures: failures.map(response => String(response.reason)) });
+            usedStoreName = useS && useK ? "S / K" : useK ? activeStores.kStoreName : activeStores.sStoreName;
+            // An S-store fallback is only appropriate when no selected store returned products.
+            if (rawItems.length === 0 && useS && shouldUseLocalFallback("S") && activeArea.sStoreId && activeArea.sStoreId !== sPrimaryStoreId) {
+              try {
                 rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
-              fallbackStoreName = activeArea.sStoreName || "S-tavaratalo";
-              usedStoreName = activeArea.sStoreName || "S-tavaratalo";
+                fallbackStoreName = activeArea.sStoreName || "S-tavaratalo";
+              } catch (error) {
+                traceSearch("provider-fallback-error", { term, searchQuery, error: String(error) });
+              }
             }
           }
 
