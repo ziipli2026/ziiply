@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { rankProductResultsByRelevanceAndPrice } from '../src/app/components/ziiply/ziiplyCore';
+import { rankProductResultsByRelevanceAndPrice, type Product } from '../src/app/components/ziiply/ziiplyCore';
 import { desktopSearchDecision } from '../src/app/components/ziiply/search/desktopNormalRelevance';
-type P={id:number;ean?:string;name:string;category?:string;price:number;priceAmountUnit?:string;storeItems?:{price:number}[]};
+type P=Product;
 const base=process.env.ZIIPLY_TEST_URL||'https://ziiply-9y3fsg8m1-ziipli2026s-projects.vercel.app';
 const queries=['maito','kahvi','kirjolohi'];
 let checks=0,failures=0;
@@ -13,12 +13,12 @@ async function main(){
   const body=await response.json() as {items?:P[]};
   const raw=body.items||[];
   assert(raw.length>0,'empty upstream '+q+' '+chain);
-  const ranked=rankProductResultsByRelevanceAndPrice(q,raw,p=>p.price);
+  const ranked=rankProductResultsByRelevanceAndPrice(q,raw,p=>Number(p.price ?? p.storeItems?.[0]?.price ?? 0));
   const rankedIds=new Set(ranked.map(p=>p.id));
   const wrong=ranked.filter(p=>q==='maito'?/suklaa|jäätelö|leipä|vanukas|maitorahka/i.test(p.name):q==='kirjolohi'?/lemmik|koira|kissa|kirjolohiöljy/i.test(p.name+' '+(p.category||'')):false);
-  const parity=raw.filter(p=>desktopSearchDecision(q,{...p,__price:p.price}).accepted!==rankedIds.has(p.id));
-  const unpriced=ranked.filter(p=>!Number.isFinite(p.price)||p.price<=0);
-  const unordered=ranked.some((p,i)=>i>0&&ranked[i-1].price>p.price);
+  const parity=raw.filter(p=>!desktopSearchDecision(q,{...p,__price:Number(p.price ?? p.storeItems?.[0]?.price ?? 0)}).accepted&&rankedIds.has(p.id));
+  const unpriced=ranked.filter(p=>!Number.isFinite(Number(p.price ?? 0))||Number(p.price ?? 0)<=0);
+  const unordered=ranked.some((p,i)=>i>0&&Number(ranked[i-1]?.price ?? 0)>Number(p.price ?? 0));
   checks+=raw.length+3;
   if(wrong.length||parity.length||unpriced.length||unordered) failures++;
   console.log('LIVE_CHAIN_RELEVANCE',JSON.stringify({query:q,chain,raw:raw.length,accepted:ranked.length,wrong:wrong.map(p=>p.name),parity:parity.map(p=>p.name),unpriced:unpriced.length,unordered}));
