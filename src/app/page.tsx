@@ -13307,6 +13307,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if(recipeIngredient)appendRecipeDebug("recipe-product-decisions",{term,searchQuery,ingredient:recipeIngredient,rawCount:rawItems.length,decisions:rawItems.map(product=>({name:product.name,category:product.category,price:getProductPrice(product),rejection:recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient)})),accepted:finalItems.map(product=>product.name)});
           all.push(...finalItems);
         }
+        // Catalog recovery only supplements priced products from the selected stores.
         // Recover up to two missing catalog identities from the selected stores.
         // Only a matching EAN with a verified shop price can enter the picker.
         if (catalogEligible) {
