@@ -266,7 +266,13 @@ jobs:
                     { id: 4, name: 'Arla rasvaton maito 1 l', ean: '6413300101713', price: 0 }
                   ] } });
                 });
-                await search.route('**/api/neon-first-search?*', route => route.fulfill({ json: { products: [] } }));
+                let catalogQueries = 0;
+                await search.route('**/api/neon-first-search?*', route => {
+                  catalogQueries++;
+                  return route.fulfill({ json: { products: [
+                    { id: 'catalog-only', name: 'Maitolaakson kevytmaito 1 l', ean: '6411001000999', price: 0 }
+                  ] } });
+                });
                 // On first boot the app intentionally clears store selections when
                 // its CacheStorage boot marker is absent. Initialize that marker,
                 // then seed a deterministic store selection before search.
@@ -311,6 +317,10 @@ jobs:
                 assert.ok(cheapRowText.includes('0,95') || (await search.locator('body').innerText()).includes('0,95 €'));
                 assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
                 assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
+                // A Neon catalog match without a selected-store price is metadata,
+                // not a purchasable search result.
+                assert.ok(catalogQueries > 0);
+                assert.equal(await search.getByText('Maitolaakson kevytmaito 1 l', { exact: true }).count(), 0);
                 console.log(name + ' passed');
                 await context.close();
               }
