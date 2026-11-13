@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
         WHERE ean = ${ean}
         LIMIT 1
       `;
-      if (rows[0]) {
+      {
         // Prefer verified EAN-specific Open Food Facts data. Fineli is only a
         // generic-food fallback for an unbranded, exact-name, unique match.
         // Never write inferred nutrition into the EAN or OFF master tables.
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
           const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
           // Retailer-local EANs can collide with unrelated OFF product identities.
           const unsafeLocalOff = selected?.source === "open-food-facts" &&
-            shouldSuppressLocalOffNutrition(ean, rows[0].name, selected.data?.product_name);
+            shouldSuppressLocalOffNutrition(ean, rows[0]?.name, selected.data?.product_name);
           if (selected && !unsafeLocalOff) {
             const safeNutrition: Record<string, unknown> = { ...selected.data, source: selected.source };
             // Do not expose physically impossible OFF values to the scanner.
@@ -181,7 +181,7 @@ export async function GET(request: NextRequest) {
           // EAN scanning must remain available even if nutrition tables are unavailable.
           console.warn("EAN nutrition lookup unavailable", error instanceof Error ? error.message : String(error));
         }
-        return NextResponse.json({ ok: true, product: { ...rows[0], nutrition } });
+        if (rows[0] || nutrition) return NextResponse.json({ ok: true, product: { ...(rows[0] ?? { ean, name: "" }), nutrition } });
       }
 
       const verifiedLidl = VERIFIED_LIDL_EAN_BY_CODE.get(ean);
