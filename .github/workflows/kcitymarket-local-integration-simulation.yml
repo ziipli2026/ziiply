@@ -287,8 +287,8 @@ jobs:
                 const input = desktop ? search.getByRole('textbox', { name: 'Hae tuotteita' })
                   : search.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({ visible: true });
                 await input.fill('maito');
-                const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).first();
-                const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).first();
+                const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).first();
+                const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).filter({ visible: true }).first();
                 try {
                   if (!desktop) {
                     const openResults = search.getByRole('button', { name: /Avaa löytöluettelo/ }).filter({ visible: true });
