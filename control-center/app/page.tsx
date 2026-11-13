@@ -102,8 +102,8 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     try{
       const refresh=await neon(process.env.DATABASE_URL)`SELECT checked_at::text,chain,source,ok,offer_count,outcome,details FROM ziiply_publication_run_log WHERE source IN ('eurospar-publication-refresh','eurospar-verified-publication') ORDER BY checked_at DESC,id DESC LIMIT 40` as Row[];
       d.runs=[...d.runs.filter(r=>!["eurospar-publication-refresh","eurospar-verified-publication"].includes(r.source)),...refresh].sort((a,b)=>b.checked_at.localeCompare(a.checked_at));
-      if(!refresh.length)d.runs.unshift({chain:"TOKMANNI-SPAR",source:"eurospar-publication-refresh",ok:false,offer_count:0,outcome:"eurospar-refresh-unreported",checked_at:new Date().toISOString()});
-    }catch{d.runs.unshift({chain:"TOKMANNI-SPAR",source:"eurospar-publication-refresh",ok:false,offer_count:0,outcome:"eurospar-refresh-unreported",checked_at:new Date().toISOString()});}
+      // An absent publication record is missing evidence, not a failed run at the current time.
+    }catch{ /* Preserve existing run history; never fabricate a failed refresh timestamp. */ }
   }
   const cards=CHAINS.map(c=>({...c,runs:d.runs.filter(r=>c.match(r.chain.trim())&&!["future-publication-discovery","s-kaupat-protocol"].includes(r.source))}));
   const todayFi=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
