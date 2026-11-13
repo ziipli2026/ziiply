@@ -124,6 +124,14 @@ function desktopSearchNameDecision(query: string, product: Row) {
     if(index>=0)productWords=[...productWords.slice(0,index),...productWords.slice(index+brand.length)];
   }
   const name=parse(productWords.join(' '));
+  // Finnish compound forms can express the requested ingredient without
+  // separating it into a standalone word (kuohukerma, tomaattiketsuppi).
+  if(q.terms.length===1 && q.terms[0]==='kerma' &&
+     /(?:^| )(?:kuohu|vispi|ruoka|kahvi|laktoositon|kasvi)kerma(?: |$)/.test(productWords.join(' ')))
+    return {accepted:true,score:85,reason:'recognized_cream_compound'};
+  if(q.terms.length===1 && q.terms[0]==='ketsuppi' &&
+     /(?:^| )tomaattiketsuppi(?: |$)/.test(productWords.join(' ')))
+    return {accepted:true,score:85,reason:'recognized_ketchup_compound'};
   const categoryLeaf=String(product.category || '').split('/').at(-1) || '';
   const category=parse(categoryLeaf).terms;
   const intent=resolveSearchIntentAI(q.terms.map(term=>term==='tomaattiketsuppi'?'ketsuppi':term).join(' '));
@@ -291,6 +299,14 @@ export function desktopSearchDecision(query: string, product: Row) {
   // Example: "MySoda Cola sokeriton" cannot turn a concentrate into a ready-to-drink cola.
   const requestedTerms=parse(desktopSearchQuery(query)).terms;
   const originalIdentity=searchWords(product.name || product.title).join(' ');
+  // Shared product-form guard: an ingredient or drink name must not qualify
+  // confectionery or a substitute as the requested primary product.
+  if(requestedTerms.length===1 && requestedTerms[0]==='cola' &&
+     /(?:^| )cola kark(?:it|ki)(?: |$)/.test(originalIdentity))
+    return {accepted:false,score:-10000,reason:'cola_candy_not_drink'};
+  if(requestedTerms.length===1 && requestedTerms[0]==='kananmuna' &&
+     /(?:^| )kananmunan? korvike(?: |$)/.test(originalIdentity))
+    return {accepted:false,score:-10000,reason:'egg_substitute_not_eggs'};
   if(requestedTerms.includes('cola') && /juomatiiviste|sodastream|siirappi/.test(originalIdentity))
     return {accepted:false,score:-10000,reason:'cola_concentrate_original_identity'};
   // Protect primary product identity from ingredient matches in prepared meals.
