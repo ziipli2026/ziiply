@@ -356,6 +356,7 @@ export default function DesktopPreviewPage() {
   const [gostaHomeQuery, setGostaHomeQuery] = useState("");
   const [gostaHomeDebouncedQuery,setGostaHomeDebouncedQuery]=useState("");
   const [gostaHomeSearchResults, setGostaHomeResults] = useState<any[]>([]);
+  const [gostaWatchFilter,setGostaWatchFilter]=useState("");
   const [gostaWatchResultsMode,setGostaWatchResultsMode]=useState(false);
   const [gostaWatchScanReady, setGostaWatchScanReady] = useState(false);
   const [gostaWatchSnapshot, setGostaWatchSnapshot] = useState<{queryKey:string;offers:any[];partial:boolean}|null>(null);
@@ -546,7 +547,6 @@ export default function DesktopPreviewPage() {
     return Array.isArray(rows)?rows.map((offer:any)=>({query,offer})):[];
   });
   function openGostaWatchResults(query:string){
-    setGostaWatchResultsMode(false);
     gostaHomeRequestId.current++;
     setGostaHomeQuery(query);
     setGostaHomeDebouncedQuery(query);
@@ -554,12 +554,11 @@ export default function DesktopPreviewPage() {
     setGostaSelectedOfferKeys([]);
     setGostaShowSavedWatches(false);
     setGostaHomeSearchOpen(true);
-    if(!restoreGostaCachedQuery(query)){
-      setGostaHomeResults([]);
-      setGostaHomeHasSearched(true);
-      setGostaHomeLoading(false);
-      setGostaHomeError("Tämän vahdin tarjousosumia ei ole enää välimuistissa. Paina Hae päivittääksesi tarjoukset.");
-    }
+    setGostaWatchResultsMode(true);
+    setGostaWatchFilter(query.trim().toLocaleLowerCase("fi"));
+    setGostaHomeHasSearched(true);
+    setGostaHomeLoading(false);
+    setGostaHomeError("");
   }
   function saveGostaWatch(){const query=gostaHomeQuery.trim();if(!query)return;setGostaShowSavedWatches(false);setGostaHomeHasSearched(false);setGostaHomeError("");setGostaWatchNotice("Vahti tallennettu. Tarjoukset ilmoitetaan haun valmistuttua, mikäli niitä on.");setGostaSavedWatches(previous=>{const next=[query,...previous.filter(item=>item.toLocaleLowerCase("fi")!==query.toLocaleLowerCase("fi"))].slice(0,30);try{window.localStorage.setItem("ziiply-gosta-offer-watches-v1",JSON.stringify(next));window.dispatchEvent(new Event("ziiply-gosta-watch-changed"));}catch{}return next;});}
   const [chooseStoresNoticeFor, setChooseStoresNoticeFor] = useState<Assistant|null>(null);
@@ -2184,35 +2183,35 @@ export default function DesktopPreviewPage() {
     },1200);
     return ()=>{cancelled=true;window.clearTimeout(timer);};
   },[stores,lidlStores,sparStores,allStoreSelections,selectedStores,withinStoreSlots,gpsCoords,appliedLocation]);
-  async function fetchFreshGostaWatchOffers(queries:string[]){
-    const stores=gostaNearbyOfferStores();
-    if(!stores.length)throw new Error("Lähialueen kauppoja ei löytynyt.");
-    const batches=await Promise.allSettled(stores.map(async store=>{
-      const kind=storeKind(store);
-      const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store?.chain||"")+" "+String(store?.name||""))?"EUROSPAR":"TOKMANNI";
-      const results=await warmOffers(chain,store,true);
-      return results.map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeChain:chain==="LIDL"?"Lidl":chain==="EUROSPAR"?"Eurospar":chain==="TOKMANNI"?"Tokmanni":chain==="S"?"S-ryhmä":"K-ryhmä",__gostaHomeCity:String(store?.city||store?.municipality||store?.locality||""),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
-    }));
-    if(batches.every(batch=>batch.status==="rejected"))throw new Error("Tarjousten lataus epäonnistui.");
-    const all=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]);
-    const matching=queries.flatMap(query=>all.filter((offer:any)=>{
-      const name=String(offer.title||offer.name||"");
-      // The printed alternatives are two forms of the same coffee offer.
-      const searchableName=name.replace(/\bsuodatin-\s+tai\s+papukahvit?\b/gi,"suodatinkahvi papukahvi");
-      return desktopSearchDecision(query,{...offer,name:searchableName}).accepted;
-    }).map((offer:any)=>({...offer,__gostaWatchQuery:query})));
-    const seen=new Set<string>();
-    const unique=matching.filter((offer:any)=>{const key=String(offer.__gostaHomeStore||"")+"|"+String(offer.id||offer.ean||offer.title||offer.name||"")+"|"+String(offer.price||offer.offerPrice||"");if(seen.has(key))return false;seen.add(key);return true;});
-    return {offers:unique,partial:batches.some(batch=>batch.status==="rejected")};
+  async function fetchFreshGostaWatchOffers(queries: string[]) {
+    const coords = gpsCoords || fuelLocationCoords;
+    if (!coords) throw new Error("Tarjousvahti tarvitsee sijainnin.");
+    const params = new URLSearchParams({q: queries.join("|"), lat: String(coords.latitude), lon: String(coords.longitude)});
+    const response = await fetch("/api/offers/watch?" + params, {cache: "no-store", signal: AbortSignal.timeout(60000)});
+    const data = await response.json();
+    if (!response.ok || !data.ok || !Array.isArray(data.results)) throw new Error("Tarjoushaku epäonnistui.");
+    const nearby = [...stores, ...lidlStores, ...sparStores];
+    return {
+      partial: Boolean(data.partial),
+      offers: data.results.map((offer: any) => {
+        const store = nearby.find(item => item.name === offer.storeName);
+        const kind = storeKind(store || {name: offer.storeName, chain: offer.chain});
+        const chain = offer.chain;
+        return {...offer, __gostaHomeStore: offer.storeName,
+          __gostaHomeChain: chain === "S" ? "S-ryhmä" : chain === "K" ? "K-ryhmä" : chain === "LIDL" ? "Lidl" : /eurospar/i.test(offer.storeName) ? "Eurospar" : "Tokmanni",
+          __gostaHomeGroup: kind === "sHyper" || kind === "kHyper" ? "Marketit" : kind === "sLocal" || kind === "kLocal" ? "Lähikaupat" : chain === "LIDL" ? "Lidl" : "Tokmanni / Spar",
+          __gostaHomeCity: store?.city || "", __gostaHomeDistance: store ? distanceKm(store) : undefined};
+      }),
+    };
   }
   const gostaWatchQueryKey=gostaSavedWatches.map(q=>q.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
   const currentGostaWatchSnapshot = gostaWatchSnapshot?.queryKey === gostaWatchQueryKey ? gostaWatchSnapshot : null;
   const gostaHomeResults = gostaWatchResultsMode
-    ? currentGostaWatchSnapshot?.offers ?? []
+    ? (currentGostaWatchSnapshot?.offers ?? []).filter(offer => !gostaWatchFilter || offer.watchQueries?.includes(gostaWatchFilter))
     : gostaHomeSearchResults;
   useEffect(() => {
     try {
-      const saved = JSON.parse(window.localStorage.getItem("ziiply-desktop-watch-results-v1") || "null");
+      const saved = JSON.parse(window.localStorage.getItem("ziiply-desktop-watch-results-v2") || "null");
       if (saved && typeof saved.queryKey === "string" && Array.isArray(saved.offers)) {
         setGostaWatchSnapshot(saved);
       }
@@ -2221,14 +2220,14 @@ export default function DesktopPreviewPage() {
   useEffect(() => {
     if (!gostaWatchSnapshot) return;
     try {
-      window.localStorage.setItem("ziiply-desktop-watch-results-v1", JSON.stringify(gostaWatchSnapshot));
+      window.localStorage.setItem("ziiply-desktop-watch-results-v2", JSON.stringify(gostaWatchSnapshot));
     } catch {}
   }, [gostaWatchSnapshot]);
   const gostaWatchLastScan=useRef(0);
   const gostaWatchScanStarted=useRef(0);
   const gostaWatchScanGeneration=useRef(0);
   useEffect(()=>{
-    if(!gostaHomeHydrated||!gostaWatchQueryKey||(!stores.length&&!lidlStores.length&&!sparStores.length)){
+    if(!gostaHomeHydrated||!gostaWatchQueryKey||(!gpsCoords&&!fuelLocationCoords)){
       return;
     }
     let cancelled=false;
@@ -2296,8 +2295,9 @@ export default function DesktopPreviewPage() {
       gostaWatchScanStarted.current=0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[gostaHomeHydrated,gostaWatchQueryKey,stores.length,lidlStores.length,sparStores.length]);
+  },[gostaHomeHydrated,gostaWatchQueryKey,gpsCoords?.latitude,gpsCoords?.longitude,fuelLocationCoords?.latitude,fuelLocationCoords?.longitude,stores.length,lidlStores.length,sparStores.length]);
   function openAllGostaWatchResults(){
+    setGostaWatchFilter("");
     if(!currentGostaWatchSnapshot?.offers.length)return;
     gostaHomeRequestId.current++;
     setGostaWatchResultsMode(true);
