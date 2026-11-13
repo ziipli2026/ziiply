@@ -109,7 +109,7 @@ jobs:
                 await search.route('**/api/neon-first-search?*', route => route.fulfill({ json: { products: [] } }));
                 await search.goto(url);
                 if (desktop) await search.getByRole('button', { name: 'Avaa Justiina', exact: true }).click();
-                else await search.getByRole('navigation', { name: 'Ziiply päävalikko' }).getByRole('button', { name: 'Hae', exact: true }).click();
+                else await search.getByRole('button', { name: 'Justiina: Tuotehaku', exact: true }).click();
                 const input = desktop ? search.getByRole('textbox', { name: 'Hae tuotteita' })
                   : search.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/);
                 await input.fill('maito');
