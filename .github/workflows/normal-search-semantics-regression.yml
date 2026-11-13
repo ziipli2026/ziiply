@@ -73,6 +73,31 @@ jobs:
           }
           assert.equal(core.rankNormalSearchResults('rasvaton maito 1l', products).some(p => p.name.includes('täysmaito')), false);
           NODE
+      - name: Cross-category brand and product-name regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const samples = [
+            {name:'Maitokolmio Ranch-kastike original 200g',price:1.79},
+            {name:'Maitokolmio viili 200g',price:0.60},
+            {name:'Valio kevytmaito 1l',price:1.59},
+            {name:'Pirkka rasvaton maito 1l',price:1.49},
+            {name:'Kahvila suklaakeksi 150g',price:0.89},
+            {name:'Juhla Mokka kahvi 500g',price:5.99},
+          ];
+          const rank = (query) => core.rankProductResultsByRelevanceAndPrice(query,samples,p=>p.price);
+          const milk = rank('maito');
+          assert(milk.some(p=>p.name.includes('kevytmaito')), 'real milk must remain');
+          assert(milk.some(p=>p.name.includes('rasvaton maito')), 'skimmed milk must remain');
+          assert(!milk.some(p=>p.name.includes('Ranch-kastike') || p.name.includes('viili')), 'brand-name milk false positives');
+          const coffee = rank('kahvi');
+          assert(coffee.some(p=>p.name.includes('Mokka')), 'real coffee must remain');
+          assert(!coffee.some(p=>p.name.includes('suklaakeksi')), 'coffee-like brand must not match');
+          for(const result of [milk,coffee]) assert(result.every((p,i)=>!i||result[i-1].price<=p.price),'price order');
+          console.log('PASS cross-category brand-name and product-name regression');
+          NODE
       - name: Verify normal-search semantics
         shell: bash
         run: |
