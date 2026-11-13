@@ -2895,7 +2895,8 @@ export function rankNormalSearchResults<T extends Product>(
       const words = getNormalizedWords(product.name);
       const candidates = [...intent.requiredAny, ...(intent.variants ?? [])]
         .flatMap((term) => getNormalizedWords(term))
-        .filter((term) => term.length >= 4);
+        // Three-letter product nouns such as "voi" and "tee" are valid.
+        .filter((term) => term.length >= 3);
       return candidates.some((term) => words.some((word) =>
         word === term || (word.length > term.length && word.endsWith(term))
       ));
