@@ -13017,11 +13017,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const cachedTerm = focusedSearchTerms[0] || useTerms[0] || "";
       const cachedValidated = rankProductResultsByRelevanceAndPrice(
         cachedTerm,
-        cachedNormalSearchV441.results.filter((product: Product) =>
-          getProductPrice(product) > 0 &&
-          productGroupGate(cachedTerm, product.name) &&
-          !isBadNormalResult(product, cachedTerm),
-        ),
+        cachedNormalSearchV441.results,
         getProductPrice,
       );
       traceSearch("cache-read", { raw: traceProducts(cachedNormalSearchV441.results),
@@ -13414,11 +13410,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? prioritizeRecipeFishProducts(recipeIngredient.name, rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0], normalUnique.filter(recipeAllows), getProductPrice), recipeIngredient)
         : rankProductResultsByRelevanceAndPrice(
             focusedSearchTerms[0] || useTerms[0] || "",
-            normalUnique.filter((product: Product) =>
-              getProductPrice(product) > 0 &&
-              productGroupGate(focusedSearchTerms[0] || useTerms[0] || "", product.name) &&
-              !isBadNormalResult(product, focusedSearchTerms[0] || useTerms[0] || ""),
-            ),
+            normalUnique,
             getProductPrice,
           );
       if(recipeContext&&recipeContext.runId!==mobileRecipeRunRef.current)return;
