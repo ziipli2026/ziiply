@@ -13070,7 +13070,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Normal search collects selected-store prices without chain preference.
         // Multi-item selection remains sequential (maito -> kahvi -> cola).
         // The Neon catalog is metadata only; no catalog-only price is displayed.
-        const catalogPromise: Promise<any[]> = recipeIngredient ? Promise.resolve([]) :
+        const catalogEligible = !recipeIngredient && !forceEan &&
+          (storeCompareScope === "within_chain"
+            ? (withinChain === "S" || withinChain === "K")
+            : (selectedChains.s || selectedChains.k));
+        const catalogPromise: Promise<any[]> = !catalogEligible ? Promise.resolve([]) :
           fetch("/api/neon-first-search?desktop=1&q=" + encodeURIComponent(term), { cache: "no-store" })
             .then(async response => response.ok ? response.json() : null)
             .then(data => Array.isArray(data?.products) ? data.products : [])
@@ -13304,7 +13308,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
         // Recover up to two missing catalog identities from the selected stores.
         // Only a matching EAN with a verified shop price can enter the picker.
-        if (!recipeIngredient && !forceEan) {
+        if (catalogEligible) {
           const catalogRows = await catalogPromise;
           const seenEans = new Set(all.map(item => normalizeEan(item.ean)).filter(Boolean));
           const missing = catalogRows.filter(row => {
