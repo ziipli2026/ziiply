@@ -337,7 +337,13 @@ async function runWatch(request: Request) {
         const title=String(offer.title||offer.name||offer.productName||"");
         const store=String(offer.storeName||offer.store||row.chain||"");
         const key = watchOfferKey(String(row.chain),store,offer);
-        if (seen.has(key)) continue;
+        if (seen.has(key)) {
+          // One offer may match several saved terms or arrive from several feeds.
+          // Preserve all matching terms without publishing the same campaign twice.
+          const existing = results.find(item => watchOfferKey(String(row.chain),store,item) === key);
+          if (existing) existing.watchQueries = [...new Set([...(existing.watchQueries as string[] || []), ...matchingQueries])];
+          continue;
+        }
         seen.add(key);
         results.push({...offer,title,storeName:store,chain:String(row.chain),watchQueries:matchingQueries});
       }
