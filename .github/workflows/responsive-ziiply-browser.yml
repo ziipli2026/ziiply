@@ -127,6 +127,27 @@ jobs:
                 });
                 await search.route('**/api/neon-first-search?*', route => route.fulfill({ json: { products: [] } }));
                 await search.goto(url);
+                // The mobile app can reset persisted selections on startup in a fresh CI
+                // browser. Seed the realistic S-store selection after hydration too.
+                if (!desktop) {
+                  await search.getByRole('region', { name: 'Ziiplyn avustajat' }).waitFor({ timeout: 25000 });
+                  await search.evaluate(() => {
+                    const store = { id: '634976534', name: 'Prisma Hyvinkää', chain: 'S', latitude: 60.63, longitude: 24.86 };
+                    localStorage.setItem('ziiply-store-selection-v536', JSON.stringify({
+                      version: 1, savedAt: Date.now(),
+                      activeArea: { label: 'Hyvinkää', sStoreId: store.id, sStoreName: store.name,
+                        kStoreId: '', kStoreName: '', sLocalStoreId: '', sLocalStoreName: '',
+                        kLocalStoreId: '', kLocalStoreName: '' },
+                      storeMode: 'hyper', storeModeChosenV299: true,
+                      storeCompareScope: 'between_chains', betweenChainSelectionModeV749: 'one',
+                      withinChain: null, selectedChains: { s: true, k: false, lidl: false, tokmanni: false },
+                      selectedLidlStoreV750: null, selectedEurosparStoreV751: null,
+                      selectedTokmanniStoreV756: null, gpsCoordsV320: null, usingOwnLocation: false
+                    }));
+                  });
+                  await search.reload();
+                  await search.getByRole('region', { name: 'Ziiplyn avustajat' }).waitFor({ timeout: 25000 });
+                }
                 if (desktop) await search.getByRole('button', { name: 'Avaa Justiina', exact: true }).click();
                 else await search.getByRole('button', { name: 'Justiina: Tuotehaku', exact: true }).click();
                 const input = desktop ? search.getByRole('textbox', { name: 'Hae tuotteita' })
