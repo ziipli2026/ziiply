@@ -266,7 +266,22 @@ jobs:
                   ] } });
                 });
                 await search.route('**/api/neon-first-search?*', route => route.fulfill({ json: { products: [] } }));
+                // On first boot the app intentionally clears store selections when
+                // its CacheStorage boot marker is absent. Initialize that marker,
+                // then seed a deterministic store selection before search.
                 await search.goto(url);
+                await search.evaluate(async () => {
+                  const cache = await caches.open('ziiply-boot-v778');
+                  await cache.put('/__ziiply_boot_marker_v778__', new Response('1'));
+                  localStorage.setItem('ziiply-store-selection-v536', JSON.stringify({
+                    version: 1, savedAt: Date.now(),
+                    activeArea: { label: 'Hyvinkää', sStoreId: '634976534', sStoreName: 'Prisma Hyvinkää' },
+                    storeMode: 'hyper', storeModeChosenV299: true,
+                    storeCompareScope: 'between_chains', betweenChainSelectionModeV749: 'one',
+                    selectedChains: { s: true, k: false, lidl: false, tokmanni: false }
+                  }));
+                });
+                await search.reload();
                 if (desktop) await search.getByRole('button', { name: 'Avaa Justiina', exact: true }).click();
                 else await search.getByRole('button', { name: 'Justiina: Tuotehaku', exact: true }).click();
                 const input = desktop ? search.getByRole('textbox', { name: 'Hae tuotteita' })
