@@ -1952,6 +1952,17 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
+  // Product form matters: a chocolate bar containing biscuit is not a packet of biscuits.
+  // Keep this guard common to mobile and desktop so either client accepts the same products.
+  const sourceChocolateBar = /(?:suklaalevy|suklaalev|maitosuklaalevy|chocolate bar)/.test(source);
+  if (sourceChocolateBar) {
+    const targetChocolateBar = /(?:suklaalevy|suklaalev|chocolate bar)/.test(target);
+    const targetOtherType = /(?:keksi|cookie|biscuit|domino|vohveli|wafer|patukka|konvehti)/.test(target);
+    if (!targetChocolateBar || targetOtherType) return false;
+  }
+  const sourceBiscuit = /(?:keksi|cookie|biscuit|domino)/.test(source);
+  if (sourceBiscuit && /(?:suklaalevy|suklaalev|chocolate bar)/.test(target)) return false;
+
   // Oil is the product, not merely an ingredient or flavour. Normalize the
   // user query and product name equally (accents and inflections included).
   if (/^(?:oliivioljya?|ruokaoljya?)$/.test(source)) {
