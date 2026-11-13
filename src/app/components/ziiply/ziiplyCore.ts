@@ -2887,11 +2887,19 @@ export function rankNormalSearchResults<T extends Product>(
   return products
     .filter((product: T) => !comparisonProductType(query) || comparisonProductType(product.name) === comparisonProductType(query))
     .filter((product: T) => !isBadNormalResult(product, query) && productGroupGate(query, product.name))
-    // For recognized product categories, require the product name itself to
-    // support the category. A manufacturer name or metadata alone is not a match.
-    .filter((product: T) => intent.category === "generic" || !intent.requiredAny?.length ||
-      hasAnyToken(normalize(product.name), intent.requiredAny) ||
-      (intent.variants?.some((variant) => hasAnyToken(normalize(product.name), [variant])) ?? false))
+    // Category evidence must be an actual product word, not a substring of
+    // a manufacturer's name (e.g. Maitokolmio is not a milk product).
+    // Accept whole words and meaningful compounds ending in the product noun.
+    .filter((product: T) => {
+      if (intent.category === "generic" || !intent.requiredAny?.length) return true;
+      const words = getNormalizedWords(product.name);
+      const candidates = [...intent.requiredAny, ...(intent.variants ?? [])]
+        .flatMap((term) => getNormalizedWords(term))
+        .filter((term) => term.length >= 4);
+      return candidates.some((term) => words.some((word) =>
+        word === term || (word.length > term.length && word.endsWith(term))
+      ));
+    })
     .filter((product: T) => !queryIsEgg || isClearlyEggProduct(product.name))
     .map((product: T): ScoredProduct & { coreProductIntentRank: number; product: T } => ({
       product,
