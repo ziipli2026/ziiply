@@ -53,6 +53,34 @@ for(const test of cases){
  const reversed=rankProductResultsByRelevanceAndPrice(test.q,[...products].reverse(),p=>p.price);
  assert.deepEqual(mobile.map(p=>p.ean),reversed.map(p=>p.ean),'stable ordering '+test.q);assertions++;
 }
+// Real product names, EANs and categories read from Ziiply Neon on 2026-11-13.
+// Fixture is static: CI never connects to the production database.
+const realNeonMilk: Array<Sample & { expected:boolean }> = [
+  {id:1001,ean:'6408653125622',name:'Juustoportti vapaan lehmän kevytmaito 1l',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.25,expected:true},
+  {id:1002,ean:'6408653125660',name:'Juustoportti vapaan lehmän täysmaito 1l',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.39,expected:true},
+  {id:1003,ean:'6413300100716',name:'Arla 1,5 L Suomesta kevytmaito',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.59,expected:true},
+  {id:1004,ean:'6413300101010',name:'Arla täysmaito Suomi 1 L',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.69,expected:true},
+  {id:1005,ean:'6413300101515',name:'Arla rasvaton maito 1l Suomi',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.19,expected:true},
+  {id:1006,ean:'6413300101713',name:'Arla Rasvaton maito Suomi 1,5 L',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.49,expected:true},
+  {id:1007,ean:'6414893385221',name:'Kotimaista iskukuumennettu vähälaktoosinen kevytmaito 1L',category:'maito-munat-ja-rasvat/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot',price:1.29,expected:true},
+  {id:1008,ean:'6430064400715',name:'Aino Ihana Maitosuklaa 900ml/530g kermajäätelö',category:'pakasteet/jaatelot/jaatelopaketit',price:4.99,expected:false},
+  {id:1009,ean:'7340149217086',name:'ASBA Maitosuklaaruusu 18g',category:'karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/sesonkisuklaat',price:2.49,expected:false},
+  {id:1010,ean:'8445291505087',name:'After Eight Caramel karamellitäytteinen maitosuklaa 200g',category:'konvehtiboxit;;uutuudet',price:3.99,expected:false}
+];
+const realNeonMobile = rankProductResultsByRelevanceAndPrice('maito', realNeonMilk, p => p.price);
+const realNeonIds = new Set(realNeonMobile.map(p => p.ean));
+let realNeonFailures = 0;
+for (const p of realNeonMilk) {
+  const desktop = desktopSearchDecision('maito', {...p,__price:p.price}).accepted;
+  const mobile = realNeonIds.has(p.ean);
+  if (desktop !== p.expected || mobile !== p.expected) {
+    realNeonFailures++;
+    console.error('REAL_NEON_RELEVANCE_MISMATCH', JSON.stringify({ean:p.ean,name:p.name,expected:p.expected,desktop,mobile}));
+  }
+  assertions += 2;
+}
+console.log('REAL_NEON_MILK_FIXTURE',JSON.stringify({products:realNeonMilk.length,failures:realNeonFailures}));
+if(realNeonFailures) process.exitCode=1;
 const expectedGood=cases.reduce((n,c)=>n+c.good.length,0);
 const expectedBad=cases.reduce((n,c)=>n+c.bad.length,0);
 // The exact same EAN normalization must be used for formatted and raw codes.
