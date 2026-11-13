@@ -1,5 +1,6 @@
 "use client";
 
+import { comparisonProductType } from "./comparisonBrand";
 import type React from "react";
 import posthog from "posthog-js";
 import { correctSearchQuery } from "./search/searchIntentAI";
@@ -2828,10 +2829,21 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   products: T[],
   priceOf: (product: T) => number,
 ): T[] {
-  // Apply price only at the final tie-break stage of the shared semantic
-  // comparator. Converting ranked rows to ordinal positions first made every
-  // price comparison unreachable, even for equally relevant products.
-  return rankNormalSearchResults(query, products, (product) => priceOf(product));
+  // The normal product picker is always cheapest-first AFTER hard semantic
+  // filtering. RankNormalSearchResults provides the relevance tie-break order,
+  // but must never group provider queries/brands ahead of a cheaper match.
+  return rankNormalSearchResults(query, products, priceOf)
+    .filter((product) => Number.isFinite(priceOf(product)) && priceOf(product) > 0)
+    .sort((a, b) => {
+      const priceDelta = priceOf(a) - priceOf(b);
+      if (priceDelta !== 0) return priceDelta;
+      // Equal prices must not depend on provider input order or cache order.
+      const nameDelta = normalize(a.name).localeCompare(normalize(b.name), "fi");
+      if (nameDelta !== 0) return nameDelta;
+      const eanDelta = String(a.ean || "").localeCompare(String(b.ean || ""));
+      if (eanDelta !== 0) return eanDelta;
+      return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+    });
 }
 
 export function rankNormalSearchResults<T extends Product>(
@@ -2880,7 +2892,23 @@ export function rankNormalSearchResults<T extends Product>(
   }
 
   return products
-    .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
+    .filter((product: T) => !comparisonProductType(query) || comparisonProductType(product.name) === comparisonProductType(query))
+    .filter((product: T) => !isBadNormalResult(product, query) && productGroupGate(query, product.name))
+    // Category evidence must be an actual product word, not a substring of
+    // a manufacturer's name (e.g. Maitokolmio is not a milk product).
+    // Accept whole words and meaningful compounds ending in the product noun.
+    .filter((product: T) => {
+      if (intent.category === "generic" || !intent.requiredAny?.length) return true;
+      const words = getNormalizedWords(product.name);
+      const candidates = [...intent.requiredAny, ...(intent.variants ?? [])]
+        .flatMap((term) => getNormalizedWords(term))
+        // Three-letter product nouns such as "voi" and "tee" are valid.
+        .filter((term) => term.length >= 3);
+      return candidates.some((term) => words.some((word) =>
+        word === term || (word.length > term.length && word.endsWith(term))
+      ));
+    })
+    .filter((product: T) => !queryIsEgg || isClearlyEggProduct(product.name))
     .map((product: T): ScoredProduct & { coreProductIntentRank: number; product: T } => ({
       product,
       score: scoreNormalSResult(query, product),
@@ -2922,6 +2950,7 @@ export function rankNormalSearchResults<T extends Product>(
     })
     .map(({ product }) => product);
 }
+
 
 export function isNonFoodOffer(offer: ZiiplyOffer) {
   const text = normalize(`${offer.offer.item.name} ${offer.offer.item.category || ""}`);
