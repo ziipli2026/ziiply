@@ -17,4 +17,12 @@ jobs:
           node-version: '20'
           cache: npm
       - run: npm ci
-      - run: npx --yes tsx scripts/search-parity-comprehensive-audit.mts
+      - name: Execute mobile and desktop search parity audit
+        run: npx --yes tsx scripts/search-parity-comprehensive-audit.mts | tee search-parity-audit.log
+      - name: Upload search parity audit log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-parity-audit-log
+          path: search-parity-audit.log
+          if-no-files-found: warn
