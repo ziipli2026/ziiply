@@ -2682,17 +2682,17 @@ export default function DesktopPreviewPage() {
             const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
             return Number.isFinite(price)&&price>0&&desktopSearchDecision(query,withEvidence(item)).accepted;
           });
-          const pricedEans=new Set(priced.map(item=>String(item.ean||'')));
+          const pricedEans=new Set(priced.map(item=>normalizeEan(item.ean)).filter(Boolean));
           const queryWords=' '+searchWords(query).join(' ')+' ';
-          const brandLookups=[...new Set<string>(neonRows.filter((item:any)=>!pricedEans.has(String(item.ean))).map((item:any)=>String(item.brand||'')).filter((brand:string)=>
+          const brandLookups=[...new Set<string>(neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean))).map((item:any)=>String(item.brand||'')).filter((brand:string)=>
             /\./.test(brand) && searchWords(brand).length>=2 && queryWords.includes(' '+searchWords(brand).join(' ')+' ')
           ))];
-          const missingCatalogNames=neonRows.filter((item:any)=>!pricedEans.has(String(item.ean||'')))
+          const missingCatalogNames=neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)))
             .flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases.filter((alias:unknown)=>typeof alias==='string').map(String):[])])
             .filter(Boolean);
           // Recover missing EAN quotes even when another matching product is already priced.
           // Otherwise Jozo salt and Salonen bread can be silently omitted from the visible results.
-          const lookupNames=[...neonRows.filter((item:any)=>!pricedEans.has(String(item.ean||'')) && desktopSearchDecision(query,item).accepted).flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases:[])]),...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
+          const lookupNames=[...neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)) && desktopSearchDecision(query,item).accepted).flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases:[])]),...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
           if(!lookupNames.length)return;
           const store=batch.store;
           const url=batch.chain==='S'
