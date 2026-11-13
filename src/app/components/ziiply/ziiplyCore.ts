@@ -6,6 +6,14 @@ import type React from "react";
 import posthog from "posthog-js";
 import { correctSearchQuery } from "./search/searchIntentAI";
 
+export function readSearchProducts(data: unknown): unknown[] {
+  if (Array.isArray(data)) return data;
+  const response = data as { products?: unknown; items?: unknown } | null | undefined;
+  if (Array.isArray(response?.products)) return response.products;
+  if (Array.isArray(response?.items)) return response.items;
+  return [];
+}
+
 export type Offer = {
   id: number;
   discountPercent?: number | null;

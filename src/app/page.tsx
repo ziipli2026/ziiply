@@ -1572,6 +1572,7 @@ import {
   normalizeLooseProductMatch,
   getMetricSizeKey,
   getNormalSearchQueries,
+  readSearchProducts,
   isAliasSearch,
   formatEuro,
   formatComparisonPrice,
@@ -7210,13 +7211,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const data = await response.json();
 
-    const rawItems = Array.isArray(data?.products)
-      ? data.products
-      : Array.isArray(data?.items)
-        ? data.items
-        : Array.isArray(data)
-          ? data
-          : [];
+    const rawItems = readSearchProducts(data);
 
     if(recipeStoreName!==undefined)appendRecipeDebug("recipe-api-response",{query:search,storeId,source:data?.source,status:response.status,recipeFallback:data?.recipeFallback,products:rawItems});
     return rawItems
@@ -7248,13 +7243,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const data = await response.json();
 
-    const rawItems = Array.isArray(data?.products)
-      ? data.products
-      : Array.isArray(data?.items)
-        ? data.items
-        : Array.isArray(data)
-          ? data
-          : [];
+    const rawItems = readSearchProducts(data);
 
     return rawItems
       .map((item: any) => normalizeSProduct(item))

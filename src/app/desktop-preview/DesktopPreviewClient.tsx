@@ -12,7 +12,7 @@ import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferenc
 import { useEffect, useRef, useState } from "react";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "../components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, type ZiiplyArrivalDecision } from "../components/ziiply/location/ziiplyArrivalSequence";
-import { getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
+import { readSearchProducts, getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList, autocorrectNormalSearchTerm } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -1032,7 +1032,7 @@ export default function DesktopPreviewPage() {
         finally{clearTimeout(timeout);}
         if(!response.ok){logCompareAudit("price_api_http_error",{store:store.name,id:selectedStoreId,kind,search,status:response.status});desktopProductSearchCache.delete(cacheKey);return [];}
         const data=await response.json();
-        const products=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+        const products=readSearchProducts(data) as any[];
         return products.map((p:any)=>({
           ...p,
           name:String(p.name||p.title||"").trim(),
@@ -2515,7 +2515,7 @@ export default function DesktopPreviewPage() {
         const response=await fetch((sChain?"/api/s-products?":"/api/k-products?")+params.toString(),{cache:"no-store"});
         if(!response.ok)return [];
         const data=await response.json();
-        const items=Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+        const items=readSearchProducts(data) as any[];
         return items.filter((p:any)=>{
           const eans=[p.ean,p.eanCode,p.barcode,p.gtin,p.code,p.product?.ean].filter(Boolean).map(String);
           return eans.includes(code)||(knownName&&String(p.name||p.title||"").trim().toLocaleLowerCase("fi")===knownName.toLocaleLowerCase("fi"));
@@ -2627,7 +2627,7 @@ export default function DesktopPreviewPage() {
           if (!response.ok) throw new Error(`Kauppahaku epäonnistui (HTTP ${response.status}).`);
           const data = await response.json();
           lastData = data;
-          const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+          const items = readSearchProducts(data) as any[];
           if(!diagnostic)traceNormal("provider_response",{requestUrl,source:data?.source,status:data?.status,error:data?.error,count:items.length,products:items.slice(0,120)});
           report("response",{requestUrl,rawCount:items.length,source:data?.source,apiStatus:data?.status,error:data?.error});
           const usable=items.some((product:any)=>desktopSearchDecision(query,product).accepted);
@@ -2665,7 +2665,7 @@ export default function DesktopPreviewPage() {
       report("providers_settled",{failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,error:b.data?.error}))});
       const catalogByEan=new Map<string,any>(neonRows.map((item:any)=>[String(item.ean),item]));
       const withEvidence=(item:any)=>withDesktopCatalogEvidence(item,catalogByEan.get(String(item.ean || '')));
-      const itemsOf=(data:any):any[]=>Array.isArray(data?.products)?data.products:Array.isArray(data?.items)?data.items:Array.isArray(data)?data:[];
+      const itemsOf=(data:any):any[]=>readSearchProducts(data) as any[];
       // A named product may be indexed under a shorter current shop name.
       // Try at most two observed identities. Abbreviated brand punctuation
       // can hide one EAN even when a different product already has a quote.
@@ -2707,7 +2707,7 @@ export default function DesktopPreviewPage() {
       const rows:any[]=[];
       const productDecisions:any[]=[];
       for(const batch of batches){
-        const items=Array.isArray(batch.data?.products)?batch.data.products:Array.isArray(batch.data?.items)?batch.data.items:Array.isArray(batch.data)?batch.data:[];
+        const items=readSearchProducts(batch.data) as any[];
         for(const x of items){
           const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);
           const responseSource=x.__providerSource||batch.data?.source;
@@ -2808,7 +2808,7 @@ export default function DesktopPreviewPage() {
           if(!diagnostic)appendDesktopRecipeDebug("api_response",{query,searchQuery,requestUrl,data});
           lastData = data;
           if (coverageQueries.length) coverageResponses.push(data);
-          const items = Array.isArray(data?.products) ? data.products : Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+          const items = readSearchProducts(data) as any[];
           report("response",{requestUrl,rawCount:items.length,source:data?.source,apiStatus:data?.status,error:data?.error});
           const usable=rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(desktopSearchDecision(query,product).accepted||Boolean(recipeIngredient)));
           if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:rankNormalSearchResults(query,items).filter((product:any)=>recipeAllows(product)&&(desktopSearchDecision(query,product).accepted||Boolean(recipeIngredient))).length});
@@ -2839,7 +2839,7 @@ export default function DesktopPreviewPage() {
       const rows:any[]=[];
       const productDecisions:any[]=[];
       for(const batch of batches){
-        const items=Array.isArray(batch.data?.products)?batch.data.products:Array.isArray(batch.data?.items)?batch.data.items:Array.isArray(batch.data)?batch.data:[];
+        const items=readSearchProducts(batch.data) as any[];
         for(const x of items){
           const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);
           const responseSource=x.__recipeResponseSource ?? batch.data?.source;
