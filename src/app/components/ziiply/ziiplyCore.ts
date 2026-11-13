@@ -2082,10 +2082,9 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const sourceIsCheese = hasAnyToken(sourceProductName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
     const targetIsCheese = hasAnyToken(targetProductName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
-    const targetIsWrongCheeseProduct = !source.includes("raejuusto") && hasAnyToken(target, [
-      "tuorejuusto",
-      "sulatejuusto",
-      "raejuusto",
+    // Fresh, processed and cottage cheeses are still cheese. Exclude dips and
+    // sauces, not legitimate cheese types.
+    const targetIsWrongCheeseProduct = hasAnyToken(targetProductName, [
       "juustodippi",
       "dippi",
       "nacho",
