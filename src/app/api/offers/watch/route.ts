@@ -25,6 +25,10 @@ function matches(query:string,offer:Record<string,unknown>){
   // Source-first watcher invariant: every published, priced offer is always
   // retrievable by its own full product name, regardless of catalog taxonomy.
   if(q===n)return true;
+  // A literal ground-meat product must not be rejected by a broad
+  // processed-meat department assigned by an upstream provider.
+  if(q==="jauheliha" && /(?:^| )jauheliha(?: |$)/.test(n)
+    && !/kasvis|vege|soija|lemmikki|koiran|kissan/.test(n)) return true;
   // Generic terms must be complete words, not arbitrary substrings:
   // "spagetti" must not match "spagettikurpitsa".
   // For multiword queries, require the full contiguous phrase.
@@ -367,8 +371,8 @@ async function runWatch(request: Request) {
       return {
         ...offer,
         priceBasis: weighted ? "per-kg" : basis,
-        validFrom: String(source.validFrom || ""),
-        validUntil: String(source.validUntil || source.validTo || ""),
+        validFrom: String(offer.validFrom || source.validFrom || ""),
+        validUntil: String(offer.validUntil || source.validUntil || source.validTo || ""),
         comparisonPriceText: comparison || (rate > 0 && /^(kg|l)$/.test(unit)
           ? rate.toFixed(2).replace(".", ",") + " €/" + unit : ""),
       };
