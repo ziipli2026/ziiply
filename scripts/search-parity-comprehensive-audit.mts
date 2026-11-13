@@ -28,15 +28,19 @@ const cases: Array<{q:string; good:string[]; bad:string[]}> = [
 ];
 let assertions=0, disagreements=0, falsePositives=0, falseNegatives=0, desktopFalsePositives=0, desktopFalseNegatives=0;
 const differences:any[]=[];
+const decisions:any[]=[];
 for(const test of cases){
  const products:Sample[]=[...test.good,...test.bad].map((name,i)=>({id:i+1,name,ean:String(6410000000000+i),price:1+i*.2}));
  const mobile=rankProductResultsByRelevanceAndPrice(test.q,products,p=>p.price);
  const mobileIds=new Set(mobile.map(p=>p.id));
  for(const [i,p] of products.entries()){
-   const desktop=desktopSearchDecision(test.q,{...p,__price:p.price}).accepted;
+   const desktopDecision=desktopSearchDecision(test.q,{...p,__price:p.price});
+   const desktop=desktopDecision.accepted;
    const mobileAccepted=mobileIds.has(p.id);
    const expected=i<test.good.length;
-   if(desktop!==mobileAccepted){disagreements++;differences.push({query:test.q,name:p.name,expected,desktop,mobile:mobileAccepted});}
+   const decision={query:test.q,name:p.name,ean:p.ean,price:p.price,expected,desktop,mobile:mobileAccepted,desktopReason:desktopDecision.reason};
+   decisions.push(decision);
+   if(desktop!==mobileAccepted){disagreements++;differences.push(decision);}
    if(desktop&&!expected)desktopFalsePositives++;
    if(!desktop&&expected)desktopFalseNegatives++;
    if(mobileAccepted&&!expected)falsePositives++;
@@ -61,7 +65,7 @@ const eanCases:[string,string][]=[
 ];
 for(const [input,expected] of eanCases){assert.equal(normalizeEan(input),expected,'EAN '+input);assertions++;}
 assert.equal(new Set(['6410401234567','641-0401-234567','641 0401 234567'].map(normalizeEan)).size,1,'same EAN must share one key');assertions++;
-console.log(JSON.stringify({queries:cases.length,products:expectedGood+expectedBad,expectedGood,expectedBad,assertions,disagreements,mobileFalsePositives:falsePositives,mobileFalseNegatives:falseNegatives,desktopFalsePositives,desktopFalseNegatives,differences},null,2));
+console.log(JSON.stringify({queries:cases.length,products:expectedGood+expectedBad,expectedGood,expectedBad,assertions,disagreements,mobileFalsePositives:falsePositives,mobileFalseNegatives:falseNegatives,desktopFalsePositives,desktopFalseNegatives,differences,decisions},null,2));
 if(disagreements || falsePositives || falseNegatives || desktopFalsePositives || desktopFalseNegatives) {
  console.error('AUDIT_DIFFERENCES_DETECTED: review before unification');
  process.exitCode=1;
