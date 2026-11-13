@@ -607,14 +607,12 @@ jobs:
           ];
 
           const ranked = core.rankNormalSearchResults('piimä', products);
-          const positions = new Map(ranked.map((product, index) => [product.id, index]));
           const drinkIds = [1, 2, 3];
           const breadIds = [4, 5];
-          const lastDrink = Math.max(...drinkIds.map(id => positions.get(id)));
-          const firstBread = Math.min(...breadIds.map(id => positions.get(id)));
-
-          if (!(lastDrink < firstBread)) {
-            console.error('FAIL piimä ranking:', ranked.map(product => product.name));
+          if (ranked.length !== drinkIds.length ||
+              !ranked.every(product => drinkIds.includes(product.id)) ||
+              ranked.some(product => breadIds.includes(product.id))) {
+            console.error('FAIL piimä product group filter:', ranked.map(product => product.name));
             process.exit(1);
           }
 
@@ -626,7 +624,7 @@ jobs:
             process.exit(1);
           }
 
-          console.log('PASS piimä ranking: all buttermilk drinks precede piimä breads');
+          console.log('PASS piimä ranking: only buttermilk drinks, no piimä breads');
           console.log('SAFE_SUMMARY functional piimä regression passed');
           NODE
 
