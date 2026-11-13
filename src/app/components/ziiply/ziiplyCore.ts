@@ -3008,9 +3008,11 @@ export function isBadNormalResult(product: Product, query: string) {
   // Shared product-group validation for all normal searches and offer searches.
   const intentCategory = detectSearchIntent(query).category;
   if (intentCategory === "butter") {
+    // A butter search is for butter itself, never butter-flavoured snacks,
+    // spreads, ready meals or personal-care products.
     if (!/(?:^|[\s-])(?:voi|meijerivoi)(?:$|[\s-])/.test(normalizedName)) return true;
-    if (/(?:voitäyte|voitäytte|voiherkku|kasvovoi|vartalovoi|hiusvoi|voide|pullapitko|leivonnainen|margariini)/.test(normalizedName)) return true;
-    if (/(?:kosmetiikka|hygienia|leipomo|leivonnaiset)/.test(category)) return true;
+    if (/(?:voitäyte|voitäytte|voiherkku|kasvovoi|vartalovoi|hiusvoi|voide|pullapitko|leivonnainen|margariini|flora|levite|sips|chips|perunalast|maissikakku|napostel|kastike|mauste|marinad|perunat|snack)/.test(normalizedName)) return true;
+    if (/(?:kosmetiikka|hygienia|leipomo|leivonnaiset|sips|napostel|perunalast)/.test(category)) return true;
   }
   if (intentCategory === "meat" && /jauheliha/.test(normalizedQuery)) {
     if (!/jauheliha/.test(normalizedName) || /(?:lastenateria|lastenruoka|piltti|kastike|perunasose|spagetti|lasagne|ateria|keitto|pizza|pitsa|mauste)/.test(normalizedName)) return true;
