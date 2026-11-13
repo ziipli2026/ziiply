@@ -30,10 +30,17 @@ jobs:
           npx --yes tsx scripts/search-parity-comprehensive-audit.mts 2>&1 | tee search-parity-audit.log
           echo '### Mobile / desktop search parity audit' >> "$GITHUB_STEP_SUMMARY"
           echo 'The full report is available in the search-parity-audit-log artifact.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Live S/K response relevance audit using real shared search code
+        env:
+          ZIIPLY_TEST_URL: https://ziiply-9y3fsg8m1-ziipli2026s-projects.vercel.app
+        shell: bash
+        run: |
+          set -o pipefail
+          npx --yes tsx scripts/search-live-chain-relevance-audit.mts 2>&1 | tee search-live-chain-audit.log
       - name: Upload search parity audit log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: search-parity-audit-log
-          path: search-parity-audit.log
+          path: |\n            search-parity-audit.log\n            search-live-chain-audit.log
           if-no-files-found: warn
