@@ -2887,6 +2887,11 @@ export function rankNormalSearchResults<T extends Product>(
   return products
     .filter((product: T) => !comparisonProductType(query) || comparisonProductType(product.name) === comparisonProductType(query))
     .filter((product: T) => !isBadNormalResult(product, query) && productGroupGate(query, product.name))
+    // For recognized product categories, require the product name itself to
+    // support the category. A manufacturer name or metadata alone is not a match.
+    .filter((product: T) => intent.category === "generic" || !intent.requiredAny?.length ||
+      hasAnyToken(normalize(product.name), intent.requiredAny) ||
+      (intent.variants?.some((variant) => hasAnyToken(normalize(product.name), [variant])) ?? false))
     .filter((product: T) => !queryIsEgg || isClearlyEggProduct(product.name))
     .map((product: T): ScoredProduct & { coreProductIntentRank: number; product: T } => ({
       product,
