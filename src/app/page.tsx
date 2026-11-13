@@ -13188,13 +13188,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             // Ordinary multi-chain search: S and K are equal providers, never fallbacks.
             // One-chain mode is handled by the explicit branches above.
             const requests: Array<Promise<Product[]>> = [];
-            const sPrimaryStoreId = activeStores.sStoreId;
+            const sPrimaryStoreId = withinChainS ? activeArea.sStoreId : activeStores.sStoreId;
             const kPrimaryStoreId = activeStores.kStoreId;
-            const useS = selectedChains.s && Boolean(sPrimaryStoreId);
-            const useK = selectedChains.k && Boolean(kPrimaryStoreId);
+            const useS = (withinChainS || (storeCompareScope === "between_chains" && selectedChains.s)) && Boolean(sPrimaryStoreId);
+            const useK = !withinChainS && storeCompareScope === "between_chains" &&
+              selectedChains.k && Boolean(kPrimaryStoreId);
             if (useS) requests.push(
               fetchSProducts(searchQuery, sPrimaryStoreId).then(items =>
-                items.map(product => ({ ...product, __recipeChain: "S", __recipeStoreName: activeStores.sStoreName }))
+                items.map(product => ({ ...product, __recipeChain: "S", __recipeStoreName: withinChainS ? activeArea.sStoreName : activeStores.sStoreName }))
               ),
             );
             if (useK) requests.push(
