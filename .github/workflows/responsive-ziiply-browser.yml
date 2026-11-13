@@ -1,0 +1,61 @@
+name: Responsive Ziiply browser smoke test
+on:
+  push:
+    branches: [test/desktop-mobile-unification]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Check the same address on phone, tablet and desktop
+        run: |
+          npm run start -- -H 127.0.0.1 -p 3100 &
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3100/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node <<'NODE'
+          const { chromium, devices } = require('playwright');
+          const assert = require('node:assert/strict');
+          const url = 'http://127.0.0.1:3100/';
+          (async () => {
+            const browser = await chromium.launch();
+            try {
+              for (const [name, options, desktop] of [
+                ['phone', devices['iPhone 13'], false],
+                ['touch tablet', { viewport: { width: 1024, height: 900 }, hasTouch: true, isMobile: true }, false],
+                ['narrow window', { viewport: { width: 800, height: 900 } }, false],
+                ['desktop', { viewport: { width: 1440, height: 900 } }, true],
+              ]) {
+                const context = await browser.newContext(options);
+                const page = await context.newPage();
+                const errors = [];
+                page.on('pageerror', error => errors.push(error.message));
+                const response = await page.goto(url);
+                assert.equal(response.status(), 200);
+                const mobileHome = page.getByRole('region', { name: 'Ziiplyn avustajat' });
+                const desktopHome = page.locator('[data-desktop-layout]');
+                await (desktop ? desktopHome : mobileHome).waitFor({ timeout: 25000 });
+                assert.equal(await (desktop ? mobileHome : desktopHome).count(), 0);
+                assert.equal(page.url(), url);
+                assert.deepEqual(errors, []);
+                console.log(name + ' passed');
+                await context.close();
+              }
+            } finally {
+              await browser.close();
+            }
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          NODE
