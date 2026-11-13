@@ -37,7 +37,18 @@ jobs:
         run: |
           node <<'NODE'
           const fs=require('fs');
-          const core=require('./.tmp-100-audit/ziiplyCore.js');
+          const path=require('node:path');
+          function findCompiledCore(dir){
+            for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
+              const full=path.join(dir,entry.name);
+              if(entry.isDirectory()){const hit=findCompiledCore(full);if(hit)return hit;}
+              else if(entry.name==='ziiplyCore.js')return path.resolve(full);
+            }
+            return null;
+          }
+          const corePath=findCompiledCore('.tmp-100-audit');
+          if(!corePath)throw Error('Compiled mobile ziiplyCore.js not found');
+          const core=require(corePath);
           const terms=JSON.parse(process.env.TERMS_JSON);
           const results=[];
           async function search(term){
@@ -96,10 +107,23 @@ jobs:
         run: |
           node <<'NODE'
           const fs=require('node:fs');
-          const mobile=require('./.tmp-100-audit/ziiplyCore.js');
+          const path=require('node:path');
+          function findCompiledCore(dir){
+            for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
+              const full=path.join(dir,entry.name);
+              if(entry.isDirectory()){const hit=findCompiledCore(full);if(hit)return hit;}
+              else if(entry.name==='ziiplyCore.js')return path.resolve(full);
+            }
+            return null;
+          }
+          const mobilePath=findCompiledCore('.tmp-100-audit');
+          if(!mobilePath)throw Error('Compiled mobile ziiplyCore.js not found');
+          const mobile=require(mobilePath);
           let desktop;
           try {
-            desktop=require('./.tmp-desktop-audit/ziiplyCore.js');
+            const desktopPath=findCompiledCore('.tmp-desktop-audit');
+            if(!desktopPath)throw Error('Compiled desktop ziiplyCore.js not found');
+            desktop=require(desktopPath);
           } catch(error) {
             fs.writeFileSync('mobile-desktop-search-comparison.json',JSON.stringify({summary:{status:'setup_failed',reason:String(error)},results:[]},null,2));
             throw error;
