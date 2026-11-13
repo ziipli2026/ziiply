@@ -43,7 +43,7 @@ export default function ProductEnergy({ ean, nutrition, quantity }: { ean?: stri
   const energy = parseEnergy(nutrition) ?? (state.ean === valid ? state.energy : null);
   if (!energy) return null;
   const format = (n:number|null) => n === null ? "—" : Math.round(n).toLocaleString("fi-FI");
-  const amount = String(quantity ?? "").match(/(?:^|\\s)(\\d+(?:[.,]\\d+)?)\\s*(kg|g|ml|cl|dl|l)(?:\\s|$)/i);
+  const amount = String(quantity ?? "").match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(kg|g|ml|cl|dl|l)(?:\s|$)/i);
   const factor = amount ? Number(amount[1].replace(",", ".")) * ({kg:10,g:0.01,ml:0.01,cl:0.1,dl:1,l:10} as Record<string,number>)[amount[2].toLowerCase()] : null;
   return <div className="mt-1 text-[0.68rem] font-semibold leading-tight text-[#496443]" title={energy.estimated ? "Fineli-arvio, ei tuotteen vahvistettu ravintoarvo" : "EAN-kohtainen ravintoarvo"}>
     {energy.estimated ? "Energia-arvio" : "Energia"}: {format(energy.kcal)} kcal / {format(energy.kj)} kJ / 100 g{factor !== null && factor > 0 && factor < 1000 ? ` · pakkaus ${format(energy.kcal === null ? null : energy.kcal * factor)} kcal / ${format(energy.kj === null ? null : energy.kj * factor)} kJ` : ""}
