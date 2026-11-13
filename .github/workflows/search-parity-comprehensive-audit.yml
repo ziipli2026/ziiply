@@ -4,6 +4,7 @@ on:
     branches: [test/search-parity-audit-20261113, test/search-chain-scope-validation-20261113]
     paths:
       - 'scripts/search-parity-comprehensive-audit.mts'
+      - 'scripts/search-live-chain-relevance-audit.mts'
       - '.github/workflows/search-parity-comprehensive-audit.yml'
       - 'src/app/components/ziiply/search/desktopNormalRelevance.ts'
       - 'src/app/components/ziiply/ziiplyCore.ts'
@@ -11,6 +12,7 @@ on:
   pull_request:
     paths:
       - 'scripts/search-parity-comprehensive-audit.mts'
+      - 'scripts/search-live-chain-relevance-audit.mts'
       - '.github/workflows/search-parity-comprehensive-audit.yml'
 jobs:
   audit:
