@@ -2705,9 +2705,9 @@ export default function DesktopPreviewPage() {
             // different-EAN products. Only recover identities actually
             // present in the Neon catalog; the primary store search above
             // remains free to return other relevant priced products.
-            const missingEans=new Set(neonRows.map((item:any)=>String(item.ean||"").replace(/\\D/g,"")).filter(Boolean));
+            const missingEans=new Set(neonRows.map((item:any)=>normalizeEan(item.ean)).filter(Boolean));
             const matchingCatalogQuotes=itemsOf(recovered).filter(item=>{
-              const ean=String(item.ean||item.barcode||item.product?.ean||"").replace(/\\D/g,"");
+              const ean=normalizeEan(item.ean||item.barcode||item.product?.ean);
               const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
               return missingEans.has(ean) && Number.isFinite(price) && price>0;
             });
