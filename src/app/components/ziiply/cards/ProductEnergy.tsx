@@ -12,8 +12,8 @@ function parseEnergy(data: unknown): Energy | null {
   if (!data || typeof data !== "object") return null;
   const n = data as Record<string, unknown>;
   const values = n.nutrients && typeof n.nutrients === "object" ? n.nutrients as Record<string, unknown> : n;
-  const kcal = numeric(values.kcal_100g ?? values["energy-kcal_100g"] ?? values.ENERC);
-  const kj = numeric(values.kj_100g ?? values["energy-kj_100g"] ?? values.ENERC_KJ);
+  const kcal = numeric(values.kcal_100g ?? values["energy-kcal_100g"]);
+  const kj = numeric(values.kj_100g ?? values["energy-kj_100g"] ?? values.ENERC_KJ ?? values.ENERC);
   if (kcal === null && kj === null) return null;
   if ((kcal !== null && kcal > 1000) || (kj !== null && kj > 4184)) return null;
   return { kcal: kcal ?? (kj === null ? null : kj / 4.184), kj: kj ?? (kcal === null ? null : kcal * 4.184), estimated: n.estimated === true || n.source === "fineli-generic" };
