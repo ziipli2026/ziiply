@@ -161,4 +161,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Search unavailable", searchVersion: "neon-category-aware-v3" }, { status: 500 });
   }
 }
-

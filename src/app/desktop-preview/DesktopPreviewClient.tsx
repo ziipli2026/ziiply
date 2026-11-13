@@ -538,13 +538,6 @@ export default function DesktopPreviewPage() {
   async function shareGostaOffers(){const selected=gostaHomeResults.filter((p:any)=>gostaSelectedOfferKeys.includes(gostaOfferKey(p)));const chosen=selected.length?selected:gostaHomeResults;if(!chosen.length){setGostaShareStatus("Hae ensin tarjoukset.");return;}const lines=["Ziiply – Göstan tarjoukset",selected.length?"Valitut tarjoukset":"Kaikki hakutulokset","Hakusana: "+gostaHomeQuery.trim(),""];for(const p of chosen){const price=splitOfferDisplayPrice(getOfferPrice(p));lines.push(String(p.title||p.name||"Tuote"),String(p.__gostaHomeStore||"Kauppa")+(Number.isFinite(p.__gostaHomeDistance)?" · "+p.__gostaHomeDistance.toFixed(1)+" km":""),"Tarjoushinta: "+price.amount+(price.basis?" "+price.basis:""),...(p.normalPrice!=null?["Normaalihinta: "+p.normalPrice+" €"]:[]),gostaOfferValidity(p),"");}lines.push("Tarjoukset koottu Ziiplyllä");const message=lines.join("\n");try{if(navigator.share){await navigator.share({title:"Ziiply – Göstan tarjoukset",text:message});setGostaShareStatus("Tarjoukset lähetetty jakovalikkoon.");}else{await navigator.clipboard.writeText(message);setGostaShareStatus("Tarjoukset kopioitu leikepöydälle.");}}catch{setGostaShareStatus("Jakaminen peruutettu tai epäonnistui.");}}
 
   useEffect(()=>{try{const saved=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");if(Array.isArray(saved))setGostaSavedWatches(saved.filter((value:unknown):value is string=>typeof value==="string").slice(0,30));}catch{}},[]);
-  // A watch badge is shown only for actual offer rows already cached for its saved query.
-  // Background scheduled refresh is deliberately separate from this browser-only view.
-  const gostaWatchOffers=gostaSavedWatches.flatMap(query=>{
-    const entry=gostaHomeCacheMap.current[query.trim().toLocaleLowerCase("fi")];
-    const rows=entry?gostaCacheResults(entry):null;
-    return Array.isArray(rows)?rows.map((offer:any)=>({query,offer})):[];
-  });
   function openGostaWatchResults(query:string){
     gostaHomeRequestId.current++;
     setGostaHomeQuery(query);
