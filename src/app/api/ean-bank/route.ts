@@ -221,7 +221,7 @@ export async function GET(request: NextRequest) {
 
         if (response.ok) {
           const html = await response.text();
-          const escapedEan = ean.replace(/[.*+?^$()|[\]\\]/g, "\\          const escapedEan = ean.replace(/[.*+?^$()|[\]\\]/g, "\\      return NextResponse.json({ ok: true, product: rows[0] ?? null });");");
+          const escapedEan = ean.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
           const linkRe = new RegExp(
             `<a\\b[^>]*class=["'][^"']*product-item-link[^"']*["'][^>]*href=["']([^"']*-${escapedEan}(?:[/?#][^"']*)?)["'][^>]*>([\\s\\S]*?)<\\/a>`,
             "i",
