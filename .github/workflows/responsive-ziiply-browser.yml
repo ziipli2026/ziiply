@@ -1,7 +1,7 @@
 name: Responsive Ziiply browser smoke test
 on:
   push:
-    branches: [test/desktop-mobile-unification]
+    branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113]
   workflow_dispatch:
 permissions:
   contents: read
