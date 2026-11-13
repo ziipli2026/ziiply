@@ -475,6 +475,20 @@ export default function DesktopPreviewPage() {
   useEffect(()=>{if(!gostaWatchNotice)return;const timer=window.setTimeout(()=>setGostaWatchNotice(""),2500);return()=>window.clearTimeout(timer);},[gostaWatchNotice]);
   const [gostaSelectedOfferKeys,setGostaSelectedOfferKeys]=useState<string[]>([]);
   const [gostaShareStatus,setGostaShareStatus]=useState("");
+  function desktopOfferStoreLabel(offer: any, includeGroup = false) {
+    const store = String(offer.__gostaHomeStore || offer.storeName || "").trim();
+    const chain = String(offer.__gostaHomeChain || offer.chain || "").trim();
+    const retailer = /^(?:lidl|tokmanni|eurospar)$/i.test(chain)
+      ? ({ lidl: "Lidl", tokmanni: "Tokmanni", eurospar: "Eurospar" } as Record<string, string>)[chain.toLowerCase()]
+      : "";
+    if (retailer) {
+      if (retailer === "Eurospar" && /^tokmanni[- ]eurospar\b/i.test(store)) return store;
+      const name = store.replace(new RegExp(`^(?:${retailer}\\b[\\s–-]*)+`, "i"), "").trim();
+      return [retailer, name].filter(Boolean).join(" ");
+    }
+    return [includeGroup ? offer.__gostaHomeChain : "", store].filter(Boolean).join(" ");
+  }
+
   function parseGostaValidityDate(value: unknown) {
     const text = String(value ?? "").trim();
     const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})(?=$|[T ])/);
@@ -3259,7 +3273,7 @@ export default function DesktopPreviewPage() {
  <div className="absolute inset-x-[4.5%] bottom-[65px] top-[calc(27.8%+4px)] overflow-y-auto">
  {cartItems.length===0?<p className="py-8 text-center font-serif text-[24px] font-bold text-[#503d2a]">Ostoskori on tyhjä</p>:cartItems.map((p:any,i:number)=>{const validity=gostaOfferValidity(p,"");const bundle=desktopCartBundle(p);const rowPrice=desktopCartRowPrice(p);const weightOffer=desktopCartWeightOffer(p);return <div key={desktopCartKey(p)||i} className="grid min-h-[86px] grid-cols-[60px_minmax(0,1fr)_220px_220px] items-center border-b border-[#8f744f]/25 py-[4px] text-[#3c2c1b]">
   <span aria-hidden="true" className="text-center font-serif text-[20px]">{p.collected?"☑":"☐"}</span>
-  <div className="flex min-w-0 items-center gap-3 pl-[30px] pr-[12px]"><div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{[p.storeName || p.__gostaHomeStore,p.collected?"Kerätty":"Ei kerätty"].filter(Boolean).join(" · ")}</div>{(p.__recipeWeightNeedsReview||p.__recipeIngredient?.amount===null)&&!isDesktopMemoItem(p)&&<div className="text-[14px] font-bold text-[#8b4e35]">{p.__recipeWeightNeedsReview?"Reseptin paino puuttuu — tarkista ennen hintavertailua":"Reseptin määrä puuttuu — tarkista tarvittava määrä"}</div>}{gostaOfferDiscount(p)&&<div className="truncate text-[14px] italic text-[#77513c]">{gostaOfferDiscount(p)}</div>}{!weightOffer&&p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{validity&&<div className="text-[14px] text-[#66543d]">{validity}</div>}</div></div>
+  <div className="flex min-w-0 items-center gap-3 pl-[30px] pr-[12px]"><div className="min-w-0"><div className="line-clamp-2 text-[clamp(16px,1.2vw,21px)] font-bold">{p.title||p.name}</div><div className="text-[15px] text-[#66543d]">{[desktopOfferStoreLabel(p),p.collected?"Kerätty":"Ei kerätty"].filter(Boolean).join(" · ")}</div>{(p.__recipeWeightNeedsReview||p.__recipeIngredient?.amount===null)&&!isDesktopMemoItem(p)&&<div className="text-[14px] font-bold text-[#8b4e35]">{p.__recipeWeightNeedsReview?"Reseptin paino puuttuu — tarkista ennen hintavertailua":"Reseptin määrä puuttuu — tarkista tarvittava määrä"}</div>}{gostaOfferDiscount(p)&&<div className="truncate text-[14px] italic text-[#77513c]">{gostaOfferDiscount(p)}</div>}{!weightOffer&&p.unitPrice&&<div className="text-[14px] text-[#66543d]">{p.unitPrice}</div>}{validity&&<div className="text-[14px] text-[#66543d]">{validity}</div>}</div></div>
   <div className="flex w-full translate-x-[13px] items-center justify-center gap-2">{!isDesktopMemoItem(p)&&<><button onClick={()=>changeDesktopCartQuantity(p,-1)} aria-label="Vähennä määrää" className="grid h-10 w-10 place-items-center rounded-full border border-[#315d45] bg-[#fff8df] font-bold">−</button><span className="min-w-6 text-center text-[19px] font-bold">{desktopCartQuantity(p)}</span><button onClick={()=>changeDesktopCartQuantity(p,1)} aria-label="Lisää määrää" className="grid h-10 w-10 place-items-center rounded-full border border-[#315d45] bg-[#fff8df] font-bold">+</button></>}</div>
   <div className="flex items-center justify-center px-2">{!isDesktopMemoItem(p)&&<span className="whitespace-nowrap font-serif text-[clamp(17px,1.35vw,23px)] font-bold">{weightOffer ? (weightOffer.estimate === null ? "Punnitse" : "Arvio " + weightOffer.estimate.toFixed(2).replace(".",",")+" €") : rowPrice!==null?rowPrice.toFixed(2).replace(".",",")+" €":"—"}{bundle&&<small className="block whitespace-normal text-center text-xs">{bundle.total.toFixed(2).replace(".",",")} € / {bundle.quantity} kpl</small>}</span>}</div>
  </div>})}
@@ -3419,7 +3433,7 @@ export default function DesktopPreviewPage() {
 </div>
 <div className="min-w-0 self-start [overflow-wrap:anywhere] py-1">
   <div className="text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.title||p.name}</div>
-  <div className="mt-3 rounded-lg border border-[#d1bb83] bg-[#fff9e9] px-2 py-2 text-[13px] font-black leading-snug text-[#17513b]"><span className="block">{p.__gostaHomeChain||""} {p.__gostaHomeStore||p.storeName||""}</span><span className="mt-1 block text-[11px] font-bold text-[#666c55]">{p.__gostaHomeCity||""}{Number.isFinite(p.__gostaHomeDistance)?" · "+p.__gostaHomeDistance.toFixed(1)+" km":""}</span></div><div className="mt-2"><span className="rounded-full bg-[#e3e5c9] px-2 py-1 text-[11px] font-black text-[#27583d]">{getResolvedGostaCategoryV166(p)}</span></div>
+  <div className="mt-3 rounded-lg border border-[#d1bb83] bg-[#fff9e9] px-2 py-2 text-[13px] font-black leading-snug text-[#17513b]"><span className="block">{desktopOfferStoreLabel(p, true)}</span><span className="mt-1 block text-[11px] font-bold text-[#666c55]">{p.__gostaHomeCity||""}{Number.isFinite(p.__gostaHomeDistance)?" · "+p.__gostaHomeDistance.toFixed(1)+" km":""}</span></div><div className="mt-2"><span className="rounded-full bg-[#e3e5c9] px-2 py-1 text-[11px] font-black text-[#27583d]">{getResolvedGostaCategoryV166(p)}</span></div>
   {p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}
   {p.unitPrice&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{p.unitPrice}</div>}
   {gostaOfferDiscount(p) && <div className="mt-3 font-serif text-[13px] font-bold italic text-[#796b4d]">{gostaOfferDiscount(p)}</div>}
