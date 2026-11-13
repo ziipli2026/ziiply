@@ -1974,8 +1974,8 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
-  // A chocolate bar is not a biscuit, cookie or filled wafer, even when brand and weight match.
-  // Check the physical product type before any price-based ranking.
+  // Product form matters: a chocolate bar containing biscuit is not a packet of biscuits.
+  // Keep this guard common to mobile and desktop so either client accepts the same products.
   const sourceChocolateBar = /(?:suklaalevy|suklaalev|maitosuklaalevy|chocolate bar)/.test(source);
   if (sourceChocolateBar) {
     const targetChocolateBar = /(?:suklaalevy|suklaalev|chocolate bar)/.test(target);
