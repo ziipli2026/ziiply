@@ -1659,6 +1659,7 @@ import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarRes
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import DesktopGostaWatch from "./components/ziiply/cards/DesktopGostaWatch";
+import { watchCartPrice } from "./components/ziiply/mobile/gostaWatchResults";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
@@ -21748,7 +21749,38 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   />
                 </div>
 
-                <DesktopGostaWatch />
+                <DesktopGostaWatch onAddOffer={(offer) => {
+                  const pricing = watchCartPrice(offer);
+                  if (!pricing) return false;
+                  const current = cartRefV124.current;
+                  if (current.length >= MAX_ITEMS) {
+                    showCartToast("Ostoskori on täynnä");
+                    return false;
+                  }
+                  if (current.some(item => normalize(item.name) === normalize(offer.title))) {
+                    showCartToast("Tuote on jo korissa");
+                    return false;
+                  }
+                  const price = pricing.weighted ? 0 : Math.round(pricing.price * 100);
+                  const id = "gosta-watch-" + Date.now() + "-" + current.length;
+                  const next: CartItem[] = [...current, {
+                    id, name: offer.title, price, quantity: 1, source: "offer",
+                    storeName: offer.store, image: offer.imageUrl,
+                    chain: offer.chain === "K" || offer.chain === "S" ? offer.chain : undefined,
+                    product: {
+                      id, name: offer.title, price, pictureUrl: offer.imageUrl,
+                      ...(pricing.weighted ? {
+                        ziiplyWeightLabel: true, ziiplyWeightOffer: true, ziiplyPricePendingWeight: true,
+                        ziiplyEstimatedWeightKg: pricing.estimatedWeightKg,
+                        comparisonPrice: pricing.price, comparisonPriceUnit: "kg",
+                      } : {}),
+                    } as unknown as Product,
+                  }];
+                  cartRefV124.current = next;
+                  setCart(next);
+                  persistCartImmediately(next);
+                  return true;
+                }} />
                 <ZiiplySearchCard
                   className="z-20"
                   value={input}

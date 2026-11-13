@@ -2,13 +2,14 @@
 import React from "react";
 import { fetchSharedGostaWatch } from "../mobile/gostaWatchSharedRequest";
 
-type Offer={query:string;title:string;price:string;store:string;source:string};
+import { mapWatchOffers, readWatchResults, saveWatchResults, watchCartPrice, watchPackageSize, type WatchOffer } from "../mobile/gostaWatchResults";
+
+type Props = { onAddOffer: (offer: WatchOffer) => boolean };
 const TERMS="ziiply-gosta-offer-watches-v1";
-const RESULTS="ziiply-gosta-watch-results-v1";
-export default function DesktopGostaWatch(){
+export default function DesktopGostaWatch({ onAddOffer }: Props){
  const [terms,setTerms]=React.useState<string[]>([]);
  const [query,setQuery]=React.useState("");
- const [offers,setOffers]=React.useState<Offer[]>([]);
+ const [offers,setOffers]=React.useState<WatchOffer[]>([]);
  const [ready,setReady]=React.useState(false);
  const [loading,setLoading]=React.useState(false);
  const [open,setOpen]=React.useState(true);
@@ -17,20 +18,22 @@ export default function DesktopGostaWatch(){
  const [checkedKey,setCheckedKey]=React.useState("");
  const key=terms.map(x=>x.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|");
  React.useEffect(()=>{
-  const read=()=>{try{const v=JSON.parse(localStorage.getItem(TERMS)||"[]");setTerms(Array.isArray(v)?v.filter((x:unknown):x is string=>typeof x==="string"&&!!x.trim()).slice(0,30):[]);const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===v.map((x:string)=>x.trim().toLocaleLowerCase("fi")).filter(Boolean).join("|")&&Array.isArray(cached.offers)&&cached.offers.length){setOffers(cached.offers);setReady(true);setOpen(true);}}catch{setTerms([]);}};
+  const read=()=>{try{const v=JSON.parse(localStorage.getItem(TERMS)||"[]");setTerms(Array.isArray(v)?v.filter((x:unknown):x is string=>typeof x==="string"&&!!x.trim()).slice(0,30):[]);}catch{setTerms([]);}};
   read();window.addEventListener("storage",read);window.addEventListener("ziiply-gosta-watch-changed",read);
   return()=>{window.removeEventListener("storage",read);window.removeEventListener("ziiply-gosta-watch-changed",read);};
  },[]);
  React.useEffect(()=>{
   setError("");
   setLoading(false);
-  setOffers([]);setReady(false);
-  if(!key)return;
-  try{const cached=JSON.parse(localStorage.getItem(RESULTS)||"null");if(cached?.key===key&&Array.isArray(cached.offers)&&cached.offers.length){setOffers(cached.offers);setReady(true);setOpen(true);}}catch{}
+  if (!key) { setOffers([]); setReady(false); return; }
+  const cached = readWatchResults();
+  setOffers(cached?.offers ?? []);
+  setReady(Boolean(cached));
   let cancelled=false,running=false,last=0;
   const scan=async()=>{
    if(cancelled||running||document.visibilityState!=="visible")return;
    running=true;setLoading(true);
+   const started=Date.now();
    try{
     const params=new URLSearchParams({q:key});
     // Store-scoped offer watch requires coordinates, just like the mobile API.
@@ -42,12 +45,12 @@ export default function DesktopGostaWatch(){
     params.set("lon",String(position.coords.longitude));
     const {response,data}=await fetchSharedGostaWatch("/api/offers/watch?"+params.toString());
     if(!response.ok||!data.ok||!Array.isArray(data.results))throw Error(String(data.error||"Tarjoushaku epäonnistui"));
-    const next:Offer[]=data.results.flatMap((offer:any)=>(Array.isArray(offer.watchQueries)&&offer.watchQueries.length?offer.watchQueries:[""]).map((term:string)=>({query:String(term),title:String(offer.title||offer.name||offer.productName||"Tarjous"),price:String(offer.offerPrice??offer.price??""),store:String(offer.storeName||offer.chain||""),source:String(offer.source||offer.chain||"")})));
-    if(!cancelled){
-     // A temporary empty or partial refresh must never erase previously found offers.
-     setOffers(current=>next.length===0&&current.length>0?current:data.partial&&current.length>next.length?current:next);
-     setReady(true);setCheckedKey(key);setError(data.partial?"Osa kaupoista jäi tarkistamatta; aiemmat löydöt säilyvät.":next.length===0&&offers.length>0?"Uusia osumia ei saatu; aiemmat löydöt säilyvät.":"");
-     if(!data.partial&&next.length>0){try{localStorage.setItem(RESULTS,JSON.stringify({key,offers:next,at:Date.now()}));window.dispatchEvent(new Event("ziiply-gosta-watch-results-changed"));}catch{}}
+    if (!cancelled) {
+     saveWatchResults(key, mapWatchOffers(data.results, key.split("|")), Boolean(data.partial), started);
+     setOffers(readWatchResults()?.offers ?? []);
+     setReady(true);
+     setCheckedKey(key);
+     setError(data.partial ? "Osa kaupoista jäi tarkistamatta." : "");
      last=Date.now();
     }
    }catch(e){if(!cancelled)setError((e instanceof Error && (/Sijaintitieto/.test(e.message)||e.name==="GeolocationPositionError"))?"Salli selaimessa sijainti Göstan lähikauppatarjousten hakemiseksi. Aiemmat tulokset säilyvät.":"Päivitys epäonnistui; aiemmat tulokset säilyvät.");}
@@ -74,6 +77,24 @@ export default function DesktopGostaWatch(){
   {loading&&<p className="mt-1 text-xs text-slate-600">Tarkistetaan tarjouksia…</p>}
   {error&&<p className="mt-1 text-xs text-amber-800">{error}</p>}
   {ready&&checkedKey===key&&!loading&&offers.length===0&&<p className="mt-1 text-xs">Tarkistus valmis: ei voimassa olevia tarjousosumia.</p>}
-  {open&&ready&&<div className="mt-2 max-h-64 overflow-y-auto">{offers.map((o,i)=><div key={i} className="border-t border-amber-200 py-1"><strong>{o.title}</strong> · {o.price} · {o.store} <span className="text-xs">({o.query})</span></div>)}</div>}
+  {open && ready && <div className="mt-2 max-h-64 overflow-y-auto">
+   {offers.map((offer, index) => {
+    const pricing = watchCartPrice(offer);
+    const packageSize = watchPackageSize(offer);
+    return <div key={index} className="flex items-center justify-between gap-2 border-t border-amber-200 py-2">
+     <div className="min-w-0">
+      <strong>{offer.title}</strong>
+      <div>{offer.store} · {offer.query}</div>
+      <div>{[packageSize, offer.comparisonPrice].filter(Boolean).join(" · ")}</div>
+     </div>
+     {pricing && <div className="shrink-0 text-right">
+      <strong>{pricing.price.toLocaleString("fi-FI", { style: "currency", currency: "EUR" })}{pricing.weighted ? "/kg" : ""}</strong>
+      <button type="button" className="ml-2 rounded-md bg-amber-200 px-2 py-1" onClick={() => {
+       if (onAddOffer(offer)) setNotice("Tarjous lisätty ostoskoriin.");
+      }}>Lisää ostoskoriin</button>
+     </div>}
+    </div>;
+   })}
+  </div>}
  </section>;
 }

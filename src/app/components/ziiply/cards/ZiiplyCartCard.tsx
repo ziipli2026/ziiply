@@ -280,6 +280,9 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               const cartItem = cart.find((item) => String(item.id) === String(cartItemId)) || cart[index] || {};
               const quantity = Math.max(1, Number(match.quantity || cartItem.quantity || 1));
               const price = Number(match.price || cartItem.price || product.price || 0);
+              const weightProduct = cartItem.product || product;
+              const pendingWeight = Boolean(weightProduct.ziiplyPricePendingWeight) && weightProduct.ziiplyWeightFinalPrice == null;
+              const estimatedPrice = Math.round(Number(weightProduct.ziiplyEstimatedWeightKg) * Number(weightProduct.comparisonPrice) * 100) / 100;
               const checked = Boolean(checkedCartItems[key]);
               const name = fixText(normalizeName(product.name || cartItem.name));
               const image = product.pictureUrl || product.image || cartItem.image;
@@ -325,13 +328,13 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                         {name}
                       </div>
                       <div className="mt-1 text-[13px] font-black uppercase tracking-[0.08em] text-[#776d55]">
-                        {quantity} kpl · {price > 0 ? formatEuro(price) : "hinta —"}
+                        {pendingWeight ? "Punnittava tuote" : <>{quantity} kpl · {price > 0 ? formatEuro(price) : "hinta —"}</>}
                       </div>
                     </div>
 
                     <div className="shrink-0 text-right">
                       <div className="text-[18px] font-black leading-none text-[#28402a]">
-                        {price > 0 ? formatEuro(price * quantity) : "—"}
+                        {pendingWeight ? (Number.isFinite(estimatedPrice) && estimatedPrice > 0 ? "Arvio " + fallbackFormatEuro(estimatedPrice) : "Punnitse") : price > 0 ? formatEuro(price * quantity) : "—"}
                       </div>
                       <div className="mt-1 text-[11px] font-black uppercase tracking-[0.10em] text-[#776d55]">
                         yhteensä
