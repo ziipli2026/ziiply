@@ -59,10 +59,16 @@ jobs:
                   }
                   if (!localStorage.getItem('ziiply-store-selection-v536')) {
                     localStorage.setItem('ziiply-store-selection-v536', JSON.stringify({
-                      activeArea: { label: 'Hyvinkää', sStoreId: store.id, sStoreName: store.name },
+                      version: 1, savedAt: Date.now(),
+                      activeArea: { label: 'Hyvinkää', sStoreId: store.id, sStoreName: store.name,
+                        kStoreId: '', kStoreName: '', sLocalStoreId: '', sLocalStoreName: '',
+                        kLocalStoreId: '', kLocalStoreName: '' },
                       storeMode: 'hyper', storeModeChosenV299: true,
                       storeCompareScope: 'between_chains', betweenChainSelectionModeV749: 'one',
-                      selectedChains: { s: true }
+                      withinChain: null,
+                      selectedChains: { s: true, k: false, lidl: false, tokmanni: false },
+                      selectedLidlStoreV750: null, selectedEurosparStoreV751: null,
+                      selectedTokmanniStoreV756: null, gpsCoordsV320: null, usingOwnLocation: false
                     }));
                   }
                   localStorage.setItem('ziiply-gosta-offer-watches-v1', JSON.stringify(['kahvi']));
