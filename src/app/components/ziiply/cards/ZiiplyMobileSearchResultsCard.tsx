@@ -1,3 +1,4 @@
+import ProductEnergy from "./ProductEnergy";
 "use client";
 
 // ZiiplyMobileSearchResultsCard v14-loytoluettelo
@@ -383,6 +384,7 @@ export default function ZiiplyMobileSearchResultsCard({
                           EAN {String(product.ean || product.product?.ean)}
                         </div>
                       )}
+                      <ProductEnergy ean={product.ean || product.product?.ean} />
                       {researchOnly && (
                         <div className="mt-1 text-[0.65rem] font-bold leading-tight text-[#78633a]">
                           {observedPrice ? `Havaittu ${observedPrice} (${product.observedDate ?? "päiväys puuttuu"}) · ei vahvistettu` : "Hinta ei vahvistettu"}
