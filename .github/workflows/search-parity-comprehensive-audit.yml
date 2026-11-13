@@ -1,10 +1,12 @@
 name: Search parity comprehensive audit
 on:
   push:
-    branches: [test/search-parity-audit-20261113]
+    branches: [test/search-parity-audit-20261113, test/search-chain-scope-validation-20261113]
     paths:
       - 'scripts/search-parity-comprehensive-audit.mts'
       - '.github/workflows/search-parity-comprehensive-audit.yml'
+      - 'src/app/components/ziiply/search/desktopNormalRelevance.ts'
+      - 'src/app/components/ziiply/ziiplyCore.ts'
   workflow_dispatch:
   pull_request:
     paths:
