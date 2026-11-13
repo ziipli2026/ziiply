@@ -13,6 +13,7 @@ vm.runInNewContext(compiled, {
   module, exports, console,
   require: (id) => {
     if (id === "posthog-js") return { default: {} };
+    if (id === "./comparisonBrand") return { comparisonProductType: () => "" };
     if (id === "./search/searchIntentAI") return { correctSearchQuery: (q) => q };
     throw new Error("Unexpected dependency: " + id);
   },
