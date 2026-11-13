@@ -68,6 +68,12 @@ jobs:
                 if (desktop) await page.getByRole('button', { name: /Tavaratalot · 1 tarjousta/ }).click();
                 await page.getByText('Testikahvi 500 g', { exact: true }).first().waitFor({ timeout: 10000 });
                 await page.getByRole('button', { name: 'Lisää ostoskoriin', exact: true }).first().click();
+                await page.waitForFunction(({ desktop, ean }) => {
+                  const saved = desktop
+                    ? JSON.parse(sessionStorage.getItem('ziiply-desktop-current-cart-v1') || '[]')
+                    : JSON.parse(localStorage.getItem('ziiply-cart-v1') || '{}').items || [];
+                  return saved.some(item => String(item.ean ?? item.product?.ean) === ean);
+                }, { desktop, ean: '6411001000110' }, { timeout: 10000 });
                 assert.deepEqual(errors, []);
                 console.log(name + ' passed');
                 await context.close();
