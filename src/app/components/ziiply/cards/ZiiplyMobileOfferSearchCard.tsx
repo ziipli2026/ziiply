@@ -1764,7 +1764,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="break-words text-[0.92rem] font-black leading-tight text-[#233020]">{productName}</div>
-                          <ProductEnergy ean={ean} />
+                          <ProductEnergy ean={ean} nutrition={(offer as any).nutrition ?? (offer as any).product?.nutrition ?? (offer as any).__sourceOfferSearchResult?.nutrition} quantity={String((offer as any).packageSize ?? (offer as any).quantity ?? (offer as any).__sourceOfferSearchResult?.packageSize ?? "")} />
                           {embeddedComparisonPrice ? (
                             <div className="clear-both mt-[0.18rem] text-[0.70rem] font-extrabold leading-tight text-[#74694f]">
                               {embeddedComparisonPrice}
