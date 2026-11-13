@@ -25,7 +25,7 @@ const cases: Array<{q:string; good:string[]; bad:string[]}> = [
 {q:'piimä',good:['Valio AB-piimä 1 l'],bad:['Piimäkakku 400 g','Piimäjuustoleipä 300 g']},
 {q:'limsa',good:['Jaffa appelsiinilimonadi 1,5 l'],bad:['Limsakarkit 150 g','Energiajuoma 330 ml']},
 ];
-let assertions=0, disagreements=0, falsePositives=0, falseNegatives=0;
+let assertions=0, disagreements=0, falsePositives=0, falseNegatives=0, desktopFalsePositives=0, desktopFalseNegatives=0;
 const differences:any[]=[];
 for(const test of cases){
  const products:Sample[]=[...test.good,...test.bad].map((name,i)=>({id:i+1,name,ean:String(6410000000000+i),price:1+i*.2}));
@@ -36,6 +36,8 @@ for(const test of cases){
    const mobileAccepted=mobileIds.has(p.id);
    const expected=i<test.good.length;
    if(desktop!==mobileAccepted){disagreements++;differences.push({query:test.q,name:p.name,expected,desktop,mobile:mobileAccepted});}
+   if(desktop&&!expected)desktopFalsePositives++;
+   if(!desktop&&expected)desktopFalseNegatives++;
    if(mobileAccepted&&!expected)falsePositives++;
    if(!mobileAccepted&&expected)falseNegatives++;
    assertions+=3;
@@ -46,5 +48,8 @@ for(const test of cases){
  const reversed=rankProductResultsByRelevanceAndPrice(test.q,[...products].reverse(),p=>p.price);
  assert.deepEqual(mobile.map(p=>p.ean),reversed.map(p=>p.ean),'stable ordering '+test.q);assertions++;
 }
-console.log(JSON.stringify({queries:cases.length,assertions,disagreements,falsePositives,falseNegatives,differences},null,2));
-if(disagreements || falsePositives || falseNegatives) console.log('AUDIT_DIFFERENCES_DETECTED: review before unification');
+const expectedGood=cases.reduce((n,c)=>n+c.good.length,0);
+const expectedBad=cases.reduce((n,c)=>n+c.bad.length,0);
+console.log(JSON.stringify({queries:cases.length,products:expectedGood+expectedBad,expectedGood,expectedBad,assertions,disagreements,mobileFalsePositives:falsePositives,mobileFalseNegatives:falseNegatives,desktopFalsePositives,desktopFalseNegatives,differences},null,2));
+if(disagreements || falsePositives || falseNegatives || desktopFalsePositives || desktopFalseNegatives) console.log('AUDIT_DIFFERENCES_DETECTED: review before unification');
+else console.log('AUDIT_PARITY_OK');
