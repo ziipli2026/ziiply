@@ -51,7 +51,7 @@
     },
     {
       "path": "/api/cron/chain-parser-health",
-      "schedule": "50 6 * * 4"
+      "schedule": "50 6 * * *"
     },
     {
       "path": "/api/cron/fuel-photo-learning",
