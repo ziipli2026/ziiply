@@ -332,6 +332,11 @@ jobs:
                 const recovered = search.getByText('Maitolaakson kevytmaito 1 l', { exact: true }).filter({ visible: true });
                 await recovered.first().waitFor({ timeout: 10000 });
                 assert.equal(await recovered.count(), 1);
+                // The recovered quote must be the matching EAN at 1.09 euros,
+                // never the cheaper same-name 0.89-euro different-EAN quote.
+                const recoveredParentText = await recovered.first().locator('xpath=..').innerText();
+                assert.ok(recoveredParentText.includes('1,09') || recoveredParentText.includes('1.09'),
+                  'Matching-EAN recovery must display the 1.09-euro selected-store price: ' + recoveredParentText);
                 assert.equal(await search.getByText('Maitolaakson täysmaito 1 l', { exact: true }).count(), 0);
                 console.log(name + ' passed');
                 await context.close();
