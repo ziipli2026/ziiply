@@ -18,6 +18,7 @@ export type WatchOffer = {
   validUntil?: string;
   validFrom?: string;
   ean?: string;
+  nutrition?: unknown;
   bundleQuantity?: number;
   bundleTotalPrice?: number;
   comparisonPrice?: string;
@@ -34,6 +35,7 @@ export function mapWatchOffers(offers: unknown[], terms: string[]): WatchOffer[]
     const ean = [offer.ean, source.ean].map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value));
     return {
       ean,
+      nutrition: offer.nutrition ?? (offer.product as Record<string, unknown> | undefined)?.nutrition ?? source.nutrition,
       bundleQuantity: Number(offer.bundleQuantity || source.multiBuyQuantity || source.offerQuantity) || undefined,
       bundleTotalPrice: Number(offer.bundleTotalPrice || source.multiBuyTotalPrice || offer.offerPrice || offer.price) || undefined,
       validFrom: String(offer.validFrom || source.validFrom || ""),
