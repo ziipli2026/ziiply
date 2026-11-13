@@ -2076,9 +2076,12 @@ export function productGroupGate(sourceName: string, targetName: string) {
     if (targetIsWrongYogurtProduct) return false;
   }
 
-  const sourceIsCheese = hasAnyToken(source, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+  // Strip Juustoportti brand before product-type matching.
+  const sourceProductName = source.replace(/\bjuustoportti(?:n)?\b/g, " ").trim();
+  const targetProductName = target.replace(/\bjuustoportti(?:n)?\b/g, " ").trim();
+  const sourceIsCheese = hasAnyToken(sourceProductName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
-    const targetIsCheese = hasAnyToken(target, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+    const targetIsCheese = hasAnyToken(targetProductName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
     const targetIsWrongCheeseProduct = !source.includes("raejuusto") && hasAnyToken(target, [
       "tuorejuusto",
       "sulatejuusto",
