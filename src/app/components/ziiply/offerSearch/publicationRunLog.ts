@@ -1,5 +1,13 @@
 import { neon } from "@neondatabase/serverless";
 
+/** Refuse to create Ziiply tables or log runs in another application's database. */
+async function assertZiiplyDatabase(sql: ReturnType<typeof neon>) {
+  const rows = await sql`SELECT current_database() AS database_name`;
+  if (rows[0]?.database_name !== "neondb") {
+    throw new Error("Ziiply publication logging blocked: unexpected database");
+  }
+}
+
 /** Append-only diagnostic history. Never include tokens, headers or raw product payloads. */
 export async function recordPublicationRun(input: {
   chain: string; source: string; ok: boolean; count: number;
@@ -7,6 +15,7 @@ export async function recordPublicationRun(input: {
 }, databaseUrl = process.env.DATABASE_URL): Promise<void> {
   if (!databaseUrl) return;
   const sql = neon(databaseUrl);
+  await assertZiiplyDatabase(sql);
   await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -32,6 +41,7 @@ export async function recordPublicationRun(input: {
 export async function recentPublicationRuns(chain: string, limit = 20) {
   if (!process.env.DATABASE_URL) return [];
   const sql = neon(process.env.DATABASE_URL);
+  await assertZiiplyDatabase(sql);
   await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
