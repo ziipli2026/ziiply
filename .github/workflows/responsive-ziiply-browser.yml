@@ -107,10 +107,14 @@ jobs:
                 for (const [chain, storeId, storeName] of [
                   ['S', '634976534', 'Prisma Hyvinkää'],
                   ['K', 'C130', 'K-Citymarket Hyvinkää'],
+                  ['LIDL', 'lidl-test', 'Lidl Hyvinkää'],
+                  ['SPAR', 'spar-test', 'EUROSPAR Hyvinkää'],
+                  ['TOKMANNI', 'tokmanni-test', 'Tokmanni Hyvinkää'],
                 ]) {
-                  if (chain === 'K' && name !== 'phone' && !desktop) continue;
-                  const endpoint = chain === 'S' ? '/api/s-products' : '/api/k-products';
-                  await context.addInitScript(({ chain, storeId, storeName }) => {
+                  if (chain !== 'S' && name !== 'phone' && !desktop) continue;
+                  const endpoint = { S: '/api/s-products', K: '/api/k-products', LIDL: '/api/lidl/products', SPAR: '/api/tokmanni/products', TOKMANNI: '/api/tokmanni/products' }[chain];
+                  const search = await context.newPage();
+                  await search.addInitScript(({ chain, storeId, storeName }) => {
                     const store = { id: storeId, name: storeName, chain, latitude: 60.63, longitude: 24.86 };
                     localStorage.setItem('ziiply-desktop-store-choices-v1', JSON.stringify({
                       storeMode: 'hyper', storeModeChosen: true, selectedChain: chain,
@@ -124,12 +128,11 @@ jobs:
                         sLocalStoreId: '', sLocalStoreName: '', kLocalStoreId: '', kLocalStoreName: '' },
                       storeMode: 'hyper', storeModeChosenV299: true,
                       storeCompareScope: 'between_chains', betweenChainSelectionModeV749: 'one',
-                      withinChain: null, selectedChains: { s: chain === 'S', k: chain === 'K', lidl: false, tokmanni: false },
-                      selectedLidlStoreV750: null, selectedEurosparStoreV751: null,
-                      selectedTokmanniStoreV756: null, gpsCoordsV320: null, usingOwnLocation: false
+                      withinChain: null, selectedChains: { s: chain === 'S', k: chain === 'K', lidl: chain === 'LIDL', tokmanni: chain === 'SPAR' || chain === 'TOKMANNI' },
+                      selectedLidlStoreV750: chain === 'LIDL' ? store : null, selectedEurosparStoreV751: chain === 'SPAR' ? store : null,
+                      selectedTokmanniStoreV756: chain === 'TOKMANNI' ? store : null, gpsCoordsV320: null, usingOwnLocation: false
                     }));
                   }, { chain, storeId, storeName });
-                  const search = await context.newPage();
                   let queries = 0;
                   const searchRequests = [];
                   search.on('request', request => {
@@ -141,9 +144,15 @@ jobs:
                   await search.route('**'+endpoint+'?*', route => {
                     const params = new URL(route.request().url()).searchParams;
                     if (/maito/i.test(params.get('search') || '')) {
-                      assert.equal(params.get('store'), storeId);
+                      if (chain === 'S' || chain === 'K') assert.equal(params.get('store'), storeId);
+                      if (chain === 'LIDL') assert.equal(params.get('mode'), 'research');
+                      if (chain === 'SPAR' || chain === 'TOKMANNI') assert.equal(params.get('intent'), 'maito');
                       queries++;
                     }
+                    if (chain === 'LIDL') return route.fulfill({json:{items:[
+                      {id: 22, name: 'Kotimaista kevytmaito 1 l', priceVerified: false, source: 'lidl.fi-public-research'},
+                      {id: 23, name: 'Maitokolmio ruisleipä', priceVerified: false, source: 'lidl.fi-public-research'}
+                    ]}});
                     return route.fulfill({ json: { [chain === 'S' ? 'products' : 'items']: [
                       { id: 1, name: 'Valio täysmaito 1 l', ean: '6408430106443', price: 179 },
                       { id: 2, name: 'Kotimaista kevytmaito 1 l', ean: '6438460292804', storeItem: { price: 95 } },
@@ -207,14 +216,14 @@ jobs:
                     console.log('Search state', name, 'store queries:', queries, 'API requests:', searchRequests, (await search.locator('body').innerText()).slice(0, 2500));
                     throw error;
                   }
-                  await expensive.waitFor();
+                  if (chain !== 'LIDL') await expensive.waitFor();
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
                   const storeQueries = Array.from(new Set(searchRequests.flatMap(value => {
                     const prefix = 'GET ' + endpoint + '?';
                     if (!value.startsWith(prefix)) return [];
                     const params = new URLSearchParams(value.slice(prefix.length));
-                    return params.get('store') === storeId ? [params.get('search')] : [];
+                    return [params.get('search')];
                   })));
                   assert.ok(storeQueries.includes('maito') && storeQueries.includes('kevytmaito'),
                     'normal search must send both the original query and a milk-family variant');
@@ -223,10 +232,11 @@ jobs:
                     'phone and desktop must request the same store query variants in order');
                   const maitoApiCalls = searchRequests.filter(value => /[?&]search=maito(?:&|$)/i.test(value));
                   assert.ok(maitoApiCalls.some(value => value.includes(endpoint + '?')));
-                  assert.equal(maitoApiCalls.filter(value => ['/api/s-products', '/api/k-products', '/api/store-search']
+                  assert.equal(maitoApiCalls.filter(value => ['/api/s-products', '/api/k-products', '/api/store-search', '/api/lidl/products', '/api/tokmanni/products']
                     .some(other => other !== endpoint && value.includes(other + '?'))).length, 0,
                     'single-chain search must stay within the selected chain');
-                  assert.ok((await cheap.boundingBox()).y <= (await expensive.boundingBox()).y);
+                  if (chain !== 'LIDL') assert.ok((await cheap.boundingBox()).y <= (await expensive.boundingBox()).y);
+                  else await search.getByText(/hinta (ei vahvistettu|vahvistamatta)/i).first().waitFor();
                   assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
                   assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
                   console.log(name, chain, 'search passed', storeQueries);
