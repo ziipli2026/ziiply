@@ -184,7 +184,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
       priceBasis, packageSize: packageText, packageText, comparisonPriceText, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
       requiresLidlPlus: false, eligibility: limitedBatch ? "limited-batch" : "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
-      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
+      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category, sourceCategoryPath: String(product.category || ""), sourceCategoryPath: String(product.category || ""), sourceCategoryPath: String(product.keyfacts?.wonCategoryPrimary || product.category || ""),
       rawText: [brandName, fullName, packagingText, baseText, discountText, category].filter(Boolean).join(" "), sourceUrl,
       hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
     });
