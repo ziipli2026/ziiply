@@ -293,7 +293,7 @@ jobs:
                       const price = Number(label.replace(/\s/g, '').match(/(\d+)[,.](\d{2})€/).slice(1).join('.'));
                       const ean = card.innerText.match(/EAN\s+(\d+)/)?.[1] ?? null;
                       const name = card.children[1].firstElementChild.innerText;
-                      return {name:name.trim(), price, ean};
+                      return {name:name.replace(/\s+/g, ' ').trim(), price, ean};
                     }), desktop);
                     console.log('Live Chromium', name, liveTerm, JSON.stringify([...liveCounts]), JSON.stringify(results.slice(0,10)));
                     for (const api of [...searchEndpoints, '/api/neon-first-search']) {
