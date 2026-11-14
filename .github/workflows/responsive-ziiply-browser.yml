@@ -418,6 +418,10 @@ jobs:
                         : JSON.parse(localStorage.getItem('ziiply-cart-v1') || '{}').items || [];
                       return rows.some(row => String(row.ean ?? row.product?.ean) === '6408430106443');
                     }, desktop);
+                    if (desktop) {
+                      const close = search.getByRole('button', {name:'Sulje tuotevalinta', exact:true}).filter({visible:true});
+                      if (await close.count()) await close.first().click();
+                    }
                     comparing = true;
                     const firstCompareRequest = searchRequests.length;
                     await search.getByRole('button', {name:'Vertailu', exact:true}).filter({visible:true}).last().click();
