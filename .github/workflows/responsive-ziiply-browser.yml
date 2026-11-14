@@ -176,6 +176,9 @@ jobs:
                     {id:'spar-test',name:'EUROSPAR Hyvinkää',chain:'EUROSPAR',city:'Hyvinkää',latitude:60.63,longitude:24.86},
                     {id:'tokmanni-test',name:'Tokmanni Hyvinkää',chain:'TOKMANNI',city:'Hyvinkää',latitude:60.63,longitude:24.86},
                   ];
+                  await search.route('**/api/ean-bank?*', route => route.fulfill({json:{ok:true,product:{
+                    ean:'6408430106443',name:'Valio täysmaito 1 l',brand:'Valio'
+                  }}}));
                   await search.route('**/api/lidl/store-search?*', route => route.fulfill({json:{items:fixtures.slice(0,1)}}));
                   await search.route('**/api/eurospar-stores?*', route => route.fulfill({json:{items:fixtures.slice(1)}}));
                   const searchEndpoints = many ? [endpoint, '/api/k-products', ...(extra ? ['/api/lidl/products', '/api/tokmanni/products'] : [])] : [endpoint];
@@ -419,7 +422,11 @@ jobs:
                     const firstCompareRequest = searchRequests.length;
                     await search.getByRole('button', {name:'Vertailu', exact:true}).filter({visible:true}).last().click();
                     for (const [store, price] of [['Prisma Hyvinkää','1,59'],['K-Citymarket Hyvinkää','1,49']]) {
-                      await search.getByText(store, {exact:true}).filter({visible:true}).first().waitFor({timeout:25000});
+                      const shop = desktop ? search.getByText(store, {exact:true}) : search.getByRole('button', {name:'Avaa '+store, exact:true});
+                      await shop.filter({visible:true}).first().waitFor({timeout:25000}).catch(async error => {
+                        console.log('Comparison screen', name, (await search.locator('body').innerText()).slice(0,3500));
+                        throw error;
+                      });
                       await search.getByText(price+' €', {exact:true}).filter({visible:true}).first().waitFor({timeout:25000});
                     }
                     for (const api of searchEndpoints) assert.ok(searchRequests.slice(firstCompareRequest).some(value => value.includes(api+'?')));
