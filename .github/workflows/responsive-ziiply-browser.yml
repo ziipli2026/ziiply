@@ -177,9 +177,16 @@ jobs:
                         upstream.searchParams.sort();
                         const key = upstream.href;
                         if (!liveResponses.has(key)) liveResponses.set(key, (async () => {
-                          const response = await fetch(key, {signal: AbortSignal.timeout(15000)});
-                          const json = await response.json();
-                          return {status:response.status, json};
+                          const origins = api === '/api/neon-first-search' ? ['https://ziiply.fi', 'https://ziiply.vercel.app'] : ['https://ziiply.vercel.app'];
+                          for (const origin of origins) {
+                            const response = await fetch(new URL(local.pathname + local.search, origin), {
+                              signal: AbortSignal.timeout(15000), headers:{accept:'application/json'}
+                            });
+                            const kind = response.headers.get('content-type') || '';
+                            console.log('Live upstream', origin, api, response.status, kind);
+                            if (response.ok && kind.includes('application/json')) return {status:response.status, json:await response.json()};
+                          }
+                          return {status:502, json:{items:[]}};
                         })());
                         try {
                           const {status, json} = await liveResponses.get(key);
@@ -265,8 +272,12 @@ jobs:
                       : search.getByRole('button', {name:/^Lisää koriin: .*\\d[,.]\\d{2}/});
                     if (!desktop) {
                       const openResults = search.getByRole('button', {name:/Avaa löytöluettelo/}).filter({visible:true});
-                      await prices.first().or(openResults).first().waitFor({timeout:90000});
-                      if (!(await prices.first().isVisible()) && await openResults.count() === 1) await openResults.click();
+                      const opened = search.locator('article').filter({has:search.getByRole('button', {name:/^Lisää koriin:/})}).first();
+                      await opened.or(openResults).first().waitFor({timeout:90000});
+                      if (!(await opened.isVisible()) && await openResults.count() === 1) {
+                        await opened.waitFor({timeout:1500}).catch(() => {});
+                        if (!(await opened.isVisible())) await openResults.click();
+                      }
                     }
                     await prices.first().waitFor({timeout:90000});
                     const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
