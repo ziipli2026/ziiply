@@ -270,7 +270,7 @@ jobs:
                       disabled: el.disabled, ariaDisabled: el.getAttribute('aria-disabled'), title: el.getAttribute('title')
                     })));
                   }
-                  if (name === 'phone' && !many) {
+                  if (name === 'phone' && !many && !liveTerm) {
                     // A real user types a term and waits. Verify the normal 2-second
                     // automatic Justiina search, not only manual button submission.
                     const startedAt = Date.now();
