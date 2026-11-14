@@ -1,7 +1,7 @@
 "use client";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonProductType, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "../components/ziiply/comparisonBrand";
-import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "../components/ziiply/search/normalSearchCatalog";
-import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence, searchWords } from "../components/ziiply/search/desktopNormalRelevance";
+import { searchNormalStores, type NormalSearchStore } from "../components/ziiply/search/normalStoreSearch";
+import { desktopSearchQuery, desktopSearchDecision } from "../components/ziiply/search/desktopNormalRelevance";
 import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
 import { citymarketFailureNotice } from "../components/ziiply/offerSearch/citymarketAvailability";
@@ -13,7 +13,7 @@ import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferenc
 import { useEffect, useRef, useState } from "react";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "../components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, type ZiiplyArrivalDecision } from "../components/ziiply/location/ziiplyArrivalSequence";
-import { readSearchProducts, getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, finalizeNormalSearchResults, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
+import { readSearchProducts, getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList, autocorrectNormalSearchTerm } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -2609,133 +2609,12 @@ export default function DesktopPreviewPage() {
     }
     // The typing debounce is applied in the effect below; never delay a started search again.
     try{
-      async function fetchSearchData(url: string, exactQueries?: string[]) {
-        const queries = exactQueries || desktopSearchQueries(query);
-        let lastData: any = null;
-        const collected:any[]=[];
-        const requestErrors:string[]=[];
-        for (const searchQuery of queries.length ? queries : [query]) {
-          if(diagnostic?.signal.aborted)throw new Error("Debug-haun aikaraja tai uusi haku keskeytti pyynnön.");
-          const params = new URLSearchParams(url.split("?")[1]);
-          params.set("search", searchQuery);
-          const requestUrl=url.split("?")[0]+"?"+params.toString();
-          report("request",{requestUrl,searchQuery});
-          const requestStarted=performance.now();
-          try {
-          const response = await fetch(requestUrl, { cache: "no-store", ...(diagnostic?{signal:diagnostic.signal}:{}) });
-          if(!diagnostic)traceNormal("provider_http",{requestUrl,status:response.status,durationMs:Math.round(performance.now()-requestStarted)});
-          report("http",{requestUrl,status:response.status,durationMs:Math.round(performance.now()-requestStarted),contentType:response.headers.get("content-type"),vercelId:response.headers.get("x-vercel-id"),vercelCache:response.headers.get("x-vercel-cache")});
-          if (!response.ok) throw new Error(`Kauppahaku epäonnistui (HTTP ${response.status}).`);
-          const data = await response.json();
-          lastData = data;
-          const items = readSearchProducts(data) as any[];
-          if(!diagnostic)traceNormal("provider_response",{requestUrl,source:data?.source,status:data?.status,error:data?.error,count:items.length,products:items.slice(0,120)});
-          report("response",{requestUrl,rawCount:items.length,source:data?.source,apiStatus:data?.status,error:data?.error});
-          const usable=items.some((product:any)=>desktopSearchDecision(query,product).accepted);
-          if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:items.filter((product:any)=>desktopSearchDecision(query,product).accepted).length});
-          // Qualification is repeated after Neon has supplied compatible name evidence.
-          collected.push(...items.map((item:any)=>({...item,__providerSource:data?.source})));
-          } catch(error) { if(diagnostic?.signal.aborted)throw error; requestErrors.push(String(error)); report("provider_variant_error",{requestUrl,error:String(error)}); }
-        }
-        if(!lastData && requestErrors.length)throw new Error(requestErrors.join("; "));
-        return collected.length ? {...lastData,products:collected,variantErrors:requestErrors} : lastData;
-      }
-      // Start catalog lookup concurrently with the existing selected-store providers.
-      // The catalog never supplies a store price or modifies recipe/offer engines.
-      const neonPromise = fetchNormalSearchCatalog(query, diagnostic?.signal);
-      const calls:any[]=[];
-      if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.id))}&storeName=${encodeURIComponent(String(s.name||""))}&storeType=${storeKind(s)==="sLocal"?"local":"hyper"}`).then(d=>({chain:"S",store:s,data:d})));
-      if(k)calls.push(fetchSearchData(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`).then(d=>({chain:"K",store:k,data:d})));
-      const settledPromise=Promise.allSettled(calls);
-      const neonRaw = await neonPromise;
-      if(!diagnostic)traceNormal("neon_response",{count:neonRaw.length,products:neonRaw.slice(0,100)});
-      const neonRows = selectNormalSearchCatalog(query, neonRaw)
-        .slice(0,50)
-        .map((x:any)=>({...x,__chain:"Neon",__store:"Tuoteluettelo",__price:null,__priceSource:"neon-catalog-unpriced"}));
-      // Keep Neon metadata internal until a selected-store price is available; do not show an unpriced
-      // preliminary list before store prices and final ranking are available.
-      // The loading state remains visible until the merged result is ready.
-      const settled=await settledPromise;
-      const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
-      const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
-      if(!batches.length && failures.length)throw new Error(failures.join("; "));
-      report("providers_settled",{failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,error:b.data?.error}))});
-      const catalogByEan=new Map<string,any>(neonRows.map((item:any)=>[String(item.ean),item]));
-      const withEvidence=(item:any)=>withDesktopCatalogEvidence(item,catalogByEan.get(String(item.ean || '')));
-      const itemsOf=(data:any):any[]=>readSearchProducts(data) as any[];
-      // A named product may be indexed under a shorter current shop name.
-      // Try at most two observed identities. Abbreviated brand punctuation
-      // can hide one EAN even when a different product already has a quote.
-      if(searchWords(query).length>=1 && neonRows.length>0){
-        // Also recover missing catalog EANs for single-word searches such as maito.
-        // Shop search can distinguish punctuation such as pesty/mullattu.
-        // Only skip identities actually requested, not word-equivalent names.
-        const lookupKey=(name:string)=>name.normalize('NFKC').toLocaleLowerCase('fi-FI').trim().replace(/\s+/g,' ');
-        const tried=new Set(desktopSearchQueries(query).map(lookupKey));
-        const fallbackNames=[...new Set<string>(neonRows.map((item:any)=>String(item.name || '')).filter(Boolean))]
-          .filter(name=>!tried.has(lookupKey(name)));
-        await Promise.all(batches.map(async batch=>{
-          const priced=itemsOf(batch.data).filter(item=>{
-            const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
-            return Number.isFinite(price)&&price>0&&desktopSearchDecision(query,withEvidence(item)).accepted;
-          });
-          const pricedEans=new Set(priced.map(item=>normalizeEan(item.ean)).filter(Boolean));
-          const queryWords=' '+searchWords(query).join(' ')+' ';
-          const brandLookups=[...new Set<string>(neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean))).map((item:any)=>String(item.brand||'')).filter((brand:string)=>
-            /\./.test(brand) && searchWords(brand).length>=2 && queryWords.includes(' '+searchWords(brand).join(' ')+' ')
-          ))];
-          const missingCatalogNames=neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)))
-            .flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases.filter((alias:unknown)=>typeof alias==='string').map(String):[])])
-            .filter(Boolean);
-          // Recover missing EAN quotes even when another matching product is already priced.
-          // Otherwise Jozo salt and Salonen bread can be silently omitted from the visible results.
-          const lookupNames=[...neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)) && desktopSearchDecision(query,item).accepted).flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases:[])]),...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
-          if(!lookupNames.length)return;
-          const store=batch.store;
-          const url=batch.chain==='S'
-            ? `/api/s-products?store=${encodeURIComponent(String(store.id))}&storeName=${encodeURIComponent(String(store.name||""))}&storeType=${storeKind(store)==="sLocal"?"local":"hyper"}`
-            : `/api/k-products?store=${encodeURIComponent(String(store.id))}`;
-          try{
-            report('catalog_name_lookup',{chain:batch.chain,store:store.name,names:lookupNames});
-            const recovered=await fetchSearchData(url,lookupNames);
-            // Name-based catalog lookups can return similarly named but
-            // different-EAN products. Only recover identities actually
-            // present in the Neon catalog; the primary store search above
-            // remains free to return other relevant priced products.
-            const missingEans=new Set(neonRows.map((item:any)=>normalizeEan(item.ean)).filter(Boolean));
-            const matchingCatalogQuotes=itemsOf(recovered).filter(item=>{
-              const ean=normalizeEan(item.ean||item.barcode||item.product?.ean);
-              const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
-              return missingEans.has(ean) && Number.isFinite(price) && price>0;
-            });
-            batch.data={...batch.data,products:[...itemsOf(batch.data),...matchingCatalogQuotes]};
-          }catch(error){failures.push(String(error));report('catalog_name_lookup_error',{chain:batch.chain,error:String(error)});}
-        }));
-      }
-      const rows:any[]=[];
-      const productDecisions:any[]=[];
-      for(const batch of batches){
-        const items=readSearchProducts(batch.data) as any[];
-        for(const x of items){
-          const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);
-          const responseSource=x.__providerSource||batch.data?.source;
-          const priceIsEuros=batch.chain==="S"&&responseSource==="s-kaupat-normal-v220";
-          const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
-          const product=withEvidence({...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:responseSource||""});
-          const normalRejected=!desktopSearchDecision(query,product).accepted;
-          const included=!normalRejected;
-          productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});
-          if(included)rows.push(product);
-        }
-      }
-      const rankedRows = finalizeNormalSearchResults(
-        query,
-        rows,
-        product => product.__price ?? Number.POSITIVE_INFINITY,
-        product => product.ean || product.barcode || product.product?.ean,
-        product => `${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`,
-      );
-      const sortedRows = rankedRows.slice(0, 100);
+      const stores: NormalSearchStore[] = [];
+      if(s) stores.push({chain:"S",id:s.id,name:String(s.name||""),type:storeKind(s)==="sLocal"?"local":"hyper"});
+      if(k) stores.push({chain:"K",id:k.id,name:String(k.name||"")});
+      const { sortedRows, rankedRows, failures, batches, rows, productDecisions } = await searchNormalStores(query, stores, {
+        signal: diagnostic?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
+      });
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:rankedRows.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;

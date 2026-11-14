@@ -1719,8 +1719,8 @@ import {
 import {
   learnNormalSearchChoice as learnZiiplyNormalSearchChoice,
 } from "./components/ziiply/search/searchEngine";
-import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./components/ziiply/search/normalSearchCatalog";
-import { desktopSearchQueries, desktopSearchQuery } from "./components/ziiply/search/desktopNormalRelevance";
+import { searchNormalStores, type NormalSearchStore } from "./components/ziiply/search/normalStoreSearch";
+import { desktopSearchQuery } from "./components/ziiply/search/desktopNormalRelevance";
 import { autocorrectNormalSearchTerm } from "./components/ziiply/desktop/justiina/mobileVoiceList";
 import { getLearnedStructureBoost } from "./components/ziiply/search/searchIntentMemory";
 
@@ -12992,7 +12992,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
       // Revalidate cached results against the current product-group gate.
       const cachedTerm = focusedSearchTerms[0] || useTerms[0] || "";
-      const cachedValidated = finalizeNormalSearchResults(
+      const cachedValidated = usesSharedStoreQueries ? cachedNormalSearchV441.results : finalizeNormalSearchResults(
         cachedTerm,
         cachedNormalSearchV441.results,
         getProductPrice,
@@ -13058,7 +13058,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Normal search collects selected-store prices without chain preference.
         // Multi-item selection remains sequential (maito -> kahvi -> cola).
         // The Neon catalog is metadata only; no catalog-only price is displayed.
-        const catalogPromise = usesSharedStoreQueries ? fetchNormalSearchCatalog(term) : null;
+        if (usesSharedStoreQueries) {
+          const withinS = storeCompareScope === "within_chain" && withinChain === "S";
+          const withinK = storeCompareScope === "within_chain" && withinChain === "K";
+          const stores: NormalSearchStore[] = [];
+          const sId = withinS ? activeArea.sStoreId : activeStores.sStoreId;
+          const kId = withinK ? activeArea.kStoreId : activeStores.kStoreId;
+          if (sId && (withinS || (!withinK && selectedChains.s))) {
+            stores.push({chain:"S", id:sId, name:(withinS ? activeArea.sStoreName : activeStores.sStoreName) || "", type:storeMode === "local" ? "local" : "hyper"});
+          }
+          if (kId && (withinK || (!withinS && selectedChains.k))) {
+            stores.push({chain:"K", id:kId, name:(withinK ? activeArea.kStoreName : activeStores.kStoreName) || ""});
+          }
+          const {sortedRows} = await searchNormalStores(term, stores, {trace: traceSearch});
+          if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+          for (const row of sortedRows) {
+            const shaped = normalizeSProduct({
+              ...row, ean: row.ean || row.barcode || row.product?.ean,
+              price: row.__price, priceAmountUnit: "eur",
+              comparisonPriceAmountUnit: row.comparisonPriceAmountUnit ?? row.priceAmountUnit ??
+                (row.__chain === "S" && row.__priceSource === "s-kaupat-normal-v220" ? "eur" : "cent"),
+            });
+            if (shaped) all.push({
+              ...row, ...shaped, originalSearchTerm: term, usedSearchQuery: term,
+              storeName: row.__store, __recipeChain: row.__chain, __recipeStoreName: row.__store,
+            });
+          }
+          continue;
+        }
         const coverageQueries=recipeCoverageQueries(term,recipeIngredient,[...new Set(getNormalSearchQueries(term))].slice(0,6));
         const generatedSearchQueries = (coverageQueries.length?coverageQueries:getNormalSearchQueries(term))
           .map((query) => fixText(String(query || "")).trim())
@@ -13075,7 +13102,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // nykyinen intent-filtteri/rankkaus rajaa väärät osumat. Pidetään toinen
         // kysely turvallisena alias/canonical-fallbackina. Tuntemattomalle
         // tuotteelle säilytetään laajempi fallback.
-        const searchQueries = usesSharedStoreQueries ? desktopSearchQueries(term) : Array.from(
+        const searchQueries = Array.from(
           new Map(
             [...generatedSearchQueries, originalSearchFallback]
               .filter(Boolean)
@@ -13287,46 +13314,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if(recipeIngredient)appendRecipeDebug("recipe-product-decisions",{term,searchQuery,ingredient:recipeIngredient,rawCount:rawItems.length,decisions:rawItems.map(product=>({name:product.name,category:product.category,price:getProductPrice(product),rejection:recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient)})),accepted:finalItems.map(product=>product.name)});
           all.push(...finalItems);
         }
-        // Catalog recovery only supplements priced products from the selected stores.
-        // Recover up to two missing catalog identities from the selected stores.
-        // Only a matching EAN with a verified shop price can enter the picker.
-        if (catalogPromise) {
-          const catalogRows = selectNormalSearchCatalog(term, await catalogPromise);
-          if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
-          const seenEans = new Set(all.map(item => normalizeEan(item.ean)).filter(Boolean));
-          const missing = catalogRows.filter(row => {
-            const ean = normalizeEan(row.ean);
-            return isUsableEan(ean) && !seenEans.has(ean) &&
-              Boolean(row.name) && productGroupGate(term, String(row.name));
-          }).slice(0, 2);
-          for (const catalog of missing) {
-            const lookup = String(catalog.name).trim();
-            const requests: Array<Promise<Product[]>> = [];
-            const singleS = storeCompareScope === "within_chain" && withinChain === "S";
-            const singleK = storeCompareScope === "within_chain" && withinChain === "K";
-            const oneMode = storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one";
-            const useS = singleS || (!singleK && selectedChains.s && !(oneMode && selectedChains.k && !selectedChains.s));
-            const useK = singleK || (!singleS && selectedChains.k && !(oneMode && selectedChains.s && !selectedChains.k));
-            const sId = singleS ? activeArea.sStoreId : activeStores.sStoreId;
-            const kId = singleK ? activeArea.kStoreId : activeStores.kStoreId;
-            if (useS && sId) requests.push(fetchSProducts(lookup, sId).then(items => items.map(item => ({
-              ...item, __recipeChain: "S", __recipeStoreName: singleS ? activeArea.sStoreName : activeStores.sStoreName,
-            }))));
-            if (useK && kId) requests.push(fetchKProducts(lookup, kId).then(items => items.map(item => ({
-              ...convertKProductToProduct(item), ean: item.ean,
-              __recipeChain: "K", __recipeStoreName: singleK ? activeArea.kStoreName : activeStores.kStoreName,
-            }))));
-            if (requests.length === 0) continue;
-            const responses = await Promise.allSettled(requests);
-            if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
-            const recovered = responses.flatMap(response => response.status === "fulfilled" ? response.value : [])
-              .filter(item => normalizeEan(item.ean) === normalizeEan(catalog.ean) &&
-                getProductPrice(item) > 0 && !isBadNormalResult(item, term) &&
-                productGroupGate(term, item.name));
-            all.push(...recovered.map(item => ({ ...item, originalSearchTerm: term, usedSearchQuery: lookup })));
-            if (recovered.length) seenEans.add(normalizeEan(catalog.ean));
-          }
-        }
       }
 
       // Recipe selection retains its chain-specific identity.
@@ -13361,7 +13348,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         : normalItemsForSelectionUnfiltered.filter((product) => !isBadNormalResult(product, originalNormalQuery));
 
       traceSearch("merged-provider-results", { products: traceProducts(normalItemsForSelection) });
-      const normalUnique = filterPetProductsFromFoodSearchV443(
+      const normalUnique = usesSharedStoreQueries ? [] : filterPetProductsFromFoodSearchV443(
         normalItemsForSelection,
         focusedSearchTerms[0] || useTerms[0] || "",
       )
@@ -13422,7 +13409,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         });
 
-      const unique = recipeIngredient
+      const unique = usesSharedStoreQueries ? all : recipeIngredient
         ? prioritizeRecipeFishProducts(recipeIngredient.name, rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0], normalUnique.filter(recipeAllows), getProductPrice), recipeIngredient)
         : finalizeNormalSearchResults(
             focusedSearchTerms[0] || useTerms[0] || "",
