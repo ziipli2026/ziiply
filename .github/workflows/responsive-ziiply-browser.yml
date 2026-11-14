@@ -120,7 +120,7 @@ jobs:
                   await search.addInitScript(({ chain, storeId, storeName }) => {
                     const store = { id: storeId, name: storeName, chain, latitude: 60.63, longitude: 24.86 };
                     localStorage.setItem('ziiply-desktop-store-choices-v1', JSON.stringify({
-                      storeMode: 'hyper', storeModeChosen: true, selectedChain: chain,
+                      storeMode: 'hyper', storeModeChosen: true, selectedChain: chain === 'TOKMANNI' ? 'SPAR' : chain,
                       betweenMode: 'one', storeCompareScope: 'between_chains',
                       allStoreSelections: { hyper: { [store.id]: store }, local: {} }
                     }));
