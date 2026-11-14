@@ -1,7 +1,8 @@
 import { neon } from "@neondatabase/serverless";
 
 /** Refuse to create Ziiply tables or log runs in another application's database. */
-async function assertZiiplyDatabase(sql: ReturnType<typeof neon>) {
+async function assertZiiplyDatabase(databaseUrl: string) {
+  const sql = neon(databaseUrl);
   const rows = await sql`SELECT current_database() AS database_name`;
   if (!Array.isArray(rows) || (rows[0] as { database_name?: string } | undefined)?.database_name !== "neondb") {
     throw new Error("Ziiply publication logging blocked: unexpected database");
@@ -15,7 +16,7 @@ export async function recordPublicationRun(input: {
 }, databaseUrl = process.env.DATABASE_URL): Promise<void> {
   if (!databaseUrl) return;
   const sql = neon(databaseUrl);
-  await assertZiiplyDatabase(sql);
+  await assertZiiplyDatabase(databaseUrl);
   await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -41,7 +42,7 @@ export async function recordPublicationRun(input: {
 export async function recentPublicationRuns(chain: string, limit = 20) {
   if (!process.env.DATABASE_URL) return [];
   const sql = neon(process.env.DATABASE_URL);
-  await assertZiiplyDatabase(sql);
+  await assertZiiplyDatabase(process.env.DATABASE_URL);
   await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
