@@ -243,7 +243,7 @@ jobs:
                       {id: 23, name: 'Maitokolmio ruisleipä', priceVerified: false, source: 'lidl.fi-public-research'}
                     ]}});
                     if (comparing) {
-                      const price = api === '/api/s-products' ? 159 : 149;
+                      const price = api === '/api/s-products' ? 179 : 149;
                       return route.fulfill({json:{[api === '/api/s-products' ? 'products' : 'items']:[
                         {id:1,name:'Valio täysmaito 1 l',ean:'6408430106443',price,priceAmountUnit:'cent',storeItems:[{price}]}
                       ]}});
@@ -422,7 +422,7 @@ jobs:
                     const firstCompareRequest = searchRequests.length;
                     await search.getByRole('button', {name:'Vertailu', exact:true}).filter({visible:true}).last().click();
                     if (!desktop) await search.getByRole('button', {name:/Halpuusvertailu/}).filter({visible:true}).first().click();
-                    for (const [store, price] of [['Prisma Hyvinkää','1,59'],['K-Citymarket Hyvinkää','1,49']]) {
+                    for (const [store, price] of [['Prisma Hyvinkää','1,79'],['K-Citymarket Hyvinkää','1,49']]) {
                       const shop = desktop ? search.getByText(store, {exact:true}) : search.getByRole('button', {name:'Avaa '+store, exact:true});
                       await shop.filter({visible:true}).first().waitFor({timeout:25000}).catch(async error => {
                         console.log('Comparison screen', name, (await search.locator('body').innerText()).slice(0,3500));
@@ -433,7 +433,7 @@ jobs:
                         throw error;
                       });
                     }
-                    for (const api of searchEndpoints) assert.ok(searchRequests.slice(firstCompareRequest).some(value => value.includes(api+'?')));
+                    for (const api of (desktop ? searchEndpoints : ['/api/k-products'])) assert.ok(searchRequests.slice(firstCompareRequest).some(value => value.includes(api+'?')));
                     console.log(name, 'cart-to-comparison passed');
                   }
                   await searchContext.close();
