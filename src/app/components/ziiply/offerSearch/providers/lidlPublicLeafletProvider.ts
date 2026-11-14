@@ -101,6 +101,10 @@ function lidlProductCategory(name: string): string | null {
 }
 
 function categoryFor(name: string, sourceUrl: string) {
+  // A source department is stronger evidence than accidental food substrings
+  // in a product name (e.g. "kala" inside a craft product).
+  const sourceDepartment = normalize(decodeURIComponent(sourceUrl.split("?")[0] || ""));
+  if (/\/h\/(?:ompelukone|auto-ja-moottoripyo|tyokalut|vaatteet|elektroniikka|puutarha|askartelu|kasityot)/.test(sourceDepartment)) return "Muut";
   const productCategory = lidlProductCategory(name);
   if (productCategory) return productCategory;
   const s = normalize(name + " " + sourceUrl);
