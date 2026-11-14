@@ -12907,7 +12907,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (!hasActiveStores) {
+    const selectedStoreCount = [
+      selectedChains.s && activeStores.sStoreId,
+      selectedChains.k && activeStores.kStoreId,
+      selectedChains.lidl && selectedLidlStoreV750?.id,
+      selectedChains.tokmanni && (selectedEurosparStoreV751?.id || selectedTokmanniStoreV756?.id),
+    ].filter(Boolean).length;
+    const hasSearchStores = usesSharedStoreQueries && storeCompareScope === "between_chains"
+      ? selectedStoreCount >= (betweenChainSelectionModeV749 === "many" ? 2 : 1)
+      : hasActiveStores;
+    if (!hasSearchStores) {
       setLocationMessage(
         "Hae ensin alue tai käytä omaa sijaintia, jotta kaupat voidaan valita.",
       );
