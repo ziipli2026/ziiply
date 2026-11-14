@@ -113,7 +113,10 @@ jobs:
                 ]) {
                   if (chain !== 'S' && name !== 'phone' && !desktop) continue;
                   const endpoint = { S: '/api/s-products', K: '/api/k-products', LIDL: '/api/lidl/products', SPAR: '/api/tokmanni/products', TOKMANNI: '/api/tokmanni/products' }[chain];
-                  const search = await context.newPage();
+                  const searchContext = await browser.newContext(options);
+                  await searchContext.grantPermissions(['geolocation']);
+                  await searchContext.setGeolocation({ latitude: 60.63, longitude: 24.86 });
+                  const search = await searchContext.newPage();
                   await search.addInitScript(({ chain, storeId, storeName }) => {
                     const store = { id: storeId, name: storeName, chain, latitude: 60.63, longitude: 24.86 };
                     localStorage.setItem('ziiply-desktop-store-choices-v1', JSON.stringify({
@@ -247,7 +250,7 @@ jobs:
                   assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
                   assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
                   console.log(name, chain, 'search passed', storeQueries);
-                  await search.close();
+                  await searchContext.close();
                 }
                 console.log(name + ' passed');
                 await context.close();
