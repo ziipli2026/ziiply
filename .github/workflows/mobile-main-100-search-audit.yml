@@ -91,6 +91,16 @@ jobs:
             if(summary.errors||summary.unsorted||summary.unstableTop||summary.wrongGroup||summary.unexpectedEmpty.length)process.exitCode=1;
           })();
           NODE
+      - name: Check out actual production main for unbiased comparison
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: .production-main
+      - name: Compile actual production main search core
+        if: always()
+        run: |
+          npx tsc .production-main/src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-production-main-audit
       - name: Check out desktop preview for side-by-side comparison
         if: always()
         uses: actions/checkout@v4
@@ -116,8 +126,8 @@ jobs:
             }
             return null;
           }
-          const mobilePath=findCompiledCore('.tmp-100-audit');
-          if(!mobilePath)throw Error('Compiled mobile ziiplyCore.js not found');
+          const mobilePath=findCompiledCore('.tmp-production-main-audit');
+          if(!mobilePath)throw Error('Compiled production main ziiplyCore.js not found');
           const mobile=require(mobilePath);
           let desktop;
           try {
