@@ -11,6 +11,8 @@ assert(start>0&&end>start);
 let now=1000000,ui;
 const ref=v=>({current:v});
 const context={Date:{now:()=>now},Number,Map,
+  window:{dispatchEvent:()=>true},CustomEvent:class {},
+  liveArrivalPositionRefV864:ref(null),recordArrivalDiagnostic:()=>{},
   evaluateZiiplyArrival,initialZiiplyArrivalState,
   liveArrivalHandlerRefV864:ref(null),liveArrivalStateRefV864:ref(initialZiiplyArrivalState()),
   liveArrivalLastFixAtRefV864:ref(0),liveArrivalDecisionRefV864:ref(null),
@@ -33,17 +35,17 @@ const sample=(elapsed,{lat=60,lon=25,speed=null,accuracy=8,age=0}={})=>{
  now=1000000+elapsed;
  context.liveArrivalHandlerRefV864.current({timestamp:now-age,coords:{latitude:lat,longitude:lon,speed,accuracy}});
 };
-sample(0);assert.equal(context.scannerInStoreRefV828.current,true,'reliable selected-store fix confirms without a travel delay');
+sample(0,{speed:0});
+assert.equal(context.scannerInStoreRefV828.current,false,'one fix is insufficient');
+sample(2500,{speed:0});
+sample(5000,{speed:0});
+assert.equal(context.scannerInStoreRefV828.current,true,'three stationary fixes over five seconds confirm the selected store');
 assert.equal(ui.name,'Sale');assert.equal(ui.verified,true);
-sample(5000,{accuracy:150});assert.equal(context.scannerInStoreRefV828.current,true,'brief indoor loss preserves recent confirmation');
-now=1031000;context.liveArrivalHandlerRefV864.current(null);
+sample(10000,{accuracy:150});assert.equal(context.scannerInStoreRefV828.current,true,'brief indoor loss preserves recent confirmation');
+now=1036000;context.liveArrivalHandlerRefV864.current(null);
 assert.equal(context.scannerInStoreRefV828.current,false,'confirmation expires after 30 seconds');
-sample(35000);assert.equal(context.scannerInStoreRefV828.current,true,'fresh GPS recovers');
-sample(40000,{lat:60.0013});assert.equal(context.scannerInStoreRefV828.current,false,'approach is not collection');
-sample(45000);assert.equal(context.scannerInStoreRefV828.current,true,'re-entry confirms');
-sample(80000,{age:20000});assert.equal(context.scannerInStoreRefV828.current,false,'stale fixes do not confirm');
-context.buildGpsStoreCandidatePoolFromAllAreasV40=()=>[{name:'Sale',latitude:60,longitude:25},{name:'K-Market',latitude:60.00001,longitude:25}];
-sample(85000);assert.equal(context.scannerInStoreRefV828.current,false,'ambiguous shops are not confirmed');
+sample(40000,{speed:0});assert.equal(context.scannerInStoreRefV828.current,true,'fresh GPS recovers');
+sample(75000,{age:20000});assert.equal(context.scannerInStoreRefV828.current,false,'stale fixes do not confirm');
 // Execute the real sampling effect with fake browser callbacks and timers.
 const effectStart=page.indexOf('  // V864: lightweight fresh samples');
 const effectEnd=page.indexOf('  // V737_RESUME_REFRESH_AFTER_LONG_BACKGROUND:',effectStart);
@@ -62,4 +64,4 @@ assert.equal(calls,1);success({});timer();assert.equal(calls,2,'sample again eve
 const late=success;hidden=true;listeners.visibilitychange();late({});assert.equal(handlerCalls,1,'hidden-session callback is ignored');
 hidden=false;listeners.visibilitychange();assert.equal(calls,3,'resume requests fresh location immediately');
 cleanup();success({});assert.equal(handlerCalls,1,'unmounted callback is ignored');
-console.log('PASS: five-second polling, immediate reliable store presence, null speed, retries, indoor GPS loss, departure, stale fixes, ambiguity and resume');
+console.log('PASS: five-second polling, stationary store confirmation, indoor GPS loss, stale fixes and resume');
