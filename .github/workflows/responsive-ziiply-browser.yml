@@ -201,7 +201,7 @@ jobs:
                       disabled: el.disabled, ariaDisabled: el.getAttribute('aria-disabled'), title: el.getAttribute('title')
                     })));
                   }
-                  if (name === 'phone') {
+                  if (name === 'phone' && !many) {
                     // A real user types a term and waits. Verify the normal 2-second
                     // automatic Justiina search, not only manual button submission.
                     const startedAt = Date.now();
@@ -254,7 +254,11 @@ jobs:
                   if (desktop && !within) assert.deepEqual(storeQueries, phoneStoreQueries.get(scenario),
                     'phone and desktop must request the same store query variants in order');
                   const maitoApiCalls = searchRequests.filter(value => /[?&]search=maito(?:&|$)/i.test(value));
-                  for (const api of searchEndpoints) assert.ok(maitoApiCalls.some(value => value.includes(api + '?')));
+                  for (const api of searchEndpoints) {
+                    assert.ok(maitoApiCalls.some(value => value.includes(api + '?')));
+                    if (many) assert.ok(searchRequests.some(value => value.includes(api + '?') && /[?&]search=kevytmaito(?:&|$)/i.test(value)),
+                      'each selected chain must receive expanded search queries');
+                  }
                   assert.equal(maitoApiCalls.filter(value => ['/api/s-products', '/api/k-products', '/api/store-search', '/api/lidl/products', '/api/tokmanni/products']
                     .some(other => !searchEndpoints.includes(other) && value.includes(other + '?'))).length, 0,
                     'single-chain search must stay within the selected chain');
