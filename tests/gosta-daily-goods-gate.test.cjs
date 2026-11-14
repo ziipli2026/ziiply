@@ -27,3 +27,22 @@ test("no product-name blacklist", () => {
   const core = fs.readFileSync("src/app/components/ziiply/offerSearch/ziiplyOfferCategoryCore.ts","utf8");
   assert.ok(!core.includes("sukkalanka|pullotunkki|ompelutarvikelaatikko"));
 });
+
+test("Lidl preserves source taxonomy separately from display categories", () => {
+  const provider = fs.readFileSync("src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts", "utf8");
+  assert.match(provider, /sourceCategoryPath\?: string/);
+  assert.match(provider, /sourceCategoryPath: String\(product\.keyfacts\?\.wonCategoryPrimary \|\| product\.category \|\| ""\)/);
+  assert.match(provider, /sourceCategoryPath: String\(product\.category \|\| ""\)/);
+});
+test("Tokmanni retains actual page scope, not a fabricated product category", () => {
+  const provider = fs.readFileSync("src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts", "utf8");
+  assert.match(provider, /sourceDepartment: "elintarvikkeet-ja-elainruoka"/);
+  assert.match(provider, /sourceCategoryPath: ""/);
+});
+test("All public result cleaning paths use the same grocery gate", () => {
+  const core = fs.readFileSync("src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts", "utf8");
+  const dedupe = core.slice(core.indexOf("export function dedupeZiiplyGostaOfferResultsV146"), core.indexOf("export function cleanZiiplyGostaOfferResultsV146"));
+  const clean = core.slice(core.indexOf("export function cleanZiiplyGostaOfferResultsV146"), core.indexOf("function gostaOfferSortPrice"));
+  assert.match(dedupe, /!isGostaDailyGoodsOffer\(item\)/);
+  assert.match(clean, /!isGostaDailyGoodsOffer\(item\)/);
+});
