@@ -15,6 +15,10 @@ const cases = [
   ["non-grocery category", {title:"Neulelanka",category:"Koti & vapaa-aika",categoryPath:"Käsityöt > Neulelangat"},false],
   ["tool mislabeled food", {title:"Tunkki",category:"Kuivatuotteet",categoryPath:"Työkalut > Autotarvikkeet"},false],
   ["clothes mislabeled food", {title:"Takki",category:"Hevi",categoryPath:"Vaatteet > Ulkovaatteet"},false],
+  ["garden miscategorized as produce", {title:"Kasvualusta",category:"Hevi",categoryPath:"Puutarha > Kasvualustat"},false],
+  ["electronics miscategorized as drinks", {title:"Kodinkone",category:"Juomat",categoryPath:"Elektroniikka > Kodinkoneet"},false],
+  ["cleaning hygiene", {title:"Astianpesuaine",category:"Kodinhoito",categoryPath:"Kodinhoito > Astianpesuaineet"},true],
+  ["baby care", {title:"Vaipat",category:"Lastenhoito",categoryPath:"Lastenhoito > Vaipat"},true],
   ["unknown", {title:"Tuntematon",category:"Muut"},false],
   ["cached source taxonomy", {title:"Tuote",category:"Maitotuotteet",__sourceOfferSearchResult:{sourceCategoryPath:"Käyttötavarat > Työkalut"}},false],
 ];
