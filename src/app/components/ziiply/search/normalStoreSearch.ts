@@ -28,7 +28,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     const collected:any[]=[];
     const requestErrors:string[]=[];
     for (const searchQuery of queries.length ? queries : [query]) {
-      if(signal.aborted)throw new Error("Debug-haun aikaraja tai uusi haku keskeytti pyynnön.");
+      if(signal?.aborted)throw new Error("Debug-haun aikaraja tai uusi haku keskeytti pyynnön.");
       const params = new URLSearchParams(url.split("?")[1]);
       params.set("search", searchQuery);
       const requestUrl=url.split("?")[0]+"?"+params.toString();
@@ -48,7 +48,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       if(observe)report("qualification",{requestUrl,usable,acceptedCount:items.filter((product:any)=>desktopSearchDecision(query,product).accepted).length});
       // Qualification is repeated after Neon has supplied compatible name evidence.
       collected.push(...items.map((item:any)=>({...item,__providerSource:data?.source})));
-      } catch(error) { if(signal.aborted)throw error; requestErrors.push(String(error)); report("provider_variant_error",{requestUrl,error:String(error)}); }
+      } catch(error) { if(signal?.aborted)throw error; requestErrors.push(String(error)); report("provider_variant_error",{requestUrl,error:String(error)}); }
     }
     if(!lastData && requestErrors.length)throw new Error(requestErrors.join("; "));
     return collected.length ? {...lastData,products:collected,variantErrors:requestErrors} : lastData;
@@ -67,7 +67,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   // preliminary list before store prices and final ranking are available.
   // The loading state remains visible until the merged result is ready.
   const settled=await settledPromise;
-  const batches = settled.flatMap(result => result.status === "fulfilled" ? [result.value] : []);
+  const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
   const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
   if(!batches.length && failures.length)throw new Error(failures.join("; "));
   report("providers_settled",{failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,error:b.data?.error}))});
