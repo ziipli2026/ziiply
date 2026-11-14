@@ -34,3 +34,17 @@ test("Lidl source departments reject non-grocery offers before name heuristics",
   assert.equal(categoryFor("Kanan fileepihvit", "https://www.lidl.fi/h/lihat/h10095752"), "Liha & makkarat");
   assert.equal(categoryFor("Pyykinpesuaine", "https://www.lidl.fi/h/siivous/h1001"), "Kodinhoito");
 });
+
+test("Lidl Plus keeps citrus fruit and excludes obvious non-food", () => {
+  const provider = fs.readFileSync("src/app/components/ziiply/offerSearch/providers/lidlProvider.ts", "utf8");
+  const start = provider.indexOf("function classifyLidlOffer(");
+  const end = provider.indexOf("\nfunction formatPrice(", start);
+  assert.ok(start >= 0 && end > start);
+  const source = provider.slice(start, end).replace("name: string, brand = \"\"", "name, brand = \"\"");
+  const classify = new Function("normalizeText", "lidlProductCategory", source + "\nreturn classifyLidlOffer;")(
+    value => String(value).toLowerCase(), () => null
+  );
+  assert.equal(classify("Klementiini 1 kg"), "Hevi");
+  assert.equal(classify("Mandariini 1 kg"), "Hevi");
+  assert.equal(classify("Auton akkulaturi"), "Muut");
+});
