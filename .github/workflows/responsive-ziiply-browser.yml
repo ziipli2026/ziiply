@@ -303,7 +303,8 @@ jobs:
                       }
                     }
                     const lidlNotice = search.getByText(/Hinta ei vahvistettu|Hinta vahvistamatta|ei vahvistettu/i).filter({visible:true});
-                    if (searchEndpoints.includes('/api/lidl/products')) await lidlNotice.first().waitFor({timeout:20000});
+                    if (chain === 'LIDL') await lidlNotice.first().waitFor({timeout:20000});
+                    else if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
                     if (chain !== 'LIDL') await prices.first().waitFor({timeout:90000});
                     const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
                       const card = desktop ? button.parentElement.parentElement : button.closest('article');
