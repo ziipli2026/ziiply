@@ -25,7 +25,7 @@ async function measure(chain:string,source:string,task:()=>Promise<any[]>){
 export async function GET(request:Request){
   if(process.env.CRON_SECRET && request.headers.get("authorization")!==`Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ok:false},{status:401});
   // Run independent source checks concurrently so one slow provider does not delay all log writes.
-  const results=await Promise.all([
+  const results: Array<{chain:string;source:string;ok:boolean;count:number;missingPrice?:number;missingImage?:number;missingCategory?:number;error?:string}> = await Promise.all([
     measure("S","s-prisma-hyvinkaa",()=>searchSelectedSKaupatOffersV11(MASTER,{storeName:"Prisma Hyvinkää",sStoreName:"Prisma Hyvinkää"} as any)),
     measure("K-SUPERMARKET","k-supermarket-jokela",()=>searchKSupermarketOffers(MASTER,{storeName:"K-Supermarket Jokela",kStoreName:"K-Supermarket Jokela",storeId:"ji1luTAL",kStoreId:"ji1luTAL"} as any)),
     measure("K-MARKET","k-market-hakalantori",()=>searchKMarketOffers(MASTER,{storeName:"K-Market Hakalantori",kStoreName:"K-Market Hakalantori",storeId:"aETRYhoN",kStoreId:"aETRYhoN"} as any)),
