@@ -2873,6 +2873,23 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
     .sort((a, b) => comparePricedSearchResults(a, b, priceOf));
 }
 
+export function finalizeNormalSearchResults<T extends Product>(
+  query: string,
+  products: T[],
+  priceOf: (product: T) => number,
+  eanOf: (product: T) => string | undefined = product => product.ean,
+  fallbackKeyOf: (product: T) => string = product => String(product.id),
+): T[] {
+  const seen = new Set<string>();
+  return rankProductResultsByRelevanceAndPrice(query, products, priceOf).filter(product => {
+    const ean = normalizeEan(eanOf(product));
+    const key = isUsableEan(ean) ? `ean:${ean}` : `fallback:${fallbackKeyOf(product)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function comparePricedSearchResults<T extends { name: string; ean?: string; id?: number | string }>(
   a: T,
   b: T,

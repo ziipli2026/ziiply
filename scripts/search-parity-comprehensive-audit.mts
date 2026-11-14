@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { desktopSearchDecision } from '../src/app/components/ziiply/search/desktopNormalRelevance';
-import { rankProductResultsByRelevanceAndPrice } from '../src/app/components/ziiply/ziiplyCore';
+import { finalizeNormalSearchResults, rankProductResultsByRelevanceAndPrice } from '../src/app/components/ziiply/ziiplyCore';
 import { normalizeEan } from '../src/app/components/ziiply/search/searchNormalizer';
 
 type Sample = {id:number; name:string; ean:string; price:number; category?:string; brandName?:string; quantity?:string};
@@ -53,6 +53,53 @@ for(const test of cases){
  const reversed=rankProductResultsByRelevanceAndPrice(test.q,[...products].reverse(),p=>p.price);
  assert.deepEqual(mobile.map(p=>p.ean),reversed.map(p=>p.ean),'stable ordering '+test.q);assertions++;
 }
+// Real product names, EANs and categories read from Ziiply Neon on 2026-11-13.
+// Fixture is static: CI never connects to the production database.
+const realNeonMilk: Array<Sample & { expected:boolean }> = [
+  {id:1001,ean:'6408653125622',name:'Juustoportti vapaan lehmän kevytmaito 1l',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.25,expected:true},
+  {id:1002,ean:'6408653125660',name:'Juustoportti vapaan lehmän täysmaito 1l',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.39,expected:true},
+  {id:1003,ean:'6413300100716',name:'Arla 1,5 L Suomesta kevytmaito',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.59,expected:true},
+  {id:1004,ean:'6413300101010',name:'Arla täysmaito Suomi 1 L',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.69,expected:true},
+  {id:1005,ean:'6413300101515',name:'Arla rasvaton maito 1l Suomi',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.19,expected:true},
+  {id:1006,ean:'6413300101713',name:'Arla Rasvaton maito Suomi 1,5 L',category:'maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot',price:1.49,expected:true},
+  {id:1007,ean:'6414893385221',name:'Kotimaista iskukuumennettu vähälaktoosinen kevytmaito 1L',category:'maito-munat-ja-rasvat/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot',price:1.29,expected:true},
+  {id:1008,ean:'6430064400715',name:'Aino Ihana Maitosuklaa 900ml/530g kermajäätelö',category:'pakasteet/jaatelot/jaatelopaketit',price:4.99,expected:false},
+  {id:1009,ean:'7340149217086',name:'ASBA Maitosuklaaruusu 18g',category:'karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/sesonkisuklaat',price:2.49,expected:false},
+  {id:1010,ean:'8445291505087',name:'After Eight Caramel karamellitäytteinen maitosuklaa 200g',category:'konvehtiboxit;;uutuudet',price:3.99,expected:false}
+];
+const realNeonMobile = rankProductResultsByRelevanceAndPrice('maito', realNeonMilk, p => p.price);
+const realNeonIds = new Set(realNeonMobile.map(p => p.ean));
+let realNeonFailures = 0;
+for (const p of realNeonMilk) {
+  const desktop = desktopSearchDecision('maito', {...p,__price:p.price}).accepted;
+  const mobile = realNeonIds.has(p.ean);
+  if (desktop !== p.expected || mobile !== p.expected) {
+    realNeonFailures++;
+    console.error('REAL_NEON_RELEVANCE_MISMATCH', JSON.stringify({ean:p.ean,name:p.name,expected:p.expected,desktop,mobile}));
+  }
+  assertions += 2;
+}
+console.log('REAL_NEON_MILK_FIXTURE',JSON.stringify({products:realNeonMilk.length,failures:realNeonFailures}));
+if(realNeonFailures) process.exitCode=1;
+// Integration contract: a Neon catalog identity has no store price until a
+// selected chain returns an EAN-matched price. Simulate that join without DB writes.
+const catalogOnly=realNeonMilk.map(({price,...p})=>({...p,price:0}));
+const selectedStorePrices=new Map<string,number>([
+  ['6413300101010',1.69],['6413300101515',1.19],['6408653125622',1.25]
+]);
+const joined=rankProductResultsByRelevanceAndPrice('maito',
+  catalogOnly.map(p=>({...p,price:selectedStorePrices.get(p.ean)??0})),p=>p.price);
+assert.deepEqual(joined.map(p=>p.ean),
+  ['6413300101515','6408653125622','6413300101010'],
+  'only priced matching EANs from selected store, cheapest first');
+assertions++;
+assert(joined.every(p=>selectedStorePrices.has(p.ean) && p.price>0),
+  'catalog-only and wrong-category rows must never appear as priced results');
+assertions++;
+const noStorePrices=rankProductResultsByRelevanceAndPrice('maito',catalogOnly,p=>p.price);
+assert.equal(noStorePrices.length,0,'Neon catalog alone cannot produce priced results');
+assertions++;
+console.log('NEON_CHAIN_PRICE_JOIN_FIXTURE',JSON.stringify({catalog:catalogOnly.length,priced:joined.length,unpricedVisible:noStorePrices.length,eanOrder:joined.map(p=>p.ean)}));
 const expectedGood=cases.reduce((n,c)=>n+c.good.length,0);
 const expectedBad=cases.reduce((n,c)=>n+c.bad.length,0);
 // The exact same EAN normalization must be used for formatted and raw codes.
@@ -70,3 +117,18 @@ if(disagreements || falsePositives || falseNegatives || desktopFalsePositives ||
  console.error('AUDIT_DIFFERENCES_DETECTED: review before unification');
  process.exitCode=1;
 } else console.log('AUDIT_PARITY_OK');
+
+const sameEanQuotes: Sample[] = [
+  { id: 1, name: 'Kirjolohiöljy koirille 500 ml', ean: '6410401234567', price: 0.99 },
+  { id: 2, name: 'Kirjolohifilee 700 g', ean: '641-0401-234567', price: 12.49 },
+  { id: 3, name: 'Kirjolohifilee 700 g', ean: '6410401234567', price: 11.49 },
+  { id: 4, name: 'Kokonainen kirjolohi 1 kg', ean: '6410401234568', price: 10.49 },
+  { id: 5, name: 'Kokonainen kirjolohi 1 kg', ean: '6410401234569', price: 0 },
+];
+for (const quotes of [sameEanQuotes, [...sameEanQuotes].reverse()]) {
+  assert.deepEqual(
+    finalizeNormalSearchResults('kirjolohi', quotes, product => product.price).map(product => product.id),
+    [4, 3],
+    'reject irrelevant and unpriced quotes before keeping the cheapest eligible quote per EAN',
+  );
+}

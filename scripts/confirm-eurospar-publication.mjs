@@ -4,7 +4,9 @@ import {neon} from '@neondatabase/serverless';
 // Report the final verified artifact, not just a parser attempt. This also
 // covers workflow_dispatch and corrections pushed manually to main.
 if(!process.env.DATABASE_URL)throw Error('DATABASE_URL required for Control Center confirmation');
-const sql=neon(process.env.DATABASE_URL);
+const ziiplyDbUrl=new URL(process.env.DATABASE_URL);
+ziiplyDbUrl.pathname='/neondb';
+const sql=neon(ziiplyDbUrl.toString());
 const feed=JSON.parse(readFileSync('src/app/components/ziiply/offerSearch/providers/eurospar-feed.json','utf8'));
 const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Helsinki',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const offers=Array.isArray(feed.offers)?feed.offers:[];
