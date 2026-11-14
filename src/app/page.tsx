@@ -13239,6 +13239,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 items.filter(item => Number(item.price) > 0).map(item => ({
                   ...convertKProductToProduct(item),
                   ean: item.ean,
+                  ...(recipeIngredient ? { category: (item as KProduct & { category?: string }).category } : {}),
                   __recipeChain: "K",
                   __recipeStoreName: activeStores.kStoreName,
                 }))
