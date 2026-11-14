@@ -421,6 +421,7 @@ jobs:
                     comparing = true;
                     const firstCompareRequest = searchRequests.length;
                     await search.getByRole('button', {name:'Vertailu', exact:true}).filter({visible:true}).last().click();
+                    if (!desktop) await search.getByRole('button', {name:/Halpuusvertailu/}).filter({visible:true}).first().click();
                     for (const [store, price] of [['Prisma Hyvinkää','1,59'],['K-Citymarket Hyvinkää','1,49']]) {
                       const shop = desktop ? search.getByText(store, {exact:true}) : search.getByRole('button', {name:'Avaa '+store, exact:true});
                       await shop.filter({visible:true}).first().waitFor({timeout:25000}).catch(async error => {
