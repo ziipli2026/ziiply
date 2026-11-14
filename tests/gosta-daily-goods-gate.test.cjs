@@ -1,0 +1,25 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const source = fs.readFileSync("src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts", "utf8");
+const start = source.indexOf("export function isGostaDailyGoodsOffer(");
+const end = source.indexOf("\nexport function dedupeZiiplyGostaOfferResultsV146", start);
+assert.ok(start >= 0 && end > start, "shared gate must exist");
+const functionSource = source.slice(start, end).replace("export function isGostaDailyGoodsOffer(item: ZiiplyGostaOfferLike): boolean", "function isGostaDailyGoodsOffer(item)").replace(/ as any/g, "");
+const normalizeGostaCoreText = (value) => String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g," ja ").replace(/[^a-z0-9\s-]/g," ").replace(/\s+/g," ").trim();
+const gate = new Function("getResolvedGostaCategoryV166", "normalizeGostaCoreText", functionSource + "\nreturn isGostaDailyGoodsOffer;")((item) => item.category, normalizeGostaCoreText);
+const cases = [
+  ["food", {title:"Maito",category:"Maitotuotteet",categoryPath:"Maitotuotteet > Maito"},true],
+  ["cleaning", {title:"Pyykinpesuaine",category:"Kodinhoito",categoryPath:"Kodinhoito > Pyykinpesuaineet"},true],
+  ["pet food", {title:"Kissanruoka",category:"Lemmikit",categoryPath:"Lemmikit > Ruoat"},true],
+  ["non-grocery category", {title:"Neulelanka",category:"Koti & vapaa-aika",categoryPath:"Käsityöt > Neulelangat"},false],
+  ["tool mislabeled food", {title:"Tunkki",category:"Kuivatuotteet",categoryPath:"Työkalut > Autotarvikkeet"},false],
+  ["clothes mislabeled food", {title:"Takki",category:"Hevi",categoryPath:"Vaatteet > Ulkovaatteet"},false],
+  ["unknown", {title:"Tuntematon",category:"Muut"},false],
+  ["cached source taxonomy", {title:"Tuote",category:"Maitotuotteet",__sourceOfferSearchResult:{sourceCategoryPath:"Käyttötavarat > Työkalut"}},false],
+];
+for (const [name, item, expected] of cases) test(name, () => assert.equal(gate(item), expected));
+test("no product-name blacklist", () => {
+  const core = fs.readFileSync("src/app/components/ziiply/offerSearch/ziiplyOfferCategoryCore.ts","utf8");
+  assert.ok(!core.includes("sukkalanka|pullotunkki|ompelutarvikelaatikko"));
+});
