@@ -116,6 +116,52 @@ jobs:
         if: always()
         run: |
           npx tsc .production-main/src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-production-main-audit
+      - name: Compare actual main against candidate on positive and adversarial grocery searches
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path');
+          function find(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory()){const v=find(p);if(v)return v;}else if(e.name==='ziiplyCore.js')return path.resolve(p)}return null}
+          const main=require(find('.tmp-production-main-audit'));
+          const candidate=require(find('.tmp-100-audit'));
+          const cases=[
+            ['ruokaöljy','Keiju rypsiöljy 1l',true],
+            ['ruokaöljy','Kotimaista 450ml rypsiöljy',true],
+            ['ruokaöljy','Coop auringonkukkaöljy 1 l',true],
+            ['ruokaöljy','Oliiviöljy extra virgin 500 ml',true],
+            ['ruokaöljy','Rypsiöljyä sisältävä margariini 400 g',false],
+            ['ruokaöljy','Tonnikala rypsiöljyssä 160 g',false],
+            ['ruokaöljy','Oliiviöljykastike 250 ml',false],
+            ['ruokaöljy','Oliiviöljysipsit 150 g',false],
+            ['etikka','Xtra väkiviinaetikka 750 ml',true],
+            ['etikka','Rajamäen omenaviinietikka 0,4l',true],
+            ['etikka','Valkoviinietikka 500 ml',true],
+            ['etikka','Etikkasipsit 150 g',false],
+            ['etikka','Etikkainen salaattikastike 250 ml',false],
+            ['etikka','Etikkapuhdistusaine 500 ml',false],
+            ['maito','Maitosuklaa 200 g',false],
+            ['kahvi','Kahvijogurtti 150 g',false],
+            ['kirjolohi','Kirjolohiöljy koirille 500 ml',false],
+            ['oliiviöljy','Tonnikala oliiviöljyssä 160 g',false]
+          ];
+          const results=cases.map(([query,name,expected])=>{
+            const p={name,price:199,ean:'',category:''};
+            const evaluate=core=>core.rankProductResultsByRelevanceAndPrice(query,[p],x=>x.price).length>0;
+            return {query,name,expected,main:evaluate(main),candidate:evaluate(candidate)};
+          });
+          const summary={cases:results.length,mainWrong:results.filter(x=>x.main!==x.expected).length,candidateWrong:results.filter(x=>x.candidate!==x.expected).length,different:results.filter(x=>x.main!==x.candidate).length};
+          console.log('MAIN_CANDIDATE_ADVERSARIAL_SUMMARY '+JSON.stringify(summary));
+          for(const result of results)if(result.main!==result.candidate||result.main!==result.expected)console.log('MAIN_CANDIDATE_ADVERSARIAL_DETAIL '+JSON.stringify(result));
+          fs.writeFileSync('main-candidate-adversarial.json',JSON.stringify({summary,results},null,2));
+          if(summary.candidateWrong)process.exitCode=1;
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: main-candidate-adversarial
+          path: main-candidate-adversarial.json
+          if-no-files-found: warn
       - name: Check out desktop preview for side-by-side comparison
         if: always()
         uses: actions/checkout@v4
