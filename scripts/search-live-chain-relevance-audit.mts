@@ -40,5 +40,33 @@ for(const q of queries) for(const chain of ['s','k']){
  if(bad.length||desktopMismatch.length||unpriced.length||unordered)failures++;
  console.log('REAL_S_K_FILTER_RESULT',JSON.stringify({query:q,chain,raw:raw.length,accepted:ranked.length,wrong:bad.map(p=>p.name),desktopMismatch:desktopMismatch.map(p=>p.name),unpriced:unpriced.length,unordered,top:ranked.slice(0,5).map(p=>({name:p.name,ean:p.ean,priceCents:price(p)}))}));
 }
+
+/** Guard against accepting an ingredient mention as the requested product. */
+const familyCases=[
+ {query:'ruokaöljy',name:'Keiju rypsiöljy 1l',expected:true},
+ {query:'ruokaöljy',name:'Kotimaista 450ml rypsiöljy',expected:true},
+ {query:'ruokaöljy',name:'Coop auringonkukkaöljy 1 l',expected:true},
+ {query:'ruokaöljy',name:'Oliiviöljy extra virgin 500 ml',expected:true},
+ {query:'ruokaöljy',name:'Rypsiöljyä sisältävä margariini 400 g',expected:false},
+ {query:'ruokaöljy',name:'Tonnikala rypsiöljyssä 160 g',expected:false},
+ {query:'ruokaöljy',name:'Oliiviöljykastike 250 ml',expected:false},
+ {query:'ruokaöljy',name:'Oliiviöljysipsit 150 g',expected:false},
+ {query:'etikka',name:'Xtra väkiviinaetikka 750 ml',expected:true},
+ {query:'etikka',name:'Rajamäen omenaviinietikka 0,4l',expected:true},
+ {query:'etikka',name:'Valkoviinietikka 500 ml',expected:true},
+ {query:'etikka',name:'Etikkasipsit 150 g',expected:false},
+ {query:'etikka',name:'Etikkainen salaattikastike 250 ml',expected:false},
+ {query:'etikka',name:'Etikkapuhdistusaine 500 ml',expected:false},
+];
+for(const test of familyCases){
+ const p={name:test.name,price:199,category:'',ean:''} as Product;
+ const decision=desktopSearchDecision(test.query,{...p,__price:199});
+ const ranked=rankProductResultsByRelevanceAndPrice(test.query,[p],()=>199);
+ assert.equal(decision.accepted,test.expected,'desktop family relevance '+JSON.stringify(test));
+ assert.equal(ranked.length>0,test.expected,'final family relevance '+JSON.stringify(test));
+ checks+=2;
+}
+console.log('OIL_VINEGAR_NEGATIVE_REGRESSIONS_OK',JSON.stringify({cases:familyCases.length,checks:familyCases.length*2}));
+
 console.log('REAL_S_K_FILTER_SUMMARY',JSON.stringify({chains:2,queries:queries.length,checks,failures,source:snapshot.metadata.source,retrieved:snapshot.metadata.retrieved}));
 assert.equal(failures,0,'real S/K filter regression failures');
