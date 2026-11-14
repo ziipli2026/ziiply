@@ -13293,7 +13293,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Catalog recovery only supplements priced products from the selected stores.
         // Recover up to two missing catalog identities from the selected stores.
         // Only a matching EAN with a verified shop price can enter the picker.
-        if (catalogEligible) {
+        if (usesSharedStoreQueries) {
           const catalogRows = await catalogPromise;
           if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
           const seenEans = new Set(all.map(item => normalizeEan(item.ean)).filter(Boolean));
