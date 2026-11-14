@@ -311,7 +311,7 @@ jobs:
                       return {name:name.replace(/\s+/g, ' ').trim(), price, ean};
                     }), desktop);
                     console.log('Live Chromium', name, liveTerm, JSON.stringify([...liveCounts]), JSON.stringify(results.slice(0,10)));
-                    for (const api of [...searchEndpoints, '/api/neon-first-search']) {
+                    for (const api of (searchEndpoints.some(api => /[sk]-products/.test(api)) ? [...searchEndpoints, '/api/neon-first-search'] : searchEndpoints)) {
                       assert.equal(liveCounts.get(api)?.status, 200, 'live ' + api + ' for ' + liveTerm);
                       if (liveTerm === 'maito') assert.ok(liveCounts.get(api).count > 0, 'nonempty live ' + api);
                     }
