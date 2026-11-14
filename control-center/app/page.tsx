@@ -12,7 +12,11 @@ const CHAINS=[
 ];
 
 type HistoryRow={chain:string;source:string;total:number;succeeded:number;days:number;previous_total:number;previous_succeeded:number;previous_days:number};
-type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;details?:{error?:string;runUrl?:string;workflow?:string};checked_at:string};
+type Row={chain:string;source:string;ok:boolean;offer_count:number;outcome:string;details?:{error?:string;runUrl?:string;workflow?:string;runId?:string};checked_at:string};
+const isRunning=(r:Row)=>["workflow-running","preflight-started"].includes(r.outcome);
+const isFailure=(r:Row)=>!r.ok&&!isRunning(r);
+const statusIcon=(r:Row)=>isRunning(r)?"🟡":r.ok?"🟢":"🔴";
+function terminalRuns(rows:Row[]){const seen=new Set<string>();return rows.filter(r=>{if(isRunning(r))return false;const id=r.details?.runId;if(!id)return true;const key=r.source+"::"+id;if(seen.has(key))return false;seen.add(key);return true;});}
 type Pub={chain:string;publication_id:string;valid_from:string;valid_until:string;parsed_at:string;approval_state:string;offer_count:number;missing_price:number;missing_image:number;missing_category:number};
 type EanStats={total:number;with_image:number;classified:number;seen_24h:number;missing_image:number;missing_category:number;stale_30d:number;lidl_price_rows:number;lidl_price_eans:number;lidl_fresh_prices:number;lidl_verified_prices:number;lidl_stale_prices:number};
 type ScanStats={events_24h:number;unresolved_24h:number;unknown_24h:number;no_price_24h:number;chain_mismatch_24h:number};
@@ -31,14 +35,24 @@ async function load(){
       SELECT *,row_number() OVER(PARTITION BY chain,source ORDER BY checked_at DESC,id DESC) AS source_rank
       FROM ziiply_publication_run_log WHERE checked_at>NOW()-INTERVAL '14 days'
     ) ranked WHERE source_rank<=10 ORDER BY checked_at DESC,id DESC`;
-    const history=await sql`SELECT chain,source,
+    const history=await sql`WITH terminal AS (
+      SELECT chain,source,checked_at,ok,
+        ROW_NUMBER() OVER(PARTITION BY chain,source,
+          CASE WHEN source LIKE 'github-workflow:%' AND NULLIF(details->>'runId','') IS NOT NULL
+            THEN details->>'runId' ELSE id::text END
+          ORDER BY checked_at DESC,id DESC) AS run_rank
+      FROM ziiply_publication_run_log
+      WHERE checked_at>NOW()-INTERVAL '14 days'
+        AND outcome NOT IN ('workflow-running','preflight-started')
+    )
+    SELECT chain,source,
       COUNT(*) FILTER(WHERE checked_at>NOW()-INTERVAL '7 days')::int AS total,
       COUNT(*) FILTER(WHERE checked_at>NOW()-INTERVAL '7 days' AND ok)::int AS succeeded,
       COUNT(DISTINCT (checked_at AT TIME ZONE 'Europe/Helsinki')::date) FILTER(WHERE checked_at>NOW()-INTERVAL '7 days')::int AS days,
       COUNT(*) FILTER(WHERE checked_at<=NOW()-INTERVAL '7 days')::int AS previous_total,
       COUNT(*) FILTER(WHERE checked_at<=NOW()-INTERVAL '7 days' AND ok)::int AS previous_succeeded,
       COUNT(DISTINCT (checked_at AT TIME ZONE 'Europe/Helsinki')::date) FILTER(WHERE checked_at<=NOW()-INTERVAL '7 days')::int AS previous_days
-      FROM ziiply_publication_run_log WHERE checked_at>NOW()-INTERVAL '14 days' GROUP BY chain,source`;
+    FROM terminal WHERE run_rank=1 GROUP BY chain,source`;
     const pubs=await sql`SELECT chain,publication_id,valid_from::text,valid_until::text,parsed_at::text,approval_state,
       jsonb_array_length(offers)::int AS offer_count,
       (SELECT COUNT(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(NULLIF(o->>'offerPrice',''),NULLIF(o->>'price',''),NULLIF(o->>'priceText','')) IS NULL AND COALESCE(o->>'hasConcretePrice','true')<>'false' AND NOT (o->>'discountPercent' ~ '^[0-9]+([.][0-9]+)?$' AND (o->>'discountPercent')::numeric BETWEEN 0.01 AND 100)) AS missing_price,
@@ -66,10 +80,10 @@ async function load(){
 function state(rows:Row[]){
   if(!rows.length)return ["gray","EI DATAA"];
   const latestSources=[...new Map([...rows].reverse().map(r=>[r.source,r])).values()];
-  if(latestSources.some(r=>!r.ok&&r.outcome!=="workflow-running"))return ["red","PÄIVITYS EPÄONNISTUI"];
-  if(latestSources.some(r=>r.outcome==="workflow-running"))return ["yellow","AJO KESKEN"];
+  if(latestSources.some(isFailure))return ["red","PÄIVITYS EPÄONNISTUI"];
+  if(latestSources.some(isRunning))return ["yellow","AJO KESKEN"];
   const a=rows[0];
-  if(!a.ok)return ["red","VIRHE"];
+  if(isFailure(a))return ["red","VIRHE"];
   const ageH=(Date.now()-new Date(a.checked_at).getTime())/3600000;
   const isLidl=/^lidl(?::|$)/i.test(a.chain.trim());
   const warnAfterH=isLidl?30:8;
@@ -155,13 +169,13 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   // A verified publication supersedes the older health probe for the same EUROSPAR feed.
   // Keep the original events in history, but do not show a stale warning for the superseded probe.
   const supersededHealthSources=new Set<string>();
-  const latestEuroSuccess=d.runs.find(r=>r.chain==="TOKMANNI-SPAR"&&r.ok&&["eurospar-publication-refresh","eurospar-verified-publication"].includes(r.source));
+  const latestEuroSuccess=d.runs.find(r=>r.chain==="TOKMANNI-SPAR"&&r.ok&&r.offer_count>0&&["eurospar-publication-refresh","eurospar-verified-publication"].includes(r.source));
   const latestEuroProbe=d.runs.find(r=>r.chain==="TOKMANNI-SPAR"&&r.source==="eurospar-validated-feed");
   if(latestEuroSuccess&&latestEuroProbe&&new Date(latestEuroSuccess.checked_at)>=new Date(latestEuroProbe.checked_at)){
     supersededHealthSources.add("eurospar-validated-feed");
   }
-  const latestBySource=[...d.runs.filter(r=>!supersededHealthSources.has(r.source)).reduce((m,r)=>{const k=`${r.chain}::${explainSource(r.source)}`;if(!m.has(k))m.set(k,r);return m},new Map<string,Row>()).values()];
-  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=d.runs.filter(x=>x.chain===r.chain&&x.source===r.source);const previous=history[1];const delta=previous&&previous.offer_count>0?Math.round((r.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const firstOkIndex=recent.findIndex(x=>x.ok);const streak=firstOkIndex>=0?firstOkIndex:recent.length;const isProbe=r.source.startsWith("github-workflow:")||r.source==="s-kaupat-protocol"||r.source==="future-publication-discovery";const level=!r.ok?(r.source==="future-publication-discovery"?"yellow":"red"):(!isProbe&&r.offer_count===0)?"red":ageH>72?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
+  const latestBySource=[...d.runs.filter(r=>!supersededHealthSources.has(r.source)).reduce((m,r)=>{const k=`${r.chain}::${r.source}`;if(!m.has(k))m.set(k,r);return m},new Map<string,Row>()).values()];
+  const sourceHealth=latestBySource.map(r=>{const ageH=Math.round((Date.now()-new Date(r.checked_at).getTime())/360000)/10;const history=terminalRuns(d.runs.filter(x=>x.chain===r.chain&&x.source===r.source));const latestTerminal=history[0];const previous=history[1];const delta=latestTerminal&&previous&&previous.offer_count>0?Math.round((latestTerminal.offer_count-previous.offer_count)/previous.offer_count*1000)/10:null;const recent=history.slice(0,5);const firstOkIndex=recent.findIndex(x=>x.ok);const streak=firstOkIndex>=0?firstOkIndex:recent.length;const isProbe=r.source.startsWith("github-workflow:")||r.source==="s-kaupat-protocol"||r.source==="future-publication-discovery"||r.source==="chain-parser-health";const level=isRunning(r)?"yellow":isFailure(r)?(r.source==="future-publication-discovery"?"yellow":"red"):(!isProbe&&r.offer_count===0)?"red":ageH>72?"red":ageH>36||(!isProbe&&delta!==null&&delta<=-50)?"yellow":"green";return {...r,ageH,delta,level,streak,history:recent};});
   const latestSuccessBySource=sourceHealth.map(s=>{const okRun=d.runs.find(r=>r.chain===s.chain&&r.source===s.source&&r.ok);const successAgeH=okRun?(Date.now()-new Date(okRun.checked_at).getTime())/3600000:null;return {...s,lastSuccess:okRun?.checked_at??null,successAgeH};});
   const successStale=latestSuccessBySource.filter(s=>s.successAgeH!==null&&s.successAgeH>48);
   const neverSuccessful=latestSuccessBySource.filter(s=>s.source!=="future-publication-discovery"&&s.lastSuccess===null);
@@ -276,7 +290,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     const badRun=!hasPublication&&runs.some(r=>r.level==="red");
     const stale=!hasPublication&&(!runs.length||runs.every(r=>r.ageH>36));
     const level=missingPrice>0?"red":hasPublication?(missingImage>0||missingCategory>0?"yellow":"green"):badRun?"red":"yellow";
-    return {chain:ch.key,name:ch.name,offers,missingPrice,missingImage,missingCategory,runs:runs.length,badRun,stale,level};
+    return {chain:ch.key,name:ch.name,offers:verifiedEuro&&offers===0?(latestEuroSuccess?.offer_count??0):offers,missingPrice,missingImage,missingCategory,runs:runs.length,badRun,stale,level,verifiedEuro};
   });
   const rolloverGaps=rolloverChains.filter(r=>r.gap);
   const rolloverWithoutNext=rolloverChains.filter(r=>r.current&&r.current.valid_until<=todayFi&&!r.future);
@@ -287,11 +301,11 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const approvedNext=rolloverChains.filter(r=>r.future?.approval_state==="approved"&&r.current);
   const severeNextDrop=approvedNext.filter(r=>r.future!.offer_count<Math.max(1,Math.floor(r.current!.offer_count*.25)));
   const healthyNext=approvedNext.filter(r=>!r.gap&&!severeNextDrop.includes(r));
-  const failedRuns24h=d.runs.filter(r=>!r.ok&&r.source!=="future-publication-discovery"&&Date.now()-new Date(r.checked_at).getTime()<=24*60*60*1000);
+  const failedRuns24h=terminalRuns(d.runs).filter(r=>isFailure(r)&&r.source!=="future-publication-discovery"&&Date.now()-new Date(r.checked_at).getTime()<=24*60*60*1000);
   const latestRunKeys=new Set(latestBySource.map(r=>r.chain+"::"+r.source+"::"+r.checked_at));
   const unresolvedFailures24h=failedRuns24h.filter(r=>latestRunKeys.has(r.chain+"::"+r.source+"::"+r.checked_at));
   const recoveredFailures24h=failedRuns24h.filter(r=>!latestRunKeys.has(r.chain+"::"+r.source+"::"+r.checked_at));
-  const recoveredFailures=d.runs.filter((r,i)=>!r.ok&&d.runs.slice(0,i).some(n=>n.chain===r.chain&&n.source===r.source&&n.ok));
+  const recoveredFailures=terminalRuns(d.runs).filter((r,i,a)=>isFailure(r)&&a.slice(0,i).some(n=>n.chain===r.chain&&n.source===r.source&&n.ok));
   const monitoredChains=cards.filter(c=>c.runs.length>0).length;
   const eanPriceCoverage=d.ean&&d.ean.total?Math.round(d.ean.lidl_price_eans/d.ean.total*1000)/10:0;
   const eanFreshCoverage=d.ean&&d.ean.total?Math.round(d.ean.lidl_fresh_prices/d.ean.total*1000)/10:0;
@@ -314,7 +328,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const eanCategoryCoverage=d.ean&&d.ean.total?Math.round(d.ean.classified/d.ean.total*1000)/10:0;
   const eanDataHealth=(d.ean?[(eanPriceCoverage>=75),(eanFreshCoverage>=75),(eanImageCoverage>=75),(eanCategoryCoverage>=75)]:[]).filter(Boolean).length;
   const eanHealthState=eanDataHealth===4?"green":eanDataHealth>=2?"yellow":"red";
-  const currentFailures=latestBySource.filter(r=>!r.ok&&r.source!=="future-publication-discovery");
+  const currentFailures=latestBySource.filter(r=>isFailure(r)&&r.source!=="future-publication-discovery");
   const overallDataHealth=(d.ean?eanDataHealth:0)+(quality.missingPrice===0?1:0)+(currentFailures.length===0?1:0)+(rolloverGaps.length===0?1:0);
   const overallDataHealthState=overallDataHealth>=7?"green":overallDataHealth>=5?"yellow":"red";
   const failureStreaks=sourceHealth.filter(s=>s.source!=="future-publication-discovery"&&s.streak>=2);
@@ -323,7 +337,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
   const sourceCountCrashes=sourceHealth.filter(s=>!["s-kaupat-protocol","future-publication-discovery"].includes(s.source)&&s.delta!==null&&s.delta<=-75);
   const silentSources=sourceHealth.filter(s=>s.ageH>48);
   const criticallySilentSources=sourceHealth.filter(s=>s.ageH>72);
-  const chainRunSummary=cards.map(card=>{const latest=card.runs[0]??null;const lastOk=card.runs.find(r=>r.ok)??null;const ageH=latest?(Date.now()-new Date(latest.checked_at).getTime())/3600000:null;const okAgeH=lastOk?(Date.now()-new Date(lastOk.checked_at).getTime())/3600000:null;const level=card.runs.some(r=>!r.ok&&r===card.runs.find(x=>x.source===r.source))?"red":!latest?"gray":!latest.ok||ageH!==null&&ageH>72?"red":okAgeH===null||okAgeH>48||ageH!==null&&ageH>48?"yellow":"green";return {chain:card.key,latest,lastOk,ageH,okAgeH,level};});
+  const chainRunSummary=cards.map(card=>{const latest=card.runs[0]??null;const lastOk=card.runs.find(r=>r.ok)??null;const ageH=latest?(Date.now()-new Date(latest.checked_at).getTime())/3600000:null;const okAgeH=lastOk?(Date.now()-new Date(lastOk.checked_at).getTime())/3600000:null;const level=card.runs.some(r=>isFailure(r)&&r===card.runs.find(x=>x.source===r.source))?"red":!latest?"gray":isRunning(latest)?"yellow":isFailure(latest)||ageH!==null&&ageH>72?"red":okAgeH===null||okAgeH>48||ageH!==null&&ageH>48?"yellow":"green";return {chain:card.key,latest,lastOk,ageH,okAgeH,level};});
   const missingMonitoring=cards.filter(c=>c.runs.length===0);
   const attention=[
     ...activeCandidates.map(p=>({level:"red",title:p.chain+": aktiivinen candidate",detail:p.publication_id+" · "+p.offer_count+" tarjousta · "+p.valid_from+"–"+p.valid_until})),
@@ -356,13 +370,13 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
     const ageH=run?(Date.now()-new Date(run.checked_at).getTime())/3600000:null;
     const dailyParserSources=new Set(["s-prisma-hyvinkaa","k-supermarket-jokela","k-market-hakalantori","eurospar-validated-feed","s-kaupat-protocol"]);
     const warnAfterH=dailyParserSources.has(check.source)?30:check.source==="official-lidl-combined"?30:check.source==="k-citymarket-cache"?24:8;
-    const level=!run?"gray":!run.ok?"red":ageH!==null&&ageH>warnAfterH?"yellow":"green";
+    const level=!run?"gray":isRunning(run)?"yellow":isFailure(run)?"red":ageH!==null&&ageH>warnAfterH?"yellow":"green";
     const checkedDate=run?new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(run.checked_at)):null;
     const clock=run?new Intl.DateTimeFormat("fi-FI",{timeZone:"Europe/Helsinki",hour:"2-digit",minute:"2-digit"}).format(new Date(run.checked_at)):null;
     const date=run?new Intl.DateTimeFormat("fi-FI",{timeZone:"Europe/Helsinki",day:"numeric",month:"numeric",year:"numeric"}).format(new Date(run.checked_at)):null;
     const when=run?(checkedDate===todayFi?"tänään":date)+", klo "+clock:null;
     const result=!run?"Ei kirjattua tarkistusta 14 vrk aikana":(check.source==="s-kaupat-protocol"?(run.ok?"OK":"VIRHE"):run.offer_count+" tarjousta")+", "+when;
-    const meaning=!run?"Seurannan tila ei ole tiedossa":(run.ok?check.success:check.failure)+(level==="yellow"?". Tarkistus on vanha; uutta tulosta odotetaan.":"");
+    const meaning=!run?"Seurannan tila ei ole tiedossa":(isRunning(run)?"Tarkistus käynnissä":run.ok?check.success:check.failure)+(level==="yellow"?". Tarkistus on vanha; uutta tulosta odotetaan.":"");
     return {...check,run,level,result,meaning};
   });
 
@@ -569,7 +583,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
           <td style={{padding:8}}>{x.newest?x.newest.offer_count+" · "+new Date(x.newest.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"}):"—"}</td>
           <td style={{padding:8,fontWeight:800}}>{x.delta===null?"—":(x.delta>0?"+":"")+x.delta+" %"}</td>
           <td style={{padding:8}}>{x.rows.length} julkaisujaksoa</td>
-          <td style={{padding:8}}><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{x.rows.length?x.rows.map((r,i)=><span key={i} title={r.source+" · "+r.outcome+" · "+new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})} style={{padding:"3px 6px",borderRadius:7,background:r.ok?"#ecfdf3":"#fef2f2",fontWeight:800}}>{r.ok?"✓":"✕"} {r.offer_count}</span>):"Ei ajoja"}</div></td>
+          <td style={{padding:8}}><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{x.rows.length?x.rows.map((r,i)=><span key={i} title={r.source+" · "+r.outcome+" · "+new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})} style={{padding:"3px 6px",borderRadius:7,background:isRunning(r)?"#fffaeb":r.ok?"#ecfdf3":"#fef2f2",fontWeight:800}}>{isRunning(r)?"…":r.ok?"✓":"✕"} {r.offer_count}</span>):"Ei ajoja"}</div></td>
         </tr>)}</tbody>
       </table></div>
       <div style={{fontSize:12,color:"#667085",marginTop:10}}>Tässä taulukossa näkyvät hyväksytyt tarjousjulkaisut, eivät erilliset tekniset tarkistukset. Teknisten tarkistusten virheet ja niiden alkuperäiset päivämäärät näkyvät alempana. Eri voimassaolojaksojen tarjousmäärille ei lasketa prosenttimuutosta, koska ne voivat olla päällekkäisiä segmenttejä.</div>
@@ -635,7 +649,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
       <h2 style={{marginTop:0}}>Puuttuvat tiedot voimassa olevista tarjouksista</h2>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:12,marginBottom:16}}>{chainHealth.map(x=><div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900}}>{dot(x.level)} {x.chain}</div><div style={{fontSize:25,fontWeight:900,marginTop:7}}>{x.offers.toLocaleString("fi-FI")}</div><div style={{fontSize:11,color:"#667085"}}>aktiivista tarjousta</div><div style={{fontSize:12,marginTop:8}}>Hinta {x.missingPrice?"🔴 "+x.missingPrice:"🟢"} · Kuva {x.missingImage?"🟡 "+x.missingImage:"🟢"} · Tuoteryhmä {x.missingCategory?"🟡 "+x.missingCategory:"🟢"}</div><div style={{fontSize:11,color:"#667085",marginTop:6}}>Seurattuja lähteitä {x.runs} · {x.offers>0?"hyväksytty julkaisu":x.stale?"tarkistus vanhentunut / puuttuu":"tuore tarkistus, ei hyväksyttyä julkaisua"}</div></div>)}</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:12,marginBottom:16}}>{chainHealth.map(x=><div key={x.chain} style={{border:"1px solid #e5e7eb",borderRadius:12,padding:14}}><div style={{fontWeight:900}}>{dot(x.level)} {x.chain}</div><div style={{fontSize:25,fontWeight:900,marginTop:7}}>{x.offers.toLocaleString("fi-FI")}</div><div style={{fontSize:11,color:"#667085"}}>aktiivista tarjousta</div><div style={{fontSize:12,marginTop:8}}>Hinta {x.missingPrice?"🔴 "+x.missingPrice:"🟢"} · Kuva {x.missingImage?"🟡 "+x.missingImage:"🟢"} · Tuoteryhmä {x.missingCategory?"🟡 "+x.missingCategory:"🟢"}</div><div style={{fontSize:11,color:"#667085",marginTop:6}}>Seurattuja lähteitä {x.runs} · {x.verifiedEuro?"vahvistettu EUROSPAR-syöte":x.offers>0?"hyväksytty julkaisu":x.stale?"tarkistus vanhentunut / puuttuu":"tuore tarkistus, ei hyväksyttyä julkaisua"}</div></div>)}</div>
       {chainQuality.length===0?<div style={{color:"#667085"}}>Ei aktiivisia julkaisuja julkaisuvarastossa.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Ketju","Julkaisuja","Tarjouksia","Hinta puuttuu","Kuva puuttuu","Tuoteryhmä puuttuu","Tila"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{chainQuality.map(q=>{const level=q.missingPrice?"red":q.missingImage||q.missingCategory?"yellow":"green";return <tr key={q.chain}><td style={{padding:8,fontWeight:800}}>{q.chain}</td><td style={{padding:8}}>{q.publications}</td><td style={{padding:8,fontWeight:800}}>{q.offers}</td><td style={{padding:8}}>{q.missingPrice}</td><td style={{padding:8}}>{q.missingImage}</td><td style={{padding:8}}>{q.missingCategory}</td><td style={{padding:8}}>{dot(level)} {level==="green"?"OK":level==="red"?"HINTAVIRHE":"PUUTTEITA"}</td></tr>})}</tbody></table></div>}
     </section>
 
@@ -652,7 +666,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
       <h2 style={{marginTop:0}}>Automaattiset tarkistukset tietolähteittäin</h2>
-      {sourceHealth.length===0?<div style={{color:"#667085"}}>Ei health-lähteitä 14 vrk ajalta.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Lähde","Viimeisin ajo","Ikä","Tarjouksia","Muutos","5 viimeistä","Peräkkäisiä epäonnistumisia","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{sourceHealth.map(r=><tr key={r.chain+"::"+r.source}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{r.details?.workflow||explainSource(r.source)}</td><td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td><td style={{padding:8}}>{r.ageH.toLocaleString("fi-FI")} h</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"—":r.delta===null?"—":(r.delta>0?"+":"")+r.delta.toLocaleString("fi-FI")+" %"}</td><td style={{padding:8,whiteSpace:"nowrap"}}>{r.history.map((h,i)=><span key={i} title={new Date(h.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+h.outcome}>{h.ok?"🟢":"🔴"}</span>)}</td><td style={{padding:8,fontWeight:r.streak?800:400}}>{r.streak||"—"}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}{r.details?.error&&<div>{r.details.error}</div>}{r.details?.runUrl&&<a href={r.details.runUrl}>GitHub-ajo</a>}</td></tr>)}</tbody></table></div>}
+      {sourceHealth.length===0?<div style={{color:"#667085"}}>Ei health-lähteitä 14 vrk ajalta.</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}><thead><tr>{["Tila","Ketju","Lähde","Viimeisin ajo","Ikä","Tarjouksia","Muutos","5 viimeistä","Peräkkäisiä epäonnistumisia","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead><tbody>{sourceHealth.map(r=><tr key={r.chain+"::"+r.source}><td style={{padding:8}}>{dot(r.level)}</td><td style={{padding:8,fontWeight:800}}>{r.chain}</td><td style={{padding:8}}>{r.details?.workflow||explainSource(r.source)}</td><td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td><td style={{padding:8}}>{r.ageH.toLocaleString("fi-FI")} h</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"—":r.delta===null?"—":(r.delta>0?"+":"")+r.delta.toLocaleString("fi-FI")+" %"}</td><td style={{padding:8,whiteSpace:"nowrap"}}>{r.history.map((h,i)=><span key={i} title={new Date(h.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})+" · "+h.outcome}>{statusIcon(h)}</span>)}</td><td style={{padding:8,fontWeight:r.streak?800:400}}>{r.streak||"—"}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}{r.details?.error&&<div>{r.details.error}</div>}{r.details?.runUrl&&<a href={r.details.runUrl}>GitHub-ajo</a>}</td></tr>)}</tbody></table></div>}
     </section>
 
     <section style={{marginBottom:18,background:"#fff",border:"1px solid #dbe2e8",borderRadius:16,padding:20}}>
@@ -690,7 +704,7 @@ export default async function Page({searchParams}:{searchParams:Promise<{view?:s
           <thead><tr>{["Aika","Ketju","Lähde","Tulos","Määrä","Tarkistuksen selitys"].map(x=><th key={x} style={{textAlign:"left",padding:8,borderBottom:"1px solid #e5e7eb"}}>{x}</th>)}</tr></thead>
           <tbody>{d.runs.slice(0,80).map((r,i)=><tr key={i}>
             <td style={{padding:8}}>{new Date(r.checked_at).toLocaleString("fi-FI",{timeZone:"Europe/Helsinki"})}</td><td style={{padding:8,fontWeight:700}}>{r.chain}</td><td style={{padding:8}}>{r.details?.workflow||explainSource(r.source)}</td>
-            <td style={{padding:8}}>{r.ok?"🟢":"🔴"}</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}{r.details?.error&&<div>{r.details.error}</div>}{r.details?.runUrl&&<a href={r.details.runUrl}>GitHub-ajo</a>}</td>
+            <td style={{padding:8}}>{statusIcon(r)}</td><td style={{padding:8,fontWeight:800}}>{["s-kaupat-protocol","future-publication-discovery"].includes(r.source)?"Yhteys- tai etsintätarkistus":r.offer_count}</td><td style={{padding:8}}>{explainOutcome(r.outcome)}{r.details?.error&&<div>{r.details.error}</div>}{r.details?.runUrl&&<a href={r.details.runUrl}>GitHub-ajo</a>}</td>
           </tr>)}</tbody>
         </table></div>
       </article>
