@@ -576,12 +576,14 @@ export default function DesktopPreviewPage() {
   }, [gostaLoading]);
   const [location, setLocation] = useState("");
   const [gpsOn, setGpsOn] = useState(false);
+  const gpsRequestIdRef = useRef(0);
+  const gpsStartingRef = useRef(false);
   const [gpsCoords, setGpsCoords] = useState<{latitude:number;longitude:number}|null>(null);
   const [appliedLocation, setAppliedLocation] = useState("");
   const [locationResolved, setLocationResolved] = useState(false);
   const [userLocationAction, setUserLocationAction] = useState(false);
   const [locationStatus, setLocationStatus] = useState("Kirjoita paikkakunta tai käytä GPS:ää");
-  const [gpsToast, setGpsToast] = useState("GPS käynnistyy…");
+  const [gpsToast, setGpsToast] = useState("");
   const [mapOpen, setMapOpen] = useState(false);
   const [fuelSelected, setFuelSelected] = useState(false);
   const [fuelMode, setFuelMode] = useState<"nearby" | "compare">("nearby");
@@ -1866,8 +1868,8 @@ export default function DesktopPreviewPage() {
     setAppliedLocation(value);
     setUserLocationAction(true);
     setLocationResolved(true);
-    setGpsOn(false);
-    setGpsCoords(null);
+    stopGps();
+    setGpsToast("");
     setFuelLocationCoords(null);
     fetch(`/api/store-search?search=${encodeURIComponent(value)}`,{cache:"no-store"})
       .then(r=>r.json()).then(data=>{
@@ -2928,31 +2930,48 @@ export default function DesktopPreviewPage() {
     }
   }
 
+  function stopGps() {
+    ++gpsRequestIdRef.current;
+    ++independentStoresRequestRef.current;
+    gpsStartingRef.current = false;
+    setGpsOn(false);
+    setGpsCoords(null);
+    setLocationStatus("GPS pois päältä");
+    setGpsToast("");
+  }
+
   function useGps() {
+    if (gpsStartingRef.current || gpsOn) return;
     if (!navigator.geolocation) {
       setLocationStatus("Sijaintia ei tueta tällä laitteella");
       setGpsToast("GPS ei käytettävissä");
       return;
     }
+    const requestId = ++gpsRequestIdRef.current;
+    gpsStartingRef.current = true;
     setLocationStatus("Haetaan sijaintia…");
     setGpsToast("GPS käynnistyy…");
     const onSuccess = ({coords}:GeolocationPosition) => {
+      if (requestId !== gpsRequestIdRef.current) return;
+      gpsStartingRef.current = false;
       setGpsOn(true);
       setUserLocationAction(true);
       setLocationResolved(true);
       setGpsCoords({latitude:coords.latitude,longitude:coords.longitude});
       setFuelLocationCoords(null);
       setGpsToast("GPS päällä");
-      window.setTimeout(()=>setGpsToast(""),1800);
+      window.setTimeout(() => { if (requestId === gpsRequestIdRef.current) setGpsToast(""); }, 1800);
       setAppliedLocation(`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`);
       setLocationStatus("GPS-sijainti käytössä");
       loadIndependentStores("", {latitude:coords.latitude,longitude:coords.longitude});
       fetch(`/api/store-search?gps=1&lat=${coords.latitude}&lon=${coords.longitude}`, {cache:"no-store"}).then(r=>r.json()).then(d=>{
         const items=Array.isArray(d?.items)?d.items:[];
-        if(items.length)setStores(items);
+        if(requestId === gpsRequestIdRef.current && items.length)setStores(items);
       }).catch(()=>undefined);
     };
     const onError = (error:GeolocationPositionError) => {
+      if (requestId !== gpsRequestIdRef.current) return;
+      gpsStartingRef.current = false;
       setGpsOn(false);
       const detail=error.code===1?"Sijaintilupa estetty tai selaimen asetuksissa kielletty.":error.code===3?"Sijainnin haku aikakatkaistiin.":"Sijaintia ei saatu laitteelta.";
       setLocationStatus(detail+" Voit yrittää GPS-painikkeesta uudelleen.");
@@ -2965,7 +2984,7 @@ export default function DesktopPreviewPage() {
         fetch(`/api/store-search?search=${encodeURIComponent(fallbackLocation)}`, {cache:"no-store"})
           .then(r=>r.json()).then(d=>{
             const items=Array.isArray(d?.items)?d.items:[];
-            if(items.length)setStores(items);
+            if(requestId === gpsRequestIdRef.current && items.length)setStores(items);
           }).catch(()=>undefined);
       }
     };
@@ -3145,7 +3164,7 @@ export default function DesktopPreviewPage() {
           </div>
 
           <div className="relative grid h-[66px] min-w-0 grid-cols-[52px_minmax(0,1fr)_52px] items-center gap-2 rounded-[22px] border-[2px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f7edd2_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_4px_12px_rgba(34,54,43,.10)]">
-            <div className="grid h-[52px] w-[52px] place-items-center"><button type="button" onClick={() => { useGps(); }} title={gpsOn ? "Päivitä GPS-sijainti" : locationStatus} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
+            <div className="grid h-[52px] w-[52px] place-items-center"><button type="button" onClick={() => { if (gpsOn || gpsStartingRef.current) stopGps(); else useGps(); }} aria-label="GPS" aria-pressed={gpsOn} title={gpsOn ? "Kytke GPS pois päältä" : gpsStartingRef.current ? "Peruuta sijainnin haku" : locationStatus} className={`relative grid h-[52px] w-[52px] place-items-center rounded-[16px] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,.72)] ${gpsOn ? "border-[#2f9f58] bg-gradient-to-b from-[#ebfff0] to-[#98dfad]" : "border-[#c77a7a] bg-gradient-to-b from-[#fff1f1] to-[#f0caca]"}`}>
               <span className="text-[23px]">📍</span>{gpsToast&&<span className="absolute left-1/2 top-[62px] z-50 w-max -translate-x-1/2 rounded-full border border-[#6f806a]/20 bg-[#fffaf0] px-3 py-1.5 text-[10px] font-black text-[#536252] shadow-lg">{gpsToast}</span>}
               <span className={`absolute bottom-1.5 right-1.5 h-2.5 w-2.5 rounded-full border border-white shadow-sm ${gpsOn?"bg-[#159447]":"bg-[#a44f4f]"}`} />
             </button></div>
