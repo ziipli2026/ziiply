@@ -245,7 +245,7 @@ jobs:
                     if (comparing) {
                       const price = api === '/api/s-products' ? 159 : 149;
                       return route.fulfill({json:{[api === '/api/s-products' ? 'products' : 'items']:[
-                        {id:1,name:'Valio täysmaito 1 l',ean:'6408430106443',price,storeItems:[{price}]}
+                        {id:1,name:'Valio täysmaito 1 l',ean:'6408430106443',price,priceAmountUnit:'cent',storeItems:[{price}]}
                       ]}});
                     }
                     return route.fulfill({ json: { [api === '/api/s-products' ? 'products' : 'items']: [
@@ -428,7 +428,10 @@ jobs:
                         console.log('Comparison screen', name, (await search.locator('body').innerText()).slice(0,3500));
                         throw error;
                       });
-                      await search.getByText(price+' €', {exact:true}).filter({visible:true}).first().waitFor({timeout:25000});
+                      await search.getByText(price+' €', {exact:true}).filter({visible:true}).first().waitFor({timeout:25000}).catch(async error => {
+                        console.log('Comparison price screen', name, (await search.locator('body').innerText()).slice(-5500));
+                        throw error;
+                      });
                     }
                     for (const api of searchEndpoints) assert.ok(searchRequests.slice(firstCompareRequest).some(value => value.includes(api+'?')));
                     console.log(name, 'cart-to-comparison passed');
