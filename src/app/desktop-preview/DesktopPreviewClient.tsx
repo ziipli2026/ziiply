@@ -1853,6 +1853,27 @@ export default function DesktopPreviewPage() {
 
   function byDistance(items:any[]){const rank=(store:any)=>["lidl","spar"].includes(storeKind(store))?independentStoreDistance(store):distanceKm(store);return [...items].sort((a,b)=>rank(a)-rank(b));}
   function storeKind(s:any){const chain=String(s?.chain||s?.type||s?.brand||"").toLowerCase();const n=String(s?.name||"").toLowerCase();if(chain==="lidl")return "lidl";if(chain.includes("tokmanni")||chain.includes("spar"))return "spar";if(n.includes("prisma"))return "sHyper";if(n.includes("citymarket"))return "kHyper";if(n.includes("s-market")||n.includes("sale")||n.includes("alepa"))return "sLocal";if(n.includes("k-market")||n.includes("k-supermarket"))return "kLocal";if(n.includes("lidl"))return "lidl";if(n.includes("tokmanni")||n.includes("spar"))return "spar";return ""}
+  useEffect(() => {
+    if (!desktopStoreChoicesHydrated || !storeRankingCoords || !lidlStores.length) return;
+    const nearest = byDistance(lidlStores.filter(isStoreSuggestion))[0];
+    if (!nearest || independentStoreDistance(nearest) > 30) return;
+    setAllStoreSelections(previous => {
+      function repairKeljo(selections: Record<string, any>) {
+        const entry = Object.entries(selections).find(([, store]) =>
+          storeKind(store) === "lidl" && store.desktopSelectionOrigin !== "manual"
+          && /^jyväskylä\s*[-–]\s*keljo$/i.test(String(store.name).trim())
+          && independentStoreDistance(lidlStores.find(item => String(item.id) === String(store.id)) ?? store) > 100);
+        if (!entry) return selections;
+        const updated = {...selections};
+        delete updated[entry[0]];
+        return {...updated, [String(nearest.id)]: {...nearest, desktopSelectionOrigin:"suggested"}};
+      }
+      const hyper = repairKeljo(previous.hyper);
+      const local = repairKeljo(previous.local);
+      return hyper === previous.hyper && local === previous.local ? previous : {hyper, local};
+    });
+  }, [desktopStoreChoicesHydrated, storeRankingCoords, lidlStores]);
+
   function applyModeDefaults(nextMode:"hyper"|"local"){
     // Keep manual choices for each store type. In between-chain multi mode,
     // complete only missing chains using the nearest matching store in the new type.
@@ -1873,8 +1894,11 @@ export default function DesktopPreviewPage() {
         if(present.has(chain))continue;
         const pool=chain==="LIDL"?lidlStores:chain==="SPAR"?sparStores:stores;
         const expected=chain==="S"?(nextMode==="hyper"?"sHyper":"sLocal"):chain==="K"?(nextMode==="hyper"?"kHyper":"kLocal"):chain==="LIDL"?"lidl":"spar";
-        const candidate=byDistance(pool.filter((store:any)=>storeKind(store)===expected&&isStoreSuggestion(store)))[0];
-        if(candidate){next[String(candidate.id)]=candidate;present.add(chain)}
+        const previousChoice = Object.values(source).find(store => storeKind(store) === expected);
+        const candidate = chain === "LIDL" || chain === "SPAR"
+          ? previousChoice
+          : byDistance(pool.filter((store:any)=>storeKind(store)===expected&&isStoreSuggestion(store)))[0];
+        if(candidate){next[String(candidate.id)]={...candidate,desktopSelectionOrigin:candidate.desktopSelectionOrigin ?? "suggested"};present.add(chain)}
       }
       return {...prev,[nextMode]:next};
     });
@@ -3393,7 +3417,7 @@ export default function DesktopPreviewPage() {
       {byDistance((chain==="LIDL"?lidlStores:chain==="SPAR"?sparStores:stores).filter((s:any)=>{const k=storeKind(s);return chain==="S"?k===(storeMode==="hyper"?"sHyper":"sLocal"):chain==="K"?k===(storeMode==="hyper"?"kHyper":"kLocal"):chain==="LIDL"?k==="lidl":k==="spar"})).map((s:any)=>{
         const isCurrent=String(store?.id)===String(s.id);
         const distance=distanceKm(s);
-        return <button key={String(s.id)} type="button" onClick={()=>{setSelectedChain(chain as "S"|"K"|"LIDL"|"SPAR");setSelectedStores(prev=>{const next:any={};for(const [id,x] of Object.entries(prev)){const k=storeKind(x);if(chain==="S"?(k!=="sHyper"&&k!=="sLocal"):chain==="K"?(k!=="kHyper"&&k!=="kLocal"):chain==="LIDL"?k!=="lidl":k!=="spar")next[id]=x}next[String(s.id)]=s;return next});setPickerChain(null)}} className={`flex w-full items-center justify-between gap-3 rounded-[15px] border px-3 py-3 text-left shadow-sm ${isCurrent?"border-[#0b6f35] bg-[#0a6d39] text-white":"border-[#ead9aa] bg-[#fffdf6] text-[#24324a] hover:bg-[#f5edcf]"}`}>
+        return <button key={String(s.id)} type="button" onClick={()=>{setSelectedChain(chain as "S"|"K"|"LIDL"|"SPAR");setSelectedStores(prev=>{const next:any={};for(const [id,x] of Object.entries(prev)){const k=storeKind(x);if(chain==="S"?(k!=="sHyper"&&k!=="sLocal"):chain==="K"?(k!=="kHyper"&&k!=="kLocal"):chain==="LIDL"?k!=="lidl":k!=="spar")next[id]=x}next[String(s.id)]={...s,desktopSelectionOrigin:"manual"};return next});setPickerChain(null)}} className={`flex w-full items-center justify-between gap-3 rounded-[15px] border px-3 py-3 text-left shadow-sm ${isCurrent?"border-[#0b6f35] bg-[#0a6d39] text-white":"border-[#ead9aa] bg-[#fffdf6] text-[#24324a] hover:bg-[#f5edcf]"}`}>
           <span className="min-w-0 flex-1 text-[15px] font-black leading-tight">{s.name}</span>
           <span className={`shrink-0 rounded-full px-2 py-1 text-[12px] font-bold ${isCurrent?"bg-white/20 text-white":"bg-[#fff4cf] text-[#78684a]"}`}>{isCurrent?"Valittu":Number.isFinite(distance)?`${distance.toFixed(1)} km`:""}</span>
         </button>
