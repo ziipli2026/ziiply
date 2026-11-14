@@ -13077,9 +13077,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const store = selectedLidlStoreV750;
               stores.push({chain:"LIDL", id:store.id, name:store.name || "Lidl", city:store.city, address:store.address});
             }
-            const sparStore = selectedTokmanniStoreV756 || selectedEurosparStoreV751;
+            const sparStore = selectedEurosparStoreV751 || selectedTokmanniStoreV756;
             if (selectedChains.tokmanni && sparStore) {
-              stores.push({chain:selectedTokmanniStoreV756 ? "TOKMANNI" : "SPAR", id:sparStore.id, name:sparStore.name || "SPAR"});
+              stores.push({chain:sparStore === selectedEurosparStoreV751 ? "SPAR" : "TOKMANNI", id:sparStore.id, name:sparStore.name || "SPAR"});
             }
           }
           const {sortedRows} = await searchNormalStores(term, stores, {trace: traceSearch});
@@ -20869,10 +20869,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [foundStores, gpsCoordsV320, usingOwnLocation]);
 
   useEffect(() => {
-    if (lidlStoreOptionsV750.length === 0) {
-      setSelectedLidlStoreV750(null);
-      return;
-    }
+    if (lidlStoreOptionsV750.length === 0) return;
 
     // GPS follows the same visible-card rule as S/K/SPAR: the Lidl card
     // always reflects the nearest Lidl for the current own-location result.
