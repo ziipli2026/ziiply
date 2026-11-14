@@ -1717,9 +1717,10 @@ import {
   type ZiiplyKruokaDebugV174,
 } from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import {
-  explainNormalSearch as explainZiiplyNormalSearch,
   learnNormalSearchChoice as learnZiiplyNormalSearchChoice,
 } from "./components/ziiply/search/searchEngine";
+import { desktopSearchQueries, desktopSearchQuery } from "./components/ziiply/search/desktopNormalRelevance";
+import { autocorrectNormalSearchTerm } from "./components/ziiply/desktop/justiina/mobileVoiceList";
 import { getLearnedStructureBoost } from "./components/ziiply/search/searchIntentMemory";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
@@ -12703,28 +12704,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function autocorrectNormalSearchTerm(term: string) {
-    const original = String(term || "").trim();
-    if (!original) return original;
-
-    // Autocorrect is only for text searches. Do not touch EAN/barcode searches.
-    if (/^\d{6,14}$/.test(original.replace(/\D/g, ""))) {
-      return original;
-    }
-
-    try {
-      const intent = explainZiiplyNormalSearch(original) as any;
-      const corrected = String(intent?.correctedQuery || intent?.canonicalQuery || original)
-        .replace(/\s+/g, " ")
-        .trim();
-
-      return corrected || original;
-    } catch {
-      return original;
-    }
-  }
-
-
   function isExplicitPetSearchV443(query: string) {
     const q = normalize(query);
     return [
@@ -12909,9 +12888,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? [getSingleSearchTerm(input)].filter(Boolean)
         : terms;
 
+    const usesSharedStoreQueries = !forceEan && !recipeIngredient &&
+      (storeCompareScope === "within_chain"
+        ? withinChain === "S" || withinChain === "K"
+        : selectedChains.s || selectedChains.k);
     const useTerms = forceEan || recipeIngredient
       ? rawUseTerms
-      : rawUseTerms.map(autocorrectNormalSearchTerm);
+      : rawUseTerms.map(term => {
+          const corrected = autocorrectNormalSearchTerm(term);
+          return usesSharedStoreQueries ? desktopSearchQuery(corrected) : corrected;
+        });
     if (useTerms.length === 0) {
       setActiveNormalSearchTerm("");
       setNormalSearchAttempted(false);
@@ -13071,11 +13057,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Normal search collects selected-store prices without chain preference.
         // Multi-item selection remains sequential (maito -> kahvi -> cola).
         // The Neon catalog is metadata only; no catalog-only price is displayed.
-        const catalogEligible = !recipeIngredient && !forceEan &&
-          (storeCompareScope === "within_chain"
-            ? (withinChain === "S" || withinChain === "K")
-            : (selectedChains.s || selectedChains.k));
-        const catalogPromise: Promise<any[]> = !catalogEligible ? Promise.resolve([]) :
+        const catalogPromise: Promise<any[]> = !usesSharedStoreQueries ? Promise.resolve([]) :
           fetch("/api/neon-first-search?desktop=1&q=" + encodeURIComponent(term), { cache: "no-store" })
             .then(async response => response.ok ? response.json() : null)
             .then(data => Array.isArray(data?.products) ? data.products : [])
@@ -13096,7 +13078,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // nykyinen intent-filtteri/rankkaus rajaa väärät osumat. Pidetään toinen
         // kysely turvallisena alias/canonical-fallbackina. Tuntemattomalle
         // tuotteelle säilytetään laajempi fallback.
-        const searchQueries = Array.from(
+        const searchQueries = usesSharedStoreQueries ? desktopSearchQueries(term) : Array.from(
           new Map(
             [...generatedSearchQueries, originalSearchFallback]
               .filter(Boolean)

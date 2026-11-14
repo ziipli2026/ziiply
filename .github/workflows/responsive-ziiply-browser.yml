@@ -39,6 +39,7 @@ jobs:
           (async () => {
             const browser = await chromium.launch();
             try {
+              let phoneStoreQueries;
               for (const [name, options, desktop] of [
                 ['phone', devices['iPhone 13'], false],
                 ['touch tablet', { viewport: { width: 1024, height: 1366 }, hasTouch: true, isMobile: true }, false],
@@ -198,6 +199,17 @@ jobs:
                 await expensive.waitFor();
                 assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                 assert.ok(queries > 0, 'selected S store must receive a maito search');
+                const storeQueries = Array.from(new Set(searchRequests.flatMap(value => {
+                  const match = value.match(/^GET \/api\/s-products\?(.+)$/);
+                  if (!match) return [];
+                  const params = new URLSearchParams(match[1]);
+                  return params.get('store') === '634976534' ? [params.get('search')] : [];
+                })));
+                assert.ok(storeQueries.includes('maito') && storeQueries.includes('kevytmaito'),
+                  'normal search must send both the original query and a milk-family variant');
+                if (name === 'phone') phoneStoreQueries = storeQueries;
+                if (desktop) assert.deepEqual(storeQueries, phoneStoreQueries,
+                  'phone and desktop must request the same store query variants in order');
                 const maitoApiCalls = searchRequests.filter(value => /[?&]search=maito(?:&|$)/i.test(value));
                 assert.ok(maitoApiCalls.some(value => value.includes('/api/s-products?')), 'maito search must use selected S store API');
                 assert.equal(maitoApiCalls.filter(value => /\/api\/(?:k-products|store-search)\?/i.test(value)).length, 0, 'single S-chain search must not query K-chain or generic store search');
