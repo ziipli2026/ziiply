@@ -1643,6 +1643,7 @@ import {
   scoreNormalSResult,
   rankNormalSearchResults,
   rankProductResultsByRelevanceAndPrice,
+  finalizeNormalSearchResults,
   isNonFoodOffer,
   isBadNormalResult,
   findArea,
@@ -13004,7 +13005,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
       // Revalidate cached results against the current product-group gate.
       const cachedTerm = focusedSearchTerms[0] || useTerms[0] || "";
-      const cachedValidated = rankProductResultsByRelevanceAndPrice(
+      const cachedValidated = finalizeNormalSearchResults(
         cachedTerm,
         cachedNormalSearchV441.results,
         getProductPrice,
@@ -13349,19 +13350,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
-      // Keep distinct EANs, not provider-specific IDs. When two selected
-      // stores quote the same EAN, retain the cheaper verified quote.
-      // Recipe selection retains its existing chain-specific identity.
-      const sortedForDedup = recipeIngredient ? all : [...all].sort((a, b) => getProductPrice(a) - getProductPrice(b));
-      const dedupedNormalItems = Array.from(
-        new Map((recipeIngredient ? sortedForDedup : [...sortedForDedup].reverse()).map(item => {
-          const ean = normalizeEan(item.ean);
-          const key = recipeIngredient
-            ? `${(item as Product & MobileRecipeProduct).__recipeChain || ""}:${item.id}`
-            : isUsableEan(ean) ? `ean:${ean}` : `id:${item.id}`;
-          return [key, item] as const;
-        })).values(),
-      );
+      // Recipe selection retains its chain-specific identity.
+      const normalCandidates = recipeIngredient
+        ? Array.from(new Map(all.map(item => [
+            `${(item as Product & MobileRecipeProduct).__recipeChain || ""}:${item.id}`,
+            item,
+          ] as const)).values())
+        : all;
 
       // K-Ruoka's product search is anchored to the user's literal query. Our
       // generated fallback queries may be broader; when literal K matches exist,
@@ -13373,7 +13368,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ((storeCompareScope === "within_chain" && withinChain === "K") ||
           (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && selectedChains.k && !selectedChains.s)) &&
         literalNormalQuery
-          ? dedupedNormalItems.filter((item) => {
+          ? normalCandidates.filter((item) => {
               const normalizedName = normalize(item.name);
               if (!normalizedName.includes(literalNormalQuery)) return false;
               if (literalNormalQuery === "huiluntuhti" && normalizedName.includes("makkarapihvi")) return false;
@@ -13381,7 +13376,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             })
           : [];
       const normalItemsForSelectionUnfiltered =
-        !recipeIngredient && literalKMatches.length > 0 ? literalKMatches : dedupedNormalItems;
+        !recipeIngredient && literalKMatches.length > 0 ? literalKMatches : normalCandidates;
       const originalNormalQuery = focusedSearchTerms[0] || useTerms[0] || "";
       const normalItemsForSelection = recipeIngredient ? normalItemsForSelectionUnfiltered
         : normalItemsForSelectionUnfiltered.filter((product) => !isBadNormalResult(product, originalNormalQuery));
@@ -13450,7 +13445,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const unique = recipeIngredient
         ? prioritizeRecipeFishProducts(recipeIngredient.name, rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0], normalUnique.filter(recipeAllows), getProductPrice), recipeIngredient)
-        : rankProductResultsByRelevanceAndPrice(
+        : finalizeNormalSearchResults(
             focusedSearchTerms[0] || useTerms[0] || "",
             normalUnique,
             getProductPrice,

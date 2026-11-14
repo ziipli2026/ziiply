@@ -2,7 +2,7 @@ name: Responsive Ziiply browser smoke test
 # Isolated chain-scope regression validation
 on:
   push:
-    branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113]
+    branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113, test/search-chain-scope-validation-20261113]
   workflow_dispatch:
   pull_request:
     paths:
@@ -121,6 +121,7 @@ jobs:
                   return route.fulfill({ json: { products: [
                     { id: 1, name: 'Valio täysmaito 1 l', ean: '6408430106443', price: 179 },
                     { id: 2, name: 'Kotimaista kevytmaito 1 l', ean: '6438460292804', price: 95 },
+                    { id: 5, name: 'Kotimaista kevytmaito 1 l', ean: '6438460292804', price: 159 },
                     { id: 3, name: 'Maitokolmio ruisleipä', ean: '6411001000111', price: 49 },
                     { id: 4, name: 'Arla rasvaton maito 1 l', ean: '6413300101713', price: 0 }
                   ] } });
@@ -195,6 +196,7 @@ jobs:
                   throw error;
                 }
                 await expensive.waitFor();
+                assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                 assert.ok(queries > 0, 'selected S store must receive a maito search');
                 const maitoApiCalls = searchRequests.filter(value => /[?&]search=maito(?:&|$)/i.test(value));
                 assert.ok(maitoApiCalls.some(value => value.includes('/api/s-products?')), 'maito search must use selected S store API');

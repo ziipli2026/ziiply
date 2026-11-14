@@ -12,7 +12,7 @@ import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferenc
 import { useEffect, useRef, useState } from "react";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "../components/ziiply/location/ZiiplyArrivalNotice";
 import { evaluateZiiplyArrival, initialZiiplyArrivalState, type ZiiplyArrivalDecision } from "../components/ziiply/location/ziiplyArrivalSequence";
-import { readSearchProducts, getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
+import { readSearchProducts, getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, finalizeNormalSearchResults, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
 import { parseMobileVoiceList, autocorrectNormalSearchTerm } from "../components/ziiply/desktop/justiina/mobileVoiceList";
@@ -2731,18 +2731,15 @@ export default function DesktopPreviewPage() {
           if(included)rows.push(product);
         }
       }
-      const relevanceAndPriceRows=rankProductResultsByRelevanceAndPrice(query,rows,(p:any)=>p.__price??Number.POSITIVE_INFINITY);
-      // Catalog rows supply identity evidence above. Only priced store rows enter the picker.
-      // The shared ranker sorts cheapest first, so the first quote per EAN wins.
-      const seen = new Set<string>();
-      const sortedRows = relevanceAndPriceRows.filter(product => {
-        const ean = normalizeEan(product.ean || product.barcode || product.product?.ean);
-        const key = ean || `name:${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      }).slice(0, 100);
-      if(!diagnostic)traceNormal("merge_complete",{query,storeCount:relevanceAndPriceRows.length,failures,products:sortedRows});
+      const rankedRows = finalizeNormalSearchResults(
+        query,
+        rows,
+        product => product.__price ?? Number.POSITIVE_INFINITY,
+        product => product.ean || product.barcode || product.product?.ean,
+        product => `${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`,
+      );
+      const sortedRows = rankedRows.slice(0, 100);
+      if(!diagnostic)traceNormal("merge_complete",{query,storeCount:rankedRows.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
       if(generation!==desktopVoiceRunRef.current)return false;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { desktopSearchDecision } from '../src/app/components/ziiply/search/desktopNormalRelevance';
-import { rankProductResultsByRelevanceAndPrice } from '../src/app/components/ziiply/ziiplyCore';
+import { finalizeNormalSearchResults, rankProductResultsByRelevanceAndPrice } from '../src/app/components/ziiply/ziiplyCore';
 import { normalizeEan } from '../src/app/components/ziiply/search/searchNormalizer';
 
 type Sample = {id:number; name:string; ean:string; price:number; category?:string; brandName?:string; quantity?:string};
@@ -117,3 +117,18 @@ if(disagreements || falsePositives || falseNegatives || desktopFalsePositives ||
  console.error('AUDIT_DIFFERENCES_DETECTED: review before unification');
  process.exitCode=1;
 } else console.log('AUDIT_PARITY_OK');
+
+const sameEanQuotes: Sample[] = [
+  { id: 1, name: 'Kirjolohiöljy koirille 500 ml', ean: '6410401234567', price: 0.99 },
+  { id: 2, name: 'Kirjolohifilee 700 g', ean: '641-0401-234567', price: 12.49 },
+  { id: 3, name: 'Kirjolohifilee 700 g', ean: '6410401234567', price: 11.49 },
+  { id: 4, name: 'Kokonainen kirjolohi 1 kg', ean: '6410401234568', price: 10.49 },
+  { id: 5, name: 'Kokonainen kirjolohi 1 kg', ean: '6410401234569', price: 0 },
+];
+for (const quotes of [sameEanQuotes, [...sameEanQuotes].reverse()]) {
+  assert.deepEqual(
+    finalizeNormalSearchResults('kirjolohi', quotes, product => product.price).map(product => product.id),
+    [4, 3],
+    'reject irrelevant and unpriced quotes before keeping the cheapest eligible quote per EAN',
+  );
+}
