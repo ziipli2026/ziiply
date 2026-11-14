@@ -2611,8 +2611,15 @@ export default function DesktopPreviewPage() {
     // The typing debounce is applied in the effect below; never delay a started search again.
     try{
       const stores: NormalSearchStore[] = [];
-      if(s) stores.push({chain:"S",id:s.id,name:String(s.name||""),type:storeKind(s)==="sLocal"?"local":"hyper"});
-      if(k) stores.push({chain:"K",id:k.id,name:String(k.name||"")});
+      for (const store of selected) {
+        const kind = storeKind(store);
+        if (kind === "sHyper" || kind === "sLocal") stores.push({
+          chain:"S", id:store.id, name:String(store.name || ""), type:kind === "sLocal" ? "local" : "hyper",
+        });
+        if (kind === "kHyper" || kind === "kLocal") stores.push({
+          chain:"K", id:store.id, name:String(store.name || ""), type:kind === "kLocal" ? "local" : "hyper",
+        });
+      }
       for (const store of independent) {
         const chain = storeKind(store) === "lidl" ? "LIDL" :
           /spar/i.test(String(store.chain || "") + " " + String(store.name || "")) ? "SPAR" : "TOKMANNI";

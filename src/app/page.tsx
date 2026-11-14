@@ -13064,13 +13064,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const withinS = storeCompareScope === "within_chain" && withinChain === "S";
           const withinK = storeCompareScope === "within_chain" && withinChain === "K";
           const stores: NormalSearchStore[] = [];
-          const sId = withinS ? activeArea.sStoreId : activeStores.sStoreId;
-          const kId = withinK ? activeArea.kStoreId : activeStores.kStoreId;
-          if (sId && (withinS || (!withinK && selectedChains.s))) {
-            stores.push({chain:"S", id:sId, name:(withinS ? activeArea.sStoreName : activeStores.sStoreName) || "", type:storeMode === "local" ? "local" : "hyper"});
-          }
-          if (kId && (withinK || (!withinS && selectedChains.k))) {
-            stores.push({chain:"K", id:kId, name:(withinK ? activeArea.kStoreName : activeStores.kStoreName) || ""});
+          if (withinS || withinK) {
+            const chain = withinS ? "S" : "K";
+            const area = activeArea;
+            const hyperId = withinS ? area.sStoreId : area.kStoreId;
+            const localId = withinS ? area.sLocalStoreId : area.kLocalStoreId;
+            if (hyperId) stores.push({chain, id:hyperId, name:(withinS ? area.sStoreName : area.kStoreName) || "", type:"hyper"});
+            if (localId) stores.push({chain, id:localId, name:(withinS ? area.sLocalStoreName : area.kLocalStoreName) || "", type:"local"});
+          } else {
+            if (selectedChains.s && activeStores.sStoreId) stores.push({
+              chain:"S", id:activeStores.sStoreId, name:activeStores.sStoreName || "", type:storeMode,
+            });
+            if (selectedChains.k && activeStores.kStoreId) stores.push({
+              chain:"K", id:activeStores.kStoreId, name:activeStores.kStoreName || "", type:storeMode,
+            });
           }
           if (storeCompareScope === "between_chains") {
             if (selectedChains.lidl && selectedLidlStoreV750) {
