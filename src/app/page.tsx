@@ -1719,6 +1719,7 @@ import {
 import {
   learnNormalSearchChoice as learnZiiplyNormalSearchChoice,
 } from "./components/ziiply/search/searchEngine";
+import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./components/ziiply/search/normalSearchCatalog";
 import { desktopSearchQueries, desktopSearchQuery } from "./components/ziiply/search/desktopNormalRelevance";
 import { autocorrectNormalSearchTerm } from "./components/ziiply/desktop/justiina/mobileVoiceList";
 import { getLearnedStructureBoost } from "./components/ziiply/search/searchIntentMemory";
@@ -13057,11 +13058,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Normal search collects selected-store prices without chain preference.
         // Multi-item selection remains sequential (maito -> kahvi -> cola).
         // The Neon catalog is metadata only; no catalog-only price is displayed.
-        const catalogPromise: Promise<any[]> = !usesSharedStoreQueries ? Promise.resolve([]) :
-          fetch("/api/neon-first-search?desktop=1&q=" + encodeURIComponent(term), { cache: "no-store" })
-            .then(async response => response.ok ? response.json() : null)
-            .then(data => Array.isArray(data?.products) ? data.products : [])
-            .catch(() => []);
+        const catalogPromise = usesSharedStoreQueries ? fetchNormalSearchCatalog(term) : null;
         const coverageQueries=recipeCoverageQueries(term,recipeIngredient,[...new Set(getNormalSearchQueries(term))].slice(0,6));
         const generatedSearchQueries = (coverageQueries.length?coverageQueries:getNormalSearchQueries(term))
           .map((query) => fixText(String(query || "")).trim())
@@ -13293,8 +13290,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Catalog recovery only supplements priced products from the selected stores.
         // Recover up to two missing catalog identities from the selected stores.
         // Only a matching EAN with a verified shop price can enter the picker.
-        if (usesSharedStoreQueries) {
-          const catalogRows = await catalogPromise;
+        if (catalogPromise) {
+          const catalogRows = selectNormalSearchCatalog(term, await catalogPromise);
           if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
           const seenEans = new Set(all.map(item => normalizeEan(item.ean)).filter(Boolean));
           const missing = catalogRows.filter(row => {

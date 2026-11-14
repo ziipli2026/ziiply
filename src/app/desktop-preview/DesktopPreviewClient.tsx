@@ -1,5 +1,6 @@
 "use client";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonProductType, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "../components/ziiply/comparisonBrand";
+import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "../components/ziiply/search/normalSearchCatalog";
 import { desktopSearchQuery, desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence, searchWords } from "../components/ziiply/search/desktopNormalRelevance";
 import { onlineRecipeSearchPlan, onlineRecipeDisplayIngredients, onlineRecipeMatchingResults, onlineRecipeTitleMatches } from "../components/ziiply/justiina/onlineRecipe";
 import CitymarketFailureNotice from "../components/ziiply/cards/CitymarketFailureNotice";
@@ -2641,18 +2642,14 @@ export default function DesktopPreviewPage() {
       }
       // Start catalog lookup concurrently with the existing selected-store providers.
       // The catalog never supplies a store price or modifies recipe/offer engines.
-      const neonPromise = fetch("/api/neon-first-search?desktop=1&q="+encodeURIComponent(query), {cache:"no-store", ...(diagnostic?{signal:diagnostic.signal}:{})})
-        .then(async response => response.ok ? response.json() : null)
-        .then(data => Array.isArray(data?.products) ? data.products : [] as any[])
-        .catch(() => [] as any[]);
+      const neonPromise = fetchNormalSearchCatalog(query, diagnostic?.signal);
       const calls:any[]=[];
       if(s)calls.push(fetchSearchData(`/api/s-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(s.id))}&storeName=${encodeURIComponent(String(s.name||""))}&storeType=${storeKind(s)==="sLocal"?"local":"hyper"}`).then(d=>({chain:"S",store:s,data:d})));
       if(k)calls.push(fetchSearchData(`/api/k-products?search=${encodeURIComponent(query)}&store=${encodeURIComponent(String(k.id))}`).then(d=>({chain:"K",store:k,data:d})));
       const settledPromise=Promise.allSettled(calls);
       const neonRaw = await neonPromise;
       if(!diagnostic)traceNormal("neon_response",{count:neonRaw.length,products:neonRaw.slice(0,100)});
-      const neonRows = neonRaw
-        .filter((x:any)=>desktopSearchDecision(query,x).accepted && Boolean(x.name) && Boolean(x.ean))
+      const neonRows = selectNormalSearchCatalog(query, neonRaw)
         .slice(0,50)
         .map((x:any)=>({...x,__chain:"Neon",__store:"Tuoteluettelo",__price:null,__priceSource:"neon-catalog-unpriced"}));
       // Keep Neon metadata internal until a selected-store price is available; do not show an unpriced
