@@ -407,7 +407,7 @@ jobs:
                   assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
                   console.log(name, scenario, 'search passed', storeQueries);
                   if (many && !extra && (name === 'phone' || desktop)) {
-                    const card = desktop ? expensive.locator('../..') : expensive.locator('ancestor::article');
+                    const card = desktop ? expensive.locator('../..') : expensive.locator('xpath=ancestor::article');
                     await card.getByRole('button', {name:/Lisää koriin/}).click();
                     await search.waitForFunction(desktop => {
                       const rows = desktop
