@@ -19,3 +19,18 @@ test("Tokmanni retains page department without claiming product taxonomy", () =>
   assert.match(tokmanni, /sourceDepartment: "elintarvikkeet-ja-elainruoka"/);
   assert.match(tokmanni, /sourceCategoryPath: ""/);
 });
+
+test("Lidl source departments reject non-grocery offers before name heuristics", () => {
+  const start = lidl.indexOf("function categoryFor(");
+  const end = lidl.indexOf("\nfunction visitProducts(", start);
+  assert.ok(start >= 0 && end > start);
+  const source = lidl.slice(start, end).replace("name: string, sourceUrl: string", "name, sourceUrl");
+  const categoryFor = new Function("normalize", "lidlProductCategory", source + "\nreturn categoryFor;")(
+    value => String(value).toLowerCase().replace(/[^a-z0-9]+/g, " "),
+    () => null
+  );
+  assert.equal(categoryFor("Crelando Sukkalanka 2 kerää", "https://www.lidl.fi/h/ompelukone-ja-tarvikkeet/h10067530"), "Muut");
+  assert.equal(categoryFor("Ultimate Speed Pullotunkki", "https://www.lidl.fi/h/auto-ja-moottoripyoerae/h10067538"), "Muut");
+  assert.equal(categoryFor("Kanan fileepihvit", "https://www.lidl.fi/h/lihat/h10095752"), "Liha & makkarat");
+  assert.equal(categoryFor("Pyykinpesuaine", "https://www.lidl.fi/h/siivous/h1001"), "Kodinhoito");
+});
