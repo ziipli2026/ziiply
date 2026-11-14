@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 /** Refuse to create Ziiply tables or log runs in another application's database. */
 async function assertZiiplyDatabase(sql: ReturnType<typeof neon>) {
   const rows = await sql`SELECT current_database() AS database_name`;
-  if (rows[0]?.database_name !== "neondb") {
+  if (!Array.isArray(rows) || (rows[0] as { database_name?: string } | undefined)?.database_name !== "neondb") {
     throw new Error("Ziiply publication logging blocked: unexpected database");
   }
 }
