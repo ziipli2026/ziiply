@@ -12892,7 +12892,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const usesSharedStoreQueries = !forceEan && !recipeIngredient &&
       (storeCompareScope === "within_chain"
         ? withinChain === "S" || withinChain === "K"
-        : selectedChains.s || selectedChains.k);
+        : selectedChains.s || selectedChains.k ||
+          (selectedChains.lidl && Boolean(selectedLidlStoreV750)) ||
+          (selectedChains.tokmanni && Boolean(selectedTokmanniStoreV756 || selectedEurosparStoreV751)));
     const useTerms = forceEan || recipeIngredient
       ? rawUseTerms
       : rawUseTerms.map(term => {
@@ -13070,6 +13072,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if (kId && (withinK || (!withinS && selectedChains.k))) {
             stores.push({chain:"K", id:kId, name:(withinK ? activeArea.kStoreName : activeStores.kStoreName) || ""});
           }
+          if (storeCompareScope === "between_chains") {
+            if (selectedChains.lidl && selectedLidlStoreV750) {
+              const store = selectedLidlStoreV750;
+              stores.push({chain:"LIDL", id:store.id, name:store.name || "Lidl", city:store.city, address:store.address});
+            }
+            const sparStore = selectedTokmanniStoreV756 || selectedEurosparStoreV751;
+            if (selectedChains.tokmanni && sparStore) {
+              stores.push({chain:selectedTokmanniStoreV756 ? "TOKMANNI" : "SPAR", id:sparStore.id, name:sparStore.name || "SPAR"});
+            }
+          }
           const {sortedRows} = await searchNormalStores(term, stores, {trace: traceSearch});
           if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
           for (const row of sortedRows) {
@@ -13082,6 +13094,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             if (shaped) all.push({
               ...row, ...shaped, originalSearchTerm: term, usedSearchQuery: term,
               storeName: row.__store, __recipeChain: row.__chain, __recipeStoreName: row.__store,
+              ...(row.priceVerified === false ? {price: undefined, storeItems: []} : {}),
             });
           }
           continue;

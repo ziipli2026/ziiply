@@ -2,10 +2,18 @@ import { desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence
 import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./normalSearchCatalog";
 import { finalizeNormalSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
 
-export type NormalSearchStore = { chain: "S" | "K"; id: string | number; name: string; type?: "local" | "hyper" };
+export type NormalSearchStore = { chain: "S" | "K" | "LIDL" | "TOKMANNI" | "SPAR"; id: string | number; name: string; city?: string; address?: string; type?: "local" | "hyper" };
 type Observer = (stage: string, data: Record<string, unknown>) => void;
 
-function storeUrl(store: NormalSearchStore) {
+function storeUrl(store: NormalSearchStore, intent: string) {
+  if (store.chain === "LIDL") {
+    const params = new URLSearchParams({ mode: "research", storeName: store.name, city: store.city ?? "" });
+    if (store.address) params.set("address", store.address);
+    return `/api/lidl/products?${params}`;
+  }
+  if (store.chain === "SPAR" || store.chain === "TOKMANNI") {
+    return `/api/tokmanni/products?${new URLSearchParams({ intent })}`;
+  }
   const params = new URLSearchParams({ store: String(store.id) });
   if (store.chain === "S") {
     params.set("storeName", store.name);
@@ -60,8 +68,8 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   }
   // Start catalog lookup concurrently with the existing selected-store providers.
   // The catalog never supplies a store price or modifies recipe/offer engines.
-  const neonPromise = fetchNormalSearchCatalog(query, signal);
-  const calls = stores.map(store => fetchSearchData(storeUrl(store)).then(data => ({chain:store.chain,store,data})));
+  const neonPromise = stores.some(store => store.chain === "S" || store.chain === "K") ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
+  const calls = stores.map(store => fetchSearchData(storeUrl(store, query)).then(data => ({chain:store.chain,store,data})));
   const settledPromise=Promise.allSettled(calls);
   const neonRaw = await neonPromise;
   trace("neon_response",{count:neonRaw.length,products:neonRaw.slice(0,100)});
@@ -90,7 +98,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     const tried=new Set(desktopSearchQueries(query).map(lookupKey));
     const fallbackNames=[...new Set<string>(neonRows.map((item:any)=>String(item.name || '')).filter(Boolean))]
       .filter(name=>!tried.has(lookupKey(name)));
-    await Promise.all(batches.map(async batch=>{
+    await Promise.all(batches.filter(batch => batch.chain === "S" || batch.chain === "K").map(async batch=>{
       const priced=itemsOf(batch.data).filter(item=>{
         const price=readStorePrice(item);
         return Number.isFinite(price)&&price>0&&desktopSearchDecision(query,withEvidence(item)).accepted;
@@ -108,7 +116,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       const lookupNames=[...neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)) && desktopSearchDecision(query,item).accepted).flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases:[])]),...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
       if(!lookupNames.length)return;
       const store=batch.store;
-      const url=storeUrl(store);
+      const url=storeUrl(store, query);
       try{
         report('catalog_name_lookup',{chain:batch.chain,store:store.name,names:lookupNames});
         const recovered=await fetchSearchData(url,lookupNames);
@@ -127,15 +135,27 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     }));
   }
   const rows:any[]=[];
+  const research = new Map<string, any>();
   const productDecisions:any[]=[];
   for(const batch of batches){
     const items=readSearchProducts(batch.data) as any[];
     for(const x of items){
+      if (batch.chain === "LIDL") {
+        if (x.source === "lidl.fi-public-research" && x.priceVerified === false &&
+            x.name && desktopSearchDecision(query, x).accepted) {
+          const key = String(x.id ?? x.name);
+          if (!research.has(key)) research.set(key, {
+            ...x, ean: "", price: null, storeItems: [], __price: null,
+            __chain: "LIDL", __store: "Lidlin julkinen tuoteluettelo",
+          });
+        }
+        continue;
+      }
       const rawPrice=readStorePrice(x);
       const responseSource=x.__providerSource||batch.data?.source;
       const priceIsEuros=x.priceAmountUnit === "eur" || (x.priceAmountUnit !== "cent" && batch.chain==="S" && responseSource==="s-kaupat-normal-v220");
       const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
-      const product=withEvidence({...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.store?.name,__price:euro,__priceSource:responseSource||""});
+      const product=withEvidence({...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.chain === "SPAR" || batch.chain === "TOKMANNI" ? "Tokmanni / SPAR verkkovalikoima" : batch.store.name,__price:euro,__priceSource:responseSource||""});
       const normalRejected=!desktopSearchDecision(query,product).accepted;
       const included=!normalRejected;
       productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});
@@ -149,7 +169,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     product => product.ean || product.barcode || product.product?.ean,
     product => `${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`,
   );
-  const sortedRows = rankedRows.slice(0, 100);
+  const sortedRows = [...rankedRows, ...research.values()].slice(0, 100);
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};
 }
