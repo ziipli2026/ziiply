@@ -130,6 +130,7 @@ import {
   GOSTA_CATEGORY_LABELS_V136,
   getGostaCategoryLabelFromFilterV136,
   getOfferCategoryV106,
+  getVerifiedOfferCategory,
   getOfferProductTitleV113,
   isBadOfferSearchResultV106,
   isGostaCategorySelectionV136,
@@ -390,6 +391,8 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // branch. Otherwise a stale top-level category such as "Muut" wins before
   // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  const verifiedCategory = getVerifiedOfferCategory(sourceItem) || getVerifiedOfferCategory(item);
+  if (verifiedCategory) return verifiedCategory;
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
   // Run before legacy title rules and stale EAN labels, including cached rows.
   const tokmanniSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
