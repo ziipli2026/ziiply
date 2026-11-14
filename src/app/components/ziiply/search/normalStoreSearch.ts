@@ -14,6 +14,11 @@ function storeUrl(store: NormalSearchStore) {
   return `/api/${store.chain === "S" ? "s" : "k"}-products?${params}`;
 }
 
+function readStorePrice(item: any) {
+  return Number(item?.price ?? item?.storeItems?.[0]?.price ?? item?.storeItem?.price ??
+    item?.pricing?.price ?? item?.currentPrice ?? 0);
+}
+
 export async function searchNormalStores(query: string, stores: NormalSearchStore[], options: {
   signal?: AbortSignal;
   observe?: Observer;
@@ -87,7 +92,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       .filter(name=>!tried.has(lookupKey(name)));
     await Promise.all(batches.map(async batch=>{
       const priced=itemsOf(batch.data).filter(item=>{
-        const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
+        const price=readStorePrice(item);
         return Number.isFinite(price)&&price>0&&desktopSearchDecision(query,withEvidence(item)).accepted;
       });
       const pricedEans=new Set(priced.map(item=>normalizeEan(item.ean)).filter(Boolean));
@@ -114,7 +119,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
         const missingEans=new Set(neonRows.map((item:any)=>normalizeEan(item.ean)).filter(Boolean));
         const matchingCatalogQuotes=itemsOf(recovered).filter(item=>{
           const ean=normalizeEan(item.ean||item.barcode||item.product?.ean);
-          const price=Number(item?.storeItems?.[0]?.price??item?.price??0);
+          const price=readStorePrice(item);
           return missingEans.has(ean) && Number.isFinite(price) && price>0;
         });
         batch.data={...batch.data,products:[...itemsOf(batch.data),...matchingCatalogQuotes]};
@@ -126,7 +131,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   for(const batch of batches){
     const items=readSearchProducts(batch.data) as any[];
     for(const x of items){
-      const rawPrice=Number(x?.storeItems?.[0]?.price??x?.price??0);
+      const rawPrice=readStorePrice(x);
       const responseSource=x.__providerSource||batch.data?.source;
       const priceIsEuros=x.priceAmountUnit === "eur" || (x.priceAmountUnit !== "cent" && batch.chain==="S" && responseSource==="s-kaupat-normal-v220");
       const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
