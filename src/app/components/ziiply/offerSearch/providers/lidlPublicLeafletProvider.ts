@@ -31,6 +31,7 @@ export type LidlPublicOffer = {
   pictureUrl: string;
   category: string;
   categoryPath: string;
+  sourceCategoryPath?: string;
   mainCategory: string;
   rawText: string;
   sourceUrl: string;
