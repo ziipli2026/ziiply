@@ -177,7 +177,7 @@ jobs:
                         upstream.searchParams.sort();
                         const key = upstream.href;
                         if (!liveResponses.has(key)) liveResponses.set(key, (async () => {
-                          const origins = api === '/api/neon-first-search' ? ['https://ziiply.fi', 'https://ziiply.vercel.app'] : ['https://ziiply.vercel.app'];
+                          const origins = api === '/api/neon-first-search' ? ['https://ziiply-r0a2creb6-ziipli2026s-projects.vercel.app'] : ['https://ziiply.vercel.app'];
                           for (const origin of origins) {
                             const response = await fetch(new URL(local.pathname + local.search, origin), {
                               signal: AbortSignal.timeout(15000), headers:{accept:'application/json'}
@@ -282,7 +282,7 @@ jobs:
                     await prices.first().waitFor({timeout:90000});
                     const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
                       const card = desktop ? button.parentElement.parentElement : button.closest('article');
-                      const label = desktop ? button.innerText : button.getAttribute('aria-label');
+                      const label = button.innerText;
                       const price = Number(label.match(/(\\d+)[,.](\\d{2})\\s*€/).slice(1).join('.'));
                       const ean = card.innerText.match(/EAN\\s+(\\d+)/)?.[1] ?? null;
                       const name = card.children[1].firstElementChild.innerText;
