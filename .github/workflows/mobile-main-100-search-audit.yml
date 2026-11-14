@@ -25,6 +25,21 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npx tsc src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-100-audit
+      - name: Diagnose real oil and vinegar product rejection
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),path=require('path');
+          function find(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory()){const x=find(p);if(x)return x;}else if(e.name==='ziiplyCore.js')return path.resolve(p)}return null}
+          const core=require(find('.tmp-100-audit'));
+          (async()=>{for(const query of ['ruokaöljy','etikka']){
+            const response=await fetch('https://ziiply.vercel.app/api/s-products?store=292&search='+encodeURIComponent(query));
+            const data=await response.json();const products=Array.isArray(data)?data:(data.items||data.products||[]);
+            const samples=products.filter(p=>/rypsiöljy 1l|rypsiöljy 0,5l|neito rypsiöljy 500|väkiviinaetikka|omenaviinietikka/i.test(p.name)).slice(0,12);
+            const result=samples.map(p=>({name:p.name,category:p.category,price:p.price,gate:core.productGroupGate(query,p.name),bad:core.isBadNormalResult(p,query),intent:core.detectSearchIntent(query)?.category,normalSolo:core.rankNormalSearchResults(query,[p],x=>Number(x.price)).length,finalSolo:core.rankProductResultsByRelevanceAndPrice(query,[p],x=>Number(x.price)).length}));
+            console.log('LIVE_SEARCH_REJECTION_DIAGNOSTIC',JSON.stringify({query,total:products.length,selected:result}));
+          }})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
       - name: Check real S/K product responses against shared final relevance filter
         if: startsWith(github.ref, 'refs/heads/test/')
         shell: bash
