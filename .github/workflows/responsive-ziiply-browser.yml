@@ -40,6 +40,8 @@ jobs:
             const browser = await chromium.launch();
             try {
               const phoneStoreQueries = new Map();
+              const liveResults = new Map();
+              const liveResponses = new Map();
               for (const [name, options, desktop] of [
                 ['phone', devices['iPhone 13'], false],
                 ['touch tablet', { viewport: { width: 1024, height: 1366 }, hasTouch: true, isMobile: true }, false],
@@ -104,7 +106,7 @@ jobs:
                   return saved.some(item => String(item.ean ?? item.product?.ean) === ean);
                 }, { desktop, ean: '6411001000110' }, { timeout: 10000 });
                 assert.deepEqual(errors, []);
-                for (const [chain, storeId, storeName, within = false, many = false, extra = null] of [
+                for (const [chain, storeId, storeName, within = false, many = false, extra = null, liveTerm = null] of [
                   ['S', '634976534', 'Prisma Hyvinkää'],
                   ['K', 'C130', 'K-Citymarket Hyvinkää'],
                   ['LIDL', 'lidl-test', 'Lidl Hyvinkää'],
@@ -115,6 +117,8 @@ jobs:
                   ['S', '634976534', 'Prisma Hyvinkää', false, true],
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, 'SPAR'],
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, 'TOKMANNI'],
+                  ['S', '634976534', 'Prisma Hyvinkää', false, true, null, 'maito'],
+                  ['S', '634976534', 'Prisma Hyvinkää', false, true, null, 'kirjolohi'],
                 ]) {
                   if ((chain !== 'S' || within || many) && name !== 'phone' && !desktop) continue;
                   const endpoint = { S: '/api/s-products', K: '/api/k-products', LIDL: '/api/lidl/products', SPAR: '/api/tokmanni/products', TOKMANNI: '/api/tokmanni/products' }[chain];
@@ -164,6 +168,34 @@ jobs:
                   await search.route('**/api/lidl/store-search?*', route => route.fulfill({json:{items:fixtures.slice(0,1)}}));
                   await search.route('**/api/eurospar-stores?*', route => route.fulfill({json:{items:fixtures.slice(1)}}));
                   const searchEndpoints = many ? [endpoint, '/api/k-products', ...(extra ? ['/api/lidl/products', '/api/tokmanni/products'] : [])] : [endpoint];
+                  const liveCounts = new Map();
+                  if (liveTerm) {
+                    for (const api of [...searchEndpoints, '/api/neon-first-search']) {
+                      await search.route('**' + api + '?*', async route => {
+                        const local = new URL(route.request().url());
+                        const upstream = new URL(local.pathname + local.search, 'https://ziiply.vercel.app');
+                        upstream.searchParams.sort();
+                        const key = upstream.href;
+                        if (!liveResponses.has(key)) liveResponses.set(key, (async () => {
+                          const response = await fetch(key, {signal: AbortSignal.timeout(15000)});
+                          const json = await response.json();
+                          return {status:response.status, json};
+                        })());
+                        try {
+                          const {status, json} = await liveResponses.get(key);
+                          const items = json.products ?? json.items;
+                          const term = local.searchParams.get(api === '/api/neon-first-search' ? 'q' : 'search');
+                          if (term === liveTerm && (api !== '/api/s-products' || local.searchParams.has('storeType'))) {
+                            liveCounts.set(api, {status, count:Array.isArray(items) ? items.length : 0});
+                          }
+                          await route.fulfill({status, json});
+                        } catch (error) {
+                          console.log('Live provider failure', key, String(error));
+                          await route.fulfill({status:502, json:{items:[]}});
+                        }
+                      });
+                    }
+                  } else {
                   for (const api of searchEndpoints) await search.route('**'+api+'?*', route => {
                     const params = new URL(route.request().url()).searchParams;
                     if (/maito/i.test(params.get('search') || '')) {
@@ -185,6 +217,7 @@ jobs:
                     ] } });
                   });
                   await search.route('**/api/neon-first-search?*', route => route.fulfill({ json: { products: [] } }));
+                  }
                   await search.goto(url);
                   // The mobile app can reset persisted selections on startup in a fresh CI
                   // browser. Seed the realistic S-store selection after hydration too.
@@ -197,7 +230,7 @@ jobs:
                   else await search.getByRole('button', { name: 'Justiina: Tuotehaku', exact: true }).click();
                   const input = desktop ? search.getByRole('textbox', { name: 'Hae tuotteita' })
                     : search.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({ visible: true });
-                  await input.fill('maito');
+                  await input.fill(liveTerm ?? 'maito');
                   if (!desktop) {
                     console.log('Mobile store configuration', await search.evaluate(() => ({
                       mobile: localStorage.getItem('ziiply-store-selection-v536'),
@@ -225,6 +258,40 @@ jobs:
                     await search.getByRole('button', { name: 'Justiina', exact: true }).filter({ visible: true }).click();
                   } else {
                     await input.press('Enter');
+                  }
+                  if (liveTerm) {
+                    const prices = desktop
+                      ? search.getByRole('button', {name:/\\d[,.]\\d{2}.*Lisää koriin/})
+                      : search.getByRole('button', {name:/^Lisää koriin: .*\\d[,.]\\d{2}/});
+                    if (!desktop) {
+                      const openResults = search.getByRole('button', {name:/Avaa löytöluettelo/}).filter({visible:true});
+                      await prices.first().or(openResults).first().waitFor({timeout:90000});
+                      if (!(await prices.first().isVisible()) && await openResults.count() === 1) await openResults.click();
+                    }
+                    await prices.first().waitFor({timeout:90000});
+                    const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
+                      const card = desktop ? button.parentElement.parentElement : button.closest('article');
+                      const label = desktop ? button.innerText : button.getAttribute('aria-label');
+                      const price = Number(label.match(/(\\d+)[,.](\\d{2})\\s*€/).slice(1).join('.'));
+                      const ean = card.innerText.match(/EAN\\s+(\\d+)/)?.[1] ?? null;
+                      const name = card.children[1].firstElementChild.innerText;
+                      return {name:name.trim(), price, ean};
+                    }), desktop);
+                    console.log('Live Chromium', name, liveTerm, JSON.stringify([...liveCounts]), JSON.stringify(results.slice(0,10)));
+                    for (const api of [...searchEndpoints, '/api/neon-first-search']) {
+                      assert.equal(liveCounts.get(api)?.status, 200, 'live ' + api + ' for ' + liveTerm);
+                      if (liveTerm === 'maito') assert.ok(liveCounts.get(api).count > 0, 'nonempty live ' + api);
+                    }
+                    assert.ok(results.every((row,index) => row.price > 0 && (!index || row.price >= results[index-1].price)));
+                    const eans = results.map(row => row.ean).filter(Boolean);
+                    assert.ok(eans.length > 0);
+                    assert.equal(new Set(eans).size, eans.length);
+                    assert.ok(results.some(row => liveTerm === 'maito' ? /maito/i.test(row.name) : /kirjolohi/i.test(row.name)));
+                    assert.ok(!results.some(row => liveTerm === 'maito' ? /leipä|suklaa/i.test(row.name) : /öljy|koirille/i.test(row.name)));
+                    if (!desktop) liveResults.set(liveTerm, results);
+                    else assert.deepEqual(results, liveResults.get(liveTerm), 'visible names, prices and EAN order on ' + liveTerm);
+                    await searchContext.close();
+                    continue;
                   }
                   const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).first();
                   const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).filter({ visible: true }).first();
