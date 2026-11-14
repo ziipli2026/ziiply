@@ -1,0 +1,1341 @@
+{
+  "leaflet": "https://kcm-tarjouslehdet.k-ruoka.fi/92ts090_tarjouslehti_46LV_KCM/index.html",
+  "pdfUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/92ts090_tarjouslehti_46LV_KCM/files/extfile/DownloadURL.pdf",
+  "pdfSha256": "c7d245954ea194da21e7ca094d47279f027f2ffd03641f7f19771f31b2dc83e6",
+  "pageCount": 20,
+  "rows": [
+    {
+      "id": "kcm:spatial:1:kananpojan fileepihvit 1 kg (7,99/kg):4.99",
+      "page": 1,
+      "title": "KANANPOJAN FILEEPIHVIT 1 kg (7,99/kg)",
+      "normalizedTitle": "KANANPOJAN FILEEPIHVIT 1 kg (7,99/kg)",
+      "anchor": {
+        "left": 0.504574,
+        "top": 0.616109,
+        "width": 0.07333199999999995,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "RUSTICA PAKASTEPIZZAT",
+        "2",
+        "KPL",
+        "Ilman Plussa-korttia 5,75/kpl (9,43–11,76/kg)",
+        "ERÄ",
+        "Kariniemen",
+        "  OLTERMANNI PALAJUUSTOT",
+        "1 kg tai 17 % 900 g",
+        "Ei kasviöljy (4,99–5,54/kg)",
+        "Rajoitus 1 kpl/talous Rajoitus 2 rs/talous Ostbitar Kycklingfilébiffar",
+        "KANANPOJAN FILEEPIHVIT 1 kg (7,99/kg)",
+        "  -25–26 %",
+        "-42 %",
+        "47",
+        "99 99",
+        "   KPL RS",
+        "  Ilman Plussa-korttia Ilman Plussa-korttia 13,89/rs",
+        "6,69–6,82/kpl (6,82–7,43/kg)",
+        "(13,89/kg)",
+        "             489–610 g - (7,38–9,20/kg) Frysta pizzor",
+        "Libero Touch",
+        "TEIPPI- ja HOUSUVAIPAT KOOT 3–7, 22–40 kpl/pkt",
+        " K1 29",
+        "9.",
+        "-Menu",
+        "SATSUMA 1 kg"
+      ]
+    },
+    {
+      "id": "kcm:spatial:1:satsuma 1 kg:1.29",
+      "page": 1,
+      "title": "SATSUMA 1 kg",
+      "normalizedTitle": "SATSUMA 1 kg",
+      "anchor": {
+        "left": 0.196049,
+        "top": 0.828056,
+        "width": 0.07214400000000001,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "-Menu",
+        "SATSUMA 1 kg",
+        "Espanja (1 29,29/kg) kg",
+        "PS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:pensasmustikka 125 g:1.99",
+      "page": 2,
+      "title": "PENSASMUSTIKKA 125 g",
+      "normalizedTitle": "PENSASMUSTIKKA 125 g",
+      "anchor": {
+        "left": 0.690538,
+        "top": 0.847218,
+        "width": 0.12386799999999998,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "PENSASMUSTIKKA 125 g",
+        "Peru (15,92/kg) g",
+        "Buskblåbär",
+        "RS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:kiinteä, yleis, jauhoinen 0ja jazzy perunat 1 kg suomi (0,69/kg):0.69",
+      "page": 2,
+      "title": "KIINTEÄ, YLEIS, JAUHOINEN 0ja JAZZY PERUNAT 1 kg Suomi (0,69/kg)",
+      "normalizedTitle": "KIINTEÄ, YLEIS, JAUHOINEN 0ja JAZZY PERUNAT 1 kg Suomi (0,69/kg)",
+      "anchor": {
+        "left": 0.838003,
+        "top": 0.345939,
+        "width": 0.1448959999999999,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Muumi",
+        "KIINTEÄ YLEIS JAUHOINEN",
+        "JAZZY PERUNAT 1 kg",
+        "Suomi (0,69/kg) kg",
+        "Potatis",
+        "PS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:2:porkkana 600 g suomi (1,15/kg) morot:0.69",
+      "page": 2,
+      "title": "PORKKANA 600 g Suomi (1,15/kg) Morot",
+      "normalizedTitle": "PORKKANA 600 g Suomi (1,15/kg) Morot",
+      "anchor": {
+        "left": 0.838003,
+        "top": 0.588642,
+        "width": 0.030336999999999947,
+        "height": 0.010369
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Muumi",
+        "600 g",
+        "Suomi (1,15/kg) g",
+        "Morot",
+        "PS"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:täysmehut 900 ml/pl tai smoothiet 750 ml/pl:3.49",
+      "page": 3,
+      "title": "TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl",
+      "normalizedTitle": "TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl",
+      "anchor": {
+        "left": 0.159161,
+        "top": 0.552964,
+        "width": 0.13320700000000002,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Innocent",
+        "TÄYSMEHUT 900 ml/pl tai",
+        "SMOOTHIET 750 ml/pl",
+        "(3,66–4,39/l) 3 Sis pantin 0 20",
+        "Juice",
+        "PL",
+        "-10–30",
+        "3,89–4,99/pl",
+        "Ilman Plussa-korttia",
+        "%",
+        "(4,10–6 3,39/l) Sis pantin 0 20"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:appelsiinitä-ysmehu 1 l ei kylmästä myytävä:4",
+      "page": 3,
+      "title": "APPELSIINITÄ-YSMEHU 1 l Ei kylmästä myytävä",
+      "normalizedTitle": "APPELSIINITÄ-YSMEHU 1 l Ei kylmästä myytävä",
+      "anchor": {
+        "left": 0.491275,
+        "top": 0.567988,
+        "width": 0.09935800000000006,
+        "height": 0.010369
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "1 l",
+        "Ei kylmästä l myytävä",
+        "(2 0,00/l) 0 l",
+        "Vaasan",
+        "Juice",
+        "6 kpl/350 3 g",
+        "(6,54/kg) 4 g",
+        "2",
+        "Havrebröd",
+        "TLK",
+        "%",
+        "2,29/tlk",
+        "Ilman l Plussa-korttia l",
+        "(2 2,29/l) l"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:power cow pirtelöt 200 ml:3.5",
+      "page": 3,
+      "title": "POWER COW PIRTELÖT 200 ml",
+      "normalizedTitle": "POWER COW PIRTELÖT 200 ml",
+      "anchor": {
+        "left": 0.808708,
+        "top": 0.790026,
+        "width": 0.11579600000000001,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "%",
+        "2,55/ps",
+        "Ilman Plussa-korttia",
+        "(7 2,29/kg)",
+        "Arla",
+        "POWER COW PIRTELÖT",
+        "200 ml",
+        "(8,75/l)",
+        "Milkshakes",
+        "3",
+        "2",
+        "PKT",
+        "PRK",
+        "%",
+        "2,09/prk",
+        "Ilman Plussa-korttia",
+        "(10,45/l)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:3:cocktailpasteijat 490 g:5.7",
+      "page": 3,
+      "title": "COCKTAILPASTEIJAT 490 g",
+      "normalizedTitle": "COCKTAILPASTEIJAT 490 g",
+      "anchor": {
+        "left": 0.040317,
+        "top": 0.835403,
+        "width": 0.10378200000000001,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "COCKTAILPASTEIJAT",
+        "490 g",
+        "(5,82/kg)",
+        "2",
+        "Cocktailpiroger",
+        "PS",
+        "%",
+        "3,19/ps",
+        "Ilman Plussa-korttia",
+        "(6,51/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:kunnon kuoreton nakki 60 g:0.52",
+      "page": 4,
+      "title": "KUNNON KUORETON NAKKI 60 g",
+      "normalizedTitle": "KUNNON KUORETON NAKKI 60 g",
+      "anchor": {
+        "left": 0.186343,
+        "top": 0.552964,
+        "width": 0.14252799999999996,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "   JOULUKANA",
+        "Katso resepti »",
+        "Snellman",
+        "           KUNNON KUORETON NAKKI 60 g",
+        "54",
+        "AMERIKAN 350 Snellman 450",
+        "  (8,73/kg)",
+        "Knackkorv 89",
+        "PANNUKAKKU 4 kpl/160 g",
+        "(10,94/kg) Amerikanska pannkakor",
+        "MAATIAISPOSSUN RAPEAT NUGGETIT 200 g (11,25/kg)",
+        "Nuggets",
+        "      -10 %",
+        "PKT",
+        "22",
+        "-12 %",
+        "3.-",
+        "Ilman Plussa-korttia 1,65/ps (3,30/kg)",
+        "KPL"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:pannukakku 4 kpl/160 g:3.5",
+      "page": 4,
+      "title": "PANNUKAKKU 4 kpl/160 g",
+      "normalizedTitle": "PANNUKAKKU 4 kpl/160 g",
+      "anchor": {
+        "left": 0.362829,
+        "top": 0.601055,
+        "width": 0.07506299999999999,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "   JOULUKANA",
+        "Katso resepti »",
+        "Snellman",
+        "           KUNNON KUORETON NAKKI 60 g",
+        "54",
+        "AMERIKAN 350 Snellman 450",
+        "  (8,73/kg)",
+        "Knackkorv 89",
+        "PANNUKAKKU 4 kpl/160 g",
+        "(10,94/kg) Amerikanska pannkakor",
+        "MAATIAISPOSSUN RAPEAT NUGGETIT 200 g (11,25/kg)",
+        "Nuggets",
+        "      -10 %",
+        "PKT",
+        "22",
+        "-12 %",
+        "3.-",
+        "Ilman Plussa-korttia 1,65/ps (3,30/kg)",
+        "KPL",
+        "Ilman Plussa-korttia 1,99/kpl (12,44/kg)",
+        "-13 %",
+        "RS",
+        "Ilman Plussa-korttia 5,49/pkt (9,80/kg)",
+        "Ilman Plussa-korttia 2,59/rs (12,95/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:maatiaispossun rapeat nuggetit 200 g (11,25/kg):4.5",
+      "page": 4,
+      "title": "MAATIAISPOSSUN RAPEAT NUGGETIT 200 g (11,25/kg)",
+      "normalizedTitle": "MAATIAISPOSSUN RAPEAT NUGGETIT 200 g (11,25/kg)",
+      "anchor": {
+        "left": 0.67586,
+        "top": 0.600252,
+        "width": 0.13533300000000004,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Snellman",
+        "MAATIAISPOSSUN RAPEAT",
+        "NUGGETIT 200 g",
+        "(11,25/kg) g",
+        "2",
+        "2",
+        "Nuggets",
+        "KPL",
+        "RS",
+        "%",
+        "2,59/rs",
+        "Ilman Plussa-korttia",
+        "(12,95/kg) 5"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:uunirapeat ranskalaiset 500 g pakaste (3,00/kg) pommes frites:3",
+      "page": 4,
+      "title": "UUNIRAPEAT RANSKALAISET 500 g Pakaste (3,00/kg) Pommes frites",
+      "normalizedTitle": "UUNIRAPEAT RANSKALAISET 500 g Pakaste (3,00/kg) Pommes frites",
+      "anchor": {
+        "left": 0.047244,
+        "top": 0.87065,
+        "width": 0.07017499999999999,
+        "height": 0.010369
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "3.-",
+        "Ilman Plussa-korttia 1,65/ps (3,30/kg)",
+        "KPL",
+        "Ilman Plussa-korttia 1,99/kpl (12,44/kg)",
+        "-13 %",
+        "RS",
+        "Ilman Plussa-korttia 5,49/pkt (9,80/kg)",
+        "Ilman Plussa-korttia 2,59/rs (12,95/kg)",
+        "                   Oolannin",
+        "5.-               7.-",
+        "UUNIRAPEAT RANSKALAISET 500 g Pakaste (3,00/kg) Pommes frites",
+        "-9%",
+        "DINO KANANUGGET",
+        "440 g",
+        "(5,68/kg)",
+        "2 Kycklingnuggets",
+        "MOZZARELLATIKUT tai CHEDDAR-JALAPENOT 250 g",
+        "  PS",
+        "-16 %",
+        "2 Pakaste (14,00/kg) 2 PS PKT",
+        "-7%",
+        "Ilman Plussa-korttia 2,99/ps Ilman Plussa-korttia 3,79/pkt",
+        "(6,80/kg)",
+        "(15,16/kg)",
+        "  4"
+      ]
+    },
+    {
+      "id": "kcm:spatial:4:mozzarellatikut tai cheddar-jalapenot 250 g:7",
+      "page": 4,
+      "title": "MOZZARELLATIKUT tai CHEDDAR-JALAPENOT 250 g",
+      "normalizedTitle": "MOZZARELLATIKUT tai CHEDDAR-JALAPENOT 250 g",
+      "anchor": {
+        "left": 0.676772,
+        "top": 0.847775,
+        "width": 0.115429,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "MOZZARELLATIKUT tai",
+        "CHEDDAR-JALAPENOT - 250 g",
+        "2",
+        "2",
+        "Pakaste (14,00/kg) g",
+        "PS",
+        "PKT",
+        "2,99/ps",
+        "3,79/pkt",
+        "Ilman Plussa-korttia -",
+        "(15,16/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:crispy fish 240 g:2.95",
+      "page": 5,
+      "title": "CRISPY FISH 240 g",
+      "normalizedTitle": "CRISPY FISH 240 g",
+      "anchor": {
+        "left": 0.770059,
+        "top": 0.791998,
+        "width": 0.093356,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "SERTIFIOITU VASTUULLISESTI",
+        "PYYDETTY MSC",
+        "TM",
+        "www msc org",
+        "CRISPY FISH 240 g",
+        "pakaste",
+        "(12,29/kg)",
+        "Djupfryst produkt",
+        "PKT",
+        "%",
+        "3,49/pkt",
+        "Ilman Plussa-korttia",
+        "(14,54/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:5:savustettu kirjolohifilee n. 700 g:29.95",
+      "page": 5,
+      "title": "SAVUSTETTU KIRJOLOHIFILEE n. 700 g",
+      "normalizedTitle": "SAVUSTETTU KIRJOLOHIFILEE n. 700 g",
+      "anchor": {
+        "left": 0.768727,
+        "top": 0.57836,
+        "width": 0.19591999999999998,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Lapin n Tulisavu",
+        "SAVUSTETTU KIRJOLOHIFILEE n 700 g",
+        "Regnbågsöringsfilé",
+        "KG",
+        "%",
+        "39,95/kg",
+        "Ilman Plussa-korttia"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:kanan fileejauheliha 350 g (10,26/kg):3.59",
+      "page": 6,
+      "title": "KANAN FILEEJAUHELIHA 350 g (10,26/kg)",
+      "normalizedTitle": "KANAN FILEEJAUHELIHA 350 g (10,26/kg)",
+      "anchor": {
+        "left": 0.034646,
+        "top": 0.59754,
+        "width": 0.038435000000000004,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Naapurin Maalaiskana",
+        "KANAN",
+        "FILEEJAUHELIHA 350 g",
+        "(10,26/kg) g",
+        "Malet kycklingfilékött",
+        "RS",
+        "%",
+        "Ilman Plussa-korttia -",
+        "(11,86/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:tortillachipsit 200 g:3",
+      "page": 6,
+      "title": "TORTILLACHIPSIT 200 g",
+      "normalizedTitle": "TORTILLACHIPSIT 200 g",
+      "anchor": {
+        "left": 0.836485,
+        "top": 0.577934,
+        "width": 0.12202099999999994,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "TORTILLACHIPSIT 200 g",
+        "(7,50/kg) g",
+        "2",
+        "PS",
+        "%",
+        "1,69/ps",
+        "Ilman Plussa-korttia -",
+        "(8 4,45/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:juustodippi 300 g:2.8",
+      "page": 6,
+      "title": "JUUSTODIPPI 300 g",
+      "normalizedTitle": "JUUSTODIPPI 300 g",
+      "anchor": {
+        "left": 0.35748,
+        "top": 0.610105,
+        "width": 0.1008,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "JUUSTODIPPI 300 g",
+        "(4,67/kg) g",
+        "2",
+        "Ostdipp",
+        "PRK",
+        "%",
+        "1,68/prk",
+        "Ilman Plussa-korttia -",
+        "(5,60/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:kastikkeet 200 ml:2.79",
+      "page": 6,
+      "title": "KASTIKKEET 200 ml",
+      "normalizedTitle": "KASTIKKEET 200 ml",
+      "anchor": {
+        "left": 0.182177,
+        "top": 0.801624,
+        "width": 0.10298700000000002,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "El Taco Truck",
+        "KASTIKKEET 200 ml",
+        "(13,95/kg)",
+        "Såser",
+        "KPL",
+        "%",
+        "3,34/kpl",
+        "Ilman Plussa-korttia",
+        "(16,70/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:corn tortillas 250 g:2.29",
+      "page": 6,
+      "title": "CORN TORTILLAS 250 g",
+      "normalizedTitle": "CORN TORTILLAS 250 g",
+      "anchor": {
+        "left": 0.506148,
+        "top": 0.801624,
+        "width": 0.11752699999999994,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "El Taco Truck",
+        "CORN TORTILLAS 250 g",
+        "(9,16/kg) g",
+        "Tortillor",
+        "PKT",
+        "%",
+        "2,59/pkt",
+        "Ilman Plussa-korttia",
+        "(10 3,36/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:6:salsat 215 g:2.49",
+      "page": 6,
+      "title": "SALSAT 215 g",
+      "normalizedTitle": "SALSAT 215 g",
+      "anchor": {
+        "left": 0.836485,
+        "top": 0.814029,
+        "width": 0.06723299999999999,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "El Taco Truck",
+        "SALSAT 215 g",
+        "(11,58/kg) g",
+        "PRK",
+        "%",
+        "2,94/prk",
+        "Ilman Plussa-korttia",
+        "(13,67/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:remix makeispussit 300–350 g (6,00–7,00/kg) godispåsar 20:4.2",
+      "page": 7,
+      "title": "REMIX MAKEISPUSSIT 300–350 g (6,00–7,00/kg) Godispåsar 20",
+      "normalizedTitle": "REMIX MAKEISPUSSIT 300–350 g (6,00–7,00/kg) Godispåsar 20",
+      "anchor": {
+        "left": 0.802212,
+        "top": 0.552964,
+        "width": 0.11001300000000003,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Fazer",
+        "REMIX MAKEISPUSSIT",
+        "300–350 g",
+        "(6,00–7,00/kg)",
+        "Godispåsar",
+        "2",
+        "PS",
+        "%",
+        "2,99/ps",
+        "Ilman Plussa-korttia",
+        "(8,54–9,97/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:jäätelöpatukat 4 kpl/168–176 g:2.99",
+      "page": 7,
+      "title": "JÄÄTELÖPATUKAT 4 kpl/168–176 g",
+      "normalizedTitle": "JÄÄTELÖPATUKAT 4 kpl/168–176 g",
+      "anchor": {
+        "left": 0.048312,
+        "top": 0.598455,
+        "width": 0.09336900000000001,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "JÄÄTELÖPATUKAT",
+        "4 kpl/168–176 g",
+        "(16,99–17,80/kg) g",
+        "Glasspinnar",
+        "PKT",
+        "3,29/pkt",
+        "Ilman Plussa-korttia",
+        "(18,69–19,58/kg)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:makeispussit 100 g:1",
+      "page": 7,
+      "title": "MAKEISPUSSIT 100 g",
+      "normalizedTitle": "MAKEISPUSSIT 100 g",
+      "anchor": {
+        "left": 0.77322,
+        "top": 0.801624,
+        "width": 0.10666200000000003,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "(29,17/kg)",
+        "22",
+        "     -18 %",
+        "PS",
+        "-29 %",
+        "PS",
+        "Ilman Plussa-korttia 3,29/pkt Ilman Plussa-korttia 1,84/ps Ilman Plussa-korttia 2,99/ps",
+        "(18,69–19,58/kg)",
+        "(13,63–17,52/kg)",
+        "(8,54–9,97/kg)",
+        "MAKEISPUSSIT 100 g",
+        "(10,00/kg) Godispåsar",
+        "                   Chupa Chups",
+        "TIKKARIT 12 g",
+        "(20,83/kg) Slickepinnar",
+        "-28 % Ilman Plussa-korttia 0,35/ps Ilman Plussa-korttia 1,35–1,45/ps",
+        "Trolli",
+        " 42",
+        "  KPL PS",
+        "-25–31 % (13,50–14,50/kg)",
+        "  7"
+      ]
+    },
+    {
+      "id": "kcm:spatial:7:tikkarit 12 g:0.25",
+      "page": 7,
+      "title": "TIKKARIT 12 g",
+      "normalizedTitle": "TIKKARIT 12 g",
+      "anchor": {
+        "left": 0.320628,
+        "top": 0.801624,
+        "width": 0.07247799999999999,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "PS",
+        "-29 %",
+        "PS",
+        "Ilman Plussa-korttia 3,29/pkt Ilman Plussa-korttia 1,84/ps Ilman Plussa-korttia 2,99/ps",
+        "(18,69–19,58/kg)",
+        "(13,63–17,52/kg)",
+        "(8,54–9,97/kg)",
+        "MAKEISPUSSIT 100 g",
+        "(10,00/kg) Godispåsar",
+        "                   Chupa Chups",
+        "TIKKARIT 12 g",
+        "(20,83/kg) Slickepinnar",
+        "-28 % Ilman Plussa-korttia 0,35/ps Ilman Plussa-korttia 1,35–1,45/ps",
+        "Trolli",
+        " 42",
+        "  KPL PS",
+        "-25–31 % (13,50–14,50/kg)",
+        "  7"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:big time p-ussit 180–270 g (9,26–13,89/kg):5",
+      "page": 8,
+      "title": "BIG TIME P-USSIT 180–270 g (9,26–13,89/kg)",
+      "normalizedTitle": "BIG TIME P-USSIT 180–270 g (9,26–13,89/kg)",
+      "anchor": {
+        "left": 0.832342,
+        "top": 0.145717,
+        "width": 0.044929,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Taffel",
+        "BIG TIME",
+        "180–270 g",
+        "(9,26–13,89/kg) g",
+        "Chips",
+        "2PS 2"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:tutti frutti, pantteri ja ässä makeispussit 4200–230 g (9,78–11,25/kg) godispåsar ps:46.58",
+      "page": 8,
+      "title": "TUTTI FRUTTI, PANTTERI ja ÄSSÄ MAKEISPUSSIT 4200–230 g (9,78–11,25/kg) Godispåsar PS",
+      "normalizedTitle": "TUTTI FRUTTI, PANTTERI ja ÄSSÄ MAKEISPUSSIT 4200–230 g (9,78–11,25/kg) Godispåsar PS",
+      "anchor": {
+        "left": 0.841151,
+        "top": 0.337071,
+        "width": 0.070635,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "    Taffel",
+        "BIG TIME P-USSIT 180–270 g (9,26–13,89/kg)",
+        "Chips",
+        "5.",
+        "2PS -10 % Ilman Plussa-korttia 2,78/ps",
+        " (10,30–15,44/kg)",
+        "    Fazer",
+        "TUTTI FRUTTI, PANTTERI ja ÄSSÄ MAKEISPUSSIT 4200–230 g (9,78–11,25/kg) Godispåsar PS",
+        " 50",
+        "2",
+        "        PIPARI- KRANSSIKAKKU",
+        "Katso resepti »",
+        "-22 % Ilman Plussa-korttia 2,89/ps (12,57–14,45/kg)",
+        "Jymy",
+        "JÄÄTELÖT 900 ml",
+        "3Mutakakku Vain K-kaupoista (4,43/l)",
+        "Glass",
+        "99",
+        "                Dr. Oetker",
+        "PIENET KORISTERAEPUSSIT",
+        "15–17 g",
+        "(39,22–44,",
+        "PKT"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:jäätelöt 900 ml:3.99",
+      "page": 8,
+      "title": "JÄÄTELÖT 900 ml",
+      "normalizedTitle": "JÄÄTELÖT 900 ml",
+      "anchor": {
+        "left": 0.841151,
+        "top": 0.554897,
+        "width": 0.09077199999999996,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "(12,57–14,45/kg)",
+        "Jymy",
+        "JÄÄTELÖT 900 ml",
+        "Vain K-kaupoista",
+        "(4,43/l)",
+        "Glass",
+        "PKT",
+        "%",
+        "4,45/pkt",
+        "Ilman Plussa-korttia",
+        "(4,94/l) 4"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:maapähkinävoit 600 g:5.99",
+      "page": 8,
+      "title": "MAAPÄHKINÄVOIT 600 g",
+      "normalizedTitle": "MAAPÄHKINÄVOIT 600 g",
+      "anchor": {
+        "left": 0.832342,
+        "top": 0.811289,
+        "width": 0.129262,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Amona",
+        "MAAPÄHKINÄVOIT 600 g",
+        "(9,98/kg) g",
+        "Jordnötssmör",
+        "PRK",
+        "%",
+        "6,75/prk",
+        "Ilman Plussa-korttia",
+        "(11 2,25/kg) 5"
+      ]
+    },
+    {
+      "id": "kcm:spatial:8:ohuet piparkakut 150 g:3.5",
+      "page": 8,
+      "title": "OHUET PIPARKAKUT 150 g",
+      "normalizedTitle": "OHUET PIPARKAKUT 150 g",
+      "anchor": {
+        "left": 0.028099,
+        "top": 0.844385,
+        "width": 0.105593,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "PIENET KORISTERAEPUSSIT",
+        "15–17 g",
+        "(39,22–44,",
+        "PKT",
+        "-10 % Ilman Plussa-korttia 4,45/pkt (4,94/l)",
+        "Amona",
+        "MAAPÄHKINÄVOIT 600 g",
+        "PRK",
+        " Momma",
+        "3 2. 5",
+        "OHUET PIPARKAKUT 150 g",
+        "(11,67/kg) Pepparkakor",
+        "23",
+        "-44/kg)",
+        "50 Små dekorativa (9,98/kg) 99 spannmålspåsar Jordnötssmör",
+        "     -5–25% (12,33–15,67/kg)",
+        "PKT",
+        "-15 %",
+        "PS",
+        "-11 %",
+        "Ilman Plussa-korttia 1,85–2,35/pkt Ilman Plussa-korttia 0,79/ps Ilman Plussa-korttia 6,75/prk",
+        "(46,47–52,67/kg)",
+        "(11,25/kg)",
+        "   8"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:virvoitusjuomat 0,33 l/tlk 6-pack (2,57/l) sis. pantit 0,90 läskedrycker:0.85",
+      "page": 9,
+      "title": "VIRVOITUSJUOMAT 0,33 l/tlk 6-PACK (2,57/l) Sis. pantit 0,90 Läskedrycker",
+      "normalizedTitle": "VIRVOITUSJUOMAT 0,33 l/tlk 6-PACK (2,57/l) Sis. pantit 0,90 Läskedrycker",
+      "anchor": {
+        "left": 0.021771,
+        "top": 0.597312,
+        "width": 0.099496,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "      KATSO TÄSTÄ KAUPPASI AJANKOHTAISET EDUT:",
+        " Valitse oma kauppasi »",
+        "             Muumi ja Smurffi",
+        "VIRVOITUSJUOMAT 0,33 l/tlk 6-PACK (2,57/l) Sis. pantit 0,90 Läskedrycker",
+        "GLÖGI",
+        "Katso resepti »",
+        "599",
+        "-PACK",
+        "Pepsi Max, Hartwall Jaffa 399 sokeriton tai 7UP Zero Sugar",
+        "VIRVOITUSJUOMAT 0,33 l/tlk 6-pack (1,56/l) Sis. pantit 0,90 Läskedrycker",
+        "Ilman Plussa-korttia -20–24 % 4,99–5,29/6-pack (2,07–2,22/l)",
+        "4.-",
+        "6",
+        "Estrella Damm",
+        "ALKOHOLITON OLUT 0,0 % 0,33 l/tlk",
+        "(3,59/l) Sis. pantit 0,45",
+        "6 Alkoholfri öl -PACK",
+        "3",
+        "TLK"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:alkoholiton olut 0,0 % 0,33 l/tlk:4",
+      "page": 9,
+      "title": "ALKOHOLITON OLUT 0,0 % 0,33 l/tlk",
+      "normalizedTitle": "ALKOHOLITON OLUT 0,0 % 0,33 l/tlk",
+      "anchor": {
+        "left": 0.673994,
+        "top": 0.599294,
+        "width": 0.1375940000000001,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Estrella Damm",
+        "ALKOHOLITON OLUT 0 0 %",
+        "0 33 l/tlk",
+        "(3,59/l) Sis pantit 0 45",
+        "6",
+        "3",
+        "Alkoholfri öl",
+        "-PACK",
+        "TLK",
+        "%",
+        "1,55/tlk",
+        "Ilman Plussa-korttia -",
+        "(4,24/l) 4 Sis pantin 0 15"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:long drink 0 % 0,33 l/tlk:3.1",
+      "page": 9,
+      "title": "LONG DRINK 0 % 0,33 l/tlk",
+      "normalizedTitle": "LONG DRINK 0 % 0,33 l/tlk",
+      "anchor": {
+        "left": 0.677868,
+        "top": 0.837964,
+        "width": 0.13942899999999991,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Olvi",
+        "IISALMI APPELSIINI",
+        "LONG DRINK 0 % 0 33 l/tlk",
+        "(4,24/l) Sis pantit 0 30",
+        "3",
+        "2",
+        "TLK",
+        "TLK",
+        "%",
+        "1,75/tlk",
+        "Ilman Plussa-korttia",
+        "(4,85/l) Sis pantin 0 15"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:mocktailit 0,33 l/tlk:4.3",
+      "page": 9,
+      "title": "MOCKTAILIT 0,33 l/tlk",
+      "normalizedTitle": "MOCKTAILIT 0,33 l/tlk",
+      "anchor": {
+        "left": 0.02121,
+        "top": 0.848723,
+        "width": 0.11560699999999999,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Nokian Panimo",
+        "MOCKTAILIT 0 33 l/tlk",
+        "(3,89/l) Sis pantit 0 45",
+        "-13–18",
+        "1,65–1,75/tlk",
+        "Ilman Plussa-korttia",
+        "%",
+        "(4,67/l) Sis pantin 0 15"
+      ]
+    },
+    {
+      "id": "kcm:spatial:9:siiderit 0,0 % 0,33 l/tlk:4.5",
+      "page": 9,
+      "title": "SIIDERIT 0,0 % 0,33 l/tlk",
+      "normalizedTitle": "SIIDERIT 0,0 % 0,33 l/tlk",
+      "anchor": {
+        "left": 0.348633,
+        "top": 0.836238,
+        "width": 0.13046999999999997,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Crowmoor ja Somersby",
+        "ALKOHOLITTOMAT",
+        "SIIDERIT 0 0 % 0 33 l/tlk",
+        "(4 0,09/l) Sis pantit 0 45",
+        "3",
+        "Alkoholfri cider",
+        "TLK",
+        "%",
+        "1,85/tlk",
+        "Ilman Plussa-korttia",
+        "(5,15/l) 15 Sis pantin 0 15"
+      ]
+    },
+    {
+      "id": "kcm:spatial:10:tehokosteusvoide 50 ml:10",
+      "page": 10,
+      "title": "TEHOKOSTEUSVOIDE 50 ml",
+      "normalizedTitle": "TEHOKOSTEUSVOIDE 50 ml",
+      "anchor": {
+        "left": 0.480634,
+        "top": 0.796609,
+        "width": 0.14009899999999997,
+        "height": 0.019012
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "34 99",
+        "Ilman Plussa-korttia -",
+        "Mobiilietu",
+        "-56%",
+        "jopa",
+        "Lähde",
+        "TEHOKOSTEUSVOIDE",
+        "50 ml",
+        "200,00/l",
+        "Intensivt återfuktande kräm",
+        "Rajoitus 2 kpl/asiakas",
+        "Ilman aktivointia ja",
+        "Plussa-korttia",
+        "20,90–22 90",
+        "(418,00-458,00/l)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:11:kasvovoiteet 100 ml:6",
+      "page": 11,
+      "title": "KASVOVOITEET 100 ml",
+      "normalizedTitle": "KASVOVOITEET 100 ml",
+      "anchor": {
+        "left": 0.862971,
+        "top": 0.460814,
+        "width": 0.07902100000000001,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "       Joulun",
+        "KAUNEUSPÄIVÄT",
+        "Kauneuskuvasto on ilmestynyt",
+        "TARJOUKSET VOIMASSA 12.11.–6.12.2026",
+        "1",
+        "Face+",
+        "KASVOVOITEET 100 ml",
+        "                        L’ORÉAL PARIS PANORAMA MASCARAT, SILMÄNRAJAUS- ja KULMAKYNÄT sekä COLOR RICHE HUULIPUNAT L’Oréal Paris Panorama mascaror, ögon- och ögonbrynspennor, Color Riche-läppstift",
+        "-25%",
+        "60,00/l Ansiktskrämer",
+        "                          - 6.-24%",
+        "       LUMENE MEIKIT",
+        "Lumene sminkprodukter",
+        "-40%",
+        "IDA WARG BEAUTY",
+        "KASVOJEN HOITO- ja PUHDISTUSTUOTTEET 12–150 ml, VARTALONHOITOTUOTTEET 50–250 ml ja ITSERUSKETTAVAT",
+        "IDA WARG Beauty vård- och rengöringsprodukter för ansiktet, produkter för kroppsvård och brun-utan-sol-produkter",
+        "-25%",
+        "Ilman Plussa-korttia 7,99/kpl (79,90/l)",
+        "DR. JACKSON -TUOTTEET",
+        "Dr. Jackson produkter",
+        "-15%"
+      ]
+    },
+    {
+      "id": "kcm:spatial:11:kasvojen hoito- ja puhdistustuotteet 12–150 ml, vartalonhoitotuotteet 50–250 ml ja itseruskettavat:percent:25",
+      "page": 11,
+      "title": "KASVOJEN HOITO- ja PUHDISTUSTUOTTEET 12–150 ml, VARTALONHOITOTUOTTEET 50–250 ml ja ITSERUSKETTAVAT",
+      "normalizedTitle": "KASVOJEN HOITO- ja PUHDISTUSTUOTTEET 12–150 ml, VARTALONHOITOTUOTTEET 50–250 ml ja ITSERUSKETTAVAT",
+      "anchor": {
+        "left": 0.419096,
+        "top": 0.793606,
+        "width": 0.10652699999999993,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "LUMENE MEIKIT",
+        "Lumene sminkprodukter",
+        "IDA WARG BEAUTY",
+        "KASVOJEN HOITO- ja",
+        "PUHDISTUSTUOTTEET 12–150 ml",
+        "VARTALONHOITOTUOTTEET 50–250 ml",
+        "ja ITSERUSKETTAVAT",
+        "IDA WARG Beauty vård- och",
+        "rengöringsprodukter produkter för ansiktet produkter",
+        "för kroppsvård och brun-utan-sol-produkter produkter"
+      ]
+    },
+    {
+      "id": "kcm:spatial:11:dr jackson -tuotteet:percent:15",
+      "page": 11,
+      "title": "DR JACKSON -TUOTTEET",
+      "normalizedTitle": "DR JACKSON -TUOTTEET",
+      "anchor": null,
+      "wrappedAnchor": {
+        "left": 0.866778,
+        "top": 0.656871,
+        "width": 0.05728299999999997,
+        "height": 0.013773
+      },
+      "nearby": [
+        "DR JACKSON -TUOTTEET"
+      ]
+    },
+    {
+      "id": "kcm:spatial:11:lumene meikit:percent:40",
+      "page": 11,
+      "title": "LUMENE MEIKIT",
+      "normalizedTitle": "LUMENE MEIKIT",
+      "anchor": null,
+      "wrappedAnchor": {
+        "left": 0.451382,
+        "top": 0.659124,
+        "width": 0.079544,
+        "height": 0.013773
+      },
+      "nearby": [
+        "LUMENE MEIKIT"
+      ]
+    },
+    {
+      "id": "kcm:spatial:12:shampoot ja hoitoaineet 250 ml:percent:25",
+      "page": 12,
+      "title": "SHAMPOOT ja HOITOAINEET 250 ml",
+      "normalizedTitle": "SHAMPOOT ja HOITOAINEET 250 ml",
+      "anchor": {
+        "left": 0.11194,
+        "top": 0.237364,
+        "width": 0.21233500000000005,
+        "height": 0.016527
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "SHAMPOOT ja HOITOAINEET 250 ml",
+        "19,60/l Tarjous ei koske Scalp-tuotteita ei",
+        "Schampon och balsam",
+        "Gäller ej Scalp-produkter"
+      ]
+    },
+    {
+      "id": "kcm:spatial:12:l’oréal paris elvital growth booster, glycolic gloss ja bond repair hiustenhoitotuotteet 102–200 ml sekä erikoishoitotuotteet 100–300 ml:percent:30",
+      "page": 12,
+      "title": "L’ORÉAL PARIS ELVITAL GROWTH BOOSTER, GLYCOLIC GLOSS ja BOND REPAIR HIUSTENHOITOTUOTTEET 102–200 ml sekä ERIKOISHOITOTUOTTEET 100–300 ml",
+      "normalizedTitle": "L’ORÉAL PARIS ELVITAL GROWTH BOOSTER, GLYCOLIC GLOSS ja BOND REPAIR HIUSTENHOITOTUOTTEET 102–200 ml sekä ERIKOISHOITOTUOTTEET 100–300 ml",
+      "anchor": {
+        "left": 0.796577,
+        "top": 0.569523,
+        "width": 0.164555,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "L’ORÉAL PARIS ELVITAL",
+        "GROWTH BOOSTER",
+        "GLYCOLIC GLOSS ja BOND REPAIR",
+        "HIUSTENHOITOTUOTTEET 102–200 ml",
+        "sekä ERIKOISHOITOTUOTTEET",
+        "100–300 ml",
+        "L’Oréal Paris Elvital Growth",
+        "Booster Glycolic Gloss och Bond",
+        "Repair hårvårdsprodukter och",
+        "specialvårdsprodukter"
+      ]
+    },
+    {
+      "id": "kcm:spatial:13:suihkusaippuat 500 ml:4",
+      "page": 13,
+      "title": "SUIHKUSAIPPUAT 500 ml",
+      "normalizedTitle": "SUIHKUSAIPPUAT 500 ml",
+      "anchor": {
+        "left": 0.802213,
+        "top": 0.611976,
+        "width": 0.130011,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "SUIHKUSAIPPUAT 500 ml",
+        "4",
+        "00/-l",
+        "Duschtvålar",
+        "2",
+        "-33%",
+        "jopa",
+        "KPL",
+        "2,79/kpl",
+        "Ilman Plussa-korttia",
+        "(5,58/l)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:13:nestesaippuat 300 ml:3.9",
+      "page": 13,
+      "title": "NESTESAIPPUAT 300 ml",
+      "normalizedTitle": "NESTESAIPPUAT 300 ml",
+      "anchor": {
+        "left": 0.319674,
+        "top": 0.611976,
+        "width": 0.12223699999999998,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Joulu",
+        "NESTESAIPPUAT 300 ml",
+        "6,50/l",
+        "Flytande tvålar",
+        "90 2",
+        "-13%",
+        "KPL",
+        "2,25/kpl",
+        "Ilman Plussa-korttia",
+        "(7,50/l)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:13:suihkumousset 200 ml:1.12",
+      "page": 13,
+      "title": "SUIHKUMOUSSET 200 ml",
+      "normalizedTitle": "SUIHKUMOUSSET 200 ml",
+      "anchor": {
+        "left": 0.316896,
+        "top": 0.847532,
+        "width": 0.12671300000000002,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Nobe produkter för ansikts- och kroppsvård",
+        "-20%",
+        "Joulu",
+        "NESTESAIPPUAT 300 ml",
+        "              90 3",
+        "4. -33% Ilman Plussa-korttia 2,79/kpl",
+        "Flytande tvålar",
+        "Duschtvålar",
+        "Ilman Plussa-korttia 2,25/kpl (7,50/l)",
+        "ERÄ",
+        "SUIHKUMOUSSET 200 ml",
+        "(5,58/l)",
+        "Spa",
+        "22",
+        "KPL",
+        "-13%",
+        "KPL",
+        "jopa",
+        "                10,0-",
+        "1,99–2,99/l",
+        "Duschtvålar och flytande tvålar",
+        "0/l Duschmousser",
+        "2. - 5 3 %",
+        "50 3",
+        "2",
+        "KPL"
+      ]
+    },
+    {
+      "id": "kcm:spatial:13:suihkusaippuat 250 ml ja nestesaippuat 500 ml:3.5",
+      "page": 13,
+      "title": "SUIHKUSAIPPUAT 250 ml ja NESTESAIPPUAT 500 ml",
+      "normalizedTitle": "SUIHKUSAIPPUAT 250 ml ja NESTESAIPPUAT 500 ml",
+      "anchor": {
+        "left": 0.802213,
+        "top": 0.831101,
+        "width": 0.14019199999999998,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Spa",
+        "SUIHKUSAIPPUAT 250 ml ja",
+        "NESTESAIPPUAT 500 ml",
+        "1,99–2,99/l",
+        "Duschtvålar tvålar och flytande tvålar",
+        "50 2",
+        "-41% 1",
+        "jopa",
+        "KPL",
+        "1,99–2,99/kpl",
+        "Ilman Plussa-korttia",
+        "(5,98–7,96/l)"
+      ]
+    },
+    {
+      "id": "kcm:spatial:14:nenäliina 75 kpl:3",
+      "page": 14,
+      "title": "NENÄLIINA 75 kpl",
+      "normalizedTitle": "NENÄLIINA 75 kpl",
+      "anchor": {
+        "left": 0.326226,
+        "top": 0.612984,
+        "width": 0.09051399999999998,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "Nessu",
+        "NENÄLIINA 75 kpl",
+        "Aloe-Vera",
+        "ja Sensitive",
+        "Näsdukar",
+        "2",
+        "- 1 1",
+        "%",
+        "PKT",
+        "1,69/pkt",
+        "Ilman Plussa-korttia -",
+        "DISCREET SILHOUETTE NOIR"
+      ]
+    },
+    {
+      "id": "kcm:spatial:14:kostea wc-paperi 42 kpl:4.9",
+      "page": 14,
+      "title": "KOSTEA WC-PAPERI 42 kpl",
+      "normalizedTitle": "KOSTEA WC-PAPERI 42 kpl",
+      "anchor": {
+        "left": 0.798218,
+        "top": 0.597542,
+        "width": 0.10081200000000001,
+        "height": 0.013773
+      },
+      "wrappedAnchor": null,
+      "nearby": [
+        "KOSTEA WC-PAPERI",
+        "42 kpl",
+        "Aloe Vera ja Sensitive",
+        "Fuktigt toalettpapper",
+        "90 2",
+        "-12% 2",
+        "PKT",
+        "2,79/pkt",
+        "Ilman Plussa-korttia"
+      ]
+    }
+  ]
+}

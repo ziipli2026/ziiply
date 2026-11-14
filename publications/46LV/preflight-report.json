@@ -1,0 +1,25 @@
+{
+  "ok": false,
+  "outcome": "source-archive-review-needed",
+  "period": "2026-11-12-W46-LV",
+  "issue": "46LV",
+  "pdfReview": "pending",
+  "runUrl": "https://github.com/ziipli2026/ziiply/actions/runs/43573725188",
+  "firstParserAt": null,
+  "firstParserOk": null,
+  "sourceVerified": true,
+  "publisherUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/92ts090_tarjouslehti_46LV_KCM/index.html",
+  "pdfSha256": "c7d245954ea194da21e7ca094d47279f027f2ffd03641f7f19771f31b2dc83e6",
+  "pages": 20,
+  "count": 49,
+  "parserRows": 53,
+  "unresolved": [
+    "1|OLTERMANNI PALAJUUSTOT",
+    "7|GOOD TIME PUSSIT 105–135 g - (11,11–14,29/kg)",
+    "9|VIRVOITUSJUOMAT 0,33 l/tlk 6-pack (1,56/l) Sis. pantit 0,90 Läskedrycker",
+    "14|WC-PAPERI 40 rl"
+  ],
+  "unverified": [],
+  "duplicates": [],
+  "auditScope": "Frozen source and automatic parser checks; full printed PDF comparison pending"
+}
