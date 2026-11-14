@@ -141,6 +141,13 @@ jobs:
                   search.on('response', response => {
                     if (response.url().includes('/api/')) console.log(name, 'API response', response.status(), response.url());
                   });
+                  const fixtures = [
+                    {id:'lidl-test',name:'Lidl Hyvinkää',chain:'Lidl',type:'Lidl',city:'Hyvinkää',latitude:60.63,longitude:24.86},
+                    {id:'spar-test',name:'EUROSPAR Hyvinkää',chain:'EUROSPAR',city:'Hyvinkää',latitude:60.63,longitude:24.86},
+                    {id:'tokmanni-test',name:'Tokmanni Hyvinkää',chain:'TOKMANNI',city:'Hyvinkää',latitude:60.63,longitude:24.86},
+                  ];
+                  await search.route('**/api/lidl/store-search?*', route => route.fulfill({json:{items:fixtures.slice(0,1)}}));
+                  await search.route('**/api/eurospar-stores?*', route => route.fulfill({json:{items:fixtures.slice(1)}}));
                   await search.route('**'+endpoint+'?*', route => {
                     const params = new URL(route.request().url()).searchParams;
                     if (/maito/i.test(params.get('search') || '')) {
