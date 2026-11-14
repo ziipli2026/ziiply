@@ -80,8 +80,8 @@ async function load(){
 function state(rows:Row[]){
   if(!rows.length)return ["gray","EI DATAA"];
   const latestSources=[...new Map([...rows].reverse().map(r=>[r.source,r])).values()];
-  if(latestSources.some(isFailure)return ["red","PÄIVITYS EPÄONNISTUI"];
-  if(latestSources.some(isRunning)return ["yellow","AJO KESKEN"];
+  if(latestSources.some(isFailure))return ["red","PÄIVITYS EPÄONNISTUI"];
+  if(latestSources.some(isRunning))return ["yellow","AJO KESKEN"];
   const a=rows[0];
   if(isFailure(a))return ["red","VIRHE"];
   const ageH=(Date.now()-new Date(a.checked_at).getTime())/3600000;
