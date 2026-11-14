@@ -11,8 +11,6 @@ import ArvoSettingsPanel from "../components/ziiply/ArvoSettingsPanel";
 import { readArvoPreferences, effectiveArvoDiets, ARVO_DIETS, type ArvoPreferences } from "../components/ziiply/ArvoSettingsPanel";
 
 import { useEffect, useRef, useState } from "react";
-import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "../components/ziiply/location/ZiiplyArrivalNotice";
-import { evaluateZiiplyArrival, initialZiiplyArrivalState, type ZiiplyArrivalDecision } from "../components/ziiply/location/ziiplyArrivalSequence";
 import { readSearchProducts, getKSearchTerms, parseTerms, getNormalSearchQueries, normalizeEan, pickBestKProduct, pickBestSProduct, rankNormalSearchResults, rankProductResultsByRelevanceAndPrice, isBadNormalResult, productGroupGate, isComparisonAttributeCompatible, isSameRetailPackage } from "../components/ziiply/ziiplyCore";
 import { getLearnedSearchBoost, getLearnedStructureBoost, rememberSearchChoice } from "../components/ziiply/search/searchIntentMemory";
 import { resolveKWeightLabel, resolvePriceWeightLabel } from "../components/ziiply/kWeightLabelResolver";
@@ -781,8 +779,6 @@ export default function DesktopPreviewPage() {
 
   const [arvoScannerOpen,setArvoScannerOpen]=useState(false);
   const [desktopScannerOpen,setDesktopScannerOpen]=useState(false);
-  const desktopInStoreConfirmedRef=useRef<boolean|null>(null);
-  const desktopPhysicalCollectionRef=useRef(false);
   const [desktopScannerCameraOn,setDesktopScannerCameraOn]=useState(false);
   const [desktopScannerEan,setDesktopScannerEan]=useState("");
   const [desktopScannerMessage,setDesktopScannerMessage]=useState("");
@@ -2071,8 +2067,6 @@ export default function DesktopPreviewPage() {
     const ean = [p?.ean, p?.__sourceOfferSearchResult?.ean, p?.product?.ean]
       .map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value));
     if (ean && p.ean !== ean) p = { ...p, ean };
-    if(desktopScannerOpen && desktopPhysicalCollectionRef.current && p?.__physicalScannerAdd===true){p={...p,collected:true};}
-    if(p?.__physicalScannerAdd!==undefined){const {__physicalScannerAdd,...clean}=p;p=clean;}
     if (desktopCartWeightOffer(p)) {
       p = { ...p, storeName: p.storeName || p.__gostaHomeStore, offerPrice: p.offerPrice ?? p.price, price: null, ziiplyWeightLabel: true };
     }
@@ -2359,86 +2353,29 @@ export default function DesktopPreviewPage() {
     if (notebookAlignRef.current) observer?.observe(notebookAlignRef.current);
     return () => { window.removeEventListener("resize", update); observer?.disconnect(); };
   }, []);
-  const desktopArrivalNotice = useZiiplyArrivalNotice(gpsOn);
-  const desktopArrivalState = useRef(initialZiiplyArrivalState());
-  const desktopArrivalDecision = useRef<ZiiplyArrivalDecision | null>(null);
-  const desktopArrivalFixAt = useRef(0);
   const [desktopSpeedKmh, setDesktopSpeedKmh] = useState<number | null>(null);
   const shownSpeed = desktopSpeedKmh;
   const shownSpeedLimit: number | null = null;
   const speedOverLimit = shownSpeed !== null && shownSpeedLimit !== null && shownSpeed > shownSpeedLimit + 2;
-  const desktopArrivalHandler = useRef<(position: GeolocationPosition | null) => void>(() => {});
-  const desktopArrivalStoreId = (store:any) => String(store?.name || "").trim().toLocaleLowerCase("fi");
-  desktopArrivalHandler.current = position => {
-    const at=Date.now();
-    const measuredSpeed = position?.coords.speed;
-    setDesktopSpeedKmh(position && at-position.timestamp<5000 && position.coords.accuracy<=50 && measuredSpeed!=null && Number.isFinite(measuredSpeed) && measuredSpeed>=0 ? Math.round(measuredSpeed*3.6) : null);
-    if(!position || at-position.timestamp>10000 || position.timestamp>at+1000 ||
-      !Number.isFinite(position.coords.accuracy) || position.coords.accuracy<=0 || position.coords.accuracy>50) {
-      if(at-desktopArrivalFixAt.current>30000){
-        desktopInStoreConfirmedRef.current=false;
-        desktopArrivalDecision.current=null;
-        desktopArrivalNotice.update(evaluateZiiplyArrival(desktopArrivalState.current,{at,latitude:NaN,longitude:NaN,accuracyMeters:Infinity,speedKmh:null},[],[]),at);
-      }
+
+  useEffect(() => {
+    if (!gpsOn || !navigator.geolocation) {
+      setDesktopSpeedKmh(null);
       return;
     }
-    if(position.timestamp<=desktopArrivalFixAt.current)return;
-    desktopArrivalFixAt.current=position.timestamp;
-    const chosen=(Object.values(selectedStores) as any[]).filter(Boolean);
-    const unique=new Map<string,{id:string;name:string;latitude:number;longitude:number}>();
-    for(const store of [...stores,...lidlStores,...sparStores,...chosen]){
-      const id=desktopArrivalStoreId(store);
-      const lat=store?.latitude??store?.lat??store?.location?.lat??store?.coordinates?.latitude;
-      const lon=store?.longitude??store?.lon??store?.lng??store?.location?.lng??store?.coordinates?.longitude;
-      if(!id||lat==null||lon==null||!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon)))continue;
-      if(!unique.has(id))unique.set(id,{id,name:String(store.name),latitude:Number(lat),longitude:Number(lon)});
-    }
-    const decision=evaluateZiiplyArrival(desktopArrivalState.current,{
-      at:position.timestamp,latitude:position.coords.latitude,longitude:position.coords.longitude,
-      accuracyMeters:position.coords.accuracy,speedKmh:position.coords.speed==null?null:position.coords.speed*3.6
-    },[...unique.values()],chosen.map(desktopArrivalStoreId));
-    desktopArrivalState.current=decision.state;
-    desktopArrivalDecision.current=decision;
-    desktopInStoreConfirmedRef.current=decision.status==="in-store"&&decision.isSelectedStore;
-    setGpsCoords({latitude:position.coords.latitude,longitude:position.coords.longitude});
-    desktopArrivalNotice.update(decision,position.timestamp);
-  };
-  useEffect(()=>{
-    if(!gpsOn || !navigator.geolocation){desktopInStoreConfirmedRef.current=false;desktopArrivalDecision.current=null;return;}
-    let active=true;
-    let pending=false;
-    const accept=(position:GeolocationPosition)=>{pending=false;if(active)desktopArrivalHandler.current(position);};
-    const fail=()=>{pending=false;if(active)desktopArrivalHandler.current(null);};
-    const sample=()=>{
-      if(!active||pending||document.hidden)return;
-      pending=true;
-      navigator.geolocation.getCurrentPosition(accept,fail,{enableHighAccuracy:true,maximumAge:0,timeout:4500});
-    };
-    const watch=navigator.geolocation.watchPosition(accept,fail,{enableHighAccuracy:true,maximumAge:0,timeout:10000});
-    const timer=window.setInterval(sample,5000);
-    const resume=()=>{if(!document.hidden)sample();};
-    sample();document.addEventListener("visibilitychange",resume);
-    return()=>{active=false;navigator.geolocation.clearWatch(watch);window.clearInterval(timer);document.removeEventListener("visibilitychange",resume);};
-  },[gpsOn]);
-  async function confirmDesktopArrivalForScan(){
-    if(!gpsOn||!navigator.geolocation)return false;
-    if(Date.now()-desktopArrivalFixAt.current>10000){
-      const fresh=await new Promise<GeolocationPosition|null>(resolve=>{
-        const timeout=window.setTimeout(()=>resolve(null),4500);
-        navigator.geolocation.getCurrentPosition(p=>{window.clearTimeout(timeout);resolve(p)},()=>{window.clearTimeout(timeout);resolve(null)},{enableHighAccuracy:true,maximumAge:0,timeout:4000});
-      });
-      desktopArrivalHandler.current(fresh);
-      if(!fresh)return false;
-    }
-    const decision=desktopArrivalDecision.current;
-    const selected=(Object.values(selectedStores) as any[]).some(store=>desktopArrivalStoreId(store)===decision?.store?.id);
-    return !!decision&&decision.status==="in-store"&&selected&&Date.now()-desktopArrivalFixAt.current<=10000;
-  }
+    const watch = navigator.geolocation.watchPosition(position => {
+      const { latitude, longitude, accuracy, speed } = position.coords;
+      const age = Date.now() - position.timestamp;
+      setDesktopSpeedKmh(age < 5000 && accuracy <= 50 && speed != null && Number.isFinite(speed) && speed >= 0
+        ? Math.round(speed * 3.6) : null);
+      if (age >= -1000 && age <= 10000 && accuracy > 0 && accuracy <= 50) {
+        setGpsCoords({ latitude, longitude });
+      }
+    }, () => setDesktopSpeedKmh(null), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+    return () => navigator.geolocation.clearWatch(watch);
+  }, [gpsOn]);
 
   async function runDesktopScannerEanSearch(code:string,physicalScan=false) {
-    const collect=physicalScan && await confirmDesktopArrivalForScan();
-    desktopInStoreConfirmedRef.current=collect;
-    desktopPhysicalCollectionRef.current=collect;
     const weightLabel=resolvePriceWeightLabel(code);
     const kWeightLabel=resolveKWeightLabel(code);
     if(weightLabel){
@@ -2453,18 +2390,15 @@ export default function DesktopPreviewPage() {
           return other?.plu===weightLabel.plu||String(x.ean||"")===scannedEan;
         });
         if(found){
-          const key=String(found.id||"");
-          const firstCollection=collect && !Boolean(found.collected);
-          if(firstCollection)setDesktopCheckedCartItems(previous=>({...previous,[key]:true}));
           return current.map((x:any)=>x!==found?x:{
-            ...x,collected:firstCollection?true:Boolean(x.collected),name,title:name,ean:scannedEan,price,quantity:firstCollection?Number(x.quantity||1):Number(x.quantity||1)+(physicalScan?1:0),
+            ...x,name,title:name,ean:scannedEan,price,quantity:Number(x.quantity||1)+(physicalScan?1:0),
             product:{...(x.product||{}),name,ean:scannedEan,ziiplyWeightLabel:true},
             ziiplyWeightLabel:true,weightPlu:weightLabel.plu
           });
         }
         const id="weight-"+weightLabel.plu;
         // Do not auto-collect a weighed item merely because a HID reader was used.
-        return [...current,{id,name,title:name,ean:scannedEan,price,collected:collect,
+        return [...current,{id,name,title:name,ean:scannedEan,price,collected:false,
           quantity:1,source:"search",product:{name,ean:scannedEan,ziiplyWeightLabel:true},
           ziiplyWeightLabel:true,weightPlu:weightLabel.plu}];
       });
@@ -2480,10 +2414,8 @@ export default function DesktopPreviewPage() {
       setDesktopScannerLoading(false);
       setDesktopScannerFlash("idle");
       setDesktopScannerMessage("");
-      const firstCollection=collect && cartItems.some(item=>String(item.ean||item.product?.ean||"")===code&&!item.collected);
-      setDesktopScannerIncrement(!firstCollection);
-      if(firstCollection)setDesktopScannerMessage("✓ Kerätty");
-      setCartItems(current=>current.map(item=>String(item.ean||item.product?.ean||"")===code?{...item,collected:collect?true:Boolean(item.collected),quantity:collect&&!item.collected?Number(item.quantity||1):Number(item.quantity||1)+1}:item));
+      setDesktopScannerIncrement(true);
+      setCartItems(current=>current.map(item=>String(item.ean||item.product?.ean||"")===code?{...item,quantity:Number(item.quantity||1)+1}:item));
       desktopScannerIncrementTimer.current=setTimeout(()=>{setDesktopScannerIncrement(false);setDesktopScannerMessage(current=>current==="✓ Kerätty"?"":current)},900);
       return;
     }
@@ -2502,7 +2434,7 @@ export default function DesktopPreviewPage() {
       const knownName=String(bankProduct?.name||"").trim();
       // Known Neon EAN identity must never wait for chain price searches.
       if(knownName){
-        addDesktopCartItem({id:code,ean:code,name:knownName,title:knownName,price:0,source:"justiina",__physicalScannerAdd:physicalScan});
+        addDesktopCartItem({id:code,ean:code,name:knownName,title:knownName,price:0,source:"justiina"});
         setDesktopScannerLoading(false);
         setDesktopScannerMessage("TUOTE LISÄTTY");
         flashDesktopScanner("success");
@@ -2531,7 +2463,7 @@ export default function DesktopPreviewPage() {
         if(knownName){
           if(priceEur>0)setCartItems(current=>current.map(item=>String(item.ean||"")===code?{...item,price:priceEur,storeName:String(matched.__store||""),chain:matched.__chain}:item));
         }else{
-          addDesktopCartItem({id:code,ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:matched.__chain,__physicalScannerAdd:physicalScan});
+          addDesktopCartItem({id:code,ean:code,name,title:name,price:priceEur,storeName:String(matched.__store||""),source:"justiina",chain:matched.__chain});
           setDesktopScannerMessage("TUOTE LISÄTTY");
           flashDesktopScanner("success");
         }
@@ -3137,7 +3069,7 @@ export default function DesktopPreviewPage() {
           </div>
         )}
         {desktopScannerOpen&&<div className="fixed inset-0 z-[99998] flex items-center justify-center bg-black/65 p-4"><div className="relative h-[min(680px,92dvh)] w-[min(440px,95vw)] overflow-hidden rounded-[24px] bg-[#f4edda]">
-<ZiiplyDesktopScannerCard className="[&>footer]:hidden" regionId="ziiply-desktop-scanner-region" loading={desktopScannerLoading} flashState={desktopScannerFlash} scannerMessage={desktopScannerMessage} onClose={()=>{desktopInStoreConfirmedRef.current=null;desktopPhysicalCollectionRef.current=false;setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} />
+<ZiiplyDesktopScannerCard className="[&>footer]:hidden" regionId="ziiply-desktop-scanner-region" loading={desktopScannerLoading} flashState={desktopScannerFlash} scannerMessage={desktopScannerMessage} onClose={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} />
 {desktopScannerIncrement&&<div className="pointer-events-none absolute inset-0 z-[90] flex items-center justify-center"><span className="rounded-2xl border-[3px] border-[#245c28] bg-[#d7ffd2] px-12 py-6 text-[48px] font-black text-[#123d18] shadow-xl">+1</span></div>}
 <div className="pointer-events-none absolute inset-x-0 bottom-[112px] z-[70] flex justify-center"><button type="button" className="pointer-events-auto rounded-full border-2 border-[#17573c] bg-[#e2edcf] px-5 py-3 font-black text-[#174c35]" onClick={()=>setDesktopScannerCameraOn(v=>!v)}>{desktopScannerCameraOn?"Sulje kamera":"Käynnistä kamera"}</button></div>
 <div className="absolute bottom-3 left-3 right-3 z-[100] rounded-xl bg-[#fff5dc] p-3 shadow-xl"><div className="flex flex-wrap items-center justify-center gap-3"><button type="button" onClick={()=>{setDesktopScannerMessage("");void pasteDesktopScannerEan()}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#28492f] shadow-[inset_0_2px_0_rgba(255,255,255,0.7)]">Liitä EAN</button><button type="button" aria-label="Avaa ostoskori" title="Avaa ostoskori" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false);setCartOpen(true)}} className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border-[5px] border-[#7b6034] bg-[#d8c08c] shadow-[0_6px_16px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.55)]"><span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border-[3px] border-[#efe2b8] bg-[#16472c] text-[31px] leading-none text-[#fff6d9]">🧺</span></button><button type="button" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#7d2b1d] bg-[linear-gradient(180deg,#c64235_0%,#922016_100%)] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#fff3dc] shadow-[inset_0_2px_0_rgba(255,255,255,0.20)]">Sulje kamera</button></div></div></div></div>}
@@ -3491,7 +3423,7 @@ export default function DesktopPreviewPage() {
   <button type="button" onClick={requestDesktopListExit} aria-label="Sulje tuotevalinta" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button>
 </div>{desktopSearchMode!=="normal"&&<div className="mt-2 flex shrink-0 justify-center"><button type="button" onClick={confirmDesktopListSkip} disabled={!desktopVoiceWaitRef.current || justiinaLoading} className="rounded-xl border-2 border-[#a66e26] bg-[#fff0ba] px-5 py-2 text-sm font-black text-[#66420d] disabled:opacity-40">Ohita tuote →</button></div>}<div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4">{!justiinaLoading&&!justiinaResults.length&&<p role="status" className="mb-3 text-center font-bold">{justiinaMessage||"Tuotteita ei löytynyt."}{desktopSearchMode==="recipe"?" Ohita tuote jatkaaksesi. Puuttuva aines säilyy ostoskorissa tarkistettavana.":desktopSearchMode==="voice-list"?" Ohita tuote jatkaaksesi.":""}</p>}<div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{justiinaResults.map((p:any,i:number)=><div key={String(p.id||p.ean||i)} className="grid h-[258px] min-h-0 grid-cols-[minmax(108px,35%)_minmax(0,1fr)] items-stretch gap-4 overflow-hidden rounded-[24px] border-[3px] border-[#a99a75] bg-[#fff3d5] p-4"><div className="flex min-w-0 flex-col gap-3"><div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2">{(p.pictureUrl||p.imageUrl||p.image)?<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="eager" decoding="async"/>:<span className="text-[38px]">🛍️</span>}</div><button type="button" onClick={()=>{if(desktopSearchMode==="normal"){addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price,storeName:p.__store});justiinaAddedDuringSelectionRef.current=true;}else addRecipeSelectionToCart(p)}} className="flex min-h-[76px] w-full flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-[#126a39]"><span className="font-serif text-[25px] font-black">{p.__price!=null?Number(p.__price).toFixed(2).replace(".",",")+" €":"—"}</span><span className="text-[12px] font-black">{p.priceVerified === false ? "Hinta vahvistamatta · lisää listalle" : "🛒 Lisää koriin"}</span></button></div><div className="min-w-0 overflow-hidden py-1"><div className="line-clamp-3 text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-3 text-[11px] font-black uppercase text-[#6f735b]">{p.__store||p.storeName||""}</div>{p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}{p.unitPrice&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{p.unitPrice}</div>}{desktopSearchMode==="normal"&&p.nutrition&&Number.isFinite(Number(p.nutrition.kcal_100g))&&p.nutrition.kcal_100g!=null&&<div className="mt-2 text-[12px] font-bold text-[#27583d]">Energia {Math.round(Number(p.nutrition.kcal_100g))} kcal / 100 g{(p.nutrition.source==="fineli-generic"||p.nutrition.source==="package-variant")&&<span className="block text-[11px] text-[#82745a]">{p.nutrition.source==="fineli-generic"?"Fineli – arvio":"Sama tuote, toinen pakkauskoko – arvio"}</span>}</div>}</div></div>)}</div></div></div>}
 
-            {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onVoiceTranscript={(text,recipeItems)=>{void runDesktopVoiceList(text,recipeItems)}} onOpenScanner={()=>{setDesktopScannerEan("");setDesktopScannerMessage("");setDesktopScannerCameraOn(false);desktopInStoreConfirmedRef.current=null;setDesktopScannerOpen(true)}} onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={(value)=>{cancelDesktopVoiceList();justiinaUserEditedRef.current=true;justiinaSuppressedTermsRef.current.delete(value.trim().toLowerCase());setJustiinaQuery(value);setJustiinaResults([]);setJustiinaResultsOpen(false);if(!value.trim()){justiinaLastSearchedRef.current="";setJustiinaMessage("")}}} loading={justiinaLoading} onSearch={()=>{void startDesktopNormalSearch(justiinaQuery)}} message={justiinaMessage} debug={justiinaDebug} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} onReopenResults={()=>{if(justiinaResults.length>0){justiinaUserEditedRef.current=false;setJustiinaResultsOpen(true)}}} onAddInputToCart={(text)=>{justiinaUserEditedRef.current=false;justiinaSuppressedTermsRef.current.add(text.trim().toLowerCase());text.split(/[,\.\n]+/).map(x=>x.trim()).filter(Boolean).forEach(title=>addDesktopCartItem({title,name:title,source:"justiina",price:0,quantity:1}));}} />}
+            {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onVoiceTranscript={(text,recipeItems)=>{void runDesktopVoiceList(text,recipeItems)}} onOpenScanner={()=>{setDesktopScannerEan("");setDesktopScannerMessage("");setDesktopScannerCameraOn(false);setDesktopScannerOpen(true)}} onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={(value)=>{cancelDesktopVoiceList();justiinaUserEditedRef.current=true;justiinaSuppressedTermsRef.current.delete(value.trim().toLowerCase());setJustiinaQuery(value);setJustiinaResults([]);setJustiinaResultsOpen(false);if(!value.trim()){justiinaLastSearchedRef.current="";setJustiinaMessage("")}}} loading={justiinaLoading} onSearch={()=>{void startDesktopNormalSearch(justiinaQuery)}} message={justiinaMessage} debug={justiinaDebug} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} onReopenResults={()=>{if(justiinaResults.length>0){justiinaUserEditedRef.current=false;setJustiinaResultsOpen(true)}}} onAddInputToCart={(text)=>{justiinaUserEditedRef.current=false;justiinaSuppressedTermsRef.current.add(text.trim().toLowerCase());text.split(/[,\.\n]+/).map(x=>x.trim()).filter(Boolean).forEach(title=>addDesktopCartItem({title,name:title,source:"justiina",price:0,quantity:1}));}} />}
             {workspace && workspace!=="justiina" && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
                 {workspace!=="arvo"&&<div className="flex items-center justify-between gap-3"><div className="text-[26px] font-black text-[#14291f]">{({ gosta: "Gösta", justiina: "Justiina", arvo: "Arvo" } as const)[workspace]}</div><button onClick={()=>setWorkspace(null)} className="rounded-lg border border-[#173b2b] px-3 py-1 text-sm font-bold text-[#173b2b]">← Takaisin</button></div>}
@@ -3502,21 +3434,6 @@ export default function DesktopPreviewPage() {
           </div>
         </section>
 
-
-      <ZiiplyArrivalNotice notice={desktopArrivalNotice.notice}
-        onDismiss={desktopArrivalNotice.dismiss} onSkip={desktopArrivalNotice.skip}
-        onList={()=>{desktopArrivalNotice.dismiss();setNotebookRecipePicker(false);setNotebookOpen(true);}}
-        onRecipe={()=>{desktopArrivalNotice.dismiss();setNotebookRecipePicker(true);setNotebookOpen(true);}}
-        onOffers={()=>{
-          desktopArrivalNotice.dismiss();
-          const decision=desktopArrivalDecision.current;
-          if(!decision?.store||!["near-store","in-store"].includes(decision.status))return;
-          const store=(Object.values(selectedStores) as any[]).find(s=>desktopArrivalStoreId(s)===decision.store?.id);
-          if(!store){setChooseStoresNoticeFor("gosta");return;}
-          const kind=storeKind(store);
-          const chain=kind==="sHyper"||kind==="sLocal"?"S":kind==="kHyper"||kind==="kLocal"?"K":kind==="lidl"?"LIDL":/eurospar/i.test(String(store.chain||"")+" "+String(store.name||""))?"EUROSPAR":"TOKMANNI";
-          void openDesktopGostaChain(chain,store);
-        }} />
 
         <footer className="relative z-10 flex shrink-0 items-center justify-between border-t border-[#64745f]/15 bg-[#e4e9df] px-2 py-1 text-[12px] font-bold text-[#747d6e]">
           <span>Ziiply Oy</span>
