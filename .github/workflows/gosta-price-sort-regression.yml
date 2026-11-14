@@ -6,6 +6,10 @@ on:
     paths:
       - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
       - 'tests/gosta-price-sort.test.cjs'
+      - 'tests/gosta-daily-goods-gate.test.cjs'
+      - 'tests/gosta-provider-source-taxonomy.test.cjs'
+      - 'src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts'
+      - 'src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts'
       - '.github/workflows/gosta-price-sort-regression.yml'
   pull_request:
     paths:
@@ -22,5 +26,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify Gösta offer price ordering
-        run: node --test tests/gosta-price-sort.test.cjs
+      - name: Verify Gösta offer price ordering and grocery eligibility
+        run: node --test tests/gosta-price-sort.test.cjs tests/gosta-daily-goods-gate.test.cjs tests/gosta-provider-source-taxonomy.test.cjs

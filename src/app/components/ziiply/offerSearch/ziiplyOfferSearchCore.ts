@@ -995,10 +995,31 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   return `${sourceTab}:${origin}:${normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"))}`;
 }
 
+// Gösta is a grocery/consumables view, not a general-merchandise catalogue.
+// Apply the same eligibility rule to the master list, category views and
+// text search. Keep source taxonomy for auditing; never infer eligibility
+// from a broad UI category or an individual product-name blacklist.
+export function isGostaDailyGoodsOffer(item: ZiiplyGostaOfferLike): boolean {
+  const raw = ((item as any).__sourceOfferSearchResult ?? item) as any;
+  const category = getResolvedGostaCategoryV166(item);
+  if (!category || category === "Muut" || category === "Koti & vapaa-aika" || category === "Koti") return false;
+
+  // A known non-grocery source department must not be overridden by a
+  // generic title heuristic or by a stale cached/Neon display label.
+  const sourceHierarchy = String(
+    raw?.sourceCategoryPath || raw?.taxonomy || raw?.hierarchy ||
+    raw?.categoryPath || raw?.department || raw?.productGroup || "",
+  );
+  const root = normalizeGostaCoreText(sourceHierarchy.split(/\s*(?:>|\/)\s*/)[0]).replace(/-/g, " ");
+  if (/^(?:kayttotavarat|koti ja vapaa aika|puutarha|vaatteet|pukeutuminen|urheilu|elektroniikka|tyokalut|rakentaminen|sisustus|kasityot)(?:\b|$)/.test(root)) return false;
+  return true;
+}
+
 export function dedupeZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]) {
   const seen = new Set<string>();
 
   return results.filter((item) => {
+    if (!isGostaDailyGoodsOffer(item)) return false;
     const key = getGostaOfferDedupeKeyV148(item);
     if (!key || seen.has(key)) return false;
     seen.add(key);
@@ -1010,7 +1031,7 @@ export function cleanZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]
   const seen = new Set<string>();
 
   return results.filter((item) => {
-    if (isBadOfferSearchResultV106(item)) return false;
+    if (isBadOfferSearchResultV106(item) || !isGostaDailyGoodsOffer(item)) return false;
 
     const key = getGostaOfferDedupeKeyV148(item);
     if (!key || seen.has(key)) return false;
@@ -1071,10 +1092,11 @@ export function filterZiiplyGostaOfferResultsV146(
   filterValue: string,
 ) {
   const filter = normalizeGostaCoreText(filterValue).trim();
-  if (!filter || filter === "kaikki" || filter === "all") return sortZiiplyGostaOffersByPrice(results);
+  if (!filter || filter === "kaikki" || filter === "all") return sortZiiplyGostaOffersByPrice(results.filter(isGostaDailyGoodsOffer));
   const canonicalCategoryFilter = normalizeGostaCoreText(canonicalGostaFilterCategory(filterValue));
 
   return sortZiiplyGostaOffersByPrice(results.filter((item) => {
+    if (!isGostaDailyGoodsOffer(item)) return false;
     const category = normalizeGostaCoreText(getResolvedGostaCategoryV166(item));
 
     // V172:

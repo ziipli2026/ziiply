@@ -1,0 +1,24 @@
+name: Gosta grocery eligibility regression
+on:
+  push:
+    branches:
+      - test/gosta-grocery-category-gate-20261114
+    paths:
+      - 'src/app/components/ziiply/offerSearch/**'
+      - 'tests/gosta-daily-goods-gate.test.cjs'
+      - '.github/workflows/gosta-grocery-eligibility-test.yml'
+  workflow_dispatch:
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Grocery gate regression
+        run: node --test tests/gosta-daily-goods-gate.test.cjs
+      - name: TypeScript check
+        run: |
+          npm ci --ignore-scripts
+          npx tsc --noEmit

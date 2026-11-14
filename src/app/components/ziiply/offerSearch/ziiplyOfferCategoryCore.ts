@@ -729,7 +729,6 @@ export function isBadOfferSearchResultV106(item: ZiiplyGostaOfferLike) {
   void priceText;
 
   const normalizedTitle = normalizeGostaText(title);
-  if (/\b(?:sukkalanka|pullotunkki|ompelutarvikelaatikko)\b/.test(normalizedTitle)) return true;
   const hardJunkTitlePatterns = [
     /^(0\s*)?kappaletta(\s+ostoskorissa)?$/,
     /^ostoskori$/,

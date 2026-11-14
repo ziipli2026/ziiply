@@ -31,6 +31,7 @@ export type LidlPublicOffer = {
   pictureUrl: string;
   category: string;
   categoryPath: string;
+  sourceCategoryPath?: string;
   mainCategory: string;
   rawText: string;
   sourceUrl: string;
@@ -100,6 +101,10 @@ function lidlProductCategory(name: string): string | null {
 }
 
 function categoryFor(name: string, sourceUrl: string) {
+  // A source department is stronger evidence than accidental food substrings
+  // in a product name (e.g. "kala" inside a craft product).
+  const sourceDepartment = decodeURIComponent(sourceUrl.split("?")[0] || "").toLowerCase();
+  if (/\/h\/(?:ompelukone|auto-ja-moottoripyo|tyokalut|vaatteet|elektroniikka|puutarha|askartelu|kasityot)/.test(sourceDepartment)) return "Muut";
   const productCategory = lidlProductCategory(name);
   if (productCategory) return productCategory;
   const s = normalize(name + " " + sourceUrl);
@@ -184,7 +189,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
       priceBasis, packageSize: packageText, packageText, comparisonPriceText, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
       requiresLidlPlus: false, eligibility: limitedBatch ? "limited-batch" : "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
-      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
+      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category, sourceCategoryPath: String(product.keyfacts?.wonCategoryPrimary || product.category || ""),
       rawText: [brandName, fullName, packagingText, baseText, discountText, category].filter(Boolean).join(" "), sourceUrl,
       hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
     });
@@ -241,7 +246,7 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
         requiresLidlPlus, eligibility: requiresLidlPlus ? "lidl-plus" : limitedBatch ? "limited-batch" : "open",
         validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
         imageUrl, image: imageUrl, pictureUrl: imageUrl,
-        category, categoryPath: category, mainCategory: category,
+        category, categoryPath: category, mainCategory: category, sourceCategoryPath: String(product.category || ""),
         rawText: [brandName, name, product.description, offer.description, category].filter(Boolean).join(" "),
         sourceUrl, hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
       });
@@ -375,7 +380,7 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
       normalPrice: money(product.normalPrice ?? offer.normalPrice ?? product.originalPrice ?? offer.originalPrice),
       priceBasis: "unit", isWeightedProduct: false, requiresLidlPlus: false, eligibility: "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
-      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
+      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category, sourceCategoryPath: String(product.category || ""),
       rawText: [brandName, name, product.description, category].filter(Boolean).join(" "), sourceUrl, hasConcretePrice: true, ean: "",
     });
   }
