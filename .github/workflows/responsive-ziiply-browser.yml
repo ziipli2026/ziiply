@@ -163,6 +163,7 @@ jobs:
                     }));
                   }, { chain, storeId, storeName, within, many, extra });
                   let queries = 0;
+                  let comparing = false;
                   const searchRequests = [];
                   search.on('request', request => {
                     if (request.url().includes('/api/')) searchRequests.push(request.method() + ' ' + new URL(request.url()).pathname + new URL(request.url()).search);
@@ -238,6 +239,12 @@ jobs:
                       {id: 22, name: extra ? 'Milbona kevytmaito 1 l' : 'Kotimaista kevytmaito 1 l', priceVerified: false, source: 'lidl.fi-public-research'},
                       {id: 23, name: 'Maitokolmio ruisleipä', priceVerified: false, source: 'lidl.fi-public-research'}
                     ]}});
+                    if (comparing) {
+                      const price = api === '/api/s-products' ? 159 : 149;
+                      return route.fulfill({json:{[api === '/api/s-products' ? 'products' : 'items']:[
+                        {id:1,name:'Valio täysmaito 1 l',ean:'6408430106443',price,storeItems:[{price}]}
+                      ]}});
+                    }
                     return route.fulfill({ json: { [api === '/api/s-products' ? 'products' : 'items']: [
                       { id: 1, name: 'Valio täysmaito 1 l', ean: '6408430106443', price: 179 },
                       { id: 2, name: 'Kotimaista kevytmaito 1 l', ean: '6438460292804', storeItem: { price: 95 } },
@@ -399,6 +406,25 @@ jobs:
                   assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
                   assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
                   console.log(name, scenario, 'search passed', storeQueries);
+                  if (many && !extra && (name === 'phone' || desktop)) {
+                    const card = desktop ? expensive.locator('../..') : expensive.locator('ancestor::article');
+                    await card.getByRole('button', {name:/Lisää koriin/}).click();
+                    await search.waitForFunction(desktop => {
+                      const rows = desktop
+                        ? JSON.parse(sessionStorage.getItem('ziiply-desktop-current-cart-v1') || '[]')
+                        : JSON.parse(localStorage.getItem('ziiply-cart-v1') || '{}').items || [];
+                      return rows.some(row => String(row.ean ?? row.product?.ean) === '6408430106443');
+                    }, desktop);
+                    comparing = true;
+                    const firstCompareRequest = searchRequests.length;
+                    await search.getByRole('button', {name:'Vertailu', exact:true}).filter({visible:true}).last().click();
+                    for (const [store, price] of [['Prisma Hyvinkää','1,59'],['K-Citymarket Hyvinkää','1,49']]) {
+                      await search.getByText(store, {exact:true}).filter({visible:true}).first().waitFor({timeout:25000});
+                      await search.getByText(price+' €', {exact:true}).filter({visible:true}).first().waitFor({timeout:25000});
+                    }
+                    for (const api of searchEndpoints) assert.ok(searchRequests.slice(firstCompareRequest).some(value => value.includes(api+'?')));
+                    console.log(name, 'cart-to-comparison passed');
+                  }
                   await searchContext.close();
                 }
                 console.log(name + ' passed');
