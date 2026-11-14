@@ -104,38 +104,41 @@ jobs:
                   return saved.some(item => String(item.ean ?? item.product?.ean) === ean);
                 }, { desktop, ean: '6411001000110' }, { timeout: 10000 });
                 assert.deepEqual(errors, []);
-                for (const [chain, storeId, storeName] of [
+                for (const [chain, storeId, storeName, within = false] of [
                   ['S', '634976534', 'Prisma Hyvinkää'],
                   ['K', 'C130', 'K-Citymarket Hyvinkää'],
                   ['LIDL', 'lidl-test', 'Lidl Hyvinkää'],
                   ['SPAR', 'spar-test', 'EUROSPAR Hyvinkää'],
                   ['TOKMANNI', 'tokmanni-test', 'Tokmanni Hyvinkää'],
+                  ['S', '634976534', 'Prisma Hyvinkää', true],
                 ]) {
-                  if (chain !== 'S' && name !== 'phone' && !desktop) continue;
+                  if ((chain !== 'S' || within) && name !== 'phone' && !desktop) continue;
                   const endpoint = { S: '/api/s-products', K: '/api/k-products', LIDL: '/api/lidl/products', SPAR: '/api/tokmanni/products', TOKMANNI: '/api/tokmanni/products' }[chain];
                   const searchContext = await browser.newContext(options);
                   await searchContext.grantPermissions(['geolocation']);
                   await searchContext.setGeolocation({ latitude: 60.63, longitude: 24.86 });
                   const search = await searchContext.newPage();
-                  await search.addInitScript(({ chain, storeId, storeName }) => {
+                  await search.addInitScript(({ chain, storeId, storeName, within }) => {
                     const store = { id: storeId, name: storeName, chain, latitude: 60.63, longitude: 24.86 };
+                    const local = { ...store, id:'s-local-test', name:'S-market Hyvinkää' };
                     localStorage.setItem('ziiply-desktop-store-choices-v1', JSON.stringify({
                       storeMode: 'hyper', storeModeChosen: true, selectedChain: chain === 'TOKMANNI' ? 'SPAR' : chain,
-                      betweenMode: 'one', storeCompareScope: 'between_chains',
+                      betweenMode: 'one', storeCompareScope: within ? 'within_chain' : 'between_chains', withinChain: within ? 'S' : null,
+                      withinStoreSlots: { S: within ? [store, local] : [], K: [] },
                       allStoreSelections: { hyper: { [store.id]: store }, local: {} }
                     }));
                     localStorage.setItem('ziiply-store-selection-v536', JSON.stringify({
                       version: 1, savedAt: Date.now(),
                       activeArea: { label: 'Hyvinkää', sStoreId: chain === 'S' ? storeId : '', sStoreName: chain === 'S' ? storeName : '',
                         kStoreId: chain === 'K' ? storeId : '', kStoreName: chain === 'K' ? storeName : '',
-                        sLocalStoreId: '', sLocalStoreName: '', kLocalStoreId: '', kLocalStoreName: '' },
+                        sLocalStoreId: within ? local.id : '', sLocalStoreName: within ? local.name : '', kLocalStoreId: '', kLocalStoreName: '' },
                       storeMode: 'hyper', storeModeChosenV299: true,
-                      storeCompareScope: 'between_chains', betweenChainSelectionModeV749: 'one',
-                      withinChain: null, selectedChains: { s: chain === 'S', k: chain === 'K', lidl: chain === 'LIDL', tokmanni: chain === 'SPAR' || chain === 'TOKMANNI' },
+                      storeCompareScope: within ? 'within_chain' : 'between_chains', betweenChainSelectionModeV749: 'one',
+                      withinChain: within ? 'S' : null, selectedChains: { s: chain === 'S', k: chain === 'K', lidl: chain === 'LIDL', tokmanni: chain === 'SPAR' || chain === 'TOKMANNI' },
                       selectedLidlStoreV750: chain === 'LIDL' ? store : null, selectedEurosparStoreV751: chain === 'SPAR' ? store : null,
                       selectedTokmanniStoreV756: chain === 'TOKMANNI' ? store : null, gpsCoordsV320: null, usingOwnLocation: false
                     }));
-                  }, { chain, storeId, storeName });
+                  }, { chain, storeId, storeName, within });
                   let queries = 0;
                   const searchRequests = [];
                   search.on('request', request => {
@@ -154,7 +157,7 @@ jobs:
                   await search.route('**'+endpoint+'?*', route => {
                     const params = new URL(route.request().url()).searchParams;
                     if (/maito/i.test(params.get('search') || '')) {
-                      if (chain === 'S' || chain === 'K') assert.equal(params.get('store'), storeId);
+                      if (chain === 'S' || chain === 'K') assert.ok([storeId, ...(within ? ['s-local-test'] : [])].includes(params.get('store')));
                       if (chain === 'LIDL') assert.equal(params.get('mode'), 'research');
                       if (chain === 'SPAR' || chain === 'TOKMANNI') assert.equal(params.get('intent'), 'maito');
                       queries++;
@@ -237,8 +240,14 @@ jobs:
                   })));
                   assert.ok(storeQueries.includes('maito') && storeQueries.includes('kevytmaito'),
                     'normal search must send both the original query and a milk-family variant');
-                  if (name === 'phone') phoneStoreQueries.set(chain, storeQueries);
-                  if (desktop) assert.deepEqual(storeQueries, phoneStoreQueries.get(chain),
+                  if (within) {
+                    const stores = searchRequests.filter(value => value.startsWith('GET ' + endpoint + '?'))
+                      .map(value => new URLSearchParams(value.split('?')[1]).get('store'));
+                    assert.deepEqual([...new Set(stores)].sort(), [storeId, 's-local-test'].sort());
+                  }
+                  const scenario = within ? 'S within-chain' : chain;
+                  if (name === 'phone') phoneStoreQueries.set(scenario, storeQueries);
+                  if (desktop && !within) assert.deepEqual(storeQueries, phoneStoreQueries.get(scenario),
                     'phone and desktop must request the same store query variants in order');
                   const maitoApiCalls = searchRequests.filter(value => /[?&]search=maito(?:&|$)/i.test(value));
                   assert.ok(maitoApiCalls.some(value => value.includes(endpoint + '?')));
@@ -249,7 +258,7 @@ jobs:
                   else await search.getByText(/hinta (ei vahvistettu|vahvistamatta)/i).first().waitFor();
                   assert.equal(await search.getByText('Maitokolmio ruisleipä', { exact: true }).count(), 0);
                   assert.equal(await search.getByText('Arla rasvaton maito 1 l', { exact: true }).count(), 0);
-                  console.log(name, chain, 'search passed', storeQueries);
+                  console.log(name, scenario, 'search passed', storeQueries);
                   await searchContext.close();
                 }
                 console.log(name + ' passed');
