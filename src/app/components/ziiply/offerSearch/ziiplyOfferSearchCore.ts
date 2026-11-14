@@ -1010,8 +1010,7 @@ export function isGostaDailyGoodsOffer(item: ZiiplyGostaOfferLike): boolean {
     raw?.sourceCategoryPath || raw?.taxonomy || raw?.hierarchy ||
     raw?.categoryPath || raw?.department || raw?.productGroup || "",
   );
-  const normalized = normalizeGostaCoreText(sourceHierarchy);
-  const root = normalized.split(/\s*(?:>|\/)\s*/)[0];
+  const root = normalizeGostaCoreText(sourceHierarchy.split(/\s*(?:>|\/)\s*/)[0]).replace(/-/g, " ");
   if (/^(?:kayttotavarat|koti ja vapaa aika|puutarha|vaatteet|pukeutuminen|urheilu|elektroniikka|tyokalut|rakentaminen|sisustus|kasityot)(?:\b|$)/.test(root)) return false;
   return true;
 }
