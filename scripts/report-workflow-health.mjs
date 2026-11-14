@@ -11,7 +11,9 @@ const completed=event.action==='completed';
 const ok=completed&&run.conclusion==='success';
 if(completed&&run.conclusion==='skipped')process.exit(0);
 const outcome=completed?(ok?'workflow-succeeded':'workflow-'+run.conclusion):'workflow-running';
-const sql=neon(process.env.DATABASE_URL);
+const ziiplyDatabaseUrl=new URL(process.env.DATABASE_URL);
+ziiplyDatabaseUrl.pathname='/neondb';
+const sql=neon(ziiplyDatabaseUrl.toString());
 const databaseCheck=await sql`SELECT current_database() AS name`;
 if(databaseCheck[0]?.name!=='neondb') {
   console.warn('Automation health reporting skipped: DATABASE_URL must target Ziiply neondb; refusing to write to another database');
