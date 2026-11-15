@@ -1,29 +1,62 @@
 const { test, expect, devices } = require('@playwright/test');
-const base = process.env.ZIIPLY_PREVIEW_URL || 'https://ziiply-b2gt9m72n-ziipli2026s-projects.vercel.app';
+const base = process.env.ZIIPLY_PREVIEW_URL || 'http://127.0.0.1:3000';
+// This is intentionally synthetic test data, not an assertion about a live offer.
 const sample = {
- id:'gosta-watch-ean-6438574526741', ean:'6438574526741', name:'Kirjolohiannospakkaus',
- title:'Kirjolohiannospakkaus', quantity:1, source:'offer', storeName:'K-Citymarket',
- price:6.99, discountText:'Tarjous 6,99 €', validFrom:'2026-11-15',validUntil:'2026-11-19',
- validityText:'Voimassa 15.11.–19.11.'
+  id: 'gosta-watch-ean-6438574526741',
+  ean: '6438574526741',
+  name: 'Kirjolohiannospakkaus',
+  title: 'Kirjolohiannospakkaus',
+  quantity: 1,
+  source: 'offer',
+  storeName: 'K-Citymarket',
+  price: 6.99,
+  discountText: 'Tarjous 6,99 €',
+  validFrom: '2026-11-15',
+  validUntil: '2026-11-19',
+  validityText: 'Voimassa 15.11.–19.11.',
 };
-test('mobile: cart campaign metadata survives browser storage and is rendered',async ({browser})=>{
- const context=await browser.newContext({...devices['iPhone 13'], serviceWorkers:'block'});
- await context.addInitScript(item=>localStorage.setItem('ziiply-cart-v1',JSON.stringify([item])),sample);
- const page=await context.newPage();
- await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
- await page.screenshot({path:'test-results/mobile-before-cart.png',fullPage:true});
- await expect(page.locator('body')).toBeVisible();
- const cart=page.getByRole('button',{name:/^Kori(?:\s|$)/}).first();
- await expect(cart,'Mobile Kori navigation must be available').toBeVisible({timeout:20000});
- await cart.click();
- await expect(page.getByText('Kirjolohiannospakkaus').first()).toBeVisible({timeout:15000});
- await expect(page.getByText('Tarjous 6,99 €').first()).toBeVisible();
- await expect(page.getByText('Voimassa 15.11.–19.11.').first()).toBeVisible();
- await page.screenshot({path:'test-results/mobile-cart.png',fullPage:true});
- await context.close();
+test('mobile: restored cart displays offer discount and validity', async ({ browser }) => {
+  const context = await browser.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block' });
+  await context.addInitScript(item => {
+    localStorage.setItem('ziiply-cart-v1', JSON.stringify({ version: 2, savedAt: Date.now(), items: [item] }));
+    localStorage.setItem('ziiply-store-selection-v536', JSON.stringify({
+      version: 1, savedAt: Date.now(), storeMode: 'local',
+      storeModeChosenV299: true, storeCompareScope: 'between_chains',
+      betweenChainSelectionModeV749: 'one',
+      selectedChains: { s: false, k: true, lidl: false, tokmanni: false },
+    }));
+  }, sample);
+  const page = await context.newPage();
+  page.on('pageerror', error => console.log('[browser-error]', String(error)));
+  const response = await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  console.log('[page]', JSON.stringify({ status: response?.status(), url: page.url() }));
+  await expect(page.locator('body')).toBeVisible();
+  const cart = page.getByRole('button', { name: /^Kori(?:\s|$)/ }).first();
+  try {
+    await expect(cart, 'Kori control must be visible in mobile navigation').toBeVisible({ timeout: 30000 });
+  } catch (error) {
+    console.log('[missing-cart-button]', JSON.stringify({
+      url: page.url(), title: await page.title(),
+      body: (await page.locator('body').innerText()).slice(0, 3000),
+      buttons: await page.getByRole('button').allTextContents(),
+    }));
+    await page.screenshot({ path: 'test-results/mobile-navigation-failure.png', fullPage: true });
+    throw error;
+  }
+  const continueButton = page.getByRole('button', { name: 'Jatka', exact: true });
+  if (await continueButton.isVisible()) await continueButton.click();
+  await expect(cart).toBeEnabled({ timeout: 12000 });
+  await cart.click();
+  await expect(page.getByText('Kirjolohiannospakkaus').first()).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText('Tarjous 6,99 €').first()).toBeVisible();
+  await expect(page.getByText('Voimassa 15.11.–19.11.').first()).toBeVisible();
+  await page.screenshot({ path: 'test-results/mobile-cart.png', fullPage: true });
+  await context.close();
 });
-test('desktop preview: application loads',async ({page})=>{
- await page.goto(base+'/desktop-preview',{waitUntil:'domcontentloaded',timeout:45000});
- await expect(page.locator('body')).toBeVisible();
- await expect(page.locator('body')).not.toContainText('Application error');
+test('desktop preview: actual app UI renders', async ({ page }) => {
+  const response = await page.goto(base + '/desktop-preview', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  expect(response?.status()).toBeLessThan(400);
+  await expect(page.locator('body')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText(/Authentication Required|Application error|404: NOT_FOUND/);
+  console.log('[desktop]', JSON.stringify({ status: response?.status(), title: await page.title() }));
 });
