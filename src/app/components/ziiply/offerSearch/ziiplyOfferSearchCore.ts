@@ -1006,7 +1006,13 @@ export function isGostaDailyGoodsOffer(item: ZiiplyGostaOfferLike): boolean {
   // still identify non-food campaigns even when cached category is incorrect.
   if (/lidl\.fi\/h\/(?:ompelukone|auto-ja-moottoripyo|kuntoilu|lemmikkielaeinten-tarvikkeet|tyokalut|vaatteet|elektroniikka|puutarha|askartelu|kasityot)/.test(sourceUrl)) return false;
   const category = getResolvedGostaCategoryV166(item);
-  if (!category || category === "Muut" || category === "Koti & vapaa-aika" || category === "Koti") return false;
+  if (!category || category === "Koti & vapaa-aika" || category === "Koti") return false;
+  // Historical Citymarket leaflets contain real groceries labeled "Muut".
+  // Recover only explicit daily-goods identities; ambiguous items stay excluded.
+  if (category === "Muut") {
+    const title = normalizeGostaCoreText(String(raw?.title || item?.title || ""));
+    if (!/(?:rypale|kassler|markaruoat|puruluut|palvisiivu|wc spray|kasvovoite|siivoustuotteita|hiusvari|kestovarit|juoma|limonadi|olut|siideri|energiajuoma)/.test(title)) return false;
+  }
 
   // A known non-grocery source department must not be overridden by a
   // generic title heuristic or by a stale cached/Neon display label.
