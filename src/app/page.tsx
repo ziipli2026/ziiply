@@ -1673,6 +1673,7 @@ import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
+import { gostaOfferDiscount, gostaOfferValidity } from "./components/ziiply/offerSearch/gostaOfferPresentation";
 import ZiiplyMobileCompareCheckoutCard from "./components/ziiply/cards/ZiiplyMobileCompareCheckoutCard";
 import ZiiplyMobileNotebookCard from "./components/ziiply/cards/ZiiplyMobileNotebookCard";
 import ZiiplyMobileOfferSearchCard from "./components/ziiply/cards/ZiiplyMobileOfferSearchCard";
@@ -7606,6 +7607,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       priceAmountUnit: item.priceAmountUnit,
       ziiplyEstimatedWeightKg: item.ziiplyEstimatedWeightKg,
       validityText: item.validityText,
+      discountText: item.discountText,
       image: item.image,
       chain: item.chain,
       storeName: item.storeName,
@@ -24926,6 +24928,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ...(offerBundleQuantityV869 > 1 && !isWeightedOffer ? { ziiplyOfferBundleQuantity: offerBundleQuantityV869 } : {}),
                 source: "offer",
                 ean: String(offer.ean || sourceOffer.ean || ""),
+                discountText: gostaOfferDiscount(offer),
+                validityText: gostaOfferValidity(offer, ""),
                 ...(storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" ? { ziiplySingleChainAtAdd: offer.chain === "S" ? "s" : offer.chain === "K" ? "k" : offer.chain === "LIDL" ? "lidl" : offer.chain === "TOKMANNI" || offer.chain === "EUROSPAR" ? "tokmanni" : "" } : {}),
                 product: {
                   id: String(offer.id || `offer-product-${Date.now()}`),
@@ -24982,6 +24986,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     quantity: offerBundleQuantityV869,
                     ...(offerBundleQuantityV869 > 1 ? { ziiplyOfferBundleQuantity: offerBundleQuantityV869 } : {}),
                     source: "offer",
+                    ean: String(offer.ean || sourceOffer.ean || ""),
+                    discountText: gostaOfferDiscount(offer),
+                    validityText: gostaOfferValidity(offer, ""),
                     product: {
                       id: String(offer.id || `offer-product-${Date.now()}-${added}`),
                       name,

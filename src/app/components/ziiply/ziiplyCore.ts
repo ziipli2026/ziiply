@@ -82,6 +82,7 @@ export type EanSearchResult = {
 
 export type CartItem = {
   validityText?: string;
+  discountText?: string;
   ziiplyOfferBundleQuantity?: number;
   priceAmountUnit?: "eur";
   ziiplyEstimatedWeightKg?: number;

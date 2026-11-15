@@ -843,6 +843,7 @@ export default function ZiiplyMobileCartCard({
                     >
                       {name}
                       {String(item.id || "").startsWith("gosta-watch-") && item.storeName && <span className="mt-1 block text-[0.65rem] font-semibold">{item.storeName}</span>}
+                      {item.discountText && <span className="mt-1 block text-[0.65rem] font-semibold italic">{item.discountText}</span>}
                       {item.validityText && <span className="mt-1 block text-[0.65rem] font-semibold">{item.validityText}</span>}
                     </div>
 
