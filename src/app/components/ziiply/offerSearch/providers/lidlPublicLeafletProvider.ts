@@ -105,6 +105,10 @@ function categoryFor(name: string, sourceUrl: string) {
   // in a product name (e.g. "kala" inside a craft product).
   const sourceDepartment = decodeURIComponent(sourceUrl.split("?")[0] || "").toLowerCase();
   if (/\/h\/(?:ompelukone|auto-ja-moottoripyo|kuntoilu|lemmikkielaeinten-tarvikkeet|tyokalut|vaatteet|elektroniikka|puutarha|askartelu|kasityot)/.test(sourceDepartment)) return "Muut";
+  // Live offer audit: ornamental plants are not drinks; avoid substring collisions.
+  const normalizedName = normalize(name);
+  if (/joulukaktus|tulilatva/.test(normalizedName)) return "Muut";
+  if (/\b(?:ranskalaiset perunat|uunirapeat ranskalaiset)\b/.test(normalizedName)) return "Pakasteet";
   const productCategory = lidlProductCategory(name);
   if (productCategory) return productCategory;
   const s = normalize(name + " " + sourceUrl);
@@ -113,7 +117,7 @@ function categoryFor(name: string, sourceUrl: string) {
   if (/vaate|asuste|lupilu|esmara|silvercrest|parkside|livarno|tyokalu|kodinkone|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu|rakennussarja|kosmeti|shampoo|deodorant|hammastahna/.test(s)) return "Muut";
   if (/pyykin|astianpesu|pesuaine|puhdistus|talouspaperi|wc paperi|wc-paperi|vessapaperi|siivous/.test(s)) return "Kodinhoito";
   if (/vihanne|hedelm|tomaatti|peruna|kaali|porkkana|sipuli|kurkku|omena|banaani|selleri|punajuuri|paprika|salaatti|retiisi/.test(s)) return "Hevi";
-  if (/paistopiste|leip|croissant|pull|sampyl|rieska|patonki|karjalanpiirakka/.test(s)) return "Leipomo";
+  if (/paistopiste|leip|croissant|sampyl|rieska|patonki|karjalanpiirakka|\bpulla\b/.test(s)) return "Leipomo";
   if (/juusto|maito|jogur|rahka|kerma|voi\b|kananmuna|viili|piima/.test(s)) return "Maitotuotteet";
   if (/liha|kana|broiler|nauta|sika|pors|makkara|nakki|pekoni|kinkku|jauheliha|lihapulla|nugget/.test(s)) return "Liha & makkarat";
   if (/kala|lohi|katkarapu|tonnikala|silakka|seiti/.test(s)) return "Kala";
