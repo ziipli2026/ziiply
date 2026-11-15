@@ -1,0 +1,85 @@
+name: Search result comparison prices in Chromium
+on:
+  push:
+    branches: [test/search-result-comparison-prices]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/progressive" --no-save --package-lock=false playwright@1.56.1
+      - name: Verify the displayed price per kilogram and litre
+        run: |
+          npm run dev -- -H 127.0.0.1 -p 3100 >/tmp/progressive-next.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS --max-time 30 http://127.0.0.1:3100/ >/dev/null; then break; fi
+            sleep 1
+          done
+          NODE_PATH="$RUNNER_TEMP/progressive/node_modules" node <<'NODE'
+          const {chromium,devices}=require('playwright');
+          const assert=require('node:assert/strict');
+          const store={id:'292',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
+          const examples=[
+            {search:'maito 1l',name:'Kotimaista rasvaton maito 1l',ean:'6415712506032',price:95,comparisonPrice:95,comparisonPriceUnit:'LTR',expected:'0,95 €/l'},
+            {search:'kahvi',name:'Juhla Mokka kahvi 500g',ean:'6411300164930',price:495,expected:'9,90 €/kg'}
+          ];
+          (async()=>{
+            const browser=await chromium.launch();
+            try{
+              for(const desktop of [false,true]) for(const example of examples){
+                const context=await browser.newContext(desktop?{viewport:{width:1440,height:900}}:devices['iPhone 13']);
+                await context.addInitScript(store=>{
+                  localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({
+                    storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'one',
+                    storeCompareScope:'between_chains',allStoreSelections:{hyper:{[store.id]:store},local:{}}
+                  }));
+                  localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({
+                    version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',sStoreId:store.id,sStoreName:store.name},
+                    storeMode:'hyper',storeModeChosenV299:true,storeCompareScope:'between_chains',betweenChainSelectionModeV749:'one',
+                    withinChain:null,selectedChains:{s:true,k:false,lidl:false,tokmanni:false},usingOwnLocation:false
+                  }));
+                },store);
+                const page=await context.newPage();
+                await page.route('**/api/store-search?*',route=>route.fulfill({json:{items:[store]}}));
+                await page.route('**/api/neon-first-search?*',route=>route.fulfill({json:{products:[]}}));
+                await page.route('**/api/ean-bank?*',route=>route.fulfill({json:{}}));
+                await page.route('**/api/s-products?*',route=>route.fulfill({json:{products:[{
+                  ...example,id:1,priceAmountUnit:'cent',comparisonPriceAmountUnit:'cent'
+                }],source:'ruoanhinta-s'}}));
+                try{
+                  await page.goto('http://127.0.0.1:3100/');
+                  if(!desktop){
+                    const home=page.getByRole('region',{name:'Ziiplyn avustajat'});
+                    await home.waitFor();
+                    await page.reload();
+                    await home.waitFor();
+                  }
+                  await page.getByRole('button',{name:desktop?'Avaa Justiina':'Justiina: Tuotehaku',exact:true}).click();
+                  const input=desktop?page.getByRole('textbox',{name:'Hae tuotteita'}):page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true});
+                  await input.fill(example.search);
+                  if(desktop) await input.press('Enter');
+                  else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click();
+                  await page.getByText(example.name,{exact:true}).first().waitFor();
+                  await page.getByText(example.expected,{exact:true}).first().waitFor();
+                  assert.equal(await page.getByText(example.expected.replace(/\/(?:kg|l)$/,example.search==='kahvi'?'/l':'/kg'),{exact:true}).count(),0);
+                  console.log('PASS comparison price',desktop?'desktop':'mobile',example.name,example.expected);
+                }finally{await context.close();}
+              }
+            }finally{await browser.close();}
+          })().catch(error=>{console.error(error);process.exitCode=1;});
+          NODE
+      - if: failure()
+        run: tail -100 /tmp/progressive-next.log
