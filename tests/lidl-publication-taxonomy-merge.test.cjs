@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const ts = require('typescript');
 const source = fs.readFileSync('src/app/api/cron/lidl-publications/route.ts','utf8');
 const normalize = (value) => String(value ?? '').toLocaleLowerCase('fi')
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -9,7 +10,8 @@ const normalize = (value) => String(value ?? '').toLocaleLowerCase('fi')
 const start = source.indexOf('function mergePeriodRows(');
 const end = source.indexOf('/** Stage Lidl Plus', start);
 assert.ok(start >= 0 && end > start, 'Find production duplicate merger');
-const mergePeriodRows = new Function('normalize', source.slice(start,end) + '; return mergePeriodRows;')(normalize);
+const compiled = ts.transpileModule(source.slice(start,end), {compilerOptions:{target:ts.ScriptTarget.ES2021,module:ts.ModuleKind.CommonJS}}).outputText;
+const mergePeriodRows = new Function('normalize', compiled + '; return mergePeriodRows;')(normalize);
 const shared = {name:'Kotimainen rypsiöljy 500 ml',brandName:'Merkki',validFrom:'2026-11-15',validUntil:'2026-11-20'};
 test('Lidl Plus wins price while retaining public source taxonomy', () => {
  const rows=mergePeriodRows([
