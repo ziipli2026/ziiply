@@ -26,6 +26,7 @@ const cases = [
   ["Citymarket cleaning mislabeled Muut", {title:"WC-SPRAY 435 ml",category:"Muut"},true],
   ["Citymarket candle mislabeled Muut", {title:"ÖLJYKYNTTILÄ ISO",category:"Muut"},false],
   ["stored Lidl yarn with wrong fish category", {title:"Crelando Sukkalanka",category:"Kala",sourceUrl:"https://www.lidl.fi/h/ompelukone-ja-tarvikkeet/h10067530"},false],
+  ["stored Lidl sewing box with wrong prepared food category", {title:"Crelando Säilytys- tai ompelutarvikelaatikko",category:"Valmisruoka",sourceUrl:"https://www.lidl.fi/h/ompelukone-ja-tarvikkeet/h10067530"},false],
   ["stored Lidl jack with wrong bakery category", {title:"Ultimate Speed Pullotunkki",category:"Leipomo",sourceUrl:"https://www.lidl.fi/h/auto-ja-moottoripyoerae/h10067538"},false],
   ["stored Lidl sports bottle with wrong bakery category", {title:"Crivit Juomapullo",category:"Leipomo",sourceUrl:"https://www.lidl.fi/h/kuntoilu/h10067543"},false],
   ["real grocery remains despite Lidl source URL", {title:"JACKY Makupala",category:"Maitotuotteet",sourceUrl:"https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761"},true],
