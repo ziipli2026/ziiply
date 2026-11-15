@@ -3419,6 +3419,7 @@ function MobilePage() {
     latitude: number;
     longitude: number;
   } | null>(null);
+  const showStoreGpsDistances = Boolean(usingOwnLocation && gpsCoordsV320);
   const [gpsBootReadyV473, setGpsBootReadyV473] = useState(false);
   const [storeDistanceFallbacksV320, setStoreDistanceFallbacksV320] = useState<
     Record<string, number>
@@ -21653,6 +21654,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function getStoreDistanceLabelV320(store?: StoreSearchItem | null) {
+    if (!showStoreGpsDistances) return "";
+
     const directLabel = getStoreDistanceLabelWithoutFallbackV320(store);
     if (directLabel) return directLabel;
 
@@ -21977,6 +21980,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         top={storePickerViewportStyle.top}
         width={storePickerViewportStyle.width}
         onClose={() => setOpenStorePicker(null)}
+        showDistances={showStoreGpsDistances}
         getDistanceLabel={(store) => {
           const sourceIndex = Number((store as any).__sourceIndex);
           const sourceStore = Number.isFinite(sourceIndex) ? options[sourceIndex] : (store as StoreSearchItem);
@@ -22418,9 +22422,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const lidlDistanceForCard =
           store.key === "lidl" ? getStoreDistanceLabelV320(selectedLidlStoreV750) : "";
         const showLidlDistanceForCard = Boolean(lidlDistanceForCard && !isComingSoon);
-        const showSparGpsDistances = Boolean(usingOwnLocation && gpsCoordsV320);
         const eurosparDistanceForCard =
-          store.key === "tokmanni" && showSparGpsDistances
+          store.key === "tokmanni"
             ? getStoreDistanceLabelV320(selectedTokmanniStoreV756 || selectedEurosparStoreV751)
             : "";
         const showEurosparDistanceForCard = Boolean(eurosparDistanceForCard && !isComingSoon);
@@ -22593,6 +22596,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         top={storePickerViewportStyle.top}
                         width={storePickerViewportStyle.width}
                         onClose={() => setOpenStorePicker(null)}
+                        showDistances={showStoreGpsDistances}
                         getDistanceLabel={(option) => {
                           const sourceIndex = Number((option as any).__sourceIndex);
                           const sourceStore = Number.isFinite(sourceIndex) ? lidlStoreOptionsV750[sourceIndex] : (option as StoreSearchItem);
@@ -22639,7 +22643,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         top={storePickerViewportStyle.top}
                         width={storePickerViewportStyle.width}
                         onClose={() => setOpenStorePicker(null)}
-                        showDistances={showSparGpsDistances}
+                        showDistances={showStoreGpsDistances}
                         getDistanceLabel={(option) => String(option.distance || "")}
                         getStoreKey={(option, index) => `spar-${String(option.chain || option.type || "store").toLowerCase()}-${option.id || index}-${normalize(option.name || "")}`}
                         onSelectStore={(option) => {
