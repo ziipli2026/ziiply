@@ -27,15 +27,36 @@ function readStorePrice(item: any) {
     item?.pricing?.price ?? item?.currentPrice ?? 0);
 }
 
+function shapeStoreRow(x: any, store: NormalSearchStore, source: string | undefined) {
+  const rawPrice=readStorePrice(x);
+  const responseSource=x.__providerSource||source;
+  const priceIsEuros=x.priceAmountUnit === "eur" || (x.priceAmountUnit !== "cent" && store.chain==="S" && responseSource==="s-kaupat-normal-v220");
+  const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
+  const product={...x,name:String(x.name||x.title||x.productName||""),__chain:store.chain,__store:store.chain === "SPAR" || store.chain === "TOKMANNI" ? "Tokmanni / SPAR verkkovalikoima" : store.name,__price:euro,__priceSource:responseSource||""};
+  return {product, rawPrice, priceIsEuros, euro};
+}
+
+function rankStoreRows(query: string, rows: any[]) {
+  return finalizeNormalSearchResults(
+    query,
+    rows,
+    product => product.__price ?? Number.POSITIVE_INFINITY,
+    product => product.ean || product.barcode || product.product?.ean,
+    product => `${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`,
+  );
+}
+
 export async function searchNormalStores(query: string, stores: NormalSearchStore[], options: {
   signal?: AbortSignal;
   observe?: Observer;
   trace?: Observer;
+  onInitialRows?: (rows: any[]) => void;
 } = {}) {
   const {signal, observe} = options;
   const report: Observer = (stage, data) => observe?.(stage, data);
   const trace: Observer = (stage, data) => options.trace?.(stage, data);
-  async function fetchSearchData(url: string, exactQueries?: string[]) {
+  let initialRowsPublished = false;
+  async function fetchSearchData(url: string, exactQueries?: string[], initialStore?: NormalSearchStore) {
     const queries = exactQueries || desktopSearchQueries(query);
     let lastData: any = null;
     const collected:any[]=[];
@@ -61,6 +82,18 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       if(observe)report("qualification",{requestUrl,usable,acceptedCount:items.filter((product:any)=>desktopSearchDecision(query,product).accepted).length});
       // Qualification is repeated after Neon has supplied compatible name evidence.
       collected.push(...items.map((item:any)=>({...item,__providerSource:data?.source})));
+      if (options.onInitialRows && !initialRowsPublished && !signal?.aborted &&
+          (initialStore?.chain === "S" || initialStore?.chain === "K")) {
+        const initialRows = items
+          .map(item => shapeStoreRow(item, initialStore, data?.source).product)
+          .filter(product => product.__price > 0 && product.priceVerified !== false &&
+            desktopSearchDecision(query, product).accepted);
+        const ranked = rankStoreRows(query, initialRows).slice(0, 100);
+        if (ranked.length) {
+          initialRowsPublished = true;
+          options.onInitialRows(ranked);
+        }
+      }
       } catch(error) { if(signal?.aborted)throw error; requestErrors.push(String(error)); report("provider_variant_error",{requestUrl,error:String(error)}); }
     }
     if(!lastData && requestErrors.length)throw new Error(requestErrors.join("; "));
@@ -69,16 +102,14 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   // Start catalog lookup concurrently with the existing selected-store providers.
   // The catalog never supplies a store price or modifies recipe/offer engines.
   const neonPromise = stores.some(store => store.chain === "S" || store.chain === "K") ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
-  const calls = stores.map(store => fetchSearchData(storeUrl(store, query)).then(data => ({chain:store.chain,store,data})));
+  const calls = stores.map(store => fetchSearchData(storeUrl(store, query), undefined, store).then(data => ({chain:store.chain,store,data})));
   const settledPromise=Promise.allSettled(calls);
   const neonRaw = await neonPromise;
   trace("neon_response",{count:neonRaw.length,products:neonRaw.slice(0,100)});
   const neonRows = selectNormalSearchCatalog(query, neonRaw)
     .slice(0,50)
     .map((x:any)=>({...x,__chain:"Neon",__store:"Tuoteluettelo",__price:null,__priceSource:"neon-catalog-unpriced"}));
-  // Keep Neon metadata internal until a selected-store price is available; do not show an unpriced
-  // preliminary list before store prices and final ranking are available.
-  // The loading state remains visible until the merged result is ready.
+  // The final result still waits for all selected stores and catalog enrichment.
   const settled=await settledPromise;
   const batches=settled.filter((x):x is PromiseFulfilledResult<any>=>x.status==="fulfilled").map(x=>x.value);
   const failures=settled.filter(x=>x.status==="rejected").map(x=>String(x.reason));
@@ -151,24 +182,15 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
         }
         continue;
       }
-      const rawPrice=readStorePrice(x);
-      const responseSource=x.__providerSource||batch.data?.source;
-      const priceIsEuros=x.priceAmountUnit === "eur" || (x.priceAmountUnit !== "cent" && batch.chain==="S" && responseSource==="s-kaupat-normal-v220");
-      const euro=Number.isFinite(rawPrice)&&rawPrice>0?(priceIsEuros?rawPrice:rawPrice/100):null;
-      const product=withEvidence({...x,name:String(x.name||x.title||x.productName||""),__chain:batch.chain,__store:batch.chain === "SPAR" || batch.chain === "TOKMANNI" ? "Tokmanni / SPAR verkkovalikoima" : batch.store.name,__price:euro,__priceSource:responseSource||""});
+      const {product: baseProduct, rawPrice, priceIsEuros, euro}=shapeStoreRow(x,batch.store,batch.data?.source);
+      const product=withEvidence(baseProduct);
       const normalRejected=!desktopSearchDecision(query,product).accepted;
       const included=!normalRejected;
       productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});
       if(included)rows.push(product);
     }
   }
-  const rankedRows = finalizeNormalSearchResults(
-    query,
-    rows,
-    product => product.__price ?? Number.POSITIVE_INFINITY,
-    product => product.ean || product.barcode || product.product?.ean,
-    product => `${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`,
-  );
+  const rankedRows = rankStoreRows(query, rows);
   const sortedRows = [...rankedRows, ...research.values()].slice(0, 100);
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};
