@@ -391,6 +391,31 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // branch. Otherwise a stale top-level category such as "Muut" wins before
   // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  // Historical publication JSON can carry stale display categories even after
+  // the leaflet parser was fixed. Resolve unambiguous product forms before
+  // trusting cached provider labels, for all clients using this shared core.
+  const publicationOrigin = normalizeGostaCoreText(
+    [sourceItem?.source, sourceItem?.chain, sourceItem?.storeType,
+      sourceItem?.storeLabel, anyItem?.source, anyItem?.chain].filter(Boolean).join(" "),
+  );
+  const publicationTitle = normalizeGostaCoreText(String(
+    sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
+    anyItem?.title || anyItem?.name || "",
+  ));
+  const fromCitymarketLeaflet = publicationOrigin.includes("k citymarket");
+  const fromLidlPublication = /(?:^| )lidl(?: |$)/.test(publicationOrigin);
+  if (fromCitymarketLeaflet) {
+    if (/suihkumousse|suihkuvaahto/.test(publicationTitle)) return "Hygienia & kosmetiikka";
+    if (/uunirapeat ranskalaiset|ranskalaiset perunat/.test(publicationTitle)) return "Pakasteet";
+    if (/\\bperunat\\b/.test(publicationTitle) &&
+        !/ranskalaiset|pakaste|perunalaatikko/.test(publicationTitle)) return "Hevi";
+  }
+  if (fromLidlPublication) {
+    if (/perunalaatikko/.test(publicationTitle)) return "Valmisruoka";
+    if (/siipipalat|kanansiivet|hornet/.test(publicationTitle)) return "Liha & makkarat";
+    if (/joulukaktus|tulilatva/.test(publicationTitle)) return "Koti & vapaa-aika";
+    if (/sukkalanka|ompelutarvikelaatikko|pullotunkki|juomapullo/.test(publicationTitle)) return "Koti & vapaa-aika";
+  }
   const verifiedCategory = getVerifiedOfferCategory(sourceItem) || getVerifiedOfferCategory(item);
   if (verifiedCategory) return verifiedCategory;
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
