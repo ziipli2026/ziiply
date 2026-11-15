@@ -66,6 +66,7 @@ import { NextResponse, after } from "next/server";
 import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
 import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
+import { isGostaDailyGoodsOffer } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchKCitymarketSelectedStoreOffers, fetchKCitymarketUnpricedDiscounts, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
@@ -843,7 +844,10 @@ export async function GET(request: Request) {
       // while real groceries must be classified into a concrete grocery category.
       const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
         .filter((offer) => normalizeText(offer.category) !== "muut");
-      const results = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
+      const enrichedLidlResults = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
+      // This endpoint feeds Gösta: reject general merchandise after category
+      // enrichment, including old publication rows with misleading food labels.
+      const results = enrichedLidlResults.filter((offer) => isGostaDailyGoodsOffer(offer));
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
