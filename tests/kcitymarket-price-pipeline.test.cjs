@@ -38,6 +38,11 @@ test('API through final price rendering retains all source offers and hides prod
  const mapped=clean.map(core.mapZiiplyGostaOfferToCardOfferV147);
  const rows=mapped.map(row=>({id:row.id,title:row.title,tab:row.campaignType,display:cards.getOfferPrice(row),layout:cards.splitOfferDisplayPrice(cards.getOfferPrice(row)),source:row.__sourceOfferSearchResult}));
  const counts={input:offers.length+campaigns.length,api:apiRows,core:result.results.length,clean:clean.length,cards:rows.length,offers:rows.filter(r=>r.tab!=='campaign').length,campaigns:rows.filter(r=>r.tab==='campaign').length,apiCalls,externalCalls:externalCalls.length};
+ const inputById=new Map([...offers,...campaigns].map(x=>[String(x.id),x]));
+ const keptIds=new Set(rows.map(x=>String(x.source?.id??x.id)));
+ const removed=[...inputById.values()].filter(x=>!keptIds.has(String(x.id)));
+ const removedCategories=removed.reduce((acc,x)=>(acc[x.category]=(acc[x.category]||0)+1,acc),{});
+ console.log('GROCERY_GATE_AUDIT',JSON.stringify({input:offers.length+campaigns.length,kept:rows.length,removed:removed.length,removedCategories,removedRows:removed.map(x=>({title:x.title,category:x.category,stream:x.campaignType}))}));
  assert.equal(apiRows,544);assert.equal(rows.length,544);assert.equal(counts.offers,89);assert.equal(counts.campaigns,455);assert.equal(externalCalls.length,0);
  // Regression: both independent publication streams must survive every client stage.
  // A product EAN is not a promotion identity; even identical names/prices/EANs
