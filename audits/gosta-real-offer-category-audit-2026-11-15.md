@@ -24,3 +24,11 @@ All 741 expanded rows lack a non-empty sourceCategoryPath, so original per-produ
 
 ## Verdict: NOT APPROVED for main
 The test suite passes on isolated cases, but actual stored active offers contain false positives, false negatives and category mismatches. Scope does not include a full product-level current S/K/Tokmanni/EUROSPAR inventory, so **no claim of full all-store coverage**. To approve, refresh source publications with source taxonomy, run per-item allow/reject/category audit across each chain and review discrepancies, then validate mobile and desktop separately. Do not merge PR #276 yet.
+
+## Follow-up: source taxonomy integrity (read-only Neon verification)
+
+Rechecked the active approved publication rows on 2026-11-15: 21 Lidl publications (692 expanded rows) and one K-Citymarket publication (49 expanded rows). No approved active S-market, Prisma, K-Supermarket, Tokmanni or EUROSPAR publications are represented **in this particular table**; their other providers must be audited separately.
+
+Important distinction: all 692 Lidl rows have a `categoryPath`, but it is **the same derived display label** as `category` in observed defective examples, not the original source hierarchy. For example, `Crelando Sukkalanka 2 kerää` has both `category` and `categoryPath` = `Kala`, while `sourceUrl` points to `/h/ompelukone-ja-tarvikkeet/`. `Ultimate Speed Pullotunkki` has both fields = `Leipomo`, while `sourceUrl` points to `/h/auto-ja-moottoripyoerae/`. `Joulukaktus` has both fields = `Juomat` and a generic `/c/ruoka-ja-juoma/` URL. None of these rows contains `sourceCategoryPath`. Therefore `categoryPath` must **not** be treated as authoritative source taxonomy. The source URL can block known non-food Lidl departments, but cannot repair every product-level misclassification under a broad food URL.
+
+This verification is read-only; no publication rows were changed. Do not approve full category accuracy until upstream parsers persist the actual original product taxonomy and all relevant providers are audited.
