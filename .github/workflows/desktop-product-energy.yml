@@ -54,6 +54,10 @@ jobs:
                   }));
                   localStorage.setItem('ziiply-gosta-offer-watches-v1',JSON.stringify(['maito']));
                   localStorage.setItem('ziiply-desktop-watch-results-v2',JSON.stringify({queryKey:'maito',offers:[offer],partial:false}));
+                  sessionStorage.setItem('ziiply-desktop-offers-cache-v12',JSON.stringify([
+                    [JSON.stringify(['S',store.id]),{time:Date.now(),results:[offer]}],
+                    [JSON.stringify(['K',other.id]),{time:Date.now(),results:[]}]
+                  ]));
                   localStorage.setItem('ziiply-gosta-home-search-v9',JSON.stringify({
                     maito:{query:'maito',time:Date.now(),results:[offer]}
                   }));
@@ -94,7 +98,7 @@ jobs:
                       await input.fill('maito');
                       await input.press('Enter');
                     }
-                    await page.getByRole('button',{name:/Tavaratalot.*1 tarjousta|Marketit.*1 tarjousta/}).click();
+                    await page.getByRole('button',{name:/(?:Tavaratalot|Marketit).*\d+ tarjousta/}).first().click();
                   }
                   await page.getByText(name,{exact:true}).first().waitFor({timeout:15000});
                   const energy=page.getByText(/33 kcal.*141 kJ/).first();
