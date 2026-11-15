@@ -39,6 +39,7 @@ export type MobileStorePickerModalProps = {
   width: number;
   onClose: () => void;
   onSelectStore: (store: MobileStorePickerStore) => void;
+  showDistances?: boolean;
   getDistanceLabel?: (store: MobileStorePickerStore) => string;
   getStoreKey?: (store: MobileStorePickerStore, index: number) => string;
 };
@@ -101,6 +102,7 @@ export default function MobileStorePickerModal({
   width,
   onClose,
   onSelectStore,
+  showDistances = true,
   getDistanceLabel,
   getStoreKey,
 }: MobileStorePickerModalProps) {
@@ -155,7 +157,7 @@ export default function MobileStorePickerModal({
           ) : (
             stores.map((store, index) => {
               const selected = isSelectedStore(store, selectedId, selectedName);
-              const distanceLabel = getDistance(store, getDistanceLabel);
+              const distanceLabel = showDistances ? getDistance(store, getDistanceLabel) : "";
               const styles = chainStyles(chain, selected);
               const key =
                 getStoreKey?.(store, index) ||
