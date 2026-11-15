@@ -533,7 +533,7 @@ export function getVerifiedOfferCategory(item: ZiiplyGostaOfferLike): string {
     [/^(?:avocado|cantalope meloni|kerakaali|makea persimoni|sipuli ja punasipuli)\b/, "Hevi"],
     [/^(?:arla normaalisuolainen voi)\b/, "Maitotuotteet"],
     [/^(?:brazil appelsiini|brazil appelsiinitaysmehu)\b/, "Juomat"],
-    [/^(?:pakkasmarja mansikka)\b/, "Pakasteet"],
+    [/^(?:pakkasmarja mansikka)\b|\b(?:uunirapeat ranskalaiset|ranskalaiset perunat|pommes frites)\b/, "Pakasteet"],
     [/^(?:hk siniset lenkit|ronka aito poronkaristys)\b/, "Liha & makkarat"],
     [/^(?:kokkikartano pasta tai lasagne|saarioinen ruukut|burgeri)\b/, "Valmisruoka"],
     [/^vaasan ruispala\b/, "Leipomo"],
