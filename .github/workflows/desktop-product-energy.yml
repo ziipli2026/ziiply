@@ -1,0 +1,114 @@
+name: Desktop product energy browser test
+on:
+  push:
+    branches: [test/desktop-energy-integration]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/progressive" --no-save --package-lock=false playwright@1.56.1
+      - name: Verify desktop product cards across all search paths
+        run: |
+          npm run dev -- -H 127.0.0.1 -p 3100 >/tmp/progressive-next.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS --max-time 30 http://127.0.0.1:3100/ >/dev/null; then break; fi
+            sleep 1
+          done
+          NODE_PATH="$RUNNER_TEMP/progressive/node_modules" node <<'NODE'
+          const {chromium}=require('playwright');
+          const assert=require('node:assert/strict');
+          const ean='6437005083136';
+          const name='Vaasan Koulunäkki Maukas 460 g Täysjyväruisnäkkileipä';
+          const store={id:'292',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
+          const product={id:1,name,ean,price:349,priceAmountUnit:'cent',category:'leivat-ja-leipomotuotteet/nakkileivat',storeItems:[{price:349}]};
+          const offer={...product,title:name,chain:'S',storeName:store.name,offerPrice:3.49,price:3.49,watchQueries:['koulunäkki'],__gostaHomeGroup:'Marketit',__gostaHomeStore:store.name,__gostaHomeChain:'S-ryhmä'};
+          (async()=>{
+            const response=await fetch('https://ziiply.vercel.app/api/ean-bank?ean='+ean,{signal:AbortSignal.timeout(25000)});
+            assert.ok(response.ok);
+            const live=await response.json();
+            assert.equal(live.product.ean,ean);
+            const browser=await chromium.launch();
+            try{
+              for(const mode of ['normal','recipe','offer','watch']){
+                const ctx=await browser.newContext({viewport:{width:1440,height:900},geolocation:{latitude:60.63,longitude:24.86},permissions:['geolocation']});
+                await ctx.addInitScript(({store,offer})=>{
+                  localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({
+                    storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'one',
+                    storeCompareScope:'between_chains',allStoreSelections:{hyper:{[store.id]:store},local:{}}
+                  }));
+                  localStorage.setItem('ziiply-gosta-offer-watches-v1',JSON.stringify(['koulunäkki']));
+                  localStorage.setItem('ziiply-desktop-watch-results-v2',JSON.stringify({queryKey:'koulunäkki',offers:[offer],partial:false}));
+                  localStorage.setItem('ziiply-gosta-home-search-v9',JSON.stringify({
+                    koulunäkki:{query:'koulunäkki',time:Date.now(),results:[offer]}
+                  }));
+                },{store,offer});
+                const page=await ctx.newPage();
+                let release=()=>{};
+                try{
+                  await page.route('**/api/ean-bank?*',route=>route.fulfill({json:live}));
+                  await page.route('**/api/neon-first-search?*',route=>route.fulfill({json:{products:[]}}));
+                  await page.route('**/api/store-search?*',route=>route.fulfill({json:{items:[store]}}));
+                  await page.route('**/api/offers/watch?*',route=>route.fulfill({json:{ok:true,results:[offer]}}));
+                  let queries=0;
+                  const gate=new Promise(resolve=>{release=resolve});
+                  for(const chain of ['s','k']) await page.route('**/api/'+chain+'-products?*',async route=>{
+                    if(mode==='normal'&&++queries>1)await gate;
+                    await route.fulfill({json:{source:'ruoanhinta-'+chain,products:[product],items:[product]}});
+                  });
+                  await page.route('https://fi.wikibooks.org/w/api.php?*',route=>{
+                    const action=new URL(route.request().url()).searchParams.get('action');
+                    const html='<div class="mw-parser-output"><p>Ainekset\n200 g näkkileipää\n</p><p>Valmistus\nTarjoile näkkileipä sellaisenaan.</p></div>';
+                    return route.fulfill({headers:{'access-control-allow-origin':'*'},json:action==='parse'?{parse:{text:{'*':html}}}:{query:{pages:{1:{title:'Keittokirja/Näkkileipä',fullurl:'https://fi.wikibooks.org/wiki/Keittokirja/Näkkileipä',index:1}}}}});
+                  });
+                  await page.goto('http://127.0.0.1:3100/');
+                  await page.locator('[data-desktop-layout]').waitFor();
+                  if(mode==='normal'){
+                    await page.getByRole('button',{name:'Avaa Justiina',exact:true}).click();
+                    const input=page.getByRole('textbox',{name:'Hae tuotteita'});
+                    await input.fill('koulunäkki');
+                    await input.press('Enter');
+                  }else if(mode==='recipe'){
+                    await page.getByText('Reseptihaku, ateriavinkit ja korin perusteella ehdotetut ruoat.',{exact:true}).click();
+                    await page.getByRole('searchbox',{name:'Hae reseptejä'}).fill('näkkileipä');
+                    await page.getByRole('button',{name:'Hae reseptin tuotteet'}).click();
+                  }else{
+                    if(mode==='watch') await page.getByRole('button',{name:'Avaa tarjousvahdin 1 osumaa'}).click();
+                    else{
+                      await page.getByText('Tarjoukset, hintahavainnot, säästövinkit ja tarjousvahdit.',{exact:true}).click();
+                      const input=page.getByRole('textbox',{name:'Etsi tarjouksia'});
+                      await input.fill('koulunäkki');
+                      await input.press('Enter');
+                    }
+                    await page.getByRole('button',{name:/Tavaratalot.*1 tarjousta|Marketit.*1 tarjousta/}).click();
+                  }
+                  await page.getByText(name,{exact:true}).first().waitFor({timeout:15000});
+                  const energy=page.getByText(/336 kcal.*405 kJ/).first();
+                  await energy.waitFor({timeout:15000});
+                  if(mode==='normal'){
+                    await page.getByText(/Haetaan lisää tuotteita/).waitFor();
+                    release();
+                    await page.getByText(/Haetaan lisää tuotteita/).waitFor({state:'hidden'});
+                    assert.ok(await energy.isVisible());
+                  }
+                  console.log('PASS desktop energy',mode);
+                }finally{release();await ctx.close();}
+              }
+            }finally{await browser.close();}
+          })().catch(error=>{console.error(error);process.exitCode=1;});
+          NODE
+      - if: failure()
+        run: tail -100 /tmp/progressive-next.log
