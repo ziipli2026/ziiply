@@ -47,10 +47,11 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
             AND COALESCE(previous.value->>'imageUrl','') ~* '^https://'
           THEN jsonb_set(incoming.value, '{imageUrl}', previous.value->'imageUrl', true)
           WHEN EXCLUDED.chain = 'K-Citymarket' THEN incoming.value
-          WHEN COALESCE(previous.value->>'imageUrl','') !~* '^https://'
-            AND COALESCE(incoming.value->>'imageUrl','') ~* '^https://'
-          THEN jsonb_set(previous.value, '{imageUrl}', incoming.value->'imageUrl', true)
-          ELSE COALESCE(previous.value, incoming.value)
+          WHEN COALESCE(incoming.value->>'imageUrl','') !~* '^https://'
+            AND COALESCE(previous.value->>'imageUrl','') ~* '^https://'
+          THEN jsonb_set(COALESCE(previous.value, '{}'::jsonb) || incoming.value,
+            '{imageUrl}', previous.value->'imageUrl', true)
+          ELSE COALESCE(previous.value, '{}'::jsonb) || incoming.value
         END ORDER BY incoming.ordinality), '[]'::jsonb)
       FROM jsonb_array_elements(EXCLUDED.offers) WITH ORDINALITY AS incoming(value, ordinality)
       LEFT JOIN LATERAL (
