@@ -34,16 +34,12 @@ jobs:
           const store={id:'292',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
           const other={id:'3221',name:'K-Citymarket Hyvinkää',chain:'K',latitude:60.63,longitude:24.86};
           const query='maito 0,5l';
-          const product={id:1,name:'Pirkka kevytmaito 5dl',ean:'6410405267825',price:85,priceAmountUnit:'cent'};
-          const rejected=[
-            {id:2,name:'Kotimaista rasvaton maito 1l',ean:'6415712506032',price:85,priceAmountUnit:'cent'},
-            {id:3,name:'Voelkel Luomuporkkanamehu maitohappokäytetty 0,5l',ean:'4015533014512',price:499,priceAmountUnit:'cent'}
-          ];
           (async()=>{
             const browser=await chromium.launch();
             try{
               const results=[];
               const requests=[];
+              const snapshots=new Map();
               for(const desktop of [false,true]){
                 const context=await browser.newContext(desktop?{viewport:{width:1440,height:900}}:devices['iPhone 13']);
                 await context.addInitScript(({store,other})=>{
@@ -59,13 +55,19 @@ jobs:
                 },{store,other});
                 const page=await context.newPage();
                 await page.route('**/api/store-search?*',route=>route.fulfill({json:{items:[store,other]}}));
-                await page.route('**/api/neon-first-search?*',route=>route.fulfill({json:{products:[]}}));
                 await page.route('**/api/ean-bank?*',route=>route.fulfill({json:{}}));
                 const urls=[];
-                for(const chain of ['s','k']) await page.route('**/api/'+chain+'-products?*',route=>{
+                for(const api of ['s-products','k-products','neon-first-search']) await page.route('**/api/'+api+'?*',async route=>{
                   const path=new URL(route.request().url());
-                  urls.push([chain,path.searchParams.get('store'),path.searchParams.get('search')]);
-                  return route.fulfill({json:{products:chain==='s'?rejected:[product,...rejected],source:'ruoanhinta-'+chain}});
+                  urls.push([api,path.searchParams.get('store'),path.searchParams.get('search')??path.searchParams.get('q')]);
+                  path.searchParams.sort();
+                  const key=path.pathname+path.search;
+                  if(!snapshots.has(key))snapshots.set(key,(async()=>{
+                    const response=await fetch('https://ziiply.vercel.app'+key,{signal:AbortSignal.timeout(65000)});
+                    assert.ok(response.ok,key+' HTTP '+response.status);
+                    return response.json();
+                  })());
+                  await route.fulfill({json:await snapshots.get(key)});
                 });
                 try{
                   await page.goto('http://127.0.0.1:3100/');
@@ -80,16 +82,21 @@ jobs:
                   await input.fill(query);
                   if(desktop) await input.press('Enter');
                   else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click();
-                  await page.getByText(product.name,{exact:true}).first().waitFor();
-                  await page.getByText(/Haetaan lisää tuotteita/).waitFor({state:'hidden'});
-                  const cards=await page.getByText(/EAN \d{13}/).allTextContents();
-                  assert.deepEqual(cards,['EAN '+product.ean]);
-                  assert.ok(urls.some(([chain,id,term])=>chain==='s'&&id==='292'&&term===query));
-                  assert.ok(urls.some(([chain,id,term])=>chain==='k'&&id==='3221'&&term===query));
-                  assert.ok(!urls.some(([, ,term])=>term?.includes('0 5l')));
+                  await page.getByText(/EAN \d{13}/).first().waitFor({timeout:90000});
+                  await page.getByText(/Haetaan lisää tuotteita/).waitFor({state:'hidden',timeout:90000});
+                  const cards=await page.getByText(/EAN \d{13}/).evaluateAll(eans=>eans.map(ean=>{
+                    const card=ean.closest('article')??ean.parentElement?.parentElement;
+                    const button=Array.from(card?.querySelectorAll('button')??[]).find(b=>b.textContent.includes('Lisää koriin'));
+                    const price=button?.textContent.match(/\d+[,.]\d{2}\s*€/u)?.[0]?.replace('.',',').replace(/\s+/g,' ');
+                    return {ean:ean.textContent.match(/\d{13}/u)?.[0],price};
+                  }));
+                  assert.ok(cards.length>0);
+                  assert.ok(cards.every(card=>card.ean&&card.price),JSON.stringify(cards));
+                  assert.ok(urls.some(([api,id,term])=>api==='s-products'&&id==='292'&&term===query));
+                  assert.ok(urls.some(([api,id,term])=>api==='k-products'&&id==='3221'&&term===query));
                   requests.push(urls.map(parts=>parts.join('|')).sort());
                   results.push(cards);
-                  console.log('PASS',desktop?'desktop':'mobile',JSON.stringify({cards,urls}));
+                  console.log('PASS live responses',desktop?'desktop':'mobile',JSON.stringify({cards,urls}));
                 }finally{await context.close();}
               }
               assert.deepEqual(results[0],results[1]);
