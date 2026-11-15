@@ -32,3 +32,13 @@ Rechecked the active approved publication rows on 2026-11-15: 21 Lidl publicatio
 Important distinction: all 692 Lidl rows have a `categoryPath`, but it is **the same derived display label** as `category` in observed defective examples, not the original source hierarchy. For example, `Crelando Sukkalanka 2 kerää` has both `category` and `categoryPath` = `Kala`, while `sourceUrl` points to `/h/ompelukone-ja-tarvikkeet/`. `Ultimate Speed Pullotunkki` has both fields = `Leipomo`, while `sourceUrl` points to `/h/auto-ja-moottoripyoerae/`. `Joulukaktus` has both fields = `Juomat` and a generic `/c/ruoka-ja-juoma/` URL. None of these rows contains `sourceCategoryPath`. Therefore `categoryPath` must **not** be treated as authoritative source taxonomy. The source URL can block known non-food Lidl departments, but cannot repair every product-level misclassification under a broad food URL.
 
 This verification is read-only; no publication rows were changed. Do not approve full category accuracy until upstream parsers persist the actual original product taxonomy and all relevant providers are audited.
+
+## Database-only provenance regression and current active-row audit
+
+A read-only Neon SQL CTE simulated the `publicationStore.ts` JSONB provenance-preserving merge: an incoming row with empty `sourceCategoryPath` and `sourceDepartmentPath` kept the prior `Elintarvikkeet > Kalat` and `/h/kala` values, while its display category and image were updated. Result: `pass = true`. This tests the SQL expression only, **not** an actual application write/refresh.
+
+Active approved publication inventory (deduplicated by chain and offer id): **Lidl 123, K-Citymarket 49**. Neither has nonempty `sourceCategoryPath` or `sourceDepartmentPath` in any of these 172 current offers. The new fields need fresh source ingestion; they cannot retroactively repair saved records without source re-fetch.
+
+Verified current wrong or suspect entries: K-Citymarket potatoes→Kuivatuotteet; shower mousse→Maitotuotteet; frozen French fries→Kala; Lidl yarn→Kala; sewing box→Valmisruoka; water bottle→Leipomo; jack→Leipomo; Christmas cactus and tulilatva→Juomat; perunalaatikko→Hevi (prepared food rather than fresh produce); Hornet chicken wings→Lemmikit (conflicting product title and source URL). These are confirmed records, not an exhaustive audit of every offer from every provider.
+
+Next validation must run the real source parsers with captured fixtures and assert taxonomy survives `mergePeriodRows`, `storeParsedPublication`, and the read API; then review all provider inventories, not only the publication table. No database rows were modified by this audit.
