@@ -4,6 +4,7 @@ import { comparisonProductType } from "./comparisonBrand";
 import type React from "react";
 import posthog from "posthog-js";
 import { correctSearchQuery } from "./search/searchIntentAI";
+import { desktopSearchDecision } from "./search/desktopNormalRelevance";
 
 export type Offer = {
   id: number;
@@ -2873,6 +2874,7 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   // filtering. RankNormalSearchResults provides the relevance tie-break order,
   // but must never group provider queries/brands ahead of a cheaper match.
   return rankNormalSearchResults(query, products, priceOf)
+    .filter((product) => desktopSearchDecision(query, { ...product, __price: priceOf(product) }).accepted)
     .filter((product) => Number.isFinite(priceOf(product)) && priceOf(product) > 0)
     .sort((a, b) => {
       const priceDelta = priceOf(a) - priceOf(b);
