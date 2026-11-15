@@ -17,7 +17,13 @@ const sample = {
 };
 test('mobile: restored cart displays offer discount and validity', async ({ browser }) => {
   const context = await browser.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block' });
-  await context.addInitScript(item => {
+  const page = await context.newPage();
+  page.on('pageerror', error => console.log('[browser-error]', String(error)));
+  // A clean first visit initializes Ziiply's CacheStorage marker, which would
+  // otherwise erase a synthetic saved store selection during boot.
+  await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(1500);
+  await page.evaluate(item => {
     localStorage.setItem('ziiply-cart-v1', JSON.stringify({ version: 2, savedAt: Date.now(), items: [item] }));
     localStorage.setItem('ziiply-store-selection-v536', JSON.stringify({
       version: 1, savedAt: Date.now(), storeMode: 'local',
@@ -25,10 +31,9 @@ test('mobile: restored cart displays offer discount and validity', async ({ brow
       betweenChainSelectionModeV749: 'one',
       selectedChains: { s: false, k: true, lidl: false, tokmanni: false },
     }));
+    sessionStorage.setItem('ziiply-active-panel-v812', 'cart');
   }, sample);
-  const page = await context.newPage();
-  page.on('pageerror', error => console.log('[browser-error]', String(error)));
-  const response = await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  const response = await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
   console.log('[page]', JSON.stringify({ status: response?.status(), url: page.url() }));
   await expect(page.locator('body')).toBeVisible();
   const cart = page.getByRole('button', { name: /^Kori(?:\s|$)/ }).first();
@@ -45,6 +50,11 @@ test('mobile: restored cart displays offer discount and validity', async ({ brow
   }
   const continueButton = page.getByRole('button', { name: 'Jatka', exact: true });
   if (await continueButton.isVisible()) await continueButton.click();
+  console.log('[cart-navigation]', JSON.stringify({
+    disabled: await cart.isDisabled(),
+    savedSelection: await page.evaluate(() => localStorage.getItem('ziiply-store-selection-v536')),
+    savedCart: await page.evaluate(() => localStorage.getItem('ziiply-cart-v1')),
+  }));
   await expect(cart).toBeEnabled({ timeout: 12000 });
   await cart.click();
   await expect(page.getByText('Kirjolohiannospakkaus').first()).toBeVisible({ timeout: 15000 });
