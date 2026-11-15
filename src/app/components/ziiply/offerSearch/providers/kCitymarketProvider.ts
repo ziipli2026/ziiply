@@ -760,7 +760,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-printed-transactions-v169-20261108-46av-ocr-repair"],
+  ["ziiply-kcitymarket-printed-transactions-v170-20261115-47av-reviewed-title-category"],
   // Retry discovery of upcoming editions after a late publisher release. A permanent
   // cache otherwise freezes the first incomplete parse until another deployment.
   {revalidate:300},
