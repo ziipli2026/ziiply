@@ -9,6 +9,8 @@ on:
       - 'tests/gosta-daily-goods-gate.test.cjs'
       - 'tests/gosta-provider-source-taxonomy.test.cjs'
       - 'tests/lidl-publication-taxonomy-merge.test.cjs'
+      - 'tests/lidl-publication-category-repair.test.cjs'
+      - 'src/app/components/ziiply/offerSearch/lidlPublicationCategoryRepair.ts'
       - 'tests/citymarket-47av-category-regression.test.cjs'
       - 'tests/eurospar-offer-taxonomy-45-26.test.cjs'
       - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
@@ -39,7 +41,7 @@ jobs:
       - name: Install TypeScript test dependency
         run: npm ci --ignore-scripts
       - name: Verify Gösta offer price ordering and grocery eligibility
-        run: node --test tests/gosta-price-sort.test.cjs tests/gosta-daily-goods-gate.test.cjs tests/gosta-provider-source-taxonomy.test.cjs tests/lidl-publication-taxonomy-merge.test.cjs
+        run: node --test tests/gosta-price-sort.test.cjs tests/gosta-daily-goods-gate.test.cjs tests/gosta-provider-source-taxonomy.test.cjs tests/lidl-publication-taxonomy-merge.test.cjs tests/lidl-publication-category-repair.test.cjs
       - name: Verify Citymarket 47AV and EUROSPAR 45/26 real product categories
         run: node --test tests/citymarket-47av-category-regression.test.cjs tests/eurospar-offer-taxonomy-45-26.test.cjs
   hundred-search-parity:
