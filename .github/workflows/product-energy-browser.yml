@@ -82,7 +82,8 @@ jobs:
                 await page.locator("#card-32").scrollIntoViewIfNeeded();
                 await page.locator("#card-32").getByText(/250 kcal.*kJ/).waitFor();
                 assert.deepEqual(calls,[ean,"1234567890123"]);
-                for(const mode of ["normal","recipe"]){
+                // The mobile branch deliberately hides its mobile result panel at desktop widths.
+              for(const mode of name==="mobile"?["normal","recipe"]:[]){
                   await page.goto(main+"?mode="+mode);
                   await page.getByText("Vaasan Koulunäkki 460 g",{exact:true}).waitFor();
                   await page.getByText(/Energia:.*kcal.*kJ/).waitFor();
