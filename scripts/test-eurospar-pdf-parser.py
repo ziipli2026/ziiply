@@ -59,3 +59,7 @@ assert not any('|' in o['name'] for o in r['offers'])
 for token,price in [('viljaporsaan fileepihvit',6.99),('kasslerpala',10.99),('kirjolohifilee',12.99)]:
  assert len([o for o in r['offers'] if token in o['name'] and o['offerPrice']==price])==1
 print('PASS EUROSPAR 43/2026: 35 offers, footer exclusion, top row and full year')
+
+# Actual EUROSPAR 45/26 offer category regression cases.
+for title, expected_category in [["arla normaalisuolainen voi 500 g","Maitotuotteet"],["hk siniset lenkit 500 g","Liha & makkarat"],["pakkasmarja mansikka 1 kg","Pakasteet"],["makea persimoni","Hevi"],["fazer tähtitortut 58 g","Leipomo"],["kokkikartano pasta tai lasagne 600 g","Valmisruoka"],["rönkä aito poronkäristys 400 g","Liha & makkarat"],["spar maissilastu 200 g","Kuivatuotteet"],["saarioinen ruukut 300 g","Valmisruoka"],["brazil appelsiini- täysmehu 1 l","Juomat"],["keräkaali","Hevi"],["sipuli ja punasipuli 500 g","Hevi"],["spar vehnätortilla 320 g","Kuivatuotteet"]]:
+ assert parser.category(title)==expected_category,(title,parser.category(title),expected_category)
