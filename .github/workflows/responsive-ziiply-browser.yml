@@ -9,6 +9,7 @@ on:
       - '.github/workflows/responsive-ziiply-browser.yml'
       - 'src/app/components/ziiply/ziiplyCore.ts'
       - 'src/app/components/ziiply/search/desktopNormalRelevance.ts'
+      - 'src/app/api/s-products/route.ts'
 permissions:
   contents: read
 jobs:
