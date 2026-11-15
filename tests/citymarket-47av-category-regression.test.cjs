@@ -6,7 +6,7 @@ const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kC
 const start=source.indexOf('export function category(t:string)');
 const end=source.indexOf('\n}\n',start);
 assert.ok(start>=0 && end>start,'Citymarket production classifier found');
-const js=ts.transpileModule(source.slice(start,end+2),{compilerOptions:{target:ts.ScriptTarget.ES2021,module:ts.ModuleKind.CommonJS}}).outputText;
+const js=ts.transpileModule(source.slice(start,end+2).replace(/^export\\s+/,'') ,{compilerOptions:{target:ts.ScriptTarget.ES2021,module:ts.ModuleKind.CommonJS}}).outputText;
 const category=new Function('clean',js+'; return category;')((s)=>String(s??'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim());
 const cases=[
  ['KANAN PIKKUFILEET 340 g','Liha & makkarat'],
