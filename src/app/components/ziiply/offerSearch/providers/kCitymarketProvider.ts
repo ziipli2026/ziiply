@@ -92,7 +92,7 @@ export function category(t:string){
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
-  // General food forms observed in 47AV. Classify by product type, not issue.
+  // Plant-based slices are prepared protein products, not potato chips.\n  if(/(?:kanaton|lihaton)\s+lastu|\bvebablastu/.test(joined)) return "Valmisruoka";\n  // General food forms observed in 47AV. Classify by product type, not issue.
   if(/(?:kanan\s+pikkufilee|kanasuikale|kanan\s+suikale)/.test(joined)) return "Liha & makkarat";
   if(/(?:kaurafraiche|kaura\s*fraiche)/.test(joined)) return "Maitotuotteet";
   if(/(?:kauranaksu|vauvanaksu)/.test(joined) && /(?:\d+[–-]\d+\s*kk|vauva|lasten)/.test(joined)) return "Lastenruoat";
