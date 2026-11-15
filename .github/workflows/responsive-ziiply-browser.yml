@@ -333,6 +333,12 @@ jobs:
                         await new Promise(resolve => setTimeout(resolve, 100));
                       assert.equal(liveCounts.get(api)?.status, 200, 'live provider ' + api);
                     }
+                    // Mobile search is progressive: the first ten priced cards can
+                    // appear before the completion pass adds S-chain results.
+                    // Use the same completion signal as the dedicated milk parity
+                    // workflow, rather than treating a temporarily stable first
+                    // batch as the final result set.
+                    await search.getByText(/Haetaan lisää tuotteita/).waitFor({state:'hidden',timeout:90000});
                     let stableSignature = null;
                     let stableSince = Date.now();
                     const stableDeadline = Date.now() + 12000;
