@@ -153,7 +153,7 @@ test('47AV: missing images never fail preflight, even after 23:00; categories re
 });
 
 test('47AV control center accepts parser with missing images, but not missing categories',()=>{
-  const period='2026-11-16-W47-AV',now=new Date('2026-11-15T21:30:00Z');
+  const period='2026-11-16-W47-AV',now=new Date('2026-11-15T14:30:00Z');
   const run={checked_at:'2026-11-15T13:10:50Z',source:'k-citymarket-preflight',ok:false,offer_count:27,outcome:'preflight-awaiting-pdf-review',details:{period,quality:{total:27,missing_names:0,missing_prices:0,missing_images:27,missing_categories:0,unverified_prices:0},errors:[]}};
   const result=status([run],now);
   assert.equal(result.parserOk,true);
