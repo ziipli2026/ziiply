@@ -105,9 +105,25 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
   const outcome = !input.parsed ? "preflight-parser-failed" : !quality ? "preflight-snapshot-missing" :
     awaitingImages ? "preflight-awaiting-images" : failed ? "preflight-quality-failed" : "preflight-awaiting-pdf-review";
   const pending = awaitingImages || (!failed && quality?.missing_images === 0);
+  // Report independent pipeline failures separately: a category failure must not
+  // imply that image enrichment has already failed before its deadline.
+  const imageEnrichment = !quality ? "unknown" : quality.missing_images === 0 ? "complete" :
+    imageDeadlineReached ? "failed" : "pending";
+  const blockingReasons = [
+    ...(!input.parsed ? ["parser-no-result"] : []),
+    ...(errors.length ? ["parser-errors"] : []),
+    ...(!quality ? ["snapshot-missing"] : []),
+    ...(quality && input.parsed && quality.total !== input.parsed.offers ? ["snapshot-count-mismatch"] : []),
+    ...(quality?.missing_names ? ["missing-names"] : []),
+    ...(quality?.suspicious_names ? ["suspicious-names"] : []),
+    ...(quality?.missing_prices ? ["missing-prices"] : []),
+    ...(quality?.missing_categories ? ["missing-categories"] : []),
+    ...(quality?.unverified_prices ? ["unverified-prices"] : []),
+    ...(imageEnrichment === "failed" ? ["missing-images-after-deadline"] : []),
+  ];
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
     quality, missingCategoryTitles, missingImageTitles, suspiciousNameTitles, errors,
-    severity: pending ? "warning" : "error", pdfReview: "pending", imageEnrichment: awaitingImages ? "pending" : quality?.missing_images ? "failed" : "complete" };
+    severity: pending ? "warning" : "error", pdfReview: "pending", imageEnrichment, blockingReasons };
   await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:false,
     count:quality?.total??input.parsed?.offers??0,outcome,details }, databaseUrl);
   return {ok:false,pending,outcome,...details};
