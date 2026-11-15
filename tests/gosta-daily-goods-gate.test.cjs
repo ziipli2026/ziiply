@@ -55,3 +55,11 @@ test("All public result cleaning paths use the same grocery gate", () => {
   assert.match(dedupe, /!isGostaDailyGoodsOffer\(item\)/);
   assert.match(clean, /!isGostaDailyGoodsOffer\(item\)/);
 });
+
+test("Citymarket parser categorizes confirmed salad and alcohol-free beer before shared filtering", () => {
+  const provider = fs.readFileSync("src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts", "utf8");
+  assert.match(provider, /rouskuva\|tulinen\)\.\*\(\?:110\[–-\]170\\s\*g\)\/\.test\(s\)\) return "Hevi"/);
+  assert.match(provider, /0\[,\.\]33.*8\[- \]\?pack.*return "Juomat"/);
+  assert.equal(gate({title:"LUOMU Silmusalaatti PARSAKAALI, ALFALFA, ROUSKUVA ja TULINEN 110–170 g",category:"Hevi"}), true);
+  assert.equal(gate({title:"Karhu ALKOHOLITON OLUT 0,0 % 0,33 l/tlk 8-pack",category:"Juomat"}), true);
+});
