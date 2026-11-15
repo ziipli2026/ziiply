@@ -50,11 +50,11 @@ function fixEncoding(value: string) {
     .replace(/Â/g, "");
 }
 
-function resolveSStoreId(store: string) {
-  if (/^\d+$/.test(store)) return Number(store);
-
-  if (store === "prisma-hyvinkaa") return 292;
-
+function resolveSStoreId(store: string, storeName: string) {
+  // S-kaupat store IDs (e.g. Prisma Hyvinkää 634976534) are not
+  // Ruoanhinta storeIds. Resolve the known store before accepting numeric IDs.
+  if (store === "634976534" || store === "prisma-hyvinkaa" || /^prisma hyvinkää$/i.test(storeName)) return 292;
+  if (/^\d{1,5}$/.test(store)) return Number(store);
   return 292;
 }
 
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
   const store = searchParams.get("store") || "292";
   const storeName = (searchParams.get("storeName") || "").trim();
   const recipeIngredient=(searchParams.get("recipeIngredient")||"").trim();
-  const storeId = resolveSStoreId(store);
+  const storeId = resolveSStoreId(store, storeName);
 
   if (search.length > 120 || store.length > 32 || storeName.length > 120 || recipeIngredient.length > 200) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
