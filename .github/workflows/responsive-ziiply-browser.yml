@@ -317,6 +317,24 @@ jobs:
                     if (chain === 'LIDL') await lidlNotice.first().waitFor({timeout:20000});
                     else if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
                     if (chain !== 'LIDL') await prices.first().waitFor({timeout:90000});
+                    // Do not snapshot the first rendered products: Neon and store
+                    // providers complete at different times, and React rerenders
+                    // after each result. Require all selected provider responses.
+                    for (const api of searchEndpoints) {
+                      const responseDeadline = Date.now() + 20000;
+                      while (!liveCounts.has(api) && Date.now() < responseDeadline)
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                      assert.equal(liveCounts.get(api)?.status, 200, 'live provider ' + api);
+                    }
+                    let stableSignature = null;
+                    let stableSince = Date.now();
+                    const stableDeadline = Date.now() + 12000;
+                    while (Date.now() < stableDeadline) {
+                      const signature = await prices.evaluateAll(buttons => buttons.map(b => b.closest('article')?.innerText || b.parentElement?.parentElement?.innerText || b.innerText).join('\\n---\\n'));
+                      if (signature !== stableSignature) { stableSignature = signature; stableSince = Date.now(); }
+                      if (Date.now() - stableSince >= 1500) break;
+                      await new Promise(resolve => setTimeout(resolve, 150));
+                    }
                     const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
                       const card = desktop ? button.parentElement.parentElement : button.closest('article');
                       const label = button.innerText;
