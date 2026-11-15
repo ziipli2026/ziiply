@@ -70,3 +70,11 @@ for(const [title,wanted] of [
   ["Kanan pikkufilee 400 g","Liha & makkarat"],
   ["Appelsiinit 2 kg","Hevi"],
 ]) test("47AV reusable category: "+title,()=>assert.equal(context.classify(title),wanted));
+
+for(const [title,wanted] of [
+ ["MUU Kanaton Lastu 220 g","Valmisruoka"],
+ ["MUU Lihaton Lastu 220 g","Valmisruoka"],
+ ["MUU Vebablastu 200 g","Valmisruoka"],
+ ["PERUNALASTUT 220 g","Makeiset & keksit"],
+ ["LASTU 220 g","Muut"],
+]) test("Plant protein and ambiguous lastu taxonomy: "+title,()=>assert.equal(context.classify(title),wanted));
