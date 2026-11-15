@@ -92,6 +92,10 @@ export function category(t:string){
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
+  // Live 46LV audit: product form overrides misleading ingredient substrings.
+  if(/(?:uunirapeat\s+ranskalaiset|ranskalaiset\s+perunat)/.test(joined)) return "Pakasteet";
+  if(/(?:suihkumousset?|suihkuvaahto)/.test(joined)) return "Hygienia & kosmetiikka";
+  if(/(?:\bperunat\b|\bperuna\s+1\s*kg\b)/.test(joined) && !/(?:ranskalaiset|pakaste|perunalaatikko)/.test(joined)) return "Hevi";
   // Reusable product-form taxonomy for the 46LV quality gaps.
   if(/(?:cocktailpasteij|pannukakku)/.test(joined)) return "Leipomo";
   if(/(?:crispy fish)/.test(joined)) return "Kala";
