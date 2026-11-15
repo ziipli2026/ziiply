@@ -55,7 +55,7 @@ export function citymarketPreflightStatus(runs:PreflightRun[],now=new Date(),kin
   const interrupted = started && now.getTime() - Date.parse(report.checked_at) >= 3*60000;
   const missingOverdue=!report&&now.getTime()>Date.parse(expected.expectedAt)+30*60000;
   const level=started?(interrupted?"red":"yellow"):!report?(missingOverdue?"red":"gray"):!parserOk||archiveFailed?"red":stale||!reviewed?"yellow":"green";
-  const label=started?(interrupted?"ENNAKKOPARSERIN AJO KESKEYTYI":"ENNAKKOPARSERIN AJO KÄYNNISSÄ"):!report?(missingOverdue?"ENNAKKOPARSERIN AJO PUUTTUU":"ODOTTAA ENSIMMÄISTÄ AJOA"):!parserOk?"PARSERIN ESITARKASTUS EPÄONNISTUI":archiveFailed?(archive.outcome==="source-archive-review-needed"?"LÄHDEAINEISTOSSA TARKISTETTAVAA":"LÄHDEARKISTON TARKISTUS EPÄONNISTUI"):stale?"TARKISTUS VANHENEE":reviewed?"PDF-TARKISTUS HYVÄKSYTTY":"AUTOMAATTITARKISTUS TEHTY · PDF-VERTAILU ODOTTAA";
+  const label=started?(interrupted?"ENNAKKOPARSERIN AJO KESKEYTYI":"ENNAKKOPARSERIN AJO KÄYNNISSÄ"):!report?(missingOverdue?"ENNAKKOPARSERIN AJO PUUTTUU":"ODOTTAA ENSIMMÄISTÄ AJOA"):!parserOk?(report.outcome==="preflight-quality-failed"?"TUOTETIETOJEN LAATUTARKASTUS EPÄONNISTUI":"PARSERIN ESITARKASTUS EPÄONNISTUI"):archiveFailed?(archive.outcome==="source-archive-review-needed"?"LÄHDEAINEISTOSSA TARKISTETTAVAA":"LÄHDEARKISTON TARKISTUS EPÄONNISTUI"):stale?"TARKISTUS VANHENEE":reviewed?"PDF-TARKISTUS HYVÄKSYTTY":"AUTOMAATTITARKISTUS TEHTY · PDF-VERTAILU ODOTTAA";
   const starts=matching.filter(r=>r.outcome==="preflight-started");
   const first=starts.at(-1)?.checked_at??auto.at(-1)?.checked_at??matching.filter(r=>r.source==="k-citymarket-preflight").at(-1)?.checked_at??null;
   return {...expected,level,label,first,
