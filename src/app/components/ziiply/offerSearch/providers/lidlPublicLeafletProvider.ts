@@ -31,6 +31,8 @@ export type LidlPublicOffer = {
   pictureUrl: string;
   category: string;
   categoryPath: string;
+  sourceCategoryPath?: string;
+  sourceDepartmentPath?: string;
   mainCategory: string;
   rawText: string;
   sourceUrl: string;
@@ -100,6 +102,14 @@ function lidlProductCategory(name: string): string | null {
 }
 
 function categoryFor(name: string, sourceUrl: string) {
+  // A source department is stronger evidence than accidental food substrings
+  // in a product name (e.g. "kala" inside a craft product).
+  const sourceDepartment = decodeURIComponent(sourceUrl.split("?")[0] || "").toLowerCase();
+  if (/\/h\/(?:ompelukone|auto-ja-moottoripyo|kuntoilu|lemmikkielaeinten-tarvikkeet|tyokalut|vaatteet|elektroniikka|puutarha|askartelu|kasityot)/.test(sourceDepartment)) return "Muut";
+  // Live offer audit: ornamental plants are not drinks; avoid substring collisions.
+  const normalizedName = normalize(name);
+  if (/joulukaktus|tulilatva/.test(normalizedName)) return "Muut";
+  if (/\b(?:ranskalaiset perunat|uunirapeat ranskalaiset)\b/.test(normalizedName)) return "Pakasteet";
   const productCategory = lidlProductCategory(name);
   if (productCategory) return productCategory;
   const s = normalize(name + " " + sourceUrl);
@@ -108,7 +118,7 @@ function categoryFor(name: string, sourceUrl: string) {
   if (/vaate|asuste|lupilu|esmara|silvercrest|parkside|livarno|tyokalu|kodinkone|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu|rakennussarja|kosmeti|shampoo|deodorant|hammastahna/.test(s)) return "Muut";
   if (/pyykin|astianpesu|pesuaine|puhdistus|talouspaperi|wc paperi|wc-paperi|vessapaperi|siivous/.test(s)) return "Kodinhoito";
   if (/vihanne|hedelm|tomaatti|peruna|kaali|porkkana|sipuli|kurkku|omena|banaani|selleri|punajuuri|paprika|salaatti|retiisi/.test(s)) return "Hevi";
-  if (/paistopiste|leip|croissant|pull|sampyl|rieska|patonki|karjalanpiirakka/.test(s)) return "Leipomo";
+  if (/paistopiste|leip|croissant|sampyl|rieska|patonki|karjalanpiirakka|\bpulla\b/.test(s)) return "Leipomo";
   if (/juusto|maito|jogur|rahka|kerma|voi\b|kananmuna|viili|piima/.test(s)) return "Maitotuotteet";
   if (/liha|kana|broiler|nauta|sika|pors|makkara|nakki|pekoni|kinkku|jauheliha|lihapulla|nugget/.test(s)) return "Liha & makkarat";
   if (/kala|lohi|katkarapu|tonnikala|silakka|seiti/.test(s)) return "Kala";
@@ -184,7 +194,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
       priceBasis, packageSize: packageText, packageText, comparisonPriceText, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
       requiresLidlPlus: false, eligibility: limitedBatch ? "limited-batch" : "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
-      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
+      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category, sourceCategoryPath: String(product.keyfacts?.wonCategoryPrimary || product.category || ""),
       rawText: [brandName, fullName, packagingText, baseText, discountText, category].filter(Boolean).join(" "), sourceUrl,
       hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
     });
@@ -241,7 +251,7 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
         requiresLidlPlus, eligibility: requiresLidlPlus ? "lidl-plus" : limitedBatch ? "limited-batch" : "open",
         validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
         imageUrl, image: imageUrl, pictureUrl: imageUrl,
-        category, categoryPath: category, mainCategory: category,
+        category, categoryPath: category, mainCategory: category, sourceCategoryPath: String(product.category || ""),
         rawText: [brandName, name, product.description, offer.description, category].filter(Boolean).join(" "),
         sourceUrl, hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
       });
@@ -337,6 +347,10 @@ function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackD
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl: "", image: "", pictureUrl: "",
       category, categoryPath: category, mainCategory: category,
+      // The landing page is source provenance, not a product-level taxonomy.
+      // Keep it separate so category audits can distinguish page evidence
+      // from a true original category supplied by the product feed.
+      sourceDepartmentPath: new URL(sourceUrl).pathname,
       rawText: [name, category].join(" "), sourceUrl, hasConcretePrice: true,
       isWeightedProduct: false, ean: "",
     });
@@ -375,7 +389,7 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
       normalPrice: money(product.normalPrice ?? offer.normalPrice ?? product.originalPrice ?? offer.originalPrice),
       priceBasis: "unit", isWeightedProduct: false, requiresLidlPlus: false, eligibility: "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
-      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
+      imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category, sourceCategoryPath: String(product.category || ""),
       rawText: [brandName, name, product.description, category].filter(Boolean).join(" "), sourceUrl, hasConcretePrice: true, ean: "",
     });
   }
@@ -505,7 +519,18 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     if (state === "expired" || state === "invalid" || (!options.includeUpcoming && state !== "current")) continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
-    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+    if (!old) byKey.set(key, row);
+    else {
+      // A duplicate from a product page may have better taxonomy than a
+      // campaign card, even when its image is not preferred.
+      const preferred = row.imageUrl && !old.imageUrl ? row : old;
+      const other = preferred === row ? old : row;
+      byKey.set(key, {
+        ...preferred,
+        sourceCategoryPath: preferred.sourceCategoryPath || other.sourceCategoryPath || "",
+        sourceDepartmentPath: preferred.sourceDepartmentPath || other.sourceDepartmentPath || "",
+      });
+    }
   }
   return {
     offers: [...byKey.values()],

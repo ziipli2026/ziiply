@@ -169,6 +169,9 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
     chain: "TOKMANNI",
     storeName: "Tokmanni",
     sourceScope: "food-and-pet-weekly-offers",
+    // Page-level department is known; individual product taxonomy is not.
+    sourceDepartment: "elintarvikkeet-ja-elainruoka",
+    sourceCategoryPath: "",
     storeLabel: "Tokmanni",
     shopName: "Tokmanni",
     title: name,

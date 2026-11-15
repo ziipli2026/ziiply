@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { repairLidlPublicationCategory } from "./lidlPublicationCategoryRepair";
 import { queueMissingOfferImagesBestEffort } from "./queueMissingOfferImages";
 import {
   publicationState, type StagedPublication,
@@ -32,13 +33,16 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
       publicationState(candidate, candidate.validFrom) === "invalid") {
     throw new Error("Invalid or empty publication: existing data preserved");
   }
+  // Repair the inferred display taxonomy before persistence; keep the original
+  // sourceCategoryPath/sourceDepartmentPath fields unchanged.
+  const storedOffers = candidate.offers.map((offer) => repairLidlPublicationCategory(candidate.chain, offer));
   const sql = await database();
   const approvalState = options.approvalState || "approved";
   const result = await sql`INSERT INTO ziiply_offer_publications
     (chain, publication_id, valid_from, valid_until, parsed_at, offers, approval_state)
     VALUES (${candidate.chain}, ${candidate.id}, ${candidate.validFrom}::date,
       ${candidate.validUntil}::date, ${candidate.parsedAt}::timestamptz,
-      ${JSON.stringify(candidate.offers)}::jsonb, ${approvalState})
+      ${JSON.stringify(storedOffers)}::jsonb, ${approvalState})
     ON CONFLICT (chain, publication_id) DO UPDATE SET offers = (
       SELECT COALESCE(jsonb_agg(
         CASE
@@ -47,11 +51,24 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
             AND COALESCE(previous.value->>'imageUrl','') ~* '^https://'
           THEN jsonb_set(incoming.value, '{imageUrl}', previous.value->'imageUrl', true)
           WHEN EXCLUDED.chain = 'K-Citymarket' THEN incoming.value
-          WHEN COALESCE(previous.value->>'imageUrl','') !~* '^https://'
-            AND COALESCE(incoming.value->>'imageUrl','') ~* '^https://'
-          THEN jsonb_set(previous.value, '{imageUrl}', incoming.value->'imageUrl', true)
-          ELSE COALESCE(previous.value, incoming.value)
-        END ORDER BY incoming.ordinality), '[]'::jsonb)
+          WHEN COALESCE(incoming.value->>'imageUrl','') !~* '^https://'
+            AND COALESCE(previous.value->>'imageUrl','') ~* '^https://'
+          THEN jsonb_set(COALESCE(previous.value, '{}'::jsonb) || incoming.value,
+            '{imageUrl}', previous.value->'imageUrl', true)
+          ELSE COALESCE(previous.value, '{}'::jsonb) || incoming.value
+        END ||
+        -- Never erase verified original taxonomy when a subsequent refresh
+        -- omits it or sends an empty placeholder. Keep source provenance
+        -- independent of the inferred category/categoryPath display fields.
+        CASE WHEN COALESCE(incoming.value->>'sourceCategoryPath','') = ''
+                  AND COALESCE(previous.value->>'sourceCategoryPath','') <> ''
+          THEN jsonb_build_object('sourceCategoryPath', previous.value->>'sourceCategoryPath')
+          ELSE '{}'::jsonb END ||
+        CASE WHEN COALESCE(incoming.value->>'sourceDepartmentPath','') = ''
+                  AND COALESCE(previous.value->>'sourceDepartmentPath','') <> ''
+          THEN jsonb_build_object('sourceDepartmentPath', previous.value->>'sourceDepartmentPath')
+          ELSE '{}'::jsonb END
+        ORDER BY incoming.ordinality), '[]'::jsonb)
       FROM jsonb_array_elements(EXCLUDED.offers) WITH ORDINALITY AS incoming(value, ordinality)
       LEFT JOIN LATERAL (
         SELECT old.value FROM jsonb_array_elements(ziiply_offer_publications.offers) AS old(value)
@@ -72,7 +89,7 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
     RETURNING (xmax = 0) AS inserted`;
   const outcome = result[0]?.inserted ? "stored" : "unchanged";
   if (outcome === "stored") {
-    await queueMissingOfferImagesBestEffort(candidate.offers.map((offer, index) => {
+    await queueMissingOfferImagesBestEffort(storedOffers.map((offer, index) => {
       const row = offer && typeof offer === "object" ? offer as Record<string, unknown> : {};
       return { ...row, chain: candidate.chain, publicationId: candidate.id,
         id: row.id || row.offerId || row.productId || `${candidate.id}:row:${index}` };
@@ -94,7 +111,8 @@ export async function readActivePublicationOffers<T>(chain: string, at: Date = n
     WHERE chain = ${chain} AND approval_state = 'approved' AND valid_from <= ${date}::date
       AND valid_until >= ${date}::date
     ORDER BY valid_from, valid_until, parsed_at DESC, publication_id DESC`;
-  return rows.flatMap((row) => Array.isArray(row.offers) ? row.offers as T[] : []);
+  return rows.flatMap((row) => Array.isArray(row.offers)
+    ? (row.offers as T[]).map((offer) => repairLidlPublicationCategory(chain, offer)) : []);
 }
 
 export async function readPublicationCandidate<T>(chain: string, publicationId: string) {

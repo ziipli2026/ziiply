@@ -391,6 +391,31 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // branch. Otherwise a stale top-level category such as "Muut" wins before
   // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  // Historical publication JSON can carry stale display categories even after
+  // the leaflet parser was fixed. Resolve unambiguous product forms before
+  // trusting cached provider labels, for all clients using this shared core.
+  const publicationOrigin = normalizeGostaCoreText(
+    [sourceItem?.source, sourceItem?.chain, sourceItem?.storeType,
+      sourceItem?.storeLabel, anyItem?.source, anyItem?.chain].filter(Boolean).join(" "),
+  );
+  const publicationTitle = normalizeGostaCoreText(String(
+    sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
+    anyItem?.title || anyItem?.name || "",
+  ));
+  const fromCitymarketLeaflet = publicationOrigin.includes("k citymarket");
+  const fromLidlPublication = /(?:^| )lidl(?: |$)/.test(publicationOrigin);
+  if (fromCitymarketLeaflet) {
+    if (/suihkumousse|suihkuvaahto/.test(publicationTitle)) return "Hygienia & kosmetiikka";
+    if (/uunirapeat ranskalaiset|ranskalaiset perunat/.test(publicationTitle)) return "Pakasteet";
+    if (/\\bperunat\\b/.test(publicationTitle) &&
+        !/ranskalaiset|pakaste|perunalaatikko/.test(publicationTitle)) return "Hevi";
+  }
+  if (fromLidlPublication) {
+    if (/(?:perunalaatikko|porkkanalaatikko|\brosolli\b|kauraruoka)/.test(publicationTitle)) return "Valmisruoka";
+    if (/siipipalat|kanansiivet|hornet/.test(publicationTitle)) return "Liha & makkarat";
+    if (/joulukaktus|tulilatva/.test(publicationTitle)) return "Koti & vapaa-aika";
+    if (/sukkalanka|ompelutarvikelaatikko|pullotunkki|juomapullo/.test(publicationTitle)) return "Koti & vapaa-aika";
+  }
   const verifiedCategory = getVerifiedOfferCategory(sourceItem) || getVerifiedOfferCategory(item);
   if (verifiedCategory) return verifiedCategory;
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
@@ -995,10 +1020,41 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   return `${sourceTab}:${origin}:${normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"))}`;
 }
 
+// Gösta is a grocery/consumables view, not a general-merchandise catalogue.
+// Apply the same eligibility rule to the master list, category views and
+// text search. Keep source taxonomy for auditing; never infer eligibility
+// from a broad UI category or an individual product-name blacklist.
+export function isGostaDailyGoodsOffer(item: ZiiplyGostaOfferLike): boolean {
+  const raw = ((item as any).__sourceOfferSearchResult ?? item) as any;
+  const sourceUrl = String(raw?.sourceUrl || item?.sourceUrl || "").toLowerCase();
+  // Stored publications may predate sourceCategoryPath. Lidl department URLs
+  // still identify non-food campaigns even when cached category is incorrect.
+  if (/lidl\.fi\/h\/(?:ompelukone|auto-ja-moottoripyo|kuntoilu|lemmikkielaeinten-tarvikkeet|tyokalut|vaatteet|elektroniikka|puutarha|askartelu|kasityot)/.test(sourceUrl)) return false;
+  const category = getResolvedGostaCategoryV166(item);
+  if (!category || category === "Koti & vapaa-aika" || category === "Koti") return false;
+  // Historical Citymarket leaflets contain real groceries labeled "Muut".
+  // Recover only explicit daily-goods identities; ambiguous items stay excluded.
+  if (category === "Muut") {
+    const title = normalizeGostaCoreText(String(raw?.title || item?.title || ""));
+    if (!/(?:rypale|kassler|markaruoat|puruluut|palvisiivu|wc[\\s-]*spray|kasvovoite|siivoustuotteita|hiusvari|kestovarit|juoma|limonadi|olut|siideri|energiajuoma)/.test(title)) return false;
+  }
+
+  // A known non-grocery source department must not be overridden by a
+  // generic title heuristic or by a stale cached/Neon display label.
+  const sourceHierarchy = String(
+    raw?.sourceCategoryPath || raw?.taxonomy || raw?.hierarchy ||
+    raw?.categoryPath || raw?.department || raw?.productGroup || "",
+  );
+  const root = normalizeGostaCoreText(sourceHierarchy.split(/\s*(?:>|\/)\s*/)[0]).replace(/-/g, " ");
+  if (/^(?:kayttotavarat|koti ja vapaa aika|puutarha|vaatteet|pukeutuminen|urheilu|elektroniikka|tyokalut|rakentaminen|sisustus|kasityot)(?:\b|$)/.test(root)) return false;
+  return true;
+}
+
 export function dedupeZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]) {
   const seen = new Set<string>();
 
   return results.filter((item) => {
+    if (!isGostaDailyGoodsOffer(item)) return false;
     const key = getGostaOfferDedupeKeyV148(item);
     if (!key || seen.has(key)) return false;
     seen.add(key);
@@ -1010,7 +1066,7 @@ export function cleanZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]
   const seen = new Set<string>();
 
   return results.filter((item) => {
-    if (isBadOfferSearchResultV106(item)) return false;
+    if (isBadOfferSearchResultV106(item) || !isGostaDailyGoodsOffer(item)) return false;
 
     const key = getGostaOfferDedupeKeyV148(item);
     if (!key || seen.has(key)) return false;
@@ -1071,10 +1127,11 @@ export function filterZiiplyGostaOfferResultsV146(
   filterValue: string,
 ) {
   const filter = normalizeGostaCoreText(filterValue).trim();
-  if (!filter || filter === "kaikki" || filter === "all") return sortZiiplyGostaOffersByPrice(results);
+  if (!filter || filter === "kaikki" || filter === "all") return sortZiiplyGostaOffersByPrice(results.filter(isGostaDailyGoodsOffer));
   const canonicalCategoryFilter = normalizeGostaCoreText(canonicalGostaFilterCategory(filterValue));
 
   return sortZiiplyGostaOffersByPrice(results.filter((item) => {
+    if (!isGostaDailyGoodsOffer(item)) return false;
     const category = normalizeGostaCoreText(getResolvedGostaCategoryV166(item));
 
     // V172:

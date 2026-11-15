@@ -92,6 +92,18 @@ export function category(t:string){
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
+  // 47AV pre-parser candidate audit: unambiguous product identities should
+  // never fall through to "Muut" or an ingredient-based parent category.
+  if (/(?:kanan\s+pikkufilee|kanasuikale)/.test(joined)) return "Liha & makkarat";
+  if (/kaurafraiche/.test(joined)) return "Maitotuotteet";
+  if (/kauranaksut.*(?:6[–-]12\s*kk|kk\b)/.test(joined)) return "Lastenruoat";
+  if (/navelinas\s+appelsiini/.test(joined)) return "Hevi";
+  if (/vitamiinivedet/.test(joined)) return "Juomat";
+  if (/riisipuuro/.test(joined)) return "Valmisruoka";
+  // Live 46LV audit: product form overrides misleading ingredient substrings.
+  if(/(?:uunirapeat\s+ranskalaiset|ranskalaiset\s+perunat)/.test(joined)) return "Pakasteet";
+  if(/(?:suihkumousset?|suihkuvaahto)/.test(joined)) return "Hygienia & kosmetiikka";
+  if(/(?:\bperunat\b|\bperuna\s+1\s*kg\b)/.test(joined) && !/(?:ranskalaiset|pakaste|perunalaatikko)/.test(joined)) return "Hevi";
   // Reusable product-form taxonomy for the 46LV quality gaps.
   if(/(?:cocktailpasteij|pannukakku)/.test(joined)) return "Leipomo";
   if(/(?:crispy fish)/.test(joined)) return "Kala";
@@ -137,7 +149,7 @@ export function category(t:string){
   if(/(?:kasvovoide|kasvoseerumi|collagen lifter|hyaluron expert|triple active|\bexpert\b.*\blifter\b)/.test(s)) return "Hygienia & kosmetiikka";
   if(/(?:wc[- ]?spray|wc[- ]?suihke)/.test(s)) return "Kodinhoito";
   if(/(?:säilytys\s*laatikko|säilytyslaatikko|förvaringslådor|otsalamppu)/.test(s)) return "Koti & vapaa-aika";
-  if(/(?:rouskuva|tulinen).*(?:110[–-]170\s*g)/.test(s)) return "Makeiset & keksit";
+  if(/(?:rouskuva|tulinen).*(?:110[–-]170\s*g)/.test(s)) return "Hevi";
   if(/(?:puruluu|puruluut)/.test(s)) return "Lemmikit";
   if(/(?:0[,.]33\s*l\/tlk\s*8[- ]?pack|8[- ]?pack\s*8[- ]?pack)/.test(s)) return "Juomat";
   if(/(?:oivariini)/.test(s)) return "Maitotuotteet";

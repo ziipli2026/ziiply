@@ -2,13 +2,14 @@ name: Responsive Ziiply browser smoke test
 # Isolated chain-scope regression validation
 on:
   push:
-    branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113, test/search-chain-scope-validation-20261113]
+    branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113, test/search-chain-scope-validation-20261113, test/gosta-grocery-category-gate-20261114]
   workflow_dispatch:
   pull_request:
     paths:
       - '.github/workflows/responsive-ziiply-browser.yml'
       - 'src/app/components/ziiply/ziiplyCore.ts'
       - 'src/app/components/ziiply/search/desktopNormalRelevance.ts'
+      - 'src/app/api/s-products/route.ts'
 permissions:
   contents: read
 jobs:
@@ -200,13 +201,20 @@ jobs:
                           if (term === liveTerm) liveCounts.set(api, {status:200, count:json.items.length});
                           return route.fulfill({json});
                         }
-                        const upstream = new URL(local.pathname + local.search, 'https://ziiply.vercel.app');
+                        // The upstream S-products fallback needs the selected store name.
+                        // Keep the browser's original request unchanged, but supply
+                        // storeName to the live upstream fixture when the store ID
+                        // alone cannot identify the S-kaupat fallback location.
+                        const liveQuery = new URL(local.pathname + local.search, 'https://ziiply.vercel.app');
+                        if (api === '/api/s-products' && local.searchParams.get('store') === '634976534' && !liveQuery.searchParams.has('storeName'))
+                          liveQuery.searchParams.set('storeName', 'Prisma Hyvinkää');
+                        const upstream = liveQuery;
                         upstream.searchParams.sort();
                         const key = upstream.href;
                         if (!liveResponses.has(key)) liveResponses.set(key, (async () => {
                           const origins = ['https://ziiply.vercel.app'];
                           for (const origin of origins) {
-                            const response = await fetch(new URL(local.pathname + local.search, origin), {
+                            const response = await fetch(new URL(upstream.pathname + upstream.search, origin), {
                               signal: AbortSignal.timeout(15000), headers:{accept:'application/json'}
                             });
                             const kind = response.headers.get('content-type') || '';
@@ -219,8 +227,8 @@ jobs:
                           const {status, json} = await liveResponses.get(key);
                           const items = json.products ?? json.items;
                           const term = local.searchParams.get(api === '/api/neon-first-search' ? 'q' : 'search');
-                          if (term === liveTerm && (api !== '/api/s-products' || local.searchParams.has('storeType'))) {
-                            liveCounts.set(api, {status, count:Array.isArray(items) ? items.length : 0});
+                          if (term === liveTerm) {
+                            liveCounts.set(api, {status, count:Array.isArray(items) ? items.length : 0, request:local.search, source:json.source ?? null, storeId:json.storeId ?? null, upstreamStatus:json.status ?? null, error:json.error ?? null, responseKeys:Object.keys(json)});
                           }
                           await route.fulfill({status, json});
                         } catch (error) {
@@ -316,6 +324,30 @@ jobs:
                     if (chain === 'LIDL') await lidlNotice.first().waitFor({timeout:20000});
                     else if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
                     if (chain !== 'LIDL') await prices.first().waitFor({timeout:90000});
+                    // Do not snapshot the first rendered products: Neon and store
+                    // providers complete at different times, and React rerenders
+                    // after each result. Require all selected provider responses.
+                    for (const api of searchEndpoints) {
+                      const responseDeadline = Date.now() + 20000;
+                      while (!liveCounts.has(api) && Date.now() < responseDeadline)
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                      assert.equal(liveCounts.get(api)?.status, 200, 'live provider ' + api);
+                    }
+                    // Mobile search is progressive: the first ten priced cards can
+                    // appear before the completion pass adds S-chain results.
+                    // Use the same completion signal as the dedicated milk parity
+                    // workflow, rather than treating a temporarily stable first
+                    // batch as the final result set.
+                    await search.getByText(/Haetaan lisää tuotteita/).waitFor({state:'hidden',timeout:90000});
+                    let stableSignature = null;
+                    let stableSince = Date.now();
+                    const stableDeadline = Date.now() + 12000;
+                    while (Date.now() < stableDeadline) {
+                      const signature = await prices.evaluateAll(buttons => buttons.map(b => b.closest('article')?.innerText || b.parentElement?.parentElement?.innerText || b.innerText).join('\\n---\\n'));
+                      if (signature !== stableSignature) { stableSignature = signature; stableSince = Date.now(); }
+                      if (Date.now() - stableSince >= 1500) break;
+                      await new Promise(resolve => setTimeout(resolve, 150));
+                    }
                     const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
                       const card = desktop ? button.parentElement.parentElement : button.closest('article');
                       const label = button.innerText;
@@ -326,8 +358,13 @@ jobs:
                     }), desktop);
                     console.log('Live Chromium', name, liveTerm, JSON.stringify([...liveCounts]), JSON.stringify(results.slice(0,10)));
                     for (const api of (searchEndpoints.some(api => /[sk]-products/.test(api)) ? [...searchEndpoints, '/api/neon-first-search'] : searchEndpoints)) {
+                      // S/K searches run concurrently. The UI can render Neon + K results
+                      // before the slower S provider finishes; wait for its response rather
+                      // than treating an in-flight request as an HTTP failure.
+                      const deadline = Date.now() + 20000;
+                      while (!liveCounts.has(api) && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
                       assert.equal(liveCounts.get(api)?.status, 200, 'live ' + api + ' for ' + liveTerm);
-                      if (liveTerm === 'maito') assert.ok(liveCounts.get(api).count > 0, 'nonempty live ' + api);
+                      if (liveTerm === 'maito') assert.ok(liveCounts.get(api).count > 0, 'nonempty live ' + api + ': ' + JSON.stringify(liveCounts.get(api)));
                     }
                     assert.ok(results.every((row,index) => row.price > 0 && (!index || row.price >= results[index-1].price)));
                     const eans = results.map(row => row.ean).filter(Boolean);
@@ -378,6 +415,19 @@ jobs:
                   if (extra) await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
+                  // Wait for search expansion to settle before comparing phone and desktop.
+                  // First paint is not completion: provider variants can be queued later.
+                  if (!within && (name === 'phone' || desktop)) {
+                    let previous = -1;
+                    let quietSince = Date.now();
+                    const settleDeadline = Date.now() + 15000;
+                    while (Date.now() < settleDeadline) {
+                      const current = searchRequests.filter(value => value.startsWith('GET ' + endpoint + '?')).length;
+                      if (current !== previous) { previous = current; quietSince = Date.now(); }
+                      if (current > 0 && Date.now() - quietSince >= 1200) break;
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                  }
                   const storeQueries = Array.from(new Set(searchRequests.flatMap(value => {
                     const prefix = 'GET ' + endpoint + '?';
                     if (!value.startsWith(prefix)) return [];
@@ -393,8 +443,27 @@ jobs:
                   }
                   const scenario = many ? (extra ? 'S + K + Lidl + ' + extra : 'S + K Monta') : within ? chain + ' within-chain' : chain;
                   if (name === 'phone') phoneStoreQueries.set(scenario, storeQueries);
-                  if (desktop && !within) assert.deepEqual(storeQueries, phoneStoreQueries.get(scenario),
-                    'phone and desktop must request the same store query variants in order');
+                  if (desktop && !within) {
+                    // The UI renders as soon as results exist, while the remaining
+                    // expanded queries may still be in flight. Compare complete
+                    // request lists, not an arbitrary first-render snapshot.
+                    const expected = phoneStoreQueries.get(scenario);
+                    const end = Date.now() + 15000;
+                    while (Date.now() < end) {
+                      const observed = Array.from(new Set(searchRequests.flatMap(value => {
+                        const prefix = 'GET ' + endpoint + '?';
+                        return value.startsWith(prefix) ? [new URLSearchParams(value.slice(prefix.length)).get('search')] : [];
+                      })));
+                      if (JSON.stringify(observed) === JSON.stringify(expected)) break;
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    const completeQueries = Array.from(new Set(searchRequests.flatMap(value => {
+                      const prefix = 'GET ' + endpoint + '?';
+                      return value.startsWith(prefix) ? [new URLSearchParams(value.slice(prefix.length)).get('search')] : [];
+                    })));
+                    assert.deepEqual(completeQueries, expected,
+                      'phone and desktop must request the same store query variants in order');
+                  }
                   const maitoApiCalls = searchRequests.filter(value => /[?&]search=maito(?:&|$)/i.test(value));
                   for (const api of searchEndpoints) {
                     assert.ok(maitoApiCalls.some(value => value.includes(api + '?')));

@@ -33,8 +33,22 @@ function mergePeriodRows(rows: Record<string, any>[]) {
     // Structured Lidl Plus data wins exact duplicates; public Lidl.fi fills gaps
     // and may contribute an image when the structured row has none.
     const old = output[oldIndex];
-    if (String(old.source || "") === "lidl-plus") continue;
-    if (String(row.source || "") === "lidl-plus") output[oldIndex] = { ...old, ...row, imageUrl: row.imageUrl || old.imageUrl || "" };
+    if (String(old.source || "") === "lidl-plus") {
+      // Keep Lidl Plus pricing, but enrich missing source provenance from
+      // the matching public product. Do not confuse the display category
+      // with upstream product taxonomy.
+      output[oldIndex] = {
+        ...old,
+        sourceCategoryPath: old.sourceCategoryPath || row.sourceCategoryPath || "",
+        sourceDepartmentPath: old.sourceDepartmentPath || row.sourceDepartmentPath || "",
+      };
+      continue;
+    }
+    if (String(row.source || "") === "lidl-plus") output[oldIndex] = {
+      ...old, ...row, imageUrl: row.imageUrl || old.imageUrl || "",
+      sourceCategoryPath: row.sourceCategoryPath || old.sourceCategoryPath || "",
+      sourceDepartmentPath: row.sourceDepartmentPath || old.sourceDepartmentPath || "",
+    };
   }
   return output;
 }

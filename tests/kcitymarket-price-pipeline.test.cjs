@@ -38,11 +38,22 @@ test('API through final price rendering retains all source offers and hides prod
  const mapped=clean.map(core.mapZiiplyGostaOfferToCardOfferV147);
  const rows=mapped.map(row=>({id:row.id,title:row.title,tab:row.campaignType,display:cards.getOfferPrice(row),layout:cards.splitOfferDisplayPrice(cards.getOfferPrice(row)),source:row.__sourceOfferSearchResult}));
  const counts={input:offers.length+campaigns.length,api:apiRows,core:result.results.length,clean:clean.length,cards:rows.length,offers:rows.filter(r=>r.tab!=='campaign').length,campaigns:rows.filter(r=>r.tab==='campaign').length,apiCalls,externalCalls:externalCalls.length};
- assert.equal(apiRows,544);assert.equal(rows.length,544);assert.equal(counts.offers,89);assert.equal(counts.campaigns,455);assert.equal(externalCalls.length,0);
+ const inputById=new Map([...offers,...campaigns].map(x=>[String(x.id),x]));
+ const keptIds=new Set(rows.map(x=>String(x.source?.id??x.id)));
+ const removed=[...inputById.values()].filter(x=>!keptIds.has(String(x.id)));
+ const removedCategories=removed.reduce((acc,x)=>(acc[x.category]=(acc[x.category]||0)+1,acc),{});
+ assert.equal(removed.length,170,'Unexpected change in grocery gate exclusions');
+ assert.equal(removedCategories['Koti & vapaa-aika'],155);
+ assert.equal(removedCategories['Muut'],15);
+ for (const title of ['LUOMU Silmusalaatti PARSAKAALI','Karhu ALKOHOLITON OLUT 0,0 %','VIHREÄ tai - TUMMA 2 RS RYPÄLE','KASSLER n. 2,3 kg','MÄRKÄRUOAT 70 g','PURULUUT 160–180 g','PALVISIIVUT','WC-SPRAY 435 ml']) {
+  assert.ok(rows.some(row=>String(row.title).includes(title)), 'Grocery item lost: '+title);
+ }
+ console.log('GROCERY_GATE_AUDIT',JSON.stringify({input:offers.length+campaigns.length,kept:rows.length,removed:removed.length,removedCategories,removedRows:removed.map(x=>({title:x.title,category:x.category,stream:x.campaignType}))}));
+ assert.equal(apiRows,544);assert.equal(rows.length,374);assert.equal(counts.offers+counts.campaigns,374);assert.equal(externalCalls.length,0);
  // Regression: both independent publication streams must survive every client stage.
  // A product EAN is not a promotion identity; even identical names/prices/EANs
  // must survive if the origin or publication differs.
- const sameProduct={ean:'6410000000001',title:'TESTITUOTE 500 g',price:1.29,campaignType:'offer'};
+ const sameProduct={ean:'6410000000001',title:'TESTITUOTE 500 g',category:'Maitotuotteet',price:1.29,campaignType:'offer'};
  const distinctSources=[
   {...sameProduct,__sourceOfferSearchResult:{...sameProduct,source:'K-Citymarket tarjouslehti',sourceUrl:'https://example.test/national',id:'kcm:spatial:1:sample:1.29'}},
   {...sameProduct,campaignType:'campaign',__sourceOfferSearchResult:{...sameProduct,campaignType:'campaign',source:'K-Citymarket kauppakohtainen julkaisu',provider:'kcitymarket-local',storeId:'fe95rtb',offerId:'offer-1',debug:{publicationId:'publication-1'}}},

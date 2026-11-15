@@ -252,6 +252,8 @@ jobs:
                 assert.deepEqual(errors, []);
                 const search = await context.newPage();
                 let queries = 0;
+                const observedRequests = [];
+                search.on('request', request => { if (request.url().includes('/api/')) observedRequests.push({ method: request.method(), url: request.url().replace(/127\.0\.0\.1:3100/, 'local') }); });
                 await search.route('**/api/s-products?*', route => {
                   const params = new URL(route.request().url()).searchParams;
                   if (/maito/i.test(params.get('search') || '')) {
@@ -311,7 +313,7 @@ jobs:
                   }
                   await cheap.waitFor({ timeout: 10000 });
                 } catch (error) {
-                  console.log('Search state', name, 'store queries:', queries, (await search.locator('body').innerText()).slice(0, 2500));
+                  console.log('Search state', name, 'store queries:', queries, 'API requests:', JSON.stringify(observedRequests.slice(-80)), (await search.locator('body').innerText()).slice(0, 2500));
                   throw error;
                 }
                 await expensive.waitFor();
