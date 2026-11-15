@@ -94,10 +94,10 @@ export function category(t:string){
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
   // 47AV pre-parser candidate audit: unambiguous product identities should
   // never fall through to "Muut" or an ingredient-based parent category.
-  if (/(?:kanan\\s+pikkufilee|kanasuikale)/.test(joined)) return "Liha & makkarat";
+  if (/(?:kanan\s+pikkufilee|kanasuikale)/.test(joined)) return "Liha & makkarat";
   if (/kaurafraiche/.test(joined)) return "Maitotuotteet";
-  if (/kauranaksut.*(?:6[–-]12\\s*kk|kk\\b)/.test(joined)) return "Lastenruoat";
-  if (/navelinas\\s+appelsiini/.test(joined)) return "Hevi";
+  if (/kauranaksut.*(?:6[–-]12\s*kk|kk\b)/.test(joined)) return "Lastenruoat";
+  if (/navelinas\s+appelsiini/.test(joined)) return "Hevi";
   if (/vitamiinivedet/.test(joined)) return "Juomat";
   if (/riisipuuro/.test(joined)) return "Valmisruoka";
   // Live 46LV audit: product form overrides misleading ingredient substrings.
