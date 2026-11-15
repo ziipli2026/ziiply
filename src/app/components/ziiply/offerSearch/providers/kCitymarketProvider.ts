@@ -93,7 +93,7 @@ export function category(t:string){
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
   // Plant-based slices are prepared protein products, not potato chips.
-  if(/(?:kanaton|lihaton)\s+lastu|\bvebablastu/.test(joined)) return "Valmisruoka";
+  if(/(?:kanaton|lihaton)\s+lastu|(?:lihaton|kanaton).*\b(?:kanaton|lihaton)\s+lastu|\bvebablastu/.test(joined)) return "Valmisruoka";
   // General food forms observed in 47AV. Classify by product type, not issue.
   if(/(?:kanan\s+pikkufilee|kanasuikale|kanan\s+suikale)/.test(joined)) return "Liha & makkarat";
   if(/(?:kaurafraiche|kaura\s*fraiche)/.test(joined)) return "Maitotuotteet";
