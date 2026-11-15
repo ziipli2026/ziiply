@@ -161,4 +161,9 @@ test('47AV control center accepts parser with missing images, but not missing ca
   assert.equal(result.reviewed,false);
   const invalid=status([{...run,outcome:'preflight-quality-failed',details:{...run.details,quality:{...run.details.quality,missing_categories:7}}}],now);
   assert.equal(invalid.parserOk,false);
+  assert.equal(invalid.label,'TUOTETIETOJEN LAATUTARKASTUS EPÄONNISTUI');
+  const reviewed={checked_at:'2026-11-15T13:20:00Z',source:'k-citymarket-source-audit',ok:true,offer_count:27,outcome:'pdf-review-passed',details:{period}};
+  assert.equal(status([run,reviewed],now).level,'green','image-only gaps do not block reviewed publication status');
+  const legacy={...run,outcome:'preflight-awaiting-images'};
+  assert.equal(status([legacy],now).parserOk,true,'older pending-image records remain recognized');
 });
