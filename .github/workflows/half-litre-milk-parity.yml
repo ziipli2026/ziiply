@@ -34,7 +34,7 @@ jobs:
           const store={id:'292',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
           const other={id:'3221',name:'K-Citymarket Hyvinkää',chain:'K',latitude:60.63,longitude:24.86};
           const query='maito 0,5l';
-          const product={id:1,name:'Arla Cafè maito 0,5 L UHT laktoositon',ean:'6413300026627',price:119,priceAmountUnit:'cent'};
+          const product={id:1,name:'Pirkka kevytmaito 5dl',ean:'6410405267825',price:85,priceAmountUnit:'cent'};
           const rejected=[
             {id:2,name:'Kotimaista rasvaton maito 1l',ean:'6415712506032',price:85,priceAmountUnit:'cent'},
             {id:3,name:'Voelkel Luomuporkkanamehu maitohappokäytetty 0,5l',ean:'4015533014512',price:499,priceAmountUnit:'cent'}
