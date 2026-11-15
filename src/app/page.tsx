@@ -20773,6 +20773,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   useEffect(() => {
+    const search = locationInput.trim();
+    // Keep the current store and picker options when location is switched off.
+    if (!gpsCoordsV320 && !search) return;
+
     let cancelled = false;
     const params = new URLSearchParams();
     if (gpsCoordsV320) {
@@ -20787,8 +20791,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const gpsMunicipality =
         gpsAliases.find((value) => foundCities.has(normalize(value))) || "";
       if (gpsMunicipality) params.set("search", gpsMunicipality);
-    } else if (locationInput.trim()) {
-      params.set("search", locationInput.trim());
+    } else {
+      params.set("search", search);
     }
 
     fetch(`/api/eurospar-stores?${params.toString()}`, { cache: "no-store" })
