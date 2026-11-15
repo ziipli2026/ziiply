@@ -87,8 +87,8 @@ export function autocorrectNormalSearchTerm(term: string) {
     const original = String(term || "").trim();
     if (!original) return original;
 
-    // Autocorrect is only for text searches. Do not touch EAN/barcode searches.
-    if (/^\d{6,14}$/.test(original.replace(/\D/g, ""))) {
+    // Keep decimal package sizes available to the shared search tokenizer.
+    if (/\d[,.]\d/.test(original) || /^\d{6,14}$/.test(original.replace(/\D/g, ""))) {
       return original;
     }
 
