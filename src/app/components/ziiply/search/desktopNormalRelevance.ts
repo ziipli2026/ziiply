@@ -14,8 +14,7 @@ export function searchWords(value: unknown): string[] {
 const forms: Record<string, string> = {
   tomattia:'tomaattia', mozarellaa:'mozzarellaa',
   kanan:'kana', kananmunan:'kananmuna', kananmunaa:'kananmuna', broilerin:'broileri', kermat:'kerma',
-  maitoa:'maito', maidon:'maito', maidot:'maito', kahvia:'kahvi', kahvin:'kahvi', kahvit:'kahvi',
-  papukahvit:'papukahvi', suodatinkahvit:'suodatinkahvi', pannukahvit:'pannukahvi', pikakahvit:'pikakahvi',
+  maitoa:'maito', maidon:'maito', maidot:'maito', kahvia:'kahvi', kahvin:'kahvi',
   juustoa:'juusto', juuston:'juusto', juustot:'juusto', leipaa:'leipa', leivat:'leipa',
   jogurttia:'jogurtti', jogurtin:'jogurtti', jugurtti:'jogurtti', jugurti:'jogurtti',
   voita:'voi', kermaa:'kerma', kerman:'kerma', jauhelihaa:'jauheliha',
@@ -39,6 +38,10 @@ const alternatives: Record<string, string[]> = {
   tomaattiketsuppi:['tomaattiketsuppi','ketsuppi','ketchup'],
   vanilja:['vanilja','vanilla'], sitruuna:['sitruuna','lemon'],
   kauramaito:['kauramaito','kaurajuoma','kaura juoma'],
+  // Exact grocery families: accept real cooking oils and vinegars without
+  // allowing an ingredient mention in spreads, crisps, cleaners or dressings.
+  ruokaoljy:['ruokaoljy','rypsioljy','rapsioljy','oliivioljy','auringonkukkaoljy','kasvioljy','paistooljy','seesamioljy','avokadooljy'],
+  etikka:['etikka','vakiviinaetikka','omenaviinietikka','viinietikka','balsamicoetikka','riisiviinietikka','valkoviinietikka','punaviinietikka'],
   maito:['maito','kevytmaito','täysmaito','ykkösmaito','luomumaito','rasvaton maito'],
   kahvi:['kahvi','juhla mokka','kulta katriina'],
   ketsuppi:['ketsuppi','ketchup'], ketsuppia:['ketsuppi','ketchup'],
@@ -265,6 +268,18 @@ function desktopSearchNameDecision(query: string, product: Row) {
   if(q.terms.some(t=>['kahvi','maito','piima','juusto','jauheliha'].includes(t)) &&
      derived.some(t=>nameText.includes(t) && !q.terms.some(w=>w.includes(t))))
     return {accepted:false,score:-10000,reason:'ingredient_in_different_product'};
+  // For broad ingredient-family searches, synonyms only count when they
+  // describe the PRIMARY product. A matching flavour or ingredient is not enough.
+  if(q.terms.length===1 && (q.terms[0]==='ruokaoljy' || q.terms[0]==='etikka')) {
+    const oil=/^(?:[a-z]+ )*(?:rypsioljy|rapsioljy|oliivioljy|auringonkukkaoljy|kasvioljy|ruokaoljy|paistooljy|seesamioljy|avokadooljy)(?: |$)/;
+    const vinegar=/^(?:[a-z]+ )*(?:vakiviinaetikka|omenaviinietikka|viinietikka|balsamicoetikka|riisiviinietikka|valkoviinietikka|punaviinietikka|etikka)(?: |$)/;
+    const wrong=/levite|margariini|voi(?= |$)|kastike|salaatti|sipsi|perunalastu|mauste|puhdist|pesuaine|liina|marinadi|tonnikala|sardiini|valmisriisi|pahkina|pahkin|keksi/;
+    // Allow product branding and package weights before the ingredient noun.
+    const namedOil=/(?:^| )(?:rypsioljy|rapsioljy|oliivioljy|auringonkukkaoljy|kasvioljy|ruokaoljy|paistooljy|seesamioljy|avokadooljy)(?: |$)/.test(identityText);
+    const namedVinegar=/(?:^| )(?:vakiviinaetikka|omenaviinietikka|viinietikka|balsamicoetikka|riisiviinietikka|valkoviinietikka|punaviinietikka|etikka)(?: |$)/.test(identityText);
+    if(wrong.test(identityText) || !(q.terms[0]==='ruokaoljy' ? namedOil : namedVinegar))
+      return {accepted:false,score:-10000,reason:'ingredient_not_primary_product'};
+  }
   let score=0;
   for(const term of q.terms) {
     const variants=alternatives[term] || [term];
@@ -272,6 +287,8 @@ function desktopSearchNameDecision(query: string, product: Row) {
       : name.terms.some(w=>v.length>=3 && w.startsWith(v) && ((!rawIngredientTerms.has(v) && !['cola','pepsi','coke','kahvi'].includes(v)) || (['kana','broileri'].includes(v) && /^(?:n)?(?:filee|rinta|reis|siipi|suikale|koipi|paisti|pihvi|jauheliha)/.test(w.slice(v.length))))) ? 65
       : name.terms.some(w=>v.length>=3 && w.endsWith(v) && compoundPrefixes.has(w.slice(0,-v.length))) ? 50 : 0; }));
     if(strength) score+=strength;
+    else if(term==='kerma' && /(?:^| )(?:kuohu|vispi|ruoka|kahvi|laktoositon|kasvi)kerma(?: |$)/.test(nameText)) score+=65;
+    else if(term==='ketsuppi' && /(?:^| )tomaattiketsuppi(?: |$)/.test(nameText)) score+=65;
     else if(term==='ruodoton' && salmonDcutIsBoneless(product.name || product.title)) score+=60;
     else if(term==='pakaste' && /^pakasteet(?:\/|$)/i.test(String(product.category || ''))) score+=60;
     else if(!alternatives[term] && brand.includes(term) && (q.terms.length>1 || brand.join(" ")===term)) score+=25;
@@ -292,6 +309,14 @@ export function desktopSearchDecision(query: string, product: Row) {
   // Example: "MySoda Cola sokeriton" cannot turn a concentrate into a ready-to-drink cola.
   const requestedTerms=parse(desktopSearchQuery(query)).terms;
   const originalIdentity=searchWords(product.name || product.title).join(' ');
+  // Shared product-form guard: an ingredient or drink name must not qualify
+  // confectionery or a substitute as the requested primary product.
+  if(requestedTerms.length===1 && requestedTerms[0]==='cola' &&
+     /(?:^| )cola kark(?:it|ki)(?: |$)/.test(originalIdentity))
+    return {accepted:false,score:-10000,reason:'cola_candy_not_drink'};
+  if(requestedTerms.length===1 && requestedTerms[0]==='kananmuna' &&
+     /(?:^| )kananmunan? korvike(?: |$)/.test(originalIdentity))
+    return {accepted:false,score:-10000,reason:'egg_substitute_not_eggs'};
   if(requestedTerms.includes('cola') && /juomatiiviste|sodastream|siirappi/.test(originalIdentity))
     return {accepted:false,score:-10000,reason:'cola_concentrate_original_identity'};
   // Protect primary product identity from ingredient matches in prepared meals.
