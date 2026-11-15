@@ -384,6 +384,19 @@ jobs:
                   if (extra) await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
+                  // Wait for search expansion to settle before comparing phone and desktop.
+                  // First paint is not completion: provider variants can be queued later.
+                  if (!within && (name === 'phone' || desktop)) {
+                    let previous = -1;
+                    let quietSince = Date.now();
+                    const settleDeadline = Date.now() + 15000;
+                    while (Date.now() < settleDeadline) {
+                      const current = searchRequests.filter(value => value.startsWith('GET ' + endpoint + '?')).length;
+                      if (current !== previous) { previous = current; quietSince = Date.now(); }
+                      if (current > 0 && Date.now() - quietSince >= 1200) break;
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                  }
                   const storeQueries = Array.from(new Set(searchRequests.flatMap(value => {
                     const prefix = 'GET ' + endpoint + '?';
                     if (!value.startsWith(prefix)) return [];
