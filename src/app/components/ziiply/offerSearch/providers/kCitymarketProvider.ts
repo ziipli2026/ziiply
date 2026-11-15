@@ -87,6 +87,8 @@ function textOf(src:string){
     )
   ).replace(/ ?\n ?/g,"\n");
 }
+const isFrozenFrenchFries = (title: string) => /(?:uunirapeat\s+ranskalaiset|ranskalaiset\s+perunat|pommes\s+frites)/i.test(title);
+
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   // Publisher headings can contain line-break hyphens even inside a word.
@@ -101,7 +103,7 @@ export function category(t:string){
   if (/vitamiinivedet/.test(joined)) return "Juomat";
   if (/riisipuuro/.test(joined)) return "Valmisruoka";
   // Live 46LV audit: product form overrides misleading ingredient substrings.
-  if(/(?:uunirapeat\s+ranskalaiset|ranskalaiset\s+perunat)/.test(joined)) return "Pakasteet";
+  if (isFrozenFrenchFries(joined)) return "Pakasteet";
   if(/(?:suihkumousset?|suihkuvaahto)/.test(joined)) return "Hygienia & kosmetiikka";
   if(/(?:\bperunat\b|\bperuna\s+1\s*kg\b)/.test(joined) && !/(?:ranskalaiset|pakaste|perunalaatikko)/.test(joined)) return "Hevi";
   // Reusable product-form taxonomy for the 46LV quality gaps.
@@ -915,7 +917,13 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
         resolutionSource:"reviewed-45lv-pdf",resolutionSanity:"pass",
         imageUrl:getKCitymarketPublisherImage(offer.sourceUrl,offer.id)||offer.imageUrl}];
     });
-    const prepared=normalizeKCitymarketOfferImages(corrected);
+    // Approved snapshots can retain a category assigned by an older parser.
+    const categorized = corrected.map(offer =>
+      offer.category === "Kala" && isFrozenFrenchFries(offer.title)
+        ? { ...offer, category: "Pakasteet" }
+        : offer,
+    );
+    const prepared=normalizeKCitymarketOfferImages(categorized);
     if(prepared.every(offer=>Boolean(offer.imageUrl)))return prepared;
     // Scheduled background enrichment fills missing images without delaying shoppers.
     return prepared;
