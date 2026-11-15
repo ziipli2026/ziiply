@@ -1018,7 +1018,13 @@ async function enrichKCitymarketPublicationImages(offers:CitymarketOffer[],activ
     });
   }
   const publisherImages=offers.map(offer=>{
-    const imageUrl=getKCitymarketPublisherImage(offer.sourceUrl,offer.id) ||
+    // The verified 47AV PDF title repair changes the offer ID, but the publisher
+    // image manifest is keyed by the original spatial-parser title.
+    const reviewed47AvImageId=/_47AV_KCM/i.test(offer.sourceUrl||"") &&
+      offer.id==="kcm:spatial:17:muu lihaton- tai kanaton lastu 220 g:3.49"
+      ? "kcm:spatial:17:lastu 220 g:3.49" : null;
+    const imageUrl=(reviewed47AvImageId?getKCitymarketPublisherImage(offer.sourceUrl,reviewed47AvImageId):null) ||
+      getKCitymarketPublisherImage(offer.sourceUrl,offer.id) ||
       (offer.publisherOfferId?getKCitymarketPublisherImage(offer.sourceUrl,offer.publisherOfferId):null);
     return imageUrl?{...offer,imageUrl}:offer;
   });
