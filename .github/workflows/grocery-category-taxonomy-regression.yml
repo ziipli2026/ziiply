@@ -1,0 +1,24 @@
+name: Grocery category taxonomy regression
+on:
+  push:
+    branches:
+      - test/gosta-grocery-category-gate-20261114
+    paths:
+      - 'tests/citymarket-47av-category-regression.test.cjs'
+      - 'tests/eurospar-offer-taxonomy-45-26.test.cjs'
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'
+      - 'src/app/components/ziiply/offerSearch/providers/eurospar-feed.json'
+      - '.github/workflows/grocery-category-taxonomy-regression.yml'
+  workflow_dispatch:
+jobs:
+  taxonomy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - name: Run actual Citymarket and EUROSPAR category regressions
+        run: node --test tests/citymarket-47av-category-regression.test.cjs tests/eurospar-offer-taxonomy-45-26.test.cjs
