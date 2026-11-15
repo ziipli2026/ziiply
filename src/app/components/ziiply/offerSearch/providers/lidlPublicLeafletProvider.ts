@@ -519,7 +519,18 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     if (state === "expired" || state === "invalid" || (!options.includeUpcoming && state !== "current")) continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
-    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+    if (!old) byKey.set(key, row);
+    else {
+      // A duplicate from a product page may have better taxonomy than a
+      // campaign card, even when its image is not preferred.
+      const preferred = row.imageUrl && !old.imageUrl ? row : old;
+      const other = preferred === row ? old : row;
+      byKey.set(key, {
+        ...preferred,
+        sourceCategoryPath: preferred.sourceCategoryPath || other.sourceCategoryPath || "",
+        sourceDepartmentPath: preferred.sourceDepartmentPath || other.sourceDepartmentPath || "",
+      });
+    }
   }
   return {
     offers: [...byKey.values()],
