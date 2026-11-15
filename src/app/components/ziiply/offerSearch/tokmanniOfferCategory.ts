@@ -2,6 +2,13 @@
 // These are parser defaults; EAN enrichment and UI category resolution are separate.
 export function classifyTokmanniOfferCategory(title: string) {
   const s = String(title ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+  // Verified live Tokmanni food-weekly-listing names (2026-11-15).
+  // Match product identities, not arbitrary flavour words.
+  if (/^(?:suodatinpussi fredman)\b/.test(s)) return "Kodinhoito";
+  if (/^(?:maistuvampi kaurapuuro fazer alku|vaniljarinkeli)\b/.test(s)) return "Kuivatuotteet";
+  if (/^(?:taateli dave & jon.s|pähkinä good habit|(?:vadelma|passion|mansikka|mustikka|ananas|appelsiini)kuutio good habit)\b/.test(s)) return "Kuivatuotteet";
+  if (/^(?:läkerol dents|marianne fazer|pihlaja fazer|fazerin parhain|omar fazer|täysksylitolipastilli jenkki|allsorts malaco|mynthon|pastilli mynthon|koristeraemix (?:funcakes|wilton))\b/.test(s)) return "Makeiset & keksit";
+  if (/^syötävä elintarvikesuihke wilton\b/.test(s)) return "Kuivatuotteet";
   if (/wc-paper|talouspaper|nenäliina|astianpes|pyykin|puhdistus|pesuaine|talousliina|sieniliina/.test(s)) return "Kodinhoito";
   if (/shampoo|suihku|saippua|deodor|hammastahna|hammasharja|kosmeti|seerumi|huulivoi|intiimi|kosteuspyyhe|manikyyri|pedikyyri|vaippa/.test(s)) return "Hygienia & kosmetiikka";
   if (/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli|grilli|työkalu|valaisin|lamppu|liimapuulevy|kasteluletku|moppi|pesuri|\bliina\b|käsine|kenkä|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|lanka|asuste|lelu/.test(s)) return "Koti & vapaa-aika";
