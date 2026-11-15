@@ -219,7 +219,7 @@ jobs:
                           const {status, json} = await liveResponses.get(key);
                           const items = json.products ?? json.items;
                           const term = local.searchParams.get(api === '/api/neon-first-search' ? 'q' : 'search');
-                          if (term === liveTerm && (api !== '/api/s-products' || local.searchParams.has('storeType'))) {
+                          if (term === liveTerm) {
                             liveCounts.set(api, {status, count:Array.isArray(items) ? items.length : 0});
                           }
                           await route.fulfill({status, json});
