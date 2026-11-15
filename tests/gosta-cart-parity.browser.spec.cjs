@@ -11,9 +11,10 @@ test('mobile: cart campaign metadata survives browser storage and is rendered',a
  await context.addInitScript(item=>localStorage.setItem('ziiply-cart-v1',JSON.stringify([item])),sample);
  const page=await context.newPage();
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
+ await page.screenshot({path:'test-results/mobile-before-cart.png',fullPage:true});
  await expect(page.locator('body')).toBeVisible();
- const cart=page.getByText('Ostoskori',{exact:true}).first();
- await expect(cart,'Cart navigation must be available').toBeVisible({timeout:20000});
+ const cart=page.getByRole('navigation',{name:'Ziiply päävalikko'}).getByRole('button',{name:/Kori/});
+ await expect(cart,'Mobile Kori navigation must be available').toBeVisible({timeout:20000});
  await cart.click();
  await expect(page.getByText('Kirjolohiannospakkaus').first()).toBeVisible({timeout:15000});
  await expect(page.getByText('Tarjous 6,99 €').first()).toBeVisible();
