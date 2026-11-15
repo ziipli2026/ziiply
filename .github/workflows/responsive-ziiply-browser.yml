@@ -2,7 +2,7 @@ name: Responsive Ziiply browser smoke test
 # Isolated chain-scope regression validation
 on:
   push:
-    branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113, test/search-chain-scope-validation-20261113]
+    branches: [test/desktop-mobile-unification, test/search-parity-audit-20261113, test/search-chain-scope-validation-20261113, test/gosta-grocery-category-gate-20261114]
   workflow_dispatch:
   pull_request:
     paths:
