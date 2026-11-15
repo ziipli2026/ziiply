@@ -32,6 +32,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install TypeScript test dependency
+        run: npm ci --ignore-scripts
       - name: Verify Gösta offer price ordering and grocery eligibility
         run: node --test tests/gosta-price-sort.test.cjs tests/gosta-daily-goods-gate.test.cjs tests/gosta-provider-source-taxonomy.test.cjs tests/lidl-publication-taxonomy-merge.test.cjs
   hundred-search-parity:
