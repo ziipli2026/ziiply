@@ -57,3 +57,29 @@ test("Soft supplement name does not imply a plush toy",()=>{assert.equal(context
 
 
 test("Vitamin drinks remain beverages",()=>{assert.equal(context.classify("VITAMIINIJUOMA 0,5 l"),"Juomat");});
+
+// 47AV: keep the source's ambiguous LASTU 220 g unclassified until verified.
+for(const [title,wanted] of [
+  ["KANAN PIKKUFILEET 340 g","Liha & makkarat"],
+  ["KANASUIKALEET 200 g","Liha & makkarat"],
+  ["KAURAFRAICHE 150 g","Maitotuotteet"],
+  ["KAURANAKSUT 6–12 kk 25–35 g","Lastenruoat"],
+  ["NAVELINAS APPELSIINI 1,5 kg","Hevi"],
+  ["VITAMIINIVEDET 1,5 l/pl","Juomat"],
+  ["LASTU 220 g","Muut"],
+  ["Kanan pikkufilee 400 g","Liha & makkarat"],
+  ["Appelsiinit 2 kg","Hevi"],
+]) test("47AV reusable category: "+title,()=>assert.equal(context.classify(title),wanted));
+
+for(const [title,wanted] of [
+ ["MUU Kanaton Lastu 220 g","Valmisruoka"],
+ ["MUU Lihaton Lastu 220 g","Valmisruoka"],
+ ["MUU Vebablastu 200 g","Valmisruoka"],
+ ["PERUNALASTUT 220 g","Makeiset & keksit"],
+ ["LASTU 220 g","Muut"],
+]) test("Plant protein and ambiguous lastu taxonomy: "+title,()=>assert.equal(context.classify(title),wanted));
+
+// 47AV printed page 17: the publisher's two MUU plant-protein variants share one offer.
+test("47AV page 17 full reviewed MUU title has correct category",()=>{
+ assert.equal(context.classify("MUU LIHATON- tai KANATON LASTU 220 g"),"Valmisruoka");
+});

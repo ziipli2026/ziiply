@@ -92,6 +92,14 @@ export function category(t:string){
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
+  // Plant-based slices are prepared protein products, not potato chips.
+  if(/(?:kanaton|lihaton)\s+lastu|(?:lihaton|kanaton).*\b(?:kanaton|lihaton)\s+lastu|\bvebablastu/.test(joined)) return "Valmisruoka";
+  // General food forms observed in 47AV. Classify by product type, not issue.
+  if(/(?:kanan\s+pikkufilee|kanasuikale|kanan\s+suikale)/.test(joined)) return "Liha & makkarat";
+  if(/(?:kaurafraiche|kaura\s*fraiche)/.test(joined)) return "Maitotuotteet";
+  if(/(?:kauranaksu|vauvanaksu)/.test(joined) && /(?:\d+[–-]\d+\s*kk|vauva|lasten)/.test(joined)) return "Lastenruoat";
+  if(/(?:navelinas|appelsiin)/.test(joined)) return "Hevi";
+  if(/(?:vitamiinivesi|vitamiinivedet)/.test(joined)) return "Juomat";
   // Reusable product-form taxonomy for the 46LV quality gaps.
   if(/(?:cocktailpasteij|pannukakku)/.test(joined)) return "Leipomo";
   if(/(?:crispy fish)/.test(joined)) return "Kala";
@@ -594,7 +602,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // decorations; never change the price, quantity, package or unit metadata.
     // Limit to the 42AV archive until older leaflet regressions are verified.
     const rawTitle=repairCitymarketOCRTitle(clean(row?.title||""));
-    const title=verified45LV?.title??(/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle);
+    const titleBeforeSourceReview=verified45LV?.title??(/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle);
+    // Verified against the printed 47AV page 17: the OCR dropped the MUU brand
+    // and the LIHATON- tai KANATON qualifier, leaving only LASTU 220 g.
+    const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
+      ? "MUU LIHATON- tai KANATON LASTU 220 g" : titleBeforeSourceReview;
     if(!title || isNoiseLine(title)) continue;
     // 45AV page 3: Innocent juice 900 ml OR smoothie 750 ml, 3.49 € incl. 0.20 € deposit.
     // The printed unit-price range is 3.66–4.39 €/l excluding deposit.

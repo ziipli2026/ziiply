@@ -55,8 +55,10 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     quality.total=89;
     quality.missing_images=6;quality.missing_categories=15;
     assert.equal((await record(input)).outcome,'preflight-quality-failed','45AV incomplete images and categories must fail');
+    assert.equal(records.at(-1).details.imageEnrichment,'pending','category failure must not misreport image pipeline as failed');
+    assert.deepEqual(records.at(-1).details.blockingReasons,['missing-categories']);
     quality.missing_categories=0;
-    assert.equal((await record(input)).outcome,'preflight-awaiting-images','image-only gap waits for extraction');
+    assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review','image-only gap must not block parser success');
     assert.equal(records.at(-1).ok,false,'waiting for images cannot approve PDF review');
     assert.equal(records.at(-1).details.imageEnrichment,'pending');
     quality.missing_images=0;quality.missing_categories=0;quality.unverified_prices=4;
@@ -125,4 +127,43 @@ test('46AV shows a recorded start, detects interruption and preserves the first 
  assert.equal(recovered.first,started.checked_at);
  assert.equal(recovered.count,42);
  assert.equal(recovered.parserOk,true);
+});
+
+
+test('47AV: missing images never fail preflight, even after 23:00; categories remain blocking',async()=>{
+  let quality={total:27,missing_names:0,suspicious_names:0,missing_prices:0,missing_images:27,missing_categories:0,unverified_prices:0};
+  const records=[];
+  const {recordCitymarketPreflight:record}=load('src/app/components/ziiply/offerSearch/citymarketPreflight.ts',{
+    '@neondatabase/serverless':{neon:()=>async()=>[quality]},
+    './publicationRunLog':{recordPublicationRun:async row=>records.push(row)},
+  });
+  const input={period:'2026-11-16-W47-AV',startedAt:'2026-11-15T13:10:50Z',parsed:{period:'2026-11-16-W47-AV',offers:27,cachedAt:'2026-11-15T13:10:50Z'},errors:[]};
+  const original=process.env.DATABASE_URL;process.env.DATABASE_URL='test-only';
+  try{
+    let result=await record(input);
+    assert.equal(result.outcome,'preflight-awaiting-pdf-review');
+    assert.equal(result.imageEnrichment,'pending');
+    assert.deepEqual(result.blockingReasons,[]);
+    quality={...quality,missing_categories:7};
+    result=await record(input);
+    assert.equal(result.outcome,'preflight-quality-failed');
+    assert.deepEqual(result.blockingReasons,['missing-categories']);
+    assert.equal(result.imageEnrichment,'pending');
+  }finally{if(original===undefined)delete process.env.DATABASE_URL;else process.env.DATABASE_URL=original;}
+});
+
+test('47AV control center accepts parser with missing images, but not missing categories',()=>{
+  const period='2026-11-16-W47-AV',now=new Date('2026-11-15T14:30:00Z');
+  const run={checked_at:'2026-11-15T13:10:50Z',source:'k-citymarket-preflight',ok:false,offer_count:27,outcome:'preflight-awaiting-pdf-review',details:{period,quality:{total:27,missing_names:0,missing_prices:0,missing_images:27,missing_categories:0,unverified_prices:0},errors:[]}};
+  const result=status([run],now);
+  assert.equal(result.parserOk,true);
+  assert.equal(result.level,'yellow');
+  assert.equal(result.reviewed,false);
+  const invalid=status([{...run,outcome:'preflight-quality-failed',details:{...run.details,quality:{...run.details.quality,missing_categories:7}}}],now);
+  assert.equal(invalid.parserOk,false);
+  assert.equal(invalid.label,'TUOTETIETOJEN LAATUTARKASTUS EPÄONNISTUI');
+  const reviewed={checked_at:'2026-11-15T13:20:00Z',source:'k-citymarket-source-audit',ok:true,offer_count:27,outcome:'pdf-review-passed',details:{period}};
+  assert.equal(status([run,reviewed],now).level,'green','image-only gaps do not block reviewed publication status');
+  const legacy={...run,outcome:'preflight-awaiting-images'};
+  assert.equal(status([legacy],now).parserOk,true,'older pending-image records remain recognized');
 });

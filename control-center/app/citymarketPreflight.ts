@@ -43,19 +43,19 @@ export function citymarketPreflightStatus(runs:PreflightRun[],now=new Date(),kin
   const n=object(report?.details.next);
   const active=object(report?.details.active);
   const next=n.period===expected.period?n:active.period===expected.period?active:{};
-  const parserOk=report?.source==="k-citymarket-cache"?next.period===expected.period&&errors.length===0:report?.source==="k-citymarket-preflight"?report.outcome==="preflight-awaiting-pdf-review":report?.ok;
+  const parserOk=report?.source==="k-citymarket-cache"?next.period===expected.period&&errors.length===0:report?.source==="k-citymarket-preflight"?["preflight-awaiting-pdf-review","preflight-awaiting-images"].includes(report.outcome):report?.ok;
   const stale=expected.windowToday&&report&&now.getTime()-Date.parse(report.checked_at)>3*3600000;
   const archiveFailed=archive&&!archive.ok;
   // Automatic field checks and source capture do not constitute a manual full-PDF audit.
   const preflightQuality=object(preflight?.details.quality);
-  const metadataClean=Boolean(preflight)&&Number(preflightQuality.total??0)>0&&["missing_names","missing_prices","missing_images","missing_categories","unverified_prices"].every(key=>Number(preflightQuality[key]??NaN)===0);
+  const metadataClean=Boolean(preflight)&&Number(preflightQuality.total??0)>0&&["missing_names","missing_prices","missing_categories","unverified_prices"].every(key=>Number(preflightQuality[key]??NaN)===0);
   const auditIsNewer=Boolean(archive&&preflight&&Date.parse(archive.checked_at)>=Date.parse(preflight.checked_at));
   const reviewed=archive?.outcome==="pdf-review-passed"&&archive.ok&&parserOk&&metadataClean&&auditIsNewer;
   const started = report?.outcome === "preflight-started";
   const interrupted = started && now.getTime() - Date.parse(report.checked_at) >= 3*60000;
   const missingOverdue=!report&&now.getTime()>Date.parse(expected.expectedAt)+30*60000;
   const level=started?(interrupted?"red":"yellow"):!report?(missingOverdue?"red":"gray"):!parserOk||archiveFailed?"red":stale||!reviewed?"yellow":"green";
-  const label=started?(interrupted?"ENNAKKOPARSERIN AJO KESKEYTYI":"ENNAKKOPARSERIN AJO KÄYNNISSÄ"):!report?(missingOverdue?"ENNAKKOPARSERIN AJO PUUTTUU":"ODOTTAA ENSIMMÄISTÄ AJOA"):!parserOk?"PARSERIN ESITARKASTUS EPÄONNISTUI":archiveFailed?(archive.outcome==="source-archive-review-needed"?"LÄHDEAINEISTOSSA TARKISTETTAVAA":"LÄHDEARKISTON TARKISTUS EPÄONNISTUI"):stale?"TARKISTUS VANHENEE":reviewed?"PDF-TARKISTUS HYVÄKSYTTY":"AUTOMAATTITARKISTUS TEHTY · PDF-VERTAILU ODOTTAA";
+  const label=started?(interrupted?"ENNAKKOPARSERIN AJO KESKEYTYI":"ENNAKKOPARSERIN AJO KÄYNNISSÄ"):!report?(missingOverdue?"ENNAKKOPARSERIN AJO PUUTTUU":"ODOTTAA ENSIMMÄISTÄ AJOA"):!parserOk?(report.outcome==="preflight-quality-failed"?"TUOTETIETOJEN LAATUTARKASTUS EPÄONNISTUI":"PARSERIN ESITARKASTUS EPÄONNISTUI"):archiveFailed?(archive.outcome==="source-archive-review-needed"?"LÄHDEAINEISTOSSA TARKISTETTAVAA":"LÄHDEARKISTON TARKISTUS EPÄONNISTUI"):stale?"TARKISTUS VANHENEE":reviewed?"PDF-TARKISTUS HYVÄKSYTTY":"AUTOMAATTITARKISTUS TEHTY · PDF-VERTAILU ODOTTAA";
   const starts=matching.filter(r=>r.outcome==="preflight-started");
   const first=starts.at(-1)?.checked_at??auto.at(-1)?.checked_at??matching.filter(r=>r.source==="k-citymarket-preflight").at(-1)?.checked_at??null;
   return {...expected,level,label,first,
