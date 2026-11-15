@@ -13,7 +13,7 @@ test('mobile: cart campaign metadata survives browser storage and is rendered',a
  await page.goto(base,{waitUntil:'domcontentloaded',timeout:45000});
  await page.screenshot({path:'test-results/mobile-before-cart.png',fullPage:true});
  await expect(page.locator('body')).toBeVisible();
- const cart=page.getByRole('button',{name:/^Kori(?:\\s|$)/}).first();
+ const cart=page.getByRole('button',{name:/^Kori(?:\s|$)/}).first();
  await expect(cart,'Mobile Kori navigation must be available').toBeVisible({timeout:20000});
  await cart.click();
  await expect(page.getByText('Kirjolohiannospakkaus').first()).toBeVisible({timeout:15000});
