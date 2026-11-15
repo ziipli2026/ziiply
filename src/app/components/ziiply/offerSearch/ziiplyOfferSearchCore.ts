@@ -411,7 +411,7 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
         !/ranskalaiset|pakaste|perunalaatikko/.test(publicationTitle)) return "Hevi";
   }
   if (fromLidlPublication) {
-    if (/perunalaatikko/.test(publicationTitle)) return "Valmisruoka";
+    if (/(?:perunalaatikko|porkkanalaatikko|\brosolli\b|kauraruoka)/.test(publicationTitle)) return "Valmisruoka";
     if (/siipipalat|kanansiivet|hornet/.test(publicationTitle)) return "Liha & makkarat";
     if (/joulukaktus|tulilatva/.test(publicationTitle)) return "Koti & vapaa-aika";
     if (/sukkalanka|ompelutarvikelaatikko|pullotunkki|juomapullo/.test(publicationTitle)) return "Koti & vapaa-aika";
