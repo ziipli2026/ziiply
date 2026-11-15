@@ -31,6 +31,8 @@ test("Lidl source departments reject non-grocery offers before name heuristics",
   );
   assert.equal(categoryFor("Crelando Sukkalanka 2 kerää", "https://www.lidl.fi/h/ompelukone-ja-tarvikkeet/h10067530"), "Muut");
   assert.equal(categoryFor("Ultimate Speed Pullotunkki", "https://www.lidl.fi/h/auto-ja-moottoripyoerae/h10067538"), "Muut");
+  assert.equal(categoryFor("Joulukaktus", "https://www.lidl.fi/c/ruoka-ja-juoma/s10068374"), "Muut");
+  assert.equal(categoryFor("Kotimainen tulilatva", "https://www.lidl.fi/c/ruoka-ja-juoma/s10068374"), "Muut");
   assert.equal(categoryFor("Crivit Juomapullo", "https://www.lidl.fi/h/kuntoilu/h10067543"), "Muut");
   assert.equal(categoryFor("Kanan fileepihvit", "https://www.lidl.fi/h/lihat/h10095752"), "Liha & makkarat");
   assert.equal(categoryFor("Pyykinpesuaine", "https://www.lidl.fi/h/siivous/h1001"), "Kodinhoito");
