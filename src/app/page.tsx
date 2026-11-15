@@ -5344,6 +5344,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   const scannerDecodeFailureAtV861 = useRef(0);
   function pushScannerDebugV493(message: string) {
+    if (process.env.NODE_ENV !== "development") return;
     const line = `${new Date().toLocaleTimeString("fi-FI")} ${message}`;
     setScannerDebugLinesV493((previous) => [...previous, line].slice(-100));
   }
@@ -24365,29 +24366,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     }}
                   />
 
-                  <div className="relative z-[100] mx-auto w-full max-w-lg px-2 pb-2">
-                    <div className="pointer-events-auto mx-auto max-w-lg rounded-xl border border-amber-400 bg-slate-950/95 text-white shadow-2xl">
-                      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-                        <button type="button" className="text-xs font-black text-amber-300" onClick={() => setScannerDebugOpenV851((open) => !open)}>
-                          EAN DEBUG {scannerDebugOpenV851 ? "▼" : "▲"} ({scannerDebugLinesV493.length})
-                        </button>
-                        <div className="flex flex-wrap gap-2">
-                          <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => void copyScannerDebugV852()}>Kopioi teksti</button>
-                          <button type="button" className="rounded bg-emerald-700 px-2 py-1 text-[11px] font-bold" onClick={downloadScannerDebugV852}>Lataa TXT</button>
-                          <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => setScannerDebugLinesV493([])}>Tyhjennä</button>
+                  {process.env.NODE_ENV === "development" && (
+                    <div className="relative z-[100] mx-auto w-full max-w-lg px-2 pb-2">
+                      <div className="pointer-events-auto mx-auto max-w-lg rounded-xl border border-amber-400 bg-slate-950/95 text-white shadow-2xl">
+                        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                          <button type="button" className="text-xs font-black text-amber-300" onClick={() => setScannerDebugOpenV851((open) => !open)}>
+                            EAN DEBUG {scannerDebugOpenV851 ? "▼" : "▲"} ({scannerDebugLinesV493.length})
+                          </button>
+                          <div className="flex flex-wrap gap-2">
+                            <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => void copyScannerDebugV852()}>Kopioi teksti</button>
+                            <button type="button" className="rounded bg-emerald-700 px-2 py-1 text-[11px] font-bold" onClick={downloadScannerDebugV852}>Lataa TXT</button>
+                            <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => setScannerDebugLinesV493([])}>Tyhjennä</button>
+                          </div>
                         </div>
+                        {scannerDebugExportStatusV852 && <div role="status" className="px-3 pb-1 text-[11px] text-amber-200">{scannerDebugExportStatusV852}</div>}
+                        {scannerDebugOpenV851 && <textarea readOnly aria-label="Kopioitava skannerin debug-teksti" value={scannerDebugReportV852()} onFocus={(event) => event.currentTarget.select()} className="mx-2 mb-2 block h-20 w-[calc(100%-1rem)] resize-y rounded bg-white p-2 font-mono text-[11px] text-slate-900" />}
+                        {scannerDebugOpenV851 && <div className="max-h-[35dvh] overflow-y-auto border-t border-slate-700 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all">
+                          <div>EAN: {eanInput || "-"} | Kaupassa: {String(scannerInStoreRefV828.current)}</div>
+                          <div>S: {activeStores.sStoreName || "-"} ({activeStores.sStoreId || "-"})</div>
+                          <div>K: {activeStores.kStoreName || "-"} ({activeStores.kStoreId || "-"})</div>
+                          <div>Tila: {eanScannerMessage || eanMessage || "-"}</div>
+                          {scannerDebugLinesV493.map((line, index) => <div key={index}>{line}</div>)}
+                        </div>}
                       </div>
-                      {scannerDebugExportStatusV852 && <div role="status" className="px-3 pb-1 text-[11px] text-amber-200">{scannerDebugExportStatusV852}</div>}
-                      {scannerDebugOpenV851 && <textarea readOnly aria-label="Kopioitava skannerin debug-teksti" value={scannerDebugReportV852()} onFocus={(event) => event.currentTarget.select()} className="mx-2 mb-2 block h-20 w-[calc(100%-1rem)] resize-y rounded bg-white p-2 font-mono text-[11px] text-slate-900" />}
-                      {scannerDebugOpenV851 && <div className="max-h-[35dvh] overflow-y-auto border-t border-slate-700 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all">
-                        <div>EAN: {eanInput || "-"} | Kaupassa: {String(scannerInStoreRefV828.current)}</div>
-                        <div>S: {activeStores.sStoreName || "-"} ({activeStores.sStoreId || "-"})</div>
-                        <div>K: {activeStores.kStoreName || "-"} ({activeStores.kStoreId || "-"})</div>
-                        <div>Tila: {eanScannerMessage || eanMessage || "-"}</div>
-                        {scannerDebugLinesV493.map((line, index) => <div key={index}>{line}</div>)}
-                      </div>}
                     </div>
-                  </div>
+                  )}
 
                   <ZiiplyMobileScannerCard
                   onCaptureDiscountSticker={() => void scanRedStickerStillV863()}
