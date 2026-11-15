@@ -17,6 +17,7 @@ export type WatchOffer = {
   imageUrl?: string;
   validUntil?: string;
   validFrom?: string;
+  discountText?: string;
   ean?: string;
   nutrition?: unknown;
   bundleQuantity?: number;
@@ -39,6 +40,7 @@ export function mapWatchOffers(offers: unknown[], terms: string[]): WatchOffer[]
       bundleQuantity: Number(offer.bundleQuantity || source.multiBuyQuantity || source.offerQuantity) || undefined,
       bundleTotalPrice: Number(offer.bundleTotalPrice || source.multiBuyTotalPrice || offer.offerPrice || offer.price) || undefined,
       validFrom: String(offer.validFrom || source.validFrom || ""),
+      discountText: String(offer.discountText || source.discountText || offer.benefitText || source.benefitText || "").trim(),
       query: queries[0] || "",
       queries,
       title: String(offer.title || offer.name || offer.productName || "Tarjous"),

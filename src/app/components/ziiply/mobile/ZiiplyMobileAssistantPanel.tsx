@@ -20,7 +20,7 @@ export type ZiiplyMobileAssistantPanelProps = {
   onChangeChain?: (chain: "s"|"k"|"lidl"|"tokmanni", enabled:boolean) => void;
   locationLabel?: string;
   onOpenStoreSettings?: () => void;
-  onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string;imageUrl?:string;packageSize?:string;chain?:string;isWeightedProduct?:boolean;ziiplyPricePendingWeight?:boolean;estimatedWeightKg?:number;ean?:string;bundleQuantity:number;validityText?:string}) => boolean;
+  onAddWatchOfferToCart?: (product: {name:string;title:string;price:number;priceAmountUnit:"eur";storeName:string;source:string;imageUrl?:string;packageSize?:string;chain?:string;isWeightedProduct?:boolean;ziiplyPricePendingWeight?:boolean;estimatedWeightKg?:number;ean?:string;bundleQuantity:number;validityText?:string;discountText?:string;validFrom?:string;validUntil?:string}) => boolean;
 };
 
 function watchStoreLabel(store: string, chain = ""): string {
@@ -291,6 +291,7 @@ export default function ZiiplyMobileAssistantPanel({
                       packageSize: watchPackageSize(offer), chain: offer.chain, isWeightedProduct: pricing.weighted,
                       ziiplyPricePendingWeight: pricing.weighted, estimatedWeightKg: pricing.estimatedWeightKg, ean: offer.ean,
                       bundleQuantity: pricing.bundleQuantity, validityText: watchValidity(offer),
+                      discountText: offer.discountText, validFrom: offer.validFrom, validUntil: offer.validUntil,
                     });
                     if (added) setWatchNotice("Tarjous lisätty ostoskoriin.");
                   }} className="mt-2 mr-2 rounded-lg border border-[#174c35] bg-[#174c35] px-3 py-2 text-sm font-bold text-white">Lisää ostoskoriin</button>}
