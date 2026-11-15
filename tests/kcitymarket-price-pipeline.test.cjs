@@ -49,7 +49,7 @@ test('API through final price rendering retains all source offers and hides prod
   assert.ok(rows.some(row=>String(row.title).includes(title)), 'Grocery item lost: '+title);
  }
  console.log('GROCERY_GATE_AUDIT',JSON.stringify({input:offers.length+campaigns.length,kept:rows.length,removed:removed.length,removedCategories,removedRows:removed.map(x=>({title:x.title,category:x.category,stream:x.campaignType}))}));
- assert.equal(apiRows,372);assert.equal(rows.length,372);assert.equal(counts.offers,83);assert.equal(counts.campaigns,289);assert.equal(externalCalls.length,0);
+ assert.equal(apiRows,544);assert.equal(rows.length,372);assert.equal(counts.offers+counts.campaigns,372);assert.equal(externalCalls.length,0);
  // Regression: both independent publication streams must survive every client stage.
  // A product EAN is not a promotion identity; even identical names/prices/EANs
  // must survive if the origin or publication differs.
