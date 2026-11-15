@@ -91,14 +91,14 @@ jobs:
                     await page.getByRole('searchbox',{name:'Hae reseptejä'}).fill('maitokastike');
                     await page.getByRole('button',{name:'Hae reseptin tuotteet'}).click();
                   }else{
-                    if(mode==='watch') await page.getByRole('button',{name:'Avaa tarjousvahdin 1 osumaa'}).click();
-                    else{
-                      await page.getByText('Tarjoukset, hintahavainnot, säästövinkit ja tarjousvahdit.',{exact:true}).click();
-                      const input=page.getByRole('textbox',{name:'Etsi tarjouksia'});
-                      await input.fill('maito');
-                      await input.press('Enter');
+                    if(mode==='watch'){
+                      await page.getByRole('button',{name:'Avaa tarjousvahdin 1 osumaa'}).click();
+                      await page.getByRole('button',{name:/(?:Tavaratalot|Marketit).*\d+ tarjousta/}).first().click();
+                    }else{
+                      await page.getByRole('button',{name:'Avaa Gösta',exact:true}).click();
+                      await page.getByRole('button',{name:'S-ryhmä',exact:true}).click();
+                      await page.getByRole('button',{name:/Maitotuotteet/}).first().click();
                     }
-                    await page.getByRole('button',{name:/(?:Tavaratalot|Marketit).*\d+ tarjousta/}).first().click();
                   }
                   await page.getByText(name,{exact:true}).first().waitFor({timeout:15000});
                   const energy=page.getByText(/33 kcal.*141 kJ/).first();
