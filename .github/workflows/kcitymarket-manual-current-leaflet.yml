@@ -55,8 +55,8 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
-          # A quality failure (HTTP 503) is expected until every missing
-          # image/category is repaired. Still run the cache refresh below.
+          # Missing categories or parser errors may return HTTP 503; missing
+          # images alone must never block preflight. Continue cache refresh.
           status=$(curl --silent --show-error --output preflight.json --write-out '%{http_code}' --max-time 210 \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
             https://ziiply.vercel.app/api/cron/kcitymarket-preflight)
@@ -105,13 +105,9 @@ jobs:
             exit 0
           fi
           jq -e '.quality != null and .parsed != null' preflight.json >/dev/null
-          if jq -e '.outcome == "preflight-awaiting-images"' preflight.json >/dev/null; then
-            echo "::notice::Citymarket images still pending; final quality verdict deferred"
-            exit 0
-          fi
           jq -r '"Upcoming Citymarket: " + .period + " — " + (.quality.missing_images|tostring) + " missing images, " + (.quality.missing_categories|tostring) + " missing categories"' preflight.json
-          if ! jq -e '.quality.missing_images == 0 and .quality.missing_categories == 0 and .quality.missing_prices == 0 and .quality.unverified_prices == 0 and (.quality.suspicious_names // 0) == 0' preflight.json >/dev/null; then
+          if ! jq -e '.quality.missing_categories == 0 and .quality.missing_prices == 0 and .quality.unverified_prices == 0 and (.quality.suspicious_names // 0) == 0' preflight.json >/dev/null; then
             echo "::error::Upcoming Citymarket edition is incomplete; automated repair must continue"
             exit 1
           fi
-          echo "Upcoming edition has no missing image, category or price fields; PDF review remains independent"
+          echo "Upcoming edition has no blocking category or price fields; image enrichment and PDF review remain independent"
