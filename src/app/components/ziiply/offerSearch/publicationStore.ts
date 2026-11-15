@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { repairLidlPublicationCategory } from "./lidlPublicationCategoryRepair";
 import { queueMissingOfferImagesBestEffort } from "./queueMissingOfferImages";
 import {
   publicationState, type StagedPublication,
@@ -32,13 +33,16 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
       publicationState(candidate, candidate.validFrom) === "invalid") {
     throw new Error("Invalid or empty publication: existing data preserved");
   }
+  // Repair the inferred display taxonomy before persistence; keep the original
+  // sourceCategoryPath/sourceDepartmentPath fields unchanged.
+  const storedOffers = candidate.offers.map((offer) => repairLidlPublicationCategory(candidate.chain, offer));
   const sql = await database();
   const approvalState = options.approvalState || "approved";
   const result = await sql`INSERT INTO ziiply_offer_publications
     (chain, publication_id, valid_from, valid_until, parsed_at, offers, approval_state)
     VALUES (${candidate.chain}, ${candidate.id}, ${candidate.validFrom}::date,
       ${candidate.validUntil}::date, ${candidate.parsedAt}::timestamptz,
-      ${JSON.stringify(candidate.offers)}::jsonb, ${approvalState})
+      ${JSON.stringify(storedOffers)}::jsonb, ${approvalState})
     ON CONFLICT (chain, publication_id) DO UPDATE SET offers = (
       SELECT COALESCE(jsonb_agg(
         CASE
@@ -85,7 +89,7 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
     RETURNING (xmax = 0) AS inserted`;
   const outcome = result[0]?.inserted ? "stored" : "unchanged";
   if (outcome === "stored") {
-    await queueMissingOfferImagesBestEffort(candidate.offers.map((offer, index) => {
+    await queueMissingOfferImagesBestEffort(storedOffers.map((offer, index) => {
       const row = offer && typeof offer === "object" ? offer as Record<string, unknown> : {};
       return { ...row, chain: candidate.chain, publicationId: candidate.id,
         id: row.id || row.offerId || row.productId || `${candidate.id}:row:${index}` };
@@ -107,7 +111,8 @@ export async function readActivePublicationOffers<T>(chain: string, at: Date = n
     WHERE chain = ${chain} AND approval_state = 'approved' AND valid_from <= ${date}::date
       AND valid_until >= ${date}::date
     ORDER BY valid_from, valid_until, parsed_at DESC, publication_id DESC`;
-  return rows.flatMap((row) => Array.isArray(row.offers) ? row.offers as T[] : []);
+  return rows.flatMap((row) => Array.isArray(row.offers)
+    ? (row.offers as T[]).map((offer) => repairLidlPublicationCategory(chain, offer)) : []);
 }
 
 export async function readPublicationCandidate<T>(chain: string, publicationId: string) {
