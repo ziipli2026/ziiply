@@ -1033,6 +1033,12 @@ export async function GET(request: Request) {
             isPlussaOffer: original.isPlussaOffer }
         : row;
     });
+    // The master endpoint feeds Gösta on both mobile and desktop. Apply the
+    // same grocery eligibility rule after enrichment, not only in UI cards.
+    // Other query types retain their existing provider behavior.
+    const visibleOfferResults = q === MASTER_QUERY
+      ? safeOfferResults.filter((offer) => isGostaDailyGoodsOffer(offer))
+      : safeOfferResults;
     // Queue missing images for every chain, including the approved Citymarket
     // snapshot. This runs best-effort and must never block the search response.
     after(async () => {
@@ -1044,7 +1050,7 @@ export async function GET(request: Request) {
         ok: true,
         query: q,
         context,
-        results: safeOfferResults,
+        results: visibleOfferResults,
         sourceFailures: offerSourceDiagnostics.failures,
         citymarketNotice,
         kOfferStageAuditV1: hasKSelectionV20 ? (() => {
