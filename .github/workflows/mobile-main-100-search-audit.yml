@@ -5,6 +5,7 @@ on:
     branches: [main, test/search-chain-scope-validation-20261113, test/gosta-grocery-category-gate-20261114]
     paths:
       - ".github/workflows/mobile-main-100-search-audit.yml"
+      - "src/app/components/ziiply/offerSearch/**"
       - "src/app/components/ziiply/ziiplyCore.ts"
       - "src/app/components/ziiply/cards/ProductEnergy.tsx"
       - "src/app/components/ziiply/search/**"
