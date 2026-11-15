@@ -3,7 +3,7 @@
  * Pure logic: the caller owns geolocation permission, polling, UI and persistence.
  * Never changes a store selection or a cart price by itself.
  */
-export const ZIIPLY_STORE_RADIUS_METERS = 50;
+export const ZIIPLY_STORE_RADIUS_METERS = 30;
 export const ZIIPLY_APPROACH_RADIUS_METERS = 100;
 export const ZIIPLY_PARKED_SAMPLE_MS = 5000;
 const DEPARTURE_RADIUS_METERS = 200;

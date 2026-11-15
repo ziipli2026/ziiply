@@ -46,6 +46,21 @@ now=1036000;context.liveArrivalHandlerRefV864.current(null);
 assert.equal(context.scannerInStoreRefV828.current,false,'confirmation expires after 30 seconds');
 sample(40000,{speed:0});assert.equal(context.scannerInStoreRefV828.current,true,'fresh GPS recovers');
 sample(75000,{age:20000});assert.equal(context.scannerInStoreRefV828.current,false,'stale fixes do not confirm');
+assert.equal(ui,null,'expired GPS does not advertise an old store');
+for (const [meters, verified, checking] of [
+  [28,true,false], [32,false,true], [49,false,true], [6000,false,false],
+]) {
+  context.liveArrivalStateRefV864.current=initialZiiplyArrivalState();
+  context.liveArrivalDecisionRefV864.current=null;
+  const lat=60+meters/111195;
+  for (const elapsed of [80000,82500,85000].map(value=>value+meters*1000)) {
+    sample(elapsed,{lat,speed:0});
+  }
+  assert.equal(context.scannerInStoreRefV828.current,verified,`collection permission at ${meters} m`);
+  assert.equal(ui?.verified??false,verified,`green indicator at ${meters} m`);
+  assert.equal(ui?.checking??false,checking,`yellow indicator at ${meters} m`);
+  if (meters===6000) assert.equal(ui,null,'a remote selected store has no badge');
+}
 // Execute the real sampling effect with fake browser callbacks and timers.
 const effectStart=page.indexOf('  // V864: lightweight fresh samples');
 const effectEnd=page.indexOf('  // V737_RESUME_REFRESH_AFTER_LONG_BACKGROUND:',effectStart);
