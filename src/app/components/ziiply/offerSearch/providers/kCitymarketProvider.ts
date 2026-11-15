@@ -92,6 +92,12 @@ export function category(t:string){
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
+  // General food forms observed in 47AV. Classify by product type, not issue.
+  if(/(?:kanan\\s+pikkufilee|kanasuikale|kanan\\s+suikale)/.test(joined)) return "Liha & makkarat";
+  if(/(?:kaurafraiche|kaura\\s*fraiche)/.test(joined)) return "Maitotuotteet";
+  if(/(?:kauranaksu|vauvanaksu)/.test(joined) && /(?:\\d+[–-]\\d+\\s*kk|vauva|lasten)/.test(joined)) return "Lastenruoat";
+  if(/(?:navelinas|appelsiin)/.test(joined)) return "Hevi";
+  if(/(?:vitamiinivesi|vitamiinivedet)/.test(joined)) return "Juomat";
   // Reusable product-form taxonomy for the 46LV quality gaps.
   if(/(?:cocktailpasteij|pannukakku)/.test(joined)) return "Leipomo";
   if(/(?:crispy fish)/.test(joined)) return "Kala";
