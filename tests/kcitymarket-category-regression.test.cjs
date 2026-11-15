@@ -78,3 +78,8 @@ for(const [title,wanted] of [
  ["PERUNALASTUT 220 g","Makeiset & keksit"],
  ["LASTU 220 g","Muut"],
 ]) test("Plant protein and ambiguous lastu taxonomy: "+title,()=>assert.equal(context.classify(title),wanted));
+
+// 47AV printed page 17: the publisher's two MUU plant-protein variants share one offer.
+test("47AV page 17 full reviewed MUU title has correct category",()=>{
+ assert.equal(context.classify("MUU LIHATON- tai KANATON LASTU 220 g"),"Valmisruoka");
+});
