@@ -34,3 +34,22 @@ test('Public source first still preserves taxonomy when Lidl Plus wins', () => {
  assert.equal(rows[0].sourceCategoryPath,'Ruokaöljyt');
  assert.equal(rows[0].imageUrl,'https://example.test/public.jpg');
 });
+
+test('Lidl Plus first retains public source department without changing price', () => {
+ const rows=mergePeriodRows([
+  {...shared,source:'lidl-plus',price:2.5},
+  {...shared,source:'lidl-fi-public',price:3.5,sourceDepartmentPath:'/h/hedelmaet-ja-vihannekset'}
+ ]);
+ assert.equal(rows.length,1);
+ assert.equal(rows[0].price,2.5);
+ assert.equal(rows[0].sourceDepartmentPath,'/h/hedelmaet-ja-vihannekset');
+});
+test('Public source first retains department when Lidl Plus replaces the row', () => {
+ const rows=mergePeriodRows([
+  {...shared,source:'lidl-fi-public',price:3.5,sourceDepartmentPath:'/h/hedelmaet-ja-vihannekset'},
+  {...shared,source:'lidl-plus',price:2.5}
+ ]);
+ assert.equal(rows.length,1);
+ assert.equal(rows[0].price,2.5);
+ assert.equal(rows[0].sourceDepartmentPath,'/h/hedelmaet-ja-vihannekset');
+});
