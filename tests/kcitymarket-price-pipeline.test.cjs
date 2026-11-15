@@ -53,7 +53,7 @@ test('API through final price rendering retains all source offers and hides prod
  // Regression: both independent publication streams must survive every client stage.
  // A product EAN is not a promotion identity; even identical names/prices/EANs
  // must survive if the origin or publication differs.
- const sameProduct={ean:'6410000000001',title:'TESTITUOTE 500 g',price:1.29,campaignType:'offer'};
+ const sameProduct={ean:'6410000000001',title:'TESTITUOTE 500 g',category:'Maitotuotteet',price:1.29,campaignType:'offer'};
  const distinctSources=[
   {...sameProduct,__sourceOfferSearchResult:{...sameProduct,source:'K-Citymarket tarjouslehti',sourceUrl:'https://example.test/national',id:'kcm:spatial:1:sample:1.29'}},
   {...sameProduct,campaignType:'campaign',__sourceOfferSearchResult:{...sameProduct,campaignType:'campaign',source:'K-Citymarket kauppakohtainen julkaisu',provider:'kcitymarket-local',storeId:'fe95rtb',offerId:'offer-1',debug:{publicationId:'publication-1'}}},
