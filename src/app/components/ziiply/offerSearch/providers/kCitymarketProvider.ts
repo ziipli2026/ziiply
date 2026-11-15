@@ -602,7 +602,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // decorations; never change the price, quantity, package or unit metadata.
     // Limit to the 42AV archive until older leaflet regressions are verified.
     const rawTitle=repairCitymarketOCRTitle(clean(row?.title||""));
-    const title=verified45LV?.title??(/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle);
+    const titleBeforeSourceReview=verified45LV?.title??(/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle);
+    // Verified against the printed 47AV page 17: the OCR dropped the MUU brand
+    // and the LIHATON- tai KANATON qualifier, leaving only LASTU 220 g.
+    const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
+      ? "MUU LIHATON- tai KANATON LASTU 220 g" : titleBeforeSourceReview;
     if(!title || isNoiseLine(title)) continue;
     // 45AV page 3: Innocent juice 900 ml OR smoothie 750 ml, 3.49 € incl. 0.20 € deposit.
     // The printed unit-price range is 3.66–4.39 €/l excluding deposit.
