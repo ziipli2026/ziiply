@@ -256,6 +256,14 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
       category,
       categoryPath: category,
       mainCategory: category,
+      // Preserve only actual source taxonomy. Never copy the inferred
+      // display category into sourceCategoryPath: that would make a wrong
+      // classification look like authoritative upstream evidence.
+      sourceCategoryPath: String(
+        row?.sourceCategoryPath || row?.categoryHierarchy ||
+        row?.categoryBreadcrumb || row?.categoryPath ||
+        row?.departmentPath || row?.categoryName || "",
+      ).trim(),
       productIds: Array.isArray(row?.productIds) ? row.productIds : [],
       lidlProductIds: Array.isArray(row?.productIds)
         ? row.productIds.map((value: unknown) => String(value || "").trim()).filter(Boolean)
