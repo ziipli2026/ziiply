@@ -51,3 +51,28 @@ test("Lidl Plus keeps citrus fruit and excludes obvious non-food", () => {
   assert.equal(classify("Mandariini 1 kg"), "Hevi");
   assert.equal(classify("Auton akkulaturi"), "Muut");
 });
+
+test("K-Citymarket live 46LV category fixes precede broad fallback", () => {
+  const provider = fs.readFileSync("src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts", "utf8");
+  const start = provider.indexOf("export function category(t:string){");
+  const fallback = provider.indexOf("// Reusable product-form taxonomy", start);
+  assert.ok(start >= 0 && fallback > start);
+  const early = provider.slice(start, fallback);
+  assert.match(early, /uunirapeat/);
+  assert.match(early, /suihkumousset/);
+  assert.match(early, /perunat/);
+  const cases = [
+    ["UUNIRAPEAT RANSKALAISET 500 g Pakaste", "Pakasteet"],
+    ["SUIHKUMOUSSET 200 ml", "Hygienia & kosmetiikka"],
+    ["KIINTEÄ, YLEIS, JAUHOINEN ja JAZZY PERUNAT 1 kg Suomi", "Hevi"],
+  ];
+  const checks = [
+    [/uunirapeat\s+ranskalaiset|ranskalaiset\s+perunat/, "Pakasteet"],
+    [/suihkumousset?|suihkuvaahto/, "Hygienia & kosmetiikka"],
+    [/\bperunat\b|\bperuna\s+1\s*kg\b/, "Hevi"],
+  ];
+  for (const [title, expected] of cases) {
+    const match = checks.find(([re]) => re.test(title.toLowerCase()));
+    assert.equal(match?.[1], expected, title);
+  }
+});
