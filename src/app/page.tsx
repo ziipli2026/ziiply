@@ -4826,6 +4826,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [storesReadyForSearch, searchReadySignatureV320]);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
+  const [previewNormalResults, setPreviewNormalResults] = useState<Product[]>([]);
+  const dismissedNormalPreview = useRef<number | null>(null);
   const [mobileResultsReadyQueryV537, setMobileResultsReadyQueryV537] = useState("");
   const mobileResultsReadyQueryRefV509 = useRef("");
   const voiceResultWaitResolverRefV509 = useRef<null | (() => void)>(null);
@@ -13034,6 +13036,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
+    setPreviewNormalResults([]);
     const searchTelemetryV441 = beginSearchTelemetry(forceEan ? "ean" : "normal");
     const unregisterProductRecovery = registerZiiplyRecoverableRequest('justiina-visible-search', {
       kind: 'product-search', startedAt: Date.now(),
@@ -13100,21 +13103,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               stores.push({chain:sparStore === selectedEurosparStoreV751 ? "SPAR" : "TOKMANNI", id:sparStore.id, name:sparStore.name || "SPAR"});
             }
           }
-          const {sortedRows} = await searchNormalStores(term, stores, {trace: traceSearch});
-          if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
-          for (const row of sortedRows) {
+          const shapeResult = (row: any): Product | null => {
             const shaped = normalizeSProduct({
               ...row, ean: row.ean || row.barcode || row.product?.ean,
               price: row.__price, priceAmountUnit: "eur",
               comparisonPriceAmountUnit: row.comparisonPriceAmountUnit ?? row.priceAmountUnit ??
                 (row.__chain === "S" && row.__priceSource === "s-kaupat-normal-v220" ? "eur" : "cent"),
             });
-            if (shaped) all.push({
+            return shaped ? {
               ...row, ...shaped, originalSearchTerm: term, usedSearchQuery: term,
               storeName: row.__store, __recipeChain: row.__chain, __recipeStoreName: row.__store,
               ...(row.priceVerified === false ? {price: undefined, storeItems: []} : {}),
-            });
-          }
+            } : null;
+          };
+          const {sortedRows} = await searchNormalStores(term, stores, {
+            trace: traceSearch,
+            onInitialRows: (isMainSearch || effectiveSearchCompareMode === "single") &&
+              focusedSearchTerms.length === 1 && useTerms.length === 1
+              ? rows => {
+                  if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current ||
+                      dismissedNormalPreview.current === normalSearchRequestIdV441) return;
+                  const preview = rows.map(shapeResult).filter((row): row is Product => row !== null);
+                  if (!preview.length) return;
+                  setPreviewNormalResults(preview);
+                  traceSearch("display-initial", { products: traceProducts(preview) });
+                }
+              : undefined,
+          });
+          if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+          all.push(...sortedRows.map(shapeResult).filter((row): row is Product => row !== null));
           continue;
         }
         const coverageQueries=recipeCoverageQueries(term,recipeIngredient,[...new Set(getNormalSearchQueries(term))].slice(0,6));
@@ -13474,7 +13491,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       traceSearch("display-final", { products: traceProducts(unique), debugEntries });
       mobileSearchTraceRef.current.status = "completed";
       setNormalResultsStableV441(unique);
-      setMobileResultsReadyQueryV537(readyQueryV441);
+      setMobileResultsReadyQueryV537(dismissedNormalPreview.current === normalSearchRequestIdV441 ? "" : readyQueryV441);
       const pricedCountV441 = unique.filter((product: Product) => getProductPrice(product) > 0).length;
 
       finishSearchTelemetry(searchTelemetryV441, pricedCountV441 > 0 ? "priced_results" : "no_priced_results", pricedCountV441);
@@ -13553,6 +13570,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       unregisterProductRecovery();
       cancelSearchTelemetry(searchTelemetryV441);
       if (normalSearchRequestIdV441 === activeNormalSearchRequestRefV441.current) {
+        setPreviewNormalResults([]);
         setLoadingNormal(false);
       }
     }
@@ -24212,19 +24230,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             <ZiiplyMobileSearchResultsCard
               compact={mobileRecipeSearchActive}
               open={
-                searchPanelOpen && (mobileRecipeSearchActive || (
+                searchPanelOpen && (mobileRecipeSearchActive || (loadingNormal && previewNormalResults.length > 0) || (
                 !loadingNormal && normalResults.length > 0 && mobileResultsReadyQueryV537.length > 0))
               }
               emptyText={mobileRecipeSearchActive?"Tälle ainekselle ei löytynyt sopivaa tuotetta valitun kaupan hakutiedoista. Voit ohittaa aineksen.":undefined}
               loading={mobileRecipeSearchActive && loadingNormal}
               title={mobileRecipeSearchActive ? activeNormalSearchTerm || "Reseptin tuotteet" : activeNormalSearchTerm || "Tuotteet"}
-              products={normalResults}
+              products={loadingNormal && !mobileRecipeSearchActive ? previewNormalResults : normalResults}
+              completing={!mobileRecipeSearchActive && loadingNormal && previewNormalResults.length > 0}
               onDownloadDebug={downloadMobileSearchTrace}
               onSkip={mobileRecipeSearchActive?()=>{
                 resolveVoiceResultWaitV509("recipe ingredient skipped");
               }:undefined}
               onClose={() => {
                 recordSearchResultsDismissed();
+                if (loadingNormal && !mobileRecipeSearchActive) {
+                  dismissedNormalPreview.current = activeNormalSearchRequestRefV441.current;
+                  setPreviewNormalResults([]);
+                }
                 if(mobileRecipeSearchActive){
                   mobileRecipeRunRef.current++;activeNormalSearchRequestRefV441.current++;
                   mobileRecipeContextRef.current=null;setMobileRecipeSearchActive(false);
@@ -24247,6 +24270,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 // onnistunut lista Löytöluetteloa varten; seuraava valmistunut
                 // normaali haku korvaa sen searchNormalPrices-polussa.
                 if(!addProductToCart(product as Product))return;
+                if (loadingNormal && !mobileRecipeSearchActive) {
+                  dismissedNormalPreview.current = activeNormalSearchRequestRefV441.current;
+                  setPreviewNormalResults([]);
+                }
                 resolveVoiceResultWaitV509("results-add");
                 if(!mobileRecipeSearchActive)setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);

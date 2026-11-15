@@ -41,6 +41,7 @@ export type ZiiplyMobileSearchResultProduct = {
 export type ZiiplyMobileSearchResultsCardProps = {
   open?: boolean;
   loading?: boolean;
+  completing?: boolean;
   title?: string;
   emptyText?:string;
   products?: ZiiplyMobileSearchResultProduct[];
@@ -255,6 +256,7 @@ function formatComparisonPrice(product: ZiiplyMobileSearchResultProduct, rawPric
 export default function ZiiplyMobileSearchResultsCard({
   open = false,
   loading = false,
+  completing = false,
   title = "Löydökset",
   emptyText="Ei löydöksiä luettelossa vielä.",
   products = [],
@@ -288,8 +290,8 @@ export default function ZiiplyMobileSearchResultsCard({
                 className="relative h-5 text-[0.78rem] font-black uppercase tracking-[0.42em] text-[#7d6b45]"
                 style={{ fontFamily: copper }}
               >
-                <span className={loading ? "invisible" : ""}>LÖYTÖLUETTELO</span>
-                <span role="status" aria-live="polite" className="absolute inset-0 truncate text-sm normal-case tracking-normal">{loading ? "Haetaan tuotteita…" : ""}</span>
+                <span className={loading || completing ? "invisible" : ""}>LÖYTÖLUETTELO</span>
+                <span role="status" aria-live="polite" className="absolute inset-0 truncate text-sm normal-case tracking-normal">{loading ? "Haetaan tuotteita…" : completing ? "Haetaan lisää tuotteita…" : ""}</span>
               </div>
 
               <div className="mt-1">
