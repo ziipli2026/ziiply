@@ -698,7 +698,7 @@ import { comparisonAlternativeQueries, comparisonBrand, comparisonTypeCompatible
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
 import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordSearchProductAddedToCart, recordSearchResultsDismissed } from "./components/ziiply/search/searchTelemetry";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
-import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
+import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS, ZIIPLY_STORE_RADIUS_METERS } from "./components/ziiply/location/ziiplyArrivalSequence";
 import { recordArrivalDiagnostic, getArrivalDiagnostics, clearArrivalDiagnostics } from "./components/ziiply/location/ziiplyArrivalDiagnostics";
 import { scannerStickerPrice } from "../lib/scannerStickerPrice";
 import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
@@ -14519,7 +14519,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   // V819: etänä koottu kori on vahva ennakkotieto keräyskaupasta.
-  // GPS vahvistaa tätä hypoteesia, mutta 50 m turvaraja ja viereisten kauppojen
+  // GPS vahvistaa tätä hypoteesia, mutta 30 m turvaraja ja viereisten kauppojen
   // ristiriita ratkaisevat, voidaanko keräilysessio avata ilman kysymystä.
   function resolveScannerStorePromptV828(inStore: boolean) {
     if (scannerStorePromptTimerRefV828.current) {
@@ -14573,7 +14573,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
     ].filter((name) => name && !name.startsWith("Valitse ensin"));
     const sharedVisit=liveArrivalDecisionRefV864.current;
-    if(sharedVisit?.status==="in-store"&&sharedVisit.isSelectedStore){
+    if (usingOwnLocation && sharedVisit?.status === "in-store" && sharedVisit.isSelectedStore &&
+        Date.now() - liveArrivalLastFixAtRefV864.current <= 30000 &&
+        currentSelectedScannerNamesV832.some(name => normalize(name) === sharedVisit.store?.id)) {
       scannerStoreCheckDoneRefV791.current=true;
       scannerInStoreRefV828.current=true;
       scannerConfirmedStoreNameRefV828.current=sharedVisit.store?.name||"";
@@ -14612,7 +14614,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const selectedName = selectedNames.length === 1 ? selectedNames[0] : "";
     // V860: an explicitly selected shop wins over stale basket history.
     const intendedName = selectedName || selectedNames[0] || cartTarget?.name || "";
-    setScannerLocationStatusV855(intendedName?{name:intendedName,verified:false,checking:true}:null);
 
     if (!intendedName) {
       // No store can be named reliably. Scanner remains useful, but not as collection.
@@ -14634,7 +14635,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       scannerStoreCheckDoneRefV791.current = false;
       scannerInStoreRefV828.current = false;
       scannerConfirmedStoreNameRefV828.current = "";
-      setScannerLocationStatusV855({name:intendedName,verified:false,checking:false});
       return false;
     };
     if (!usingOwnLocation || !intendedStore || typeof navigator === "undefined" || !navigator.geolocation) {
@@ -14664,13 +14664,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const freshIntendedDistanceV854 = freshStoreDistanceV854(intendedStore);
     const freshNearbyStoresV854 = allStores.filter((store) => {
       const distance = freshStoreDistanceV854(store);
-      return distance != null && distance <= 0.05;
+      return distance != null && distance <= ZIIPLY_STORE_RADIUS_METERS / 1000;
     });
     const freshCompetitorV854 = freshNearbyStoresV854.some((store) =>
       normalize(String(store.name || "")) !== normalize(intendedName),
     );
     if (freshIntendedDistanceV854 != null &&
-        freshIntendedDistanceV854 <= 0.05 &&
+        freshIntendedDistanceV854 <= ZIIPLY_STORE_RADIUS_METERS / 1000 &&
         !freshCompetitorV854 &&
         freshScannerPositionV854.coords.accuracy <= 35 &&
         liveDecisionV864?.status === "in-store" && liveDecisionV864.isSelectedStore) {
@@ -15380,7 +15380,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       scannerStoreCheckDoneRefV791.current = false;
       scannerInStoreRefV828.current = false;
-      if (eanScannerOpen) setScannerLocationStatusV855(current => current ? {...current, verified:false, checking:true} : null);
+      if (eanScannerOpen) setScannerLocationStatusV855(null);
       return;
     }
     // Reuse the existing GPS sample; do not start a second geolocation watcher.
@@ -15427,10 +15427,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     scannerStoreCheckDoneRefV791.current = verified;
     scannerInStoreRefV828.current = verified;
     scannerConfirmedStoreNameRefV828.current = verified ? (decision.store?.name || names.find(name => normalize(name) === decision.state.arrivalStoreId) || "") : "";
-    setScannerLocationStatusV855({
-      name:decision.store?.name || names[0] || "",
-      verified, checking:decision.status === "checking" || decision.status === "near-store" || decision.status === "uncertain",
-    });
+    const nearbyStore = decision.status === "near-store" && decision.isSelectedStore;
+    setScannerLocationStatusV855(decision.store && (verified || nearbyStore)
+      ? { name: decision.store.name, verified, checking: nearbyStore }
+      : null);
   };
 
   function checkScannerLocationOnOpenV856() {
@@ -15459,7 +15459,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanModalClosing(false);
     setEanModalOpen(true);
     const existingVisit = liveArrivalDecisionRefV864.current;
-    const confirmedName = existingVisit?.status === "in-store" && existingVisit.isSelectedStore && Date.now() - liveArrivalLastFixAtRefV864.current <= 30000 ? existingVisit.store?.name : null;
+    const confirmedName = usingOwnLocation && existingVisit?.status === "in-store" && existingVisit.isSelectedStore && Date.now() - liveArrivalLastFixAtRefV864.current <= 30000 ? existingVisit.store?.name : null;
     scannerStoreCheckDoneRefV791.current = !!confirmedName;
     scannerInStoreRefV828.current = !!confirmedName;
     scannerConfirmedStoreNameRefV828.current = confirmedName || "";
