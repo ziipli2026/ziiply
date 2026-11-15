@@ -428,6 +428,36 @@
         "kcm:spatial:14:nenäliina 75 kpl:3": "/citymarket-leaflets/c7d245954ea194da21e7ca094d47279f027f2ffd03641f7f19771f31b2dc83e6/images.svg#0c283da17cfb98aa5660",
         "kcm:spatial:14:kostea wc-paperi 42 kpl:4.9": "/citymarket-leaflets/c7d245954ea194da21e7ca094d47279f027f2ffd03641f7f19771f31b2dc83e6/images.svg#a51157ff5d6b853636f2"
       }
+    },
+    "https://kcm-tarjouslehdet.k-ruoka.fi/93b9o08_tarjouslehti_47AV_KCM/index.html": {
+      "pdfSha256": "16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985",
+      "pageCount": 20,
+      "offerCount": 27,
+      "images": {
+        "kcm:spatial:1:navelinas appelsiini 1,5 kg:2": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#86bc62eb5ed4cfcce98c",
+        "kcm:spatial:1:jauheliha 700 g:1": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#d23cd641266a2241bd79",
+        "kcm:spatial:1:kiviuunipizzat 310–350 g:3.6": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#814982b7e32183f4a8b4",
+        "kcm:spatial:15:keltasipuli 500 g:0.59": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#7f21cb52778a38d3ef5c",
+        "kcm:spatial:16:classic täysmehut 1 l:2.8": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#f5318e3eb0132f656bb2",
+        "kcm:spatial:16:protein rahkat 200 g:9": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#6ee105dbd50d9e431860",
+        "kcm:spatial:16:danone actimel jogurttijuomat 8 x 100 g:9": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#575a620c421bc53bc245",
+        "kcm:spatial:16:kaurajuomat 1 l:1.95": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#55fb832e0125ff16f2b5",
+        "kcm:spatial:17:siskonmakkara 300 g:2.5": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#a9d4bc8c48d511894d2c",
+        "kcm:spatial:17:lastu 220 g:3.49": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#2504bb77460c4c27ac19",
+        "kcm:spatial:17:juustoburgeri 205 g:9": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#076a0d8a297c1d8d66a7",
+        "kcm:spatial:18:kanan pikkufileet 340 g:4.5": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#a5750fd7f446f8603f70",
+        "kcm:spatial:18:kanasuikaleet 200 g:2": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#1ea7f3c11cf20bbdf8f9",
+        "kcm:spatial:18:kaurafraiche 150 g:1.5": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#251d663594670e91c896",
+        "kcm:spatial:18:döner pitakebab 195 g:1.95": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#9fb126dbb2798c3cdf02",
+        "kcm:spatial:18:riisipuuro 300 g:1.33": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#8e17fab9a42ccf2c05c3",
+        "kcm:spatial:19:maapähkinävoit 600 g:5.99": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#fa13ec193c3c9da581d2",
+        "kcm:spatial:19:kauranaksut 6–12 kk 25–35 g:percent:15": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#a5438cb2640ba9899b52",
+        "kcm:spatial:20:vitamiinivedet 1,5 l/pl:4": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#cef426c1e5066aa60cb2",
+        "kcm:spatial:20:virvoitusjuomat:4": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#ebc4b7458b4b1f4635cf",
+        "kcm:spatial:20:isotonic urheilujuomat:4.6": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#4c32e5700c413c42cdeb",
+        "kcm:spatial:20:virvoitusjuomat:3.99": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#0a2ad2a36027a33e25cb",
+        "kcm:spatial:20:energiajuomat 0,25 l/tlk:4": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#19669103a81f29a099eb"
+      }
     }
   }
 }
