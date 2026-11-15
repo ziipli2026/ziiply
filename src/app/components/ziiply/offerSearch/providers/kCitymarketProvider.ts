@@ -141,7 +141,7 @@ export function category(t:string){
   if(/(?:kasvovoide|kasvoseerumi|collagen lifter|hyaluron expert|triple active|\bexpert\b.*\blifter\b)/.test(s)) return "Hygienia & kosmetiikka";
   if(/(?:wc[- ]?spray|wc[- ]?suihke)/.test(s)) return "Kodinhoito";
   if(/(?:säilytys\s*laatikko|säilytyslaatikko|förvaringslådor|otsalamppu)/.test(s)) return "Koti & vapaa-aika";
-  if(/(?:rouskuva|tulinen).*(?:110[–-]170\s*g)/.test(s)) return "Makeiset & keksit";
+  if(/(?:rouskuva|tulinen).*(?:110[–-]170\s*g)/.test(s)) return "Hevi";
   if(/(?:puruluu|puruluut)/.test(s)) return "Lemmikit";
   if(/(?:0[,.]33\s*l\/tlk\s*8[- ]?pack|8[- ]?pack\s*8[- ]?pack)/.test(s)) return "Juomat";
   if(/(?:oivariini)/.test(s)) return "Maitotuotteet";
