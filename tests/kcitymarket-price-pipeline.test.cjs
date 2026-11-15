@@ -42,8 +42,14 @@ test('API through final price rendering retains all source offers and hides prod
  const keptIds=new Set(rows.map(x=>String(x.source?.id??x.id)));
  const removed=[...inputById.values()].filter(x=>!keptIds.has(String(x.id)));
  const removedCategories=removed.reduce((acc,x)=>(acc[x.category]=(acc[x.category]||0)+1,acc),{});
+ assert.equal(removed.length,172,'Unexpected change in grocery gate exclusions');
+ assert.equal(removedCategories['Koti & vapaa-aika'],155);
+ assert.equal(removedCategories['Muut'],17);
+ for (const title of ['VIHREÄ tai - TUMMA 2 RS RYPÄLE','KASSLER n. 2,3 kg','MÄRKÄRUOAT 70 g','PURULUUT 160–180 g','PALVISIIVUT','WC-SPRAY 435 ml']) {
+  assert.ok(rows.some(row=>String(row.title).includes(title)), 'Grocery item lost: '+title);
+ }
  console.log('GROCERY_GATE_AUDIT',JSON.stringify({input:offers.length+campaigns.length,kept:rows.length,removed:removed.length,removedCategories,removedRows:removed.map(x=>({title:x.title,category:x.category,stream:x.campaignType}))}));
- assert.equal(apiRows,544);assert.equal(rows.length,544);assert.equal(counts.offers,89);assert.equal(counts.campaigns,455);assert.equal(externalCalls.length,0);
+ assert.equal(apiRows,372);assert.equal(rows.length,372);assert.equal(counts.offers,83);assert.equal(counts.campaigns,289);assert.equal(externalCalls.length,0);
  // Regression: both independent publication streams must survive every client stage.
  // A product EAN is not a promotion identity; even identical names/prices/EANs
  // must survive if the origin or publication differs.
