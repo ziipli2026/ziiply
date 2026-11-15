@@ -4,6 +4,15 @@ import fitz
 
 def category(name):
  s=unicodedata.normalize('NFKD',name).encode('ascii','ignore').decode().lower()
+ # Grocery product forms from real EUROSPAR 45/26; do not silently hide them as Muut.
+ if re.search(r'pakka?s?marja|pakastemansikka|poronkaristys',s):return 'Pakasteet'
+ if re.search(r'\bvoi\b|juusto|maito|jogur|rahka|kerma',s):return 'Maitotuotteet'
+ if re.search(r'\blenkit\b|\bporonkaristys\b|\bporonkäristys\b',s):return 'Liha & makkarat'
+ if re.search(r'tahtitort|tuplapuusti|ruispala|kaurapala|torttu|leipa|leiva',s):return 'Leipomo'
+ if re.search(r'lasagne|\bpasta\b|\bruukut\b',s):return 'Valmisruoka'
+ if re.search(r'persimon|avocado|avokado|kerakaali|meloni|\bsipuli\b',s):return 'Hevi'
+ if re.search(r'\bmehu\b|taysmehu',s):return 'Juomat'
+ if re.search(r'maissilastu|tortilla|dippikastike',s):return 'Kuivatuotteet'
  if re.search(r'jaatel|pakaste',s):return 'Pakasteet'
  if re.search(r'pasteija|leip|leiv|piirakka|munkki|sampyl|donitsi|pulla',s):return 'Leipomo'
  if re.search(r'mikroateria|pizza|valmisateria',s):return 'Valmisruoka'
