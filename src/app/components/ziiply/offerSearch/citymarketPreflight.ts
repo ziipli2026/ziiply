@@ -83,32 +83,17 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
     }
 
   }
-  // Missing images alone are not a parser failure: the independent publisher-image
-  // workflow must complete before the final quality decision is recorded.
-  const helsinkiHour = Number(new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/Helsinki", hour: "2-digit", hourCycle: "h23",
-  }).format(new Date()));
-  // Do not hide an unresolved image pipeline forever. The final evening
-  // preflight reports a real failure if images are still absent after 23:00.
-  const imageDeadlineReached = helsinkiHour >= 23;
+  // Image enrichment is an independent background workflow. Missing images never
+  // turn a successfully parsed edition into a parser failure, at any hour.
   const parserReady = Boolean(input.parsed && errors.length === 0 && quality &&
     quality.total === input.parsed.offers && quality.total > 0 &&
     quality.missing_names === 0 && (quality.suspicious_names ?? 0) === 0 &&
     quality.missing_prices === 0 && quality.unverified_prices === 0);
-  const awaitingImages = Boolean(!imageDeadlineReached && parserReady && quality &&
-    quality.missing_images > 0 && quality.missing_categories === 0);
-  const failed = !input.parsed || errors.length > 0 || !quality || quality.total === 0 ||
-    quality.total !== input.parsed.offers || quality.missing_names > 0 ||
-    (quality.suspicious_names ?? 0) > 0 || quality.missing_prices > 0 ||
-    quality.missing_categories > 0 || quality.unverified_prices > 0 ||
-    (imageDeadlineReached && quality.missing_images > 0);
+  const failed = !parserReady || Boolean(quality?.missing_categories);
+  const imageEnrichment = !quality ? "unknown" : quality.missing_images > 0 ? "pending" : "complete";
   const outcome = !input.parsed ? "preflight-parser-failed" : !quality ? "preflight-snapshot-missing" :
-    awaitingImages ? "preflight-awaiting-images" : failed ? "preflight-quality-failed" : "preflight-awaiting-pdf-review";
-  const pending = awaitingImages || (!failed && quality?.missing_images === 0);
-  // Report independent pipeline failures separately: a category failure must not
-  // imply that image enrichment has already failed before its deadline.
-  const imageEnrichment = !quality ? "unknown" : quality.missing_images === 0 ? "complete" :
-    imageDeadlineReached ? "failed" : "pending";
+    failed ? "preflight-quality-failed" : "preflight-awaiting-pdf-review";
+  const pending = !failed;
   const blockingReasons = [
     ...(!input.parsed ? ["parser-no-result"] : []),
     ...(errors.length ? ["parser-errors"] : []),
@@ -119,7 +104,6 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
     ...(quality?.missing_prices ? ["missing-prices"] : []),
     ...(quality?.missing_categories ? ["missing-categories"] : []),
     ...(quality?.unverified_prices ? ["unverified-prices"] : []),
-    ...(imageEnrichment === "failed" ? ["missing-images-after-deadline"] : []),
   ];
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
     quality, missingCategoryTitles, missingImageTitles, suspiciousNameTitles, errors,
