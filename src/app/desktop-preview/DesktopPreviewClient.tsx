@@ -2740,7 +2740,9 @@ export default function DesktopPreviewPage() {
     if(justiinaQuery.trim().length<2)return;
     // Sama ehto kuin mobiilissa: pelkkä paluu/remount ei laukaise uutta hakua.
     if(!justiinaUserEditedRef.current || justiinaLastSearchedRef.current===justiinaQuery.trim() || justiinaSuppressedTermsRef.current.has(justiinaQuery.trim().toLowerCase()))return;
-    const timer=window.setTimeout(()=>{void startDesktopNormalSearch(justiinaQuery)},justiinaDelay*1000);
+    const timer=window.setTimeout(()=>{
+      if (justiinaUserEditedRef.current) void startDesktopNormalSearch(justiinaQuery);
+    },justiinaDelay*1000);
     return ()=>window.clearTimeout(timer);
   // Deliberately trigger only on user query edits, not result updates.
   // eslint-disable-next-line react-hooks/exhaustive-deps
