@@ -52,7 +52,19 @@ export async function storeParsedPublication<T>(candidate: StagedPublication<T>,
           THEN jsonb_set(COALESCE(previous.value, '{}'::jsonb) || incoming.value,
             '{imageUrl}', previous.value->'imageUrl', true)
           ELSE COALESCE(previous.value, '{}'::jsonb) || incoming.value
-        END ORDER BY incoming.ordinality), '[]'::jsonb)
+        END ||
+        -- Never erase verified original taxonomy when a subsequent refresh
+        -- omits it or sends an empty placeholder. Keep source provenance
+        -- independent of the inferred category/categoryPath display fields.
+        CASE WHEN COALESCE(incoming.value->>'sourceCategoryPath','') = ''
+                  AND COALESCE(previous.value->>'sourceCategoryPath','') <> ''
+          THEN jsonb_build_object('sourceCategoryPath', previous.value->>'sourceCategoryPath')
+          ELSE '{}'::jsonb END ||
+        CASE WHEN COALESCE(incoming.value->>'sourceDepartmentPath','') = ''
+                  AND COALESCE(previous.value->>'sourceDepartmentPath','') <> ''
+          THEN jsonb_build_object('sourceDepartmentPath', previous.value->>'sourceDepartmentPath')
+          ELSE '{}'::jsonb END
+        ORDER BY incoming.ordinality), '[]'::jsonb)
       FROM jsonb_array_elements(EXCLUDED.offers) WITH ORDINALITY AS incoming(value, ordinality)
       LEFT JOIN LATERAL (
         SELECT old.value FROM jsonb_array_elements(ziiply_offer_publications.offers) AS old(value)
