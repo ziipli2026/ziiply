@@ -327,6 +327,28 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                       >
                         {name}
                       </div>
+                      {(() => {
+                        const offer = { ...product, ...cartItem };
+                        const source = offer.__sourceOfferSearchResult || {};
+                        const rawDiscount = String(offer.discountText || source.discountText || "").trim();
+                        const isValidity = (value: string) => /^(?:voimassa(?:oloaika)?\b|(?:\d{4}-\d{2}-\d{2}|\d{1,2}\.(?:\d{1,2}\.)?)\s*(?:[–—-]|$))/i.test(value);
+                        const discount = isValidity(rawDiscount) ? "" : rawDiscount;
+                        const dateLabel = (value: unknown) => {
+                          const raw = String(value || "").trim();
+                          const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                          if (iso) return `${Number(iso[3])}.${Number(iso[2])}.`;
+                          const local = raw.match(/^(\d{1,2})\.(\d{1,2})\./);
+                          return local ? `${Number(local[1])}.${Number(local[2])}.` : "";
+                        };
+                        const from = dateLabel(offer.validFrom || source.validFrom);
+                        const until = dateLabel(offer.validUntil || offer.validTo || source.validUntil || source.validTo);
+                        const validity = String(offer.validityText || source.validityText || (isValidity(rawDiscount) ? rawDiscount : "")).trim()
+                          || (from && until ? `Voimassa ${from}–${until}` : until ? `Voimassa ${until} saakka` : from ? `Voimassa alkaen ${from}` : "");
+                        return <>
+                          {discount && <div className="mt-1 text-[12px] font-semibold italic text-[#77513c]">{discount}</div>}
+                          {validity && <div className="mt-1 text-[12px] font-semibold text-[#66543d]">{validity}</div>}
+                        </>;
+                      })()}
                       <div className="mt-1 text-[13px] font-black uppercase tracking-[0.08em] text-[#776d55]">
                         {quantity} kpl{pendingWeight ? "" : ` · ${price > 0 ? formatEuro(price) : "hinta —"}`}
                       </div>
