@@ -11,8 +11,10 @@ export function repairLidlPublicationCategory<T>(chain: string, offer: T): T {
   const normalized = title.replace(/\s+/g, " ").trim();
   let category: string | null = null;
   // Explicit non-grocery products must not inherit food classifications.
-  if (/(?:sukkalanka|pullotunkki|juomapullo|joulukaktus|tulilatva)/.test(normalized)) {
+  if (/(?:sukkalanka|pullotunkki|juomapullo|joulukaktus|tulilatva|bluetooth-vastamelukuulokkeet|auton akkulaturi|autotarvike|työhousut|varavirtalähde|auton lumisukat|wc-raikastin|viemärinavaaja)/.test(normalized)) {
     category = "Koti & vapaa-aika";
+  } else if (/klementiini/.test(normalized)) {
+    category = "Hevi";
   } else if (/(?:perunalaatikko|porkkanalaatikko|rosolli|kauraruoka)/.test(normalized)) {
     category = "Valmisruoka";
   }
