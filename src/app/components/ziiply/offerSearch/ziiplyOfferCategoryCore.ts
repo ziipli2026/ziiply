@@ -523,9 +523,18 @@ function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
   return "";
 }
 
+export function getVerifiedCitymarketProductCategory(value: unknown): string {
+  const title = normalizeGostaText(String(value ?? "")).replace(/-+/g, " ");
+  if (/\bappelsiinita\s*ysmehu\b/.test(title)) return "Juomat";
+  if (/\bjazzy perunat\b/.test(title)) return "Hevi";
+  return "";
+}
+
 // Resolve verified product identities before inherited provider and EAN labels.
 export function getVerifiedOfferCategory(item: ZiiplyGostaOfferLike): string {
   const title = normalizeGostaText(getOfferProductTitleV113(item)).replace(/-+/g, " ");
+  const productCategory = getVerifiedCitymarketProductCategory(title);
+  if (productCategory) return productCategory;
   const rules: ReadonlyArray<readonly [RegExp, string]> = [
     [/^(?:fazer vihreita kuulia|fazer finlandia marmeladi|brunberg tryffeli)(?: |$)|\bmynthon\b.*\b(?:pastilli|85 g)\b/, "Makeiset & keksit"],
     [/\b(?:kahvirinkeli|tuplapuusti|tahtitortut|kinkku sipulipiiras)\b|^eesti pagar juustorulla\b|^deluxe leivos\b/, "Leipomo"],

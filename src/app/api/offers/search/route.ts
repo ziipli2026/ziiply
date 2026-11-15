@@ -65,6 +65,7 @@ import { getCitymarketFailureNotice, type CitymarketAvailabilityNotice } from ".
 import { NextResponse, after } from "next/server";
 import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
 import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
+import { getVerifiedCitymarketProductCategory } from "../../../components/ziiply/offerSearch/ziiplyOfferCategoryCore";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
 import { isGostaDailyGoodsOffer } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
@@ -999,7 +1000,10 @@ export async function GET(request: Request) {
 
     const combinedResultsV20 = dedupe([
       ...(baseResults as unknown as UnknownRecord[]),
-      ...citymarketResults,
+      ...citymarketResults.map(offer => {
+        const category = getVerifiedCitymarketProductCategory(offer.title ?? offer.name);
+        return category ? { ...offer, category, categoryPath: category, mainCategory: category, productGroup: category } : offer;
+      }),
       ...sMarketResults,
     ]);
 
