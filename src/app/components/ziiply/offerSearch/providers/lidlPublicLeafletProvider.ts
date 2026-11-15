@@ -32,6 +32,7 @@ export type LidlPublicOffer = {
   category: string;
   categoryPath: string;
   sourceCategoryPath?: string;
+  sourceDepartmentPath?: string;
   mainCategory: string;
   rawText: string;
   sourceUrl: string;
@@ -346,6 +347,10 @@ function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackD
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl: "", image: "", pictureUrl: "",
       category, categoryPath: category, mainCategory: category,
+      // The landing page is source provenance, not a product-level taxonomy.
+      // Keep it separate so category audits can distinguish page evidence
+      // from a true original category supplied by the product feed.
+      sourceDepartmentPath: new URL(sourceUrl).pathname,
       rawText: [name, category].join(" "), sourceUrl, hasConcretePrice: true,
       isWeightedProduct: false, ean: "",
     });
