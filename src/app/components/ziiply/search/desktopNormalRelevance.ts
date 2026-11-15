@@ -312,6 +312,9 @@ export function desktopSearchDecision(query: string, product: Row) {
   // Shared product-form guard: an ingredient or drink name must not qualify
   // confectionery or a substitute as the requested primary product.
   if(requestedTerms.length===1 && requestedTerms[0]==='cola' &&
+     /(?:jaatelo|limonadijaa|mehujaa|sorbet|ice cream|ice lolly)/.test(originalIdentity))
+    return {accepted:false,score:-10000,reason:'cola_frozen_dessert_not_soft_drink'};
+  if(requestedTerms.length===1 && requestedTerms[0]==='cola' &&
      /(?:^| )cola kark(?:it|ki)(?: |$)/.test(originalIdentity))
     return {accepted:false,score:-10000,reason:'cola_candy_not_drink'};
   if(requestedTerms.length===1 && requestedTerms[0]==='kananmuna' &&
