@@ -1770,6 +1770,8 @@ export default function DesktopPreviewPage() {
       resumeDesktopVoiceList();
       return;
     }
+    cancelDesktopVoiceList();
+    setJustiinaLoading(false);
     setJustiinaResultsOpen(false);
     setWorkspace(null);
   }
@@ -2606,6 +2608,11 @@ export default function DesktopPreviewPage() {
       }
       const { sortedRows, rankedRows, failures, batches, rows, productDecisions } = await searchNormalStores(query, stores, {
         signal: diagnostic?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
+        onInitialRows: diagnostic ? undefined : initialRows => {
+          if (generation !== desktopVoiceRunRef.current) return;
+          setJustiinaResults(initialRows);
+          traceNormal("display_initial", {query, products:initialRows});
+        },
       });
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:rankedRows.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
@@ -3479,7 +3486,9 @@ export default function DesktopPreviewPage() {
   <button type="button" onClick={requestDesktopListExit} aria-label="Sulje tuotevalinta" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button>
   <button type="button" onClick={requestDesktopListExit} aria-label="Takaisin hakuun" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[3px] border-[#17573c] bg-[#fff9dd] text-[22px] font-black text-[#174c35]">←</button>
   <div className="relative flex h-full min-w-0 flex-1 items-center">
-    <span className="block w-full truncate text-center font-serif text-[21px] font-black italic leading-tight text-[#174c35]" title={`${justiinaLoading ? "haetaan" : justiinaResults.length ? "löydetty" : "ei löydy"} · ${justiinaActiveTerm || justiinaQuery}`}>{justiinaLoading ? "haetaan" : justiinaResults.length ? "löydetty" : "ei löydy"} · {justiinaActiveTerm || justiinaQuery}</span>
+    <span role="status" className="block w-full truncate text-center font-serif text-[21px] font-black italic leading-tight text-[#174c35]">
+      {justiinaLoading && justiinaResults.length > 0 ? "Haetaan lisää tuotteita…" : justiinaLoading ? "Haetaan tuotteita…" : justiinaResults.length ? "löydetty" : "ei löydy"} · {justiinaActiveTerm || justiinaQuery}
+    </span>
     {cartNotice&&<div role="status" className="absolute inset-x-0 top-1/2 z-10 flex h-[44px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-[14px] bg-[#08a36d] px-3 text-center text-[14px] font-black text-white shadow-lg"><span className="min-w-0 truncate">{cartNotice}</span></div>}
   </div>
   <button type="button" onClick={()=>setCartOpen(true)} className="shrink-0 whitespace-nowrap rounded-full border-2 border-[#17573c] bg-[#e2edcf] px-2 py-0.5 text-[11px] font-black text-[#174c35] shadow-sm">🛒 Ostoskori</button>
