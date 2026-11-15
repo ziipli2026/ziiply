@@ -399,8 +399,27 @@ jobs:
                   }
                   const scenario = many ? (extra ? 'S + K + Lidl + ' + extra : 'S + K Monta') : within ? chain + ' within-chain' : chain;
                   if (name === 'phone') phoneStoreQueries.set(scenario, storeQueries);
-                  if (desktop && !within) assert.deepEqual(storeQueries, phoneStoreQueries.get(scenario),
-                    'phone and desktop must request the same store query variants in order');
+                  if (desktop && !within) {
+                    // The UI renders as soon as results exist, while the remaining
+                    // expanded queries may still be in flight. Compare complete
+                    // request lists, not an arbitrary first-render snapshot.
+                    const expected = phoneStoreQueries.get(scenario);
+                    const end = Date.now() + 15000;
+                    while (Date.now() < end) {
+                      const observed = Array.from(new Set(searchRequests.flatMap(value => {
+                        const prefix = 'GET ' + endpoint + '?';
+                        return value.startsWith(prefix) ? [new URLSearchParams(value.slice(prefix.length)).get('search')] : [];
+                      })));
+                      if (JSON.stringify(observed) === JSON.stringify(expected)) break;
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    const completeQueries = Array.from(new Set(searchRequests.flatMap(value => {
+                      const prefix = 'GET ' + endpoint + '?';
+                      return value.startsWith(prefix) ? [new URLSearchParams(value.slice(prefix.length)).get('search')] : [];
+                    })));
+                    assert.deepEqual(completeQueries, expected,
+                      'phone and desktop must request the same store query variants in order');
+                  }
                   const maitoApiCalls = searchRequests.filter(value => /[?&]search=maito(?:&|$)/i.test(value));
                   for (const api of searchEndpoints) {
                     assert.ok(maitoApiCalls.some(value => value.includes(api + '?')));
