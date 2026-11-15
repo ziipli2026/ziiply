@@ -49,7 +49,11 @@ test('mobile: restored cart displays offer discount and validity', async ({ brow
     throw error;
   }
   const continueButton = page.getByRole('button', { name: 'Jatka', exact: true });
-  if (await continueButton.isVisible()) await continueButton.click();
+  // Cart restoration happens asynchronously after hydration; do not probe isVisible()
+  // before the restore dialog has appeared.
+  await expect(continueButton, 'Restored cart confirmation should appear').toBeVisible({ timeout: 15000 });
+  await continueButton.click();
+  await expect(continueButton).toBeHidden({ timeout: 12000 });
   console.log('[cart-navigation]', JSON.stringify({
     disabled: await cart.isDisabled(),
     savedSelection: await page.evaluate(() => localStorage.getItem('ziiply-store-selection-v536')),
