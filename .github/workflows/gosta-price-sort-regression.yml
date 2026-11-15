@@ -56,7 +56,7 @@ jobs:
           }})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
       - name: Check real S/K product responses against shared final relevance filter
-        if: startsWith(github.ref, 'refs/heads/test/')
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/test/')
         shell: bash
         run: |
           npx --yes tsx scripts/search-live-chain-relevance-audit.mts
