@@ -202,7 +202,9 @@ jobs:
         run: |
           for file in artifacts/citymarket-images/*/leaflet.json; do
             [ -f "$file" ] || continue
-            node scripts/citymarket/check-image-coverage.mjs "$file"
+            # Missing publisher images are an enrichment warning, not a parsing or publishing failure.
+          # Still fail on missing manifests, PDF digest mismatches, or foreign image IDs.
+          node scripts/citymarket/check-image-coverage.mjs --allow-verified-partial "$file"
           done
       - uses: actions/upload-artifact@v4
         if: always() && steps.clock.outputs.run == 'true'
