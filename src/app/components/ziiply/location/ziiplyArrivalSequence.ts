@@ -6,6 +6,7 @@
 export const ZIIPLY_STORE_RADIUS_METERS = 30;
 export const ZIIPLY_APPROACH_RADIUS_METERS = 100;
 export const ZIIPLY_PARKED_SAMPLE_MS = 5000;
+const STORE_CHOICE_RADIUS_METERS = 50;
 const DEPARTURE_RADIUS_METERS = 200;
 const DEPARTURE_SAMPLES = 3;
 export type ZiiplyArrivalSample = { at:number; latitude:number; longitude:number; accuracyMeters:number; speedKmh:number|null };
@@ -100,11 +101,10 @@ export function evaluateZiiplyArrival(previous:ZiiplyArrivalState,sample:ZiiplyA
    }
  }
  const retained=state.arrivalStoreId?(stores.find(s=>s.id===state.arrivalStoreId)??state.confirmedStore??null):null;
- const arrivalConfirmed=!retained&&valid&&!ambiguous&&eligibleCandidate
-   &&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&stable&&(state.candidateSamples??0)>=3;
- const showArrivalMessage=!!arrivalConfirmed&&selectedCandidate;
- const ambiguousPrompt=ambiguous&&selectionExists&&stable&&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS&&nearbyStoreChoices.length>1&&state.mismatchPromptedStoreId!==nearbyStoreChoices.map(s=>s.id).sort().join('|');
- const askStoreChange=(!!arrivalConfirmed&&!selectedCandidate&&selectionExists&&state.mismatchPromptedStoreId!==candidate!.id)||ambiguousPrompt;
+ const stableCandidate=!retained&&valid&&!ambiguous&&eligibleCandidate&&stable&&(state.candidateSamples??0)>=3;
+ const showArrivalMessage=stableCandidate&&selectedCandidate&&candidates[0].distance<=ZIIPLY_STORE_RADIUS_METERS;
+ const ambiguousPrompt=ambiguous&&selectionExists&&stable&&candidates[0].distance<=STORE_CHOICE_RADIUS_METERS&&nearbyStoreChoices.length>1&&state.mismatchPromptedStoreId!==nearbyStoreChoices.map(s=>s.id).sort().join('|');
+ const askStoreChange=(stableCandidate&&!selectedCandidate&&candidates[0].distance<=STORE_CHOICE_RADIUS_METERS&&state.mismatchPromptedStoreId!==candidate!.id)||ambiguousPrompt;
  if(askStoreChange)state.mismatchPromptedStoreId=ambiguousPrompt?nearbyStoreChoices.map(s=>s.id).sort().join('|'):candidate!.id;
  // A mismatch is only a question; it must never mark the user as present in an unselected shop.
  if(showArrivalMessage){state.arrivalStoreId=candidate!.id;state.confirmedStore=candidate;state.tripConfirmed=true;state.departureSamples=0;}
