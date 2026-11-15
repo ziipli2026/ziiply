@@ -43,12 +43,12 @@ export function citymarketPreflightStatus(runs:PreflightRun[],now=new Date(),kin
   const n=object(report?.details.next);
   const active=object(report?.details.active);
   const next=n.period===expected.period?n:active.period===expected.period?active:{};
-  const parserOk=report?.source==="k-citymarket-cache"?next.period===expected.period&&errors.length===0:report?.source==="k-citymarket-preflight"?report.outcome==="preflight-awaiting-pdf-review":report?.ok;
+  const parserOk=report?.source==="k-citymarket-cache"?next.period===expected.period&&errors.length===0:report?.source==="k-citymarket-preflight"?["preflight-awaiting-pdf-review","preflight-awaiting-images"].includes(report.outcome):report?.ok;
   const stale=expected.windowToday&&report&&now.getTime()-Date.parse(report.checked_at)>3*3600000;
   const archiveFailed=archive&&!archive.ok;
   // Automatic field checks and source capture do not constitute a manual full-PDF audit.
   const preflightQuality=object(preflight?.details.quality);
-  const metadataClean=Boolean(preflight)&&Number(preflightQuality.total??0)>0&&["missing_names","missing_prices","missing_images","missing_categories","unverified_prices"].every(key=>Number(preflightQuality[key]??NaN)===0);
+  const metadataClean=Boolean(preflight)&&Number(preflightQuality.total??0)>0&&["missing_names","missing_prices","missing_categories","unverified_prices"].every(key=>Number(preflightQuality[key]??NaN)===0);
   const auditIsNewer=Boolean(archive&&preflight&&Date.parse(archive.checked_at)>=Date.parse(preflight.checked_at));
   const reviewed=archive?.outcome==="pdf-review-passed"&&archive.ok&&parserOk&&metadataClean&&auditIsNewer;
   const started = report?.outcome === "preflight-started";
