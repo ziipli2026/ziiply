@@ -55,6 +55,8 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     quality.total=89;
     quality.missing_images=6;quality.missing_categories=15;
     assert.equal((await record(input)).outcome,'preflight-quality-failed','45AV incomplete images and categories must fail');
+    assert.equal(records.at(-1).details.imageEnrichment,'pending','category failure must not misreport image pipeline as failed');
+    assert.deepEqual(records.at(-1).details.blockingReasons,['missing-categories']);
     quality.missing_categories=0;
     assert.equal((await record(input)).outcome,'preflight-awaiting-images','image-only gap waits for extraction');
     assert.equal(records.at(-1).ok,false,'waiting for images cannot approve PDF review');
