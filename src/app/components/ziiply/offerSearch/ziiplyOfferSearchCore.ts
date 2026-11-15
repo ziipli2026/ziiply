@@ -1001,6 +1001,10 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
 // from a broad UI category or an individual product-name blacklist.
 export function isGostaDailyGoodsOffer(item: ZiiplyGostaOfferLike): boolean {
   const raw = ((item as any).__sourceOfferSearchResult ?? item) as any;
+  const sourceUrl = String(raw?.sourceUrl || item?.sourceUrl || "").toLowerCase();
+  // Stored publications may predate sourceCategoryPath. Lidl department URLs
+  // still identify non-food campaigns even when cached category is incorrect.
+  if (/lidl\\.fi\\/h\\/(?:ompelukone|auto-ja-moottoripyo|kuntoilu|lemmikkielaeinten-tarvikkeet|tyokalut|vaatteet|elektroniikka|puutarha|askartelu|kasityot)/.test(sourceUrl)) return false;
   const category = getResolvedGostaCategoryV166(item);
   if (!category || category === "Muut" || category === "Koti & vapaa-aika" || category === "Koti") return false;
 
