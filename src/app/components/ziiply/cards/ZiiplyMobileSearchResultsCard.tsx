@@ -10,6 +10,7 @@ import ProductEnergy from "./ProductEnergy";
 // - Lista on oma scrollialue.
 
 import { productMoneyEuros } from "../productMoney";
+import { formatSearchResultComparisonPrice } from "../search/searchResultComparisonPrice";
 import React, { useState, useEffect } from "react";
 
 export type ZiiplyMobileSearchResultProduct = {
@@ -151,108 +152,6 @@ function formatMainPrice(value: unknown, product: ZiiplyMobileSearchResultProduc
   );
 }
 
-function normalizeComparisonValue(value: unknown, product: ZiiplyMobileSearchResultProduct) {
-  const raw = String(value ?? "").trim();
-  if (!raw) return null;
-  if (raw.includes("€") || raw.includes("/")) return raw;
-  return productMoneyEuros(value, product.comparisonPriceAmountUnit ?? product.priceAmountUnit ?? product.product?.comparisonPriceAmountUnit ?? product.product?.priceAmountUnit ?? "cent");
-}
-
-function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {
-  const raw = [
-    product.comparisonUnit,
-    product.priceUnit,
-    product.unit,
-    product.packageSize,
-    product.name,
-    product.title,
-    product.product?.comparisonUnit,
-    product.product?.priceUnit,
-    product.product?.unit,
-    product.product?.packageSize,
-    product.product?.name,
-    product.product?.title,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  if (/\b(l|ltr|litra|litran|ml|cl)\b/.test(raw)) return "€/l";
-  if (/\b(kpl|pkt|pari|rll|rs|ps|tlk)\b/.test(raw)) return "€/kpl";
-  return "€/kg";
-}
-
-function parsePackageAmount(product: ZiiplyMobileSearchResultProduct) {
-  const raw = [
-    product.packageSize,
-    product.unit,
-    product.name,
-    product.title,
-    product.product?.packageSize,
-    product.product?.unit,
-    product.product?.name,
-    product.product?.title,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase()
-    .replace(",", ".");
-
-  const kg = raw.match(/(\d+(?:\.\d+)?)\s*kg\b/);
-  if (kg) return { amount: Number(kg[1]), unit: "kg" as const };
-
-  const g = raw.match(/(\d+(?:\.\d+)?)\s*g\b/);
-  if (g) return { amount: Number(g[1]) / 1000, unit: "kg" as const };
-
-  const l = raw.match(/(\d+(?:\.\d+)?)\s*(?:l|ltr|litra)\b/);
-  if (l) return { amount: Number(l[1]), unit: "l" as const };
-
-  const ml = raw.match(/(\d+(?:\.\d+)?)\s*ml\b/);
-  if (ml) return { amount: Number(ml[1]) / 1000, unit: "l" as const };
-
-  return null;
-}
-
-function formatComparisonPrice(product: ZiiplyMobileSearchResultProduct, rawPrice: unknown) {
-  const candidates = [
-    product.comparisonPrice,
-    product.unitPrice,
-    product.pricePerUnit,
-    product.comparisonPriceText,
-    product.product?.comparisonPrice,
-    product.product?.unitPrice,
-    product.product?.pricePerUnit,
-    product.product?.comparisonPriceText,
-  ];
-
-  for (const candidate of candidates) {
-    const value = normalizeComparisonValue(candidate, product);
-    if (value == null) continue;
-
-    if (typeof value === "string") return value;
-
-    return `${value.toLocaleString("fi-FI", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })} ${inferComparisonUnit(product)}`;
-  }
-
-  const euros = priceToEuros(rawPrice, product);
-  const packageAmount = parsePackageAmount(product);
-
-  if (euros != null && packageAmount?.amount && packageAmount.amount > 0) {
-    const unitPrice = euros / packageAmount.amount;
-    const unit = packageAmount.unit === "l" ? "€/l" : "€/kg";
-
-    return `${unitPrice.toLocaleString("fi-FI", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })} ${unit}`;
-  }
-
-  return "";
-}
-
 export default function ZiiplyMobileSearchResultsCard({
   open = false,
   loading = false,
@@ -269,6 +168,10 @@ export default function ZiiplyMobileSearchResultsCard({
   const [expandedProduct, setExpandedProduct] = useState<ZiiplyMobileSearchResultProduct | null>(null);
   useEffect(()=>{if(loading)setExpandedProduct(null);},[loading]);
   if (!open) return null;
+
+  const expandedComparison = expandedProduct
+    ? formatSearchResultComparisonPrice(expandedProduct, priceToEuros(pickRawPrice(expandedProduct), expandedProduct))
+    : "";
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[95] flex items-stretch justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-[3px]">
@@ -353,7 +256,7 @@ export default function ZiiplyMobileSearchResultsCard({
                   ? `${observedEuros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
                   : "";
                 const price = researchOnly ? "" : formatMainPrice(rawPrice, product);
-                const comparison = researchOnly ? "" : formatComparisonPrice(product, rawPrice);
+                const comparison = researchOnly ? "" : formatSearchResultComparisonPrice(product, priceToEuros(rawPrice, product));
 
                 return (
                   <article
@@ -423,7 +326,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="break-words font-black leading-tight text-[#123d32]">{getName(expandedProduct)}</div>
-                  {formatComparisonPrice(expandedProduct, pickRawPrice(expandedProduct)) && <div className="mt-2 text-sm text-[#78633a]">{formatComparisonPrice(expandedProduct, pickRawPrice(expandedProduct))}</div>}
+                  {expandedComparison && <div className="mt-2 text-sm text-[#78633a]">{expandedComparison}</div>}
                   {(expandedProduct.ean || expandedProduct.product?.ean) && <div className="mt-2 break-all text-xs text-[#78633a]">EAN {String(expandedProduct.ean || expandedProduct.product?.ean)}</div>}
                 </div>
               </div>
