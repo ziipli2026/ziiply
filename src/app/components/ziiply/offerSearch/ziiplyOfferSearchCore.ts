@@ -1011,7 +1011,7 @@ export function isGostaDailyGoodsOffer(item: ZiiplyGostaOfferLike): boolean {
   // Recover only explicit daily-goods identities; ambiguous items stay excluded.
   if (category === "Muut") {
     const title = normalizeGostaCoreText(String(raw?.title || item?.title || ""));
-    if (!/(?:rypale|kassler|markaruoat|puruluut|palvisiivu|wc spray|kasvovoite|siivoustuotteita|hiusvari|kestovarit|juoma|limonadi|olut|siideri|energiajuoma)/.test(title)) return false;
+    if (!/(?:rypale|kassler|markaruoat|puruluut|palvisiivu|wc[\\s-]*spray|kasvovoite|siivoustuotteita|hiusvari|kestovarit|juoma|limonadi|olut|siideri|energiajuoma)/.test(title)) return false;
   }
 
   // A known non-grocery source department must not be overridden by a
