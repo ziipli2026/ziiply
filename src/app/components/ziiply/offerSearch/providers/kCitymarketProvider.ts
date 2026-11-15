@@ -87,7 +87,7 @@ function textOf(src:string){
     )
   ).replace(/ ?\n ?/g,"\n");
 }
-const isFrozenFrenchFries = (title: string) => /(?:uunirapeat\s+ranskalaiset|ranskalaiset\s+perunat|pommes\s+frites)/i.test(title);
+export const isFrozenFrenchFries = (title: string) => /(?:uunirapeat\s+ranskalaiset|ranskalaiset\s+perunat|pommes\s+frites)/i.test(title);
 
 export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");

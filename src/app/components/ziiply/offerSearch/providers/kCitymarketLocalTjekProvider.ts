@@ -1,4 +1,4 @@
-import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
+import { category as classifyCitymarketCategory, isFrozenFrenchFries } from "./kCitymarketProvider";
 import { neon } from "@neondatabase/serverless";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
@@ -160,7 +160,11 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
       offerIds: entry.progress.offerIds, accepted: live.length,
     }));
   }
-  return [...primary, ...tjekRows].map(normalizeTjekPackagePrice);
+  return [...primary, ...tjekRows].map(normalizeTjekPackagePrice).map(row =>
+    row.category === "Kala" && isFrozenFrenchFries(String(row.title ?? ""))
+      ? { ...row, category: "Pakasteet", categoryPath: "Pakasteet", productGroup: "Pakasteet", mainCategory: "Pakasteet" }
+      : row,
+  );
 }
 export async function refreshKCitymarketCampaignCache(storeName: string) {
   const key = normalize(storeName);
