@@ -332,7 +332,7 @@ jobs:
                       const deadline = Date.now() + 20000;
                       while (!liveCounts.has(api) && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 100));
                       assert.equal(liveCounts.get(api)?.status, 200, 'live ' + api + ' for ' + liveTerm);
-                      if (liveTerm === 'maito') assert.ok(liveCounts.get(api).count > 0, 'nonempty live ' + api);
+                      if (liveTerm === 'maito') assert.ok(liveCounts.get(api).count > 0, 'nonempty live ' + api + ': ' + JSON.stringify(liveCounts.get(api)));
                     }
                     assert.ok(results.every((row,index) => row.price > 0 && (!index || row.price >= results[index-1].price)));
                     const eans = results.map(row => row.ean).filter(Boolean);
