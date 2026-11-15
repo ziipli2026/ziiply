@@ -56,10 +56,11 @@ test('mobile: restored cart displays offer discount and validity', async ({ brow
     savedCart: await page.evaluate(() => localStorage.getItem('ziiply-cart-v1')),
   }));
   await expect(cart).toBeEnabled({ timeout: 12000 });
-  await cart.click();
-  await expect(page.getByText('Kirjolohiannospakkaus').first()).toBeVisible({ timeout: 15000 });
-  await expect(page.getByText('Tarjous 6,99 €').first()).toBeVisible();
-  await expect(page.getByText('Voimassa 15.11.–19.11.').first()).toBeVisible();
+  const visibleRow = page.locator('article:visible').filter({ hasText: 'Kirjolohiannospakkaus' }).first();
+  if (!(await visibleRow.isVisible())) await cart.click();
+  await expect(visibleRow, 'The actual visible mobile cart row should render').toBeVisible({ timeout: 15000 });
+  await expect(visibleRow.getByText('Tarjous 6,99 €')).toBeVisible();
+  await expect(visibleRow.getByText('Voimassa 15.11.–19.11.')).toBeVisible();
   await page.screenshot({ path: 'test-results/mobile-cart.png', fullPage: true });
   await context.close();
 });
