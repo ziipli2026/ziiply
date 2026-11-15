@@ -201,13 +201,20 @@ jobs:
                           if (term === liveTerm) liveCounts.set(api, {status:200, count:json.items.length});
                           return route.fulfill({json});
                         }
-                        const upstream = new URL(local.pathname + local.search, 'https://ziiply.vercel.app');
+                        // The upstream S-products fallback needs the selected store name.
+                        // Keep the browser's original request unchanged, but supply
+                        // storeName to the live upstream fixture when the store ID
+                        // alone cannot identify the S-kaupat fallback location.
+                        const liveQuery = new URL(local.pathname + local.search, 'https://ziiply.vercel.app');
+                        if (api === '/api/s-products' && local.searchParams.get('store') === '634976534' && !liveQuery.searchParams.has('storeName'))
+                          liveQuery.searchParams.set('storeName', 'Prisma Hyvinkää');
+                        const upstream = liveQuery;
                         upstream.searchParams.sort();
                         const key = upstream.href;
                         if (!liveResponses.has(key)) liveResponses.set(key, (async () => {
                           const origins = ['https://ziiply.vercel.app'];
                           for (const origin of origins) {
-                            const response = await fetch(new URL(local.pathname + local.search, origin), {
+                            const response = await fetch(new URL(upstream.pathname + upstream.search, origin), {
                               signal: AbortSignal.timeout(15000), headers:{accept:'application/json'}
                             });
                             const kind = response.headers.get('content-type') || '';
