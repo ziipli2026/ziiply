@@ -843,7 +843,28 @@ export default function ZiiplyMobileCartCard({
                     >
                       {name}
                       {String(item.id || "").startsWith("gosta-watch-") && item.storeName && <span className="mt-1 block text-[0.65rem] font-semibold">{item.storeName}</span>}
-                      {item.validityText && <span className="mt-1 block text-[0.65rem] font-semibold">{item.validityText}</span>}
+                      {(() => {
+                        const offer = item as typeof item & { discountText?: string; validFrom?: string; validTo?: string; validUntil?: string; __sourceOfferSearchResult?: { discountText?: string; validityText?: string; validFrom?: string; validTo?: string; validUntil?: string } };
+                        const source = offer.__sourceOfferSearchResult || {};
+                        const rawDiscount = String(offer.discountText || source.discountText || "").trim();
+                        const isValidity = (value: string) => /^(?:voimassa(?:oloaika)?\\b|(?:\\d{4}-\\d{2}-\\d{2}|\\d{1,2}\\.(?:\\d{1,2}\\.)?)\\s*(?:[–—-]|$))/i.test(value);
+                        const discount = isValidity(rawDiscount) ? "" : rawDiscount;
+                        const rawValidity = String(offer.validityText || source.validityText || (isValidity(rawDiscount) ? rawDiscount : "")).trim();
+                        const dateLabel = (value: unknown) => {
+                          const raw = String(value || "").trim();
+                          const iso = raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+                          if (iso) return `${Number(iso[3])}.${Number(iso[2])}.`;
+                          const local = raw.match(/^(\\d{1,2})\\.(\\d{1,2})\\./);
+                          return local ? `${Number(local[1])}.${Number(local[2])}.` : "";
+                        };
+                        const from = dateLabel(offer.validFrom || source.validFrom);
+                        const until = dateLabel(offer.validUntil || offer.validTo || source.validUntil || source.validTo);
+                        const validity = rawValidity || (from && until ? `Voimassa ${from}–${until}` : until ? `Voimassa ${until} saakka` : from ? `Voimassa alkaen ${from}` : "");
+                        return <>
+                          {discount && <span className="mt-1 block text-[0.65rem] font-semibold italic">{discount}</span>}
+                          {validity && <span className="mt-1 block text-[0.65rem] font-semibold">{validity}</span>}
+                        </>;
+                      })()}
                     </div>
 
                     <div data-v65-remove-choice={pendingRemoveV65 ? "true" : undefined}>
