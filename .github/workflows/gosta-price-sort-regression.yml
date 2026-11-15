@@ -8,6 +8,9 @@ on:
       - 'tests/gosta-price-sort.test.cjs'
       - 'tests/gosta-daily-goods-gate.test.cjs'
       - 'tests/gosta-provider-source-taxonomy.test.cjs'
+      - 'tests/lidl-publication-taxonomy-merge.test.cjs'
+      - 'src/app/api/cron/lidl-publications/route.ts'
+      - 'src/app/components/ziiply/offerSearch/publicationStore.ts'
       - 'src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts'
       - 'src/app/components/ziiply/offerSearch/providers/tokmanniProvider.ts'
       - '.github/workflows/gosta-price-sort-regression.yml'
@@ -15,6 +18,9 @@ on:
     paths:
       - 'src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts'
       - 'tests/gosta-price-sort.test.cjs'
+      - 'tests/lidl-publication-taxonomy-merge.test.cjs'
+      - 'src/app/api/cron/lidl-publications/route.ts'
+      - 'src/app/components/ziiply/offerSearch/publicationStore.ts'
       - '.github/workflows/gosta-price-sort-regression.yml'
   workflow_dispatch:
 
@@ -27,7 +33,7 @@ jobs:
         with:
           node-version: '22'
       - name: Verify Gösta offer price ordering and grocery eligibility
-        run: node --test tests/gosta-price-sort.test.cjs tests/gosta-daily-goods-gate.test.cjs tests/gosta-provider-source-taxonomy.test.cjs
+        run: node --test tests/gosta-price-sort.test.cjs tests/gosta-daily-goods-gate.test.cjs tests/gosta-provider-source-taxonomy.test.cjs tests/lidl-publication-taxonomy-merge.test.cjs
   hundred-search-parity:
     runs-on: ubuntu-latest
     timeout-minutes: 35
