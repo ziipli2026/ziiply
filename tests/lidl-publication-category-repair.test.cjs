@@ -16,7 +16,16 @@ const cases = [
   ['JOULUAITTA Perunalaatikko','Hevi','Valmisruoka'],
   ['JOULUAITTA Porkkanalaatikko','Hevi','Valmisruoka'],
   ['ATRIA Rosolli','Hevi','Valmisruoka'],
-  ['FAZER AITO Kauraruoka, tomaatti-basilika','Hevi','Valmisruoka']
+  ['FAZER AITO Kauraruoka, tomaatti-basilika','Hevi','Valmisruoka'],
+  ['Klementiini 1 kg','Muut','Hevi'],
+  ['Bluetooth-vastamelukuulokkeet','Muut','Koti & vapaa-aika'],
+  ['Auton akkulaturi','Muut','Koti & vapaa-aika'],
+  ['Autotarvike','Muut','Koti & vapaa-aika'],
+  ['Työhousut','Muut','Koti & vapaa-aika'],
+  ['Varavirtalähde','Muut','Koti & vapaa-aika'],
+  ['Auton lumisukat','Muut','Koti & vapaa-aika'],
+  ['WC-raikastin','Muut','Koti & vapaa-aika'],
+  ['Viemärinavaaja','Muut','Koti & vapaa-aika']
 ];
 for (const [title,oldCategory,expected] of cases) {
   test('Lidl stored/read category: '+title, () => {
