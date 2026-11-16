@@ -6,6 +6,7 @@ const root = path.resolve(__dirname, '..');
 const ignored = new Set(['node_modules', '.next', '.git', 'dist', 'build', 'coverage']);
 const extensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 const matches = [];
+const eventNames = [];
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (ignored.has(entry.name)) continue;
@@ -26,7 +27,13 @@ function walk(dir) {
           ['posthog-import', /(?:from\s*['"]posthog-js|require\(['"]posthog-js)/],
         ];
         for (const [type, pattern] of types) {
-          if (pattern.test(line)) matches.push({ file: relative, line: i + 1, type });
+          if (pattern.test(line)) {
+            matches.push({ file: relative, line: i + 1, type });
+            if (type === 'capture') {
+              const match = line.match(/\\b(?:posthog|analytics)\\.capture\\s*\\(\\s*['\"]([^'\"]+)['\"]/);
+              if (match) eventNames.push({ event: match[1], file: relative, line: i + 1 });
+            }
+          }
         }
       });
     }
@@ -34,4 +41,4 @@ function walk(dir) {
 }
 walk(path.join(root, 'src'));
 const counts = Object.fromEntries([...new Set(matches.map(m => m.type))].sort().map(t => [t, matches.filter(m => m.type === t).length]));
-console.log(JSON.stringify({ audit: 'posthog-beta', scanned: 'src', counts, locations: matches }, null, 2));
+console.log(JSON.stringify({ audit: 'posthog-beta', scanned: 'src', counts, eventNames, locations: matches }, null, 2));
