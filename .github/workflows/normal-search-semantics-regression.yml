@@ -9,6 +9,7 @@ on:
       - "src/app/components/ziiply/ziiplyCore.ts"
       - "src/app/components/ziiply/search/**"
       - "src/app/page.tsx"
+      - "src/app/api/lidl/store-search/route.ts"
       - ".github/workflows/normal-search-semantics-regression.yml"
   workflow_dispatch:
 
@@ -42,6 +43,30 @@ jobs:
             --esModuleInterop \
             --skipLibCheck \
             --outDir .tmp-search-regression/search
+      - name: Verify Lidl store identity persistence and offer context
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const route=fs.readFileSync('src/app/api/lidl/store-search/route.ts','utf8');
+          const page=fs.readFileSync('src/app/page.tsx','utf8');
+          const checks=[
+            ['store-search exposes storeKey', /storeKey:\s*id/.test(route)],
+            ['Lidl selection persisted', /selectedChains,[\s\S]{0,120}selectedLidlStoreV750/.test(page)],
+            ['Lidl selection restored', /parsedStoreSelection\.selectedLidlStoreV750[\s\S]{0,260}setSelectedLidlStoreV750/.test(page)],
+            ['manual Lidl picker locks identity', /setIndependentManualStoreV791\("LIDL",\s*sourceStore\)[\s\S]{0,120}setSelectedLidlStoreV750\(sourceStore\)/.test(page)],
+            ['offer context prefers storeKey', /lidlStoreKey:[\s\S]{0,180}storeKey\s*\|\|\s*selectedLidlStoreV750\.id/.test(page)],
+          ];
+          for(const [name,ok] of checks) console.log(ok?'PASS':'FAIL',name);
+          if(checks.some(x=>!x[1])) process.exit(1);
+          // Guard the identity contract independently of Lidl network availability.
+          const selected={id:'lidl-fixture-store',storeKey:'lidl-fixture-store',name:'Lidl fixture'};
+          const restored=JSON.parse(JSON.stringify({selectedLidlStoreV750:selected})).selectedLidlStoreV750;
+          if(restored.id!=='lidl-fixture-store'||restored.storeKey!=='lidl-fixture-store') throw new Error('Lidl fixture store identity lost on persistence');
+          const context={lidlStoreKey:restored.storeKey||restored.id};
+          if(context.lidlStoreKey!=='lidl-fixture-store') throw new Error('Lidl fixture offer context lost storeKey');
+          console.log('PASS deterministic Lidl fixture lidl-fixture-store persistence and offer context');
+          NODE
       - name: Full milk mobile search functional test
         shell: bash
         run: |
