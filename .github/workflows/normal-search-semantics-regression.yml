@@ -66,7 +66,8 @@ jobs:
           for (const query of ['täysmaito', 'täysmaito 1l']) {
             const actual = core.rankNormalSearchResults(query, products).map(p => p.name);
             const priceSorted = core.rankProductResultsByRelevanceAndPrice(query, products, p => p.price).map(p => p.name);
-            assert.deepEqual(priceSorted.slice().sort(), actual.slice().sort(), 'Price sorting must not reintroduce rejected milk types for '+query);
+            assert(priceSorted.every(name => actual.includes(name)), 'Price sorting must not reintroduce rejected milk types for '+query);
+            assert(priceSorted.every(name => !query.includes('1l') || !name.includes('1,5l')), 'Explicit 1l query must not include 1,5l products');
             const expected = names.filter(name => name.includes('täysmaito'));
             assert.deepEqual(actual.slice().sort(), expected.slice().sort(), 'Only full-milk products for '+query);
             for (const name of names.filter(name => !name.includes('täysmaito'))) {
