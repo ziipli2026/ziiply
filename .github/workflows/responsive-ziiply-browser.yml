@@ -360,14 +360,15 @@ jobs:
                       await search.getByText('Tokmanni / SPAR verkkovalikoima', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
                     }
                     const resultKey = JSON.stringify([chain, extra, liveTerm]);
-                    const visible = {results, research};
+                    const visible = {results, research, requests: searchRequests.filter(value => /\/api\/(s-products|k-products|neon-first-search|lidl\/products|tokmanni\/products)\?/.test(value))};
                     if (!desktop) liveResults.set(resultKey, visible);
                     else {
                       const phone = liveResults.get(resultKey);
-                      if (JSON.stringify(visible) !== JSON.stringify(phone)) {
+                      if (JSON.stringify({results, research}) !== JSON.stringify({results:phone.results, research:phone.research})) {
                         const index = results.findIndex((row, i) => JSON.stringify(row) !== JSON.stringify(phone.results[i]));
                         liveFailures.push({liveTerm, phoneCount:phone.results.length, desktopCount:results.length,
-                          index, phone:phone.results[index], research, phoneResearch:phone.research, desktop:results[index]});
+                          index, phone:phone.results[index], research, phoneResearch:phone.research, desktop:results[index],
+                          phoneRequests:phone.requests, desktopRequests:visible.requests});
                       }
                     }
                     console.log('Retailer rows', name, chain, extra, results.length, research);
