@@ -44,6 +44,7 @@ const alternatives: Record<string, string[]> = {
   etikka:['etikka','vakiviinaetikka','omenaviinietikka','viinietikka','balsamicoetikka','riisiviinietikka','valkoviinietikka','punaviinietikka'],
   maito:['maito','kevytmaito','täysmaito','ykkösmaito','luomumaito','rasvaton maito'],
   kahvi:['kahvi','juhla mokka','kulta katriina'],
+  sokeri:['sokeri','taloussokeri'],
   ketsuppi:['ketsuppi','ketchup'], ketsuppia:['ketsuppi','ketchup'],
   zero:['zero','sokeriton','max'], sokeriton:['sokeriton','zero','max'],
   pepsi:['pepsi'],
