@@ -15,6 +15,8 @@ jobs:
           node-version: '22'
       - name: Install Playwright
         run: npm install --no-save @playwright/test && npx playwright install --with-deps chromium
+      - name: Run offer sorting and scanner pricing regressions
+        run: node --test tests/gosta-price-sort.test.cjs tests/scanner-sticker-price.test.cjs
       - name: Start Next.js from the tested Git commit
         run: |
           nohup npm run dev -- --hostname 127.0.0.1 > /tmp/ziiply-next.log 2>&1 &
