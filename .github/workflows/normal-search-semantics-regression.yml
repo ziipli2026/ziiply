@@ -11,6 +11,13 @@ on:
       - "src/app/page.tsx"
       - "src/app/api/lidl/store-search/route.ts"
       - ".github/workflows/normal-search-semantics-regression.yml"
+  pull_request:
+    paths:
+      - "src/app/components/ziiply/ziiplyCore.ts"
+      - "src/app/components/ziiply/search/**"
+      - "src/app/page.tsx"
+      - "src/app/api/lidl/store-search/route.ts"
+      - ".github/workflows/normal-search-semantics-regression.yml"
   workflow_dispatch:
 
 jobs:
