@@ -30,7 +30,7 @@ function walk(dir) {
           if (pattern.test(line)) {
             matches.push({ file: relative, line: i + 1, type });
             if (type === 'capture') {
-              const match = line.match(/\\b(?:posthog|analytics)\\.capture\\s*\\(\\s*['\"]([^'\"]+)['\"]/);
+              const match = line.match(/\b(?:posthog|analytics)\.capture\s*\(\s*['\"]([^'\"]+)['\"]/);
               if (match) eventNames.push({ event: match[1], file: relative, line: i + 1 });
             }
           }
