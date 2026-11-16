@@ -167,7 +167,7 @@ jobs:
                   const searchRequests = [];
                   const activeSearchRequests = new Set();
                   let lastSearchActivity = Date.now();
-                  const isSearchProviderRequest = request => /\\/api\\/(?:s-products|k-products|neon-first-search|lidl\\/products|tokmanni\\/products)\\?/.test(request.url());
+                  const isSearchProviderRequest = request => ['/api/s-products', '/api/k-products', '/api/neon-first-search', '/api/lidl/products', '/api/tokmanni/products'].includes(new URL(request.url()).pathname);
                   search.on('request', request => {
                     if (request.url().includes('/api/')) searchRequests.push(request.method() + ' ' + new URL(request.url()).pathname + new URL(request.url()).search);
                     if (isSearchProviderRequest(request)) {
