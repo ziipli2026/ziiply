@@ -144,6 +144,28 @@ test('mobile: mocked offer-watch response preserves campaign metadata through ad
   }
 });
 
+
+for (const viewport of [
+  { name: 'phone narrow', width: 360, height: 780 },
+  { name: 'tablet', width: 768, height: 1024 },
+  { name: 'desktop', width: 1440, height: 900 },
+]) {
+  test('responsive isolated smoke: ' + viewport.name, async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height }, serviceWorkers: 'block' });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', error => errors.push(String(error)));
+    const response = await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    expect(response?.status(), 'Home must return successful HTTP status').toBeLessThan(400);
+    await expect(page.locator('body')).toBeVisible();
+    await expect(page.locator('body')).not.toContainText(/Authentication Required|Application error|404: NOT_FOUND/);
+    expect(errors.filter(error => /Hydration failed|Minified React error|Cannot read properties of undefined/.test(error))).toEqual([]);
+    console.log('[responsive]', JSON.stringify({ viewport, status: response?.status(), title: await page.title(), errors: errors.slice(0, 3) }));
+    await page.screenshot({ path: 'test-results/responsive-' + viewport.name.replace(/ /g, '-') + '.png', fullPage: true });
+    await context.close();
+  });
+}
+
 test('desktop preview: actual app UI renders', async ({ page }) => {
   const response = await page.goto(base + '/desktop-preview', { waitUntil: 'domcontentloaded', timeout: 60000 });
   expect(response?.status()).toBeLessThan(400);
