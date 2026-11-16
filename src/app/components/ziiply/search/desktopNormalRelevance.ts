@@ -22,7 +22,7 @@ const forms: Record<string, string> = {
   tomaatteja:'tomaatti', tomaatin:'tomaatti', kurkkua:'kurkku', kurkun:'kurkku',
   omenoita:'omena', banaaneja:'banaani', kananmunia:'kananmuna', kananmunat:'kananmuna',
   munia:'kananmuna', munat:'kananmuna', sipsit:'sipsi', ranskikset:'ranskanperuna',
-  limsat:'limsa', limut:'limsa', limu:'limsa', kokis:'cola', cokis:'cola',
+  limsat:'limsa', limut:'limsa', limu:'limsa', limonadi:'limsa', limonadia:'limsa', kokis:'cola', cokis:'cola',
   kaurahiutaleet:'kaurahiutale', ruisleivat:'ruisleipa', makkarat:'makkara', nakit:'nakki',
 };
 const canonical = (word: string) => forms[word] || word;
