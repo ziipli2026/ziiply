@@ -4,7 +4,7 @@ name: Normal search semantics regression
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/ci-five-regressions-20261116]
     paths:
       - "src/app/components/ziiply/ziiplyCore.ts"
       - "src/app/components/ziiply/search/**"
