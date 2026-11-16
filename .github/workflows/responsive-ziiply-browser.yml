@@ -319,14 +319,6 @@ jobs:
                     if (chain === 'LIDL') await lidlNotice.first().waitFor({timeout:20000});
                     else if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
                     if (chain !== 'LIDL') await prices.first().waitFor({timeout:90000});
-                    const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
-                      const card = desktop ? button.parentElement.parentElement : button.closest('article');
-                      const label = button.innerText;
-                      const price = Number(label.replace(/\s/g, '').match(/(\d+)[,.](\d{2})€/).slice(1).join('.'));
-                      const ean = card.innerText.match(/EAN\s+(\d+)/)?.[1] ?? null;
-                      const name = card.children[1].firstElementChild.innerText;
-                      return {name:name.replace(/\s+/g, ' ').trim(), price, ean};
-                    }), desktop);
                     // Results may render from Neon/K before the parallel S request completes.
                     // Wait for all required provider responses, then assert their real status.
                     const requiredLiveApis = searchEndpoints.some(api => /[sk]-products/.test(api))
@@ -335,6 +327,16 @@ jobs:
                     while (requiredLiveApis.some(api => !liveCounts.has(api)) && Date.now() < deadline) {
                       await search.waitForTimeout(200);
                     }
+                    // Allow React to commit the latest provider-backed result set after responses.
+                    await search.waitForTimeout(600);
+                    const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
+                      const card = desktop ? button.parentElement.parentElement : button.closest('article');
+                      const label = button.innerText;
+                      const price = Number(label.replace(/\s/g, '').match(/(\d+)[,.](\d{2})€/).slice(1).join('.'));
+                      const ean = card.innerText.match(/EAN\s+(\d+)/)?.[1] ?? null;
+                      const name = card.children[1].firstElementChild.innerText;
+                      return {name:name.replace(/\s+/g, ' ').trim(), price, ean};
+                    }), desktop);
                     console.log('Live Chromium', name, liveTerm, JSON.stringify([...liveCounts]), JSON.stringify(results.slice(0,10)));
                     for (const api of requiredLiveApis) {
                       assert.equal(liveCounts.get(api)?.status, 200, 'live ' + api + ' for ' + liveTerm);
