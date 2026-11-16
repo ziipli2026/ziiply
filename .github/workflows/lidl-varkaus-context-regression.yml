@@ -32,6 +32,7 @@ jobs:
           if(checks.some(x=>!x[1])) process.exit(1);
           NODE
       - name: Verify Varkaus official store feed
+        continue-on-error: true # External Lidl API availability is not a code regression
         shell: bash
         run: |
           node <<'NODE'
