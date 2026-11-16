@@ -27,3 +27,48 @@ if (failed) {
   console.error(`${failed} analytics regression checks failed`);
   process.exitCode = 1;
 }
+
+/*
+ * Exercise the real before_send callback with synthetic data. This is a source
+ * extraction test: it does not initialize PostHog or make network requests.
+ */
+const callbackStart = provider.indexOf('before_send: (event) => {');
+if (callbackStart < 0) {
+  console.error('FAIL before_send callback not found');
+  process.exitCode = 1;
+} else {
+  const braceStart = provider.indexOf('{', callbackStart);
+  let depth = 0;
+  let end = -1;
+  for (let i = braceStart; i < provider.length; i++) {
+    if (provider[i] === '{') depth++;
+    else if (provider[i] === '}' && --depth === 0) { end = i; break; }
+  }
+  if (end < 0) {
+    console.error('FAIL before_send callback cannot be extracted');
+    process.exitCode = 1;
+  } else {
+    const callback = new Function('environment', 'isInternalTest',
+      'return (' + provider.slice(callbackStart + 'before_send: '.length, end + 1) + ')'
+    )('preview', true);
+    const event = callback({ event: 'search_used', properties: {
+      email: 'secret@example.test', access_token: 'private',
+      latitude: 60.1, longitude: 24.9, search: 'sensitive query',
+      ean: '1234567890123', product_name: 'sensitive',
+      $current_url: 'https://example.test/?token=private',
+      $referrer: 'https://example.test/?secret=private',
+      search_kind: 'normal', search_id: 'synthetic-id',
+      result_count: 3,
+    }});
+    const props = event.properties;
+    const sensitive = ['email', 'access_token', 'latitude', 'longitude',
+      'search', 'ean', 'product_name', '$current_url', '$referrer'];
+    const passed = sensitive.every(key => !(key in props)) &&
+      props.search_kind === 'normal' && props.result_count === 3 &&
+      props.ziiply_environment === 'preview' &&
+      props.ziiply_internal_test === true &&
+      props.ziiply_analytics_schema === 1;
+    console.log(`${passed ? 'PASS' : 'FAIL'} before_send strips synthetic sensitive properties`);
+    if (!passed) process.exitCode = 1;
+  }
+}
