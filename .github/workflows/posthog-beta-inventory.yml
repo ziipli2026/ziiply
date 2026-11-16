@@ -20,5 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Check inventory script syntax
+        run: node --check scripts/audit-posthog-beta.cjs
       - name: Inventory PostHog instrumentation
         run: npm run audit:posthog
