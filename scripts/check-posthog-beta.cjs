@@ -38,12 +38,10 @@ if (callbackStart < 0) {
   process.exitCode = 1;
 } else {
   const braceStart = provider.indexOf('{', callbackStart);
-  let depth = 0;
-  let end = -1;
-  for (let i = braceStart; i < provider.length; i++) {
-    if (provider[i] === '{') depth++;
-    else if (provider[i] === '}' && --depth === 0) { end = i; break; }
-  }
+  // Match the callback's closing delimiter, not arbitrary braces in
+  // comments or nested arrow functions.
+  const closing = provider.indexOf('\n        },\n      }\n    )', braceStart);
+  const end = closing < 0 ? -1 : closing + '\n        '.length;
   if (end < 0) {
     console.error('FAIL before_send callback cannot be extracted');
     process.exitCode = 1;
