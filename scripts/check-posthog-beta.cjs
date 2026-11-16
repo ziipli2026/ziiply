@@ -59,16 +59,19 @@ if (callbackStart < 0) {
       $referrer: 'https://example.test/?secret=private',
       search_kind: 'normal', search_id: 'synthetic-id',
       result_count: 3,
+      metadata: { email: 'nested@example.test', token: 'nested-secret' },
+      items: [{ ean: '1234567890123' }],
     }});
     const props = event.properties;
     const sensitive = ['email', 'access_token', 'latitude', 'longitude',
       'search', 'ean', 'product_name', '$current_url', '$referrer'];
     const passed = sensitive.every(key => !(key in props)) &&
+      !('metadata' in props) && !('items' in props) &&
       props.search_kind === 'normal' && props.result_count === 3 &&
       props.ziiply_environment === 'preview' &&
       props.ziiply_internal_test === true &&
       props.ziiply_analytics_schema === 1;
-    console.log(`${passed ? 'PASS' : 'FAIL'} before_send strips synthetic sensitive properties`);
+    console.log(`${passed ? 'PASS' : 'FAIL'} before_send strips sensitive and nested synthetic properties`);
     if (!passed) process.exitCode = 1;
   }
 }
