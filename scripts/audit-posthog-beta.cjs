@@ -19,6 +19,7 @@ function walk(dir) {
       lines.forEach((line, i) => {
         const types = [
           ['capture', /\b(?:posthog|analytics)\.capture\s*\(/],
+          ['ziiply-event', /\btrackZiiplyEvent\s*\(/],
           ['identify', /\bposthog\.identify\s*\(/],
           ['pageview', /\bcapture_pageview\b/],
           ['session-replay', /\b(?:disable_session_recording|session_recording|startSessionRecording|stopSessionRecording)\b/],
@@ -29,8 +30,8 @@ function walk(dir) {
         for (const [type, pattern] of types) {
           if (pattern.test(line)) {
             matches.push({ file: relative, line: i + 1, type });
-            if (type === 'capture') {
-              const match = line.match(/\b(?:posthog|analytics)\.capture\s*\(\s*['\"]([^'\"]+)['\"]/);
+            if (type === 'capture' || type === 'ziiply-event') {
+              const match = line.match(/\b(?:posthog\.capture|analytics\.capture|trackZiiplyEvent)\s*\(\s*['\"]([^'\"]+)['\"]/);
               if (match) eventNames.push({ event: match[1], file: relative, line: i + 1 });
             }
           }
