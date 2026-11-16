@@ -27,7 +27,7 @@ jobs:
         run: |
           CORE_JS="$(find /tmp/ziiply-core -type f -name ziiplyCore.js -print -quit)"
           test -n "$CORE_JS" || { echo "Compiled ziiplyCore.js missing"; exit 1; }
-          if [ "$CORE_JS" != /tmp/ziiply-core/ziiplyCore.js ]; then cp "$CORE_JS" /tmp/ziiply-core/ziiplyCore.js; fi
+          if [ "$CORE_JS" != /tmp/ziiply-core/ziiplyCore.js ]; then cp -a "$(dirname "$CORE_JS")/." /tmp/ziiply-core/; fi
       - name: Run Huiluntuhti rejection diagnostics
         run: |
           node -e 'require("fs").writeFileSync("/tmp/k-candidates.json",JSON.stringify([{name:"Kivikylän Huiluntuhti grillimakkara 375 g",ean:"1111111111111",price:3.49},{name:"Kivikylän Huiluntuhti makkarapihvi 400 g",ean:"2222222222222",price:3.59}]))'
