@@ -2,7 +2,7 @@ name: Lidl Varkaus context regression
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/ci-five-regressions-20261116]
     paths:
       - 'src/app/page.tsx'
       - 'src/app/api/lidl/store-search/route.ts'
