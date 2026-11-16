@@ -195,7 +195,10 @@ jobs:
                         if (api === '/api/lidl/products' || api === '/api/tokmanni/products') {
                           const term = local.searchParams.get('search');
                           const source = api === '/api/lidl/products' ? 'lidl' : 'tokmanni';
-                          const json = liveTerm === 'sokeri' && term === 'sokeri' ? sugarRetailers[source] : retailerSnapshots[term]?.[source];
+                          // The shared query expansion legitimately requests taloussokeri for sokeri.
+                          // Reuse the captured sugar-category response for this equivalent term.
+                          const sugarTerm = liveTerm === 'sokeri' && ['sokeri', 'taloussokeri'].includes(term);
+                          const json = sugarTerm ? sugarRetailers[source] : retailerSnapshots[term]?.[source];
                           assert.ok(json, 'captured retailer response for ' + api + ' ' + term);
                           if (term === liveTerm) liveCounts.set(api, {status:200, count:json.items.length});
                           return route.fulfill({json});
