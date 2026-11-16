@@ -3,6 +3,12 @@ on:
   push:
     branches:
       - test/posthog-beta-audit-20261116
+  pull_request:
+    paths:
+      - 'scripts/audit-posthog-beta.cjs'
+      - 'src/**'
+      - 'package.json'
+      - '.github/workflows/posthog-beta-inventory.yml'
   workflow_dispatch:
 jobs:
   inventory:
