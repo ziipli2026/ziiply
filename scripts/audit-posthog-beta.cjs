@@ -42,4 +42,6 @@ function walk(dir) {
 }
 walk(path.join(root, 'src'));
 const counts = Object.fromEntries([...new Set(matches.map(m => m.type))].sort().map(t => [t, matches.filter(m => m.type === t).length]));
-console.log(JSON.stringify({ audit: 'posthog-beta', scanned: 'src', counts, eventNames, locations: matches }, null, 2));
+const uniqueEventNames = [...new Set(eventNames.map(({ event }) => event))].sort();
+const unresolvedCaptureCalls = matches.filter(({ type }) => type === 'capture').length;
+console.log(JSON.stringify({ audit: 'posthog-beta', scanned: 'src', counts, uniqueEventNames, uniqueEventCount: uniqueEventNames.length, directCaptureCallSites: unresolvedCaptureCalls, eventNames, locations: matches }, null, 2));
