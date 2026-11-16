@@ -389,6 +389,14 @@ jobs:
                   if (extra) await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
+                  // Search results can appear before all parallel query variants are dispatched.
+                  // Require the complete shared milk-family request set before comparing views.
+                  const expectedMilkVariants = ['maito', 'kevytmaito', 'täysmaito', 'ykkösmaito', 'luomumaito', 'rasvaton maito'];
+                  const variantDeadline = Date.now() + 15000;
+                  while (Date.now() < variantDeadline && expectedMilkVariants.some(term => !searchRequests.some(value => {
+                    if (!value.startsWith('GET ' + endpoint + '?')) return false;
+                    return new URLSearchParams(value.split('?')[1]).get('search') === term;
+                  }))) await search.waitForTimeout(150);
                   const storeQueries = Array.from(new Set(searchRequests.flatMap(value => {
                     const prefix = 'GET ' + endpoint + '?';
                     if (!value.startsWith(prefix)) return [];
