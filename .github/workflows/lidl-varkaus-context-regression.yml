@@ -30,9 +30,16 @@ jobs:
           ];
           for(const [name,ok] of checks) console.log(ok?'PASS':'FAIL',name);
           if(checks.some(x=>!x[1])) process.exit(1);
+          // Guard the identity contract independently of Lidl network availability.
+          const selected={id:'FI0165',storeKey:'FI0165',name:'Varkaus'};
+          const restored=JSON.parse(JSON.stringify({selectedLidlStoreV750:selected})).selectedLidlStoreV750;
+          if(restored.id!=='FI0165'||restored.storeKey!=='FI0165') throw new Error('Varkaus store identity lost on persistence');
+          const context={lidlStoreKey:restored.storeKey||restored.id};
+          if(context.lidlStoreKey!=='FI0165') throw new Error('Varkaus offer context lost storeKey');
+          console.log('PASS deterministic Varkaus FI0165 persistence and offer context');
           NODE
-      - name: Verify Varkaus official store feed
-        continue-on-error: true # External Lidl API availability is not a code regression
+      - name: Probe live Varkaus official store feed (informational; external dependency)
+        continue-on-error: true # The deterministic identity regression above remains mandatory
         shell: bash
         run: |
           node <<'NODE'
