@@ -165,9 +165,21 @@ jobs:
                   let queries = 0;
                   let comparing = false;
                   const searchRequests = [];
+                  const activeSearchRequests = new Set();
+                  let lastSearchActivity = Date.now();
+                  const isSearchProviderRequest = request => ['/api/s-products', '/api/k-products', '/api/neon-first-search', '/api/lidl/products', '/api/tokmanni/products'].includes(new URL(request.url()).pathname);
                   search.on('request', request => {
                     if (request.url().includes('/api/')) searchRequests.push(request.method() + ' ' + new URL(request.url()).pathname + new URL(request.url()).search);
+                    if (isSearchProviderRequest(request)) {
+                      activeSearchRequests.add(request);
+                      lastSearchActivity = Date.now();
+                    }
                   });
+                  const markSearchSettled = request => {
+                    if (activeSearchRequests.delete(request)) lastSearchActivity = Date.now();
+                  };
+                  search.on('requestfinished', markSearchSettled);
+                  search.on('requestfailed', markSearchSettled);
                   search.on('response', response => {
                     if (response.url().includes('/api/')) console.log(name, 'API response', response.status(), response.url());
                   });
@@ -195,7 +207,10 @@ jobs:
                         if (api === '/api/lidl/products' || api === '/api/tokmanni/products') {
                           const term = local.searchParams.get('search');
                           const source = api === '/api/lidl/products' ? 'lidl' : 'tokmanni';
-                          const json = liveTerm === 'sokeri' && term === 'sokeri' ? sugarRetailers[source] : retailerSnapshots[term]?.[source];
+                          // The shared query expansion legitimately requests taloussokeri for sokeri.
+                          // Reuse the captured sugar-category response for this equivalent term.
+                          const sugarTerm = liveTerm === 'sokeri' && ['sokeri', 'taloussokeri'].includes(term);
+                          const json = sugarTerm ? sugarRetailers[source] : retailerSnapshots[term]?.[source];
                           assert.ok(json, 'captured retailer response for ' + api + ' ' + term);
                           if (term === liveTerm) liveCounts.set(api, {status:200, count:json.items.length});
                           return route.fulfill({json});
@@ -316,6 +331,24 @@ jobs:
                     if (chain === 'LIDL') await lidlNotice.first().waitFor({timeout:20000});
                     else if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
                     if (chain !== 'LIDL') await prices.first().waitFor({timeout:90000});
+                    // Results may render from Neon/K before the parallel S request completes.
+                    // Wait for all required provider responses, then assert their real status.
+                    const requiredLiveApis = searchEndpoints.some(api => /[sk]-products/.test(api))
+                      ? [...searchEndpoints, '/api/neon-first-search'] : searchEndpoints;
+                    const deadline = Date.now() + 20000;
+                    while (requiredLiveApis.some(api => !liveCounts.has(api)) && Date.now() < deadline) {
+                      await search.waitForTimeout(200);
+                    }
+                    // The first Neon/S/K responses are not the end of a search. Query expansion
+                    // and EAN enrichment start additional provider requests asynchronously.
+                    // Compare only after every provider request has settled and the request
+                    // stream has remained quiet long enough for React to commit the result.
+                    const settleDeadline = Date.now() + 90000;
+                    while ((activeSearchRequests.size > 0 || Date.now() - lastSearchActivity < 5000) && Date.now() < settleDeadline) {
+                      await search.waitForTimeout(200);
+                    }
+                    assert.equal(activeSearchRequests.size, 0, 'live search still has pending provider requests');
+                    assert.ok(Date.now() - lastSearchActivity >= 5000, 'live search never reached provider-idle state');
                     const results = await prices.evaluateAll((buttons, desktop) => buttons.map(button => {
                       const card = desktop ? button.parentElement.parentElement : button.closest('article');
                       const label = button.innerText;
@@ -325,7 +358,7 @@ jobs:
                       return {name:name.replace(/\s+/g, ' ').trim(), price, ean};
                     }), desktop);
                     console.log('Live Chromium', name, liveTerm, JSON.stringify([...liveCounts]), JSON.stringify(results.slice(0,10)));
-                    for (const api of (searchEndpoints.some(api => /[sk]-products/.test(api)) ? [...searchEndpoints, '/api/neon-first-search'] : searchEndpoints)) {
+                    for (const api of requiredLiveApis) {
                       assert.equal(liveCounts.get(api)?.status, 200, 'live ' + api + ' for ' + liveTerm);
                       if (liveTerm === 'maito') assert.ok(liveCounts.get(api).count > 0, 'nonempty live ' + api);
                     }
@@ -347,14 +380,15 @@ jobs:
                       await search.getByText('Tokmanni / SPAR verkkovalikoima', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
                     }
                     const resultKey = JSON.stringify([chain, extra, liveTerm]);
-                    const visible = {results, research};
+                    const visible = {results, research, requests: searchRequests.filter(value => /\/api\/(s-products|k-products|neon-first-search|lidl\/products|tokmanni\/products)\?/.test(value))};
                     if (!desktop) liveResults.set(resultKey, visible);
                     else {
                       const phone = liveResults.get(resultKey);
-                      if (JSON.stringify(visible) !== JSON.stringify(phone)) {
+                      if (JSON.stringify({results, research}) !== JSON.stringify({results:phone.results, research:phone.research})) {
                         const index = results.findIndex((row, i) => JSON.stringify(row) !== JSON.stringify(phone.results[i]));
                         liveFailures.push({liveTerm, phoneCount:phone.results.length, desktopCount:results.length,
-                          index, phone:phone.results[index], research, phoneResearch:phone.research, desktop:results[index]});
+                          index, phone:phone.results[index], research, phoneResearch:phone.research, desktop:results[index],
+                          phoneRequests:phone.requests, desktopRequests:visible.requests});
                       }
                     }
                     console.log('Retailer rows', name, chain, extra, results.length, research);
@@ -378,6 +412,14 @@ jobs:
                   if (extra) await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
+                  // Search results can appear before all parallel query variants are dispatched.
+                  // Require the complete shared milk-family request set before comparing views.
+                  const expectedMilkVariants = ['maito', 'kevytmaito', 'täysmaito', 'ykkösmaito', 'luomumaito', 'rasvaton maito'];
+                  const variantDeadline = Date.now() + 15000;
+                  while (Date.now() < variantDeadline && expectedMilkVariants.some(term => !searchRequests.some(value => {
+                    if (!value.startsWith('GET ' + endpoint + '?')) return false;
+                    return new URLSearchParams(value.split('?')[1]).get('search') === term;
+                  }))) await search.waitForTimeout(150);
                   const storeQueries = Array.from(new Set(searchRequests.flatMap(value => {
                     const prefix = 'GET ' + endpoint + '?';
                     if (!value.startsWith(prefix)) return [];

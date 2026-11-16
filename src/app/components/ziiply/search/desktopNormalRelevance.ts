@@ -22,7 +22,7 @@ const forms: Record<string, string> = {
   tomaatteja:'tomaatti', tomaatin:'tomaatti', kurkkua:'kurkku', kurkun:'kurkku',
   omenoita:'omena', banaaneja:'banaani', kananmunia:'kananmuna', kananmunat:'kananmuna',
   munia:'kananmuna', munat:'kananmuna', sipsit:'sipsi', ranskikset:'ranskanperuna',
-  limsat:'limsa', limut:'limsa', limu:'limsa', kokis:'cola', cokis:'cola',
+  limsat:'limsa', limut:'limsa', limu:'limsa', limonadi:'limsa', limonadia:'limsa', kokis:'cola', cokis:'cola',
   kaurahiutaleet:'kaurahiutale', ruisleivat:'ruisleipa', makkarat:'makkara', nakit:'nakki',
 };
 const canonical = (word: string) => forms[word] || word;
@@ -44,6 +44,7 @@ const alternatives: Record<string, string[]> = {
   etikka:['etikka','vakiviinaetikka','omenaviinietikka','viinietikka','balsamicoetikka','riisiviinietikka','valkoviinietikka','punaviinietikka'],
   maito:['maito','kevytmaito','täysmaito','ykkösmaito','luomumaito','rasvaton maito'],
   kahvi:['kahvi','juhla mokka','kulta katriina'],
+  sokeri:['sokeri','taloussokeri'],
   ketsuppi:['ketsuppi','ketchup'], ketsuppia:['ketsuppi','ketchup'],
   zero:['zero','sokeriton','max'], sokeriton:['sokeriton','zero','max'],
   pepsi:['pepsi'],
