@@ -66,8 +66,11 @@ jobs:
           for (const query of ['täysmaito', 'täysmaito 1l']) {
             const actual = core.rankNormalSearchResults(query, products).map(p => p.name);
             const priceSorted = core.rankProductResultsByRelevanceAndPrice(query, products, p => p.price).map(p => p.name);
-            assert(priceSorted.every(name => actual.includes(name)), 'Price sorting must not reintroduce rejected milk types for '+query);
-            assert(priceSorted.every(name => !query.includes('1l') || !name.includes('1,5l')), 'Explicit 1l query must not include 1,5l products');
+            // Ranking may apply stricter package-size filters than the general relevance stage.
+            // Assert the complete expected price-ranked set independently, not merely a subset.
+            const expectedPriceNames = names.filter(name => name.includes('täysmaito') && (!query.includes('1l') || !name.includes('1,5l')));
+            assert.deepEqual(priceSorted.slice().sort(), expectedPriceNames.slice().sort(), 'Price ranking must retain every eligible full-milk product and reject all others for '+query);
+            assert.deepEqual(priceSorted, [...priceSorted].sort((a,b) => products[names.indexOf(a)].price - products[names.indexOf(b)].price), 'Price ranking must be cheapest-first for '+query);
             const expected = names.filter(name => name.includes('täysmaito'));
             assert.deepEqual(actual.slice().sort(), expected.slice().sort(), 'Only full-milk products for '+query);
             for (const name of names.filter(name => !name.includes('täysmaito'))) {
