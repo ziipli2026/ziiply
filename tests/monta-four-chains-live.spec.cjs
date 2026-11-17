@@ -176,3 +176,19 @@ test('Monta live all chains: '+device,async({browser})=>{
   }
 });
 }
+
+// Run parity even when a preceding four-chain price assertion fails: the
+// evidence JSON is written in finally for each device.
+test('Monta: mobile and desktop visible EAN sets match per query',async()=>{
+  const load=device=>{
+    const file='test-results/monta-'+device+'-evidence.json';
+    expect(fs.existsSync(file),device+' evidence must exist').toBe(true);
+    return JSON.parse(fs.readFileSync(file,'utf8'));
+  };
+  const mobile=load('mobile'),desktop=load('desktop');
+  const byQuery=result=>Object.fromEntries(result.results.map(x=>[x.query,x.resultEans||[]]));
+  const a=byQuery(mobile),b=byQuery(desktop);
+  const differences=queries.filter(q=>JSON.stringify(a[q])!==JSON.stringify(b[q])).map(q=>({query:q,mobile:a[q]||[],desktop:b[q]||[]}));
+  fs.writeFileSync('test-results/monta-mobile-desktop-parity.json',JSON.stringify({queries,matched:queries.length-differences.length,differences},null,2));
+  expect(differences,'EAN product sets must match for every query').toEqual([]);
+});
