@@ -48,7 +48,7 @@ const watchdog = setTimeout(() => {
     if (new URL(request.url()).pathname !== '/api/analytics/search' || request.method() !== 'POST') return;
     try {
       const body = JSON.parse(request.postData() || '{}');
-      serverAnalytics.push({event:body.event,kind:body.search_kind,outcome:body.outcome,hasAnonymousId:typeof body.anonymous_user_id==='string',internalTest:body.ziiply_internal_test===true});
+      serverAnalytics.push({event:body.event,kind:body.search_kind,outcome:body.outcome,hasAnonymousId:typeof body.anonymous_user_id==='string',hasSdkDistinctId:typeof body.posthog_distinct_id==='string' && /^[a-f0-9]{8}-[a-f0-9-]{27,40}$/i.test(body.posthog_distinct_id),internalTest:body.ziiply_internal_test===true});
     } catch { serverAnalytics.push({parse:'failed'}); }
   });
   page.on('response', response => {
@@ -215,6 +215,13 @@ const watchdog = setTimeout(() => {
     const started = serverAnalytics.some(e=>e.event==='search_started'&&e.kind==='normal');
     const completed = serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal'&&['priced_results','no_priced_results','partial_source_failure','error'].includes(e.outcome));
     const accepted = serverAnalyticsResponses.some(e=>e.status===200&&e.accepted);
+    const joinedIdentity = serverAnalytics.filter(e=>e.event==='search_started'||e.event==='search_completed')
+      .every(e=>e.hasSdkDistinctId===true);
+    console.log(JSON.stringify({check:'server-search-shared-sdk-identity',joinedIdentity}));
+    if (!joinedIdentity) {
+      console.error('FAIL: search events are not linked to the browser SDK anonymous identity');
+      process.exitCode = 1;
+    }
     const testMarked = serverAnalytics.filter(e=>e.event==='search_started'||e.event==='search_completed')
       .every(e=>e.internalTest===true);
     console.log(JSON.stringify({check:'server-search-internal-test-marker',testMarked,events:serverAnalytics.map(e=>({event:e.event,internalTest:e.internalTest}))}));
