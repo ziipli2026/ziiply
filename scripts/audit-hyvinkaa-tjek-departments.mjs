@@ -20,7 +20,7 @@ for(let i=0;i<baseline.length;i+=8){
    counts.matched++;
    const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
    departments[department]=(departments[department]||0)+1;
-   if(['electronics','apparel','entertainment'].includes(department)){
+   if(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy'].includes(department)){
      excludedByDepartment[department]=(excludedByDepartment[department]||0)+1;
      excludedByOldCategory[row.category]=(excludedByOldCategory[row.category]||0)+1;
    } else {
