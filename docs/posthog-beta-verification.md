@@ -30,3 +30,12 @@ Do not turn on session replay or deploy this PR to production until privacy and 
 - The stricter smoke test correctly fails when no event-ingestion response is observed (GitHub Actions run 44028840456).
 - The shared `trackZiiplyEvent` helper exists in `ziiplyCore.ts`, but the search-card UI invokes `onNormalSearch` without direct tracking. Do not add `search_priced_results_shown` at the click handler: it must be emitted after actual priced results are available. The real parent search orchestration needs to be identified before instrumenting success/failure transitions in both layouts.
 - Event receipt in the PostHog project remains **unverified**. Do not merge on the basis of flag requests or a passing page-load smoke test.
+
+## Search orchestration trace (2026-11-17)
+
+- Source: `src/app/page.tsx` (Git blob `179fe9372378da7253cc5198f862bf55b5ac65e6`), examined directly rather than relying on incomplete code-search indexing.
+- Mobile `ZiiplyMobileSearchCard` receives `onNormalSearch={handleMainNormalSearch}`.
+- `handleMainNormalSearch` already calls `trackZiiplyEvent('main_search_clicked', {query, searchType, cartItemsCount})`, then invokes `searchNormalPrices(...)`. The provider's privacy filtering must be verified for the raw `query` property before approving beta analytics.
+- `searchNormalPrices` is the async search orchestrator; it handles shared S/K/Lidl/Tokmanni store queries and other modes. Instrument **actual terminal results**, not just the button callback.
+- `search_priced_results_shown` is not present in the inspected `page.tsx`. Implement a deduplicated success/empty/error outcome only after identifying the authoritative terminal state in `searchNormalPrices`.
+- Existing `main_search_clicked` is a genuine instrumentation call, correcting the earlier overly broad statement that normal search had no event call sites. Its presence in source does **not** establish that production emitted or PostHog stored it.
