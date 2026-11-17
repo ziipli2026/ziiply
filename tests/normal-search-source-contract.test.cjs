@@ -31,7 +31,7 @@ test('desktop cancels old requests and prevents stale preview overwrite',()=>{
 test('unverified local prices are excluded and priced results deduplicated',()=>{
   assert.match(shared,/priceVerified === true/);
   assert.match(shared,/priceScope === "local_store"/);
-  assert.match(shared,/if\(!verifiedLocalPrice\)/);
+  assert.match(shared,/if \(!verifiedLocalPrice\)/);
   assert.match(shared,/const included=!normalRejected && euro!==null/);
   assert.match(shared,/finalizeNormalSearchResults/);
 });
