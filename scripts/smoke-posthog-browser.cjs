@@ -202,7 +202,9 @@ const watchdog = setTimeout(() => {
     console.log(JSON.stringify({check:'preview-search',started,completed,accepted,events:serverAnalytics.map(e=>({event:e.event,kind:e.kind,outcome:e.outcome})),responses:serverAnalyticsResponses}));
     if (process.env.ZIIPLY_SMOKE_CART === '1') {
       // Preview only: synthetic test cart, never an actual checkout.
-      const addButton = page.getByRole('button', {name:/Lisää koriin/i}).first();
+      // Search results live in a modal overlay. An older background card can
+      // contain the same accessible label but is covered by the overlay.
+      const addButton = page.locator('div.fixed.pointer-events-none button[aria-label="Lisää koriin"]:visible').first();
       const available = await addButton.isVisible().catch(()=>false);
       if (!available) {
         console.error('FAIL: priced search returned no visible add-to-cart action');
