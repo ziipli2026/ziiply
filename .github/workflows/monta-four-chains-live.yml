@@ -19,20 +19,22 @@ jobs:
       - name: Install Playwright test runner
         run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install --with-deps chromium
-      - name: Verify preview is reachable without authentication
+      - name: Install Vercel CLI and link test project
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          test -n "$VERCEL_TOKEN" || { echo '::error::Missing VERCEL_TOKEN secret'; exit 1; }
+          npm install --global vercel@65.9.0
+          vercel link --yes --project ziiply --scope ziipli2026s-projects --token "$VERCEL_TOKEN"
+      - name: Test protected branch preview with authenticated real APIs
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
         run: |
-          status=$(curl -sS -L -o /tmp/ziiply-preview-response -w '%{http_code}' "$ZIIPLY_LIVE_URL/desktop-preview")
-          echo "Preview HTTP status: $status"
-          if [ "$status" -ne 200 ]; then
-            echo "::error::Preview is not publicly reachable (HTTP $status). Check Vercel Deployment Protection or preview URL."
-            exit 1
-          fi
-      - name: Test branch preview with real APIs
-        env:
-          ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
-        run: npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line
+          vercel env run -- sh -c '
+            test -n "$VERCEL_OIDC_TOKEN" || { echo "::error::No Vercel development OIDC token available"; exit 1; }
+            npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line
+          '
       - uses: actions/upload-artifact@v4
         if: always()
         with:
