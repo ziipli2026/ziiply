@@ -2,6 +2,7 @@
 // Browser smoke against deployed Ziiply; never writes to production data.
 // Mark events as internal tests and do not print payloads or user data.
 const { chromium } = require('playwright');
+const { gunzipSync } = require('node:zlib');
 const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.vercel.app/';
 const searchMode = process.env.ZIIPLY_SMOKE_SEARCH === '1';
 const comparisonMode = process.env.ZIIPLY_SMOKE_COMPARE === '1';
@@ -116,23 +117,31 @@ const watchdog = setTimeout(() => {
     {
       captures.push({ method: request.method(), endpoint: new URL(request.url()).pathname });
       try {
-        const raw = request.postData() || '';
+        const wireBuffer = request.postDataBuffer() || Buffer.alloc(0);
         const contentType = request.headers()['content-type'] || '';
-        payloadShapes.push({ contentType: contentType.split(';')[0], bytes: Buffer.byteLength(raw), endpoint: new URL(request.url()).pathname, prefix: raw.slice(0, 1) === '{' ? 'json-object' : raw.slice(0, 1) === '[' ? 'json-array' : 'other' });
-        // posthog-js uses text/plain with base64-encoded event payloads on
-        // /e/ and /i/v0/e/. Redirected requests may have no content type.
-        // Decode for inspection only; never log raw payload or user data.
+        const compression = new URL(request.url()).searchParams.get('compression') || 'none';
+        const isGzip = wireBuffer.length >= 2 && wireBuffer[0] === 0x1f && wireBuffer[1] === 0x8b;
+        payloadShapes.push({
+          contentType: contentType.split(';')[0],
+          bytes: wireBuffer.length,
+          endpoint: new URL(request.url()).pathname,
+          compression,
+          encoding: isGzip ? 'gzip' : 'plain',
+        });
+        // Current posthog-js compresses event requests as binary gzip, even
+        // with Content-Type: text/plain (or no content type after redirects).
+        // Playwright postData() is lossy for binary bodies; use postDataBuffer().
+        // Decode only locally and never log event properties or the raw bytes.
         const unwrapped = (() => {
-          const candidate = contentType.includes('application/x-www-form-urlencoded')
-            ? (new URLSearchParams(raw).get('data') || '')
-            : raw;
+          const dataBuffer = isGzip ? gunzipSync(wireBuffer) : wireBuffer;
+          const candidate = dataBuffer.toString('utf8');
           try { return JSON.parse(candidate); } catch {}
-          try { return JSON.parse(Buffer.from(candidate, 'base64').toString('utf8')); } catch {}
-          const formCandidate = new URLSearchParams(candidate).get('data');
-          if (formCandidate) {
-            try { return JSON.parse(formCandidate); } catch {}
-            try { return JSON.parse(Buffer.from(formCandidate, 'base64').toString('utf8')); } catch {}
+          const formData = new URLSearchParams(candidate).get('data');
+          if (formData) {
+            try { return JSON.parse(formData); } catch {}
+            try { return JSON.parse(Buffer.from(formData, 'base64').toString('utf8')); } catch {}
           }
+          try { return JSON.parse(Buffer.from(candidate, 'base64').toString('utf8')); } catch {}
           throw new Error('unsupported PostHog event transport encoding');
         })();
         const events = Array.isArray(unwrapped) ? unwrapped
