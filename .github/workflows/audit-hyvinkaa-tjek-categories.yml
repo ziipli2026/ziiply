@@ -17,3 +17,11 @@ jobs:
           node-version: '22'
       - name: Compare public Tjek source departments with saved category baseline
         run: node scripts/audit-hyvinkaa-tjek-departments.mjs
+      - name: Upload verified department manifest for review
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyvinkaa-tjek-departments-verified
+          path: artifacts/hyvinkaa-tjek-departments-verified.json
+          if-no-files-found: error
+          retention-days: 14
