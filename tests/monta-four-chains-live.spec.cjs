@@ -67,6 +67,11 @@ test('Monta live all chains: '+device,async({browser})=>{
     fs.mkdirSync('test-results',{recursive:true});
     const added=[];
     for(const query of queries){
+      if(device==='desktop' && !(await input.isVisible().catch(()=>false))) {
+        const reopen=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
+        if(await reopen.count())await reopen.first().click();
+      }
+      await expect(input,'Search textbox must reopen between desktop queries').toBeVisible({timeout:12000});
       await input.fill(query);
       if(device==='desktop')await input.press('Enter');
       else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click();
@@ -129,7 +134,7 @@ test('Monta live all chains: '+device,async({browser})=>{
       await expect(compareButton,'Basket must expose Halpuusvertailu').toBeVisible({timeout:15000});
       await compareButton.click();
     }
-    await expect(page.getByText(/Halpuusvertailu|Hintavertailu/).first()).toBeVisible({timeout:30000});
+    await expect(page.getByText(/Halpuusvertailu|Hintavertailu/).filter({visible:true}).first()).toBeVisible({timeout:30000});
     result.compareText=(await page.locator('body').innerText()).slice(-6500);
     expect(result.compareText).not.toMatch(/Vertailutuloksia ei ole saatavilla|Ei vertailua/);
     result.compareChainEvidence=Object.fromEntries(['Prisma','K-Citymarket','Lidl','Tokmanni','EUROSPAR'].map(name=>[name,result.compareText.toLowerCase().includes(name.toLowerCase())]));
