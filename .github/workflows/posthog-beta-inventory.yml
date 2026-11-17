@@ -58,6 +58,16 @@ jobs:
         run: |
           node scripts/smoke-posthog-browser.cjs
 
+      - name: Check four beta journey controls in mobile Chromium
+        timeout-minutes: 3
+        env:
+          ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL || 'https://ziiply-git-test-posthog-beta-audit-a22236-ziipli2026s-projects.vercel.app/' }}
+          VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          node --check scripts/smoke-beta-journeys-browser.cjs
+          node scripts/smoke-beta-journeys-browser.cjs
+
       # This public URL serves main, not this PR's preview build. It is diagnostic only.
       # Keep the branch's source/privacy regression checks blocking.
       - name: Check deployed main in mobile Chromium (diagnostic)
