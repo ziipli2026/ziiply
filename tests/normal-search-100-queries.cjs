@@ -64,7 +64,6 @@ module.exports=[
   "kaurajuoma",
   "soijajuoma",
   "laktoositon maito",
-  "maitorahka",
   "proteiinirahka",
   "vanukas",
   "jäätelö",
