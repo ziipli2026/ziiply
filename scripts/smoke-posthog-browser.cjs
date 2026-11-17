@@ -28,6 +28,8 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   console.log(JSON.stringify({ check: 'posthog-script-hint', found: posthogScript }));
   const buttons = await page.getByRole('button').allTextContents();
   console.log(JSON.stringify({ check: 'visible-button-count', count: buttons.length }));
+  console.log(JSON.stringify({ check: 'button-labels', labels: buttons.map(s => s.trim().slice(0, 80)).slice(0, 20) }));
+  console.log(JSON.stringify({ check: 'page-headings', headings: (await page.locator('h1, h2').allTextContents()).map(s => s.trim().slice(0, 80)).slice(0, 12) }));
   // Do not create a cart or submit a search in production. Observe only
   // automatic activity and provider initialization.
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, failures: failures.length }));
