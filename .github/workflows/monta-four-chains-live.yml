@@ -25,6 +25,10 @@ jobs:
         run: |
           test -n "$VERCEL_TOKEN" || { echo '::error::Missing VERCEL_TOKEN secret'; exit 1; }
           npm install --global vercel@65.9.0
+          if ! vercel whoami --token "$VERCEL_TOKEN" > /dev/null; then
+            echo "::error::GitHub secret VERCEL_TOKEN is rejected by Vercel. Replace it with a valid token for the ziipli2026s-projects team; the live browser test cannot authenticate without it."
+            exit 1
+          fi
           vercel link --yes --project ziiply --scope ziipli2026s-projects --token "$VERCEL_TOKEN"
       - name: Test protected branch preview with authenticated real APIs
         env:
