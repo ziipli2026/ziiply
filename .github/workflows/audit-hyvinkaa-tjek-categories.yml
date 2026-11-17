@@ -4,6 +4,7 @@ on:
     paths:
       - 'scripts/audit-hyvinkaa-tjek-departments.mjs'
       - 'scripts/prepare-tjek-snapshot-enrichment.mjs'
+      - 'scripts/verify-tjek-baseline-enrichment.mjs'
       - 'tests/prepare-tjek-snapshot-enrichment.test.cjs'
       - 'scripts/fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs'
       - '.github/workflows/audit-hyvinkaa-tjek-categories.yml'
@@ -21,6 +22,8 @@ jobs:
         run: node --test tests/prepare-tjek-snapshot-enrichment.test.cjs
       - name: Compare public Tjek source departments with saved category baseline
         run: node scripts/audit-hyvinkaa-tjek-departments.mjs
+      - name: Verify source-verified enrichment against 139 historical offer IDs
+        run: node scripts/verify-tjek-baseline-enrichment.mjs
       - name: Upload verified department manifest for review
         if: success()
         uses: actions/upload-artifact@v4
