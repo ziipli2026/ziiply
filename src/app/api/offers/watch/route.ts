@@ -92,8 +92,19 @@ function watchOfferKey(chain: string, store: string, offer: Record<string, unkno
     source.restrictionText || source.maxQuantity || "",
   ];
   const verifiedDuplicate = /^\d{8,14}$/.test(ean) && from && until;
+  // S-kaupat can return the same Prisma campaign row twice: once with its
+  // EAN as id and once as prisma-campaign-<publication>-<EAN>. Both carry
+  // identical product identity and selling conditions but no validity dates.
+  // Ignore only these two id formats for the same EAN; keep other id-based
+  // offers distinct (including offers with different prices or conditions).
+  const prismaSkaupatMirror = /^Prisma\b/i.test(store)
+    && String(offer.source || source.source || "").toLowerCase() === "skaupat"
+    && /^\d{8,14}$/.test(ean)
+    && (String(offer.id || source.id || "") === ean
+      || new RegExp("^prisma-campaign-[0-9]+-" + ean + "$").test(String(offer.id || source.id || "")));
   return JSON.stringify([chain, store, watchDuplicateIdentity(title, ean), priceNumber(offer), from, until, terms,
-    verifiedDuplicate ? "" : publisher, verifiedDuplicate || (from && until) ? "" : offer.id || ""]);
+    verifiedDuplicate || prismaSkaupatMirror ? "" : publisher,
+    verifiedDuplicate || prismaSkaupatMirror || (from && until) ? "" : offer.id || ""]);
 }
 
 // Reuse completed scans and coalesce concurrent requests on a warm server instance.
