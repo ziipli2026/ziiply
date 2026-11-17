@@ -549,7 +549,13 @@ export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
   // conservative fallback until the registry has verified taxonomy evidence.
   const eanMatch = (item as ZiiplyGostaOfferLike & { neonCategoryMatch?: string; neonDisplayCategory?: string }).neonCategoryMatch;
   const eanCategory = (item as ZiiplyGostaOfferLike & { neonDisplayCategory?: string }).neonDisplayCategory;
-  if (eanMatch === "ean" && typeof eanCategory === "string" &&
+  // Initial rollout: selected-store K-Citymarket Tjek campaigns only.
+  // Do not alter national leaflets, K-Ruoka, S, Lidl or Tokmanni/Spar.
+  const source = String((item as ZiiplyGostaOfferLike & { source?: string }).source ?? "");
+  const provider = String((item as ZiiplyGostaOfferLike & { provider?: string }).provider ?? "");
+  const localCitymarketTjek = provider === "kcitymarket-local" &&
+    source === "K-Citymarket kauppakohtainen julkaisu";
+  if (localCitymarketTjek && eanMatch === "ean" && typeof eanCategory === "string" &&
       GOSTA_CATEGORY_LABELS_V136.includes(eanCategory)) return eanCategory;
 
   const verifiedCategory = getVerifiedOfferCategory(item);
