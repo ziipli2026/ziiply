@@ -20,7 +20,7 @@ export type OfferIdentity = {
 
 const normalize = (value: string | null | undefined) =>
   String(value ?? "").normalize("NFKC").toLocaleLowerCase("fi")
-    .replace(/[^\\p{L}\\p{N}]+/gu, " ").replace(/\\s+/g, " ").trim();
+    .replace(/[^\p{L}\p{N}]+/gu, " ").replace(/\s+/g, " ").trim();
 
 export function resolveUniqueCatalogIdentity(
   offer: OfferIdentity,
@@ -31,7 +31,7 @@ export function resolveUniqueCatalogIdentity(
   const brand = normalize(offer.brand);
   const quantity = normalize(offer.quantity || offer.packageSize);
   const matches = candidates.filter(candidate => {
-    if (!/^\\d{8,14}$/.test(candidate.ean) || normalize(candidate.name) !== name) return false;
+    if (!/^\d{8,14}$/.test(candidate.ean) || normalize(candidate.name) !== name) return false;
     if (brand && normalize(candidate.brand) !== brand) return false;
     if (quantity && normalize(candidate.quantity) !== quantity) return false;
     return true;
