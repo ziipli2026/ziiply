@@ -44,5 +44,8 @@ assert.ok(visible.every(row=>!excluded.has(row.debug.tjekDepartmentSlug)));
 const remainingDepartments={};
 for(const row of visible){const slug=row.debug.tjekDepartmentSlug;remainingDepartments[slug]=(remainingDepartments[slug]??0)+1;}
 assert.equal(Object.values(remainingDepartments).reduce((a,b)=>a+b,0),67);
+const allowedDepartments=new Set(['baby','beauty','beverages','bread-and-cakes','colonial','dairy-and-cold','frozen','fruits-and-vegetables','garden','household','meat-and-fish']);
+assert.ok(Object.keys(remainingDepartments).every(slug=>allowedDepartments.has(slug)),'unexpected source department remains visible');
+assert.equal(Object.keys(remainingDepartments).length,11,'source department review coverage changed');
 console.log('TJEK_REMAINING_DEPARTMENTS',JSON.stringify(Object.fromEntries(Object.entries(remainingDepartments).sort((a,b)=>a[0].localeCompare(b[0])))));
 console.log('TJEK_BASELINE_ENRICHMENT_CHECK',JSON.stringify({matched:139,excluded:excludedCount,remaining:67,source:'verified public Tjek API',snapshot:'actual Neon public offer fields captured 2026-11-17',databaseWrites:0}));
