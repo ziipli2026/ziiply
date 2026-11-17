@@ -97,7 +97,8 @@ const watchdog = setTimeout(() => {
     // Gösta and back: that navigation can hide the Justiina control in mobile UI.
     // The landing view is the comparison dashboard; open the Justiina recipe/search
     // card before looking for the product search field.
-    await page.getByRole('button', { name: /Reseptit.*Ruokaideat ja haku/i }).click({ timeout: 10000 });
+    // Use visible card text instead of its changing accessible name.
+    await page.locator('button').filter({ hasText: 'Reseptit' }).first().click({ timeout: 10000 });
     await page.waitForTimeout(1200);
     // Mobile and desktop use different search controls. Inspect visible input metadata,
     // never log field values or user-entered content.
