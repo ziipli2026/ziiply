@@ -32,5 +32,5 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Check deployed Ziiply in mobile Chromium
         env:
-          ZIIPLY_SMOKE_URL: https://ziiply-h59b7f1ph-ziipli2026s-projects.vercel.app/
+          ZIIPLY_SMOKE_URL: https://ziiply.vercel.app/
         run: node scripts/smoke-posthog-browser.cjs
