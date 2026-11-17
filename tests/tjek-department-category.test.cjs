@@ -64,3 +64,9 @@ test('shared filter removes non-grocery rows from real-shaped persisted snapshot
  assert.deepEqual(kept.map(x=>x.offerId),['b','d']);
  assert.equal(kept[0],rows[1]);assert.equal(kept[1],rows[3]);
 });
+
+test('live and stored Tjek offers use the same grocery-only filter',()=>{
+ const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
+ assert.match(provider,/const fallback = filterTjekGroceryRows\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
+ assert.match(provider,/const live = filterTjekGroceryRows\(entry\?\.rows \?\? \[\]\)\.filter\(row => isActiveOffer\(row, Date\.now\(\)\)\)/);
+});
