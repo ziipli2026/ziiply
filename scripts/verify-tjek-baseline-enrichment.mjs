@@ -17,7 +17,7 @@ const enriched=JSON.parse(readFileSync(output,'utf8')).offers;
 const source=JSON.parse(readFileSync(manifest,'utf8'));
 assert.equal(enriched.length,139);
 const departments=new Map(source.offers.map(x=>[x.offerId,x.departmentSlug]));
-const excluded=new Set(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy']);
+const excluded=new Set(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home']);
 let excludedCount=0;
 for(let i=0;i<enriched.length;i++){
  const item=enriched[i],original=originalById.get(item.offerId);
@@ -30,8 +30,8 @@ for(let i=0;i<enriched.length;i++){
  assert.equal(item.debug.tjekDepartmentSlug,departments.get(item.offerId));
  if(excluded.has(item.debug.tjekDepartmentSlug))excludedCount++;
 }
-assert.equal(excludedCount,46,'source department exclusion count changed');
-assert.equal(enriched.length-excludedCount,93);
+assert.equal(excludedCount,72,'source department exclusion count changed');
+assert.equal(enriched.length-excludedCount,67);
 // The selected-store snapshot read path must reject verified non-grocery departments
 // before active-offer and selected-store filtering. A source-level guard catches regressions.
 const provider=readSource('src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts','utf8');
@@ -39,6 +39,6 @@ const snapshotFilter=provider.indexOf('.filter(row => !isTjekNonGroceryDepartmen
 const activeFilter=provider.indexOf('.filter(row => isActiveOffer(row, now)',snapshotFilter);
 assert.ok(snapshotFilter>0&&activeFilter>snapshotFilter,'snapshot read path must filter Tjek non-grocery departments');
 const visible=enriched.filter(row=>!excluded.has(row.debug.tjekDepartmentSlug));
-assert.equal(visible.length,93);
+assert.equal(visible.length,67);
 assert.ok(visible.every(row=>!excluded.has(row.debug.tjekDepartmentSlug)));
-console.log('TJEK_BASELINE_ENRICHMENT_CHECK',JSON.stringify({matched:139,excluded:excludedCount,remaining:93,source:'verified public Tjek API',snapshot:'actual Neon public offer fields captured 2026-11-17',databaseWrites:0}));
+console.log('TJEK_BASELINE_ENRICHMENT_CHECK',JSON.stringify({matched:139,excluded:excludedCount,remaining:67,source:'verified public Tjek API',snapshot:'actual Neon public offer fields captured 2026-11-17',databaseWrites:0}));
