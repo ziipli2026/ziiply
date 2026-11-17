@@ -28,11 +28,16 @@ const telemetry=corpus.find(x=>x.file.endsWith('/search/searchTelemetry.ts')).te
 const provider=corpus.find(x=>x.file.endsWith('/PostHogProvider.tsx')).text;
 const server=corpus.find(x=>x.file.endsWith('/analytics/search/route.ts')).text;
 const identityAudit={
- serverSearchUsesOwnAnonymousId:/anonymous_user_id/.test(server)&&/ziiply-beta-/.test(server),
- browserSdkUsesPosthogIdentity:/posthog\.init\(/.test(provider),
- sharedDistinctIdVerified:false,
- warning:'Server search events use ziiply-beta- anonymous IDs while browser SDK manages its own distinct ID. Joining journeys across these streams is not verified; do not report unique users or cross-stream funnels as unified.'
+ browserSdkInitialized:/posthog\.init\(/.test(provider),
+ browserSdkDistinctIdForwarded:/posthog\.get_distinct_id\(\)/.test(telemetry)&&/posthog_distinct_id:\s*browserPosthogDistinctId\(\)/.test(telemetry),
+ serverValidatesSdkDistinctId:/sdkDistinctId/.test(server)&&/distinct_id:\s*sdkDistinctId\s*\|\|/.test(server),
+ fallbackSearchScopedIdentity:/ziiply-search-/.test(server),
+ identityJoinImplementationPresent:false,
+ runtimeIdentityJoinVerifiedByThisAudit:false,
+ posthogDashboardGroupingVerified:false,
+ note:'Static source audit only. Chromium smoke verifies UUID-shaped SDK ID in requests; dashboard identity grouping and cross-stream user funnels require separate verification.'
 };
+identityAudit.identityJoinImplementationPresent=identityAudit.browserSdkInitialized&&identityAudit.browserSdkDistinctIdForwarded&&identityAudit.serverValidatesSdkDistinctId;
 const report={audit:'beta-journeys',scope:'selected source files; dynamic events and page.tsx indirect calls need runtime validation',identityAudit,journeys:Object.fromEntries(Object.entries(journeys).map(([name,config])=>[name,{
  sourceFiles:corpus.filter(x=>config.keywords.test(x.text)).map(x=>x.file),
  expectedEvents:config.events,
