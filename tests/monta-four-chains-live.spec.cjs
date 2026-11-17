@@ -13,12 +13,15 @@ test('Monta live all chains: '+device,async({browser})=>{
   page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\/products$/,tokmanni:/\/api\/tokmanni\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;}});
   const result={device,base,queries,results:[],calls,errors,chains};
   try{
-    const first=await page.goto(base,{waitUntil:'domcontentloaded',timeout:60000});
+    const first=await page.goto(device==='desktop'?base.replace(/\\/$/,'')+'/desktop-preview':base,{waitUntil:'domcontentloaded',timeout:60000});
     expect(first.status()).toBeLessThan(400);
     await page.waitForTimeout(1800);
     await page.evaluate(()=>{
+      const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
+      const k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'};
+      localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'many',storeCompareScope:'between_chains',allStoreSelections:{hyper:{[s.id]:s,[k.id]:k},local:{}}}));
       localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({
-        version:1,savedAt:Date.now(),storeMode:'hyper',storeModeChosenV299:true,
+        version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',sStoreId:s.id,sStoreName:s.name,kStoreId:k.id,kStoreName:k.name},storeMode:'hyper',storeModeChosenV299:true,
         storeCompareScope:'between_chains',betweenChainSelectionModeV749:'many',
         selectedChains:{s:true,k:true,lidl:true,tokmanni:true},usingOwnLocation:false
       }));
