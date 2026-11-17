@@ -180,6 +180,16 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - name: Compare real Tjek 67-offer fixture in mobile and desktop Chromium
+        run: |
+          node scripts/audit-hyvinkaa-tjek-departments.mjs
+          node scripts/verify-tjek-baseline-enrichment.mjs
+          npm run start -- -H 127.0.0.1 -p 3100 &
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3100/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/test-citymarket-67-browser.cjs
       - name: Check the same address on phone, tablet and desktop
         run: |
           npm run start -- -H 127.0.0.1 -p 3100 &
