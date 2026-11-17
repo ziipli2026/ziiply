@@ -224,6 +224,11 @@ const watchdog = setTimeout(() => {
         const comparisonEnabled = await comparison.isEnabled().catch(()=>false);
         const cartEvents = serverAnalytics.filter(e=>e.event==='product_added_to_cart').length-before;
         const cartUi = await page.evaluate(() => ({
+          buttons: [...document.querySelectorAll('button')].filter(b=>/^(Kori|Vertailu)$/.test((b.textContent||'').trim())).map(b=>({text:(b.textContent||'').trim(),disabled:b.disabled,ariaDisabled:b.getAttribute('aria-disabled'),visible:!!b.getClientRects().length})),
+          cartStorageKeys: Object.keys(localStorage).filter(k=>/cart|basket|ostos|vihko/i.test(k)),
+          visibleNotices: [...document.querySelectorAll('[role="alert"],[role="status"]')].filter(e=>!!e.getClientRects().length).map(e=>(e.textContent||'').trim().slice(0,130)).slice(0,8),
+          cartLabels: [...document.querySelectorAll('body *')].filter(e=>e.children.length===0&&/\bKori\b/.test(e.textContent||'')&&!!e.getClientRects().length).slice(0,8).map(e=>({tag:e.tagName,text:(e.textContent||'').slice(0,70)})),
+
           cart: [...document.querySelectorAll('button')].filter(b=>(b.textContent||'').trim()==='Kori').map(b=>({disabled:b.disabled,ariaDisabled:b.getAttribute('aria-disabled'),title:b.title})),
           compare: [...document.querySelectorAll('button')].filter(b=>(b.textContent||'').trim()==='Vertailu').map(b=>({disabled:b.disabled,ariaDisabled:b.getAttribute('aria-disabled'),title:b.title})),
           selectedStore: localStorage.getItem('ziiply-store-selection-v536')?.slice(0,500) || null,
