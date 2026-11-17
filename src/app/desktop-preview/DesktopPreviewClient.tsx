@@ -934,7 +934,7 @@ export default function DesktopPreviewPage() {
       // Match the working desktop Arvo scanner's decoder and camera configuration exactly.
       htmlScanner = new Html5Qrcode(region.id, {verbose:false});
       logDesktopScanner("decoder_config",{source:"shared-mobile",formats:"library_default",fps:12,requestedWidth:1280,requestedHeight:720,cameraFacingMode});
-      await htmlScanner.start({facingMode:cameraFacingMode}, {fps:12, videoConstraints:{facingMode:cameraFacingMode,width:{ideal:1280},height:{ideal:720}}}, code => onCode(code,"html5-qrcode"), (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
+      await htmlScanner.start({facingMode:cameraFacingMode}, {fps:12, videoConstraints:{facingMode:cameraFacingMode,width:{ideal:1280},height:{ideal:720}}}, (code: string) => onCode(code,"html5-qrcode"), (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
       unmirrorCameraPreview();
       // Trial: run the same still-frame fallback as the mobile scanner.
       const { createScannerFallbackLoop } = await import("../components/ziiply/cards/scannerCore");
