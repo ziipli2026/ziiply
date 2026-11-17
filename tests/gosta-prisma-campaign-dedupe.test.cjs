@@ -14,9 +14,9 @@ const isolated = source.slice(begin, end);
 const js = ts.transpileModule(isolated + '\nexports.watchOfferKey=watchOfferKey;', {
   compilerOptions: {target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}
 }).outputText;
-const exports = {};
-vm.runInNewContext(js, {exports});
-const key = (row,store='Prisma Hyvinkää') => exports.watchOfferKey('S',store,row);
+const isolatedExports = {};
+vm.runInNewContext(js, {exports: isolatedExports});
+const key = (row,store='Prisma Hyvinkää') => isolatedExports.watchOfferKey('S',store,row);
 const base = {title:'Kotimaista Kirjolohifilee 300-400g vak, pakaste',ean:'2396012500002',
   price:'3,12 €',offerPrice:'3,12 €',source:'skaupat',id:'2396012500002'};
 test('same Prisma campaign product with EAN and campaign IDs deduplicates',()=>{
