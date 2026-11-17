@@ -5,7 +5,7 @@ const mapping = {'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'P
 const stable = v => JSON.stringify(v, (_k,x) => x && Object.prototype.toString.call(x)==='[object Object]' ? Object.keys(x).sort().reduce((a,k)=>(a[k]=x[k],a),{}) : x);
 const counts={total:baseline.length,matched:0,missing:0,failed:0,mapped:0,changed:0,unchanged:0,ambiguous:0};
 const transitions={};const departments={};const failures=[];
-const baselineByDepartment={};
+const baselineByDepartment={};const excludedByDepartment={};const excludedByOldCategory={};
 for(let i=0;i<baseline.length;i+=8){
  const batch=baseline.slice(i,i+8);
  await Promise.all(batch.map(async row=>{
@@ -18,6 +18,10 @@ for(let i=0;i<baseline.length;i+=8){
    counts.matched++;
    const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
    departments[department]=(departments[department]||0)+1;
+   if(['electronics','apparel','entertainment'].includes(department)){
+     excludedByDepartment[department]=(excludedByDepartment[department]||0)+1;
+     excludedByOldCategory[row.category]=(excludedByOldCategory[row.category]||0)+1;
+   }
    const pair=department+' :: '+row.category;
    baselineByDepartment[pair]=(baselineByDepartment[pair]||0)+1;
    const target=Object.prototype.hasOwnProperty.call(mapping,department)?mapping[department]:null;
@@ -33,5 +37,6 @@ console.log('TJEK_AUDIT_COUNTS',JSON.stringify(counts));
 console.log('TJEK_AUDIT_DEPARTMENTS',JSON.stringify(Object.entries(departments).sort((a,b)=>b[1]-a[1])));
 console.log('TJEK_AUDIT_TRANSITIONS',JSON.stringify(Object.entries(transitions).sort((a,b)=>b[1]-a[1])));
 console.log('TJEK_AUDIT_BASELINE_BY_DEPARTMENT',JSON.stringify(Object.entries(baselineByDepartment).sort((a,b)=>b[1]-a[1])));
+console.log('TJEK_AUDIT_EXCLUDED',JSON.stringify({byDepartment:excludedByDepartment,byOldCategory:excludedByOldCategory,total:Object.values(excludedByDepartment).reduce((a,b)=>a+b,0),remaining:counts.matched-Object.values(excludedByDepartment).reduce((a,b)=>a+b,0)}));
 console.log('TJEK_AUDIT_FAILURES',JSON.stringify(failures.slice(0,20)));
 if(counts.matched===0 || counts.failed>baseline.length/5)process.exitCode=1;
