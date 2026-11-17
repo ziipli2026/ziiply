@@ -8,6 +8,11 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   const page = await browser.newPage({ locale: 'fi-FI', viewport: { width: 390, height: 844 } });
   const captures = [];
   const failures = [];
+  const responses = [];
+  page.on('response', response => {
+    if (response.url().includes('/ph-ingest/') && response.request().method() === 'POST')
+      responses.push({ status: response.status(), endpoint: new URL(response.url()).pathname });
+  });
   page.on('request', request => {
     if (request.url().includes('/ph-ingest/') && request.method() === 'POST')
       captures.push({ method: request.method(), endpoint: new URL(request.url()).pathname });
@@ -38,7 +43,12 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   console.log(JSON.stringify({ check: 'page-headings', headings: (await page.locator('h1, h2').allTextContents()).map(s => s.trim().slice(0, 80)).slice(0, 12) }));
   // Do not create a cart or submit a search in production. Observe only
   // automatic activity and provider initialization.
-  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, failures: failures.length }));
+  await page.waitForTimeout(2000);
+  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length }));
+  if (captures.length === 0 || responses.length === 0 || failures.length || responses.some(r => r.status >= 400)) {
+    console.error('FAIL: PostHog ingest did not return successful HTTP responses');
+    process.exitCode = 1;
+  }
   await browser.close();
   if (!response || response.status() >= 400) process.exitCode = 1;
   // No events are expected until a user interaction because autocapture and
