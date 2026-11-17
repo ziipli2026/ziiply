@@ -2619,6 +2619,11 @@ export default function DesktopPreviewPage() {
       }
       const { sortedRows, rankedRows, failures, batches, rows, productDecisions } = await searchNormalStores(query, stores, {
         signal: diagnostic?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
+        onCachedRows: diagnostic ? undefined : cachedRows => {
+          if (generation !== desktopVoiceRunRef.current) return;
+          setJustiinaResults(cachedRows);
+          traceNormal("display-cached-preview", {query, count:cachedRows.length});
+        },
         onInitialRows: diagnostic ? undefined : initialRows => {
           if (generation !== desktopVoiceRunRef.current) return;
           setJustiinaResults(initialRows);
