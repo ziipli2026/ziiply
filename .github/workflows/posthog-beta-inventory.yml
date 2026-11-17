@@ -31,6 +31,14 @@ jobs:
         run: node scripts/check-posthog-beta.cjs
       - name: Inventory PostHog instrumentation
         run: npm run audit:posthog
+      - name: Verify protected preview access is configured
+        env:
+          VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_OIDC_TOKEN" ]; then
+            echo '::error::Protected Vercel preview requires GitHub Actions secret VERCEL_PREVIEW_OIDC_TOKEN. The preview browser test cannot run without authenticated access.'
+            exit 1
+          fi
       - name: Install Chromium for deployed smoke test
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright
