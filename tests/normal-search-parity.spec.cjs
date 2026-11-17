@@ -107,7 +107,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           await page.screenshot({path:'normal-search-evidence/failure.png',fullPage:true}).catch(()=>{});
           throw error;
         }
-        if(device==='mobile')await page.getByText(/Haetaan lisää tuotteita|Haetaan tuotteita/).filter({visible:true}).first().waitFor({state:'hidden',timeout:45000}).catch(()=>{});
+        if(device==='mobile'){
+          // Wait for the actual component's loading+completion flags.
+          // A transient initial result may contain duplicate EAN cards and a
+          // different order while the S/K provider batches are still merging.
+          await expect(page.getByTestId('mobile-normal-search-results')).toHaveAttribute('data-search-loading','false',{timeout:60000});
+        }
         else {
           // The app may autocorrect or normalize the displayed active query.
           // Match completion, not the raw typed term. Keep the exact rendered
