@@ -276,8 +276,14 @@ const watchdog = setTimeout(() => {
               visibleCompareButtons: [...document.querySelectorAll('button')].filter(el=>!!el.getClientRects().length&&/vertailu/i.test(el.textContent||'')).map(el=>({disabled:el.disabled,ariaDisabled:el.getAttribute('aria-disabled')})).slice(-5)
             }));
             console.log(JSON.stringify({check:'beta-monta-comparison-open',comparisonEnabled,compareOpen,cartEvents,comparisonDiagnostic}));
-            if (!compareOpen) {
-              console.error('FAIL: Monta-mode comparison nav enabled but comparison view did not open');
+            // Vertailu is a snapshot viewer, not the action that computes prices.
+            // With no saved comparison, the expected fallback is the cart with
+            // instructions to run Halpuuta. Do not assert a new comparison here.
+            const cartFallback = await page.locator('.ziiply-cart-paper-pop').evaluateAll(nodes =>
+              nodes.some(el=>!!el.getClientRects().length));
+            console.log(JSON.stringify({check:'beta-monta-comparison-snapshot-fallback',compareOpen,cartFallback}));
+            if (!compareOpen && !cartFallback) {
+              console.error('FAIL: Monta comparison tab opened neither saved comparison nor cart fallback');
               process.exitCode = 1;
             }
           }
