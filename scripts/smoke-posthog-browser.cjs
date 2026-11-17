@@ -27,6 +27,10 @@ const watchdog = setTimeout(() => {
   const internalFlags = [];
   const searchTypes = [];
   const payloadShapes = [];
+  const searchNetwork = [];
+  const pageErrors = [];
+  page.on('pageerror', err => pageErrors.push(String(err.message).slice(0,160)));
+  page.on('request', request => { const u = new URL(request.url()); if (u.pathname.startsWith('/api/') && searchNetwork.length < 25) searchNetwork.push({method:request.method(),path:u.pathname}); });
   page.on('response', response => {
     if (response.url().includes('/ph-ingest/') && response.request().method() === 'POST')
     {
@@ -131,6 +135,8 @@ const watchdog = setTimeout(() => {
     await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
     await page.waitForTimeout(2500);
     await page.waitForTimeout(12000);
+    const searchStatus = await page.evaluate(() => ({ visibleText:document.body.innerText.slice(-650), visibleInputs:[...document.querySelectorAll('textarea,input')].filter(e=>!!e.getClientRects().length).map(e=>({tag:e.tagName,placeholder:e.getAttribute('placeholder')})), visibleButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length).map(e=>({text:(e.textContent||'').trim().slice(0,45),disabled:e.disabled})).slice(-12) }));
+    console.log(JSON.stringify({check:'search-after-submit',searchStatus,searchNetwork,pageErrors}));
     console.log(JSON.stringify({ check: 'preview-search', started: eventNames.includes('search_started'), outcome: eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) }));
     if (!eventNames.includes('search_started') || !eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) || !searchTypes.length) {
       console.error('FAIL: preview search did not emit start and terminal events');
