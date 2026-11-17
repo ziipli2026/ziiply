@@ -10,7 +10,7 @@ test('Monta live all chains: '+device,async({browser})=>{
   const calls=[],errors=[];
   const chains={s:0,k:0,lidl:0,tokmanni:0};
   page.on('pageerror',e=>errors.push(String(e)));
-  page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\\/api\\/s-products$/,k:/\\/api\\/k-products$/,lidl:/\\/api\\/lidl\\/products$/,tokmanni:/\\/api\\/tokmanni\\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;}});
+  page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\\/products$/,tokmanni:/\/api\/tokmanni\\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;}});
   const result={device,base,queries,results:[],calls,errors,chains};
   try{
     const first=await page.goto(base,{waitUntil:'domcontentloaded',timeout:60000});
@@ -32,6 +32,7 @@ test('Monta live all chains: '+device,async({browser})=>{
       ?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true})
       :page.getByRole('textbox',{name:'Hae tuotteita'});
     await expect(input).toBeVisible({timeout:15000});
+    fs.mkdirSync('test-results',{recursive:true});
     const added=[];
     for(const query of queries){
       await input.fill(query);
