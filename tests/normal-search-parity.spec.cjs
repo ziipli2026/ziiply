@@ -4,7 +4,9 @@ const base=process.env.ZIIPLY_LIVE_URL;
 const queries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
 const auth=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:{};
 test('Normal product search: scoped EAN parity, no cart or Monta assertions',async({browser})=>{
-  test.setTimeout(480000);
+  // This test runs 22 live searches plus real store discovery. Preserve evidence even
+  // when a single provider stalls; cap each operation independently.
+  test.setTimeout(1200000);
   if(!base)throw Error('ZIIPLY_LIVE_URL missing');
   const evidence={base,queries,layouts:{},differences:[],orderDifferences:[]};
   for(const device of ['mobile','desktop']){
@@ -45,7 +47,13 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       await page.getByRole('button',{name:device==='mobile'?'Justiina: Tuotehaku':'Avaa Justiina',exact:true}).click({timeout:30000});
       const input=device==='mobile'?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true}):page.getByRole('textbox',{name:'Hae tuotteita'});
       const results=[];
+      fs.mkdirSync('normal-search-evidence',{recursive:true});
+      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress.json',JSON.stringify({base,device,results,apiResponses:apiResponses.slice(-100),errors},null,2));
+      checkpoint();
       for(const query of queries){
+        const startedAt=Date.now();
+        console.log('[normal-parity] start',device,query);
+        checkpoint();
         if(device==='desktop'&&!await input.isVisible().catch(()=>false)){
           const reopen=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
           if(await reopen.count())await reopen.first().click();
@@ -84,7 +92,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         else await page.getByText('Haetaan tuotteita…').filter({visible:true}).first().waitFor({state:'hidden',timeout:45000}).catch(()=>{});
         await page.waitForTimeout(500);
         const eans=await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>n.getAttribute('data-ean')).filter(e=>/^\d{13}$/.test(e||'')));
-        results.push({query,eans:[...new Set(eans)],count:eans.length});
+        results.push({query,eans:[...new Set(eans)],count:eans.length,durationMs:Date.now()-startedAt});
+        console.log('[normal-parity] complete',device,query,'ean='+eans.length,'ms='+String(Date.now()-startedAt));
+        checkpoint();
       }
       evidence.layouts[device]={results,errors};
       expect(errors,'Browser page errors').toEqual([]);
