@@ -46,13 +46,48 @@ function rankStoreRows(query: string, rows: any[]) {
   );
 }
 
+// Shared UI cache policy for mobile and desktop: show a recent snapshot immediately,
+// but always revalidate against the selected stores before committing final results.
+// Cache never supplies prices to the basket comparison or the provider ranking.
+const LIVE_SEARCH_CACHE_KEY = "ziiply-shared-normal-store-search-v1";
+const LIVE_SEARCH_CACHE_TTL_MS = 20 * 60 * 1000;
+const LIVE_SEARCH_CACHE_LIMIT = 24;
+type CachedSearch = { key: string; savedAt: number; rows: any[] };
+function searchCacheIdentity(query: string, stores: NormalSearchStore[]) {
+  return JSON.stringify([query.trim().normalize("NFKC").toLocaleLowerCase("fi"),
+    stores.map(store => [store.chain, String(store.id), store.name, store.city ?? "", store.address ?? "", store.type ?? ""]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]);
+}
+function readCachedSearch(key: string): any[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const data = JSON.parse(window.sessionStorage.getItem(LIVE_SEARCH_CACHE_KEY) || "[]") as CachedSearch[];
+    const hit = Array.isArray(data) ? data.find(entry => entry.key === key && Date.now() - entry.savedAt >= 0 && Date.now() - entry.savedAt < LIVE_SEARCH_CACHE_TTL_MS) : null;
+    return hit && Array.isArray(hit.rows) ? hit.rows.filter(row => Number(row.__price) > 0 && row.priceVerified !== false) : [];
+  } catch { return []; }
+}
+function rememberCachedSearch(key: string, rows: any[]) {
+  if (typeof window === "undefined" || !rows.length) return;
+  try {
+    const old = JSON.parse(window.sessionStorage.getItem(LIVE_SEARCH_CACHE_KEY) || "[]") as CachedSearch[];
+    const entries = (Array.isArray(old) ? old : []).filter(entry => entry.key !== key && Date.now() - entry.savedAt < LIVE_SEARCH_CACHE_TTL_MS);
+    entries.unshift({ key, savedAt: Date.now(), rows });
+    window.sessionStorage.setItem(LIVE_SEARCH_CACHE_KEY, JSON.stringify(entries.slice(0, LIVE_SEARCH_CACHE_LIMIT)));
+  } catch { /* Storage can be disabled or full; live search still works. */ }
+}
+
 export async function searchNormalStores(query: string, stores: NormalSearchStore[], options: {
   signal?: AbortSignal;
   observe?: Observer;
   trace?: Observer;
   onInitialRows?: (rows: any[]) => void;
+  onCachedRows?: (rows: any[]) => void;
 } = {}) {
   const {signal, observe} = options;
+  const cacheKey = searchCacheIdentity(query, stores);
+  if (options.onCachedRows && !signal?.aborted) {
+    const cached = readCachedSearch(cacheKey);
+    if (cached.length) options.onCachedRows(cached);
+  }
   const report: Observer = (stage, data) => observe?.(stage, data);
   const trace: Observer = (stage, data) => options.trace?.(stage, data);
   let initialRowsPublished = false;
@@ -214,6 +249,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   // Lidl public research and Neon catalog identities are useful for matching,
   // but neither establishes a current store price. Never show them as priced results.
   const sortedRows = rankedRows.slice(0, 100);
+  if (!signal?.aborted && failures.length === 0) rememberCachedSearch(cacheKey, sortedRows);
   trace("lidl_catalog_research", {researchCount:research.size, catalogCount:neonRows.length, pricedLidlCount:rows.filter(row=>row.__chain==="LIDL").length});
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};
