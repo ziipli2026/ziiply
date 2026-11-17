@@ -95,7 +95,11 @@ const watchdog = setTimeout(() => {
     }
     // Default landing view already exposes normal product search. Avoid switching to
     // Gösta and back: that navigation can hide the Justiina control in mobile UI.
-    const searchInput = page.locator('textarea[placeholder="maito, kahvi"], textarea[placeholder="Kirjoita yksi tuote"]').first();
+    // Mobile and desktop use different search controls. Inspect visible input metadata,
+    // never log field values or user-entered content.
+    const inputs = await page.locator('input, textarea, [role="searchbox"]').evaluateAll(els => els.map(el => ({ tag: el.tagName.toLowerCase(), type: el.getAttribute('type'), placeholder: el.getAttribute('placeholder'), ariaLabel: el.getAttribute('aria-label'), visible: !!(el.getClientRects().length) })).filter(x => x.visible));
+    console.log(JSON.stringify({ check: 'visible-search-inputs', inputs }));
+    const searchInput = page.locator('textarea:visible, input[type="search"]:visible, input[placeholder*="tuote" i]:visible, input[placeholder*="hae" i]:visible').first();
     await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
     // The mobile card auto-searches after input changes; do not submit twice.
