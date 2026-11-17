@@ -43,8 +43,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
           const bannedKey = /(^|_)(email|token|secret|password|health|nutrition|meal|recipe|latitude|longitude|lat|lon|lng|gps|coordinate|url|href|referrer|pathname|search|query|ean|barcode|product_name)(_|$)/i
           const properties = Object.fromEntries(
             Object.entries(event.properties || {}).filter(([key, value]) => {
-              // Never forward nested objects or arrays: their children can contain
-              // private values under otherwise harmless-looking property names.
+              // Nested values may contain sensitive information under benign keys.
               if (value !== null && typeof value === 'object') return false
               return key.startsWith('
           )
