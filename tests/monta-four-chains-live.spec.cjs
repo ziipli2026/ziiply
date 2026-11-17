@@ -1,17 +1,18 @@
 const {test,expect,devices}=require('@playwright/test');
 const fs=require('node:fs');
 const base=process.env.ZIIPLY_LIVE_URL||'https://ziiply.fi';
-const queries=['maito','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
+const queries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
 for(const device of ['mobile','desktop']){
 test('Monta live all chains: '+device,async({browser})=>{
   test.setTimeout(240000);
   const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],serviceWorkers:'block'}:{viewport:{width:1440,height:900},serviceWorkers:'block'});
   const page=await context.newPage();
   const calls=[],errors=[];
+  const providerEvidence=[];
   const chains={s:0,k:0,lidl:0,tokmanni:0};
   page.on('pageerror',e=>errors.push(String(e)));
-  page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\/products$/,tokmanni:/\/api\/tokmanni\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;}});
-  const result={device,base,queries,results:[],calls,errors,chains};
+  page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\/products$/,tokmanni:/\/api\/tokmanni\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;if(/\/api\/(?:lidl|tokmanni)\/products$/.test(url)){const requestUrl=new URL(r.url());r.json().then(data=>{const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.products)?data.products:[];providerEvidence.push({chain:url.includes('/lidl/')?'lidl':'tokmanni',query:requestUrl.searchParams.get('search'),mode:requestUrl.searchParams.get('mode'),source:data?.source,priceVerified:data?.priceVerified,returned:items.length,priced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0&&p.priceVerified!==false).length});}).catch(()=>{});}}});
+  const result={device,base,queries,results:[],calls,errors,chains,providerEvidence};
   try{
     const first=await page.goto(device==='desktop'?base.replace(/\\/$/,'')+'/desktop-preview':base,{waitUntil:'domcontentloaded',timeout:60000});
     expect(first.status()).toBeLessThan(400);
@@ -78,6 +79,13 @@ test('Monta live all chains: '+device,async({browser})=>{
     // chain evidence for review; absence of Lidl/SPAR is explicitly a failure.
     // A chain name somewhere in page text is NOT proof of a real product search.
     for(const [chain,count] of Object.entries(chains))expect(count,'No successful real '+chain+' product API response').toBeGreaterThan(0);
+    await page.waitForTimeout(500);
+    for(const chain of ['lidl','tokmanni']){
+      const evidence=providerEvidence.filter(x=>x.chain===chain&&['maito','cola'].includes(x.query));
+      expect(evidence.length,`No ${chain} provider evidence for maito or cola`).toBeGreaterThan(0);
+      // An HTTP 200 or an unpriced research catalog is not a successful price comparison.
+      expect(evidence.some(x=>x.priced>0&&x.priceVerified!==false&&x.mode!=='research'),`${chain} returned no comparable priced products for maito/cola`).toBe(true);
+    }
     // Products are added as each search completes, before the next query replaces results.
     result.addedQueries=added;
     expect(added.length,'At least four distinct searches must add products').toBeGreaterThanOrEqual(4);
