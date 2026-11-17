@@ -19,11 +19,13 @@ test('Monta live all chains: '+device,async({browser})=>{
     await page.evaluate(()=>{
       const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
       const k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'};
-      localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'many',storeCompareScope:'between_chains',allStoreSelections:{hyper:{[s.id]:s,[k.id]:k},local:{}}}));
+      const lidl={id:'lidl-hyvinkaa',name:'Lidl Hyvinkää',chain:'Lidl',city:'Hyvinkää',latitude:60.63,longitude:24.86};
+      const spar={id:'eurospar-hyvinkaa',name:'EUROSPAR Hyvinkää',chain:'EUROSPAR',city:'Hyvinkää',latitude:60.63,longitude:24.86};
+      localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'many',storeCompareScope:'between_chains',allStoreSelections:{hyper:{[s.id]:s,[k.id]:k,[lidl.id]:lidl,[spar.id]:spar},local:{}}}));
       localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({
         version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',sStoreId:s.id,sStoreName:s.name,kStoreId:k.id,kStoreName:k.name},storeMode:'hyper',storeModeChosenV299:true,
         storeCompareScope:'between_chains',betweenChainSelectionModeV749:'many',
-        selectedChains:{s:true,k:true,lidl:true,tokmanni:true},usingOwnLocation:false
+        selectedChains:{s:true,k:true,lidl:true,tokmanni:true},selectedLidlStoreV750:lidl,selectedEurosparStoreV751:spar,selectedTokmanniStoreV756:null,usingOwnLocation:false
       }));
     });
     await page.reload({waitUntil:'domcontentloaded'});
