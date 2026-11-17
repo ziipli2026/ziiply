@@ -9,6 +9,22 @@ test('Monta live all chains: '+device,async({browser})=>{
   const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],serviceWorkers:'block',extraHTTPHeaders:authHeaders}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:authHeaders});
   const page=await context.newPage();
   const calls=[],errors=[];
+  const targetEans=new Set(['6408430337972','8001860253522']);
+  const targetProviderHits=[];
+  let activeSearchQuery='';
+  const pendingTargetResponses=[];
+  page.on('response',response=>{
+    if(!/\\/api\\/(?:s-products|k-products|neon-first-search|lidl\\/products|tokmanni\\/products)/.test(response.url()))return;
+    const requestedDuring=activeSearchQuery;
+    const task=response.json().then(data=>{
+      const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.products)?data.products:Array.isArray(data?.results)?data.results:[];
+      for(const item of items){
+        const ean=String(item?.ean||item?.barcode||item?.product?.ean||'');
+        if(targetEans.has(ean))targetProviderHits.push({requestedDuring,url:response.url(),ean,name:item.name||item.title||'',price:item.price??item.storeItems?.[0]?.price??null,priceVerified:item.priceVerified??null});
+      }
+    }).catch(()=>{});
+    pendingTargetResponses.push(task);
+  });
   const providerEvidence=[];
   const selectedStoreIds={lidl:null,tokmanni:null};
   const chains={s:0,k:0,lidl:0,tokmanni:0};
@@ -67,6 +83,7 @@ test('Monta live all chains: '+device,async({browser})=>{
     fs.mkdirSync('test-results',{recursive:true});
     const added=[];
     for(const query of queries){
+       activeSearchQuery=query;
       if(device==='desktop' && !(await input.isVisible().catch(()=>false))) {
         const reopen=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
         if(await reopen.count())await reopen.first().click();
@@ -96,7 +113,8 @@ test('Monta live all chains: '+device,async({browser})=>{
       const resultEans=[...new Set(eans.flatMap(v=>[...v.matchAll(/EAN\s*(\d{13})/g)].map(m=>m[1])))];
       const visibleProductButtons=await page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true}).count();
       const findingsLedger=device==='mobile'?await page.getByRole('button',{name:/Avaa löytöluettelo/i}).filter({visible:true}).count():0;
-      result.results.push({query,visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans,visibleProductButtons,findingsLedger});
+      await Promise.allSettled(pendingTargetResponses.splice(0));
+       result.results.push({query,targetProviderHits:targetProviderHits.filter(hit=>hit.requestedDuring===query),visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans,visibleProductButtons,findingsLedger});
       // The mobile search opens a full-screen result sheet; only target controls
       // within that sheet, not similarly named buttons behind its backdrop.
       const candidate=page.locator('div.pointer-events-none.fixed.inset-0').getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
@@ -182,6 +200,8 @@ test('Monta live all chains: '+device,async({browser})=>{
     // Even when the app fails before the comparison page, preserve the
     // actual browser state and provider evidence for diagnosis.
     fs.mkdirSync('test-results',{recursive:true});
+    await Promise.allSettled(pendingTargetResponses.splice(0));
+    result.targetProviderHits=targetProviderHits;
     result.finalUrl=page.url();
     result.finalTitle=await page.title().catch(()=>null);
     result.finalBodyExcerpt=await page.locator('body').innerText({timeout:5000}).then(s=>s.slice(-4000)).catch(()=>null);
