@@ -397,6 +397,8 @@ jobs:
                   // Lidl and Tokmanni/SPAR mock rows have no verified local prices.
                   // Their products must not appear as locally priced basket candidates.
                   if (chain === 'LIDL' || chain === 'SPAR' || chain === 'TOKMANNI') {
+                    const catalogDeadline = Date.now() + 20000;
+                    while (queries === 0 && Date.now() < catalogDeadline) await search.waitForTimeout(200);
                     assert.ok(queries > 0, 'selected catalog provider must receive a maito search');
                     assert.equal(await search.getByRole('button', {name:/Lisää koriin/}).filter({visible:true}).count(), 0,
                       'unverified catalog rows must not become checkout candidates');
