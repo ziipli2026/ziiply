@@ -558,6 +558,14 @@ export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
   if (localCitymarketTjek && (eanMatch === "ean" || eanMatch === "catalog-identity") && typeof eanCategory === "string" &&
       GOSTA_CATEGORY_LABELS_V136.includes(eanCategory)) return eanCategory;
 
+  // A verified Tjek source department is more reliable than generic title
+  // heuristics. Exact EAN identity above still takes precedence.
+  const tjekDebug = item?.debug && typeof item.debug === "object" ? item.debug as Record<string, unknown> : null;
+  if (localCitymarketTjek && tjekDebug?.categorySource === "tjek-department" &&
+      typeof item.category === "string" && GOSTA_CATEGORY_LABELS_V136.includes(item.category)) {
+    return item.category;
+  }
+
   const verifiedCategory = getVerifiedOfferCategory(item);
   if (verifiedCategory) return verifiedCategory;
   const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
