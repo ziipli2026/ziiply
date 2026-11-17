@@ -260,6 +260,8 @@ export default function ZiiplyMobileSearchResultsCard({
 
                 return (
                   <article
+                    data-testid="normal-search-result"
+                    data-ean={String(product.ean ?? product.product?.ean ?? "")}
                     key={String(product.id ?? product.ean ?? index)}
                     aria-busy={loading} className={`relative flex items-start ${compact?"gap-2 rounded-[0.85rem] px-2 py-2":"gap-3 rounded-[1.15rem] px-2.5 py-2.5"} overflow-hidden border-[3px] border-[#8c6934] bg-[#fffdf8] shadow-[0_3px_0_rgba(91,72,44,0.12)] ${loading?"opacity-55":""}`}
                   >
