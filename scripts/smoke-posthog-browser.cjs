@@ -102,21 +102,27 @@ const watchdog = setTimeout(() => {
     if (url.hostname === 'ziiply.vercel.app' || url.hostname === 'ziiply.fi' || url.hostname === 'www.ziiply.fi') {
       throw new Error('Search smoke must target an isolated preview deployment, not production');
     }
-    // CI uses a fixed, synthetic Hyvinkää location with geolocation permission.
-    // Open the store chooser to inspect automatic nearby-store resolution.
-    await page.getByRole('button', { name: 'Kaupat', exact: true }).click({ timeout: 10000 });
-    await page.waitForTimeout(2500);
-    try { await page.getByText('Paikannetaan', { exact: true }).waitFor({ state: 'hidden', timeout: 12000 }); } catch { console.log(JSON.stringify({check:'store-location-timeout',stillLocating:true})); }
-    const storePicker = await page.evaluate(() => ({
-      visibleText: document.body.innerText.slice(-950),
-      choices: [...document.querySelectorAll('button,[role="button"]')].filter(e=>!!e.getClientRects().length)
-        .map(e=>({text:(e.textContent||'').trim().slice(0,90),aria:e.getAttribute('aria-label')}))
-        .filter(e=>/Prisma|Citymarket|S-market|Kaupat|Valitse|Hyvinkää|Lähikaupat/i.test(e.text+' '+e.aria)).slice(0,20)
-    }));
-    console.log(JSON.stringify({check:'store-picker-before-search',storePicker}));
-    // Return to the main screen before opening the normal search overlay.
-    await page.getByRole('button', { name: 'Kaupat', exact: true }).click({ timeout: 10000 });
-    await page.waitForTimeout(500);
+    // Reuse the proven store-selection fixture from search-result-comparison-prices.yml.
+    // Only on the protected preview; never modify a production user's selection.
+    const fixtureStore = {id:'292',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
+    await page.evaluate(store => {
+      localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({
+        storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'one',
+        storeCompareScope:'between_chains',allStoreSelections:{hyper:{[store.id]:store},local:{}}
+      }));
+      localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({
+        version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',sStoreId:store.id,sStoreName:store.name},
+        storeMode:'hyper',storeModeChosenV299:true,storeCompareScope:'between_chains',
+        betweenChainSelectionModeV749:'one',withinChain:null,
+        selectedChains:{s:true,k:false,lidl:false,tokmanni:false},usingOwnLocation:false
+      }));
+    },fixtureStore);
+    await page.reload({waitUntil:'domcontentloaded',timeout:45000});
+    await page.waitForTimeout(2200);
+    console.log(JSON.stringify({check:'store-fixture',selected:await page.evaluate(()=>({
+      storeSelection:!!localStorage.getItem('ziiply-store-selection-v536'),
+      desktopChoices:!!localStorage.getItem('ziiply-desktop-store-choices-v1')
+    }))}));
     // The initial comparison dashboard hides its search textarea. The visible
     // Justiina: Tuotehaku navigation button opens the normal product search,
     // unlike Justiina: Reseptit which opens the separate recipe search.
