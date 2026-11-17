@@ -34,9 +34,10 @@ jobs:
       - name: Verify protected preview access is configured
         env:
           VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
-          if [ -z "$VERCEL_OIDC_TOKEN" ]; then
-            echo '::error::Protected Vercel preview requires GitHub Actions secret VERCEL_PREVIEW_OIDC_TOKEN. The preview browser test cannot run without authenticated access.'
+          if [ -z "$VERCEL_OIDC_TOKEN" ] && [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            echo '::error::Protected Vercel preview requires GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET or VERCEL_PREVIEW_OIDC_TOKEN. The preview browser test cannot run without authenticated access.'
             exit 1
           fi
       - name: Install Chromium for deployed smoke test
