@@ -24,7 +24,16 @@ const journeys={
 };
 const captureRe=/\b(?:posthog\.capture|trackZiiplyEvent|safeCapture)\s*\(\s*['"]([^'"]+)['"]/g;
 const emitted=corpus.flatMap(({file,text})=>[...text.matchAll(captureRe)].map(m=>({event:m[1],file})));
-const report={audit:'beta-journeys',scope:'selected source files; dynamic events and page.tsx indirect calls need runtime validation',journeys:Object.fromEntries(Object.entries(journeys).map(([name,config])=>[name,{
+const telemetry=corpus.find(x=>x.file.endsWith('/search/searchTelemetry.ts')).text;
+const provider=corpus.find(x=>x.file.endsWith('/PostHogProvider.tsx')).text;
+const server=corpus.find(x=>x.file.endsWith('/analytics/search/route.ts')).text;
+const identityAudit={
+ serverSearchUsesOwnAnonymousId:/anonymous_user_id/.test(server)&&/ziiply-beta-/.test(server),
+ browserSdkUsesPosthogIdentity:/posthog\.init\(/.test(provider),
+ sharedDistinctIdVerified:false,
+ warning:'Server search events use ziiply-beta- anonymous IDs while browser SDK manages its own distinct ID. Joining journeys across these streams is not verified; do not report unique users or cross-stream funnels as unified.'
+};
+const report={audit:'beta-journeys',scope:'selected source files; dynamic events and page.tsx indirect calls need runtime validation',identityAudit,journeys:Object.fromEntries(Object.entries(journeys).map(([name,config])=>[name,{
  sourceFiles:corpus.filter(x=>config.keywords.test(x.text)).map(x=>x.file),
  expectedEvents:config.events,
  literalEmitters:emitted.filter(x=>config.events.includes(x.event)),
