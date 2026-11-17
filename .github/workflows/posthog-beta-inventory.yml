@@ -38,6 +38,7 @@ jobs:
         if: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL != '' }}
         env:
           ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL }}
+          ZIIPLY_SMOKE_SEARCH: '1'
         run: |
           node scripts/smoke-posthog-browser.cjs
 
