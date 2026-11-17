@@ -1,5 +1,6 @@
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 import { neon } from "@neondatabase/serverless";
+import { tjekDepartmentCategory } from "../tjekDepartmentCategory";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
@@ -298,6 +299,8 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
         const unitValue=numeric(offer.unitPrice);
+        const sourceDepartment = typeof offer.departmentSlug === "string" ? offer.departmentSlug : null;
+        const sourceCategory = tjekDepartmentCategory(sourceDepartment);
         const offerKey=publicationId+":"+id;
         if(acceptedOfferKeys.has(offerKey)){duplicateOfferRows++;continue;}
         acceptedOfferKeys.add(offerKey);
@@ -312,7 +315,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
           validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
           isPlussaOffer:member!=null||hasPlussaLabel,offerQuantity:quantity,
           sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
-          category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
+          category:sourceCategory ?? classifyCitymarketCategory(title),categoryPath:sourceCategory ?? classifyCitymarketCategory(title),productGroup:sourceCategory ?? classifyCitymarketCategory(title),mainCategory:sourceCategory ?? classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION",tjekDepartmentSlug:sourceDepartment,categorySource:sourceCategory ? "tjek-department" : "legacy-title"}});
       }
       }
       entry.progress.accepted = entry.rows.length; entry.progress.updatedAt = new Date().toISOString();
