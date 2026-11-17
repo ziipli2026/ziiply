@@ -18,7 +18,7 @@ const watchdog = setTimeout(() => {
     : process.env.VERCEL_AUTOMATION_BYPASS_SECRET
       ? { 'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET }
       : {};
-  const page = await browser.newPage({ locale: 'fi-FI', viewport: { width: 390, height: 844 }, extraHTTPHeaders: previewHeaders });
+  const page = await browser.newPage({ locale: 'fi-FI', viewport: { width: 390, height: 844 }, extraHTTPHeaders: previewHeaders, ...(searchMode ? { permissions: ['geolocation'], geolocation: { latitude: 60.631, longitude: 24.859 }, timezoneId: 'Europe/Helsinki' } : {}) });
   const captures = [];
   const failures = [];
   const responses = [];
@@ -102,18 +102,20 @@ const watchdog = setTimeout(() => {
     if (url.hostname === 'ziiply.vercel.app' || url.hostname === 'ziiply.fi' || url.hostname === 'www.ziiply.fi') {
       throw new Error('Search smoke must target an isolated preview deployment, not production');
     }
-    // Establish a real store before searching: fresh CI browsers have no GPS
-    // permission and can otherwise take the no-store early return.
+    // CI uses a fixed, synthetic Hyvinkää location with geolocation permission.
+    // Open the store chooser to inspect automatic nearby-store resolution.
     await page.getByRole('button', { name: 'Kaupat', exact: true }).click({ timeout: 10000 });
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(2500);
     const storePicker = await page.evaluate(() => ({
-      visibleText: document.body.innerText.slice(-1100),
-      choices: [...document.querySelectorAll('button,[role="button"]')]
-        .filter(e=>!!e.getClientRects().length)
+      visibleText: document.body.innerText.slice(-950),
+      choices: [...document.querySelectorAll('button,[role="button"]')].filter(e=>!!e.getClientRects().length)
         .map(e=>({text:(e.textContent||'').trim().slice(0,90),aria:e.getAttribute('aria-label')}))
-        .filter(e=>/Prisma|Citymarket|S-market|Kaupat|Valitse|Hyvinkää/i.test(e.text+' '+e.aria)).slice(0,20)
+        .filter(e=>/Prisma|Citymarket|S-market|Kaupat|Valitse|Hyvinkää|Lähikaupat/i.test(e.text+' '+e.aria)).slice(0,20)
     }));
     console.log(JSON.stringify({check:'store-picker-before-search',storePicker}));
+    // Return to the main screen before opening the normal search overlay.
+    await page.getByRole('button', { name: 'Kaupat', exact: true }).click({ timeout: 10000 });
+    await page.waitForTimeout(500);
     // The initial comparison dashboard hides its search textarea. The visible
     // Justiina: Tuotehaku navigation button opens the normal product search,
     // unlike Justiina: Reseptit which opens the separate recipe search.
