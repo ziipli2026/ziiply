@@ -69,7 +69,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       })
       // No user content: local preview-only diagnostic of SDK capture state.
       console.info('[ziiply-ph-probe]', JSON.stringify({
-        initialized: posthog.__loaded === true,
+        initialized: Boolean(posthog.__loaded),
         optedOut: posthog.has_opted_out_capturing(),
         distinctIdReady: typeof posthog.get_distinct_id() === 'string',
       }))
