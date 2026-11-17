@@ -53,6 +53,7 @@ jobs:
         env:
           ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL || 'https://ziiply-git-test-posthog-beta-audit-a22236-ziipli2026s-projects.vercel.app/' }}
           ZIIPLY_SMOKE_SEARCH: '1'
+          ZIIPLY_SMOKE_CART: '1'
           VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
