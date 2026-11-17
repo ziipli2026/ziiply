@@ -6,9 +6,9 @@ const ts = require('typescript');
 const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../src/app/components/ziiply/offerSearch/catalogIdentityResolver.ts'), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-const exports = {};
-vm.runInNewContext(compiled, {exports});
-const {resolveUniqueCatalogIdentity: resolve} = exports;
+const compiledExports = {};
+vm.runInNewContext(compiled, {exports: compiledExports});
+const {resolveUniqueCatalogIdentity: resolve} = compiledExports;
 const product = {ean:'6412345678901',name:'Esimerkki kaurajuoma 1 l',brand:'Esimerkki',quantity:'1 l',category:'Juomat'};
 
 test('unique full identity is accepted', () => {
