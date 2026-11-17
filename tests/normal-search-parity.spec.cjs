@@ -12,9 +12,24 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   for(const device of ['mobile','desktop']){
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
     const page=await context.newPage();
-    const errors=[],apiResponses=[];
+    const errors=[],apiResponses=[],providerEanPresence=[],providerChecks=[];
+    let currentSearchQuery='';
     page.on('pageerror',e=>errors.push(String(e)));
-    page.on('response',r=>{try{const u=new URL(r.url());if(u.pathname.startsWith('/api/'))apiResponses.push({path:u.pathname,status:r.status()});}catch{}});
+    page.on('response',r=>{
+      try {
+        const u=new URL(r.url());
+        if(u.pathname.startsWith('/api/'))apiResponses.push({path:u.pathname,status:r.status()});
+        if(currentSearchQuery==='juusto' && /\/api\/(?:k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
+          const requestSearch=u.searchParams.get('search');
+          const check=r.text().then(body=>{
+            const index=body.indexOf('6407204002559');
+            providerEanPresence.push({device,query:'juusto',path:u.pathname,requestSearch,status:r.status(),hasTarget:index>=0,
+              targetExcerpt:index<0?null:body.slice(Math.max(0,index-350),index+450),bodyLength:body.length});
+          }).catch(error=>providerEanPresence.push({device,query:'juusto',path:u.pathname,requestSearch,status:r.status(),error:String(error)}));
+          providerChecks.push(check);
+        }
+      }catch{}
+    });
     try{
       const response=await page.goto(device==='mobile'?base:base.replace(/\/$/,'')+'/desktop-preview',{waitUntil:'domcontentloaded',timeout:60000});
       expect(response.status()).toBeLessThan(400);
@@ -48,10 +63,11 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       const input=device==='mobile'?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true}):page.getByRole('textbox',{name:'Hae tuotteita'});
       const results=[];
       fs.mkdirSync('normal-search-evidence',{recursive:true});
-      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress-'+device+'.json',JSON.stringify({base,device,results,apiResponses:apiResponses.slice(-100),errors},null,2));
+      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress-'+device+'.json',JSON.stringify({base,device,results,apiResponses:apiResponses.slice(-100),providerEanPresence,errors},null,2));
       checkpoint();
       for(const query of queries){
         const startedAt=Date.now();
+        currentSearchQuery=query;
         console.log('[normal-parity] start',device,query);
         checkpoint();
         // The mobile findings dialog covers the search controls after a completed
@@ -135,9 +151,10 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           }
         }
         await page.waitForTimeout(500);
+        await Promise.allSettled(providerChecks.splice(0));
         const snapshots=await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),label:(n.textContent||'').replace(/\s+/g,' ').slice(0,240)})).filter(x=>/^\d{13}$/.test(x.ean||'')));
         const eans=[...new Set(snapshots.map(x=>x.ean))];
-        results.push({query,eans,uniqueEans:eans.length,renderedCards:snapshots.length,duplicates:snapshots.length-eans.length,samples:snapshots.slice(0,25),durationMs:Date.now()-startedAt});
+        results.push({query,eans,uniqueEans:eans.length,renderedCards:snapshots.length,duplicates:snapshots.length-eans.length,samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='6407204002559')||null,durationMs:Date.now()-startedAt});
         console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
       }
