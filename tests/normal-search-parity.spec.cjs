@@ -63,6 +63,15 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             await closeFindings.first().click({timeout:8000});
             console.log('[normal-parity] closed findings before',device,query);
           }
+        } else {
+          // Desktop displays normal results in a modal covering the search input.
+          // Close it before the next query; otherwise Playwright waits forever
+          // for a hidden text box to become actionable.
+          const closeResults=page.getByRole('button',{name:'Sulje tuotevalinta',exact:true}).filter({visible:true});
+          if(await closeResults.count()){
+            await closeResults.first().click({timeout:8000});
+            console.log('[normal-parity] closed desktop results before',query);
+          }
         }
         if(device==='desktop'&&!await input.isVisible().catch(()=>false)){
           const reopen=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
@@ -99,7 +108,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           throw error;
         }
         if(device==='mobile')await page.getByText(/Haetaan lisää tuotteita|Haetaan tuotteita/).filter({visible:true}).first().waitFor({state:'hidden',timeout:45000}).catch(()=>{});
-        else await page.getByText('Haetaan tuotteita…').filter({visible:true}).first().waitFor({state:'hidden',timeout:45000}).catch(()=>{});
+        else {
+          // Desktop's status includes the active query while loading; waiting for
+          // 'Haetaan tuotteita…' to disappear is unreliable once partial results
+          // switch the status to 'Haetaan lisää tuotteita…'.
+          await expect(page.getByRole('status').filter({hasText:'löydetty · '+query}).first()).toBeVisible({timeout:60000});
+        }
         await page.waitForTimeout(500);
         const eans=await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>n.getAttribute('data-ean')).filter(e=>/^\d{13}$/.test(e||'')));
         results.push({query,eans:[...new Set(eans)],count:eans.length,durationMs:Date.now()-startedAt});
