@@ -20,6 +20,12 @@ const requirements = [
   ['server accepts only explicit true test flag', /ziiply_internal_test:\s*body\.ziiply_internal_test === true/.test(fs.readFileSync(path.join(root, 'src/app/api/analytics/search/route.ts'), 'utf8'))],
   ['browser and server share anonymous SDK identity', /posthog\.get_distinct_id\(\)/.test(searchTelemetry) && /posthog_distinct_id: browserPosthogDistinctId\(\)/.test(searchTelemetry)],
   ['server validates SDK identity and reports join status', /sdkDistinctId/.test(fs.readFileSync(path.join(root, 'src/app/api/analytics/search/route.ts'), 'utf8')) && /ziiply_identity_joined/.test(fs.readFileSync(path.join(root, 'src/app/api/analytics/search/route.ts'), 'utf8'))],
+  ['identity audit separates implementation from runtime verification', (() => {
+    const audit = fs.readFileSync(path.join(root, 'scripts/audit-beta-journeys.cjs'), 'utf8');
+    return /identityJoinImplementationPresent/.test(audit) &&
+      /runtimeIdentityJoinVerifiedByThisAudit:\s*false/.test(audit) &&
+      /posthogDashboardGroupingVerified:\s*false/.test(audit);
+  })()],
   ['environment marker present', /ziiply_environment/.test(provider)],
   ['shared tracking wrapper present', /function\s+trackZiiplyEvent\s*\(/.test(core)],
   ['search event present', /trackZiiplyEvent\s*\(\s*["']search_used["']/.test(page)],
