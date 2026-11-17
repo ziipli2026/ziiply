@@ -23,6 +23,10 @@ const watchdog = setTimeout(() => {
   const sdkDiagnostics = [];
   page.on('console', message => {
     const text = message.text();
+    if (text.startsWith('[ziiply-ph-probe-entry]')) {
+      try { sdkDiagnostics.push({stage:'effect-entry', ...JSON.parse(text.slice('[ziiply-ph-probe-entry]'.length).trim())}); }
+      catch { sdkDiagnostics.push({stage:'effect-entry', parse:'failed'}); }
+    }
     if (text.startsWith('[ziiply-ph-probe]')) {
       try { sdkDiagnostics.push(JSON.parse(text.slice('[ziiply-ph-probe]'.length).trim())); }
       catch { sdkDiagnostics.push({parse:'failed'}); }
