@@ -53,20 +53,24 @@ test('Monta live all chains: '+device,async({browser})=>{
       expect(joined.includes(chain),'No visible '+chain+' evidence in live search results').toBe(true);
     }
     // Exercise the actual basket and comparison screen, not just product search.
-    const addButtons=page.getByRole('button',{name:/Lisää ostoskoriin/i});
+    const addButtons=page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
     const addCount=await addButtons.count();
     result.addButtons=addCount;
     expect(addCount,'Search must expose add-to-cart action').toBeGreaterThan(0);
     await addButtons.first().click();
     await page.waitForFunction(()=>{try{return JSON.parse(localStorage.getItem('ziiply-cart-v1')||'{}').items?.length>0}catch{return false}},null,{timeout:15000});
-    const cartButton=page.getByRole('button',{name:/^Kori(?:\\s|$)/}).first();
-    await expect(cartButton).toBeVisible({timeout:15000});
-    await cartButton.click();
-    const compareButton=page.getByRole('button',{name:/Halpuusvertailu/i}).first();
-    await expect(compareButton,'Basket must expose Halpuusvertailu').toBeVisible({timeout:15000});
-    await compareButton.click();
+    const comparisonNav=page.getByRole('button',{name:'Vertailu',exact:true}).filter({visible:true}).last();
+    await expect(comparisonNav).toBeVisible({timeout:15000});
+    await comparisonNav.click();
+    const compareButton=page.getByRole('button',{name:/Halpuusvertailu/i}).filter({visible:true}).first();
+    if(device==='mobile'){
+      await expect(compareButton,'Basket must expose Halpuusvertailu').toBeVisible({timeout:15000});
+      await compareButton.click();
+    }
     await expect(page.getByText(/Halpuusvertailu|Hintavertailu/).first()).toBeVisible({timeout:30000});
     result.compareText=(await page.locator('body').innerText()).slice(-6500);
+    expect(result.compareText).not.toMatch(/Vertailutuloksia ei ole saatavilla|Ei vertailua/);
+    result.cart=await page.evaluate(()=>({mobile:localStorage.getItem('ziiply-cart-v1'),desktop:sessionStorage.getItem('ziiply-desktop-current-cart-v1')}));
     await page.screenshot({path:'test-results/monta-'+device+'-comparison.png',fullPage:true});
   }finally{
     fs.mkdirSync('test-results',{recursive:true});
