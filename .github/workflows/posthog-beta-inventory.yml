@@ -20,6 +20,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Typecheck application
+        run: npx tsc --noEmit
       - name: Check inventory script syntax
         run: node --check scripts/audit-posthog-beta.cjs
       - name: Check beta analytics privacy and core event regressions
@@ -28,7 +32,7 @@ jobs:
         run: npm run audit:posthog
       - name: Install Chromium for deployed smoke test
         run: |
-          npm install --no-save --ignore-scripts playwright
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright
           npx playwright install --with-deps chromium
       # This public URL serves main, not this PR's preview build. It is diagnostic only.
       # Keep the branch's source/privacy regression checks blocking.
