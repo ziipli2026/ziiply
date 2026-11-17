@@ -788,6 +788,34 @@ export default function DesktopPreviewPage() {
   const [desktopScannerEan,setDesktopScannerEan]=useState("");
   const [desktopScannerMessage,setDesktopScannerMessage]=useState("");
   const [desktopScannerDebug,setDesktopScannerDebug]=useState("Odotetaan kameraa");
+  const desktopScannerLogRef=useRef<Array<{at:string;event:string;details?:Record<string,unknown>}>>([]);
+  const desktopScannerStatsRef=useRef({decodeMisses:0,decodeHits:0,frames:0});
+  const logDesktopScanner=(event:string,details?:Record<string,unknown>)=>{
+    const log=desktopScannerLogRef.current;
+    log.push({at:new Date().toISOString(),event,...(details?{details}:{})});
+    if(log.length>500)log.shift();
+  };
+  const downloadDesktopScannerDebug=()=>{
+    const region=document.getElementById("ziiply-desktop-scanner-region");
+    const video=region?.querySelector("video");
+    const track=(video?.srcObject as MediaStream|null)?.getVideoTracks()[0];
+    const payload={
+      schema:"ziiply-desktop-ean-scanner-debug-v1",
+      exportedAt:new Date().toISOString(),
+      page:window.location.pathname,
+      browser:{userAgent:navigator.userAgent,language:navigator.language,secureContext:window.isSecureContext,mediaDevicesAvailable:!!navigator.mediaDevices?.getUserMedia,barcodeDetectorAvailable:!!(window as any).BarcodeDetector,html5QrcodeAvailable:!!(window as any).Html5Qrcode},
+      scanner:{open:desktopScannerOpen,cameraOn:desktopScannerCameraOn,status:desktopScannerDebug,message:desktopScannerMessage,video:video?{width:video.videoWidth,height:video.videoHeight,readyState:video.readyState,paused:video.paused,muted:video.muted,mirrored:getComputedStyle(video).transform,trackState:track?.readyState,trackLabel:track?.label,trackSettings:track?.getSettings?.()}:null},
+      counters:{...desktopScannerStatsRef.current},
+      events:desktopScannerLogRef.current
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const anchor=document.createElement("a");
+    anchor.href=url;anchor.download="ziiply-desktop-ean-debug-"+new Date().toISOString().replace(/[:.]/g,"-")+".json";
+    document.body.appendChild(anchor);anchor.click();anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const [desktopScannerIncrement,setDesktopScannerIncrement]=useState(false);
   const desktopScannerIncrementTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const [desktopScannerLoading,setDesktopScannerLoading]=useState(false);
@@ -832,6 +860,7 @@ export default function DesktopPreviewPage() {
     if (!desktopScannerOpen || !desktopScannerCameraOn) return;
     const region = document.getElementById("ziiply-desktop-scanner-region");
     if (!region) return;
+    logDesktopScanner("scanner_open",{cameraOn:desktopScannerCameraOn});
     let stopped = false;
     let stream: MediaStream | null = null;
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -861,6 +890,8 @@ export default function DesktopPreviewPage() {
       const code = String(value || "").trim();
       if (stopped || recognized || !/^\d{8,14}$/.test(code)) return;
       recognized = true;
+      desktopScannerStatsRef.current.decodeHits++;
+      logDesktopScanner("decode_success",{ean:code});
       setDesktopScannerDebug("EAN löytyi: " + code);
       setDesktopScannerEan(code);
       setDesktopScannerMessage("EAN tunnistettu: " + code);
@@ -870,6 +901,7 @@ export default function DesktopPreviewPage() {
     };
     const startMobileDecoder = async () => {
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Selaimen kamerarajapinta ei ole käytettävissä");
+      logDesktopScanner("decoder_loading",{engine:"html5-qrcode"});
       setDesktopScannerDebug("Ladataan EAN-tunnistin");
       const { HTML5_QRCODE_SCRIPT_URL } = await import("../components/ziiply/ziiplyCore");
       if (!(window as any).Html5Qrcode) {
@@ -884,13 +916,14 @@ export default function DesktopPreviewPage() {
       }
       if (stopped) return;
       const Html5Qrcode = (window as any).Html5Qrcode;
-      const formats = (window as any).Html5QrcodeSupportedFormats;
+      logDesktopScanner("decoder_loaded",{engine:"html5-qrcode",facingMode:cameraFacingMode});
       htmlScanner = new Html5Qrcode(region.id, { verbose: false });
-      await htmlScanner.start({ facingMode: cameraFacingMode }, { fps: 15, qrbox: (width: number, height: number) => ({ width: Math.max(100, Math.floor(width * 0.9)), height: Math.max(70, Math.floor(height * 0.5)) }), videoConstraints: { width: { ideal: 1280 }, height: { ideal: 720 } } }, onCode, () => undefined);
+      await htmlScanner.start({ facingMode: cameraFacingMode }, { fps: 15, qrbox: (width: number, height: number) => ({ width: Math.max(100, Math.floor(width * 0.9)), height: Math.max(70, Math.floor(height * 0.5)) }), videoConstraints: { width: { ideal: 1280 }, height: { ideal: 720 } } }, onCode, (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
       unmirrorCameraPreview();
       const activeVideo = region.querySelector("video");
       if (activeVideo) setDesktopScannerDebug("Kamera: " + (activeVideo.videoWidth || "?") + "×" + (activeVideo.videoHeight || "?") + " · EAN-lukija käynnissä");
       scannerStarted = true;
+      logDesktopScanner("camera_started",{width:activeVideo?.videoWidth,height:activeVideo?.videoHeight,videoReadyState:activeVideo?.readyState,trackSettings:(activeVideo?.srcObject as MediaStream|null)?.getVideoTracks()[0]?.getSettings?.()});
       setDesktopScannerDebug("EAN-lukija käynnissä · odotetaan koodia");
       if (stopped) await stopHtmlScanner();
       else setDesktopScannerMessage("");
@@ -898,7 +931,7 @@ export default function DesktopPreviewPage() {
     const start = async () => {
       try {
         const Detector = (window as any).BarcodeDetector;
-        if (isDesktopMac || !Detector) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
+        if (isDesktopMac || !Detector) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); logDesktopScanner("startup_error",{reason}); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
         const supported: string[] = typeof Detector.getSupportedFormats === "function" ? await Detector.getSupportedFormats() : ["ean_13","ean_8","upc_a","upc_e"];
         const formats = ["ean_13","ean_8","upc_a","upc_e"].filter(format => supported.includes(format));
         if (!formats.length) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
@@ -938,6 +971,7 @@ export default function DesktopPreviewPage() {
     };
     void start();
     return () => {
+      logDesktopScanner("scanner_closed",{decodeMisses:desktopScannerStatsRef.current.decodeMisses,decodeHits:desktopScannerStatsRef.current.decodeHits});
       stopped = true;
       if (timer) clearInterval(timer);
       stream?.getTracks().forEach(track => track.stop());
@@ -3240,7 +3274,7 @@ export default function DesktopPreviewPage() {
         {desktopScannerOpen&&<div className="fixed inset-0 z-[99998] flex items-center justify-center bg-black/65 p-4"><div className="relative h-[min(680px,92dvh)] w-[min(440px,95vw)] overflow-hidden rounded-[24px] bg-[#f4edda]">
 <ZiiplyDesktopScannerCard className="[&>footer]:hidden" regionId="ziiply-desktop-scanner-region" loading={desktopScannerLoading} flashState={desktopScannerFlash} scannerMessage={desktopScannerMessage} onClose={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} />
 {desktopScannerIncrement&&<div className="pointer-events-none absolute inset-0 z-[90] flex items-center justify-center"><span className="rounded-2xl border-[3px] border-[#245c28] bg-[#d7ffd2] px-12 py-6 text-[48px] font-black text-[#123d18] shadow-xl">+1</span></div>}
-<div aria-live="polite" className="pointer-events-none absolute inset-x-3 bottom-[112px] z-[70] rounded-lg bg-black/85 px-3 py-2 text-center text-xs font-semibold text-white">DEBUG · {desktopScannerDebug}</div>
+<div className="absolute inset-x-3 bottom-[112px] z-[70] flex items-center gap-2 rounded-lg bg-black/85 px-2 py-2 text-xs font-semibold text-white"><span aria-live="polite" className="min-w-0 flex-1 truncate">DEBUG · {desktopScannerDebug}</span><button type="button" onClick={downloadDesktopScannerDebug} className="shrink-0 rounded-md bg-[#e2edcf] px-3 py-2 font-black text-[#174c35]">Lataa debug JSON</button></div>
 <div className="absolute bottom-3 left-3 right-3 z-[100] rounded-xl bg-[#fff5dc] p-3 shadow-xl"><div className="flex flex-wrap items-center justify-center gap-3"><button type="button" onClick={()=>{setDesktopScannerMessage("");void pasteDesktopScannerEan()}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#28492f] shadow-[inset_0_2px_0_rgba(255,255,255,0.7)]">Liitä EAN</button><button type="button" aria-label="Avaa ostoskori" title="Avaa ostoskori" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false);setCartOpen(true)}} className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full border-[5px] border-[#7b6034] bg-[#d8c08c] shadow-[0_6px_16px_rgba(0,0,0,0.22),inset_0_2px_0_rgba(255,255,255,0.55)]"><span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border-[3px] border-[#efe2b8] bg-[#16472c] text-[31px] leading-none text-[#fff6d9]">🧺</span></button><button type="button" onClick={()=>{setDesktopScannerCameraOn(false);setDesktopScannerOpen(false)}} className="flex min-h-[64px] flex-1 items-center justify-center rounded-[17px] border-[3px] border-[#7d2b1d] bg-[linear-gradient(180deg,#c64235_0%,#922016_100%)] px-3 py-2 text-center text-[13px] font-black uppercase leading-tight text-[#fff3dc] shadow-[inset_0_2px_0_rgba(255,255,255,0.20)]">Sulje kamera</button></div></div></div></div>}
         <ZiiplyDesktopNotebookCard open={notebookOpen} recipePickerOnly={notebookRecipePicker} lists={savedLists} currentCartCount={cartItems.length} openedListId={openedSavedListId} onToggleList={(id)=>setOpenedSavedListId(openedSavedListId===id?null:id)} onSaveCurrentCart={beginSaveCart} onRestoreList={restoreSavedList} onDeleteList={(id)=>persistSavedLists(savedLists.filter((list:any)=>list.id!==id))} onClose={()=>{setNotebookOpen(false);setNotebookRecipePicker(false)}} />
         {pendingNotebookRestore&&<div role="dialog" aria-modal="true" aria-label="Ostoslistan palautus" className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 p-4"><div className="w-full max-w-md rounded-2xl bg-[#fffaf0] p-6 shadow-2xl"><h2 className="text-xl font-black">Palauta ostoslista</h2><p className="mt-2">Ostoskorissa on jo tuotteita. Mitä tehdään tallennetulle listalle?</p><div className="mt-5 flex flex-wrap gap-2"><button type="button" className="rounded-lg bg-[#24573e] px-4 py-2 font-bold text-white" onClick={()=>completeNotebookRestore(pendingNotebookRestore,"merge")}>Yhdistä koriin</button><button type="button" className="rounded-lg border border-[#9b614b] px-4 py-2 font-bold" onClick={()=>completeNotebookRestore(pendingNotebookRestore,"replace")}>Korvaa kori</button><button type="button" className="rounded-lg border px-4 py-2" onClick={()=>setPendingNotebookRestore(null)}>Peruuta</button></div></div></div>}
@@ -3596,7 +3630,7 @@ export default function DesktopPreviewPage() {
   <button type="button" onClick={requestDesktopListExit} aria-label="Sulje tuotevalinta" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button>
 </div>{desktopSearchMode!=="normal"&&<div className="mt-2 flex shrink-0 justify-center"><button type="button" onClick={confirmDesktopListSkip} disabled={!desktopVoiceWaitRef.current || justiinaLoading} className="rounded-xl border-2 border-[#a66e26] bg-[#fff0ba] px-5 py-2 text-sm font-black text-[#66420d] disabled:opacity-40">Ohita tuote →</button></div>}<div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4">{!justiinaLoading&&!justiinaResults.length&&<p role="status" className="mb-3 text-center font-bold">{justiinaMessage||"Tuotteita ei löytynyt."}{desktopSearchMode==="recipe"?" Ohita tuote jatkaaksesi. Puuttuva aines säilyy ostoskorissa tarkistettavana.":desktopSearchMode==="voice-list"?" Ohita tuote jatkaaksesi.":""}</p>}<div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{justiinaResults.map((p:any,i:number)=>{const comparison = formatSearchResultComparisonPrice(p, p.__price ?? null);return <div key={String(p.id||p.ean||i)} className="grid min-h-[258px] grid-cols-[minmax(108px,35%)_minmax(0,1fr)] items-stretch gap-4 overflow-hidden rounded-[24px] border-[3px] border-[#a99a75] bg-[#fff3d5] p-4"><div className="flex min-w-0 flex-col gap-3"><div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2">{(p.pictureUrl||p.imageUrl||p.image)?<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="eager" decoding="async"/>:<span className="text-[38px]">🛍️</span>}</div><button type="button" onClick={()=>{if(desktopSearchMode==="normal"){addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price,storeName:p.__store});justiinaAddedDuringSelectionRef.current=true;}else addRecipeSelectionToCart(p)}} className="flex min-h-[76px] w-full flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-[#126a39]"><span className="font-serif text-[25px] font-black">{p.__price!=null?Number(p.__price).toFixed(2).replace(".",",")+" €":"—"}</span><span className="text-[12px] font-black">{p.priceVerified === false ? "Hinta vahvistamatta · lisää listalle" : "🛒 Lisää koriin"}</span></button></div><div className="min-w-0 overflow-hidden py-1"><div className="line-clamp-3 text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-3 text-[11px] font-black uppercase text-[#6f735b]">{p.__store||p.storeName||""}</div>{p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}{comparison&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{comparison}</div>}<ProductEnergy ean={p.ean || p.barcode || p.product?.ean || p.__sourceOfferSearchResult?.ean} nutrition={p.nutrition ?? p.product?.nutrition ?? p.__sourceOfferSearchResult?.nutrition} quantity={p.packageSize ?? p.product?.packageSize ?? p.__sourceOfferSearchResult?.packageSize} /></div></div>})}</div></div></div>}
 
-            {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onVoiceTranscript={(text,recipeItems)=>{void runDesktopVoiceList(text,recipeItems)}} onOpenScanner={()=>{setDesktopScannerEan("");setDesktopScannerMessage("");setDesktopScannerCameraOn(true);setDesktopScannerDebug("Käynnistetään kamera");setDesktopScannerOpen(true)}} onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={(value)=>{cancelDesktopVoiceList();justiinaUserEditedRef.current=true;justiinaSuppressedTermsRef.current.delete(value.trim().toLowerCase());setJustiinaQuery(value);setJustiinaResults([]);setJustiinaResultsOpen(false);if(!value.trim()){justiinaLastSearchedRef.current="";setJustiinaMessage("")}}} loading={justiinaLoading} onSearch={()=>{void startDesktopNormalSearch(justiinaQuery)}} message={justiinaMessage} debug={justiinaDebug} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} onReopenResults={()=>{if(justiinaResults.length>0){justiinaUserEditedRef.current=false;setJustiinaResultsOpen(true)}}} onAddInputToCart={(text)=>{justiinaUserEditedRef.current=false;justiinaSuppressedTermsRef.current.add(text.trim().toLowerCase());text.split(/[,\.\n]+/).map(x=>x.trim()).filter(Boolean).forEach(title=>addDesktopCartItem({title,name:title,source:"justiina",price:0,quantity:1}));}} />}
+            {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onVoiceTranscript={(text,recipeItems)=>{void runDesktopVoiceList(text,recipeItems)}} onOpenScanner={()=>{setDesktopScannerEan("");setDesktopScannerMessage("");setDesktopScannerCameraOn(true);setDesktopScannerDebug("Käynnistetään kamera");desktopScannerLogRef.current=[];desktopScannerStatsRef.current={decodeMisses:0,decodeHits:0,frames:0};setDesktopScannerOpen(true)}} onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={(value)=>{cancelDesktopVoiceList();justiinaUserEditedRef.current=true;justiinaSuppressedTermsRef.current.delete(value.trim().toLowerCase());setJustiinaQuery(value);setJustiinaResults([]);setJustiinaResultsOpen(false);if(!value.trim()){justiinaLastSearchedRef.current="";setJustiinaMessage("")}}} loading={justiinaLoading} onSearch={()=>{void startDesktopNormalSearch(justiinaQuery)}} message={justiinaMessage} debug={justiinaDebug} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} onReopenResults={()=>{if(justiinaResults.length>0){justiinaUserEditedRef.current=false;setJustiinaResultsOpen(true)}}} onAddInputToCart={(text)=>{justiinaUserEditedRef.current=false;justiinaSuppressedTermsRef.current.add(text.trim().toLowerCase());text.split(/[,\.\n]+/).map(x=>x.trim()).filter(Boolean).forEach(title=>addDesktopCartItem({title,name:title,source:"justiina",price:0,quantity:1}));}} />}
             {workspace && workspace!=="justiina" && (
               <div className="absolute inset-5 z-40 flex flex-col rounded-[32px] border border-[#756443]/20 bg-[#f8f5ed]/[0.99] p-6 shadow-[0_28px_80px_rgba(34,54,43,.28)] xl:inset-8">
                 {workspace!=="arvo"&&<div className="flex items-center justify-between gap-3"><div className="text-[26px] font-black text-[#14291f]">{({ gosta: "Gösta", justiina: "Justiina", arvo: "Arvo" } as const)[workspace]}</div><button onClick={()=>setWorkspace(null)} className="rounded-lg border border-[#173b2b] px-3 py-1 text-sm font-bold text-[#173b2b]">← Takaisin</button></div>}
