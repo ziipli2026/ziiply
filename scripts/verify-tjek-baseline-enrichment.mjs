@@ -1,7 +1,10 @@
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import assert from 'node:assert/strict';
-import {readFileSync as readSource} from 'node:fs';
+import {createRequire} from 'node:module';
+import vm from 'node:vm';
+const require=createRequire(import.meta.url);
+const ts=require('typescript');
 // Uses a read-only extract of real Neon snapshot fields, not synthetic rows.
 // This is an offline regression check, not a live production DB integration test.
 const manifest='artifacts/hyvinkaa-tjek-departments-verified.json';
@@ -32,15 +35,16 @@ for(let i=0;i<enriched.length;i++){
 }
 assert.equal(excludedCount,72,'source department exclusion count changed');
 assert.equal(enriched.length-excludedCount,67);
-// The selected-store snapshot read path must reject verified non-grocery departments
-// before active-offer and selected-store filtering. A source-level guard catches regressions.
-const provider=readSource('src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts','utf8');
-const snapshotFilter=provider.indexOf('.filter(row => !isTjekNonGroceryDepartment((row.debug as Row | undefined)?.tjekDepartmentSlug ?? row.tjekDepartmentSlug))');
-const activeFilter=provider.indexOf('.filter(row => isActiveOffer(row, now)',snapshotFilter);
-assert.ok(snapshotFilter>0&&activeFilter>snapshotFilter,'snapshot read path must filter Tjek non-grocery departments');
-const visible=enriched.filter(row=>!excluded.has(row.debug.tjekDepartmentSlug));
+// Execute the actual shared TypeScript filter against all 139 enriched Neon rows.
+const provider=readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts','utf8');
+assert.match(provider,/const fallback = filterTjekGroceryRows\\(\\(await readPublishedSnapshot\\(fallbackKey\\) \\?\\? \\[\\]\\)\\)/);
+const categorySource=readFileSync('src/app/components/ziiply/offerSearch/tjekDepartmentCategory.ts','utf8');
+const compiled=ts.transpileModule(categorySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const exports={};vm.runInNewContext(compiled,{exports});
+const visible=exports.filterTjekGroceryRows(enriched);
 assert.equal(visible.length,67);
 assert.ok(visible.every(row=>!excluded.has(row.debug.tjekDepartmentSlug)));
+for(const row of visible)assert.equal(row,enriched.find(original=>original.offerId===row.offerId),'filter must preserve offer rows without mutation');
 const remainingDepartments={};
 for(const row of visible){const slug=row.debug.tjekDepartmentSlug;remainingDepartments[slug]=(remainingDepartments[slug]??0)+1;}
 assert.equal(Object.values(remainingDepartments).reduce((a,b)=>a+b,0),67);
