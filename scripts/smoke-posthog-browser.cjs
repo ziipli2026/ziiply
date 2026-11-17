@@ -20,6 +20,12 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   const response = await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: 45000 });
   await page.waitForTimeout(5000);
   const title = await page.title();
+  const loginGate = /login\\s*[–-]\\s*vercel/i.test(title) ||
+    await page.getByRole('heading', { name: /log in to vercel/i }).count() > 0;
+  if (loginGate) {
+    console.error('FAIL: Vercel authentication page, not Ziiply application');
+    process.exitCode = 1;
+  }
   console.log(JSON.stringify({ check: 'browser-page-load', status: response?.status(), title, urlHost: url.host }));
   // PostHog is module-scoped, not exposed on window. Do not mistake a missing
   // window.posthog global for failed initialization.
