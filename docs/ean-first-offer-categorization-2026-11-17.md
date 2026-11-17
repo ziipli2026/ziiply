@@ -5,7 +5,7 @@ One shared category resolver for mobile and desktop, independent of individual p
 
 ## Current state
 - `enrichOfferCategoriesFromNeon` already looks up `ziiply_ean_products` by EAN, then exact name, and attaches `neonCategoryMatch`, `neonDisplayCategory`, `neonCategoryPath`.
-- `getOfferCategoryV106` previously evaluated title-based overrides before those Neon fields. This branch gives *verified EAN matches* first priority in the shared category resolver.
+- `getOfferCategoryV106` previously evaluated title-based overrides before those Neon fields. This branch gives *verified EAN matches* first priority **only for selected-store K-Citymarket Tjek campaigns** (`provider=kcitymarket-local`, `source=K-Citymarket kauppakohtainen julkaisu`). All other offer sources retain their prior precedence.
 - Tjek Citymarket ingestion still assigns a preliminary category from the title. The EAN-first override only applies where a trustworthy EAN is present and resolved to a known Ziiply category.
 
 ## Evidence and precedence
@@ -24,4 +24,4 @@ One shared category resolver for mobile and desktop, independent of individual p
 - Long term: replace title-regex fallbacks with a taxonomy-mapping table and review queue for uncertain products. Avoid new per-product special cases.
 
 ## Safety
-This branch does not alter DB schema, stored catalog categories, Tjek scraping, prices, or production main. It does not remove existing legacy fallbacks; they remain for products without a confirmed catalog EAN category.
+This branch gates EAN-first behavior to local Citymarket Tjek campaigns. This branch does not alter DB schema, stored catalog categories, Tjek scraping, prices, or production main. It does not remove existing legacy fallbacks; they remain for products without a confirmed catalog EAN category.
