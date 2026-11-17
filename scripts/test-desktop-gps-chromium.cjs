@@ -54,16 +54,29 @@ try{
  console.log('PASS location change Hyvinkää to Lahti updates all four chain groups');
  await gps.click();
  await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='false');
- await page.evaluate(()=>{const key='ziiply-desktop-store-choices-v1';const v=JSON.parse(localStorage.getItem(key));v.allStoreSelections.hyper['s-l'].desktopSelectionOrigin='manual';localStorage.setItem(key,JSON.stringify(v))});
  await page.reload({waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
+ await assertNames('l');
+ // Seed a manual selection before a fresh page opens; do not race React's persistence effect.
+ const savedStoreState = await page.evaluate(()=>JSON.parse(localStorage.getItem('ziiply-desktop-store-choices-v1')));
+ savedStoreState.allStoreSelections.hyper['s-l'].desktopSelectionOrigin='manual';
+ await page.close();
+ const manualPage=await context.newPage();
+ await manualPage.route('**/api/store-search?*',r=>r.fulfill({json:{items:fixtures.filter(x=>x.chain==='S'||x.chain==='K')}}));
+ await manualPage.route('**/api/lidl/store-search?*',r=>r.fulfill({json:{items:fixtures.filter(x=>x.chain==='LIDL')}}));
+ await manualPage.route('**/api/eurospar-stores?*',r=>r.fulfill({json:{items:fixtures.filter(x=>x.chain==='TOKMANNI')}}));
+ await manualPage.addInitScript(state=>localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify(state)), savedStoreState);
+ await manualPage.goto(process.env.PREVIEW_URL,{waitUntil:'domcontentloaded'});
+ const gpsManual=manualPage.getByRole('button',{name:'GPS',exact:true});
+ const manualRead=()=>manualPage.evaluate(()=>JSON.parse(localStorage.getItem('ziiply-desktop-store-choices-v1')).allStoreSelections.hyper);
+ await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
  // A manual selection must survive a location change; set manual selection in saved state before the next navigation.
- const saved=await read();assert.equal(saved['s-l']?.desktopSelectionOrigin,'manual');
+ const saved=await manualRead();assert.equal(saved['s-l']?.desktopSelectionOrigin,'manual');
  await context.setGeolocation(HY);
- await gps.click();await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='false');
- await gps.click();await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
- await page.waitForFunction(()=>{const v=JSON.parse(localStorage.getItem('ziiply-desktop-store-choices-v1')||'{}').allStoreSelections?.hyper||{};return !!v['k-h']&&!!v['l-h']&&!!v['t-h']});
- const after=await read();assert.equal(after['s-l']?.desktopSelectionOrigin,'manual');
+ await gpsManual.click();await manualPage.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='false');
+ await gpsManual.click();await manualPage.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
+ await manualPage.waitForFunction(()=>{const v=JSON.parse(localStorage.getItem('ziiply-desktop-store-choices-v1')||'{}').allStoreSelections?.hyper||{};return !!v['k-h']&&!!v['l-h']&&!!v['t-h']});
+ const after=await manualRead();assert.equal(after['s-l']?.desktopSelectionOrigin,'manual');
  console.log('PASS manually selected store remains unchanged when GPS location changes');
  console.log('PASS extended GPS Chromium regression');
 }finally{await browser.close()}
