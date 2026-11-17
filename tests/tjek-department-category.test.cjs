@@ -33,3 +33,13 @@ test('only explicitly non-grocery Tjek departments are excluded',()=>{
  assert.match(provider,/if \(isTjekNonGroceryDepartment\(sourceDepartment\)\)/);
  assert.match(provider,/reject\("non-grocery-source-department"\)/);
 });
+
+test('read-only Tjek audit exclusions match the production parser allowlist',()=>{
+ const audit=fs.readFileSync(path.join(__dirname,'../scripts/audit-hyvinkaa-tjek-departments.mjs'),'utf8');
+ const match=audit.match(/if\(\[([^\]]+)\]\.includes\(department\)\)/);
+ assert.ok(match,'audit must declare its excluded source departments');
+ const auditDepartments=match[1].split(',').map(x=>x.trim().replace(/^['"]|['"]$/g,''));
+ const parserDepartments=['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy'];
+ assert.deepEqual(auditDepartments.slice().sort(),parserDepartments.slice().sort());
+ for(const department of auditDepartments)assert.equal(moduleExports.isTjekNonGroceryDepartment(department),true);
+});
