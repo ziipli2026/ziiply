@@ -837,15 +837,27 @@ export default function DesktopPreviewPage() {
     let htmlScanner: any = null;
     let nativeVideo: HTMLVideoElement | null = null;
     let recognized = false;
+    let scannerStarted = false;
+    let scannerStopping = false;
+    const stopHtmlScanner = async () => {
+      if (!htmlScanner || !scannerStarted || scannerStopping) return;
+      scannerStopping = true;
+      try { await htmlScanner.stop(); }
+      catch (error) { console.debug("[Ziiply scanner] camera stop", error); }
+      finally {
+        scannerStarted = false;
+        try { htmlScanner.clear(); } catch { /* Container may already be unmounted. */ }
+      }
+    };
     const onCode = (value: string) => {
       const code = String(value || "").trim();
-      if (stopped || recognized || !/^\\d{8,14}$/.test(code)) return;
+      if (stopped || recognized || !/^\d{8,14}$/.test(code)) return;
       recognized = true;
       setDesktopScannerEan(code);
       setDesktopScannerMessage("EAN tunnistettu: " + code);
       void runDesktopScannerEanSearch(code, true);
       if (timer) clearInterval(timer);
-      if (htmlScanner) void htmlScanner.stop().catch(() => undefined);
+      void stopHtmlScanner();
     };
     const startMobileDecoder = async () => {
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Selaimen kamerarajapinta ei ole käytettävissä");
@@ -866,7 +878,8 @@ export default function DesktopPreviewPage() {
       const formats = (window as any).Html5QrcodeSupportedFormats;
       htmlScanner = new Html5Qrcode(region.id, formats ? { formatsToSupport: [formats.EAN_13, formats.EAN_8, formats.UPC_A, formats.UPC_E] } : undefined);
       await htmlScanner.start({ facingMode: "environment" }, { fps: 12, qrbox: undefined }, onCode, () => undefined);
-      if (stopped) await htmlScanner.stop().catch(() => undefined);
+      scannerStarted = true;
+      if (stopped) await stopHtmlScanner();
       else setDesktopScannerMessage("");
     };
     const start = async () => {
@@ -916,7 +929,7 @@ export default function DesktopPreviewPage() {
       if (timer) clearInterval(timer);
       stream?.getTracks().forEach(track => track.stop());
       if (nativeVideo) { nativeVideo.srcObject = null; nativeVideo.remove(); }
-      if (htmlScanner) void htmlScanner.stop().catch(() => undefined);
+      void stopHtmlScanner();
     };
   }, [desktopScannerOpen, desktopScannerCameraOn]);
   const [cartItems, setCartItems] = useState<any[]>([]);
