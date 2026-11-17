@@ -25,6 +25,14 @@ jobs:
         run: node scripts/audit-hyvinkaa-tjek-departments.mjs
       - name: Verify source-verified enrichment against 139 historical offer IDs
         run: node scripts/verify-tjek-baseline-enrichment.mjs
+      - name: Upload enriched Neon snapshot fields for review
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyvinkaa-tjek-snapshot-enriched-preview
+          path: artifacts/hyvinkaa-tjek-baseline-enriched.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Upload verified department manifest for review
         if: success()
         uses: actions/upload-artifact@v4
