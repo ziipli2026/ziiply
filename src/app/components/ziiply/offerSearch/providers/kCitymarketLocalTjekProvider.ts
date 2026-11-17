@@ -1,6 +1,6 @@
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 import { neon } from "@neondatabase/serverless";
-import { tjekDepartmentCategory } from "../tjekDepartmentCategory";
+import { tjekDepartmentCategory, isTjekNonGroceryDepartment } from "../tjekDepartmentCategory";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
@@ -300,6 +300,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const unit=String(offer.baseUnit??"");
         const unitValue=numeric(offer.unitPrice);
         const sourceDepartment = typeof offer.departmentSlug === "string" ? offer.departmentSlug : null;
+        if (isTjekNonGroceryDepartment(sourceDepartment)) { reject("non-grocery-source-department"); sampleReject("non-grocery-source-department",id); continue; }
         const sourceCategory = tjekDepartmentCategory(sourceDepartment);
         const offerKey=publicationId+":"+id;
         if(acceptedOfferKeys.has(offerKey)){duplicateOfferRows++;continue;}
