@@ -190,7 +190,9 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       // evidence, but do not use web prices in a local cheapest-basket quote.
       const localPriceVerified = batch.chain !== "SPAR" && batch.chain !== "TOKMANNI"
         || (x.priceVerified === true && x.priceScope === "local_store"
-          && String(x.priceStoreId || "") === String(batch.store.id));
+          && String(x.priceStoreId ?? "").trim().length > 0
+          && String(batch.store.id ?? "").trim().length > 0
+          && String(x.priceStoreId) === String(batch.store.id));
       const included=!normalRejected && euro!==null && x.priceVerified!==false && localPriceVerified;
       productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});
       if(included)rows.push(product);
