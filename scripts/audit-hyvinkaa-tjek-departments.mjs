@@ -1,3 +1,4 @@
+import { writeFileSync, mkdirSync } from 'node:fs';
 import baseline from './fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs';
 // Read-only comparison of the previously saved Neon snapshot with public Tjek
 // source department metadata. This is a source-data audit, not an EAN match.
@@ -8,6 +9,7 @@ const transitions={};const departments={};const failures=[];
 const baselineByDepartment={};const excludedByDepartment={};const excludedByOldCategory={};
 const remainingByDepartment={};const remainingByOldCategory={};
 const reviewRows=[];
+const verifiedDepartments=[];
 for(let i=0;i<baseline.length;i+=8){
  const batch=baseline.slice(i,i+8);
  await Promise.all(batch.map(async row=>{
@@ -20,6 +22,7 @@ for(let i=0;i<baseline.length;i+=8){
    counts.matched++;
    const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
    departments[department]=(departments[department]||0)+1;
+   verifiedDepartments.push({offerId:row.id,departmentSlug:department,sourceName:String(payload.name??'')});
    if(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy'].includes(department)){
      excludedByDepartment[department]=(excludedByDepartment[department]||0)+1;
      excludedByOldCategory[row.category]=(excludedByOldCategory[row.category]||0)+1;
@@ -49,5 +52,15 @@ console.log('TJEK_AUDIT_REVIEW_ROWS',JSON.stringify(reviewRows.sort((a,b)=>a.dep
 console.log('TJEK_AUDIT_FAILURES',JSON.stringify(failures.slice(0,20)));
 if(counts.matched!==counts.total || counts.missing!==0 || counts.failed!==0){
  console.error('TJEK_AUDIT_INCOMPLETE: source coverage must be 100%; no partial success');
+ process.exitCode=1;
+}
+
+// Produce a reviewable, source-verified manifest. Never mutate Neon in CI.
+if(process.exitCode!==1 && verifiedDepartments.length===baseline.length && verifiedDepartments.every(x=>x.departmentSlug!=='(missing)')){
+ mkdirSync('artifacts',{recursive:true});
+ writeFileSync('artifacts/hyvinkaa-tjek-departments-verified.json',JSON.stringify({baselineCount:baseline.length,source:'Tjek offer API',verifiedAt:new Date().toISOString(),offers:verifiedDepartments.sort((a,b)=>a.offerId.localeCompare(b.offerId))},null,2)+'\\n');
+ console.log('TJEK_AUDIT_MANIFEST_READY',verifiedDepartments.length);
+}else{
+ console.error('TJEK_AUDIT_MANIFEST_BLOCKED: incomplete or missing department metadata');
  process.exitCode=1;
 }
