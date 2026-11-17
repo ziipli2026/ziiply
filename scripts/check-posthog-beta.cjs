@@ -15,6 +15,11 @@ const requirements = [
   ['environment marker present', /ziiply_environment/.test(provider)],
   ['shared tracking wrapper present', /function\s+trackZiiplyEvent\s*\(/.test(core)],
   ['search event present', /trackZiiplyEvent\s*\(\s*["']search_used["']/.test(page)],
+  ['search start event present', /trackZiiplyEvent\s*\(\s*["']search_started["']/.test(page)],
+  ['search priced outcome present', /trackSearchOutcome\(pricedCountV441\s*>\s*0\s*\?\s*["']search_priced_results_shown["']/.test(page)],
+  ['search empty outcome present', /["']search_no_priced_results["']/.test(page)],
+  ['search failure outcome present', /trackSearchOutcome\(["']search_failed["']\)/.test(page)],
+  ['search outcome contains no raw query', /const trackSearchOutcome\s*=\s*\([^]*?trackZiiplyEvent\(eventName,\s*\{([^]*?)\}\);/.test(page) && !/\b(?:query|ean|productName|product_name)\s*:/.test((page.match(/const trackSearchOutcome\s*=\s*\([^]*?trackZiiplyEvent\(eventName,\s*\{([^]*?)\}\);/) || [,''])[1])],
   ['cart event present', /trackZiiplyEvent\s*\(\s*["']product_added_to_cart["']/.test(page)],
   ['offer search event present', /trackZiiplyEvent\s*\(\s*["']gosta_offer_search_clicked["']/.test(page)],
 ];
