@@ -1,6 +1,7 @@
 // Diagnostic only. Query one publicly advertised Tjek offer and print field
 // paths/types, never prices, descriptions, personal data, or raw payloads.
-const id = process.env.TJEK_PUBLIC_OFFER_ID || 'F455VH7rfhkbvjBhXCfmi';
+const ids = (process.env.TJEK_PUBLIC_OFFER_IDS || 'F455VH7rfhkbvjBhXCfmi,7A38SVgTsOHsUsW7-X_m5,uP65e3Xh3DVpROf43IoMx,tuM_di4gnuiuUFDW65nUU').split(',');
+for (const id of ids) {
 const stable = v => JSON.stringify(v, (_k,x) => x && Object.prototype.toString.call(x)==='[object Object]' ? Object.keys(x).sort().reduce((a,k)=>(a[k]=x[k],a),{}) : x);
 const key = Buffer.from(stable(['offer',{publicId:id}]),'utf8').toString('base64');
 const response = await fetch('https://etarjouslehdet.fi/',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/plain, */*',Referer:'https://etarjouslehdet.fi/K-Citymarket'},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(12000)});
@@ -18,5 +19,7 @@ function visit(value,path='',depth=0){
   }
 }
 visit(match.value);
-console.log('TJEK_OFFER_FIELD_PATHS',JSON.stringify(paths.slice(0,250)));
-console.log('IDENTIFIER_FIELD_PATHS',JSON.stringify(paths.filter(x=>/ean|gtin|barcode|product.?code|article.?number|sku|identifier/i.test(x.path))));
+console.log('TJEK_OFFER_FIELD_PATHS',JSON.stringify({offerId:id,paths:paths.slice(0,250)}));
+console.log('IDENTIFIER_FIELD_PATHS',JSON.stringify({offerId:id,paths:paths.filter(x=>/ean|gtin|barcode|product.?code|article.?number|sku|identifier/i.test(x.path))}));
+
+}
