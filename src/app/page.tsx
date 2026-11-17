@@ -14419,7 +14419,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // two selected chains are ready. Never open Compare, change totals or show loading.
   // Reuse the exact matcher key, so changed products/stores cannot reuse old prices.
   useEffect(() => {
-    if (storeCompareScope !== "between_chains" || betweenChainSelectionModeV749 !== "many" ||
+    // Ordinary cart additions must not silently trigger S/K matcher warmups.
+    // Warm only after the user explicitly starts Halpuuta.
+    if (!comparisonUserStartedRefV768.current ||
+        storeCompareScope !== "between_chains" || betweenChainSelectionModeV749 !== "many" ||
         !selectedChains.s || !selectedChains.k || !activeStores.sStoreId || !activeStores.kStoreId ||
         !storesReadyForSearch || restoredCartPromptV320.open) return;
     const eligible = cart.filter(isComparisonEligibleV797);
