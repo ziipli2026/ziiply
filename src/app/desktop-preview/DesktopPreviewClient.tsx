@@ -826,7 +826,91 @@ export default function DesktopPreviewPage() {
     }catch{setDesktopScannerMessage("Leikepöydän lukeminen estetty. Salli leikepöydän käyttö selaimessa.")}
   };
 
-  useEffect(()=>{if(!desktopScannerOpen||!desktopScannerCameraOn)return;let stream:MediaStream|null=null;let video:HTMLVideoElement|null=null;let stopped=false;let scanTimer:ReturnType<typeof setInterval>|null=null;const region=document.getElementById("ziiply-desktop-scanner-region");if(!region)return;video=document.createElement("video");video.autoplay=true;video.muted=true;video.playsInline=true;video.style.cssText="width:100%;height:100%;object-fit:cover;";region.appendChild(video);const el=video;void navigator.mediaDevices?.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false}).then(async media=>{if(stopped){media.getTracks().forEach(t=>t.stop());return}stream=media;el.srcObject=media;await el.play().catch(()=>{});const Detector=(window as any).BarcodeDetector;if(Detector){const detector=new Detector({formats:["ean_13","ean_8","upc_a","upc_e"]});let busy=false;scanTimer=setInterval(async()=>{if(busy||stopped||el.readyState<2)return;busy=true;try{const codes=await detector.detect(el);const code=String(codes?.[0]?.rawValue||"");if(code){setDesktopScannerEan(code);setDesktopScannerMessage("EAN tunnistettu: "+code);void runDesktopScannerEanSearch(code,true);if(scanTimer)clearInterval(scanTimer)}}catch{}finally{busy=false}},350)}else setDesktopScannerMessage("Kameran automaattinen EAN-tunnistus ei ole käytettävissä tässä selaimessa. Syötä EAN käsin.")}).catch(()=>setDesktopScannerMessage("Kameraa ei saatu käyttöön. Voit syöttää EAN-koodin käsin."));return()=>{stopped=true;if(scanTimer)clearInterval(scanTimer);stream?.getTracks().forEach(t=>t.stop());el.srcObject=null;el.remove()}},[desktopScannerOpen,desktopScannerCameraOn]);
+  // Desktop Safari fallback: reuse the mobile html5-qrcode decoder when native BarcodeDetector is absent.
+  useEffect(() => {
+    if (!desktopScannerOpen || !desktopScannerCameraOn) return;
+    const region = document.getElementById("ziiply-desktop-scanner-region");
+    if (!region) return;
+    let stopped = false;
+    let stream: MediaStream | null = null;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let htmlScanner: any = null;
+    let nativeVideo: HTMLVideoElement | null = null;
+    let recognized = false;
+    const onCode = (value: string) => {
+      const code = String(value || "").trim();
+      if (stopped || recognized || !/^\\d{8,14}$/.test(code)) return;
+      recognized = true;
+      setDesktopScannerEan(code);
+      setDesktopScannerMessage("EAN tunnistettu: " + code);
+      void runDesktopScannerEanSearch(code, true);
+      if (timer) clearInterval(timer);
+      if (htmlScanner) void htmlScanner.stop().catch(() => undefined);
+    };
+    const startMobileDecoder = async () => {
+      setDesktopScannerMessage("Käynnistetään kameran vaihtoehtoinen EAN-tunnistus…");
+      const { HTML5_QRCODE_SCRIPT_URL } = await import("../components/ziiply/ziiplyCore");
+      if (!(window as any).Html5Qrcode) {
+        await new Promise<void>((resolve, reject) => {
+          const existing = document.querySelector<HTMLScriptElement>(`script[src="${HTML5_QRCODE_SCRIPT_URL}"]`);
+          const script = existing || document.createElement("script");
+          script.addEventListener("load", () => resolve(), { once: true });
+          script.addEventListener("error", () => reject(new Error("Skannerikirjastoa ei voitu ladata")), { once: true });
+          if (!existing) { script.src = HTML5_QRCODE_SCRIPT_URL; script.async = true; document.body.appendChild(script); }
+        });
+      }
+      if (stopped) return;
+      const Html5Qrcode = (window as any).Html5Qrcode;
+      const formats = (window as any).Html5QrcodeSupportedFormats;
+      htmlScanner = new Html5Qrcode(region.id, formats ? { formatsToSupport: [formats.EAN_13, formats.EAN_8, formats.UPC_A, formats.UPC_E] } : undefined);
+      await htmlScanner.start({ facingMode: { ideal: "environment" } }, { fps: 12, qrbox: undefined }, onCode, () => undefined);
+      if (stopped) await htmlScanner.stop().catch(() => undefined);
+      else setDesktopScannerMessage("");
+    };
+    const start = async () => {
+      try {
+        const Detector = (window as any).BarcodeDetector;
+        if (!Detector) { await startMobileDecoder(); return; }
+        const supported: string[] = typeof Detector.getSupportedFormats === "function" ? await Detector.getSupportedFormats() : ["ean_13","ean_8","upc_a","upc_e"];
+        const formats = ["ean_13","ean_8","upc_a","upc_e"].filter(format => supported.includes(format));
+        if (!formats.length) { await startMobileDecoder(); return; }
+        const detector = new Detector({ formats });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+        if (stopped) { stream.getTracks().forEach(track => track.stop()); return; }
+        nativeVideo = document.createElement("video");
+        nativeVideo.autoplay = true; nativeVideo.muted = true; nativeVideo.playsInline = true;
+        nativeVideo.style.cssText = "width:100%;height:100%;object-fit:cover;";
+        region.appendChild(nativeVideo);
+        nativeVideo.srcObject = stream;
+        await nativeVideo.play();
+        let busy = false;
+        timer = setInterval(async () => {
+          if (busy || stopped || recognized || !nativeVideo || nativeVideo.readyState < 2) return;
+          busy = true;
+          try { const codes = await detector.detect(nativeVideo); onCode(String(codes?.[0]?.rawValue || "")); }
+          catch { /* A single unreadable frame must not stop scanning. */ }
+          finally { busy = false; }
+        }, 350);
+      } catch {
+        if (timer) clearInterval(timer);
+        stream?.getTracks().forEach(track => track.stop());
+        nativeVideo?.remove();
+        nativeVideo = null;
+        if (!stopped) {
+          try { await startMobileDecoder(); }
+          catch { if (!stopped) setDesktopScannerMessage("Kameraa tai EAN-tunnistusta ei saatu käyttöön. Voit syöttää EAN-koodin käsin."); }
+        }
+      }
+    };
+    void start();
+    return () => {
+      stopped = true;
+      if (timer) clearInterval(timer);
+      stream?.getTracks().forEach(track => track.stop());
+      if (nativeVideo) { nativeVideo.srcObject = null; nativeVideo.remove(); }
+      if (htmlScanner) void htmlScanner.stop().catch(() => undefined);
+    };
+  }, [desktopScannerOpen, desktopScannerCameraOn]);
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [desktopCheckedCartItems,setDesktopCheckedCartItems]=useState<Record<string,boolean>>({});
   const [reloadCartDecisionOpen,setReloadCartDecisionOpen]=useState(false);
