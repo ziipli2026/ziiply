@@ -135,6 +135,8 @@ const watchdog = setTimeout(() => {
     await searchInput.fill('maito');
     // The normal Tuotehaku card requires explicit Hae submission after filling.
     const beforeSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),buttonDisabled:[...document.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')==='Hae')?.disabled}));
+    const submitMechanics = await page.evaluate(() => {const b=[...document.querySelectorAll('button')].find(e=>e.getAttribute('aria-label')==='Hae');return {type:b?.getAttribute('type'),formTag:b?.closest('form')?.tagName||null,formMethod:b?.closest('form')?.getAttribute('method')||null,formAction:b?.closest('form')?.getAttribute('action')||null,outerHTML:b?.outerHTML.slice(0,420)}});
+    console.log(JSON.stringify({check:'search-submit-mechanics',submitMechanics}));
     await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
     await page.waitForTimeout(2500);
     const afterSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),visibleTextareas:[...document.querySelectorAll('textarea')].filter(e=>!!e.getClientRects().length).length}));
