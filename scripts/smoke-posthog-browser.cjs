@@ -241,6 +241,22 @@ const watchdog = setTimeout(() => {
           overlayCartText: [...document.querySelectorAll('div.fixed')].filter(e=>e.className.includes('z-[95]')).map(e=>(e.textContent||'').slice(-400)).slice(0,1)
         }));
         console.log(JSON.stringify({check:'beta-cart-after-search',cartEnabled,comparisonEnabled,cartEvents,serverAnalyticsResponses,cartUi}));
+        if (cartEnabled && process.env.ZIIPLY_SMOKE_CART === '1') {
+          // Verify the cart can actually be opened, not merely that its nav is enabled.
+          // Do not log product names or other user data.
+          await cart.click({timeout:10000});
+          await page.waitForTimeout(900);
+          const cartOpen = await page.evaluate(() => ({
+            visibleDialogs:[...document.querySelectorAll('[role="dialog"]')].filter(e=>!!e.getClientRects().length).length,
+            visibleCartHeadings:[...document.querySelectorAll('h1,h2,h3')].filter(e=>!!e.getClientRects().length&&/kori|ostoslista/i.test(e.textContent||'')).length,
+            visibleCloseButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length&&/sulje/i.test((e.getAttribute('aria-label')||'')+' '+(e.textContent||''))).length
+          }));
+          console.log(JSON.stringify({check:'beta-cart-open',...cartOpen}));
+          if (!cartOpen.visibleDialogs && !cartOpen.visibleCartHeadings) {
+            console.error('FAIL: cart nav enabled but cart view did not open');
+            process.exitCode = 1;
+          }
+        }
         if (!cartEnabled || cartEvents!==1) {
           console.error('FAIL: adding a priced search result did not enable cart or emit exactly one cart telemetry event');
           process.exitCode = 1;
