@@ -26,3 +26,11 @@ jobs:
         run: node scripts/check-posthog-beta.cjs
       - name: Inventory PostHog instrumentation
         run: npm run audit:posthog
+      - name: Install Chromium for deployed smoke test
+        run: |
+          npm install --no-save --ignore-scripts playwright
+          npx playwright install --with-deps chromium
+      - name: Check deployed Ziiply in mobile Chromium
+        env:
+          ZIIPLY_SMOKE_URL: https://ziiply.fi/
+        run: node scripts/smoke-posthog-browser.cjs
