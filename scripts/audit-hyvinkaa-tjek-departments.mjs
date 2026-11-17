@@ -7,6 +7,7 @@ const counts={total:baseline.length,matched:0,missing:0,failed:0,mapped:0,change
 const transitions={};const departments={};const failures=[];
 const baselineByDepartment={};const excludedByDepartment={};const excludedByOldCategory={};
 const remainingByDepartment={};const remainingByOldCategory={};
+const reviewRows=[];
 for(let i=0;i<baseline.length;i+=8){
  const batch=baseline.slice(i,i+8);
  await Promise.all(batch.map(async row=>{
@@ -25,6 +26,7 @@ for(let i=0;i<baseline.length;i+=8){
    } else {
      remainingByDepartment[department]=(remainingByDepartment[department]||0)+1;
      remainingByOldCategory[row.category]=(remainingByOldCategory[row.category]||0)+1;
+     if(['home','garden','baby','pharmacy','outdoor','automotive','sports'].includes(department))reviewRows.push({id:row.id,department,oldCategory:row.category,title:String(payload.name||'').slice(0,100)});
    }
    const pair=department+' :: '+row.category;
    baselineByDepartment[pair]=(baselineByDepartment[pair]||0)+1;
@@ -43,5 +45,6 @@ console.log('TJEK_AUDIT_TRANSITIONS',JSON.stringify(Object.entries(transitions).
 console.log('TJEK_AUDIT_BASELINE_BY_DEPARTMENT',JSON.stringify(Object.entries(baselineByDepartment).sort((a,b)=>b[1]-a[1])));
 console.log('TJEK_AUDIT_EXCLUDED',JSON.stringify({byDepartment:excludedByDepartment,byOldCategory:excludedByOldCategory,total:Object.values(excludedByDepartment).reduce((a,b)=>a+b,0),remaining:counts.matched-Object.values(excludedByDepartment).reduce((a,b)=>a+b,0)}));
 console.log('TJEK_AUDIT_REMAINING',JSON.stringify({byDepartment:Object.entries(remainingByDepartment).sort((a,b)=>b[1]-a[1]),byOldCategory:Object.entries(remainingByOldCategory).sort((a,b)=>b[1]-a[1])}));
+console.log('TJEK_AUDIT_REVIEW_ROWS',JSON.stringify(reviewRows.sort((a,b)=>a.department.localeCompare(b.department)).slice(0,80)));
 console.log('TJEK_AUDIT_FAILURES',JSON.stringify(failures.slice(0,20)));
 if(counts.matched===0 || counts.failed>baseline.length/5)process.exitCode=1;
