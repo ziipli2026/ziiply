@@ -46,6 +46,9 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
         disable_session_recording: true,
         before_send: (event) => {
           if (!event) return event
+          if (!isProduction && testParam === '1' && event.event === 'ziiply_posthog_transport_probe') {
+            console.info('[ziiply-ph-probe-before-send]', JSON.stringify({reached: true}))
+          }
           // Prevent accidental leakage of URL query params (including login links),
           // health, nutrition and precise geolocation through event properties.
           const bannedKey = /(^|_)(email|token|secret|password|health|nutrition|meal|recipe|latitude|longitude|lat|lon|lng|gps|coordinate|url|href|referrer|pathname|search|query|ean|barcode|product_name)(_|$)/i
@@ -72,9 +75,12 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     // Preview-only, explicitly requested CI diagnostic. Never run on production,
     // and never transmit searches, identifiers, user input or location.
     if (!isProduction && testParam === '1') {
-      posthog.capture('ziiply_posthog_transport_probe', {
+      const probeResult = posthog.capture('ziiply_posthog_transport_probe', {
         ziiply_probe: 'preview_ci',
-      })
+      }, { send_instantly: true })
+      console.info('[ziiply-ph-probe-result]', JSON.stringify({
+        captured: Boolean(probeResult),
+      }))
       // No user content: local preview-only diagnostic of SDK capture state.
       console.info('[ziiply-ph-probe]', JSON.stringify({
         initialized: Boolean(posthog.__loaded),
