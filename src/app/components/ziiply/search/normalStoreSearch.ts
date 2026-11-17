@@ -101,7 +101,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   }
   // Start catalog lookup concurrently with the existing selected-store providers.
   // The catalog never supplies a store price or modifies recipe/offer engines.
-  const neonPromise = stores.some(store => store.chain === "S" || store.chain === "K") ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
+  const neonPromise = stores.some(store => ["S", "K", "LIDL"].includes(store.chain)) ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
   const calls = stores.map(store => fetchSearchData(storeUrl(store, query), undefined, store).then(data => ({chain:store.chain,store,data})));
   const settledPromise=Promise.allSettled(calls);
   const neonRaw = await neonPromise;
@@ -191,7 +191,10 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     }
   }
   const rankedRows = rankStoreRows(query, rows);
-  const sortedRows = [...rankedRows, ...research.values()].slice(0, 100);
+  // Lidl public research and Neon catalog identities are useful for matching,
+  // but neither establishes a current store price. Never show them as priced results.
+  const sortedRows = rankedRows.slice(0, 100);
+  trace("lidl_catalog_research", {researchCount:research.size, catalogCount:neonRows.length, pricedLidlCount:rows.filter(row=>row.__chain==="LIDL").length});
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};
 }
