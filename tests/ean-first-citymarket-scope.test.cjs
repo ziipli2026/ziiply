@@ -14,7 +14,7 @@ test('EAN override is restricted to local Citymarket Tjek publication provenance
 });
 
 test('EAN override happens before legacy title-based rules', () => {
-  assert.ok(section.indexOf('if (localCitymarketTjek && eanMatch') < section.indexOf('getVerifiedOfferCategory(item)'));
+  assert.ok(section.indexOf('if (localCitymarketTjek && (eanMatch') < section.indexOf('getVerifiedOfferCategory(item)'));
 });
 
 test('Tjek local publication marks its provenance explicitly', () => {
