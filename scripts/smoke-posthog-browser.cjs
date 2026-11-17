@@ -386,7 +386,7 @@ const watchdog = setTimeout(() => {
   // A preview-only SDK canary must traverse the browser PostHog capture path.
   // A 200 from /flags is not proof of event ingestion.
   const isProductionHost = ['ziiply.fi', 'www.ziiply.fi', 'ziiply.vercel.app'].includes(url.hostname);
-  if (!isProductionHost && !(sdkDiagnostics.some(e=>e.stage==='before-send' && e.reached===true) && eventResponses.some(status=>status>=200 && status<300))) {
+  if (!isProductionHost && !(eventNames.includes('ziiply_posthog_transport_probe') && sdkDiagnostics.some(e=>e.stage==='before-send' && e.reached===true) && eventResponses.some(status=>status>=200 && status<300))) {
     console.error('FAIL: preview SDK transport canary missing; feature-flag requests do not count as events');
     process.exitCode = 1;
   }
