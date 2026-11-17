@@ -43,6 +43,7 @@ try{
  await assertNames('h');
  console.log('PASS GPS OFF hides distances and retains stores');
  await context.setGeolocation(LA);
+ console.log('DEBUG browser geolocation before click',JSON.stringify(await page.evaluate(()=>new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude}),reject,{maximumAge:0})))));
  await gps.click();
  await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
  await page.waitForTimeout(1500);
