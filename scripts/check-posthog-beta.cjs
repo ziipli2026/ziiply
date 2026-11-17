@@ -37,30 +37,11 @@ if (callbackStart < 0) {
   console.error('FAIL before_send callback not found');
   process.exitCode = 1;
 } else {
-  const braceStart = provider.indexOf('{', callbackStart);
-  let depth = 0;
-  let end = -1;
-  let quote = null;
-  let escaped = false;
-  let lineComment = false;
-  for (let i = braceStart; i < provider.length; i++) {
-    const ch = provider[i];
-    const next = provider[i + 1];
-    if (lineComment) {
-      if (ch === String.fromCharCode(10)) lineComment = false;
-      continue;
-    }
-    if (quote) {
-      if (escaped) { escaped = false; continue; }
-      if (ch === String.fromCharCode(92)) { escaped = true; continue; }
-      if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === '/' && next === '/') { lineComment = true; i++; continue; }
-    if (ch === '"' || ch === "'" || ch === '`') { quote = ch; continue; }
-    if (ch === '{') depth++;
-    if (ch === '}' && --depth === 0) { end = i; break; }
-  }
+  // The provider callback ends immediately before the PostHog init options.
+  // Use its stable closing delimiter rather than parsing TS/JS with a homemade lexer.
+  const callbackEndMarker = '\n        },\n      }\n    )';
+  const closing = provider.indexOf(callbackEndMarker, callbackStart);
+  const end = closing < 0 ? -1 : closing + '\n        }'.length - 1;
   if (end < 0) {
     console.error('FAIL before_send callback cannot be extracted');
     process.exitCode = 1;
