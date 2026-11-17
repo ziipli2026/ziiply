@@ -145,7 +145,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
       new Promise<void>(resolve => setTimeout(resolve, 4000)),
     ]);
   }
-  const live = (entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
+  const live = filterTjekGroceryRows(entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
   // Return verified rows from the exact selected store as soon as they have
   // been fetched. In serverless requests the process may end before a long
   // Tjek scan completes; suppressing these rows made every non-N183 store look
