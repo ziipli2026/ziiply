@@ -21,8 +21,11 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   await page.waitForTimeout(5000);
   const title = await page.title();
   console.log(JSON.stringify({ check: 'browser-page-load', status: response?.status(), title, urlHost: url.host }));
-  const loaded = await page.evaluate(() => Boolean(window.posthog?.__loaded));
-  console.log(JSON.stringify({ check: 'posthog-global-loaded', loaded }));
+  // PostHog is module-scoped, not exposed on window. Do not mistake a missing
+  // window.posthog global for failed initialization.
+  const posthogScript = await page.evaluate(() => [...document.scripts].some(s =>
+    (s.src || '').includes('posthog') || (s.textContent || '').includes('ph-ingest')));
+  console.log(JSON.stringify({ check: 'posthog-script-hint', found: posthogScript }));
   const buttons = await page.getByRole('button').allTextContents();
   console.log(JSON.stringify({ check: 'visible-button-count', count: buttons.length }));
   // Do not create a cart or submit a search in production. Observe only
@@ -30,4 +33,6 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, failures: failures.length }));
   await browser.close();
   if (!response || response.status() >= 400) process.exitCode = 1;
+  // No events are expected until a user interaction because autocapture and
+  // automatic pageview tracking are intentionally disabled.
 })().catch(err => { console.error('Browser smoke failed:', err.message); process.exitCode = 1; });
