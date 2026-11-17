@@ -23,7 +23,7 @@ for(let i=0;i<baseline.length;i+=8){
    const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
    departments[department]=(departments[department]||0)+1;
    verifiedDepartments.push({offerId:row.id,departmentSlug:department,sourceName:String(payload.name??'')});
-   if(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy'].includes(department)){
+   if(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home'].includes(department)){
      excludedByDepartment[department]=(excludedByDepartment[department]||0)+1;
      excludedByOldCategory[row.category]=(excludedByOldCategory[row.category]||0)+1;
    } else {
