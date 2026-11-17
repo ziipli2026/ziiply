@@ -20,9 +20,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Check preview accessibility
+        env:
+          ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
+        run: |
+          status=$(curl -sS -L -o /tmp/ziiply-preview-response -w '%{http_code}' "$ZIIPLY_LIVE_URL/desktop-preview")
+          echo "Preview HTTP status: $status"
+          if [ "$status" -ne 200 ]; then
+            echo "::error::Preview inaccessible (HTTP $status); check Vercel deployment protection"
+            exit 1
+          fi
       - name: Run four-chain live test against verified branch preview
         env:
-          ZIIPLY_LIVE_URL: https://ziiply-9ue7zwvnr-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
         run: npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
