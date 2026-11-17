@@ -102,6 +102,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
     : [];
   const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
   const fallback = (await readPublishedSnapshot(fallbackKey) ?? [])
+    .filter(row => !isTjekNonGroceryDepartment((row.debug as Row | undefined)?.tjekDepartmentSlug ?? row.tjekDepartmentSlug))
     .filter(row => isActiveOffer(row, now)
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
