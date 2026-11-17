@@ -994,19 +994,26 @@ export default function DesktopPreviewPage() {
         try{
           const params=new URLSearchParams({search,intent:name});
           const response=await fetch("/api/tokmanni/products?"+params.toString(),{cache:"no-store"});
-          if(!response.ok)return [];
+          if(!response.ok){logCompareAudit("spar_compare_http_error",{store:store.name,search,status:response.status});return [];}
           const data=await response.json();
-          return (Array.isArray(data?.items)?data.items:[]).map((p:any)=>({
+          const rawItems=Array.isArray(data?.items)?data.items:[];
+          logCompareAudit("spar_compare_provider_response",{store:store.name,search,source:data?.source,rawCount:rawItems.length,error:data?.error||data?.klevuError||null});
+          return rawItems.map((p:any)=>({
             ...p,name:String(p.name||p.title||""),ean:String(p.ean||""),
             price:Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100),
             image:String(p.pictureUrl||p.imageUrl||"")
           })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
         }catch{return []}
       }));
-      return responses.flat();
+      const candidates=responses.flat();
+      if(!candidates.length)logCompareAudit("spar_compare_no_priced_candidates",{store:store.name,name,ean,queries});
+      return candidates;
     }
     // Lidl normal-price search is not yet verified; never substitute another chain's prices.
-    if(kind==="lidl")return [];
+    if(kind==="lidl"){
+      logCompareAudit("lidl_compare_price_source_unavailable",{store:store.name,name,ean,reason:"No approved verified normal-price source connected; catalog identities alone are not prices"});
+      return [];
+    }
     if(!["sHyper","sLocal","kHyper","kLocal"].includes(kind))return [];
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
