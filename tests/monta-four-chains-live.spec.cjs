@@ -80,11 +80,17 @@ test('Monta live all chains: '+device,async({browser})=>{
     // A chain name somewhere in page text is NOT proof of a real product search.
     for(const [chain,count] of Object.entries(chains))expect(count,'No successful real '+chain+' product API response').toBeGreaterThan(0);
     await page.waitForTimeout(500);
+    // Record chain acceptance evidence, but do not abort before collecting cart
+    // and comparison screenshots. A missing price remains a failing assertion
+    // after the complete diagnostic pass.
+    result.chainAcceptance={};
     for(const chain of ['lidl','tokmanni']){
       const evidence=providerEvidence.filter(x=>x.chain===chain&&['maito','cola'].includes(x.query));
-      expect(evidence.length,`No ${chain} provider evidence for maito or cola`).toBeGreaterThan(0);
-      // An HTTP 200 or an unpriced research catalog is not a successful price comparison.
-      expect(evidence.some(x=>x.priced>0&&x.priceVerified!==false&&x.mode!=='research'),`${chain} returned no comparable priced products for maito/cola`).toBe(true);
+      result.chainAcceptance[chain]={
+        hasQueryEvidence:evidence.length>0,
+        hasComparablePrice:evidence.some(x=>x.priced>0&&x.priceVerified!==false&&x.mode!=='research'),
+        evidence
+      };
     }
     // Products are added as each search completes, before the next query replaces results.
     result.addedQueries=added;
@@ -113,6 +119,11 @@ test('Monta live all chains: '+device,async({browser})=>{
     expect(result.compareChainEvidence.Tokmanni||result.compareChainEvidence.EUROSPAR,'Tokmanni/SPAR absent from comparison').toBe(true);
     result.cart=await page.evaluate(()=>({mobile:localStorage.getItem('ziiply-cart-v1'),desktop:sessionStorage.getItem('ziiply-desktop-current-cart-v1')}));
     await page.screenshot({path:'test-results/monta-'+device+'-comparison.png',fullPage:true});
+    for(const chain of ['lidl','tokmanni']){
+      const audit=result.chainAcceptance[chain];
+      expect(audit.hasQueryEvidence,`No ${chain} provider evidence for maito or cola`).toBe(true);
+      expect(audit.hasComparablePrice,`${chain} returned no comparable priced products for maito/cola`).toBe(true);
+    }
   }finally{
     fs.mkdirSync('test-results',{recursive:true});
     fs.writeFileSync('test-results/monta-'+device+'-evidence.json',JSON.stringify(result,null,2));
