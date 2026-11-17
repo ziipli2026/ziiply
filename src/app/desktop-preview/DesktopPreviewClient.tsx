@@ -927,20 +927,12 @@ export default function DesktopPreviewPage() {
       if (stopped) return;
       const Html5Qrcode = (window as any).Html5Qrcode;
       logDesktopScanner("decoder_loaded",{engine:"html5-qrcode",facingMode:cameraFacingMode});
-      const formats = (window as any).Html5QrcodeSupportedFormats;
-      htmlScanner = new Html5Qrcode(region.id, formats ? { verbose: false, formatsToSupport: [formats.EAN_13, formats.EAN_8, formats.UPC_A, formats.UPC_E] } : { verbose: false });
-      logDesktopScanner("decoder_config",{formats:formats?["EAN_13","EAN_8","UPC_A","UPC_E"]:["library_default"],fps:12,qrbox:"full-frame",aspectRatio:1.7778,requestedResolution:{width:1280,height:720}});
-      await htmlScanner.start({ facingMode: cameraFacingMode }, { fps: 12, aspectRatio: 1.7778, videoConstraints: { facingMode: cameraFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } } }, onCode, (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
+      // Match the working desktop Arvo scanner's decoder and camera configuration exactly.
+      htmlScanner = new Html5Qrcode(region.id, {verbose:false});
+      logDesktopScanner("decoder_config",{source:"desktop-arvo",formats:"library_default",fps:12,qrbox:{width:270,height:155},aspectRatio:1.7778,cameraFacingMode:"environment"});
+      await htmlScanner.start({facingMode:"environment"}, {fps:12, qrbox:{width:270,height:155}, aspectRatio:1.7778}, onCode, (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
       unmirrorCameraPreview();
       const activeVideo = region.querySelector("video");
-      const videoTrack=(activeVideo?.srcObject as MediaStream|null)?.getVideoTracks()[0];
-      if(videoTrack){
-        try{
-          const before=videoTrack.getSettings();
-          await videoTrack.applyConstraints({width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30}});
-          logDesktopScanner("resolution_requested",{requested:{width:1280,height:720},before,after:videoTrack.getSettings()});
-        }catch(error){logDesktopScanner("resolution_request_failed",{reason:String(error),settings:videoTrack.getSettings()});}
-      }
       if (activeVideo) setDesktopScannerDebug("Kamera: " + (activeVideo.videoWidth || "?") + "×" + (activeVideo.videoHeight || "?") + " · EAN-lukija käynnissä");
       scannerStarted = true;
       logDesktopScanner("camera_started",{width:activeVideo?.videoWidth,height:activeVideo?.videoHeight,videoReadyState:activeVideo?.readyState,trackSettings:(activeVideo?.srcObject as MediaStream|null)?.getVideoTracks()[0]?.getSettings?.()});
