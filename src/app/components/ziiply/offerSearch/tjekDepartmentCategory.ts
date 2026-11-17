@@ -18,6 +18,7 @@ export function tjekDepartmentCategory(slug: unknown): string | null {
  * visible: no title-based exclusions or guessed product identities. */
 export const TJEK_NON_GROCERY_DEPARTMENTS: ReadonlySet<string> = new Set([
   'electronics', 'apparel', 'entertainment',
+  'automotive', 'outdoor', 'sports', 'pharmacy',
 ]);
 export function isTjekNonGroceryDepartment(slug: unknown): boolean {
   return typeof slug === 'string' && TJEK_NON_GROCERY_DEPARTMENTS.has(slug);
