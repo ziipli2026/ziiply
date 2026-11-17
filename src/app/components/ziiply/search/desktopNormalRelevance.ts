@@ -129,7 +129,12 @@ function desktopSearchNameDecision(query: string, product: Row) {
     if(index>=0)productWords=[...productWords.slice(0,index),...productWords.slice(index+brand.length)];
   }
   const name=parse(productWords.join(' '));
-  const categoryLeaf=String(product.category || '').split('/').at(-1) || '';
+  // Provider taxonomies use both slash paths and semicolon-separated category lists.
+  // Never treat an entire multi-category list as one leaf department.
+  const providerCategories=String(product.category || '').split(';;').map(part=>part.trim()).filter(Boolean);
+  // Tokmanni lists specific category first and broad parent departments later.
+  // Slash paths use the opposite convention (leaf last).
+  const categoryLeaf=(providerCategories[0] || '').split('/').map(part=>part.trim()).filter(Boolean).at(-1) || '';
   const category=parse(categoryLeaf).terms;
   const intent=resolveSearchIntentAI(q.terms.map(term=>term==='tomaattiketsuppi'?'ketsuppi':term).join(' '));
   // An explicitly requested product form overrides an ingredient-family exclusion.

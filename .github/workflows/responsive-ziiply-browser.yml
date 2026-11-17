@@ -318,7 +318,7 @@ jobs:
                     const prices = desktop
                       ? search.getByRole('button', {name:/\d[,.]\d{2}.*Lisää koriin/})
                       : search.locator('article button[aria-label^="Lisää koriin:"]').filter({hasText:/\d[,.]\d{2}/});
-                    if (!desktop) {
+                    if (!desktop && chain !== 'LIDL' && chain !== 'SPAR' && chain !== 'TOKMANNI') {
                       const openResults = search.getByRole('button', {name:/Avaa löytöluettelo/}).filter({visible:true});
                       const opened = search.locator('article').filter({has:search.getByRole('button', {name:/^Lisää koriin:/})}).first();
                       await opened.or(openResults).first().waitFor({timeout:90000});
@@ -328,9 +328,10 @@ jobs:
                       }
                     }
                     const lidlNotice = search.getByText(/Hinta ei vahvistettu|Hinta vahvistamatta|ei vahvistettu/i).filter({visible:true});
-                    if (chain === 'LIDL') await lidlNotice.first().waitFor({timeout:20000});
-                    else if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
-                    if (chain !== 'LIDL') await prices.first().waitFor({timeout:90000});
+                    // Unpriced research products are intentionally absent from the priced results.
+                    // Do not wait for an obsolete research card or notice.
+                    if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
+                    if (chain === 'S' || chain === 'K') await prices.first().waitFor({timeout:90000});
                     // Results may render from Neon/K before the parallel S request completes.
                     // Wait for all required provider responses, then assert their real status.
                     const requiredLiveApis = searchEndpoints.some(api => /[sk]-products/.test(api))
@@ -366,7 +367,7 @@ jobs:
                     const eans = results.map(row => row.ean).filter(Boolean);
                     if (chain === 'S' || chain === 'K') assert.ok(eans.length > 0);
                     assert.equal(new Set(eans).size, eans.length);
-                    if (chain !== 'LIDL') assert.ok(results.some(row => liveTerm === 'maito' ? /maito/i.test(row.name) : liveTerm === 'sokeri' ? /sokeri/i.test(row.name) : /kirjolohi/i.test(row.name)));
+                    if (chain === 'S' || chain === 'K') assert.ok(results.some(row => liveTerm === 'maito' ? /maito/i.test(row.name) : liveTerm === 'sokeri' ? /sokeri/i.test(row.name) : /kirjolohi/i.test(row.name)));
                     const irrelevant = results.filter(row => liveTerm === 'maito'
                       ? /leipä|suklaa/i.test(row.name)
                       : /kirjolohiöljy|koirille/i.test(row.name));
@@ -375,10 +376,8 @@ jobs:
                       const card = desktop ? note.closest('button').parentElement.parentElement : note.closest('article');
                       return card.children[1].firstElementChild.innerText.trim();
                     }), desktop);
-                    if (chain === 'LIDL') assert.equal(results.length, 0, 'Lidl research has no checkout price');
-                    if (chain === 'SPAR' || chain === 'TOKMANNI' || extra) {
-                      await search.getByText('Tokmanni / SPAR verkkovalikoima', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
-                    }
+                    if (chain === 'LIDL' || chain === 'SPAR' || chain === 'TOKMANNI') assert.equal(results.length, 0, 'unverified catalog products have no local checkout price');
+                    // Online catalog cards must not appear as locally priced results.
                     const resultKey = JSON.stringify([chain, extra, liveTerm]);
                     const visible = {results, research, requests: searchRequests.filter(value => /\/api\/(s-products|k-products|neon-first-search|lidl\/products|tokmanni\/products)\?/.test(value))};
                     if (!desktop) liveResults.set(resultKey, visible);
@@ -392,6 +391,28 @@ jobs:
                       }
                     }
                     console.log('Retailer rows', name, chain, extra, results.length, research);
+                    await searchContext.close();
+                    continue;
+                  }
+                  // Lidl and Tokmanni/SPAR mock rows have no verified local prices.
+                  // Their products must not appear as locally priced basket candidates.
+                  if (chain === 'LIDL' || chain === 'SPAR' || chain === 'TOKMANNI') {
+                    const catalogDeadline = Date.now() + 20000;
+                    while (queries === 0 && Date.now() < catalogDeadline) await search.waitForTimeout(200);
+                    assert.ok(queries > 0, 'selected catalog provider must receive a maito search');
+                    const addButtons = await search.getByRole('button', {name:/Lisää koriin/}).filter({visible:true})
+                      .evaluateAll(buttons => buttons.map(button => ({
+                        ariaLabel: button.getAttribute('aria-label'),
+                        text: button.innerText.slice(0,160),
+                        card: (button.closest('article') || button.parentElement)?.innerText.slice(0,350),
+                      })));
+                    console.log('Unverified catalog visible add buttons', name, chain, JSON.stringify(addButtons));
+                    const unverifiedProductButtons = addButtons.filter(button =>
+                      /Kotimaista kevytmaito|Milbona kevytmaito|Maitokolmio ruisleipä/i.test(
+                        [button.ariaLabel,button.card].join(' ')));
+                    assert.deepEqual(unverifiedProductButtons, [],
+                      'unverified catalog rows must not become checkout candidates');
+                    console.log(name, chain, 'unverified local prices correctly excluded');
                     await searchContext.close();
                     continue;
                   }
@@ -409,7 +430,7 @@ jobs:
                     throw error;
                   }
                   if (chain !== 'LIDL') await expensive.waitFor();
-                  if (extra) await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
+                  // Milbona belongs to the unverified Lidl research fixture, not S/K priced results.
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
                   // Search results can appear before all parallel query variants are dispatched.

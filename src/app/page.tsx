@@ -4556,6 +4556,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     >
   >(new Map());
   const activeNormalSearchRequestRefV441 = useRef(0);
+  const activeSharedNormalSearchAbortRefV441 = useRef<AbortController | null>(null);
   const normalSearchCacheHydratedRefV441 = useRef(false);
   const NORMAL_SEARCH_CACHE_STORAGE_KEY_V441 = "ziiply-normal-search-cache-v441";
   const NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441 = 1000 * 60 * 20;
@@ -4704,9 +4705,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function getNormalResultsSignatureV441(items: Product[]) {
     return items
       .map((item: any) => {
-        const id = item?.id ?? item?.ean ?? item?.name ?? "";
-        const price = item?.price ?? item?.comparisonPrice ?? item?.comparisonPriceValue ?? "";
-        return `${id}:${price}`;
+        // EAN, store, name and verified price are part of the visible identity.
+        // A stable provider id alone must not suppress an updated product row.
+        return JSON.stringify([
+          item?.id ?? "", item?.ean ?? item?.barcode ?? item?.product?.ean ?? "",
+          item?.name ?? item?.title ?? "", item?.__chain ?? "", item?.__store ?? item?.storeName ?? "",
+          item?.__price ?? item?.price ?? item?.comparisonPrice ?? item?.comparisonPriceValue ?? "",
+          item?.priceVerified ?? null,
+        ]);
       })
       .join("|");
   }
@@ -13005,7 +13011,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       originalTerms: focusedSearchTerms, forceEan, events: [] };
     const normalSearchCacheKeyV441 = buildNormalSearchCacheKeyV441(focusedSearchTerms, forceEan);
     traceSearch("search-start", { cacheKey: normalSearchCacheKeyV441 });
-    const cachedNormalSearchV441 = recipeIngredient ? undefined : normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
+    // Shared normal-store searches must refresh live providers like desktop.
+    // Preserve legacy cache for other modes.
+    const cachedNormalSearchV441 = recipeIngredient || usesSharedStoreQueries ? undefined : normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
 
     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
       // Revalidate cached results against the current product-group gate.
@@ -13038,6 +13046,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       normalSearchCacheRefV441.current.delete(normalSearchCacheKeyV441);
     }
 
+    activeSharedNormalSearchAbortRefV441.current?.abort();
+    const sharedNormalSearchControllerV441 = usesSharedStoreQueries ? new AbortController() : null;
+    activeSharedNormalSearchAbortRefV441.current = sharedNormalSearchControllerV441;
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
     setPreviewNormalResults([]);
     const searchTelemetryV441 = beginSearchTelemetry(forceEan ? "ean" : "normal");
@@ -13046,6 +13057,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       abort: () => {
         if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
         ++activeNormalSearchRequestRefV441.current;
+        sharedNormalSearchControllerV441?.abort();
         cancelSearchTelemetry(searchTelemetryV441);
         setLoadingNormal(false);
       },
@@ -13120,7 +13132,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             } : null;
           };
           const {sortedRows} = await searchNormalStores(term, stores, {
+            signal: sharedNormalSearchControllerV441?.signal,
             trace: traceSearch,
+            onCachedRows: rows => {
+              if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current ||
+                  dismissedNormalPreview.current === normalSearchRequestIdV441) return;
+              const preview = rows.map(shapeResult).filter((row): row is Product => row !== null);
+              if (preview.length) setPreviewNormalResults(preview);
+              traceSearch("display-cached-preview", { count: preview.length });
+            },
             onInitialRows: (isMainSearch || effectiveSearchCompareMode === "single") &&
               focusedSearchTerms.length === 1 && useTerms.length === 1
               ? rows => {
@@ -13500,7 +13520,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       finishSearchTelemetry(searchTelemetryV441, pricedCountV441 > 0 ? "priced_results" : "no_priced_results", pricedCountV441);
 
       // Never persist an empty response: transient upstream failures must be retryable.
-      if (!recipeIngredient && unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
+      if (!recipeIngredient && !usesSharedStoreQueries && unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
         results: unique,
         debug: debugEntries,
         readyQuery: readyQueryV441,
@@ -13547,6 +13567,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setSearchPanelOpen(true);
       }
     } catch (error) {
+      if (sharedNormalSearchControllerV441?.signal.aborted) return;
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
@@ -13572,6 +13593,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } finally {
       unregisterProductRecovery();
       cancelSearchTelemetry(searchTelemetryV441);
+      if (activeSharedNormalSearchAbortRefV441.current === sharedNormalSearchControllerV441) activeSharedNormalSearchAbortRefV441.current = null;
       if (normalSearchRequestIdV441 === activeNormalSearchRequestRefV441.current) {
         setPreviewNormalResults([]);
         setLoadingNormal(false);
@@ -14241,6 +14263,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    // Cart additions must not start a hidden multi-store price comparison.
+    // Once the user has opened Halpuuta, later cart changes may refresh it.
+    if (options.openCompare === false && !comparisonUserStartedRefV768.current) return;
+
     // V738: physical scale-label products are never price-comparison candidates.
     // Their label total is authoritative, but store-specific comparable unit price
     // cannot be guaranteed even when product identity is known.
@@ -14393,7 +14419,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // two selected chains are ready. Never open Compare, change totals or show loading.
   // Reuse the exact matcher key, so changed products/stores cannot reuse old prices.
   useEffect(() => {
-    if (storeCompareScope !== "between_chains" || betweenChainSelectionModeV749 !== "many" ||
+    // Ordinary cart additions must not silently trigger S/K matcher warmups.
+    // Warm only after the user explicitly starts Halpuuta.
+    if (!comparisonUserStartedRefV768.current ||
+        storeCompareScope !== "between_chains" || betweenChainSelectionModeV749 !== "many" ||
         !selectedChains.s || !selectedChains.k || !activeStores.sStoreId || !activeStores.kStoreId ||
         !storesReadyForSearch || restoredCartPromptV320.open) return;
     const eligible = cart.filter(isComparisonEligibleV797);

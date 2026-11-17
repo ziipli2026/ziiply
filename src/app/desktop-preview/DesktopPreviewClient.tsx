@@ -994,19 +994,28 @@ export default function DesktopPreviewPage() {
         try{
           const params=new URLSearchParams({search,intent:name});
           const response=await fetch("/api/tokmanni/products?"+params.toString(),{cache:"no-store"});
-          if(!response.ok)return [];
+          if(!response.ok){logCompareAudit("spar_compare_http_error",{store:store.name,search,status:response.status});return [];}
           const data=await response.json();
-          return (Array.isArray(data?.items)?data.items:[]).map((p:any)=>({
+          const rawItems=Array.isArray(data?.items)?data.items:[];
+          logCompareAudit("spar_compare_provider_response",{store:store.name,search,source:data?.source,rawCount:rawItems.length,error:data?.error||data?.klevuError||null});
+          return rawItems.map((p:any)=>({
             ...p,name:String(p.name||p.title||""),ean:String(p.ean||""),
             price:Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100),
             image:String(p.pictureUrl||p.imageUrl||"")
           })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
         }catch{return []}
       }));
-      return responses.flat();
+      const candidates=responses.flat();
+      if(!candidates.length)logCompareAudit("spar_compare_no_priced_candidates",{store:store.name,name,ean,queries});
+      const matched=desktopPickCompareCandidate(candidates,name,ean,false);
+      logCompareAudit("spar_compare_candidate_summary",{store:store.name,name,ean,candidateCount:candidates.length,matched:Boolean(matched),matchedName:matched?.name||null,matchedEan:matched?.ean||null,priceScope:"tokmanni-online-catalog-not-verified-local-store"});
+      return candidates;
     }
     // Lidl normal-price search is not yet verified; never substitute another chain's prices.
-    if(kind==="lidl")return [];
+    if(kind==="lidl"){
+      logCompareAudit("lidl_compare_price_source_unavailable",{store:store.name,name,ean,reason:"No approved verified normal-price source connected; catalog identities alone are not prices"});
+      return [];
+    }
     if(!["sHyper","sLocal","kHyper","kLocal"].includes(kind))return [];
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
@@ -2583,7 +2592,10 @@ export default function DesktopPreviewPage() {
       .sort((a,b)=>b.rank-a.rank||a.index-b.index).map(row=>row.product);
   }
 
+  const activeDesktopNormalSearchAbortRef = useRef<AbortController | null>(null);
   async function startDesktopNormalSearch(raw=justiinaQuery) {
+    activeDesktopNormalSearchAbortRef.current?.abort();
+    activeDesktopNormalSearchAbortRef.current = new AbortController();
     cancelDesktopVoiceList();
     recipeSearchStepRef.current=-1;
     recipeSearchItemsRef.current=[];
@@ -2597,6 +2609,7 @@ export default function DesktopPreviewPage() {
 
   async function runDesktopNormalSearch(raw=justiinaQuery, diagnostic?: { observe: SearchDebugObserver; signal: AbortSignal }) {
     const generation=desktopVoiceRunRef.current;
+    const searchController = diagnostic ? null : activeDesktopNormalSearchAbortRef.current;
     const started=performance.now();
     const report:SearchDebugObserver=(stage,data={})=>diagnostic?.observe(stage,{elapsedMs:Math.round(performance.now()-started),...data});
     const query=desktopSearchQuery(String(raw||"")); if(!query){report("validation_error",{error:"Hakusana puuttuu"});return;}
@@ -2637,7 +2650,12 @@ export default function DesktopPreviewPage() {
         }
       }
       const { sortedRows, rankedRows, failures, batches, rows, productDecisions } = await searchNormalStores(query, stores, {
-        signal: diagnostic?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
+        signal: diagnostic?.signal ?? searchController?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
+        onCachedRows: diagnostic ? undefined : cachedRows => {
+          if (generation !== desktopVoiceRunRef.current) return;
+          setJustiinaResults(cachedRows);
+          traceNormal("display-cached-preview", {query, count:cachedRows.length});
+        },
         onInitialRows: diagnostic ? undefined : initialRows => {
           if (generation !== desktopVoiceRunRef.current) return;
           setJustiinaResults(initialRows);
@@ -2652,7 +2670,7 @@ export default function DesktopPreviewPage() {
       setJustiinaResults(sortedRows);
             justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
       return sortedRows.length > 0;
-    }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaResults([]);setJustiinaResultsOpen(false);setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
+    }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaResults([]);setJustiinaResultsOpen(false);setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false);if(searchController&&activeDesktopNormalSearchAbortRef.current===searchController)activeDesktopNormalSearchAbortRef.current=null;}
   }
 
   async function runDesktopJustiinaSearch(raw=justiinaQuery, voiceRunId?:number, diagnostic?: { observe: SearchDebugObserver; signal: AbortSignal }) {
@@ -3504,7 +3522,7 @@ export default function DesktopPreviewPage() {
   </div>
   <button type="button" onClick={()=>setCartOpen(true)} className="shrink-0 whitespace-nowrap rounded-full border-2 border-[#17573c] bg-[#e2edcf] px-2 py-0.5 text-[11px] font-black text-[#174c35] shadow-sm">🛒 Ostoskori</button>
   <button type="button" onClick={requestDesktopListExit} aria-label="Sulje tuotevalinta" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-[3px] border-[#5a321b] bg-[#9a612d] text-[23px] font-black leading-none text-[#fff0c8]">×</button>
-</div>{desktopSearchMode!=="normal"&&<div className="mt-2 flex shrink-0 justify-center"><button type="button" onClick={confirmDesktopListSkip} disabled={!desktopVoiceWaitRef.current || justiinaLoading} className="rounded-xl border-2 border-[#a66e26] bg-[#fff0ba] px-5 py-2 text-sm font-black text-[#66420d] disabled:opacity-40">Ohita tuote →</button></div>}<div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4">{!justiinaLoading&&!justiinaResults.length&&<p role="status" className="mb-3 text-center font-bold">{justiinaMessage||"Tuotteita ei löytynyt."}{desktopSearchMode==="recipe"?" Ohita tuote jatkaaksesi. Puuttuva aines säilyy ostoskorissa tarkistettavana.":desktopSearchMode==="voice-list"?" Ohita tuote jatkaaksesi.":""}</p>}<div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{justiinaResults.map((p:any,i:number)=>{const comparison = formatSearchResultComparisonPrice(p, p.__price ?? null);return <div key={String(p.id||p.ean||i)} className="grid min-h-[258px] grid-cols-[minmax(108px,35%)_minmax(0,1fr)] items-stretch gap-4 overflow-hidden rounded-[24px] border-[3px] border-[#a99a75] bg-[#fff3d5] p-4"><div className="flex min-w-0 flex-col gap-3"><div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2">{(p.pictureUrl||p.imageUrl||p.image)?<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="eager" decoding="async"/>:<span className="text-[38px]">🛍️</span>}</div><button type="button" onClick={()=>{if(desktopSearchMode==="normal"){addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price,storeName:p.__store});justiinaAddedDuringSelectionRef.current=true;}else addRecipeSelectionToCart(p)}} className="flex min-h-[76px] w-full flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-[#126a39]"><span className="font-serif text-[25px] font-black">{p.__price!=null?Number(p.__price).toFixed(2).replace(".",",")+" €":"—"}</span><span className="text-[12px] font-black">{p.priceVerified === false ? "Hinta vahvistamatta · lisää listalle" : "🛒 Lisää koriin"}</span></button></div><div className="min-w-0 overflow-hidden py-1"><div className="line-clamp-3 text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-3 text-[11px] font-black uppercase text-[#6f735b]">{p.__store||p.storeName||""}</div>{p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}{comparison&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{comparison}</div>}<ProductEnergy ean={p.ean || p.barcode || p.product?.ean || p.__sourceOfferSearchResult?.ean} nutrition={p.nutrition ?? p.product?.nutrition ?? p.__sourceOfferSearchResult?.nutrition} quantity={p.packageSize ?? p.product?.packageSize ?? p.__sourceOfferSearchResult?.packageSize} /></div></div>})}</div></div></div>}
+</div>{desktopSearchMode!=="normal"&&<div className="mt-2 flex shrink-0 justify-center"><button type="button" onClick={confirmDesktopListSkip} disabled={!desktopVoiceWaitRef.current || justiinaLoading} className="rounded-xl border-2 border-[#a66e26] bg-[#fff0ba] px-5 py-2 text-sm font-black text-[#66420d] disabled:opacity-40">Ohita tuote →</button></div>}<div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-[22px] border-2 border-[#b58a46] bg-[#fff4cf] p-4">{!justiinaLoading&&!justiinaResults.length&&<p role="status" className="mb-3 text-center font-bold">{justiinaMessage||"Tuotteita ei löytynyt."}{desktopSearchMode==="recipe"?" Ohita tuote jatkaaksesi. Puuttuva aines säilyy ostoskorissa tarkistettavana.":desktopSearchMode==="voice-list"?" Ohita tuote jatkaaksesi.":""}</p>}<div className="grid grid-cols-2 gap-3 xl:grid-cols-3">{justiinaResults.map((p:any,i:number)=>{const comparison = formatSearchResultComparisonPrice(p, p.__price ?? null);return <div data-testid="normal-search-result" data-ean={String(p.ean ?? p.product?.ean ?? "")} key={String(p.id||p.ean||i)} className="grid min-h-[258px] grid-cols-[minmax(108px,35%)_minmax(0,1fr)] items-stretch gap-4 overflow-hidden rounded-[24px] border-[3px] border-[#a99a75] bg-[#fff3d5] p-4"><div className="flex min-w-0 flex-col gap-3"><div className="grid h-[148px] min-h-0 shrink-0 place-items-center overflow-hidden rounded-[18px] border-2 border-[#9a713a] bg-[#fffdf5] p-2">{(p.pictureUrl||p.imageUrl||p.image)?<img src={p.pictureUrl||p.imageUrl||p.image} alt="" className="h-full max-h-[132px] w-full object-contain" width={132} height={132} loading="eager" decoding="async"/>:<span className="text-[38px]">🛍️</span>}</div><button type="button" onClick={()=>{if(desktopSearchMode==="normal"){addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price,storeName:p.__store});justiinaAddedDuringSelectionRef.current=true;}else addRecipeSelectionToCart(p)}} className="flex min-h-[76px] w-full flex-col items-center justify-center rounded-[18px] border-[3px] border-[#477350] bg-[#e2edcf] px-2 py-2 text-[#126a39]"><span className="font-serif text-[25px] font-black">{p.__price!=null?Number(p.__price).toFixed(2).replace(".",",")+" €":"—"}</span><span className="text-[12px] font-black">{p.priceVerified === false ? "Hinta vahvistamatta · lisää listalle" : "🛒 Lisää koriin"}</span></button></div><div className="min-w-0 overflow-hidden py-1"><div className="line-clamp-3 text-[clamp(15px,1.2vw,21px)] font-black leading-snug text-[#26352b]">{p.name||p.title||p.productName}</div><div className="mt-3 text-[11px] font-black uppercase text-[#6f735b]">{p.__store||p.storeName||""}</div>{p.ean&&<div className="mt-2 text-[11px] font-bold text-[#82745a]">EAN {p.ean}</div>}{comparison&&<div className="mt-2 text-[12px] font-bold text-[#82745a]">{comparison}</div>}<ProductEnergy ean={p.ean || p.barcode || p.product?.ean || p.__sourceOfferSearchResult?.ean} nutrition={p.nutrition ?? p.product?.nutrition ?? p.__sourceOfferSearchResult?.nutrition} quantity={p.packageSize ?? p.product?.packageSize ?? p.__sourceOfferSearchResult?.packageSize} /></div></div>})}</div></div></div>}
 
             {workspace==="justiina" && !justiinaResultsOpen && <DesktopJustiinaSearchCard onVoiceTranscript={(text,recipeItems)=>{void runDesktopVoiceList(text,recipeItems)}} onOpenScanner={()=>{setDesktopScannerEan("");setDesktopScannerMessage("");setDesktopScannerCameraOn(false);setDesktopScannerOpen(true)}} onClose={()=>setWorkspace(null)} onOpenCart={()=>setCartOpen(true)} query={justiinaQuery} onQueryChange={(value)=>{cancelDesktopVoiceList();justiinaUserEditedRef.current=true;justiinaSuppressedTermsRef.current.delete(value.trim().toLowerCase());setJustiinaQuery(value);setJustiinaResults([]);setJustiinaResultsOpen(false);if(!value.trim()){justiinaLastSearchedRef.current="";setJustiinaMessage("")}}} loading={justiinaLoading} onSearch={()=>{void startDesktopNormalSearch(justiinaQuery)}} message={justiinaMessage} debug={justiinaDebug} results={justiinaResults} delay={justiinaDelay} onDelayChange={()=>setJustiinaDelay(v=>v===2?1:v===1?0:2)} onAddToCart={(p)=>addDesktopCartItem({...p,source:"justiina",title:p.name||p.title||p.productName,price:p.__price})} onReopenResults={()=>{if(justiinaResults.length>0){justiinaUserEditedRef.current=false;setJustiinaResultsOpen(true)}}} onAddInputToCart={(text)=>{justiinaUserEditedRef.current=false;justiinaSuppressedTermsRef.current.add(text.trim().toLowerCase());text.split(/[,\.\n]+/).map(x=>x.trim()).filter(Boolean).forEach(title=>addDesktopCartItem({title,name:title,source:"justiina",price:0,quantity:1}));}} />}
             {workspace && workspace!=="justiina" && (

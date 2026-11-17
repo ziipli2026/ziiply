@@ -150,13 +150,16 @@ export async function GET(request: Request) {
     }));
     const data = await response.json();
     const firstPage: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
-    // Recipe candidates must not disappear at the provider's first-page boundary.
-    const primaryItems = recipeIngredient ? await appendRuoanhintaPages(firstPage, 100, async (skip, signal) => {
+    // Normal searches can also lose valid products at the provider's 100-item
+    // first-page boundary. Follow one extra page for ordinary searches when
+    // the first page is full; keep the established deeper recipe pagination.
+    // This is chain-agnostic to the search term: no product/EAN special cases.
+    const primaryItems = await appendRuoanhintaPages(firstPage, 100, async (skip, signal) => {
       const pageUrl=new URL(endpoint);pageUrl.searchParams.set("skip",String(skip));
       const page=await fetch(pageUrl,{headers:{accept:"application/json"},cache:"no-store",signal});
       if(!page.ok)throw new Error("Provider page HTTP "+page.status);
       const body=await page.json();return Array.isArray(body.items)?body.items:[];
-    }) : firstPage;
+    },recipeIngredient?3:2,recipeIngredient?1200:1600);
     // Only when a generic bread search returns no priced items, retry two
     // narrower bread queries. Do not expand nonempty results or other categories.
     const breadFallbackTerms = normalizedSearch === "leipä" && ![...primaryItems, ...extraResponses.flat()].some(product => getPrice(product) > 0)

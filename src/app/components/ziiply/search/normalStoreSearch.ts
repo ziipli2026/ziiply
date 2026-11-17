@@ -46,13 +46,48 @@ function rankStoreRows(query: string, rows: any[]) {
   );
 }
 
+// Shared UI cache policy for mobile and desktop: show a recent snapshot immediately,
+// but always revalidate against the selected stores before committing final results.
+// Cache never supplies prices to the basket comparison or the provider ranking.
+const LIVE_SEARCH_CACHE_KEY = "ziiply-shared-normal-store-search-v1";
+const LIVE_SEARCH_CACHE_TTL_MS = 20 * 60 * 1000;
+const LIVE_SEARCH_CACHE_LIMIT = 24;
+type CachedSearch = { key: string; savedAt: number; rows: any[] };
+function searchCacheIdentity(query: string, stores: NormalSearchStore[]) {
+  return JSON.stringify([query.trim().normalize("NFKC").toLocaleLowerCase("fi"),
+    stores.map(store => [store.chain, String(store.id), store.name, store.city ?? "", store.address ?? "", store.type ?? ""]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]);
+}
+function readCachedSearch(key: string): any[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const data = JSON.parse(window.sessionStorage.getItem(LIVE_SEARCH_CACHE_KEY) || "[]") as CachedSearch[];
+    const hit = Array.isArray(data) ? data.find(entry => entry.key === key && Date.now() - entry.savedAt >= 0 && Date.now() - entry.savedAt < LIVE_SEARCH_CACHE_TTL_MS) : null;
+    return hit && Array.isArray(hit.rows) ? hit.rows.filter(row => Number(row.__price) > 0 && row.priceVerified !== false) : [];
+  } catch { return []; }
+}
+function rememberCachedSearch(key: string, rows: any[]) {
+  if (typeof window === "undefined" || !rows.length) return;
+  try {
+    const old = JSON.parse(window.sessionStorage.getItem(LIVE_SEARCH_CACHE_KEY) || "[]") as CachedSearch[];
+    const entries = (Array.isArray(old) ? old : []).filter(entry => entry.key !== key && Date.now() - entry.savedAt < LIVE_SEARCH_CACHE_TTL_MS);
+    entries.unshift({ key, savedAt: Date.now(), rows });
+    window.sessionStorage.setItem(LIVE_SEARCH_CACHE_KEY, JSON.stringify(entries.slice(0, LIVE_SEARCH_CACHE_LIMIT)));
+  } catch { /* Storage can be disabled or full; live search still works. */ }
+}
+
 export async function searchNormalStores(query: string, stores: NormalSearchStore[], options: {
   signal?: AbortSignal;
   observe?: Observer;
   trace?: Observer;
   onInitialRows?: (rows: any[]) => void;
+  onCachedRows?: (rows: any[]) => void;
 } = {}) {
   const {signal, observe} = options;
+  const cacheKey = searchCacheIdentity(query, stores);
+  if (options.onCachedRows && !signal?.aborted) {
+    const cached = readCachedSearch(cacheKey);
+    if (cached.length) options.onCachedRows(cached);
+  }
   const report: Observer = (stage, data) => observe?.(stage, data);
   const trace: Observer = (stage, data) => options.trace?.(stage, data);
   let initialRowsPublished = false;
@@ -101,7 +136,9 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   }
   // Start catalog lookup concurrently with the existing selected-store providers.
   // The catalog never supplies a store price or modifies recipe/offer engines.
-  const neonPromise = stores.some(store => store.chain === "S" || store.chain === "K") ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
+  // All four chain families share the same EAN-first catalog evidence.
+  // Catalog rows remain unpriced; only selected-store providers can supply verified prices.
+  const neonPromise = stores.length > 0 ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
   const calls = stores.map(store => fetchSearchData(storeUrl(store, query), undefined, store).then(data => ({chain:store.chain,store,data})));
   const settledPromise=Promise.allSettled(calls);
   const neonRaw = await neonPromise;
@@ -172,26 +209,48 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     const items=readSearchProducts(batch.data) as any[];
     for(const x of items){
       if (batch.chain === "LIDL") {
-        if (x.source === "lidl.fi-public-research" && x.priceVerified === false &&
-            x.name && desktopSearchDecision(query, x).accepted) {
-          const key = String(x.id ?? x.name);
-          if (!research.has(key)) research.set(key, {
-            ...x, ean: "", price: null, storeItems: [], __price: null,
-            __chain: "LIDL", __store: "Lidlin julkinen tuoteluettelo",
-          });
+        // Public research identifies products, not their local prices.
+        // A future store-specific Lidl quote may be included only with
+        // explicit verification and a matching, nonempty store identifier.
+        const verifiedLocalPrice = x.priceVerified === true
+          && x.priceScope === "local_store"
+          && String(x.priceStoreId ?? "").trim().length > 0
+          && String(batch.store.id ?? "").trim().length > 0
+          && String(x.priceStoreId) === String(batch.store.id);
+        if (!verifiedLocalPrice) {
+          if (x.source === "lidl.fi-public-research" && x.priceVerified === false &&
+              x.name && desktopSearchDecision(query, x).accepted) {
+            const key = String(x.id ?? x.name);
+            if (!research.has(key)) research.set(key, {
+              ...x, ean: "", price: null, storeItems: [], __price: null,
+              __chain: "LIDL", __store: "Lidlin julkinen tuoteluettelo",
+            });
+          }
+          continue;
         }
-        continue;
       }
       const {product: baseProduct, rawPrice, priceIsEuros, euro}=shapeStoreRow(x,batch.store,batch.data?.source);
       const product=withEvidence(baseProduct);
       const normalRejected=!desktopSearchDecision(query,product).accepted;
-      const included=!normalRejected;
+      // Tokmanni's web catalog does not prove the price or availability at a
+      // selected local EUROSPAR/Tokmanni store. Keep its products as catalog
+      // evidence, but do not use web prices in a local cheapest-basket quote.
+      const localPriceVerified = !["SPAR", "TOKMANNI", "LIDL"].includes(batch.chain)
+        || (x.priceVerified === true && x.priceScope === "local_store"
+          && String(x.priceStoreId ?? "").trim().length > 0
+          && String(batch.store.id ?? "").trim().length > 0
+          && String(x.priceStoreId) === String(batch.store.id));
+      const included=!normalRejected && euro!==null && x.priceVerified!==false && localPriceVerified;
       productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});
       if(included)rows.push(product);
     }
   }
   const rankedRows = rankStoreRows(query, rows);
-  const sortedRows = [...rankedRows, ...research.values()].slice(0, 100);
+  // Lidl public research and Neon catalog identities are useful for matching,
+  // but neither establishes a current store price. Never show them as priced results.
+  const sortedRows = rankedRows.slice(0, 100);
+  if (!signal?.aborted && failures.length === 0) rememberCachedSearch(cacheKey, sortedRows);
+  trace("lidl_catalog_research", {researchCount:research.size, catalogCount:neonRows.length, pricedLidlCount:rows.filter(row=>row.__chain==="LIDL").length});
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};
 }
