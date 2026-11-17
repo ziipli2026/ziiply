@@ -13123,6 +13123,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           };
           const {sortedRows} = await searchNormalStores(term, stores, {
             trace: traceSearch,
+            onCachedRows: rows => {
+              if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current ||
+                  dismissedNormalPreview.current === normalSearchRequestIdV441) return;
+              const preview = rows.map(shapeResult).filter((row): row is Product => row !== null);
+              if (preview.length) setPreviewNormalResults(preview);
+              traceSearch("display-cached-preview", { count: preview.length });
+            },
             onInitialRows: (isMainSearch || effectiveSearchCompareMode === "single") &&
               focusedSearchTerms.length === 1 && useTerms.length === 1
               ? rows => {
