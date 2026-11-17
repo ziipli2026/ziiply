@@ -21,18 +21,18 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Install Vercel CLI and link test project
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.ZIIPLY_TEST_VERCEL_TOKEN }}
         run: |
-          test -n "$VERCEL_TOKEN" || { echo '::error::Missing VERCEL_TOKEN secret'; exit 1; }
+          test -n "$VERCEL_TOKEN" || { echo '::error::Missing ZIIPLY_TEST_VERCEL_TOKEN secret (dedicated to Monta live test); existing VERCEL_TOKEN is untouched'; exit 1; }
           npm install --global vercel@65.9.0
           if ! vercel whoami --token "$VERCEL_TOKEN" > /dev/null; then
-            echo "::error::GitHub secret VERCEL_TOKEN is rejected by Vercel. Replace it with a valid token for the ziipli2026s-projects team; the live browser test cannot authenticate without it."
+            echo "::error::Dedicated ZIIPLY_TEST_VERCEL_TOKEN is rejected by Vercel; existing VERCEL_TOKEN is untouched. Supply a valid token for ziipli2026s-projects to run protected preview tests."
             exit 1
           fi
           vercel link --yes --project ziiply --scope ziipli2026s-projects --token "$VERCEL_TOKEN"
       - name: Test protected branch preview with authenticated real APIs
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.ZIIPLY_TEST_VERCEL_TOKEN }}
           ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
         run: |
           vercel env run -- sh -c '
