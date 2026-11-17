@@ -14,7 +14,7 @@ for(const [label,opts] of [['mobile',devices['iPhone 13']],['desktop',{viewport:
 const context=await browser.newContext(opts);await context.grantPermissions(['geolocation']);await context.setGeolocation({latitude:60.63,longitude:24.86});
 await context.addInitScript(()=>{const store={id:'fe95rtb',name:'K-Citymarket Hyvinkää',chain:'K',latitude:60.63,longitude:24.86};localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({storeMode:'hyper',storeModeChosen:true,selectedChain:'K',betweenMode:'one',storeCompareScope:'between_chains',allStoreSelections:{hyper:{[store.id]:store},local:{}}}));localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({activeArea:{label:'Hyvinkää'},storeMode:'hyper',storeModeChosenV299:true,storeCompareScope:'between_chains',betweenChainSelectionModeV749:'one',selectedChains:{k:true}}));localStorage.setItem('ziiply-gosta-offer-watches-v1',JSON.stringify(['kahvi']));});
 const page=await context.newPage();await page.route('**/api/offers/watch?*',route=>route.fulfill({json:{ok:true,partial:false,results:offers}}));
-await page.goto('http://127.0.0.1:3100/');await page.getByRole('button',{name:/Avaa tarjousvahdin .* osumaa/}).waitFor({timeout:30000});
+await page.goto('http://127.0.0.1:3101/');await page.getByRole('button',{name:/Avaa tarjousvahdin .* osumaa/}).waitFor({timeout:30000});
 const countLabel=await page.getByRole('button',{name:/Avaa tarjousvahdin .* osumaa/}).innerText();
 await page.getByRole('button',{name:/Avaa tarjousvahdin .* osumaa/}).click();
 if(label==='desktop') {
