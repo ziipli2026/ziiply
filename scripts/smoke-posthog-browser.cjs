@@ -11,7 +11,10 @@ const watchdog = setTimeout(() => {
 }, 60000);
 (async () => {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ locale: 'fi-FI', viewport: { width: 390, height: 844 } });
+  const previewHeaders = process.env.VERCEL_OIDC_TOKEN
+    ? { 'x-vercel-trusted-oidc-idp-token': process.env.VERCEL_OIDC_TOKEN }
+    : {};
+  const page = await browser.newPage({ locale: 'fi-FI', viewport: { width: 390, height: 844 }, extraHTTPHeaders: previewHeaders });
   const captures = [];
   const failures = [];
   const responses = [];
@@ -58,7 +61,9 @@ const watchdog = setTimeout(() => {
     await page.getByRole('heading', { name: /log in to vercel/i }).count() > 0;
   if (loginGate) {
     console.error('FAIL: Vercel authentication page, not Ziiply application');
-    process.exitCode = 1;
+    await browser.close();
+    clearTimeout(watchdog);
+    throw new Error('Preview is protected by Vercel Authentication; configure a short-lived trusted OIDC token for CI browser access');
   }
   console.log(JSON.stringify({ check: 'browser-page-load', status: response?.status(), title, urlHost: url.host }));
   // PostHog is module-scoped, not exposed on window. Do not mistake a missing
