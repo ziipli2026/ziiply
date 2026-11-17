@@ -21,8 +21,8 @@ if(!target||!new URL(target).hostname.includes('test-posthog-beta-audit'))throw 
   await page.waitForTimeout(3500);
   const initial=await page.getByRole('button').allTextContents();
   const report={check:'beta-journey-navigation',status:response?.status(),buttons:initial.map(x=>x.trim().slice(0,55)).filter(Boolean).slice(0,22),journeys:{},errors};
-  for(const [name,button] of [['gosta','Gösta'],['justiina','Justiina'],['cart','Kori'],['comparison','Vertailu']]){
-   const control=page.getByRole('button',{name:button,exact:true}).first();
+  for(const [name,button] of [['gosta',/^Gösta(?::|$)/i],['justiina',/^Justiina(?::|$)/i],['cart',/^Kori$/i],['comparison',/^Vertailu$/i]]){
+   const control=page.getByRole('button',{name:button}).first();
    const visible=await control.isVisible().catch(()=>false);
    const enabled=visible&&await control.isEnabled().catch(()=>false);
    report.journeys[name]={visible,enabled};
