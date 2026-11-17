@@ -1,6 +1,6 @@
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 import { neon } from "@neondatabase/serverless";
-import { tjekDepartmentCategory, isTjekNonGroceryDepartment } from "../tjekDepartmentCategory";
+import { tjekDepartmentCategory, isTjekNonGroceryDepartment, filterTjekGroceryRows } from "../tjekDepartmentCategory";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
@@ -101,8 +101,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           && isActiveOffer(row, now))
     : [];
   const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
-  const fallback = (await readPublishedSnapshot(fallbackKey) ?? [])
-    .filter(row => !isTjekNonGroceryDepartment((row.debug as Row | undefined)?.tjekDepartmentSlug ?? row.tjekDepartmentSlug))
+  const fallback = filterTjekGroceryRows((await readPublishedSnapshot(fallbackKey) ?? []))
     .filter(row => isActiveOffer(row, now)
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
