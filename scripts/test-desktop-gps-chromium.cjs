@@ -69,7 +69,7 @@ try{
  await manualPage.goto(process.env.PREVIEW_URL,{waitUntil:'domcontentloaded'});
  const gpsManual=manualPage.getByRole('button',{name:'GPS',exact:true});
  const manualRead=()=>manualPage.evaluate(()=>JSON.parse(localStorage.getItem('ziiply-desktop-store-choices-v1')).allStoreSelections.hyper);
- await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
+ await manualPage.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
  // A manual selection must survive a location change; set manual selection in saved state before the next navigation.
  const saved=await manualRead();assert.equal(saved['s-l']?.desktopSelectionOrigin,'manual');
  await context.setGeolocation(HY);
