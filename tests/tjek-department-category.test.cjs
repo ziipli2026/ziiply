@@ -39,7 +39,7 @@ test('read-only Tjek audit exclusions match the production parser allowlist',()=
  const match=audit.match(/if\(\[([^\]]+)\]\.includes\(department\)\)/);
  assert.ok(match,'audit must declare its excluded source departments');
  const auditDepartments=match[1].split(',').map(x=>x.trim().replace(/^['"]|['"]$/g,''));
- const parserDepartments=['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy'];
+ const parserDepartments=Array.from(moduleExports.TJEK_NON_GROCERY_DEPARTMENTS);
  assert.deepEqual(auditDepartments.slice().sort(),parserDepartments.slice().sort());
  for(const department of auditDepartments)assert.equal(moduleExports.isTjekNonGroceryDepartment(department),true);
 });
