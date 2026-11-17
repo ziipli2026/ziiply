@@ -66,11 +66,13 @@ if (callbackStart < 0) {
     console.error('FAIL before_send callback cannot be extracted');
     process.exitCode = 1;
   } else {
-    const callback = new Function('environment', 'isInternalTest',
+    const projectTokenMatch = provider.match(/const PROJECT_TOKEN = '([^']+)'/);
+    const configuredProjectToken = projectTokenMatch?.[1] || '';
+    const callback = new Function('environment', 'isInternalTest', 'PROJECT_TOKEN',
       'return (' + provider.slice(callbackStart + 'before_send: '.length, end + 1) + ')'
-    )('preview', true);
+    )('preview', true, configuredProjectToken);
     const event = callback({ event: 'search_used', properties: {
-      email: 'secret@example.test', access_token: 'private',
+      email: 'secret@example.test', access_token: 'private', token: 'user-supplied-secret',
       latitude: 60.1, longitude: 24.9, search: 'sensitive query',
       ean: '1234567890123', product_name: 'sensitive',
       $current_url: 'https://example.test/?token=private',
@@ -88,6 +90,8 @@ if (callbackStart < 0) {
       props.search_kind === 'normal' && props.search_type === 'normal' && props.result_count === 3 &&
       props.ziiply_environment === 'preview' &&
       props.ziiply_internal_test === true &&
+      props.token === configuredProjectToken &&
+      configuredProjectToken.startsWith('phc_') &&
       props.ziiply_analytics_schema === 1;
     console.log(`${passed ? 'PASS' : 'FAIL'} before_send strips sensitive and nested synthetic properties`);
     if (!passed) process.exitCode = 1;
