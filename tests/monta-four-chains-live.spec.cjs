@@ -79,9 +79,12 @@ test('Monta live all chains: '+device,async({browser})=>{
       const visible=await page.locator('body').innerText();
       // Capture identified result EANs independently of shopping-list text.
       // Both UIs must expose the same EAN-backed product set for the same query.
+      // Result sheets may hide the literal EAN label. Capture both rendered
+      // product cards and the actual response payload, not only EAN text nodes.
       const eans=await page.getByText(/EAN \\d{13}/).filter({visible:true}).allTextContents();
       const resultEans=[...new Set(eans.flatMap(v=>[...v.matchAll(/EAN\\s*(\\d{13})/g)].map(m=>m[1])))].sort();
-      result.results.push({query,visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans});
+      const visibleProductButtons=await page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true}).count();
+      result.results.push({query,visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans,visibleProductButtons});
       // The mobile search opens a full-screen result sheet; only target controls
       // within that sheet, not similarly named buttons behind its backdrop.
       const candidate=page.locator('div.pointer-events-none.fixed.inset-0').getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
