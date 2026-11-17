@@ -247,12 +247,12 @@ const watchdog = setTimeout(() => {
           await cart.click({timeout:10000});
           await page.waitForTimeout(900);
           const cartOpen = await page.evaluate(() => ({
-            visibleDialogs:[...document.querySelectorAll('[role="dialog"]')].filter(e=>!!e.getClientRects().length).length,
-            visibleCartHeadings:[...document.querySelectorAll('h1,h2,h3')].filter(e=>!!e.getClientRects().length&&/kori|ostoslista/i.test(e.textContent||'')).length,
+            visibleCartOverlays:[...document.querySelectorAll('div.ziiply-cart-retro-fix')].filter(e=>!!e.getClientRects().length&&!!e.closest('div.fixed')).length,
+            visibleCartItemRows:[...document.querySelectorAll('div.ziiply-cart-retro-fix')].filter(e=>!!e.getClientRects().length).map(e=>e.querySelectorAll('button').length).slice(0,2),
             visibleCloseButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length&&/sulje/i.test((e.getAttribute('aria-label')||'')+' '+(e.textContent||''))).length
           }));
           console.log(JSON.stringify({check:'beta-cart-open',...cartOpen}));
-          if (!cartOpen.visibleDialogs && !cartOpen.visibleCartHeadings) {
+          if (!cartOpen.visibleCartOverlays) {
             console.error('FAIL: cart nav enabled but cart view did not open');
             process.exitCode = 1;
           }
