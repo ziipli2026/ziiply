@@ -4,6 +4,7 @@ on:
     paths:
       - 'src/app/components/ziiply/offerSearch/**'
       - 'tests/catalog-identity-resolver.test.cjs'
+      - 'tests/catalog-candidate-assessment.test.cjs'
       - 'tests/ean-first-citymarket-scope.test.cjs'
       - '.github/workflows/ean-first-citymarket.yml'
   workflow_dispatch:
@@ -18,6 +19,6 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Test catalog identity and source scoping
-        run: node --test tests/catalog-identity-resolver.test.cjs tests/ean-first-citymarket-scope.test.cjs
+        run: node --test tests/catalog-identity-resolver.test.cjs tests/catalog-candidate-assessment.test.cjs tests/ean-first-citymarket-scope.test.cjs
       - name: Typecheck
         run: npx tsc --noEmit
