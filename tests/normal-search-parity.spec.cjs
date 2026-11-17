@@ -52,7 +52,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           const diagnostic={
             device,query,reason:String(error),pageUrl:page.url(),
             resultCardCount:await cards.count(),
-            oldVisibleEans:await page.getByText(/EAN \\d{13}/).filter({visible:true}).count(),
+            oldVisibleEans:await page.getByText(/EAN \d{13}/).filter({visible:true}).count(),
             findingsButtonCount:await page.getByRole('button',{name:/Avaa löytöluettelo/i}).count(),
             visibleText:(await page.locator('body').innerText()).slice(-5000),
             apiResponses:apiResponses.slice(-50),errors,
