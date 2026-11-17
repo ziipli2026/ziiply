@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import assert from 'node:assert/strict';
+import {readFileSync as readSource} from 'node:fs';
 // Uses a read-only extract of real Neon snapshot fields, not synthetic rows.
 // This is an offline regression check, not a live production DB integration test.
 const manifest='artifacts/hyvinkaa-tjek-departments-verified.json';
@@ -31,4 +32,13 @@ for(let i=0;i<enriched.length;i++){
 }
 assert.equal(excludedCount,46,'source department exclusion count changed');
 assert.equal(enriched.length-excludedCount,93);
+// The selected-store snapshot read path must reject verified non-grocery departments
+// before active-offer and selected-store filtering. A source-level guard catches regressions.
+const provider=readSource('src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts','utf8');
+const snapshotFilter=provider.indexOf('.filter(row => !isTjekNonGroceryDepartment((row.debug as Row | undefined)?.tjekDepartmentSlug ?? row.tjekDepartmentSlug))');
+const activeFilter=provider.indexOf('.filter(row => isActiveOffer(row, now)',snapshotFilter);
+assert.ok(snapshotFilter>0&&activeFilter>snapshotFilter,'snapshot read path must filter Tjek non-grocery departments');
+const visible=enriched.filter(row=>!excluded.has(row.debug.tjekDepartmentSlug));
+assert.equal(visible.length,93);
+assert.ok(visible.every(row=>!excluded.has(row.debug.tjekDepartmentSlug)));
 console.log('TJEK_BASELINE_ENRICHMENT_CHECK',JSON.stringify({matched:139,excluded:excludedCount,remaining:93,source:'verified public Tjek API',snapshot:'actual Neon public offer fields captured 2026-11-17',databaseWrites:0}));
