@@ -13,3 +13,12 @@ export function tjekDepartmentCategory(slug: unknown): string | null {
   return Object.prototype.hasOwnProperty.call(TJEK_DEPARTMENT_CATEGORIES,slug)
     ? TJEK_DEPARTMENT_CATEGORIES[slug] : null;
 }
+
+/** Explicit non-grocery Tjek departments. Unknown and mixed departments remain
+ * visible: no title-based exclusions or guessed product identities. */
+export const TJEK_NON_GROCERY_DEPARTMENTS: ReadonlySet<string> = new Set([
+  'electronics', 'apparel', 'entertainment',
+]);
+export function isTjekNonGroceryDepartment(slug: unknown): boolean {
+  return typeof slug === 'string' && TJEK_NON_GROCERY_DEPARTMENTS.has(slug);
+}
