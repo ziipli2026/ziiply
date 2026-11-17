@@ -21,3 +21,12 @@
 6. Open `?ziiply_test=0` to clear the internal test marker after testing.
 
 Do not turn on session replay or deploy this PR to production until privacy and browser tests pass.
+
+## Live Chromium finding — 2026-11-17
+
+- Production app alias `https://ziiply.vercel.app/` loads the real application (not the `ziiply.fi` marketing site).
+- `Gösta: Tarjoushaku` button can be clicked in mobile Chromium.
+- The observed two PostHog POSTs were **only** `/ph-ingest/flags/` (HTTP 308 redirect) and `/ph-ingest/flags` (HTTP 200). These are feature-flag requests, **not captured analytics events**.
+- The stricter smoke test correctly fails when no event-ingestion response is observed (GitHub Actions run 44028840456).
+- The shared `trackZiiplyEvent` helper exists in `ziiplyCore.ts`, but the search-card UI invokes `onNormalSearch` without direct tracking. Do not add `search_priced_results_shown` at the click handler: it must be emitted after actual priced results are available. The real parent search orchestration needs to be identified before instrumenting success/failure transitions in both layouts.
+- Event receipt in the PostHog project remains **unverified**. Do not merge on the basis of flag requests or a passing page-load smoke test.
