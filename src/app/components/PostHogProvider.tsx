@@ -38,6 +38,22 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     posthog.init(
       PROJECT_TOKEN,
       {
+        loaded: (client) => {
+          // Only test transport once the SDK is fully initialized. A capture
+          // immediately after init can be queued or rejected before readiness.
+          if (!isProduction && testParam === '1') {
+            const probeResult = client.capture('ziiply_posthog_transport_probe', {
+              ziiply_probe: 'preview_ci',
+            }, { send_instantly: true })
+            console.info('[ziiply-ph-probe-result]', JSON.stringify({ captured: Boolean(probeResult), stage: 'loaded' }))
+            console.info('[ziiply-ph-probe]', JSON.stringify({
+              initialized: Boolean(client.__loaded),
+              optedOut: client.has_opted_out_capturing(),
+              distinctIdReady: typeof client.get_distinct_id() === 'string',
+              stage: 'loaded',
+            }))
+          }
+        },
         // Headless Chromium is filtered as a bot by default. Only explicit
         // preview CI tests may bypass that filter; production stays protected.
         opt_out_useragent_filter: !isProduction && testParam === '1',
@@ -80,22 +96,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 
     if (isInternalTest) posthog.setInternalOrTestUser()
 
-    // Preview-only, explicitly requested CI diagnostic. Never run on production,
-    // and never transmit searches, identifiers, user input or location.
-    if (!isProduction && testParam === '1') {
-      const probeResult = posthog.capture('ziiply_posthog_transport_probe', {
-        ziiply_probe: 'preview_ci',
-      }, { send_instantly: true })
-      console.info('[ziiply-ph-probe-result]', JSON.stringify({
-        captured: Boolean(probeResult),
-      }))
-      // No user content: local preview-only diagnostic of SDK capture state.
-      console.info('[ziiply-ph-probe]', JSON.stringify({
-        initialized: Boolean(posthog.__loaded),
-        optedOut: posthog.has_opted_out_capturing(),
-        distinctIdReady: typeof posthog.get_distinct_id() === 'string',
-      }))
-    }
+
   }, [])
 
   return <PHProvider client={posthog}>{children}</PHProvider>
