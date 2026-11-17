@@ -24,6 +24,8 @@ test('Monta live all chains: '+device,async({browser})=>{
       }));
     });
     await page.reload({waitUntil:'domcontentloaded'});
+    result.selectedStores=await page.evaluate(()=>localStorage.getItem('ziiply-store-selection-v536'));
+    expect(JSON.parse(result.selectedStores||'{}').selectedChains).toEqual({s:true,k:true,lidl:true,tokmanni:true});
     // Never mock network: all product searches use the real deployed backend.
     const justiina=page.getByRole('button',{name:device==='mobile'?'Justiina: Tuotehaku':'Avaa Justiina',exact:true});
     await expect(justiina).toBeVisible({timeout:30000});
@@ -67,6 +69,8 @@ test('Monta live all chains: '+device,async({browser})=>{
     result.cartBeforeCompare=cartState;
     const cartRows=device==='mobile'?cartState.mobile:cartState.desktop;
     expect(cartRows.length,'Shopping cart must have at least four products').toBeGreaterThanOrEqual(4);
+    result.cartProductNames=cartRows.map(row=>row.name||row.title||row.product?.name||row.product?.title);
+    expect(new Set(result.cartProductNames.filter(Boolean)).size,'Cart must contain four different product names').toBeGreaterThanOrEqual(4);
     const comparisonNav=page.getByRole('button',{name:'Vertailu',exact:true}).filter({visible:true}).last();
     await expect(comparisonNav).toBeVisible({timeout:15000});
     await comparisonNav.click();
