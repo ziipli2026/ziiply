@@ -50,6 +50,7 @@ jobs:
           ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL || 'https://ziiply-oouatzdpi-ziipli2026s-projects.vercel.app/' }}
           ZIIPLY_SMOKE_SEARCH: '1'
           VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           node scripts/smoke-posthog-browser.cjs
 
