@@ -439,3 +439,5 @@ export async function fetchKCitymarketNationalTjekImages(asOf=new Date()): Promi
   nationalTjekImageDebug=stats;
   return images;
 }
+
+// Post-merge CI verification: no functional changes.
