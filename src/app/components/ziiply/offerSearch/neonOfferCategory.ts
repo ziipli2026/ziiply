@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { resolveUniqueCatalogIdentity, type CatalogIdentity } from "./catalogIdentityResolver";
 
 // Exact EAN matches only. Neon is authoritative over legacy title heuristics.
 const labels = new Set(["Kahvi & tee","Maitotuotteet","Liha & makkarat","Kala","Leipomo","Hevi","Juomat","Pakasteet","Valmisruoka","Kuivatuotteet","Makeiset & keksit","Lastenruoat","Lastenhoito","Vitamiinit & ravinteet","Lemmikit","Hygienia & kosmetiikka","Kodinhoito","Koti & vapaa-aika","Muut"]);
@@ -238,6 +239,35 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
         console.error("[offers] Neon category code mapping unavailable", error);
       }
     }
+    // Local Tjek publication offers have no EAN. Resolve only uniquely matched
+    // catalog identities, without guessing from partial titles or category labels.
+    // Keep this opt-in limited to the selected-store Tjek source.
+    const localTjekOffers = offers.filter(offer =>
+      String(offer.provider ?? "") === "kcitymarket-local" &&
+      String(offer.source ?? "") === "K-Citymarket kauppakohtainen julkaisu" &&
+      !getEan(offer));
+    const localNames = [...new Set(localTjekOffers.map(getName).filter(name => name.length >= 6 && name.length <= 300))];
+    const localMatches = new Map<T, CatalogIdentity>();
+    if (localNames.length) {
+      try {
+        const candidates = await sql\`SELECT ean, name, brand, quantity, category
+          FROM ziiply_ean_products
+          WHERE lower(trim(name)) = ANY(\${localNames.map(name => name.toLocaleLowerCase("fi"))}::text[])
+            AND category IS NOT NULL AND trim(category) <> ''\`;
+        const catalog = candidates.map(row => ({
+          ean: String(row.ean), name: String(row.name),
+          brand: row.brand == null ? null : String(row.brand),
+          quantity: row.quantity == null ? null : String(row.quantity),
+          category: String(row.category),
+        }));
+        for (const offer of localTjekOffers) {
+          const identity = resolveUniqueCatalogIdentity(offer, catalog);
+          if (identity) localMatches.set(offer, identity);
+        }
+      } catch (error) {
+        console.error("[offers] Local Tjek catalog identity lookup failed; keeping fallback categories", error);
+      }
+    }
     const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
     const byName = new Map<string, string | null>();
     for (const row of nameRows) {
@@ -249,8 +279,10 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     }
     return offers.map(offer => {
       const ean = getEan(offer);
-      const exactPath = byEan.get(ean) || byName.get(getName(offer).toLocaleLowerCase("fi"));
-      const matchType = byEan.has(ean) ? "ean" : exactPath ? "exact-name" : null;
+      const localIdentity = localMatches.get(offer);
+      const localCategory = localIdentity?.category ?? null;
+      const exactPath = byEan.get(ean) || localCategory || byName.get(getName(offer).toLocaleLowerCase("fi"));
+      const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : exactPath ? "exact-name" : null;
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
       return display ? {...offer, neonCategoryPath: exactPath, neonDisplayCategory: display, neonCategoryMatch: matchType} : offer;
     });
