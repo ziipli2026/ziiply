@@ -185,7 +185,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       const {product: baseProduct, rawPrice, priceIsEuros, euro}=shapeStoreRow(x,batch.store,batch.data?.source);
       const product=withEvidence(baseProduct);
       const normalRejected=!desktopSearchDecision(query,product).accepted;
-      const included=!normalRejected;
+      const included=!normalRejected && euro!==null && x.priceVerified!==false;
       productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});
       if(included)rows.push(product);
     }
