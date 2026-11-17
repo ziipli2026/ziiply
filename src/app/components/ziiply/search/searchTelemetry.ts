@@ -6,6 +6,8 @@ export type SearchKind = "normal" | "ean" | "offer";
 export type SearchSession = { id: string; kind: SearchKind; startedAt: number; finished: boolean };
 
 const active = new Map<string, SearchSession>();
+let latestStartedSearchId: string | null = null;
+const selectedBeforeCompletion = new Set<string>();
 let lastCompletedSearch: { id: string; kind: SearchKind; selected: boolean; closed: boolean } | null = null;
 
 export function recordSearchResultsDismissed(): void {
@@ -57,6 +59,7 @@ export function beginSearchTelemetry(kind: SearchKind): SearchSession {
   }
   lastCompletedSearch = null;
   active.set(session.id, session);
+  latestStartedSearchId = session.id;
   safeCapture("search_started", { search_id: session.id, search_kind: kind });
   return session;
 }
@@ -72,13 +75,17 @@ export function finishSearchTelemetry(session: SearchSession, outcome: SearchOut
     elapsed_ms: Math.max(0, Math.round(now - session.startedAt)),
   });
   active.delete(session.id);
-  if (outcome === "priced_results" && pricedCount > 0) lastCompletedSearch = { id: session.id, kind: session.kind, selected: false, closed: false };
+  const alreadySelected = selectedBeforeCompletion.delete(session.id);
+  if (latestStartedSearchId === session.id) latestStartedSearchId = null;
+  if (outcome === "priced_results" && pricedCount > 0) lastCompletedSearch = { id: session.id, kind: session.kind, selected: alreadySelected, closed: false };
 }
 
 /** Cancelled searches are excluded from success-rate denominators. */
 export function cancelSearchTelemetry(session: SearchSession): void {
   if (!active.has(session.id)) return;
   active.delete(session.id);
+  selectedBeforeCompletion.delete(session.id);
+  if (latestStartedSearchId === session.id) latestStartedSearchId = null;
   safeCapture("search_cancelled", { search_id: session.id, search_kind: session.kind });
 }
 
@@ -89,7 +96,16 @@ export function recordSearchProductAddedToCart(): void {
   const previous = lastCompletedSearch;
   // A cart selection belongs to the actual displayed search, not a new random ID.
   // Multiple selections from the same results intentionally share the search_id.
-  if (!previous || previous.closed) return;
-  previous.selected = true;
-  safeCapture("product_added_to_cart", { search_id: previous.id, search_kind: previous.kind });
+  if (previous && !previous.closed) {
+    previous.selected = true;
+    safeCapture("product_added_to_cart", { search_id: previous.id, search_kind: previous.kind });
+    return;
+  }
+  // Initial priced rows may be selectable while slower provider/catalog lookups
+  // are still running. A real cart click must not disappear from analytics just
+  // because search_completed has not fired yet. Do not fabricate completion.
+  const pending = latestStartedSearchId ? active.get(latestStartedSearchId) : null;
+  if (!pending) return;
+  selectedBeforeCompletion.add(pending.id);
+  safeCapture("product_added_to_cart", { search_id: pending.id, search_kind: pending.kind });
 }
