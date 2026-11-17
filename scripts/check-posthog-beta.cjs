@@ -47,12 +47,12 @@ if (callbackStart < 0) {
     const ch = provider[i];
     const next = provider[i + 1];
     if (lineComment) {
-      if (ch === '\\n') lineComment = false;
+      if (ch === String.fromCharCode(10)) lineComment = false;
       continue;
     }
     if (quote) {
       if (escaped) { escaped = false; continue; }
-      if (ch === '\\\\') { escaped = true; continue; }
+      if (ch === String.fromCharCode(92)) { escaped = true; continue; }
       if (ch === quote) quote = null;
       continue;
     }
