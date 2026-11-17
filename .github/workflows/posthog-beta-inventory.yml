@@ -34,6 +34,13 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright
           npx playwright install --with-deps chromium
+      - name: Check PR preview event ingestion when preview URL is configured
+        if: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL != '' }}
+        env:
+          ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL }}
+        run: |
+          node scripts/smoke-posthog-browser.cjs
+
       # This public URL serves main, not this PR's preview build. It is diagnostic only.
       # Keep the branch's source/privacy regression checks blocking.
       - name: Check deployed main in mobile Chromium (diagnostic)
