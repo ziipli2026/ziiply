@@ -46,6 +46,7 @@ const watchdog = setTimeout(() => {
   const responses = [];
   const eventNames = [];
   const eventResponses = [];
+  const ingestionDiagnostics = [];
   const internalFlags = [];
   const searchTypes = [];
   const payloadShapes = [];
@@ -83,7 +84,24 @@ const watchdog = setTimeout(() => {
     {
       const endpoint = new URL(response.url()).pathname;
       responses.push({ status: response.status(), endpoint });
-      if (!/\/flags\/?$/.test(endpoint)) eventResponses.push(response.status());
+      if (!/\/flags\/?$/.test(endpoint)) {
+        eventResponses.push(response.status());
+        if (response.status() >= 400) {
+          const headers = response.headers();
+          void response.text().then(body => {
+            ingestionDiagnostics.push({
+              endpoint,
+              status: response.status(),
+              contentType: String(headers['content-type'] || '').split(';')[0],
+              vercelIdPresent: Boolean(headers['x-vercel-id']),
+              posthogRequestIdPresent: Boolean(headers['x-request-id']),
+              vercelAuthPage: /authentication required|log in to vercel|vercel authentication|deployment protection/i.test(body),
+              tokenError: /invalid (api )?(key|token)|unauthorized token|not authorized/i.test(body),
+              jsonBody: body.trimStart().startsWith('{'),
+            });
+          }).catch(() => ingestionDiagnostics.push({endpoint,status:response.status(),readFailed:true}));
+        }
+      }
     }
   });
   page.on('request', request => {
@@ -358,6 +376,8 @@ const watchdog = setTimeout(() => {
     process.exitCode = 1;
   }
   console.log(JSON.stringify({check:'posthog-sdk-readiness',diagnostics:sdkDiagnostics}));
+  await page.waitForTimeout(250);
+  console.log(JSON.stringify({check:'posthog-ingestion-errors',details:ingestionDiagnostics}));
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses }));
   // A preview-only SDK canary must traverse the browser PostHog capture path.
   // A 200 from /flags is not proof of event ingestion.
