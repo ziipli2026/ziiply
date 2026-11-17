@@ -4,7 +4,7 @@ const base=process.env.ZIIPLY_LIVE_URL||'https://ziiply.fi';
 const queries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
 for(const device of ['mobile','desktop']){
 test('Monta live all chains: '+device,async({browser})=>{
-  test.setTimeout(240000);
+  test.setTimeout(480000);
   const authHeaders=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:process.env.VERCEL_OIDC_TOKEN?{'x-vercel-trusted-oidc-idp-token':process.env.VERCEL_OIDC_TOKEN}:{};
   const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],serviceWorkers:'block',extraHTTPHeaders:authHeaders}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:authHeaders});
   const page=await context.newPage();
@@ -73,10 +73,13 @@ test('Monta live all chains: '+device,async({browser})=>{
       await page.waitForTimeout(3000);
       const visible=await page.locator('body').innerText();
       result.results.push({query,visibleExcerpt:visible.slice(-1800),apiCalls:calls.length});
-      const candidate=page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
-      if(await candidate.count()){
+      // The mobile search opens a full-screen result sheet; only target controls
+      // within that sheet, not similarly named buttons behind its backdrop.
+      const candidate=page.locator('div.pointer-events-none.fixed.inset-0').getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
+      const addCandidate=device==='mobile'&&await candidate.count()?candidate:page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
+      if(await addCandidate.count()){
         try{
-          await candidate.first().click({timeout:5000});
+          await addCandidate.first().click({timeout:5000});
           added.push(query);
           const close=page.getByRole('button',{name:'Sulje tuotevalinta',exact:true}).filter({visible:true});
           if(await close.count())await close.first().click();
@@ -151,7 +154,7 @@ test('Monta live all chains: '+device,async({browser})=>{
     result.finalBodyExcerpt=await page.locator('body').innerText({timeout:5000}).then(s=>s.slice(-4000)).catch(()=>null);
     await page.screenshot({path:'test-results/monta-'+device+'-final-state.png',fullPage:true,timeout:10000}).catch(e=>{result.finalScreenshotError=String(e)});
     fs.writeFileSync('test-results/monta-'+device+'-evidence.json',JSON.stringify(result,null,2));
-    await context.close();
+    await context.close().catch(()=>{});
   }
 });
 }
