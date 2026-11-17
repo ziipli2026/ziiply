@@ -19,6 +19,7 @@ function visit(value,path='',depth=0){
   }
 }
 visit(match.value);
+console.log('TJEK_CATEGORY_EVIDENCE',JSON.stringify({offerId:id,departmentSlug:match.value?.departmentSlug ?? null,unitSizeFrom:match.value?.unitSizeFrom ?? null,unitSizeTo:match.value?.unitSizeTo ?? null,baseUnit:match.value?.baseUnit ?? null,pieceCountFrom:match.value?.pieceCountFrom ?? null,pieceCountTo:match.value?.pieceCountTo ?? null}));
 console.log('TJEK_OFFER_FIELD_PATHS',JSON.stringify({offerId:id,paths:paths.slice(0,250)}));
 console.log('IDENTIFIER_FIELD_PATHS',JSON.stringify({offerId:id,paths:paths.filter(x=>/ean|gtin|barcode|product.?code|article.?number|sku|identifier/i.test(x.path))}));
 
