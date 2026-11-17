@@ -837,6 +837,13 @@ export default function DesktopPreviewPage() {
     let htmlScanner: any = null;
     let nativeVideo: HTMLVideoElement | null = null;
     let recognized = false;
+    const isDesktopMac = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(navigator.userAgent);
+    const cameraFacingMode = isDesktopMac ? "user" : "environment";
+    const unmirrorCameraPreview = () => {
+      if (!isDesktopMac) return;
+      const video = region.querySelector("video");
+      if (video) video.style.transform = "scaleX(1)";
+    };
     let scannerStarted = false;
     let scannerStopping = false;
     const stopHtmlScanner = async () => {
@@ -877,7 +884,8 @@ export default function DesktopPreviewPage() {
       const Html5Qrcode = (window as any).Html5Qrcode;
       const formats = (window as any).Html5QrcodeSupportedFormats;
       htmlScanner = new Html5Qrcode(region.id, formats ? { formatsToSupport: [formats.EAN_13, formats.EAN_8, formats.UPC_A, formats.UPC_E] } : undefined);
-      await htmlScanner.start({ facingMode: "environment" }, { fps: 12, qrbox: undefined }, onCode, () => undefined);
+      await htmlScanner.start({ facingMode: cameraFacingMode }, { fps: 15, qrbox: (width: number, height: number) => ({ width: Math.max(100, Math.floor(width * 0.9)), height: Math.max(70, Math.floor(height * 0.5)) }), videoConstraints: { width: { ideal: 1280 }, height: { ideal: 720 } } }, onCode, () => undefined);
+      unmirrorCameraPreview();
       scannerStarted = true;
       if (stopped) await stopHtmlScanner();
       else setDesktopScannerMessage("");
@@ -890,11 +898,11 @@ export default function DesktopPreviewPage() {
         const formats = ["ean_13","ean_8","upc_a","upc_e"].filter(format => supported.includes(format));
         if (!formats.length) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
         const detector = new Detector({ formats });
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: cameraFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
         if (stopped) { stream.getTracks().forEach(track => track.stop()); return; }
         nativeVideo = document.createElement("video");
         nativeVideo.autoplay = true; nativeVideo.muted = true; nativeVideo.playsInline = true;
-        nativeVideo.style.cssText = "width:100%;height:100%;object-fit:cover;";
+        nativeVideo.style.cssText = "width:100%;height:100%;object-fit:contain;transform:none;";
         region.appendChild(nativeVideo);
         nativeVideo.srcObject = stream;
         await nativeVideo.play();
