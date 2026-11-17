@@ -1007,6 +1007,8 @@ export default function DesktopPreviewPage() {
       }));
       const candidates=responses.flat();
       if(!candidates.length)logCompareAudit("spar_compare_no_priced_candidates",{store:store.name,name,ean,queries});
+      const matched=desktopPickCompareCandidate(candidates,name,ean,false);
+      logCompareAudit("spar_compare_candidate_summary",{store:store.name,name,ean,candidateCount:candidates.length,matched:Boolean(matched),matchedName:matched?.name||null,matchedEan:matched?.ean||null,priceScope:"tokmanni-online-catalog-not-verified-local-store"});
       return candidates;
     }
     // Lidl normal-price search is not yet verified; never substitute another chain's prices.
