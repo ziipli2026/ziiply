@@ -6,6 +6,7 @@ on:
       - '.github/workflows/desktop-gps-chromium.yml'
       - 'src/app/desktop-preview/**'
       - 'scripts/test-desktop-gps-store-selection.cjs'
+      - 'scripts/test-desktop-gps-chromium.cjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -69,3 +70,8 @@ jobs:
             }finally{await browser.close()}
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+      - name: Chromium location, distances and manual stores
+        env:
+          NODE_PATH: ${{ runner.temp }}/ziiply-browser/node_modules
+        run: node scripts/test-desktop-gps-chromium.cjs
