@@ -26,6 +26,19 @@ export function isTjekNonGroceryDepartment(slug: unknown): boolean {
 }
 
 /** Apply the same source-department gate to live offers and persisted snapshots. */
-export function filterTjekGroceryRows<T extends {debug?: {tjekDepartmentSlug?: unknown};tjekDepartmentSlug?: unknown}>(rows: T[]): T[] {
-  return rows.filter(row => !isTjekNonGroceryDepartment(row.debug?.tjekDepartmentSlug ?? row.tjekDepartmentSlug));
+/** Some source departments mix consumables with appliances and garden items.
+ * Keep these narrowly scoped, source-verified product exclusions separate from
+ * broad department rules; never classify food by an old inferred category. */
+const TJEK_NON_GROCERY_TITLE_PATTERN =
+  /HIUSTENMUOTOILULAITTEET|PARRANAJOKONE|SÄHKÖHAMMASHARJA|LED-VALOMASKI|\\bTRIMMERI\\b|LIHASHUOLTOVASARA|DIAGNOSTIIKKAVAAKA|\\bPÖLYHUISKAA\\b|\\bVAIHTOTERÄ\\b|\\bPERHOSORKIDEA\\b/i;
+
+export function filterTjekGroceryRows<T extends {title?: unknown;name?: unknown;debug?: {tjekDepartmentSlug?: unknown};tjekDepartmentSlug?: unknown}>(rows: T[]): T[] {
+  return rows.filter(row => {
+    const slug = row.debug?.tjekDepartmentSlug ?? row.tjekDepartmentSlug;
+    if (isTjekNonGroceryDepartment(slug)) return false;
+    // Only apply title exclusions when the source department is verified.
+    if (typeof slug !== 'string' || !slug) return true;
+    const title = typeof row.title === 'string' ? row.title : typeof row.name === 'string' ? row.name : '';
+    return !TJEK_NON_GROCERY_TITLE_PATTERN.test(title);
+  });
 }
