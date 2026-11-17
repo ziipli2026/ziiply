@@ -119,10 +119,25 @@ const watchdog = setTimeout(() => {
         const raw = request.postData() || '';
         const contentType = request.headers()['content-type'] || '';
         payloadShapes.push({ contentType: contentType.split(';')[0], bytes: Buffer.byteLength(raw), endpoint: new URL(request.url()).pathname, prefix: raw.slice(0, 1) === '{' ? 'json-object' : raw.slice(0, 1) === '[' ? 'json-array' : 'other' });
-        const parsed = contentType.includes('application/x-www-form-urlencoded')
-          ? JSON.parse(new URLSearchParams(raw).get('data') || '{}')
-          : JSON.parse(raw);
-        const events = Array.isArray(parsed.batch) ? parsed.batch : (parsed.event ? [parsed] : []);
+        // posthog-js uses text/plain with base64-encoded event payloads on
+        // /e/ and /i/v0/e/. Redirected requests may have no content type.
+        // Decode for inspection only; never log raw payload or user data.
+        const unwrapped = (() => {
+          const candidate = contentType.includes('application/x-www-form-urlencoded')
+            ? (new URLSearchParams(raw).get('data') || '')
+            : raw;
+          try { return JSON.parse(candidate); } catch {}
+          try { return JSON.parse(Buffer.from(candidate, 'base64').toString('utf8')); } catch {}
+          const formCandidate = new URLSearchParams(candidate).get('data');
+          if (formCandidate) {
+            try { return JSON.parse(formCandidate); } catch {}
+            try { return JSON.parse(Buffer.from(formCandidate, 'base64').toString('utf8')); } catch {}
+          }
+          throw new Error('unsupported PostHog event transport encoding');
+        })();
+        const events = Array.isArray(unwrapped) ? unwrapped
+          : Array.isArray(unwrapped.batch) ? unwrapped.batch
+          : unwrapped.event ? [unwrapped] : [];
         if (events.some(event => event.event === 'ziiply_posthog_transport_probe')) canaryRequests.add(request);
         for (const event of events) {
           if (typeof event.event === 'string') eventNames.push(event.event);
