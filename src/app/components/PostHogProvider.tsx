@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 
+const PROJECT_TOKEN = 'phc_yUGdeyjeZABknZazoazcsLfBhDwuZ8NBTDxXUxN2EweJ'
 const INTERNAL_TEST_PARAM = 'ziiply_test'
 const INTERNAL_TEST_STORAGE_KEY = 'ziiply_internal_test_user'
 
@@ -35,7 +36,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     const isProduction = window.location.hostname === 'ziiply.fi' || window.location.hostname === 'www.ziiply.fi'
     const environment = isProduction ? 'production' : 'preview'
     posthog.init(
-      'phc_yUGdeyjeZABknZazoazcsLfBhDwuZ8NBTDxXUxN2EweJ',
+      PROJECT_TOKEN,
       {
         // Headless Chromium is filtered as a bot by default. Only explicit
         // preview CI tests may bypass that filter; production stays protected.
@@ -64,6 +65,10 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
           )
           event.properties = {
             ...properties,
+            // PostHog uses properties.token to authenticate SDK events.
+            // Restore only our configured public project token after redaction;
+            // never pass through caller-supplied tokens or other secrets.
+            token: PROJECT_TOKEN,
             ziiply_environment: environment,
             ziiply_internal_test: isInternalTest,
             ziiply_analytics_schema: 1,
