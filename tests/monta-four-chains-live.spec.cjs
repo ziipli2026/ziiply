@@ -31,6 +31,7 @@ test('Monta live all chains: '+device,async({browser})=>{
       ?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true})
       :page.getByRole('textbox',{name:'Hae tuotteita'});
     await expect(input).toBeVisible({timeout:15000});
+    const added=[];
     for(const query of queries){
       await input.fill(query);
       if(device==='desktop')await input.press('Enter');
@@ -38,6 +39,15 @@ test('Monta live all chains: '+device,async({browser})=>{
       await page.waitForTimeout(3000);
       const visible=await page.locator('body').innerText();
       result.results.push({query,visibleExcerpt:visible.slice(-1800),apiCalls:calls.length});
+      const candidate=page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
+      if(await candidate.count()){
+        try{
+          await candidate.first().click({timeout:5000});
+          added.push(query);
+          const close=page.getByRole('button',{name:'Sulje tuotevalinta',exact:true}).filter({visible:true});
+          if(await close.count())await close.first().click();
+        }catch(e){result.results[result.results.length-1].addError=String(e)}
+      }
       await page.screenshot({path:'test-results/monta-'+device+'-'+query+'.png',fullPage:true});
     }
     const apiCalls=calls.filter(x=>/search|products|lidl|spar|tokmanni|neon/i.test(x.url));
@@ -52,13 +62,13 @@ test('Monta live all chains: '+device,async({browser})=>{
       if(chain==='spar'&&joined.includes('tokmanni'))continue;
       expect(joined.includes(chain),'No visible '+chain+' evidence in live search results').toBe(true);
     }
-    // Exercise the actual basket and comparison screen, not just product search.
-    const addButtons=page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
-    const addCount=await addButtons.count();
-    result.addButtons=addCount;
-    expect(addCount,'Search must expose add-to-cart action').toBeGreaterThan(0);
-    await addButtons.first().click();
-    await page.waitForFunction(()=>{try{return JSON.parse(localStorage.getItem('ziiply-cart-v1')||'{}').items?.length>0}catch{return false}},null,{timeout:15000});
+    // Products are added as each search completes, before the next query replaces results.
+    result.addedQueries=added;
+    expect(added.length,'At least four distinct searches must add products').toBeGreaterThanOrEqual(4);
+    const cartState=await page.evaluate(()=>({mobile:JSON.parse(localStorage.getItem('ziiply-cart-v1')||'{}').items||[],desktop:JSON.parse(sessionStorage.getItem('ziiply-desktop-current-cart-v1')||'[]')}));
+    result.cartBeforeCompare=cartState;
+    const cartRows=device==='mobile'?cartState.mobile:cartState.desktop;
+    expect(cartRows.length,'Shopping cart must have at least four products').toBeGreaterThanOrEqual(4);
     const comparisonNav=page.getByRole('button',{name:'Vertailu',exact:true}).filter({visible:true}).last();
     await expect(comparisonNav).toBeVisible({timeout:15000});
     await comparisonNav.click();
