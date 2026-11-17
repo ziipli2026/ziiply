@@ -23,6 +23,7 @@ const watchdog = setTimeout(() => {
   const eventNames = [];
   const eventResponses = [];
   const internalFlags = [];
+  const searchTypes = [];
   const payloadShapes = [];
   page.on('response', response => {
     if (response.url().includes('/ph-ingest/') && response.request().method() === 'POST')
@@ -47,6 +48,7 @@ const watchdog = setTimeout(() => {
         for (const event of events) {
           if (typeof event.event === 'string') eventNames.push(event.event);
           if (typeof event.properties?.ziiply_internal_test === 'boolean') internalFlags.push(event.properties.ziiply_internal_test);
+          if (event.event === 'search_started' && typeof event.properties?.search_type === 'string') searchTypes.push(event.properties.search_type);
         }
       } catch { payloadShapes.push({ parse: 'unavailable' }); }
     }
@@ -96,10 +98,14 @@ const watchdog = setTimeout(() => {
     await page.waitForTimeout(2500);
     await page.waitForTimeout(12000);
     console.log(JSON.stringify({ check: 'preview-search', started: eventNames.includes('search_started'), outcome: eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) }));
-    if (!eventNames.includes('search_started') || !eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name))) {
+    if (!eventNames.includes('search_started') || !eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) || !searchTypes.length) {
       console.error('FAIL: preview search did not emit start and terminal events');
       process.exitCode = 1;
     }
+  }
+  if (eventNames.length && (!internalFlags.length || internalFlags.some(value => value !== true))) {
+    console.error('FAIL: PostHog events missing internal-test marker');
+    process.exitCode = 1;
   }
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses }));
   if (!eventResponses.some(status => status >= 200 && status < 300) || failures.length || eventResponses.some(status => status >= 400)) {
