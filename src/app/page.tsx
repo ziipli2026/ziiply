@@ -25058,7 +25058,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             open
             stores={(displayedChainResultsV821.length > 0
               ? displayedChainResultsV821
-                  .filter((result) => !result.comingSoon)
                   .map((result) => ({
                     id: result.key,
                     name: result.storeName || result.chain,
@@ -25068,7 +25067,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         ? "S" as const
                         : result.key === "k"
                           ? "K" as const
-                          : undefined,
+                          : result.key === "lidl"
+                            ? "LIDL" as const
+                            : result.key === "tokmanni"
+                              ? "SPAR" as const
+                              : undefined,
                     // Core prices are euros; mobile comparison presentation accepts cents.
                     totalPrice: Math.round((result.totalPrice || 0) * 100),
                     itemCount: result.foundItems,
@@ -25092,6 +25095,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               : [
                   ...(selectedChains.s ? [{ id: "s", name: activeStores.sStoreName || "S-ryhmä", chain: "S" as const }] : []),
                   ...(selectedChains.k ? [{ id: "k", name: activeStores.kStoreName || "K-ryhmä", chain: "K" as const }] : []),
+                  ...(selectedChains.lidl ? [{ id: "lidl", name: "Lidl", chain: "LIDL" as const, missingItems: comparableCart.length }] : []),
+                  ...(selectedChains.tokmanni ? [{ id: "tokmanni", name: "Tokmanni / SPAR", chain: "SPAR" as const, missingItems: comparableCart.length }] : []),
                 ])}
             items={comparableCart}
             title="Vertailu"
