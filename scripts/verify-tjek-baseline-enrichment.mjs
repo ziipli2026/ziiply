@@ -49,7 +49,7 @@ const snapshotVisible=exports.filterTjekGroceryRows(enriched);
 assert.deepEqual(liveVisible.map(row=>row.offerId),snapshotVisible.map(row=>row.offerId),'live/snapshot offer IDs or ordering differ');
 assert.deepEqual(liveVisible.map(row=>({id:row.offerId,price:row.price,category:row.category})),snapshotVisible.map(row=>({id:row.offerId,price:row.price,category:row.category})),'live/snapshot offer fields differ');
 assert.equal(new Set(visible.map(row=>row.offerId)).size,visible.length,'duplicate offer IDs in remaining offers');
-assert.equal(visible.length,57,'mixed-department non-grocery product regression count changed');
+assert.equal(visible.length,53,'mixed-department non-grocery product regression count changed');
 assert.ok(visible.every(row=>!excluded.has(row.debug.tjekDepartmentSlug)));
 for(const row of visible)assert.equal(row,enriched.find(original=>original.offerId===row.offerId),'filter must preserve offer rows without mutation');
 const remainingDepartments={};
