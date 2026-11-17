@@ -16,6 +16,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: Install Playwright test runner
+        run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install --with-deps chromium
       - name: Verify preview is reachable without authentication
         env:
