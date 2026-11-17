@@ -27,8 +27,8 @@ test('Gosta respects verified local Tjek category after EAN priority',()=>{
 
 test('only explicitly non-grocery Tjek departments are excluded',()=>{
  const excluded=moduleExports.isTjekNonGroceryDepartment;
- for(const slug of ['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy'])assert.equal(excluded(slug),true);
- for(const slug of ['home','garden','household','beauty','baby','meat-and-fish','dairy-and-cold','unknown',null])assert.equal(excluded(slug),false);
+ for(const slug of ['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home'])assert.equal(excluded(slug),true);
+ for(const slug of ['garden','household','beauty','baby','meat-and-fish','dairy-and-cold','unknown',null])assert.equal(excluded(slug),false);
  const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
  assert.match(provider,/if \(isTjekNonGroceryDepartment\(sourceDepartment\)\)/);
  assert.match(provider,/reject\("non-grocery-source-department"\)/);
