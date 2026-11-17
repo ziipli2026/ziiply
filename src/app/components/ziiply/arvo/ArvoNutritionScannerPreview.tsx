@@ -67,7 +67,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
         const Reader = (window as any).Html5Qrcode;
         if (!Reader) throw new Error("scanner-unavailable");
         scanner = new Reader(regionId, {verbose:false});
-        await scanner.start({facingMode:"environment"}, {fps:12, qrbox: {width:270,height:155}, aspectRatio:1.7778}, onDecoded, () => undefined);
+        await scanner.start({facingMode:"environment"}, {fps:12, qrbox: (viewfinderWidth: number, viewfinderHeight: number) => ({width:Math.floor(viewfinderWidth * 0.88),height:Math.floor(viewfinderHeight * 0.42)}), aspectRatio:1.7778}, onDecoded, () => undefined);
         if (disposed) { await scanner.stop().catch(() => undefined); return; }
         const video = document.querySelector("#" + regionId + " video") as HTMLVideoElement | null;
         cameraRef.current = video?.srcObject as MediaStream | null;
@@ -162,6 +162,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
       <ZiiplyMobileScannerCard
         regionId="arvo-nutrition-scanner-camera"
         fullscreen
+        scanGuide={tab === "scan"}
         hideHeaderTitle
         headerTitle={<div className="flex items-center justify-center gap-2"><img src="/assistants/arvo.png" alt="Arvo" className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"/><div className="min-w-0 text-left leading-tight text-[#163d32]"><div className="text-[clamp(15px,4vw,21px)] font-black uppercase tracking-wide" style={{fontFamily: 'Georgia, "Times New Roman", serif'}}>Skanneri</div><div className="text-[clamp(10px,2.6vw,13px)] font-bold">Arvon ravintoskanneri</div></div></div>}
         footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" onClick={saveMeal} disabled={!ean || !nutrition || !productName || grams <= 0 || mealSaved} title={mealSaved ? "Tallennettu aterialle" : "Tallenna tuote aterialle"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🍽️</span><span>{mealSaved ? "Tallennettu" : "Aterialle"}</span></button><button type="button" onClick={() => void addToCart()} disabled={!onAddToCart || !ean || !productName || cartSaving || cartSaved} title={!onAddToCart ? "Odottaa Ziiplyn ostoskorin kytkentää" : cartSaved ? "Lisätty ostoskoriin" : "Lisää ostoskoriin"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🛒</span><span>{cartSaved ? "Lisätty" : "Ostoskoriin"}</span></button></div>}
