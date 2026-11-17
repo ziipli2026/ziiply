@@ -872,18 +872,18 @@ export default function DesktopPreviewPage() {
       const { HTML5_QRCODE_SCRIPT_URL } = await import("../components/ziiply/ziiplyCore");
       if (!(window as any).Html5Qrcode) {
         await new Promise<void>((resolve, reject) => {
-          const existing = document.querySelector<HTMLScriptElement>(`script[src="${HTML5_QRCODE_SCRIPT_URL}"]`);
+          const existing = document.querySelector<HTMLScriptElement>('script[data-ziiply-html5qr="true"]') || document.querySelector<HTMLScriptElement>(`script[src="${HTML5_QRCODE_SCRIPT_URL}"]`);
           const script = existing || document.createElement("script");
           script.addEventListener("load", () => resolve(), { once: true });
           script.addEventListener("error", () => reject(new Error("Skannerikirjastoa ei voitu ladata")), { once: true });
-          if (!existing) { script.src = HTML5_QRCODE_SCRIPT_URL; script.async = true; document.body.appendChild(script); }
+          if (!existing) { script.src = HTML5_QRCODE_SCRIPT_URL; script.dataset.ziiplyHtml5qr = "true"; script.async = true; document.head.appendChild(script); }
           else if ((window as any).Html5Qrcode) resolve();
         });
       }
       if (stopped) return;
       const Html5Qrcode = (window as any).Html5Qrcode;
       const formats = (window as any).Html5QrcodeSupportedFormats;
-      htmlScanner = new Html5Qrcode(region.id, formats ? { formatsToSupport: [formats.EAN_13, formats.EAN_8, formats.UPC_A, formats.UPC_E] } : undefined);
+      htmlScanner = new Html5Qrcode(region.id, { verbose: false });
       await htmlScanner.start({ facingMode: cameraFacingMode }, { fps: 15, qrbox: (width: number, height: number) => ({ width: Math.max(100, Math.floor(width * 0.9)), height: Math.max(70, Math.floor(height * 0.5)) }), videoConstraints: { width: { ideal: 1280 }, height: { ideal: 720 } } }, onCode, () => undefined);
       unmirrorCameraPreview();
       scannerStarted = true;
@@ -893,7 +893,7 @@ export default function DesktopPreviewPage() {
     const start = async () => {
       try {
         const Detector = (window as any).BarcodeDetector;
-        if (!Detector) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
+        if (isDesktopMac || !Detector) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
         const supported: string[] = typeof Detector.getSupportedFormats === "function" ? await Detector.getSupportedFormats() : ["ean_13","ean_8","upc_a","upc_e"];
         const formats = ["ean_13","ean_8","upc_a","upc_e"].filter(format => supported.includes(format));
         if (!formats.length) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
