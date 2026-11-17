@@ -1,0 +1,33 @@
+import baseline from './fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs';
+// Read-only comparison of the previously saved Neon snapshot with public Tjek
+// source department metadata. This is a source-data audit, not an EAN match.
+const mapping = {'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka'};
+const stable = v => JSON.stringify(v, (_k,x) => x && Object.prototype.toString.call(x)==='[object Object]' ? Object.keys(x).sort().reduce((a,k)=>(a[k]=x[k],a),{}) : x);
+const counts={total:baseline.length,matched:0,missing:0,failed:0,mapped:0,changed:0,unchanged:0,ambiguous:0};
+const transitions={};const departments={};const failures=[];
+for(let i=0;i<baseline.length;i+=8){
+ const batch=baseline.slice(i,i+8);
+ await Promise.all(batch.map(async row=>{
+  try{
+   const key=Buffer.from(stable(['offer',{publicId:row.id}]),'utf8').toString('base64');
+   const response=await fetch('https://etarjouslehdet.fi/',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/plain, */*',Referer:'https://etarjouslehdet.fi/K-Citymarket'},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(15000)});
+   if(!response.ok)throw Error('HTTP '+response.status);
+   const payload=(await response.text()).split(/\\r?\\n/).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).find(x=>x?.key===key)?.value;
+   if(!payload || typeof payload!=='object'){counts.missing++;return;}
+   counts.matched++;
+   const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
+   departments[department]=(departments[department]||0)+1;
+   const target=Object.prototype.hasOwnProperty.call(mapping,department)?mapping[department]:null;
+   if(!target){counts.ambiguous++;return;}
+   counts.mapped++;
+   if(target===row.category)counts.unchanged++;else counts.changed++;
+   const keyTransition=row.category+' => '+target;
+   transitions[keyTransition]=(transitions[keyTransition]||0)+1;
+  }catch(error){counts.failed++;failures.push({id:row.id,error:String(error.message||error)});}
+ }));
+}
+console.log('TJEK_AUDIT_COUNTS',JSON.stringify(counts));
+console.log('TJEK_AUDIT_DEPARTMENTS',JSON.stringify(Object.entries(departments).sort((a,b)=>b[1]-a[1])));
+console.log('TJEK_AUDIT_TRANSITIONS',JSON.stringify(Object.entries(transitions).sort((a,b)=>b[1]-a[1])));
+console.log('TJEK_AUDIT_FAILURES',JSON.stringify(failures.slice(0,20)));
+if(counts.matched===0 || counts.failed>baseline.length/5)process.exitCode=1;
