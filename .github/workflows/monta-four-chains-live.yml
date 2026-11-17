@@ -25,7 +25,46 @@ jobs:
           ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || { echo '::error::Missing existing VERCEL_AUTOMATION_BYPASS_SECRET for Chromium'; exit 1; }
-          npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line
+          # Run on separate browser processes, never concurrently. Preserve both
+          # evidence files even if one side fails; parity runs last.
+          set +e
+          echo '=== MOBILE ONLY ==='
+          npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line --grep '^Monta live all chains: mobile
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: monta-four-chains-live-evidence
+          path: |
+            test-results/
+          if-no-files-found: ignore
+
+          mobile_status=$?
+          echo '=== WAIT 30s BEFORE DESKTOP ==='
+          sleep 30
+          echo '=== DESKTOP ONLY ==='
+          npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line --grep '^Monta live all chains: desktop
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: monta-four-chains-live-evidence
+          path: |
+            test-results/
+          if-no-files-found: ignore
+
+          desktop_status=$?
+          echo '=== PARITY FROM SAVED EVIDENCE ==='
+          npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line --grep '^Monta: mobile and desktop visible EAN sets match per query
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: monta-four-chains-live-evidence
+          path: |
+            test-results/
+          if-no-files-found: ignore
+
+          parity_status=$?
+          echo "Mobile: $mobile_status Desktop: $desktop_status Parity: $parity_status"
+          test "$mobile_status" -eq 0 && test "$desktop_status" -eq 0 && test "$parity_status" -eq 0
       - uses: actions/upload-artifact@v4
         if: always()
         with:
