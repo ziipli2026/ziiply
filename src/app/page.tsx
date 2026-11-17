@@ -12961,6 +12961,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    const analyticsSearchStartedAt = Date.now();
+    const analyticsSearchType = forceEan ? "ean" : recipeIngredient ? "recipe" : "normal";
+    const trackSearchOutcome = (eventName: "search_priced_results_shown" | "search_no_priced_results" | "search_failed", pricedCount = 0) => {
+      trackZiiplyEvent(eventName, {
+        search_type: analyticsSearchType,
+        priced_count: pricedCount,
+        time_to_first_price_ms: Date.now() - analyticsSearchStartedAt,
+        source: "normal_search",
+      });
+    };
+    trackZiiplyEvent("search_started", { search_type: analyticsSearchType, source: "normal_search" });
+
     trackZiiplyEvent("search_used", {
       query: useTerms.join(", "),
       termCount: useTerms.length,
@@ -13023,6 +13035,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const pricedCount = cachedValidated.filter((product: Product) => getProductPrice(product) > 0).length;
 
       finishSearchTelemetry(telemetry, pricedCount > 0 ? "priced_results" : "no_priced_results", pricedCount);
+      trackSearchOutcome(pricedCount > 0 ? "search_priced_results_shown" : "search_no_priced_results", pricedCount);
       mobileSearchTraceRef.current.status = "cache-hit";
       setNormalResultsStableV441(cachedValidated);
       setSearchDebug(cachedNormalSearchV441.debug || []);
@@ -13498,6 +13511,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const pricedCountV441 = unique.filter((product: Product) => getProductPrice(product) > 0).length;
 
       finishSearchTelemetry(searchTelemetryV441, pricedCountV441 > 0 ? "priced_results" : "no_priced_results", pricedCountV441);
+      trackSearchOutcome(pricedCountV441 > 0 ? "search_priced_results_shown" : "search_no_priced_results", pricedCountV441);
 
       // Never persist an empty response: transient upstream failures must be retryable.
       if (!recipeIngredient && unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
@@ -13564,6 +13578,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
       finishSearchTelemetry(searchTelemetryV441, "error");
+      trackSearchOutcome("search_failed");
       setSearchDebug(debugEntries);
       // V441: virheessä ei tyhjennetä viimeistä vakaata tulosnäkymää.
       if (isMainSearch) {
