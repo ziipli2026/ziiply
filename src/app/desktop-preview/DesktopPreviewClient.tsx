@@ -2581,6 +2581,7 @@ export default function DesktopPreviewPage() {
 
   async function runDesktopNormalSearch(raw=justiinaQuery, diagnostic?: { observe: SearchDebugObserver; signal: AbortSignal }) {
     const generation=desktopVoiceRunRef.current;
+    const searchController = diagnostic ? null : activeDesktopNormalSearchAbortRef.current;
     const started=performance.now();
     const report:SearchDebugObserver=(stage,data={})=>diagnostic?.observe(stage,{elapsedMs:Math.round(performance.now()-started),...data});
     const query=desktopSearchQuery(String(raw||"")); if(!query){report("validation_error",{error:"Hakusana puuttuu"});return;}
@@ -2621,7 +2622,7 @@ export default function DesktopPreviewPage() {
         }
       }
       const { sortedRows, rankedRows, failures, batches, rows, productDecisions } = await searchNormalStores(query, stores, {
-        signal: diagnostic?.signal ?? activeDesktopNormalSearchAbortRef.current?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
+        signal: diagnostic?.signal ?? searchController?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
         onCachedRows: diagnostic ? undefined : cachedRows => {
           if (generation !== desktopVoiceRunRef.current) return;
           setJustiinaResults(cachedRows);
@@ -2641,7 +2642,7 @@ export default function DesktopPreviewPage() {
       setJustiinaResults(sortedRows);
             justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
       return sortedRows.length > 0;
-    }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaResults([]);setJustiinaResultsOpen(false);setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
+    }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaResults([]);setJustiinaResultsOpen(false);setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false);if(searchController&&activeDesktopNormalSearchAbortRef.current===searchController)activeDesktopNormalSearchAbortRef.current=null;}
   }
 
   async function runDesktopJustiinaSearch(raw=justiinaQuery, voiceRunId?:number, diagnostic?: { observe: SearchDebugObserver; signal: AbortSignal }) {
