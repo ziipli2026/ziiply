@@ -92,7 +92,7 @@ const watchdog = setTimeout(() => {
       throw new Error('Search smoke must target an isolated preview deployment, not production');
     }
     // Gösta is the offers mode; explicitly return to Justiina before normal search.
-    await page.getByRole('button', { name: 'Justiina: Reseptit', exact: true }).click({ timeout: 10000 });
+    await page.getByRole('button', { name: /Justiina/i }).first().click({ timeout: 10000 });
     const searchInput = page.locator('textarea[placeholder="maito, kahvi"], textarea[placeholder="Kirjoita yksi tuote"]').first();
     await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
