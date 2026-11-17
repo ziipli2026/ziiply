@@ -41,4 +41,5 @@ jobs:
           name: monta-four-chains-live-evidence
           path: |
             test-results/
+            monta-evidence/
           if-no-files-found: ignore
