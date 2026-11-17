@@ -127,7 +127,8 @@ const watchdog = setTimeout(() => {
     const searchInput = page.locator('textarea:visible, input[type="search"]:visible, input[placeholder*="tuote" i]:visible, input[placeholder*="hae" i]:visible').first();
     await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
-    // The mobile card auto-searches after input changes; do not submit twice.
+    // The normal Tuotehaku card requires explicit Hae submission after filling.
+    await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
     await page.waitForTimeout(2500);
     await page.waitForTimeout(12000);
     console.log(JSON.stringify({ check: 'preview-search', started: eventNames.includes('search_started'), outcome: eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) }));
