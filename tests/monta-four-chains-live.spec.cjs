@@ -11,7 +11,7 @@ test('Monta live all chains: '+device,async({browser})=>{
   const providerEvidence=[];
   const chains={s:0,k:0,lidl:0,tokmanni:0};
   page.on('pageerror',e=>errors.push(String(e)));
-  page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\/products$/,tokmanni:/\/api\/tokmanni\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;if(/\/api\/(?:lidl|tokmanni)\/products$/.test(url)){const requestUrl=new URL(r.url());r.json().then(data=>{const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.products)?data.products:[];providerEvidence.push({chain:url.includes('/lidl/')?'lidl':'tokmanni',query:requestUrl.searchParams.get('search'),intent:requestUrl.searchParams.get('intent'),mode:requestUrl.searchParams.get('mode'),source:data?.source,priceVerified:data?.priceVerified,returned:items.length,priced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0&&p.priceVerified!==false).length,priceScope:url.includes('/tokmanni/')?'online-catalog-not-local-store':'research-unverified'});}).catch(()=>{});}}});
+  page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\/products$/,tokmanni:/\/api\/tokmanni\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;if(/\/api\/(?:lidl|tokmanni)\/products$/.test(url)){const requestUrl=new URL(r.url());r.json().then(data=>{const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.products)?data.products:[];providerEvidence.push({chain:url.includes('/lidl/')?'lidl':'tokmanni',query:requestUrl.searchParams.get('search'),intent:requestUrl.searchParams.get('intent'),mode:requestUrl.searchParams.get('mode'),source:data?.source,priceVerified:data?.priceVerified,returned:items.length,priced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0).length,localPriced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0&&p.priceVerified===true&&p.priceScope==='local_store'&&String(p.priceStoreId??'').trim().length>0).length,priceScope:url.includes('/tokmanni/')?'online-catalog-not-local-store':'research-unverified'});}).catch(()=>{});}}});
   const result={device,base,queries,results:[],calls,errors,chains,providerEvidence};
   try{
     const first=await page.goto(device==='desktop'?base.replace(/\/$/,'')+'/desktop-preview':base,{waitUntil:'domcontentloaded',timeout:60000});
@@ -92,7 +92,7 @@ test('Monta live all chains: '+device,async({browser})=>{
       const evidence=providerEvidence.filter(x=>x.chain===chain&&['maito','cola'].includes(x.intent||x.query));
       result.chainAcceptance[chain]={
         hasQueryEvidence:evidence.length>0,
-        hasComparablePrice:evidence.some(x=>x.priced>0&&x.priceVerified!==false&&x.mode!=='research'),
+        hasComparablePrice:evidence.some(x=>x.localPriced>0),
         evidence
       };
     }
