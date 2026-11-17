@@ -22,7 +22,8 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright
           npx playwright install --with-deps chromium
-      - name: Smoke test deployed main in mobile Chromium
+      - name: Smoke test Ziiply app preview in mobile Chromium
         env:
-          ZIIPLY_SMOKE_URL: https://ziiply.fi/
+          ZIIPLY_SMOKE_URL: https://ziiply-git-test-posthog-beta-audit-a22236-ziipli2026s-projects.vercel.app/
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: node scripts/smoke-posthog-browser.cjs
