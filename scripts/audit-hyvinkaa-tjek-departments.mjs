@@ -47,4 +47,7 @@ console.log('TJEK_AUDIT_EXCLUDED',JSON.stringify({byDepartment:excludedByDepartm
 console.log('TJEK_AUDIT_REMAINING',JSON.stringify({byDepartment:Object.entries(remainingByDepartment).sort((a,b)=>b[1]-a[1]),byOldCategory:Object.entries(remainingByOldCategory).sort((a,b)=>b[1]-a[1])}));
 console.log('TJEK_AUDIT_REVIEW_ROWS',JSON.stringify(reviewRows.sort((a,b)=>a.department.localeCompare(b.department)).slice(0,80)));
 console.log('TJEK_AUDIT_FAILURES',JSON.stringify(failures.slice(0,20)));
-if(counts.matched===0 || counts.failed>baseline.length/5)process.exitCode=1;
+if(counts.matched!==counts.total || counts.missing!==0 || counts.failed!==0){
+ console.error('TJEK_AUDIT_INCOMPLETE: source coverage must be 100%; no partial success');
+ process.exitCode=1;
+}
