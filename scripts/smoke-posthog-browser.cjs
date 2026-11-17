@@ -93,6 +93,11 @@ const watchdog = setTimeout(() => {
     if (url.hostname === 'ziiply.vercel.app' || url.hostname === 'ziiply.fi' || url.hostname === 'www.ziiply.fi') {
       throw new Error('Search smoke must target an isolated preview deployment, not production');
     }
+    // The initial comparison dashboard hides its search textarea. The visible
+    // Justiina: Tuotehaku navigation button opens the normal product search,
+    // unlike Justiina: Reseptit which opens the separate recipe search.
+    await page.getByRole('button', { name: 'Justiina: Tuotehaku', exact: true }).click({ timeout: 10000 });
+    await page.waitForTimeout(900);
     // Default landing view already exposes normal product search. Avoid switching to
     // Gösta and back: that navigation can hide the Justiina control in mobile UI.
     // Normal product search is accessed through the comparison dashboard's Hae
