@@ -185,7 +185,13 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       const {product: baseProduct, rawPrice, priceIsEuros, euro}=shapeStoreRow(x,batch.store,batch.data?.source);
       const product=withEvidence(baseProduct);
       const normalRejected=!desktopSearchDecision(query,product).accepted;
-      const included=!normalRejected && euro!==null && x.priceVerified!==false;
+      // Tokmanni's web catalog does not prove the price or availability at a
+      // selected local EUROSPAR/Tokmanni store. Keep its products as catalog
+      // evidence, but do not use web prices in a local cheapest-basket quote.
+      const localPriceVerified = batch.chain !== "SPAR" && batch.chain !== "TOKMANNI"
+        || (x.priceVerified === true && x.priceScope === "local_store"
+          && String(x.priceStoreId || "") === String(batch.store.id));
+      const included=!normalRejected && euro!==null && x.priceVerified!==false && localPriceVerified;
       productDecisions.push({product,rawPrice,priceIsEuros,displayPrice:euro,priceConversion:priceIsEuros?"euros_unchanged":"cents_divided_by_100",included,normalRejected,normalGateApplied:true});
       if(included)rows.push(product);
     }
