@@ -193,10 +193,12 @@ const watchdog = setTimeout(() => {
     console.log(JSON.stringify({check:'search-submit-transition',beforeSubmit,afterSubmit,navigations,documentRequests,searchNetwork,pageErrors}));
     // Product cards can render before every source and the completion telemetry settle.
     // Wait for the actual completion event instead of a fixed 12-second sleep.
-    const searchTelemetryDeadline = Date.now() + 18000;
+    const telemetryWaitStarted = Date.now();
+    const searchTelemetryDeadline = telemetryWaitStarted + 18000;
     while (!serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal') && Date.now()<searchTelemetryDeadline) {
       await page.waitForTimeout(500);
     }
+    console.log(JSON.stringify({check:'search-telemetry-wait',elapsedMs:Date.now()-telemetryWaitStarted,completed:serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal'),eventTypes:serverAnalytics.map(e=>e.event),apiRequestCount:searchNetwork.length,pageErrorCount:pageErrors.length}));
     const searchStatus = await page.evaluate(() => ({ visibleText:document.body.innerText.slice(-650), visibleInputs:[...document.querySelectorAll('textarea,input')].filter(e=>!!e.getClientRects().length).map(e=>({tag:e.tagName,placeholder:e.getAttribute('placeholder')})), visibleButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length).map(e=>({text:(e.textContent||'').trim().slice(0,45),disabled:e.disabled})).slice(-12) }));
     console.log(JSON.stringify({check:'search-after-submit',searchStatus,searchNetwork,pageErrors}));
     // Search telemetry uses the server-side /api/analytics/search proxy,
