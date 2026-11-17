@@ -5,12 +5,14 @@ const { chromium } = require('playwright');
 const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.vercel.app/';
 const searchMode = process.env.ZIIPLY_SMOKE_SEARCH === '1';
 // A hung browser must fail quickly rather than consuming the full CI timeout.
+let activeBrowser;
 const watchdog = setTimeout(() => {
   console.error('FAIL: browser smoke exceeded 60 seconds');
   process.exit(1);
 }, 60000);
 (async () => {
   const browser = await chromium.launch({ headless: true });
+  activeBrowser = browser;
   const previewHeaders = process.env.VERCEL_OIDC_TOKEN
     ? { 'x-vercel-trusted-oidc-idp-token': process.env.VERCEL_OIDC_TOKEN }
     : {};
@@ -61,8 +63,6 @@ const watchdog = setTimeout(() => {
     await page.getByRole('heading', { name: /log in to vercel/i }).count() > 0;
   if (loginGate) {
     console.error('FAIL: Vercel authentication page, not Ziiply application');
-    await browser.close();
-    clearTimeout(watchdog);
     throw new Error('Preview is protected by Vercel Authentication; configure a short-lived trusted OIDC token for CI browser access');
   }
   console.log(JSON.stringify({ check: 'browser-page-load', status: response?.status(), title, urlHost: url.host }));
@@ -107,8 +107,14 @@ const watchdog = setTimeout(() => {
     process.exitCode = 1;
   }
   await browser.close();
+  activeBrowser = undefined;
   clearTimeout(watchdog);
   if (!response || response.status() >= 400) process.exitCode = 1;
   // No events are expected until a user interaction because autocapture and
   // automatic pageview tracking are intentionally disabled.
-})().catch(err => { clearTimeout(watchdog); console.error('Browser smoke failed:', err.message); process.exitCode = 1; });
+})().catch(async err => {
+  clearTimeout(watchdog);
+  console.error('Browser smoke failed:', err.message);
+  process.exitCode = 1;
+  if (activeBrowser) await activeBrowser.close().catch(() => {});
+});
