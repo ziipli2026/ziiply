@@ -1,14 +1,18 @@
 const {test,expect,devices}=require('@playwright/test');
 const fs=require('node:fs');
 const base=process.env.ZIIPLY_LIVE_URL;
-const queries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
+const fullCorpus=require('./normal-search-100-queries.cjs');
+const legacyQueries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
+const auditBatch=process.env.NORMAL_SEARCH_AUDIT_BATCH;
+const queries=auditBatch!==undefined?fullCorpus.slice(Number(auditBatch)*10,(Number(auditBatch)+1)*10):legacyQueries;
+if(auditBatch!==undefined && (!/^[0-9]$/.test(auditBatch)||queries.length!==10))throw Error('Invalid NORMAL_SEARCH_AUDIT_BATCH');
 const auth=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:{};
 test('Normal product search: scoped EAN parity, no cart or Monta assertions',async({browser})=>{
   // This test runs 22 live searches plus real store discovery. Preserve evidence even
   // when a single provider stalls; cap each operation independently.
   test.setTimeout(1200000);
   if(!base)throw Error('ZIIPLY_LIVE_URL missing');
-  const evidence={base,queries,layouts:{},differences:[],orderDifferences:[]};
+  const evidence={base,queries,auditBatch:auditBatch??null,layouts:{},differences:[],orderDifferences:[],duplicates:[]};
   for(const device of ['mobile','desktop']){
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
     const page=await context.newPage();
@@ -167,9 +171,14 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     const desktop=evidence.layouts.desktop.results.find(x=>x.query===query).eans;
     if([...mobile].sort().join(',')!==[...desktop].sort().join(','))evidence.differences.push({query,mobileOnly:mobile.filter(x=>!desktop.includes(x)),desktopOnly:desktop.filter(x=>!mobile.includes(x)),mobileCount:mobile.length,desktopCount:desktop.length});
     if(mobile.join(',')!==desktop.join(','))evidence.orderDifferences.push(query);
+    for(const device of ['mobile','desktop']){
+      const result=evidence.layouts[device].results.find(x=>x.query===query);
+      if(result.duplicates)evidence.duplicates.push({device,query,count:result.duplicates});
+    }
   }
   fs.mkdirSync('normal-search-evidence',{recursive:true});
   fs.writeFileSync('normal-search-evidence/parity.json',JSON.stringify(evidence,null,2));
   expect(evidence.differences,'Scoped normal search EAN parity').toEqual([]);
   expect(evidence.orderDifferences,'Scoped normal search order parity').toEqual([]);
+  expect(evidence.duplicates,'Final visible search results must have no duplicate EAN cards').toEqual([]);
 });
