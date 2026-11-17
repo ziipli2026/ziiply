@@ -71,6 +71,10 @@ test('Monta live all chains: '+device,async({browser})=>{
       }
       await page.screenshot({path:'test-results/monta-'+device+'-'+query+'.png',fullPage:true});
     }
+    // Keep the rest of the audit running even if one provider is absent.
+    // Missing chain calls are acceptance failures, not a reason to discard
+    // screenshots and the basket-comparison diagnostics.
+    result.chainApiAcceptance=Object.fromEntries(Object.entries(chains).map(([chain,count])=>[chain,count>0]));
     const apiCalls=calls.filter(x=>/search|products|lidl|spar|tokmanni|neon/i.test(x.url));
     expect(apiCalls.length,'Real product search APIs must be called').toBeGreaterThan(0);
     expect(apiCalls.some(x=>x.status>=500),'Product API must not return server errors').toBe(false);
@@ -78,7 +82,7 @@ test('Monta live all chains: '+device,async({browser})=>{
     // Do not claim all four chains passed from a mere HTTP 200: record actual
     // chain evidence for review; absence of Lidl/SPAR is explicitly a failure.
     // A chain name somewhere in page text is NOT proof of a real product search.
-    for(const [chain,count] of Object.entries(chains))expect(count,'No successful real '+chain+' product API response').toBeGreaterThan(0);
+    // Assertions for provider coverage run after comparison evidence is saved.
     await page.waitForTimeout(500);
     // Record chain acceptance evidence, but do not abort before collecting cart
     // and comparison screenshots. A missing price remains a failing assertion
@@ -119,6 +123,7 @@ test('Monta live all chains: '+device,async({browser})=>{
     expect(result.compareChainEvidence.Tokmanni||result.compareChainEvidence.EUROSPAR,'Tokmanni/SPAR absent from comparison').toBe(true);
     result.cart=await page.evaluate(()=>({mobile:localStorage.getItem('ziiply-cart-v1'),desktop:sessionStorage.getItem('ziiply-desktop-current-cart-v1')}));
     await page.screenshot({path:'test-results/monta-'+device+'-comparison.png',fullPage:true});
+    for(const [chain,count] of Object.entries(chains))expect(count,'No successful real '+chain+' product API response').toBeGreaterThan(0);
     for(const chain of ['lidl','tokmanni']){
       const audit=result.chainAcceptance[chain];
       expect(audit.hasQueryEvidence,`No ${chain} provider evidence for maito or cola`).toBe(true);
