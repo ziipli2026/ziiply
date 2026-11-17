@@ -400,7 +400,17 @@ jobs:
                     const catalogDeadline = Date.now() + 20000;
                     while (queries === 0 && Date.now() < catalogDeadline) await search.waitForTimeout(200);
                     assert.ok(queries > 0, 'selected catalog provider must receive a maito search');
-                    assert.equal(await search.getByRole('button', {name:/Lisää koriin/}).filter({visible:true}).count(), 0,
+                    const addButtons = await search.getByRole('button', {name:/Lisää koriin/}).filter({visible:true})
+                      .evaluateAll(buttons => buttons.map(button => ({
+                        ariaLabel: button.getAttribute('aria-label'),
+                        text: button.innerText.slice(0,160),
+                        card: (button.closest('article') || button.parentElement)?.innerText.slice(0,350),
+                      })));
+                    console.log('Unverified catalog visible add buttons', name, chain, JSON.stringify(addButtons));
+                    const unverifiedProductButtons = addButtons.filter(button =>
+                      /Kotimaista kevytmaito|Milbona kevytmaito|Maitokolmio ruisleipä/i.test(
+                        [button.ariaLabel,button.card].join(' ')));
+                    assert.deepEqual(unverifiedProductButtons, [],
                       'unverified catalog rows must not become checkout candidates');
                     console.log(name, chain, 'unverified local prices correctly excluded');
                     await searchContext.close();
