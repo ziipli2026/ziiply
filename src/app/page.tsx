@@ -4556,6 +4556,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     >
   >(new Map());
   const activeNormalSearchRequestRefV441 = useRef(0);
+  const activeSharedNormalSearchAbortRefV441 = useRef<AbortController | null>(null);
   const normalSearchCacheHydratedRefV441 = useRef(false);
   const NORMAL_SEARCH_CACHE_STORAGE_KEY_V441 = "ziiply-normal-search-cache-v441";
   const NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441 = 1000 * 60 * 20;
@@ -13045,6 +13046,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       normalSearchCacheRefV441.current.delete(normalSearchCacheKeyV441);
     }
 
+    activeSharedNormalSearchAbortRefV441.current?.abort();
+    const sharedNormalSearchControllerV441 = usesSharedStoreQueries ? new AbortController() : null;
+    activeSharedNormalSearchAbortRefV441.current = sharedNormalSearchControllerV441;
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
     setPreviewNormalResults([]);
     const searchTelemetryV441 = beginSearchTelemetry(forceEan ? "ean" : "normal");
@@ -13053,6 +13057,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       abort: () => {
         if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
         ++activeNormalSearchRequestRefV441.current;
+        sharedNormalSearchControllerV441?.abort();
         cancelSearchTelemetry(searchTelemetryV441);
         setLoadingNormal(false);
       },
@@ -13127,6 +13132,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             } : null;
           };
           const {sortedRows} = await searchNormalStores(term, stores, {
+            signal: sharedNormalSearchControllerV441?.signal,
             trace: traceSearch,
             onCachedRows: rows => {
               if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current ||
@@ -13561,6 +13567,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setSearchPanelOpen(true);
       }
     } catch (error) {
+      if (sharedNormalSearchControllerV441?.signal.aborted) return;
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
@@ -13586,6 +13593,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } finally {
       unregisterProductRecovery();
       cancelSearchTelemetry(searchTelemetryV441);
+      if (activeSharedNormalSearchAbortRefV441.current === sharedNormalSearchControllerV441) activeSharedNormalSearchAbortRefV441.current = null;
       if (normalSearchRequestIdV441 === activeNormalSearchRequestRefV441.current) {
         setPreviewNormalResults([]);
         setLoadingNormal(false);
