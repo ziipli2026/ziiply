@@ -101,7 +101,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   }
   // Start catalog lookup concurrently with the existing selected-store providers.
   // The catalog never supplies a store price or modifies recipe/offer engines.
-  const neonPromise = stores.some(store => ["S", "K", "LIDL"].includes(store.chain)) ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
+  // All four chain families share the same EAN-first catalog evidence.\n  // Catalog rows remain unpriced; only selected-store providers can supply verified prices.\n  const neonPromise = stores.length > 0 ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
   const calls = stores.map(store => fetchSearchData(storeUrl(store, query), undefined, store).then(data => ({chain:store.chain,store,data})));
   const settledPromise=Promise.allSettled(calls);
   const neonRaw = await neonPromise;
