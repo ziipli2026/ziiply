@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test:citymarket": "node --test tests/citymarket-45av-continuation.test.cjs",
     "test:gps": "node scripts/test-ziiply-arrival-sequence.cjs && node scripts/test-ziiply-arrival-scenarios.cjs && node scripts/test-gps-arrival-notice.mjs && node scripts/test-gps-arrival-integration.cjs",
-    "prebuild": "npm run test:gps"
+    "prebuild": "npm run test:gps && npm run test:desktop-gps",
+    "test:desktop-gps": "node scripts/test-desktop-gps-store-selection.cjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
