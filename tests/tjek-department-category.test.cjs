@@ -51,3 +51,8 @@ test('local Tjek non-grocery rejection happens before offer acceptance',()=>{
  const pushed=provider.indexOf('entry.rows.push(',reject);
  assert.ok(reject>0 && accepted>reject && pushed>accepted,'excluded source departments must never enter accepted rows');
 });
+
+test('stored Tjek snapshots are screened using source department metadata',()=>{
+ const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
+ assert.match(provider,/const fallback = \(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)[\s\S]*?\.filter\(row => !isTjekNonGroceryDepartment\(\(row\.debug as Row \| undefined\)\?\.tjekDepartmentSlug \?\? row\.tjekDepartmentSlug\)\)/);
+});
