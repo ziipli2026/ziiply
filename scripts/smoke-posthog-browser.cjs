@@ -126,7 +126,7 @@ const watchdog = setTimeout(() => {
     // Reuse the proven store-selection fixture from search-result-comparison-prices.yml.
     // Only on the protected preview; never modify a production user's selection.
     const fixtureStore = {id:'292',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
-    await page.evaluate(store => {
+    await page.evaluate(({store,comparisonMode}) => {
       localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({
         storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:comparisonMode?'many':'one',
         storeCompareScope:'between_chains',allStoreSelections:{hyper:{[store.id]:store},local:{}}
@@ -138,7 +138,7 @@ const watchdog = setTimeout(() => {
         selectedChains:{s:true,k:false,lidl:comparisonMode,tokmanni:false},
         ...(comparisonMode?{selectedLidlStoreV750:{id:'hyvinkaa-keskusta',name:'Lidl Hyvinkää Keskusta',city:'Hyvinkää'}}:{}),usingOwnLocation:false
       }));
-    },fixtureStore);
+    },{store:fixtureStore,comparisonMode});
     await page.reload({waitUntil:'domcontentloaded',timeout:45000});
     await page.waitForTimeout(2200);
     console.log(JSON.stringify({check:'store-fixture',selected:await page.evaluate(()=>({
