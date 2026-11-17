@@ -34,10 +34,9 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright
           npx playwright install --with-deps chromium
-      - name: Check PR preview event ingestion when preview URL is configured
-        if: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL != '' }}
+      - name: Check PR preview event ingestion
         env:
-          ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL }}
+          ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL || 'https://ziiply-oouatzdpi-ziipli2026s-projects.vercel.app/' }}
           ZIIPLY_SMOKE_SEARCH: '1'
         run: |
           node scripts/smoke-posthog-browser.cjs
