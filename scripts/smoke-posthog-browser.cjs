@@ -337,6 +337,13 @@ const watchdog = setTimeout(() => {
     process.exitCode = 1;
   }
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses }));
+  // A preview-only SDK canary must traverse the browser PostHog capture path.
+  // A 200 from /flags is not proof of event ingestion.
+  const isProductionHost = ['ziiply.fi', 'www.ziiply.fi', 'ziiply.vercel.app'].includes(url.hostname);
+  if (!isProductionHost && !eventNames.includes('ziiply_posthog_transport_probe')) {
+    console.error('FAIL: preview SDK transport canary missing; feature-flag requests do not count as events');
+    process.exitCode = 1;
+  }
   // Autocapture and pageviews are intentionally disabled; navigation alone
   // does not need to generate a client capture.
   if (failures.length || eventResponses.some(status => status >= 400)) {
