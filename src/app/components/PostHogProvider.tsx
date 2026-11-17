@@ -9,6 +9,14 @@ const INTERNAL_TEST_STORAGE_KEY = 'ziiply_internal_test_user'
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    // Determine whether the provider is re-entering an already-loaded SDK.
+    if (window.location.search.includes('ziiply_test=1') &&
+        !['ziiply.fi', 'www.ziiply.fi', 'ziiply.vercel.app'].includes(window.location.hostname)) {
+      console.info('[ziiply-ph-probe-entry]', JSON.stringify({
+        loadedOnEffectEntry: Boolean(posthog.__loaded),
+        optedOutOnEffectEntry: posthog.has_opted_out_capturing(),
+      }))
+    }
     if (posthog.__loaded) return
 
     const params = new URLSearchParams(window.location.search)
