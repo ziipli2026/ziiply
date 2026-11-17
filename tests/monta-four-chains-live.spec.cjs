@@ -5,7 +5,7 @@ const queries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','r
 for(const device of ['mobile','desktop']){
 test('Monta live all chains: '+device,async({browser})=>{
   test.setTimeout(240000);
-  const authHeaders=process.env.VERCEL_OIDC_TOKEN?{'x-vercel-trusted-oidc-idp-token':process.env.VERCEL_OIDC_TOKEN}:{};
+  const authHeaders=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:process.env.VERCEL_OIDC_TOKEN?{'x-vercel-trusted-oidc-idp-token':process.env.VERCEL_OIDC_TOKEN}:{};
   const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],serviceWorkers:'block',extraHTTPHeaders:authHeaders}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:authHeaders});
   const page=await context.newPage();
   const calls=[],errors=[];
