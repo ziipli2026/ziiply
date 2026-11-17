@@ -200,6 +200,30 @@ const watchdog = setTimeout(() => {
     const completed = serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal'&&['priced_results','no_priced_results','partial_source_failure','error'].includes(e.outcome));
     const accepted = serverAnalyticsResponses.some(e=>e.status===200&&e.accepted);
     console.log(JSON.stringify({check:'preview-search',started,completed,accepted,events:serverAnalytics.map(e=>({event:e.event,kind:e.kind,outcome:e.outcome})),responses:serverAnalyticsResponses}));
+    if (process.env.ZIIPLY_SMOKE_CART === '1') {
+      // Preview only: synthetic test cart, never an actual checkout.
+      const addButton = page.getByRole('button', {name:/Lisää koriin/i}).first();
+      const available = await addButton.isVisible().catch(()=>false);
+      if (!available) {
+        console.error('FAIL: priced search returned no visible add-to-cart action');
+        process.exitCode = 1;
+      } else {
+        const before = serverAnalytics.filter(e=>e.event==='product_added_to_cart').length;
+        await addButton.click({timeout:10000});
+        await page.waitForTimeout(2500);
+        const cart = page.getByRole('button',{name:'Kori',exact:true});
+        const comparison = page.getByRole('button',{name:'Vertailu',exact:true});
+        const cartEnabled = await cart.isEnabled().catch(()=>false);
+        const comparisonEnabled = await comparison.isEnabled().catch(()=>false);
+        const cartEvents = serverAnalytics.filter(e=>e.event==='product_added_to_cart').length-before;
+        console.log(JSON.stringify({check:'beta-cart-after-search',cartEnabled,comparisonEnabled,cartEvents,serverAnalyticsResponses}));
+        if (!cartEnabled || cartEvents!==1) {
+          console.error('FAIL: adding a priced search result did not enable cart or emit exactly one cart telemetry event');
+          process.exitCode = 1;
+        }
+      }
+    }
+
     if (!started || !completed || !accepted) {
       console.error('FAIL: normal search missing server telemetry start/completion or accepted PostHog delivery');
       process.exitCode = 1;
