@@ -204,7 +204,11 @@ const watchdog = setTimeout(() => {
       // Preview only: synthetic test cart, never an actual checkout.
       // Search results live in a modal overlay. An older background card can
       // contain the same accessible label but is covered by the overlay.
-      const addButton = page.locator('div.fixed.pointer-events-none button[aria-label="Lisää koriin"]:visible').first();
+      const addCandidates = await page.locator('button[aria-label="Lisää koriin"]:visible').count();
+      console.log(JSON.stringify({check:'cart-add-candidates',count:addCandidates}));
+      // The active results overlay is rendered after the background search cards.
+      // Choose the last visible result, never force-click through an overlay.
+      const addButton = page.locator('button[aria-label="Lisää koriin"]:visible').last();
       const available = await addButton.isVisible().catch(()=>false);
       if (!available) {
         console.error('FAIL: priced search returned no visible add-to-cart action');
