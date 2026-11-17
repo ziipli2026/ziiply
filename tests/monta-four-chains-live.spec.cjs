@@ -14,7 +14,7 @@ test('Monta live all chains: '+device,async({browser})=>{
   page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\/products$/,tokmanni:/\/api\/tokmanni\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;if(/\/api\/(?:lidl|tokmanni)\/products$/.test(url)){const requestUrl=new URL(r.url());r.json().then(data=>{const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.products)?data.products:[];providerEvidence.push({chain:url.includes('/lidl/')?'lidl':'tokmanni',query:requestUrl.searchParams.get('search'),mode:requestUrl.searchParams.get('mode'),source:data?.source,priceVerified:data?.priceVerified,returned:items.length,priced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0&&p.priceVerified!==false).length});}).catch(()=>{});}}});
   const result={device,base,queries,results:[],calls,errors,chains,providerEvidence};
   try{
-    const first=await page.goto(device==='desktop'?base.replace(/\\/$/,'')+'/desktop-preview':base,{waitUntil:'domcontentloaded',timeout:60000});
+    const first=await page.goto(device==='desktop'?base.replace(/\/$/,'')+'/desktop-preview':base,{waitUntil:'domcontentloaded',timeout:60000});
     expect(first.status()).toBeLessThan(400);
     await page.waitForTimeout(1800);
     const lidlResponse=await context.request.get(base+'/api/lidl/store-search?search=Hyvinkää');
