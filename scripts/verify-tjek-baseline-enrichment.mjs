@@ -1,9 +1,8 @@
-import baseline from './fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs';
-import {readFileSync,writeFileSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import assert from 'node:assert/strict';
-// Uses actual 139 historical offer IDs and categories, but synthetic snapshot
-// rows. This is NOT a production DB integration test.
+// Uses a read-only extract of real Neon snapshot fields, not synthetic rows.
+// This is an offline regression check, not a live production DB integration test.
 const manifest='artifacts/hyvinkaa-tjek-departments-verified.json';
 const snapshot='scripts/fixtures/hyvinkaa-tjek-snapshot-fields-20261117.json';
 const output='artifacts/hyvinkaa-tjek-baseline-enriched.json';
@@ -25,7 +24,8 @@ for(let i=0;i<enriched.length;i++){
  assert.equal(item.category,original.category);
  assert.equal(item.price,original.price);
  assert.equal(item.title,original.title);
- assert.deepEqual({...item,debug:original.debug},original);
+ const expected={...original,debug:{...original.debug,tjekDepartmentSlug:departments.get(item.offerId)}};
+ assert.deepEqual(item,expected,'original offer fields changed unexpectedly');
  assert.equal(item.debug.tjekDepartmentSlug,departments.get(item.offerId));
  if(excluded.has(item.debug.tjekDepartmentSlug))excludedCount++;
 }
