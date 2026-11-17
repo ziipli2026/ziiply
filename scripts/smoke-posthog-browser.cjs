@@ -7,9 +7,9 @@ const searchMode = process.env.ZIIPLY_SMOKE_SEARCH === '1';
 // A hung browser must fail quickly rather than consuming the full CI timeout.
 let activeBrowser;
 const watchdog = setTimeout(() => {
-  console.error('FAIL: browser smoke exceeded 60 seconds');
+  console.error('FAIL: browser smoke exceeded 100 seconds');
   process.exit(1);
-}, 60000);
+}, 100000);
 (async () => {
   const browser = await chromium.launch({ headless: true });
   activeBrowser = browser;
@@ -199,9 +199,9 @@ const watchdog = setTimeout(() => {
     const afterSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),visibleTextareas:[...document.querySelectorAll('textarea')].filter(e=>!!e.getClientRects().length).length,historyActions:window.__ziiplySmokeHistory||[],navigationType:performance.getEntriesByType('navigation').map(e=>e.type)}));
     console.log(JSON.stringify({check:'search-submit-transition',beforeSubmit,afterSubmit,navigations,documentRequests,searchNetwork,pageErrors}));
     // Product cards can render before every source and the completion telemetry settle.
-    // Wait for the actual completion event instead of a fixed 12-second sleep.
+    // Wait for the actual completion event, including sequential provider/catalog recovery requests.
     const telemetryWaitStarted = Date.now();
-    const searchTelemetryDeadline = telemetryWaitStarted + 18000;
+    const searchTelemetryDeadline = telemetryWaitStarted + 60000;
     while (!serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal') && Date.now()<searchTelemetryDeadline) {
       await page.waitForTimeout(500);
     }
