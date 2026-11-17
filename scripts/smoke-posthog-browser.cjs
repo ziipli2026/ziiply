@@ -29,6 +29,8 @@ const watchdog = setTimeout(() => {
   const payloadShapes = [];
   const searchNetwork = [];
   const pageErrors = [];
+  const navigations = [];
+  page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations.push({urlPath:new URL(frame.url()).pathname,host:new URL(frame.url()).hostname}); });
   page.on('pageerror', err => pageErrors.push(String(err.message).slice(0,160)));
   page.on('request', request => { const u = new URL(request.url()); if (u.pathname.startsWith('/api/') && searchNetwork.length < 25) searchNetwork.push({method:request.method(),path:u.pathname}); });
   page.on('response', response => {
@@ -132,8 +134,11 @@ const watchdog = setTimeout(() => {
     await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
     // The normal Tuotehaku card requires explicit Hae submission after filling.
+    const beforeSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),buttonDisabled:[...document.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')==='Hae')?.disabled}));
     await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
     await page.waitForTimeout(2500);
+    const afterSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),visibleTextareas:[...document.querySelectorAll('textarea')].filter(e=>!!e.getClientRects().length).length}));
+    console.log(JSON.stringify({check:'search-submit-transition',beforeSubmit,afterSubmit,navigations,searchNetwork,pageErrors}));
     await page.waitForTimeout(12000);
     const searchStatus = await page.evaluate(() => ({ visibleText:document.body.innerText.slice(-650), visibleInputs:[...document.querySelectorAll('textarea,input')].filter(e=>!!e.getClientRects().length).map(e=>({tag:e.tagName,placeholder:e.getAttribute('placeholder')})), visibleButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length).map(e=>({text:(e.textContent||'').trim().slice(0,45),disabled:e.disabled})).slice(-12) }));
     console.log(JSON.stringify({check:'search-after-submit',searchStatus,searchNetwork,pageErrors}));
