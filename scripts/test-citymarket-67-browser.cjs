@@ -7,7 +7,7 @@ const categorySource=fs.readFileSync('src/app/components/ziiply/offerSearch/tjek
 const compiled=ts.transpileModule(categorySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const moduleExports={};vm.runInNewContext(compiled,{exports:moduleExports});
 const allowed=moduleExports.filterTjekGroceryRows(rows);
-assert.equal(rows.length,139);assert.equal(allowed.length,53);
+assert.equal(rows.length,139);assert.equal(allowed.length,57);
 const sample=allowed.find(r=>r.title&&r.price);
 assert.ok(sample);
 const now=new Date(),from=new Date(now.getTime()-86400000).toISOString().slice(0,10),until=new Date(now.getTime()+86400000).toISOString().slice(0,10);
