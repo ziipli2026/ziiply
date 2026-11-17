@@ -48,15 +48,15 @@ const liveVisible=exports.filterTjekGroceryRows(enriched.map(row=>({...row,debug
 const snapshotVisible=exports.filterTjekGroceryRows(enriched);
 assert.deepEqual(liveVisible.map(row=>row.offerId),snapshotVisible.map(row=>row.offerId),'live/snapshot offer IDs or ordering differ');
 assert.deepEqual(liveVisible.map(row=>({id:row.offerId,price:row.price,category:row.category})),snapshotVisible.map(row=>({id:row.offerId,price:row.price,category:row.category})),'live/snapshot offer fields differ');
-assert.equal(new Set(visible.map(row=>row.offerId)).size,67,'duplicate offer IDs in remaining offers');
-assert.equal(visible.length,67);
+assert.equal(new Set(visible.map(row=>row.offerId)).size,visible.length,'duplicate offer IDs in remaining offers');
+assert.equal(visible.length,53,'mixed-department non-grocery product regression count changed');
 assert.ok(visible.every(row=>!excluded.has(row.debug.tjekDepartmentSlug)));
 for(const row of visible)assert.equal(row,enriched.find(original=>original.offerId===row.offerId),'filter must preserve offer rows without mutation');
 const remainingDepartments={};
 for(const row of visible){const slug=row.debug.tjekDepartmentSlug;remainingDepartments[slug]=(remainingDepartments[slug]??0)+1;}
-assert.equal(Object.values(remainingDepartments).reduce((a,b)=>a+b,0),67);
+assert.equal(Object.values(remainingDepartments).reduce((a,b)=>a+b,0),visible.length);
 const allowedDepartments=new Set(['baby','beauty','beverages','bread-and-cakes','colonial','dairy-and-cold','frozen','fruits-and-vegetables','garden','household','meat-and-fish']);
 assert.ok(Object.keys(remainingDepartments).every(slug=>allowedDepartments.has(slug)),'unexpected source department remains visible');
 assert.equal(Object.keys(remainingDepartments).length,11,'source department review coverage changed');
 console.log('TJEK_REMAINING_DEPARTMENTS',JSON.stringify(Object.fromEntries(Object.entries(remainingDepartments).sort((a,b)=>a[0].localeCompare(b[0])))));
-console.log('TJEK_BASELINE_ENRICHMENT_CHECK',JSON.stringify({matched:139,excluded:excludedCount,remaining:67,source:'verified public Tjek API',snapshot:'actual Neon public offer fields captured 2026-11-17',databaseWrites:0}));
+console.log('TJEK_BASELINE_ENRICHMENT_CHECK',JSON.stringify({matched:139,excluded:excludedCount,remaining:visible.length,source:'verified public Tjek API',snapshot:'actual Neon public offer fields captured 2026-11-17',databaseWrites:0}));
