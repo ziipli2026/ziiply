@@ -14,11 +14,12 @@ export function tjekDepartmentCategory(slug: unknown): string | null {
     ? TJEK_DEPARTMENT_CATEGORIES[slug] : null;
 }
 
-/** Explicit non-grocery Tjek departments. Unknown and mixed departments remain
- * visible: no title-based exclusions or guessed product identities. */
+/** Explicit non-grocery Tjek departments. Broad 'home' is excluded as a whole:
+ * it includes furniture, appliances and textiles; no product-name exceptions.
+ * Unknown departments remain visible pending evidence. */
 export const TJEK_NON_GROCERY_DEPARTMENTS: ReadonlySet<string> = new Set([
   'electronics', 'apparel', 'entertainment',
-  'automotive', 'outdoor', 'sports', 'pharmacy',
+  'automotive', 'outdoor', 'sports', 'pharmacy', 'home',
 ]);
 export function isTjekNonGroceryDepartment(slug: unknown): boolean {
   return typeof slug === 'string' && TJEK_NON_GROCERY_DEPARTMENTS.has(slug);
