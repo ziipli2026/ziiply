@@ -27,3 +27,18 @@ test('rejects incomplete, stale, duplicated and conflicting snapshots',()=>{
  assert.notEqual(run(manifest,[{offerId:'a'},{offerId:'c'}]).status,0);
  assert.notEqual(run(manifest,[{offerId:'a',debug:{tjekDepartmentSlug:'home'}},{offerId:'b'}]).status,0);
 });
+
+test('enrichment is deterministic and preserves every original field except verified metadata',()=>{
+ const rows=[{offerId:'a',title:'A',price:3.25,category:'Muut',validFrom:'2026-11-17',debug:{existing:'ok'}},{offerId:'b',title:'B',price:4.50,category:'Juomat',imageUrl:'https://example.invalid/img'}];
+ const first=run(manifest,rows);
+ assert.equal(first.status,0);
+ const second=run(manifest,first.output);
+ assert.equal(second.status,0);
+ assert.deepEqual(first.output,second.output);
+ for(let i=0;i<rows.length;i++){
+  const copy=structuredClone(first.output[i]);
+  delete copy.debug.tjekDepartmentSlug;
+  if(Object.keys(copy.debug).length===0)delete copy.debug;
+  assert.deepEqual(copy,rows[i]);
+ }
+});
