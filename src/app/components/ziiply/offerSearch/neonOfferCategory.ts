@@ -250,10 +250,10 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     const localMatches = new Map<T, CatalogIdentity>();
     if (localNames.length) {
       try {
-        const candidates = await sql\`SELECT ean, name, brand, quantity, category
+        const candidates = await sql`SELECT ean, name, brand, quantity, category
           FROM ziiply_ean_products
-          WHERE lower(trim(name)) = ANY(\${localNames.map(name => name.toLocaleLowerCase("fi"))}::text[])
-            AND category IS NOT NULL AND trim(category) <> ''\`;
+          WHERE lower(trim(name)) = ANY(${localNames.map(name => name.toLocaleLowerCase("fi"))}::text[])
+            AND category IS NOT NULL AND trim(category) <> ''`;
         const catalog = candidates.map(row => ({
           ean: String(row.ean), name: String(row.name),
           brand: row.brand == null ? null : String(row.brand),
