@@ -31,7 +31,7 @@ const enriched=offers.map(row=>{
 });
 assert.equal(seen.size,verified.size,'manifest and snapshot mismatch');
 const output=Array.isArray(input)?enriched:{...input,offers:enriched};
-const excluded=new Set(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy']);
+const excluded=new Set(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home']);
 const excludedCount=enriched.filter(row=>excluded.has(row.debug.tjekDepartmentSlug)).length;
 const remainingCount=enriched.length-excludedCount;
 writeFileSync(outputPath,JSON.stringify(output,null,2)+'\n');
