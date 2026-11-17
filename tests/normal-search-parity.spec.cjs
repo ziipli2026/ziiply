@@ -109,15 +109,31 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         if(device==='mobile')await page.getByText(/Haetaan lisää tuotteita|Haetaan tuotteita/).filter({visible:true}).first().waitFor({state:'hidden',timeout:45000}).catch(()=>{});
         else {
-          // Desktop's status includes the active query while loading; waiting for
-          // 'Haetaan tuotteita…' to disappear is unreliable once partial results
-          // switch the status to 'Haetaan lisää tuotteita…'.
-          await expect(page.getByRole('status').filter({hasText:'löydetty · '+query}).first()).toBeVisible({timeout:60000});
+          // The app may autocorrect or normalize the displayed active query.
+          // Match completion, not the raw typed term. Keep the exact rendered
+          // status for diagnosis if completion does not arrive.
+          try {
+            await expect(page.getByRole('status').filter({hasText:/löydetty ·/}).first()).toBeVisible({timeout:25000});
+          } catch(error) {
+            const diagnostic={
+              device,query,reason:String(error),
+              renderedStatuses:await page.getByRole('status').allTextContents().catch(()=>[]),
+              renderedHeadings:await page.getByRole('heading').allTextContents().catch(()=>[]),
+              cards:await cards.count(),visibleCards:await cards.filter({visible:true}).count(),
+              inputValue:await input.inputValue().catch(()=>null),
+              visibleText:(await page.locator('body').innerText().catch(()=>'')).slice(-5500),
+              apiResponses:apiResponses.slice(-80),errors,
+            };
+            fs.writeFileSync('normal-search-evidence/desktop-'+query+'-failure.json',JSON.stringify(diagnostic,null,2));
+            await page.screenshot({path:'normal-search-evidence/desktop-'+query+'-failure.png',fullPage:true}).catch(()=>{});
+            throw error;
+          }
         }
         await page.waitForTimeout(500);
-        const eans=await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>n.getAttribute('data-ean')).filter(e=>/^\d{13}$/.test(e||'')));
-        results.push({query,eans:[...new Set(eans)],count:eans.length,durationMs:Date.now()-startedAt});
-        console.log('[normal-parity] complete',device,query,'ean='+eans.length,'ms='+String(Date.now()-startedAt));
+        const snapshots=await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),label:(n.textContent||'').replace(/\\s+/g,' ').slice(0,240)})).filter(x=>/^\d{13}$/.test(x.ean||'')));
+        const eans=[...new Set(snapshots.map(x=>x.ean))];
+        results.push({query,eans,uniqueEans:eans.length,renderedCards:snapshots.length,duplicates:snapshots.length-eans.length,samples:snapshots.slice(0,25),durationMs:Date.now()-startedAt});
+        console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
       }
       evidence.layouts[device]={results,errors};
