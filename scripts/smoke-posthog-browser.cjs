@@ -66,7 +66,7 @@ const watchdog = setTimeout(() => {
   // automatic activity and provider initialization.
   // Switch a read-only app tab to exercise explicit navigation analytics.
   console.log(JSON.stringify({ check: 'gosta-click', stage: 'starting' }));
-  await page.getByRole('button', { name: /^Gösta/ }).click({ timeout: 10000, noWaitAfter: true });
+  await page.getByRole('button', { name: 'Gösta: Tarjoushaku', exact: true }).click({ timeout: 10000, noWaitAfter: true });
   console.log(JSON.stringify({ check: 'gosta-click', stage: 'completed' }));
   await page.waitForTimeout(3000);
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags }));
@@ -79,4 +79,4 @@ const watchdog = setTimeout(() => {
   if (!response || response.status() >= 400) process.exitCode = 1;
   // No events are expected until a user interaction because autocapture and
   // automatic pageview tracking are intentionally disabled.
-})().catch(err => { console.error('Browser smoke failed:', err.message); process.exitCode = 1; });
+})().catch(err => { clearTimeout(watchdog); console.error('Browser smoke failed:', err.message); process.exitCode = 1; });
