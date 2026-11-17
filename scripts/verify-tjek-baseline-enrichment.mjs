@@ -37,7 +37,7 @@ assert.equal(excludedCount,72,'source department exclusion count changed');
 assert.equal(enriched.length-excludedCount,67);
 // Execute the actual shared TypeScript filter against all 139 enriched Neon rows.
 const provider=readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts','utf8');
-assert.match(provider,/const fallback = filterTjekGroceryRows\\(\\(await readPublishedSnapshot\\(fallbackKey\\) \\?\\? \\[\\]\\)\\)/);
+assert.ok(provider.includes('const fallback = filterTjekGroceryRows((await readPublishedSnapshot(fallbackKey) ?? []))'),'provider must call tested filter');
 const categorySource=readFileSync('src/app/components/ziiply/offerSearch/tjekDepartmentCategory.ts','utf8');
 const compiled=ts.transpileModule(categorySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const exports={};vm.runInNewContext(compiled,{exports});
