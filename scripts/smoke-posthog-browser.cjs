@@ -191,7 +191,12 @@ const watchdog = setTimeout(() => {
     await page.waitForTimeout(2500);
     const afterSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),visibleTextareas:[...document.querySelectorAll('textarea')].filter(e=>!!e.getClientRects().length).length,historyActions:window.__ziiplySmokeHistory||[],navigationType:performance.getEntriesByType('navigation').map(e=>e.type)}));
     console.log(JSON.stringify({check:'search-submit-transition',beforeSubmit,afterSubmit,navigations,documentRequests,searchNetwork,pageErrors}));
-    await page.waitForTimeout(12000);
+    // Product cards can render before every source and the completion telemetry settle.
+    // Wait for the actual completion event instead of a fixed 12-second sleep.
+    const searchTelemetryDeadline = Date.now() + 18000;
+    while (!serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal') && Date.now()<searchTelemetryDeadline) {
+      await page.waitForTimeout(500);
+    }
     const searchStatus = await page.evaluate(() => ({ visibleText:document.body.innerText.slice(-650), visibleInputs:[...document.querySelectorAll('textarea,input')].filter(e=>!!e.getClientRects().length).map(e=>({tag:e.tagName,placeholder:e.getAttribute('placeholder')})), visibleButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length).map(e=>({text:(e.textContent||'').trim().slice(0,45),disabled:e.disabled})).slice(-12) }));
     console.log(JSON.stringify({check:'search-after-submit',searchStatus,searchNetwork,pageErrors}));
     // Search telemetry uses the server-side /api/analytics/search proxy,
@@ -217,7 +222,10 @@ const watchdog = setTimeout(() => {
       } else {
         const before = serverAnalytics.filter(e=>e.event==='product_added_to_cart').length;
         await addButton.click({timeout:10000});
-        await page.waitForTimeout(2500);
+        const cartTelemetryDeadline = Date.now() + 6000;
+        while (!serverAnalytics.some(e=>e.event==='product_added_to_cart') && Date.now()<cartTelemetryDeadline) {
+          await page.waitForTimeout(250);
+        }
         // The cart badge adds a quantity to the accessible name (e.g. 'Kori 1').
         // Exact accessible-name matching would falsely report a disabled cart.
         const cart = page.locator('nav button').filter({hasText:/Kori/}).last();
