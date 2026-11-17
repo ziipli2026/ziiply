@@ -9,13 +9,26 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   const captures = [];
   const failures = [];
   const responses = [];
+  const eventNames = [];
+  const internalFlags = [];
   page.on('response', response => {
     if (response.url().includes('/ph-ingest/') && response.request().method() === 'POST')
       responses.push({ status: response.status(), endpoint: new URL(response.url()).pathname });
   });
   page.on('request', request => {
     if (request.url().includes('/ph-ingest/') && request.method() === 'POST')
+    {
       captures.push({ method: request.method(), endpoint: new URL(request.url()).pathname });
+      try {
+        const raw = request.postData() || '';
+        const parsed = JSON.parse(raw);
+        const events = Array.isArray(parsed.batch) ? parsed.batch : (parsed.event ? [parsed] : []);
+        for (const event of events) {
+          if (typeof event.event === 'string') eventNames.push(event.event);
+          if (typeof event.properties?.ziiply_internal_test === 'boolean') internalFlags.push(event.properties.ziiply_internal_test);
+        }
+      } catch { /* Some PostHog requests are encoded or compressed. */ }
+    }
   });
   page.on('requestfailed', request => {
     if (request.url().includes('/ph-ingest/')) failures.push(request.failure()?.errorText || 'request failed');
@@ -44,8 +57,8 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   // Do not create a cart or submit a search in production. Observe only
   // automatic activity and provider initialization.
   await page.waitForTimeout(2000);
-  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length }));
-  if (captures.length === 0 || responses.length === 0 || failures.length || responses.some(r => r.status >= 400)) {
+  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags }));
+  if (captures.length === 0 || !responses.some(r => r.status === 200) || failures.length || responses.some(r => r.status >= 400)) {
     console.error('FAIL: PostHog ingest did not return successful HTTP responses');
     process.exitCode = 1;
   }
