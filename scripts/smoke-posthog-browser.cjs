@@ -248,6 +248,8 @@ const watchdog = setTimeout(() => {
           await page.waitForTimeout(900);
           const cartOpen = await page.evaluate(() => ({
             visibleCartOverlays:[...document.querySelectorAll('div.ziiply-cart-retro-fix')].filter(e=>!!e.getClientRects().length&&!!e.closest('div.fixed')).length,
+            visibleFixedPanels:[...document.querySelectorAll('div.fixed')].filter(e=>!!e.getClientRects().length).map(e=>({className:String(e.className||'').slice(0,130),hasCart:/kori|ostoslista/i.test((e.textContent||'').slice(0,350)),buttons:e.querySelectorAll('button').length})).slice(-8),
+            visibleCartText:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length&&/kori|ostoslista|sulje/i.test((e.textContent||'').trim())).map(e=>({text:(e.textContent||'').trim().slice(0,55),aria:e.getAttribute('aria-label')})).slice(-10),
             visibleCartItemRows:[...document.querySelectorAll('div.ziiply-cart-retro-fix')].filter(e=>!!e.getClientRects().length).map(e=>e.querySelectorAll('button').length).slice(0,2),
             visibleCloseButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length&&/sulje/i.test((e.getAttribute('aria-label')||'')+' '+(e.textContent||''))).length
           }));
