@@ -189,6 +189,8 @@ test('Monta: mobile and desktop visible EAN sets match per query',async()=>{
   const byQuery=result=>Object.fromEntries(result.results.map(x=>[x.query,x.resultEans||[]]));
   const a=byQuery(mobile),b=byQuery(desktop);
   const differences=queries.filter(q=>JSON.stringify(a[q])!==JSON.stringify(b[q])).map(q=>({query:q,mobile:a[q]||[],desktop:b[q]||[]}));
-  fs.writeFileSync('test-results/monta-mobile-desktop-parity.json',JSON.stringify({queries,matched:queries.length-differences.length,differences},null,2));
+  const missingEvidence=queries.filter(q=>!(a[q]?.length>0&&b[q]?.length>0)).map(q=>({query:q,mobile:a[q]?.length||0,desktop:b[q]?.length||0}));
+  fs.writeFileSync('test-results/monta-mobile-desktop-parity.json',JSON.stringify({queries,matched:queries.length-differences.length,differences,missingEvidence},null,2));
+  expect(missingEvidence,'Every query must contain real visible EAN-backed products on BOTH layouts; empty sets cannot pass parity').toEqual([]);
   expect(differences,'EAN product sets must match for every query').toEqual([]);
 });
