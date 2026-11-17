@@ -12,6 +12,7 @@ const requirements = [
   ['progressive selection survives completion', /selected: alreadySelected/.test(searchTelemetry)],
   ['cancelled search clears pending selection', /selectedBeforeCompletion\.delete\(session\.id\)/.test(searchTelemetry)],
   ['autocapture disabled', /autocapture:\s*false\b/.test(provider)],
+  ['bot filter bypass restricted to explicit preview CI', /opt_out_useragent_filter:\s*!isProduction\s*&&\s*testParam\s*===\s*'1'/.test(provider)],
   ['automatic pageviews disabled', /capture_pageview:\s*false\b/.test(provider)],
   ['session replay disabled pending privacy review', /disable_session_recording:\s*true\b/.test(provider)],
   ['PostHog URL and sensitive-key scrubber present', /before_send\s*:/.test(provider) && /bannedKey/.test(provider)],
