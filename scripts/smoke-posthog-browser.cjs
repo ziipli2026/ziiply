@@ -112,6 +112,13 @@ const watchdog = setTimeout(() => {
       headings:[...document.querySelectorAll('h1,h2,h3')].map(el=>(el.textContent||'').trim().slice(0,65)).slice(0,15)
     }));
     console.log(JSON.stringify({check:'search-dom-diagnostic',...searchDom}));
+    const uiPath = await page.evaluate(() => {
+      const el = document.querySelector('textarea[placeholder*="maito"]');
+      const chain = []; let node = el;
+      for (let i=0; node && i<7; i++,node=node.parentElement) chain.push({tag:node.tagName.toLowerCase(),className:String(node.className||'').slice(0,130),hidden:node.hidden,ariaHidden:node.getAttribute('aria-hidden'),style:node.getAttribute('style')?.slice(0,120),text:(node.textContent||'').trim().slice(0,90)});
+      return {textareaAncestors:chain,visibleButtons:[...document.querySelectorAll('button')].filter(b=>!!b.getClientRects().length).map(b=>({text:(b.textContent||'').trim().slice(0,75),aria:b.getAttribute('aria-label'),disabled:b.disabled})).slice(0,35)};
+    });
+    console.log(JSON.stringify({check:'search-ui-path',...uiPath}));
     const searchInput = page.locator('textarea:visible, input[type="search"]:visible, input[placeholder*="tuote" i]:visible, input[placeholder*="hae" i]:visible').first();
     await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
