@@ -16,6 +16,8 @@ const requirements = [
   ['session replay disabled pending privacy review', /disable_session_recording:\s*true\b/.test(provider)],
   ['PostHog URL and sensitive-key scrubber present', /before_send\s*:/.test(provider) && /bannedKey/.test(provider)],
   ['internal test marker present', /ziiply_internal_test/.test(provider)],
+  ['server-proxied search marks internal tests', /ziiply_internal_test:\s*\(\(\) =>/.test(searchTelemetry) && /ziiply_internal_test_user/.test(searchTelemetry)],
+  ['server accepts only explicit true test flag', /ziiply_internal_test:\s*body\.ziiply_internal_test === true/.test(fs.readFileSync(path.join(root, 'src/app/api/analytics/search/route.ts'), 'utf8'))],
   ['environment marker present', /ziiply_environment/.test(provider)],
   ['shared tracking wrapper present', /function\s+trackZiiplyEvent\s*\(/.test(core)],
   ['search event present', /trackZiiplyEvent\s*\(\s*["']search_used["']/.test(page)],
