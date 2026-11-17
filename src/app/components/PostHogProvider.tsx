@@ -67,6 +67,12 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       posthog.capture('ziiply_posthog_transport_probe', {
         ziiply_probe: 'preview_ci',
       })
+      // No user content: local preview-only diagnostic of SDK capture state.
+      console.info('[ziiply-ph-probe]', JSON.stringify({
+        initialized: posthog.__loaded === true,
+        optedOut: posthog.has_opted_out_capturing(),
+        distinctIdReady: typeof posthog.get_distinct_id() === 'string',
+      }))
     }
   }, [])
 
