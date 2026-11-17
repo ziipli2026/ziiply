@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install dependencies for actual TypeScript filter execution
+        run: npm ci
       - name: Verify safe offline snapshot enrichment
         run: node --test tests/prepare-tjek-snapshot-enrichment.test.cjs
       - name: Compare public Tjek source departments with saved category baseline
