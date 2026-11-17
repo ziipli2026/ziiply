@@ -106,6 +106,7 @@ const watchdog = setTimeout(() => {
     // Open the store chooser to inspect automatic nearby-store resolution.
     await page.getByRole('button', { name: 'Kaupat', exact: true }).click({ timeout: 10000 });
     await page.waitForTimeout(2500);
+    try { await page.getByText('Paikannetaan', { exact: true }).waitFor({ state: 'hidden', timeout: 12000 }); } catch { console.log(JSON.stringify({check:'store-location-timeout',stillLocating:true})); }
     const storePicker = await page.evaluate(() => ({
       visibleText: document.body.innerText.slice(-950),
       choices: [...document.querySelectorAll('button,[role="button"]')].filter(e=>!!e.getClientRects().length)
