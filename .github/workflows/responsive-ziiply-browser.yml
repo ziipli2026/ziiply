@@ -394,6 +394,16 @@ jobs:
                     await searchContext.close();
                     continue;
                   }
+                  // Lidl and Tokmanni/SPAR mock rows have no verified local prices.
+                  // Their products must not appear as locally priced basket candidates.
+                  if (chain === 'LIDL' || chain === 'SPAR' || chain === 'TOKMANNI') {
+                    assert.ok(queries > 0, 'selected catalog provider must receive a maito search');
+                    assert.equal(await search.getByRole('button', {name:/Lisää koriin/}).filter({visible:true}).count(), 0,
+                      'unverified catalog rows must not become checkout candidates');
+                    console.log(name, chain, 'unverified local prices correctly excluded');
+                    await searchContext.close();
+                    continue;
+                  }
                   const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).first();
                   const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).filter({ visible: true }).first();
                   try {
