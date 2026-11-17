@@ -4704,9 +4704,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function getNormalResultsSignatureV441(items: Product[]) {
     return items
       .map((item: any) => {
-        const id = item?.id ?? item?.ean ?? item?.name ?? "";
-        const price = item?.price ?? item?.comparisonPrice ?? item?.comparisonPriceValue ?? "";
-        return `${id}:${price}`;
+        // EAN, store, name and verified price are part of the visible identity.
+        // A stable provider id alone must not suppress an updated product row.
+        return JSON.stringify([
+          item?.id ?? "", item?.ean ?? item?.barcode ?? item?.product?.ean ?? "",
+          item?.name ?? item?.title ?? "", item?.__chain ?? "", item?.__store ?? item?.storeName ?? "",
+          item?.__price ?? item?.price ?? item?.comparisonPrice ?? item?.comparisonPriceValue ?? "",
+          item?.priceVerified ?? null,
+        ]);
       })
       .join("|");
   }
