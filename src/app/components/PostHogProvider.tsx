@@ -46,7 +46,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
         disable_session_recording: true,
         before_send: (event) => {
           if (!event) return event
-          if (!isProduction && testParam === '1' && event.event === 'ziiply_posthog_transport_probe') {
+          if (typeof isProduction !== 'undefined' && typeof testParam !== 'undefined' && !isProduction && testParam === '1' && event.event === 'ziiply_posthog_transport_probe') {
             console.info('[ziiply-ph-probe-before-send]', JSON.stringify({reached: true}))
           }
           // Prevent accidental leakage of URL query params (including login links),
