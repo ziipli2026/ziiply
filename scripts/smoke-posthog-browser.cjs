@@ -21,7 +21,10 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
       captures.push({ method: request.method(), endpoint: new URL(request.url()).pathname });
       try {
         const raw = request.postData() || '';
-        const parsed = JSON.parse(raw);
+        const contentType = request.headers()['content-type'] || '';
+        const parsed = contentType.includes('application/x-www-form-urlencoded')
+          ? JSON.parse(new URLSearchParams(raw).get('data') || '{}')
+          : JSON.parse(raw);
         const events = Array.isArray(parsed.batch) ? parsed.batch : (parsed.event ? [parsed] : []);
         for (const event of events) {
           if (typeof event.event === 'string') eventNames.push(event.event);
@@ -56,7 +59,9 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   console.log(JSON.stringify({ check: 'page-headings', headings: (await page.locator('h1, h2').allTextContents()).map(s => s.trim().slice(0, 80)).slice(0, 12) }));
   // Do not create a cart or submit a search in production. Observe only
   // automatic activity and provider initialization.
-  await page.waitForTimeout(2000);
+  // Switch a read-only app tab to exercise explicit navigation analytics.
+  await page.getByRole('button', { name: 'Gösta', exact: true }).click();
+  await page.waitForTimeout(3000);
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags }));
   if (captures.length === 0 || !responses.some(r => r.status === 200) || failures.length || responses.some(r => r.status >= 400)) {
     console.error('FAIL: PostHog ingest did not return successful HTTP responses');
