@@ -60,6 +60,14 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     )
 
     if (isInternalTest) posthog.setInternalOrTestUser()
+
+    // Preview-only, explicitly requested CI diagnostic. Never run on production,
+    // and never transmit searches, identifiers, user input or location.
+    if (!isProduction && testParam === '1') {
+      posthog.capture('ziiply_posthog_transport_probe', {
+        ziiply_probe: 'preview_ci',
+      })
+    }
   }, [])
 
   return <PHProvider client={posthog}>{children}</PHProvider>
