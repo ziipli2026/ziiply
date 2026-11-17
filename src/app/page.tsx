@@ -13005,7 +13005,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       originalTerms: focusedSearchTerms, forceEan, events: [] };
     const normalSearchCacheKeyV441 = buildNormalSearchCacheKeyV441(focusedSearchTerms, forceEan);
     traceSearch("search-start", { cacheKey: normalSearchCacheKeyV441 });
-    const cachedNormalSearchV441 = recipeIngredient ? undefined : normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
+    // Shared normal-store searches must refresh live providers like desktop.
+    // Preserve legacy cache for other modes.
+    const cachedNormalSearchV441 = recipeIngredient || usesSharedStoreQueries ? undefined : normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
 
     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
       // Revalidate cached results against the current product-group gate.
@@ -13500,7 +13502,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       finishSearchTelemetry(searchTelemetryV441, pricedCountV441 > 0 ? "priced_results" : "no_priced_results", pricedCountV441);
 
       // Never persist an empty response: transient upstream failures must be retryable.
-      if (!recipeIngredient && unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
+      if (!recipeIngredient && !usesSharedStoreQueries && unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
         results: unique,
         debug: debugEntries,
         readyQuery: readyQueryV441,
