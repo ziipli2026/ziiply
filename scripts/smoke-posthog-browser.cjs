@@ -218,7 +218,9 @@ const watchdog = setTimeout(() => {
         const before = serverAnalytics.filter(e=>e.event==='product_added_to_cart').length;
         await addButton.click({timeout:10000});
         await page.waitForTimeout(2500);
-        const cart = page.getByRole('button',{name:'Kori',exact:true});
+        // The cart badge adds a quantity to the accessible name (e.g. 'Kori 1').
+        // Exact accessible-name matching would falsely report a disabled cart.
+        const cart = page.locator('nav button').filter({hasText:/Kori/}).last();
         const comparison = page.getByRole('button',{name:'Vertailu',exact:true});
         const cartEnabled = await cart.isEnabled().catch(()=>false);
         const comparisonEnabled = await comparison.isEnabled().catch(()=>false);
