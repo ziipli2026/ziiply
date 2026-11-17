@@ -130,7 +130,13 @@ test('Monta live all chains: '+device,async({browser})=>{
       expect(audit.hasComparablePrice,`${chain} returned no comparable priced products for maito/cola`).toBe(true);
     }
   }finally{
+    // Even when the app fails before the comparison page, preserve the
+    // actual browser state and provider evidence for diagnosis.
     fs.mkdirSync('test-results',{recursive:true});
+    result.finalUrl=page.url();
+    result.finalTitle=await page.title().catch(()=>null);
+    result.finalBodyExcerpt=await page.locator('body').innerText({timeout:5000}).then(s=>s.slice(-4000)).catch(()=>null);
+    await page.screenshot({path:'test-results/monta-'+device+'-final-state.png',fullPage:true,timeout:10000}).catch(e=>{result.finalScreenshotError=String(e)});
     fs.writeFileSync('test-results/monta-'+device+'-evidence.json',JSON.stringify(result,null,2));
     await context.close();
   }
