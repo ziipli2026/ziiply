@@ -31,6 +31,10 @@ jobs:
         run: node scripts/check-posthog-beta.cjs
       - name: Inventory PostHog instrumentation
         run: npm run audit:posthog
+      - name: Audit cart comparison Gosta Justiina identity and privacy
+        run: |
+          node --check scripts/audit-beta-journeys.cjs
+          node scripts/audit-beta-journeys.cjs
       - name: Verify protected preview access is configured
         env:
           VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
