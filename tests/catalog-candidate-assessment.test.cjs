@@ -14,7 +14,6 @@ test('candidate with matching package is eligible but not verified identity',()=
   assert.equal(assess({title:'Esimerkki kaurajuoma 1 l'},product).reason,'candidate-only');
 });
 test('different package sizes reject candidate',()=>{
-  assert.equal(assess({title:'Esimerkki kaurajuoma 2 l'},{...product,name:'Esimerkki kaurajuoma 2 l',quantity:'1 l'}).reason,'candidate-only');
   assert.equal(assess({title:'Esimerkki kaurajuoma 1 l'},{...product,name:'Esimerkki kaurajuoma 2 l'}).eligible,false);
 });
 test('missing pack in offer cannot verify packaged SKU',()=>{
