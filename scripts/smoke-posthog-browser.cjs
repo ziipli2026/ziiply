@@ -28,6 +28,13 @@ const watchdog = setTimeout(() => {
   const searchTypes = [];
   const payloadShapes = [];
   const searchNetwork = [];
+  const pendingSearchRequests = new Map();
+  page.on('request', request => {
+    const path = new URL(request.url()).pathname;
+    if (path.startsWith('/api/') && path !== '/api/analytics/search') pendingSearchRequests.set(request, {path, startedAt:Date.now()});
+  });
+  page.on('requestfinished', request => pendingSearchRequests.delete(request));
+  page.on('requestfailed', request => pendingSearchRequests.delete(request));
   const serverAnalytics = [];
   const serverAnalyticsResponses = [];
   const pageErrors = [];
@@ -198,7 +205,7 @@ const watchdog = setTimeout(() => {
     while (!serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal') && Date.now()<searchTelemetryDeadline) {
       await page.waitForTimeout(500);
     }
-    console.log(JSON.stringify({check:'search-telemetry-wait',elapsedMs:Date.now()-telemetryWaitStarted,completed:serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal'),eventTypes:serverAnalytics.map(e=>e.event),apiRequestCount:searchNetwork.length,pageErrorCount:pageErrors.length}));
+    console.log(JSON.stringify({check:'search-telemetry-wait',elapsedMs:Date.now()-telemetryWaitStarted,completed:serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal'),eventTypes:serverAnalytics.map(e=>e.event),apiRequestCount:searchNetwork.length,pageErrorCount:pageErrors.length,pendingRequests:[...pendingSearchRequests.values()].map(x=>({path:x.path,ageMs:Date.now()-x.startedAt})).slice(0,25)}));
     const searchStatus = await page.evaluate(() => ({ visibleText:document.body.innerText.slice(-650), visibleInputs:[...document.querySelectorAll('textarea,input')].filter(e=>!!e.getClientRects().length).map(e=>({tag:e.tagName,placeholder:e.getAttribute('placeholder')})), visibleButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length).map(e=>({text:(e.textContent||'').trim().slice(0,45),disabled:e.disabled})).slice(-12) }));
     console.log(JSON.stringify({check:'search-after-submit',searchStatus,searchNetwork,pageErrors}));
     // Search telemetry uses the server-side /api/analytics/search proxy,
