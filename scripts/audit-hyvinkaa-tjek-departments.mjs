@@ -12,7 +12,7 @@ for(let i=0;i<baseline.length;i+=8){
    const key=Buffer.from(stable(['offer',{publicId:row.id}]),'utf8').toString('base64');
    const response=await fetch('https://etarjouslehdet.fi/',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/plain, */*',Referer:'https://etarjouslehdet.fi/K-Citymarket'},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(15000)});
    if(!response.ok)throw Error('HTTP '+response.status);
-   const payload=(await response.text()).split(/\\r?\\n/).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).find(x=>x?.key===key)?.value;
+   const payload=(await response.text()).split(/\r?\n/).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).find(x=>x?.key===key)?.value;
    if(!payload || typeof payload!=='object'){counts.missing++;return;}
    counts.matched++;
    const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
