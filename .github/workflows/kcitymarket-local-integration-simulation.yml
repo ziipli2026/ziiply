@@ -184,15 +184,12 @@ jobs:
         run: |
           node scripts/audit-hyvinkaa-tjek-departments.mjs
           node scripts/verify-tjek-baseline-enrichment.mjs
-          npm run start -- -H 127.0.0.1 -p 3100 &
+          npm run start -- -H 127.0.0.1 -p 3101 &
           for i in {1..30}; do
-            if curl --fail --silent http://127.0.0.1:3100/ > /dev/null; then break; fi
+            if curl --fail --silent http://127.0.0.1:3101/ > /dev/null; then break; fi
             sleep 1
           done
           node scripts/test-citymarket-67-browser.cjs
-          # The following browser step starts its own server on the same port.
-          pkill -f 'next-server' || true
-          pkill -f 'next start' || true
       - name: Check the same address on phone, tablet and desktop
         run: |
           npm run start -- -H 127.0.0.1 -p 3100 &
