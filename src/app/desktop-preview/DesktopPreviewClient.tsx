@@ -799,12 +799,22 @@ export default function DesktopPreviewPage() {
     const region=document.getElementById("ziiply-desktop-scanner-region");
     const video=region?.querySelector("video");
     const track=(video?.srcObject as MediaStream|null)?.getVideoTracks()[0];
+    let cameraFrame: {width:number;height:number;jpegDataUrl:string}|null=null;
+    if(video && video.readyState>=2 && video.videoWidth>0 && video.videoHeight>0){
+      try{
+        const canvas=document.createElement("canvas");
+        canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+        const context=canvas.getContext("2d");
+        if(context){context.drawImage(video,0,0,canvas.width,canvas.height);cameraFrame={width:canvas.width,height:canvas.height,jpegDataUrl:canvas.toDataURL("image/jpeg",0.85)};}
+      }catch(error){logDesktopScanner("frame_capture_failed",{error:String(error)});}
+    }
     const payload={
       schema:"ziiply-desktop-ean-scanner-debug-v1",
       exportedAt:new Date().toISOString(),
       page:window.location.pathname,
       browser:{userAgent:navigator.userAgent,language:navigator.language,secureContext:window.isSecureContext,mediaDevicesAvailable:!!navigator.mediaDevices?.getUserMedia,barcodeDetectorAvailable:!!(window as any).BarcodeDetector,html5QrcodeAvailable:!!(window as any).Html5Qrcode},
       scanner:{open:desktopScannerOpen,cameraOn:desktopScannerCameraOn,status:desktopScannerDebug,message:desktopScannerMessage,video:video?{width:video.videoWidth,height:video.videoHeight,readyState:video.readyState,paused:video.paused,muted:video.muted,mirrored:getComputedStyle(video).transform,trackState:track?.readyState,trackLabel:track?.label,trackSettings:track?.getSettings?.()}:null},
+      cameraFrame,
       counters:{...desktopScannerStatsRef.current},
       events:desktopScannerLogRef.current
     };
@@ -923,6 +933,14 @@ export default function DesktopPreviewPage() {
       await htmlScanner.start({ facingMode: cameraFacingMode }, { fps: 12, aspectRatio: 1.7778 }, onCode, (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
       unmirrorCameraPreview();
       const activeVideo = region.querySelector("video");
+      const videoTrack=(activeVideo?.srcObject as MediaStream|null)?.getVideoTracks()[0];
+      if(videoTrack){
+        try{
+          const before=videoTrack.getSettings();
+          await videoTrack.applyConstraints({width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30}});
+          logDesktopScanner("resolution_requested",{requested:{width:1280,height:720},before,after:videoTrack.getSettings()});
+        }catch(error){logDesktopScanner("resolution_request_failed",{reason:String(error),settings:videoTrack.getSettings()});}
+      }
       if (activeVideo) setDesktopScannerDebug("Kamera: " + (activeVideo.videoWidth || "?") + "×" + (activeVideo.videoHeight || "?") + " · EAN-lukija käynnissä");
       scannerStarted = true;
       logDesktopScanner("camera_started",{width:activeVideo?.videoWidth,height:activeVideo?.videoHeight,videoReadyState:activeVideo?.readyState,trackSettings:(activeVideo?.srcObject as MediaStream|null)?.getVideoTracks()[0]?.getSettings?.()});
