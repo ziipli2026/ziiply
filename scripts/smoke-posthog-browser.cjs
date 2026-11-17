@@ -95,6 +95,10 @@ const watchdog = setTimeout(() => {
     }
     // Default landing view already exposes normal product search. Avoid switching to
     // Gösta and back: that navigation can hide the Justiina control in mobile UI.
+    // The landing view is the comparison dashboard; open the Justiina recipe/search
+    // card before looking for the product search field.
+    await page.getByRole('button', { name: /Reseptit.*Ruokaideat ja haku/i }).click({ timeout: 10000 });
+    await page.waitForTimeout(1200);
     // Mobile and desktop use different search controls. Inspect visible input metadata,
     // never log field values or user-entered content.
     const inputs = await page.locator('input, textarea, [role="searchbox"]').evaluateAll(els => els.map(el => ({ tag: el.tagName.toLowerCase(), type: el.getAttribute('type'), placeholder: el.getAttribute('placeholder'), ariaLabel: el.getAttribute('aria-label'), visible: !!(el.getClientRects().length) })).filter(x => x.visible));
