@@ -6,7 +6,11 @@ const root = path.resolve(__dirname, '..');
 const provider = fs.readFileSync(path.join(root, 'src/app/components/PostHogProvider.tsx'), 'utf8');
 const core = fs.readFileSync(path.join(root, 'src/app/components/ziiply/ziiplyCore.ts'), 'utf8');
 const page = fs.readFileSync(path.join(root, 'src/app/page.tsx'), 'utf8');
+const searchTelemetry = fs.readFileSync(path.join(root, 'src/app/components/ziiply/search/searchTelemetry.ts'), 'utf8');
 const requirements = [
+  ['progressive result selection captured before search completion', /const pending = latestStartedSearchId \? active\.get\(latestStartedSearchId\)/.test(searchTelemetry) && /selectedBeforeCompletion\.add\(pending\.id\)/.test(searchTelemetry)],
+  ['progressive selection survives completion', /selected: alreadySelected/.test(searchTelemetry)],
+  ['cancelled search clears pending selection', /selectedBeforeCompletion\.delete\(session\.id\)/.test(searchTelemetry)],
   ['autocapture disabled', /autocapture:\s*false\b/.test(provider)],
   ['automatic pageviews disabled', /capture_pageview:\s*false\b/.test(provider)],
   ['session replay disabled pending privacy review', /disable_session_recording:\s*true\b/.test(provider)],
