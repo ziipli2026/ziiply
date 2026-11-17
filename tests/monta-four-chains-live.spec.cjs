@@ -12,6 +12,15 @@ test('Monta live all chains: '+device,async({browser})=>{
   const targetEans=new Set(['6408430337972','8001860253522']);
   const targetProviderHits=[];
   let activeSearchQuery='';
+  let searchPhase='setup';
+  const requestStarts=[];
+  page.on('request',request=>{
+    const url=request.url();
+    if(!url.includes('/api/'))return;
+    if(!['/api/s-products','/api/k-products','/api/neon-first-search','/api/lidl/products','/api/tokmanni/products'].some(path=>url.includes(path)))return;
+    const parsed=new URL(url);
+    requestStarts.push({query:activeSearchQuery,phase:searchPhase,path:parsed.pathname,search:parsed.searchParams.get('search'),intent:parsed.searchParams.get('intent')});
+  });
   const pendingTargetResponses=[];
   page.on('response',response=>{
     if(!response.url().includes('/api/'))return;
@@ -85,6 +94,7 @@ test('Monta live all chains: '+device,async({browser})=>{
     const added=[];
     for(const query of queries){
        activeSearchQuery=query;
+      searchPhase='search';
       if(device==='desktop' && !(await input.isVisible().catch(()=>false))) {
         const reopen=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
         if(await reopen.count())await reopen.first().click();
@@ -115,7 +125,9 @@ test('Monta live all chains: '+device,async({browser})=>{
       const visibleProductButtons=await page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true}).count();
       const findingsLedger=device==='mobile'?await page.getByRole('button',{name:/Avaa löytöluettelo/i}).filter({visible:true}).count():0;
       await Promise.allSettled(pendingTargetResponses.splice(0));
-       result.results.push({query,targetProviderHits:targetProviderHits.filter(hit=>hit.requestedDuring===query),visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans,visibleProductButtons,findingsLedger});
+       const searchRequests=requestStarts.filter(x=>x.query===query && x.phase==='search');
+       result.results.push({query,targetProviderHits:targetProviderHits.filter(hit=>hit.requestedDuring===query),visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans,visibleProductButtons,findingsLedger,searchRequestCounts:{k:searchRequests.filter(x=>x.path==='/api/k-products').length,s:searchRequests.filter(x=>x.path==='/api/s-products').length},searchRequests});
+      searchPhase='cart-add';
       // The mobile search opens a full-screen result sheet; only target controls
       // within that sheet, not similarly named buttons behind its backdrop.
       const candidate=page.locator('div.pointer-events-none.fixed.inset-0').getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
@@ -128,8 +140,14 @@ test('Monta live all chains: '+device,async({browser})=>{
           if(await close.count())await close.first().click();
         }catch(e){result.results[result.results.length-1].addError=String(e)}
       }
+      const cartRequests=requestStarts.filter(x=>x.query===query && x.phase==='cart-add');
+      result.results[result.results.length-1].cartAddRequestCounts={k:cartRequests.filter(x=>x.path==='/api/k-products').length,s:cartRequests.filter(x=>x.path==='/api/s-products').length};
+      result.results[result.results.length-1].cartAddRequests=cartRequests;
       await page.screenshot({path:'test-results/monta-'+device+'-'+query+'.png',fullPage:true});
     }
+    searchPhase='comparison';
+    result.requestStarts=requestStarts;
+    result.requestSummary={kSearch:requestStarts.filter(x=>x.path==='/api/k-products'&&x.phase==='search').length,kCartAdd:requestStarts.filter(x=>x.path==='/api/k-products'&&x.phase==='cart-add').length,sSearch:requestStarts.filter(x=>x.path==='/api/s-products'&&x.phase==='search').length,sCartAdd:requestStarts.filter(x=>x.path==='/api/s-products'&&x.phase==='cart-add').length};
     // Keep the rest of the audit running even if one provider is absent.
     // Missing chain calls are acceptance failures, not a reason to discard
     // screenshots and the basket-comparison diagnostics.
