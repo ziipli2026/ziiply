@@ -60,7 +60,7 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   // Do not create a cart or submit a search in production. Observe only
   // automatic activity and provider initialization.
   // Switch a read-only app tab to exercise explicit navigation analytics.
-  await page.getByRole('button', { name: 'Gösta', exact: true }).click();
+  await page.getByRole('button', { name: /^Gösta/ }).click({ timeout: 10000 });
   await page.waitForTimeout(3000);
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags }));
   if (captures.length === 0 || !responses.some(r => r.status === 200) || failures.length || responses.some(r => r.status >= 400)) {
