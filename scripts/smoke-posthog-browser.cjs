@@ -16,6 +16,7 @@ const watchdog = setTimeout(() => {
   const responses = [];
   const eventNames = [];
   const internalFlags = [];
+  const payloadShapes = [];
   page.on('response', response => {
     if (response.url().includes('/ph-ingest/') && response.request().method() === 'POST')
       responses.push({ status: response.status(), endpoint: new URL(response.url()).pathname });
@@ -27,6 +28,7 @@ const watchdog = setTimeout(() => {
       try {
         const raw = request.postData() || '';
         const contentType = request.headers()['content-type'] || '';
+        payloadShapes.push({ contentType: contentType.split(';')[0], bytes: Buffer.byteLength(raw), endpoint: new URL(request.url()).pathname, prefix: raw.slice(0, 1) === '{' ? 'json-object' : raw.slice(0, 1) === '[' ? 'json-array' : 'other' });
         const parsed = contentType.includes('application/x-www-form-urlencoded')
           ? JSON.parse(new URLSearchParams(raw).get('data') || '{}')
           : JSON.parse(raw);
@@ -35,7 +37,7 @@ const watchdog = setTimeout(() => {
           if (typeof event.event === 'string') eventNames.push(event.event);
           if (typeof event.properties?.ziiply_internal_test === 'boolean') internalFlags.push(event.properties.ziiply_internal_test);
         }
-      } catch { /* Some PostHog requests are encoded or compressed. */ }
+      } catch { payloadShapes.push({ parse: 'unavailable' }); }
     }
   });
   page.on('requestfailed', request => {
@@ -69,7 +71,7 @@ const watchdog = setTimeout(() => {
   await page.getByRole('button', { name: 'Gösta: Tarjoushaku', exact: true }).click({ timeout: 10000, noWaitAfter: true });
   console.log(JSON.stringify({ check: 'gosta-click', stage: 'completed' }));
   await page.waitForTimeout(3000);
-  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags }));
+  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes }));
   if (captures.length === 0 || !responses.some(r => r.status === 200) || failures.length || responses.some(r => r.status >= 400)) {
     console.error('FAIL: PostHog ingest did not return successful HTTP responses');
     process.exitCode = 1;
