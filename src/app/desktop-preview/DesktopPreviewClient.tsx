@@ -929,8 +929,8 @@ export default function DesktopPreviewPage() {
       logDesktopScanner("decoder_loaded",{engine:"html5-qrcode",facingMode:cameraFacingMode});
       // Match the working desktop Arvo scanner's decoder and camera configuration exactly.
       htmlScanner = new Html5Qrcode(region.id, {verbose:false});
-      logDesktopScanner("decoder_config",{source:"desktop-arvo",formats:"library_default",fps:12,qrbox:{width:540,height:400},aspectRatio:1.7778,cameraFacingMode:"environment"});
-      await htmlScanner.start({facingMode:"environment"}, {fps:12, qrbox:{width:540,height:400}, aspectRatio:1.7778}, onCode, (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
+      logDesktopScanner("decoder_config",{source:"desktop-arvo",formats:"library_default",fps:12,aspectRatio:1.7778,cameraFacingMode:"environment"});
+      await htmlScanner.start({facingMode:"environment"}, {fps:12, aspectRatio:1.7778}, onCode, (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
       unmirrorCameraPreview();
       const activeVideo = region.querySelector("video");
       if (activeVideo) setDesktopScannerDebug("Kamera: " + (activeVideo.videoWidth || "?") + "×" + (activeVideo.videoHeight || "?") + " · EAN-lukija käynnissä");
