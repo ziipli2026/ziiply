@@ -84,7 +84,8 @@ test('Monta live all chains: '+device,async({browser})=>{
       const eans=await page.getByText(/EAN \d{13}/).filter({visible:true}).allTextContents();
       const resultEans=[...new Set(eans.flatMap(v=>[...v.matchAll(/EAN\s*(\d{13})/g)].map(m=>m[1])))].sort();
       const visibleProductButtons=await page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true}).count();
-      result.results.push({query,visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans,visibleProductButtons});
+      const findingsLedger=device==='mobile'?await page.getByRole('button',{name:/Avaa löytöluettelo/i}).filter({visible:true}).count():0;
+      result.results.push({query,visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans,visibleProductButtons,findingsLedger});
       // The mobile search opens a full-screen result sheet; only target controls
       // within that sheet, not similarly named buttons behind its backdrop.
       const candidate=page.locator('div.pointer-events-none.fixed.inset-0').getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true});
