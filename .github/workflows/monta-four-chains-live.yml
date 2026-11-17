@@ -19,7 +19,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Test branch preview with real APIs
         env:
-          ZIIPLY_LIVE_URL: https://ziiply-6bfzi9b59-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-9ue7zwvnr-ziipli2026s-projects.vercel.app
         run: npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
