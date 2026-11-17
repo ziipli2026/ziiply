@@ -82,10 +82,13 @@ const watchdog = setTimeout(() => {
     if (url.hostname === 'ziiply.vercel.app' || url.hostname === 'ziiply.fi' || url.hostname === 'www.ziiply.fi') {
       throw new Error('Search smoke must target an isolated preview deployment, not production');
     }
-    await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
-    const searchInput = page.locator('textarea').first();
+    // Gösta is the offers mode; explicitly return to Justiina before normal search.
+    await page.getByRole('button', { name: 'Justiina: Reseptit', exact: true }).click({ timeout: 10000 });
+    const searchInput = page.locator('textarea[placeholder="maito, kahvi"], textarea[placeholder="Kirjoita yksi tuote"]').first();
+    await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
-    await searchInput.press('Enter');
+    // The mobile card auto-searches after input changes; do not submit twice.
+    await page.waitForTimeout(2500);
     await page.waitForTimeout(12000);
     console.log(JSON.stringify({ check: 'preview-search', started: eventNames.includes('search_started'), outcome: eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) }));
     if (!eventNames.includes('search_started') || !eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name))) {
