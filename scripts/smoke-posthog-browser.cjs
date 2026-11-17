@@ -15,7 +15,9 @@ const watchdog = setTimeout(() => {
   activeBrowser = browser;
   const previewHeaders = process.env.VERCEL_OIDC_TOKEN
     ? { 'x-vercel-trusted-oidc-idp-token': process.env.VERCEL_OIDC_TOKEN }
-    : {};
+    : process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? { 'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET }
+      : {};
   const page = await browser.newPage({ locale: 'fi-FI', viewport: { width: 390, height: 844 }, extraHTTPHeaders: previewHeaders });
   const captures = [];
   const failures = [];
