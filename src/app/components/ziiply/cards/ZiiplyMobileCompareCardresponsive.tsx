@@ -11,7 +11,7 @@ export type ZiiplyCompareStore = {
   id: string;
   name: string;
   locality?: string;
-  chain?: "S" | "K";
+  chain?: "S" | "K" | "LIDL" | "SPAR";
   totalPrice?: number;
   itemCount?: number;
   savingsVsHighest?: number;
@@ -174,9 +174,11 @@ function splitStoreName(name: string, locality?: string) {
   return { title: parts.slice(0, -1).join(" "), locality: parts[parts.length - 1] };
 }
 
-function getChainLabel(chain?: "S" | "K") {
+function getChainLabel(chain?: ZiiplyCompareStore["chain"]) {
   if (chain === "S") return "S";
   if (chain === "K") return "K";
+  if (chain === "LIDL") return "L";
+  if (chain === "SPAR") return "SPAR";
   return "–";
 }
 
@@ -320,7 +322,10 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   if (!open) return null;
 
-  const visibleStores = stores.map(normalizeComparisonStorePrices);
+  const chainOrder: Record<string, number> = { S: 0, K: 1, LIDL: 2, SPAR: 3 };
+  const visibleStores = stores.map(normalizeComparisonStorePrices).sort(
+    (a, b) => (chainOrder[a.chain || ""] ?? 4) - (chainOrder[b.chain || ""] ?? 4),
+  );
   // V780: kun valitut kaupat tunnetaan, näytä heti oikeat lopullisen muotoiset kortit.
   // Lataus täydentää niihin vain hinnat/määrät ym.; vanhaa erillistä skeleton-korttia käytetään vain jos kauppoja ei vielä tunneta.
   const showSkeleton = visibleStores.length === 0;
