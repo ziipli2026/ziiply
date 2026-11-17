@@ -226,6 +226,10 @@ const watchdog = setTimeout(() => {
         const cartUi = await page.evaluate(() => ({
           buttons: [...document.querySelectorAll('button')].filter(b=>/^(Kori|Vertailu)$/.test((b.textContent||'').trim())).map(b=>({text:(b.textContent||'').trim(),disabled:b.disabled,ariaDisabled:b.getAttribute('aria-disabled'),visible:!!b.getClientRects().length})),
           cartStorageKeys: Object.keys(localStorage).filter(k=>/cart|basket|ostos|vihko/i.test(k)),
+          cartStorageSummary: Object.keys(localStorage).filter(k=>/cart|basket|ostos|vihko/i.test(k)).map(key=>{
+            try { const value=JSON.parse(localStorage.getItem(key)||'null'); return {key,type:Array.isArray(value)?'array':typeof value,count:Array.isArray(value)?value.length:typeof value==='object'&&value?Object.keys(value).length:0}; }
+            catch {return {key,type:'unparseable'};}
+          }),
           visibleNotices: [...document.querySelectorAll('[role="alert"],[role="status"]')].filter(e=>!!e.getClientRects().length).map(e=>(e.textContent||'').trim().slice(0,130)).slice(0,8),
           cartLabels: [...document.querySelectorAll('body *')].filter(e=>e.children.length===0&&/\bKori\b/.test(e.textContent||'')&&!!e.getClientRects().length).slice(0,8).map(e=>({tag:e.tagName,text:(e.textContent||'').slice(0,70)})),
 
