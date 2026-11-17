@@ -17,6 +17,13 @@ const page=await context.newPage();await page.route('**/api/offers/watch?*',rout
 await page.goto('http://127.0.0.1:3100/');await page.getByRole('button',{name:/Avaa tarjousvahdin .* osumaa/}).waitFor({timeout:30000});
 const countLabel=await page.getByRole('button',{name:/Avaa tarjousvahdin .* osumaa/}).innerText();
 await page.getByRole('button',{name:/Avaa tarjousvahdin .* osumaa/}).click();
+if(label==='desktop') {
+  const storeTab=page.getByRole('button',{name:/Tavaratalot.*tarjousta/i});
+  await storeTab.waitFor({timeout:15000});
+  await storeTab.click();
+}
+const sampleText=page.getByText(sample.title,{exact:true}).first();
+await sampleText.waitFor({timeout:15000});
 const shown=await page.getByText(sample.title,{exact:true}).count();
 assert.ok(shown>0,label+' did not render a real Tjek fixture offer: '+sample.title);
 results[label]={countLabel,shownSample:sample.offerId};
