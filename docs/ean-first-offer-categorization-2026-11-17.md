@@ -25,3 +25,8 @@ One shared category resolver for mobile and desktop, independent of individual p
 
 ## Safety
 This branch gates EAN-first behavior to local Citymarket Tjek campaigns. This branch does not alter DB schema, stored catalog categories, Tjek scraping, prices, or production main. It does not remove existing legacy fallbacks; they remain for products without a confirmed catalog EAN category.
+
+## Live Hyvinkää coverage audit — 17 Nov 2026
+Read-only Neon query of `ziiply_kcitymarket_tjek_snapshots`, store key `k citymarket hyvinkaa`: **139 local offer rows; 0 rows with a numeric 8–14-digit EAN**. Thus the EAN-first override in this PR cannot currently classify these local campaigns. **Do not merge as a fix for Citymarket categorization** until reliable product-to-EAN resolution exists and is measured.
+
+The Tjek provider builds its offer records with a title-derived preliminary category and no EAN field. A future resolver must match to a catalog product using verified identity (e.g. uniquely matching exact normalized name, brand and package size, or source-provided product identifiers), reject ambiguous collisions, and record evidence/coverage. It must not assign guessed EANs or silently persist uncertain matches. Existing exact-name-only catalog enrichment is not proof of EAN identity.
