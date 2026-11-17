@@ -150,7 +150,10 @@ const watchdog = setTimeout(() => {
     console.log(JSON.stringify({check:'search-submit-mechanics',submitMechanics}));
     await page.evaluate(() => { window.__ziiplySmokeHistory = []; for (const name of ['pushState','replaceState']) {const original=history[name].bind(history);history[name]=function(...args){window.__ziiplySmokeHistory.push({name,path:location.pathname,nextPath:String(args[2]||'').split('?')[0].slice(0,90)});return original(...args)}};window.addEventListener('popstate',()=>window.__ziiplySmokeHistory.push({name:'popstate',path:location.pathname}));window.addEventListener('beforeunload', () => console.log('ziiply-smoke-beforeunload')); window.addEventListener('pagehide', () => console.log('ziiply-smoke-pagehide')); });
     page.on('console', message => { if (/ziiply-smoke-(beforeunload|pagehide)/.test(message.text())) console.log(JSON.stringify({check:'browser-lifecycle',message:message.text()})); });
-    await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
+    // The bottom navigation's "Hae" button closes the search overlay.
+    // The real product search is dispatched by the Justiina assistant button.
+    // Selecting Hae here previously created a false negative without a search request.
+    await page.getByRole('button', { name: 'Justiina', exact: true }).click({ timeout: 10000 });
     await page.waitForTimeout(2500);
     const afterSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),visibleTextareas:[...document.querySelectorAll('textarea')].filter(e=>!!e.getClientRects().length).length,historyActions:window.__ziiplySmokeHistory||[],navigationType:performance.getEntriesByType('navigation').map(e=>e.type)}));
     console.log(JSON.stringify({check:'search-submit-transition',beforeSubmit,afterSubmit,navigations,documentRequests,searchNetwork,pageErrors}));
