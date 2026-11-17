@@ -30,7 +30,7 @@ export function isTjekNonGroceryDepartment(slug: unknown): boolean {
  * Keep these narrowly scoped, source-verified product exclusions separate from
  * broad department rules; never classify food by an old inferred category. */
 const TJEK_NON_GROCERY_TITLE_PATTERN =
-  /HIUSTENMUOTOILULAITTEET|PARRANAJOKONE|SÄHKÖHAMMASHARJA|LED-VALOMASKI|\bTRIMMERI\b|LIHASHUOLTOVASARA|DIAGNOSTIIKKAVAAKA|\bPÖLYHUISKAA\b|\bVAIHTOTERÄ\b|PERHOSORKIDEA/i;
+  /HIUSTENMUOTOILULAITTEET|PARRANAJOKONE|SÄHKÖHAMMASHARJA|LED-VALOMASKI|\bTRIMMERI\b|LIHASHUOLTOVASARA|DIAGNOSTIIKKAVAAKA|\bPÖLYHUISKAA\b|VAIHTOTERÄ|PERHOSORKIDEA/i;
 
 export function filterTjekGroceryRows<T extends {title?: unknown;name?: unknown;debug?: {tjekDepartmentSlug?: unknown};tjekDepartmentSlug?: unknown}>(rows: T[]): T[] {
   return rows.filter(row => {
