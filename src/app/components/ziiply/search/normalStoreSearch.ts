@@ -172,15 +172,25 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     const items=readSearchProducts(batch.data) as any[];
     for(const x of items){
       if (batch.chain === "LIDL") {
-        if (x.source === "lidl.fi-public-research" && x.priceVerified === false &&
-            x.name && desktopSearchDecision(query, x).accepted) {
-          const key = String(x.id ?? x.name);
-          if (!research.has(key)) research.set(key, {
-            ...x, ean: "", price: null, storeItems: [], __price: null,
-            __chain: "LIDL", __store: "Lidlin julkinen tuoteluettelo",
-          });
+        // Public research identifies products, not their local prices.
+        // A future store-specific Lidl quote may be included only with
+        // explicit verification and a matching, nonempty store identifier.
+        const verifiedLocalPrice = x.priceVerified === true
+          && x.priceScope === "local_store"
+          && String(x.priceStoreId ?? "").trim().length > 0
+          && String(batch.store.id ?? "").trim().length > 0
+          && String(x.priceStoreId) === String(batch.store.id);
+        if (!verifiedLocalPrice) {
+          if (x.source === "lidl.fi-public-research" && x.priceVerified === false &&
+              x.name && desktopSearchDecision(query, x).accepted) {
+            const key = String(x.id ?? x.name);
+            if (!research.has(key)) research.set(key, {
+              ...x, ean: "", price: null, storeItems: [], __price: null,
+              __chain: "LIDL", __store: "Lidlin julkinen tuoteluettelo",
+            });
+          }
+          continue;
         }
-        continue;
       }
       const {product: baseProduct, rawPrice, priceIsEuros, euro}=shapeStoreRow(x,batch.store,batch.data?.source);
       const product=withEvidence(baseProduct);
@@ -188,7 +198,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       // Tokmanni's web catalog does not prove the price or availability at a
       // selected local EUROSPAR/Tokmanni store. Keep its products as catalog
       // evidence, but do not use web prices in a local cheapest-basket quote.
-      const localPriceVerified = batch.chain !== "SPAR" && batch.chain !== "TOKMANNI"
+      const localPriceVerified = !["SPAR", "TOKMANNI", "LIDL"].includes(batch.chain)
         || (x.priceVerified === true && x.priceScope === "local_store"
           && String(x.priceStoreId ?? "").trim().length > 0
           && String(batch.store.id ?? "").trim().length > 0
