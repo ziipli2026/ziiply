@@ -134,16 +134,19 @@ test('Monta live all chains: '+device,async({browser})=>{
       await expect(compareButton,'Basket must expose Halpuusvertailu').toBeVisible({timeout:15000});
       await compareButton.click();
     }
-    await expect(page.getByText(/Halpuusvertailu|Hintavertailu/).filter({visible:true}).first()).toBeVisible({timeout:30000});
+    await expect(page.getByText(device==='mobile'?/^Vertailu$/:/Halpuusvertailu|Hintavertailu/).filter({visible:true}).first()).toBeVisible({timeout:30000});
+    // Do not treat the desktop loading placeholder as completed comparison evidence.
+    if(device==='desktop')await expect(page.getByText('Vertailutuloksia haetaan…').filter({visible:true})).toHaveCount(0,{timeout:45000});
     result.compareText=(await page.locator('body').innerText()).slice(-6500);
     expect(result.compareText).not.toMatch(/Vertailutuloksia ei ole saatavilla|Ei vertailua/);
     result.compareChainEvidence=Object.fromEntries(['Prisma','K-Citymarket','Lidl','Tokmanni','EUROSPAR'].map(name=>[name,result.compareText.toLowerCase().includes(name.toLowerCase())]));
+    // Always persist the actual comparison screenshot before any missing-chain assertion.
+    result.cart=await page.evaluate(()=>({mobile:localStorage.getItem('ziiply-cart-v1'),desktop:sessionStorage.getItem('ziiply-desktop-current-cart-v1')}));
+    await page.screenshot({path:'test-results/monta-'+device+'-comparison.png',fullPage:true});
     expect(result.compareChainEvidence.Prisma,'S store absent from comparison').toBe(true);
     expect(result.compareChainEvidence['K-Citymarket'],'K store absent from comparison').toBe(true);
     expect(result.compareChainEvidence.Lidl,'Lidl absent from comparison').toBe(true);
     expect(result.compareChainEvidence.Tokmanni||result.compareChainEvidence.EUROSPAR,'Tokmanni/SPAR absent from comparison').toBe(true);
-    result.cart=await page.evaluate(()=>({mobile:localStorage.getItem('ziiply-cart-v1'),desktop:sessionStorage.getItem('ziiply-desktop-current-cart-v1')}));
-    await page.screenshot({path:'test-results/monta-'+device+'-comparison.png',fullPage:true});
     for(const [chain,count] of Object.entries(chains))expect(count,'No successful real '+chain+' product API response').toBeGreaterThan(0);
     for(const chain of ['lidl','tokmanni']){
       const audit=result.chainAcceptance[chain];
