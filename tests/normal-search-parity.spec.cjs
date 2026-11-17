@@ -48,7 +48,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       const input=device==='mobile'?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true}):page.getByRole('textbox',{name:'Hae tuotteita'});
       const results=[];
       fs.mkdirSync('normal-search-evidence',{recursive:true});
-      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress.json',JSON.stringify({base,device,results,apiResponses:apiResponses.slice(-100),errors},null,2));
+      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress-'+device+'.json',JSON.stringify({base,device,results,apiResponses:apiResponses.slice(-100),errors},null,2));
       checkpoint();
       for(const query of queries){
         const startedAt=Date.now();
