@@ -847,7 +847,7 @@ export default function DesktopPreviewPage() {
       if (timer) clearInterval(timer);
       if (htmlScanner) void htmlScanner.stop().catch(() => undefined);
     };
-    const startMobileDecoder = async () => {
+    const startMobileDecoder = async () => {\n      if (!navigator.mediaDevices?.getUserMedia) throw new Error("Selaimen kamerarajapinta ei ole käytettävissä");
       setDesktopScannerMessage("Käynnistetään kameran vaihtoehtoinen EAN-tunnistus…");
       const { HTML5_QRCODE_SCRIPT_URL } = await import("../components/ziiply/ziiplyCore");
       if (!(window as any).Html5Qrcode) {
@@ -856,7 +856,7 @@ export default function DesktopPreviewPage() {
           const script = existing || document.createElement("script");
           script.addEventListener("load", () => resolve(), { once: true });
           script.addEventListener("error", () => reject(new Error("Skannerikirjastoa ei voitu ladata")), { once: true });
-          if (!existing) { script.src = HTML5_QRCODE_SCRIPT_URL; script.async = true; document.body.appendChild(script); }
+          if (!existing) { script.src = HTML5_QRCODE_SCRIPT_URL; script.async = true; document.body.appendChild(script); }\n          else if ((window as any).Html5Qrcode) resolve();
         });
       }
       if (stopped) return;
@@ -870,10 +870,10 @@ export default function DesktopPreviewPage() {
     const start = async () => {
       try {
         const Detector = (window as any).BarcodeDetector;
-        if (!Detector) { await startMobileDecoder(); return; }
+        if (!Detector) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
         const supported: string[] = typeof Detector.getSupportedFormats === "function" ? await Detector.getSupportedFormats() : ["ean_13","ean_8","upc_a","upc_e"];
         const formats = ["ean_13","ean_8","upc_a","upc_e"].filter(format => supported.includes(format));
-        if (!formats.length) { await startMobileDecoder(); return; }
+        if (!formats.length) { try { await startMobileDecoder(); } catch (error) { if (!stopped) { const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error); console.error("[Ziiply desktop Safari scanner fallback]", error); setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin."); } } return; }
         const detector = new Detector({ formats });
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
         if (stopped) { stream.getTracks().forEach(track => track.stop()); return; }
@@ -898,7 +898,7 @@ export default function DesktopPreviewPage() {
         nativeVideo = null;
         if (!stopped) {
           try { await startMobileDecoder(); }
-          catch { if (!stopped) setDesktopScannerMessage("Kameraa tai EAN-tunnistusta ei saatu käyttöön. Voit syöttää EAN-koodin käsin."); }
+          catch (error) {\n            if (!stopped) {\n              const reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error);\n              console.error("[Ziiply desktop Safari scanner fallback]", error);\n              setDesktopScannerMessage("EAN-skannerin käynnistys epäonnistui: " + reason + ". Voit syöttää EAN-koodin käsin.");\n            }\n          }
         }
       }
     };
