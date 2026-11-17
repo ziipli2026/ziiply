@@ -330,7 +330,7 @@ jobs:
                     const lidlNotice = search.getByText(/Hinta ei vahvistettu|Hinta vahvistamatta|ei vahvistettu/i).filter({visible:true});
                     // Unpriced research products are intentionally absent from the priced results.
                     // Do not wait for an obsolete research card or notice.
-                    else if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
+                    if (extra) assert.equal(await lidlNotice.count(), 0, 'sugar-free products are not sugar matches');
                     if (chain === 'S' || chain === 'K') await prices.first().waitFor({timeout:90000});
                     // Results may render from Neon/K before the parallel S request completes.
                     // Wait for all required provider responses, then assert their real status.
