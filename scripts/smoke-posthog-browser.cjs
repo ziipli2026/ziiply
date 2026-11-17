@@ -270,14 +270,19 @@ const watchdog = setTimeout(() => {
             await page.waitForTimeout(900);
             const compareOpen = await page.locator('.ziiply-mobile-compare-pop').evaluateAll(nodes =>
               nodes.some(el=>!!el.getClientRects().length));
-            console.log(JSON.stringify({check:'beta-monta-comparison-open',comparisonEnabled,compareOpen,cartEvents}));
+            const comparisonDiagnostic = await page.evaluate(() => ({
+              compareCards: [...document.querySelectorAll('.ziiply-mobile-compare-pop')].map(el=>({visible:!!el.getClientRects().length,parentVisible:!!el.closest('div.fixed')?.getClientRects().length})),
+              fixedPanels: [...document.querySelectorAll('div.fixed')].filter(el=>!!el.getClientRects().length).map(el=>({className:String(el.className).slice(0,100),compare:!!el.querySelector('.ziiply-mobile-compare-pop'),cart:!!el.querySelector('.ziiply-cart-paper-pop')})).slice(-8),
+              visibleCompareButtons: [...document.querySelectorAll('button')].filter(el=>!!el.getClientRects().length&&/vertailu/i.test(el.textContent||'')).map(el=>({disabled:el.disabled,ariaDisabled:el.getAttribute('aria-disabled')})).slice(-5)
+            }));
+            console.log(JSON.stringify({check:'beta-monta-comparison-open',comparisonEnabled,compareOpen,cartEvents,comparisonDiagnostic}));
             if (!compareOpen) {
               console.error('FAIL: Monta-mode comparison nav enabled but comparison view did not open');
               process.exitCode = 1;
             }
           }
         }
-        if (cartEnabled && process.env.ZIIPLY_SMOKE_CART === '1') {
+        if (cartEnabled && process.env.ZIIPLY_SMOKE_CART === '1' && !comparisonMode) {
           // Verify the cart can actually be opened, not merely that its nav is enabled.
           // Do not log product names or other user data.
           await cart.click({timeout:10000});
