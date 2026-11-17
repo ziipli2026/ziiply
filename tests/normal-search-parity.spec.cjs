@@ -54,14 +54,24 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         const startedAt=Date.now();
         console.log('[normal-parity] start',device,query);
         checkpoint();
+        // The mobile findings dialog covers the search controls after a completed
+        // search. Close it before submitting a new query, otherwise Playwright's
+        // actionability auto-wait can hang behind its backdrop until the global timeout.
+        if(device==='mobile'){
+          const closeFindings=page.getByRole('button',{name:'Sulje löydökset',exact:true}).filter({visible:true});
+          if(await closeFindings.count()){
+            await closeFindings.first().click({timeout:8000});
+            console.log('[normal-parity] closed findings before',device,query);
+          }
+        }
         if(device==='desktop'&&!await input.isVisible().catch(()=>false)){
           const reopen=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
           if(await reopen.count())await reopen.first().click();
         }
         await expect(input).toBeVisible({timeout:15000});
-        await input.fill(query);
-        if(device==='desktop')await input.press('Enter');
-        else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click();
+        await input.fill(query,{timeout:12000});
+        if(device==='desktop')await input.press('Enter',{timeout:12000});
+        else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click({timeout:12000});
         const cards=page.locator('[data-testid="normal-search-result"][data-ean]');
         // Mobile may keep the findings sheet closed after a previous selection.
         // Reopen the existing results instead of treating a hidden sheet as an empty search.
