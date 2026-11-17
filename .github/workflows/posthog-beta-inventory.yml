@@ -30,7 +30,18 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright
           npx playwright install --with-deps chromium
-      - name: Check deployed Ziiply in mobile Chromium
+      # This public URL serves main, not this PR's preview build. It is diagnostic only.
+      # Keep the branch's source/privacy regression checks blocking.
+      - name: Check deployed main in mobile Chromium (diagnostic)
+        id: deployed_smoke
+        continue-on-error: true
         env:
           ZIIPLY_SMOKE_URL: https://ziiply.vercel.app/
         run: node scripts/smoke-posthog-browser.cjs
+
+      - name: Report deployed-main analytics status
+        if: always()
+        run: |
+          if [ "${{ steps.deployed_smoke.outcome }}" != "success" ]; then
+            echo '::warning::Deployed main has not demonstrated PostHog event ingestion. Feature-flag requests are not event proof. The PR branch must be validated on its own preview before merge.'
+          fi
