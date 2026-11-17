@@ -555,7 +555,7 @@ export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
   const provider = String((item as ZiiplyGostaOfferLike & { provider?: string }).provider ?? "");
   const localCitymarketTjek = provider === "kcitymarket-local" &&
     source === "K-Citymarket kauppakohtainen julkaisu";
-  if (localCitymarketTjek && eanMatch === "ean" && typeof eanCategory === "string" &&
+  if (localCitymarketTjek && (eanMatch === "ean" || eanMatch === "catalog-identity") && typeof eanCategory === "string" &&
       GOSTA_CATEGORY_LABELS_V136.includes(eanCategory)) return eanCategory;
 
   const verifiedCategory = getVerifiedOfferCategory(item);
