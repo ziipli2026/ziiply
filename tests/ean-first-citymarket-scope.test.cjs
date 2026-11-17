@@ -9,7 +9,7 @@ const section = core.split('export function getOfferCategoryV106(')[1].split('ex
 test('EAN override is restricted to local Citymarket Tjek publication provenance', () => {
   assert.match(section, /provider === "kcitymarket-local"/);
   assert.match(section, /source === "K-Citymarket kauppakohtainen julkaisu"/);
-  assert.match(section, /if \(localCitymarketTjek && eanMatch === "ean"/);
+  assert.match(section, /if \(localCitymarketTjek && \(eanMatch === "ean" \|\| eanMatch === "catalog-identity"\)/);
   assert.doesNotMatch(section, /eanMatch === "exact-name"/);
 });
 
