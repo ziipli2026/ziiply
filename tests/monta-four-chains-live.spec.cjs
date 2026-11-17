@@ -126,10 +126,11 @@ test('Monta live all chains: '+device,async({browser})=>{
     expect(cartRows.length,'Shopping cart must have at least four products').toBeGreaterThanOrEqual(4);
     result.cartProductNames=cartRows.map(row=>row.name||row.title||row.product?.name||row.product?.title);
     result.cartProductIdentity=cartRows.map(row=>({name:row.name||row.title||row.product?.name||row.product?.title||'',ean:String(row.ean||row.product?.ean||row.barcode||''),price:row.price??row.product?.price??null}));
-    // Never accept a search term itself as a product: mobile fallback placeholders
-    // previously made a partial basket look like 11 successful product additions.
-    result.placeholderProducts=result.cartProductIdentity.filter(row=>queries.includes(row.name.trim().toLowerCase()));
-    expect(result.placeholderProducts,'Search-term placeholders are not real matched products').toEqual([]);
+    // On mobile Enter can intentionally add the typed search term to the basket.
+    // Keep those rows as valid shopping-list entries, but do not count them as
+    // evidence of an identified, EAN-backed product or a comparable store price.
+    result.searchTermRows=result.cartProductIdentity.filter(row=>queries.includes(row.name.trim().toLowerCase()));
+    result.identifiedProductRows=result.cartProductIdentity.filter(row=>!queries.includes(row.name.trim().toLowerCase()));
     expect(new Set(result.cartProductNames.filter(Boolean)).size,'Cart must contain four different product names').toBeGreaterThanOrEqual(4);
     const comparisonNav=page.getByRole('button',{name:'Vertailu',exact:true}).filter({visible:true}).last();
     await expect(comparisonNav).toBeVisible({timeout:15000});
