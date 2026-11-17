@@ -3,6 +3,7 @@
 // Mark events as internal tests and do not print payloads or user data.
 const { chromium } = require('playwright');
 const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.vercel.app/';
+const searchMode = process.env.ZIIPLY_SMOKE_SEARCH === '1';
 // A hung browser must fail quickly rather than consuming the full CI timeout.
 const watchdog = setTimeout(() => {
   console.error('FAIL: browser smoke exceeded 60 seconds');
@@ -76,6 +77,22 @@ const watchdog = setTimeout(() => {
   await page.getByRole('button', { name: 'Gösta: Tarjoushaku', exact: true }).click({ timeout: 10000, noWaitAfter: true });
   console.log(JSON.stringify({ check: 'gosta-click', stage: 'completed' }));
   await page.waitForTimeout(3000);
+  if (searchMode) {
+    // Preview-only, read-only synthetic search. Never execute against the public main alias.
+    if (url.hostname === 'ziiply.vercel.app' || url.hostname === 'ziiply.fi' || url.hostname === 'www.ziiply.fi') {
+      throw new Error('Search smoke must target an isolated preview deployment, not production');
+    }
+    await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
+    const searchInput = page.locator('textarea').first();
+    await searchInput.fill('maito');
+    await searchInput.press('Enter');
+    await page.waitForTimeout(12000);
+    console.log(JSON.stringify({ check: 'preview-search', started: eventNames.includes('search_started'), outcome: eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) }));
+    if (!eventNames.includes('search_started') || !eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name))) {
+      console.error('FAIL: preview search did not emit start and terminal events');
+      process.exitCode = 1;
+    }
+  }
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses }));
   if (!eventResponses.some(status => status >= 200 && status < 300) || failures.length || eventResponses.some(status => status >= 400)) {
     console.error('FAIL: no successful PostHog event-ingest response (feature-flag requests do not count)');
