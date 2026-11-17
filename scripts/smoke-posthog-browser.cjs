@@ -28,12 +28,25 @@ const watchdog = setTimeout(() => {
   const searchTypes = [];
   const payloadShapes = [];
   const searchNetwork = [];
+  const serverAnalytics = [];
+  const serverAnalyticsResponses = [];
   const pageErrors = [];
   const navigations = [];
   const documentRequests = [];
   page.on('request', request => { if (request.isNavigationRequest() && documentRequests.length < 12) documentRequests.push({method:request.method(),path:new URL(request.url()).pathname,resourceType:request.resourceType()}); });
   page.on('response', response => { if (response.request().isNavigationRequest() && documentRequests.length < 12) documentRequests.push({status:response.status(),path:new URL(response.url()).pathname,location:response.headers()['location'] ? 'redirect' : undefined}); });
   page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations.push({urlPath:new URL(frame.url()).pathname,host:new URL(frame.url()).hostname}); });
+  page.on('request', request => {
+    if (new URL(request.url()).pathname !== '/api/analytics/search' || request.method() !== 'POST') return;
+    try {
+      const body = JSON.parse(request.postData() || '{}');
+      serverAnalytics.push({event:body.event,kind:body.search_kind,outcome:body.outcome,hasAnonymousId:typeof body.anonymous_user_id==='string'});
+    } catch { serverAnalytics.push({parse:'failed'}); }
+  });
+  page.on('response', response => {
+    if (new URL(response.url()).pathname !== '/api/analytics/search') return;
+    void response.json().then(body => serverAnalyticsResponses.push({status:response.status(),accepted:body?.accepted===true})).catch(() => serverAnalyticsResponses.push({status:response.status(),accepted:false}));
+  });
   page.on('pageerror', err => pageErrors.push(String(err.message).slice(0,160)));
   page.on('request', request => { const u = new URL(request.url()); if (u.pathname.startsWith('/api/') && searchNetwork.length < 25) searchNetwork.push({method:request.method(),path:u.pathname}); });
   page.on('response', response => {
@@ -181,9 +194,14 @@ const watchdog = setTimeout(() => {
     await page.waitForTimeout(12000);
     const searchStatus = await page.evaluate(() => ({ visibleText:document.body.innerText.slice(-650), visibleInputs:[...document.querySelectorAll('textarea,input')].filter(e=>!!e.getClientRects().length).map(e=>({tag:e.tagName,placeholder:e.getAttribute('placeholder')})), visibleButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length).map(e=>({text:(e.textContent||'').trim().slice(0,45),disabled:e.disabled})).slice(-12) }));
     console.log(JSON.stringify({check:'search-after-submit',searchStatus,searchNetwork,pageErrors}));
-    console.log(JSON.stringify({ check: 'preview-search', started: eventNames.includes('search_started'), outcome: eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) }));
-    if (!eventNames.includes('search_started') || !eventNames.some(name => ['search_priced_results_shown', 'search_no_priced_results', 'search_failed'].includes(name)) || !searchTypes.length) {
-      console.error('FAIL: preview search did not emit start and terminal events');
+    // Search telemetry uses the server-side /api/analytics/search proxy,
+    // not the browser SDK /ph-ingest endpoint.
+    const started = serverAnalytics.some(e=>e.event==='search_started'&&e.kind==='normal');
+    const completed = serverAnalytics.some(e=>e.event==='search_completed'&&e.kind==='normal'&&['priced_results','no_priced_results','partial_source_failure','error'].includes(e.outcome));
+    const accepted = serverAnalyticsResponses.some(e=>e.status===200&&e.accepted);
+    console.log(JSON.stringify({check:'preview-search',started,completed,accepted,events:serverAnalytics.map(e=>({event:e.event,kind:e.kind,outcome:e.outcome})),responses:serverAnalyticsResponses}));
+    if (!started || !completed || !accepted) {
+      console.error('FAIL: normal search missing server telemetry start/completion or accepted PostHog delivery');
       process.exitCode = 1;
     }
   }
@@ -192,8 +210,10 @@ const watchdog = setTimeout(() => {
     process.exitCode = 1;
   }
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses }));
-  if (!eventResponses.some(status => status >= 200 && status < 300) || failures.length || eventResponses.some(status => status >= 400)) {
-    console.error('FAIL: no successful PostHog event-ingest response (feature-flag requests do not count)');
+  // Autocapture and pageviews are intentionally disabled; navigation alone
+  // does not need to generate a client capture.
+  if (failures.length || eventResponses.some(status => status >= 400)) {
+    console.error('FAIL: browser PostHog ingestion request failed');
     process.exitCode = 1;
   }
   await browser.close();
