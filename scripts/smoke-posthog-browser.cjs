@@ -30,6 +30,9 @@ const watchdog = setTimeout(() => {
   const searchNetwork = [];
   const pageErrors = [];
   const navigations = [];
+  const documentRequests = [];
+  page.on('request', request => { if (request.isNavigationRequest() && documentRequests.length < 12) documentRequests.push({method:request.method(),path:new URL(request.url()).pathname,resourceType:request.resourceType()}); });
+  page.on('response', response => { if (response.request().isNavigationRequest() && documentRequests.length < 12) documentRequests.push({status:response.status(),path:new URL(response.url()).pathname,location:response.headers()['location'] ? 'redirect' : undefined}); });
   page.on('framenavigated', frame => { if (frame === page.mainFrame()) navigations.push({urlPath:new URL(frame.url()).pathname,host:new URL(frame.url()).hostname}); });
   page.on('pageerror', err => pageErrors.push(String(err.message).slice(0,160)));
   page.on('request', request => { const u = new URL(request.url()); if (u.pathname.startsWith('/api/') && searchNetwork.length < 25) searchNetwork.push({method:request.method(),path:u.pathname}); });
@@ -137,10 +140,12 @@ const watchdog = setTimeout(() => {
     const beforeSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),buttonDisabled:[...document.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')==='Hae')?.disabled}));
     const submitMechanics = await page.evaluate(() => {const b=[...document.querySelectorAll('button')].find(e=>e.getAttribute('aria-label')==='Hae');return {type:b?.getAttribute('type'),formTag:b?.closest('form')?.tagName||null,formMethod:b?.closest('form')?.getAttribute('method')||null,formAction:b?.closest('form')?.getAttribute('action')||null,outerHTML:b?.outerHTML.slice(0,420)}});
     console.log(JSON.stringify({check:'search-submit-mechanics',submitMechanics}));
+    await page.evaluate(() => { window.addEventListener('beforeunload', () => console.log('ziiply-smoke-beforeunload')); window.addEventListener('pagehide', () => console.log('ziiply-smoke-pagehide')); });
+    page.on('console', message => { if (/ziiply-smoke-(beforeunload|pagehide)/.test(message.text())) console.log(JSON.stringify({check:'browser-lifecycle',message:message.text()})); });
     await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
     await page.waitForTimeout(2500);
     const afterSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),visibleTextareas:[...document.querySelectorAll('textarea')].filter(e=>!!e.getClientRects().length).length}));
-    console.log(JSON.stringify({check:'search-submit-transition',beforeSubmit,afterSubmit,navigations,searchNetwork,pageErrors}));
+    console.log(JSON.stringify({check:'search-submit-transition',beforeSubmit,afterSubmit,navigations,documentRequests,searchNetwork,pageErrors}));
     await page.waitForTimeout(12000);
     const searchStatus = await page.evaluate(() => ({ visibleText:document.body.innerText.slice(-650), visibleInputs:[...document.querySelectorAll('textarea,input')].filter(e=>!!e.getClientRects().length).map(e=>({tag:e.tagName,placeholder:e.getAttribute('placeholder')})), visibleButtons:[...document.querySelectorAll('button')].filter(e=>!!e.getClientRects().length).map(e=>({text:(e.textContent||'').trim().slice(0,45),disabled:e.disabled})).slice(-12) }));
     console.log(JSON.stringify({check:'search-after-submit',searchStatus,searchNetwork,pageErrors}));
