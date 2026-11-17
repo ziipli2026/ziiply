@@ -37,6 +37,9 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     posthog.init(
       'phc_yUGdeyjeZABknZazoazcsLfBhDwuZ8NBTDxXUxN2EweJ',
       {
+        // Headless Chromium is filtered as a bot by default. Only explicit
+        // preview CI tests may bypass that filter; production stays protected.
+        opt_out_useragent_filter: !isProduction && testParam === '1',
         api_host: '/ph-ingest',
         ui_host: 'https://eu.posthog.com',
         person_profiles: 'identified_only',
