@@ -1,0 +1,19 @@
+name: Audit Hyvinkaa local Tjek categories
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit-hyvinkaa-tjek-departments.mjs'
+      - 'scripts/fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs'
+      - '.github/workflows/audit-hyvinkaa-tjek-categories.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compare public Tjek source departments with saved category baseline
+        run: node scripts/audit-hyvinkaa-tjek-departments.mjs
