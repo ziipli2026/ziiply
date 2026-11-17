@@ -2,7 +2,12 @@
 // Browser smoke against deployed Ziiply; never writes to production data.
 // Mark events as internal tests and do not print payloads or user data.
 const { chromium } = require('playwright');
-const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
+const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.vercel.app/';
+// A hung browser must fail quickly rather than consuming the full CI timeout.
+const watchdog = setTimeout(() => {
+  console.error('FAIL: browser smoke exceeded 60 seconds');
+  process.exit(1);
+}, 60000);
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ locale: 'fi-FI', viewport: { width: 390, height: 844 } });
@@ -60,7 +65,9 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
   // Do not create a cart or submit a search in production. Observe only
   // automatic activity and provider initialization.
   // Switch a read-only app tab to exercise explicit navigation analytics.
-  await page.getByRole('button', { name: /^Gösta/ }).click({ timeout: 10000 });
+  console.log(JSON.stringify({ check: 'gosta-click', stage: 'starting' }));
+  await page.getByRole('button', { name: /^Gösta/ }).click({ timeout: 10000, noWaitAfter: true });
+  console.log(JSON.stringify({ check: 'gosta-click', stage: 'completed' }));
   await page.waitForTimeout(3000);
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags }));
   if (captures.length === 0 || !responses.some(r => r.status === 200) || failures.length || responses.some(r => r.status >= 400)) {
@@ -68,6 +75,7 @@ const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.fi/';
     process.exitCode = 1;
   }
   await browser.close();
+  clearTimeout(watchdog);
   if (!response || response.status() >= 400) process.exitCode = 1;
   // No events are expected until a user interaction because autocapture and
   // automatic pageview tracking are intentionally disabled.
