@@ -2564,7 +2564,10 @@ export default function DesktopPreviewPage() {
       .sort((a,b)=>b.rank-a.rank||a.index-b.index).map(row=>row.product);
   }
 
+  const activeDesktopNormalSearchAbortRef = useRef<AbortController | null>(null);
   async function startDesktopNormalSearch(raw=justiinaQuery) {
+    activeDesktopNormalSearchAbortRef.current?.abort();
+    activeDesktopNormalSearchAbortRef.current = new AbortController();
     cancelDesktopVoiceList();
     recipeSearchStepRef.current=-1;
     recipeSearchItemsRef.current=[];
@@ -2618,7 +2621,7 @@ export default function DesktopPreviewPage() {
         }
       }
       const { sortedRows, rankedRows, failures, batches, rows, productDecisions } = await searchNormalStores(query, stores, {
-        signal: diagnostic?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
+        signal: diagnostic?.signal ?? activeDesktopNormalSearchAbortRef.current?.signal, observe: diagnostic ? report : undefined, trace: diagnostic ? undefined : traceNormal,
         onCachedRows: diagnostic ? undefined : cachedRows => {
           if (generation !== desktopVoiceRunRef.current) return;
           setJustiinaResults(cachedRows);
