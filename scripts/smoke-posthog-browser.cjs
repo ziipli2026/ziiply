@@ -102,6 +102,18 @@ const watchdog = setTimeout(() => {
     if (url.hostname === 'ziiply.vercel.app' || url.hostname === 'ziiply.fi' || url.hostname === 'www.ziiply.fi') {
       throw new Error('Search smoke must target an isolated preview deployment, not production');
     }
+    // Establish a real store before searching: fresh CI browsers have no GPS
+    // permission and can otherwise take the no-store early return.
+    await page.getByRole('button', { name: 'Kaupat', exact: true }).click({ timeout: 10000 });
+    await page.waitForTimeout(800);
+    const storePicker = await page.evaluate(() => ({
+      visibleText: document.body.innerText.slice(-1100),
+      choices: [...document.querySelectorAll('button,[role="button"]')]
+        .filter(e=>!!e.getClientRects().length)
+        .map(e=>({text:(e.textContent||'').trim().slice(0,90),aria:e.getAttribute('aria-label')}))
+        .filter(e=>/Prisma|Citymarket|S-market|Kaupat|Valitse|Hyvinkää/i.test(e.text+' '+e.aria)).slice(0,20)
+    }));
+    console.log(JSON.stringify({check:'store-picker-before-search',storePicker}));
     // The initial comparison dashboard hides its search textarea. The visible
     // Justiina: Tuotehaku navigation button opens the normal product search,
     // unlike Justiina: Reseptit which opens the separate recipe search.
