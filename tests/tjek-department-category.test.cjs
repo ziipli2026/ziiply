@@ -43,3 +43,11 @@ test('read-only Tjek audit exclusions match the production parser allowlist',()=
  assert.deepEqual(auditDepartments.slice().sort(),parserDepartments.slice().sort());
  for(const department of auditDepartments)assert.equal(moduleExports.isTjekNonGroceryDepartment(department),true);
 });
+
+test('local Tjek non-grocery rejection happens before offer acceptance',()=>{
+ const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
+ const reject=provider.indexOf('if (isTjekNonGroceryDepartment(sourceDepartment))');
+ const accepted=provider.indexOf('acceptedOfferKeys.add(offerKey)',reject);
+ const pushed=provider.indexOf('entry.rows.push(',reject);
+ assert.ok(reject>0 && accepted>reject && pushed>accepted,'excluded source departments must never enter accepted rows');
+});
