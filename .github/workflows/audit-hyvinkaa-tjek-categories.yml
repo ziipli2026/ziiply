@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'scripts/audit-hyvinkaa-tjek-departments.mjs'
+      - 'scripts/prepare-tjek-snapshot-enrichment.mjs'
+      - 'tests/prepare-tjek-snapshot-enrichment.test.cjs'
       - 'scripts/fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs'
       - '.github/workflows/audit-hyvinkaa-tjek-categories.yml'
   workflow_dispatch:
@@ -15,6 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify safe offline snapshot enrichment
+        run: node --test tests/prepare-tjek-snapshot-enrichment.test.cjs
       - name: Compare public Tjek source departments with saved category baseline
         run: node scripts/audit-hyvinkaa-tjek-departments.mjs
       - name: Upload verified department manifest for review
