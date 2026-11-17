@@ -37,11 +37,18 @@ assert.equal(excludedCount,72,'source department exclusion count changed');
 assert.equal(enriched.length-excludedCount,67);
 // Execute the actual shared TypeScript filter against all 139 enriched Neon rows.
 const provider=readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts','utf8');
-assert.ok(provider.includes('const fallback = filterTjekGroceryRows((await readPublishedSnapshot(fallbackKey) ?? []))'),'provider must call tested filter');
+assert.ok(provider.includes('const fallback = filterTjekGroceryRows((await readPublishedSnapshot(fallbackKey) ?? []))'),'snapshot path must call tested filter');
+assert.ok(provider.includes('const live = filterTjekGroceryRows(entry?.rows ?? [])'),'live path must call tested filter');
 const categorySource=readFileSync('src/app/components/ziiply/offerSearch/tjekDepartmentCategory.ts','utf8');
 const compiled=ts.transpileModule(categorySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const exports={};vm.runInNewContext(compiled,{exports});
 const visible=exports.filterTjekGroceryRows(enriched);
+// Both selected-store entry paths must expose the same offer identities and ordering.
+const liveVisible=exports.filterTjekGroceryRows(enriched.map(row=>({...row,debug:{...row.debug}})));
+const snapshotVisible=exports.filterTjekGroceryRows(enriched);
+assert.deepEqual(liveVisible.map(row=>row.offerId),snapshotVisible.map(row=>row.offerId),'live/snapshot offer IDs or ordering differ');
+assert.deepEqual(liveVisible.map(row=>({id:row.offerId,price:row.price,category:row.category})),snapshotVisible.map(row=>({id:row.offerId,price:row.price,category:row.category})),'live/snapshot offer fields differ');
+assert.equal(new Set(visible.map(row=>row.offerId)).size,67,'duplicate offer IDs in remaining offers');
 assert.equal(visible.length,67);
 assert.ok(visible.every(row=>!excluded.has(row.debug.tjekDepartmentSlug)));
 for(const row of visible)assert.equal(row,enriched.find(original=>original.offerId===row.offerId),'filter must preserve offer rows without mutation');
