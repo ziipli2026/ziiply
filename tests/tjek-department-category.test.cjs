@@ -15,3 +15,12 @@ test('only local Tjek parser uses department mapper',()=>{
   assert.match(provider,/category:sourceCategory \?\? classifyCitymarketCategory\(title\)/);
   assert.match(provider,/categorySource:sourceCategory \? "tjek-department" : "legacy-title"/);
 });
+
+test('Gosta respects verified local Tjek category after EAN priority',()=>{
+ const core=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/ziiplyOfferCategoryCore.ts'),'utf8');
+ const ean=core.indexOf('if (localCitymarketTjek && (eanMatch');
+ const dept=core.indexOf('tjekDebug?.categorySource === "tjek-department"');
+ const title=core.indexOf('const verifiedCategory = getVerifiedOfferCategory(item);');
+ assert.ok(ean>=0&&dept>ean&&title>dept,'verified source must precede title overrides, but follow exact EAN');
+ assert.match(core,/localCitymarketTjek && tjekDebug\?\.categorySource === "tjek-department"/);
+});
