@@ -20,6 +20,14 @@ const watchdog = setTimeout(() => {
       ? { 'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET }
       : {};
   const page = await browser.newPage({ locale: 'fi-FI', viewport: { width: 390, height: 844 }, extraHTTPHeaders: previewHeaders, ...(searchMode ? { permissions: ['geolocation'], geolocation: { latitude: 60.631, longitude: 24.859 }, timezoneId: 'Europe/Helsinki' } : {}) });
+  const sdkDiagnostics = [];
+  page.on('console', message => {
+    const text = message.text();
+    if (text.startsWith('[ziiply-ph-probe]')) {
+      try { sdkDiagnostics.push(JSON.parse(text.slice('[ziiply-ph-probe]'.length).trim())); }
+      catch { sdkDiagnostics.push({parse:'failed'}); }
+    }
+  });
   const captures = [];
   const failures = [];
   const responses = [];
@@ -336,6 +344,7 @@ const watchdog = setTimeout(() => {
     console.error('FAIL: PostHog events missing internal-test marker');
     process.exitCode = 1;
   }
+  console.log(JSON.stringify({check:'posthog-sdk-readiness',diagnostics:sdkDiagnostics}));
   console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses }));
   // A preview-only SDK canary must traverse the browser PostHog capture path.
   // A 200 from /flags is not proof of event ingestion.
