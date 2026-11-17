@@ -22,10 +22,17 @@ export async function POST(request: NextRequest) {
     const anonymousUserId = typeof body.anonymous_user_id === "string" &&
       /^a[a-f0-9-]{36}$/.test(body.anonymous_user_id)
       ? body.anonymous_user_id : null;
+    // Only UUID-shaped anonymous SDK IDs may join browser and server streams.
+    // Never accept arbitrary distinct IDs (emails, account IDs or user input).
+    const sdkDistinctId = typeof body.posthog_distinct_id === "string" &&
+      /^[a-f0-9]{8}-[a-f0-9-]{27,40}$/i.test(body.posthog_distinct_id)
+      ? body.posthog_distinct_id : null;
     const props: Record<string, string | number | boolean> = {
       search_id: body.search_id, search_kind: body.search_kind,
       ziiply_environment: request.nextUrl.hostname === "ziiply.fi" || request.nextUrl.hostname === "www.ziiply.fi" ? "production" : "preview",
       ziiply_analytics_schema: 3,
+      ziiply_internal_test: body.ziiply_internal_test === true,
+      ziiply_identity_joined: Boolean(sdkDistinctId),
     };
     if (typeof body.outcome === "string" && OUTCOMES.has(body.outcome)) props.outcome = body.outcome;
     for (const key of ["results_count", "elapsed_ms"]) {
@@ -35,7 +42,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch("https://eu.i.posthog.com/capture/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ api_key: KEY, event: body.event, distinct_id: anonymousUserId ? "ziiply-beta-" + anonymousUserId : "ziiply-search-" + body.search_id, properties: props }),
+      body: JSON.stringify({ api_key: KEY, event: body.event, distinct_id: sdkDistinctId || (anonymousUserId ? "ziiply-beta-" + anonymousUserId : "ziiply-search-" + body.search_id), properties: props }),
       cache: "no-store",
       signal: AbortSignal.timeout(6000),
     });

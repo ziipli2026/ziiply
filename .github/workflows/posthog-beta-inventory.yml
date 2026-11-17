@@ -1,0 +1,97 @@
+name: PostHog beta inventory
+on:
+  push:
+    branches:
+      - test/posthog-beta-audit-20261116
+  pull_request:
+    paths:
+      - 'scripts/audit-posthog-beta.cjs'
+      - 'src/**'
+      - 'package.json'
+      - '.github/workflows/posthog-beta-inventory.yml'
+  workflow_dispatch:
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Typecheck application
+        run: npx tsc --noEmit
+      - name: Check inventory script syntax
+        run: node --check scripts/audit-posthog-beta.cjs
+      - name: Check beta analytics privacy and core event regressions
+        run: node scripts/check-posthog-beta.cjs
+      - name: Inventory PostHog instrumentation
+        run: npm run audit:posthog
+      - name: Audit cart comparison Gosta Justiina identity and privacy
+        run: |
+          node --check scripts/audit-beta-journeys.cjs
+          node scripts/audit-beta-journeys.cjs
+      - name: Verify protected preview access is configured
+        env:
+          VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          if [ -z "$VERCEL_OIDC_TOKEN" ] && [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            echo '::error::Protected Vercel preview requires GitHub Actions secret VERCEL_AUTOMATION_BYPASS_SECRET or VERCEL_PREVIEW_OIDC_TOKEN. The preview browser test cannot run without authenticated access.'
+            exit 1
+          fi
+      - name: Install Chromium for deployed smoke test
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+      - name: Check PR preview event ingestion
+        timeout-minutes: 3
+        env:
+          ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL || 'https://ziiply-git-test-posthog-beta-audit-a22236-ziipli2026s-projects.vercel.app/' }}
+          ZIIPLY_SMOKE_SEARCH: '1'
+          ZIIPLY_SMOKE_CART: '1'
+          VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          node scripts/smoke-posthog-browser.cjs
+
+      - name: Check Monta-mode comparison opens in mobile Chromium
+        timeout-minutes: 3
+        env:
+          ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL || 'https://ziiply-git-test-posthog-beta-audit-a22236-ziipli2026s-projects.vercel.app/' }}
+          ZIIPLY_SMOKE_SEARCH: '1'
+          ZIIPLY_SMOKE_CART: '1'
+          ZIIPLY_SMOKE_COMPARE: '1'
+          VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/smoke-posthog-browser.cjs
+
+      - name: Check four beta journey controls in mobile Chromium
+        timeout-minutes: 3
+        env:
+          ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL || 'https://ziiply-git-test-posthog-beta-audit-a22236-ziipli2026s-projects.vercel.app/' }}
+          VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_PREVIEW_OIDC_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          node --check scripts/smoke-beta-journeys-browser.cjs
+          node scripts/smoke-beta-journeys-browser.cjs
+
+      # This public URL serves main, not this PR's preview build. It is diagnostic only.
+      # Keep the branch's source/privacy regression checks blocking.
+      - name: Check deployed main in mobile Chromium (diagnostic)
+        id: deployed_smoke
+        continue-on-error: true
+        env:
+          ZIIPLY_SMOKE_URL: https://ziiply.vercel.app/
+        run: node scripts/smoke-posthog-browser.cjs
+
+      - name: Report deployed-main analytics status
+        if: always()
+        run: |
+          if [ "${{ steps.deployed_smoke.outcome }}" != "success" ]; then
+            echo '::warning::Deployed main has not demonstrated PostHog event ingestion. Feature-flag requests are not event proof. The PR branch must be validated on its own preview before merge.'
+          fi
