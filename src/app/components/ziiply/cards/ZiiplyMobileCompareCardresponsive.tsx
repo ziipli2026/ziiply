@@ -178,7 +178,7 @@ function getChainLabel(chain?: ZiiplyCompareStore["chain"]) {
   if (chain === "S") return "S";
   if (chain === "K") return "K";
   if (chain === "LIDL") return "L";
-  if (chain === "SPAR") return "SPAR";
+  if (chain === "SPAR") return "SPA";
   return "–";
 }
 
