@@ -78,13 +78,13 @@ test('Monta live all chains: '+device,async({browser})=>{
       // The mobile results sheet can close after a prior product selection.
       // Reopen the existing findings rather than mistaking a closed sheet for zero products.
       if(device==='mobile'){
-        const visibleEans=page.getByText(/EAN \\d{13}/).filter({visible:true});
+        const visibleEans=page.getByText(/EAN \d{13}/).filter({visible:true});
         if(await visibleEans.count()===0){
           const ledger=page.getByRole('button',{name:/Avaa löytöluettelo/i}).filter({visible:true});
           if(await ledger.count())await ledger.first().click();
         }
       }
-      await page.getByText(/EAN \\d{13}/).filter({visible:true}).first().waitFor({timeout:30000}).catch(()=>{});
+      await page.getByText(/EAN \d{13}/).filter({visible:true}).first().waitFor({timeout:30000}).catch(()=>{});
       await page.getByText(/Haetaan lisää tuotteita/).filter({visible:true}).first().waitFor({state:'hidden',timeout:45000}).catch(()=>{});
       await page.waitForTimeout(700);
       const visible=await page.locator('body').innerText();
