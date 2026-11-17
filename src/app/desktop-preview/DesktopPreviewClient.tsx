@@ -1826,7 +1826,7 @@ export default function DesktopPreviewPage() {
     desktopMapStores.length?desktopMapStoreQuery(desktopMapStores[0]):`${appliedLocation||"Hyvinkää"}, Suomi`;
   const desktopMapIframeSrc=`https://maps.google.com/maps?q=${encodeURIComponent(desktopMapQuery)}&z=13&output=embed`;
 
-  function distanceKm(s:any){ if(!gpsCoords)return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const lat=Number(s?.latitude ?? s?.lat); const lon=Number(s?.longitude ?? s?.lon ?? s?.lng); if(!Number.isFinite(lat)||!Number.isFinite(lon))return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const r=6371, p1=gpsCoords.latitude*Math.PI/180, p2=lat*Math.PI/180, dp=(lat-gpsCoords.latitude)*Math.PI/180, dl=(lon-gpsCoords.longitude)*Math.PI/180; const a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2; return 2*r*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
+  function distanceKm(s:any){ if(!gpsOn || !gpsCoords)return Number.POSITIVE_INFINITY; const lat=Number(s?.latitude ?? s?.lat); const lon=Number(s?.longitude ?? s?.lon ?? s?.lng); if(!Number.isFinite(lat)||!Number.isFinite(lon))return Number(s?.distanceKm ?? Number.POSITIVE_INFINITY); const r=6371, p1=gpsCoords.latitude*Math.PI/180, p2=lat*Math.PI/180, dp=(lat-gpsCoords.latitude)*Math.PI/180, dl=(lon-gpsCoords.longitude)*Math.PI/180; const a=Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2; return 2*r*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
   // Keep the last location only for ranking store suggestions after GPS is off.
   const storeRankingCoords = gpsCoords ?? fuelLocationCoords ?? lastStoreRankingCoordsRef.current;
   function independentStoreDistance(store:any) {
