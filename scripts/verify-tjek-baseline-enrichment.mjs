@@ -60,3 +60,5 @@ assert.ok(Object.keys(remainingDepartments).every(slug=>allowedDepartments.has(s
 assert.equal(Object.keys(remainingDepartments).length,11,'source department review coverage changed');
 console.log('TJEK_REMAINING_DEPARTMENTS',JSON.stringify(Object.fromEntries(Object.entries(remainingDepartments).sort((a,b)=>a[0].localeCompare(b[0])))));
 console.log('TJEK_BASELINE_ENRICHMENT_CHECK',JSON.stringify({matched:139,excluded:excludedCount,remaining:visible.length,source:'verified public Tjek API',snapshot:'actual Neon public offer fields captured 2026-11-17',databaseWrites:0}));
+
+// Post-merge CI verification: baseline fixture remains unchanged.
