@@ -1,0 +1,16 @@
+/** Tjek source department is category evidence, not EAN identity. */
+export const TJEK_DEPARTMENT_CATEGORIES: Readonly<Record<string,string>> = Object.freeze({
+  'fruits-and-vegetables':'Hevi',
+  'meat-and-fish':'Liha & makkarat',
+  'beverages':'Juomat',
+  'frozen':'Pakasteet',
+  'household':'Kodinhoito',
+  'beauty':'Hygienia & kosmetiikka',
+});
+/** Return null for broad or uncertain departments (dairy-and-cold, colonial,
+ * bread-and-cakes, electronics, apparel, etc.) until verified mapping exists. */
+export function tjekDepartmentCategory(slug: unknown): string | null {
+  if (typeof slug !== 'string') return null;
+  return Object.prototype.hasOwnProperty.call(TJEK_DEPARTMENT_CATEGORIES,slug)
+    ? TJEK_DEPARTMENT_CATEGORIES[slug] : null;
+}
