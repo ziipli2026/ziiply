@@ -45,6 +45,7 @@ try{
  await context.setGeolocation(LA);
  await gps.click();
  await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
+ console.log('DEBUG after switch',JSON.stringify(await read()));
  await assertNames('l');
  console.log('PASS location change Hyvinkää to Lahti updates all four chain groups');
  await gps.click();
