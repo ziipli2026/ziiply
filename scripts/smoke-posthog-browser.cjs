@@ -223,7 +223,13 @@ const watchdog = setTimeout(() => {
         const cartEnabled = await cart.isEnabled().catch(()=>false);
         const comparisonEnabled = await comparison.isEnabled().catch(()=>false);
         const cartEvents = serverAnalytics.filter(e=>e.event==='product_added_to_cart').length-before;
-        console.log(JSON.stringify({check:'beta-cart-after-search',cartEnabled,comparisonEnabled,cartEvents,serverAnalyticsResponses}));
+        const cartUi = await page.evaluate(() => ({
+          cart: [...document.querySelectorAll('button')].filter(b=>(b.textContent||'').trim()==='Kori').map(b=>({disabled:b.disabled,ariaDisabled:b.getAttribute('aria-disabled'),title:b.title})),
+          compare: [...document.querySelectorAll('button')].filter(b=>(b.textContent||'').trim()==='Vertailu').map(b=>({disabled:b.disabled,ariaDisabled:b.getAttribute('aria-disabled'),title:b.title})),
+          selectedStore: localStorage.getItem('ziiply-store-selection-v536')?.slice(0,500) || null,
+          overlayCartText: [...document.querySelectorAll('div.fixed')].filter(e=>e.className.includes('z-[95]')).map(e=>(e.textContent||'').slice(-400)).slice(0,1)
+        }));
+        console.log(JSON.stringify({check:'beta-cart-after-search',cartEnabled,comparisonEnabled,cartEvents,serverAnalyticsResponses,cartUi}));
         if (!cartEnabled || cartEvents!==1) {
           console.error('FAIL: adding a priced search result did not enable cart or emit exactly one cart telemetry event');
           process.exitCode = 1;
