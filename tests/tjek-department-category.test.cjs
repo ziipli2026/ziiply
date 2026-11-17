@@ -54,5 +54,13 @@ test('local Tjek non-grocery rejection happens before offer acceptance',()=>{
 
 test('stored Tjek snapshots are screened using source department metadata',()=>{
  const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
- assert.match(provider,/const fallback = \(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)[\s\S]*?\.filter\(row => !isTjekNonGroceryDepartment\(\(row\.debug as Row \| undefined\)\?\.tjekDepartmentSlug \?\? row\.tjekDepartmentSlug\)\)/);
+ assert.match(provider,/const fallback = filterTjekGroceryRows\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
+});
+
+test('shared filter removes non-grocery rows from real-shaped persisted snapshots',()=>{
+ const filter=moduleExports.filterTjekGroceryRows;
+ const rows=[{offerId:'a',price:5,debug:{tjekDepartmentSlug:'home'}},{offerId:'b',price:3,debug:{tjekDepartmentSlug:'dairy-and-cold'}},{offerId:'c',price:2,tjekDepartmentSlug:'electronics'},{offerId:'d',price:1,debug:{tjekDepartmentSlug:'garden'}}];
+ const kept=filter(rows);
+ assert.deepEqual(kept.map(x=>x.offerId),['b','d']);
+ assert.equal(kept[0],rows[1]);assert.equal(kept[1],rows[3]);
 });
