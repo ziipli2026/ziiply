@@ -24,3 +24,5 @@ console.log('TJEK_OFFER_FIELD_PATHS',JSON.stringify({offerId:id,paths:paths.slic
 console.log('IDENTIFIER_FIELD_PATHS',JSON.stringify({offerId:id,paths:paths.filter(x=>/ean|gtin|barcode|product.?code|article.?number|sku|identifier/i.test(x.path))}));
 
 }
+
+// Post-merge read-only source inspection rerun.
