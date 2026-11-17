@@ -1,5 +1,7 @@
 "use client";
 
+import posthog from "posthog-js";
+
 /** Privacy-safe search outcome measurement. Call at actual UI state transitions. */
 export type SearchOutcome = "priced_results" | "no_priced_results" | "partial_source_failure" | "error";
 export type SearchKind = "normal" | "ean" | "offer";
@@ -33,6 +35,15 @@ function anonymousSearchUserId(): string {
   return id;
 }
 
+// Reuse the anonymous PostHog SDK identity without calling identify().
+function browserPosthogDistinctId(): string | null {
+  try {
+    if (!posthog.__loaded) return null;
+    const id = posthog.get_distinct_id();
+    return typeof id === "string" && /^[a-f0-9]{8}-[a-f0-9-]{27,40}$/i.test(id) ? id : null;
+  } catch { return null; }
+}
+
 // Deliver via Ziiply's own server endpoint so Safari content blockers cannot
 // silently suppress the PostHog SDK. The server logs the upstream HTTP result.
 const safeCapture = (event: string, props: Record<string, string | number | boolean>) => {
@@ -43,6 +54,7 @@ const safeCapture = (event: string, props: Record<string, string | number | bool
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         event, ...props, anonymous_user_id: anonymousSearchUserId(),
+        posthog_distinct_id: browserPosthogDistinctId(),
         ziiply_internal_test: (() => {
           try { return window.localStorage.getItem("ziiply_internal_test_user") === "1"; }
           catch { return false; }
