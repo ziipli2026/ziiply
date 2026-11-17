@@ -186,7 +186,8 @@ test('Monta live all chains: '+device,async({browser})=>{
     result.finalTitle=await page.title().catch(()=>null);
     result.finalBodyExcerpt=await page.locator('body').innerText({timeout:5000}).then(s=>s.slice(-4000)).catch(()=>null);
     await page.screenshot({path:'test-results/monta-'+device+'-final-state.png',fullPage:true,timeout:10000}).catch(e=>{result.finalScreenshotError=String(e)});
-    fs.writeFileSync('test-results/monta-'+device+'-evidence.json',JSON.stringify(result,null,2));
+    fs.mkdirSync('monta-evidence',{recursive:true});
+    fs.writeFileSync('monta-evidence/monta-'+device+'-evidence.json',JSON.stringify(result,null,2));
     await context.close().catch(()=>{});
   }
 });
@@ -196,7 +197,7 @@ test('Monta live all chains: '+device,async({browser})=>{
 // evidence JSON is written in finally for each device.
 test('Monta: mobile and desktop visible EAN sets match per query',async()=>{
   const load=device=>{
-    const file='test-results/monta-'+device+'-evidence.json';
+    const file='monta-evidence/monta-'+device+'-evidence.json';
     expect(fs.existsSync(file),device+' evidence must exist').toBe(true);
     return JSON.parse(fs.readFileSync(file,'utf8'));
   };
@@ -205,7 +206,7 @@ test('Monta: mobile and desktop visible EAN sets match per query',async()=>{
   const a=byQuery(mobile),b=byQuery(desktop);
   const differences=queries.filter(q=>JSON.stringify(a[q])!==JSON.stringify(b[q])).map(q=>({query:q,mobile:a[q]||[],desktop:b[q]||[]}));
   const missingEvidence=queries.filter(q=>!(a[q]?.length>0&&b[q]?.length>0)).map(q=>({query:q,mobile:a[q]?.length||0,desktop:b[q]?.length||0}));
-  fs.writeFileSync('test-results/monta-mobile-desktop-parity.json',JSON.stringify({queries,matched:queries.length-differences.length,differences,missingEvidence},null,2));
+  fs.writeFileSync('monta-evidence/monta-mobile-desktop-parity.json',JSON.stringify({queries,matched:queries.length-differences.length,differences,missingEvidence},null,2));
   expect(missingEvidence,'Every query must contain real visible EAN-backed products on BOTH layouts; empty sets cannot pass parity').toEqual([]);
   expect(differences,'EAN product sets must match for every query').toEqual([]);
 });
