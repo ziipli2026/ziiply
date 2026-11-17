@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       search_id: body.search_id, search_kind: body.search_kind,
       ziiply_environment: request.nextUrl.hostname === "ziiply.fi" || request.nextUrl.hostname === "www.ziiply.fi" ? "production" : "preview",
       ziiply_analytics_schema: 3,
+      ziiply_internal_test: body.ziiply_internal_test === true,
     };
     if (typeof body.outcome === "string" && OUTCOMES.has(body.outcome)) props.outcome = body.outcome;
     for (const key of ["results_count", "elapsed_ms"]) {
