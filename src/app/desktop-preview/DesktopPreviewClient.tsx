@@ -876,7 +876,8 @@ export default function DesktopPreviewPage() {
     let timer: ReturnType<typeof setInterval> | null = null;
     let htmlScanner: any = null;
     let nativeVideo: HTMLVideoElement | null = null;
-    let recognized = false;
+    let lastRecognizedCode = "";
+    let lastRecognizedAt = 0;
     let stopSharedMobileFallback: (() => void) | null = null;
     const isDesktopMac = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(navigator.userAgent);
     const cameraFacingMode = isDesktopMac ? "user" : "environment";
@@ -897,19 +898,20 @@ export default function DesktopPreviewPage() {
         try { htmlScanner.clear(); } catch { /* Container may already be unmounted. */ }
       }
     };
-    const onCode = (value: string) => {
+    const onCode = (value: string, source = "html5-qrcode") => {
       const code = String(value || "").trim();
-      if (stopped || recognized || !/^\d{8,14}$/.test(code)) return;
-      recognized = true;
-      stopSharedMobileFallback?.();
+      if (stopped || !/^\d{8,14}$/.test(code)) return;
+      const now = Date.now();
+      // Keep the camera alive for successive products, but debounce one barcode.
+      if (code === lastRecognizedCode && now - lastRecognizedAt < 3000) return;
+      lastRecognizedCode = code;
+      lastRecognizedAt = now;
       desktopScannerStatsRef.current.decodeHits++;
-      logDesktopScanner("decode_success",{ean:code});
+      logDesktopScanner("decode_success",{ean:code,source});
       setDesktopScannerDebug("EAN löytyi: " + code);
       setDesktopScannerEan(code);
       setDesktopScannerMessage("EAN tunnistettu: " + code);
       void runDesktopScannerEanSearch(code, true);
-      if (timer) clearInterval(timer);
-      void stopHtmlScanner();
     };
     const startMobileDecoder = async () => {
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("Selaimen kamerarajapinta ei ole käytettävissä");
@@ -931,20 +933,23 @@ export default function DesktopPreviewPage() {
       logDesktopScanner("decoder_loaded",{engine:"html5-qrcode",facingMode:cameraFacingMode});
       // Match the working desktop Arvo scanner's decoder and camera configuration exactly.
       htmlScanner = new Html5Qrcode(region.id, {verbose:false});
-      logDesktopScanner("decoder_config",{source:"desktop-arvo",formats:"library_default",fps:12,aspectRatio:1.7778,cameraFacingMode:"environment"});
-      await htmlScanner.start({facingMode:"environment"}, {fps:12, aspectRatio:1.7778}, onCode, (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
+      logDesktopScanner("decoder_config",{source:"shared-mobile",formats:"library_default",fps:12,requestedWidth:1280,requestedHeight:720,cameraFacingMode});
+      await htmlScanner.start({facingMode:cameraFacingMode}, {fps:12, videoConstraints:{facingMode:cameraFacingMode,width:{ideal:1280},height:{ideal:720}}}, code => onCode(code,"html5-qrcode"), (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
       unmirrorCameraPreview();
       // Trial: run the same still-frame fallback as the mobile scanner.
       const { createScannerFallbackLoop } = await import("../components/ziiply/cards/scannerCore");
       stopSharedMobileFallback = createScannerFallbackLoop({
         regionId: region.id,
-        onDecoded: result => onCode(result.text),
+        onDecoded: result => onCode(result.text,"mobile-still-"+result.source),
       });
       logDesktopScanner("mobile_fallback_started",{engine:"shared-scannerCore",nativeBarcodeDetector:!!(window as any).BarcodeDetector});
       const activeVideo = region.querySelector("video");
       if (activeVideo) setDesktopScannerDebug("Kamera: " + (activeVideo.videoWidth || "?") + "×" + (activeVideo.videoHeight || "?") + " · EAN-lukija käynnissä");
       scannerStarted = true;
-      logDesktopScanner("camera_started",{width:activeVideo?.videoWidth,height:activeVideo?.videoHeight,videoReadyState:activeVideo?.readyState,trackSettings:(activeVideo?.srcObject as MediaStream|null)?.getVideoTracks()[0]?.getSettings?.()});
+      const cameraTrack = (activeVideo?.srcObject as MediaStream|null)?.getVideoTracks()[0];
+      let cameraCapabilities: MediaTrackCapabilities | null = null;
+      try { cameraCapabilities = cameraTrack?.getCapabilities?.() || null; } catch { /* Safari may not expose capabilities. */ }
+      logDesktopScanner("camera_started",{width:activeVideo?.videoWidth,height:activeVideo?.videoHeight,videoReadyState:activeVideo?.readyState,trackSettings:cameraTrack?.getSettings?.(),trackCapabilities:cameraCapabilities});
       setDesktopScannerDebug("EAN-lukija käynnissä · odotetaan koodia");
       if (stopped) await stopHtmlScanner();
       else setDesktopScannerMessage("");
@@ -967,9 +972,9 @@ export default function DesktopPreviewPage() {
         await nativeVideo.play();
         let busy = false;
         timer = setInterval(async () => {
-          if (busy || stopped || recognized || !nativeVideo || nativeVideo.readyState < 2) return;
+          if (busy || stopped || !nativeVideo || nativeVideo.readyState < 2) return;
           busy = true;
-          try { const codes = await detector.detect(nativeVideo); onCode(String(codes?.[0]?.rawValue || "")); }
+          try { const codes = await detector.detect(nativeVideo); onCode(String(codes?.[0]?.rawValue || ""),"native-barcode-detector"); }
           catch { /* A single unreadable frame must not stop scanning. */ }
           finally { busy = false; }
         }, 350);
