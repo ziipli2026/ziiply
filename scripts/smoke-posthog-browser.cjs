@@ -83,16 +83,18 @@ const watchdog = setTimeout(() => {
   // automatic activity and provider initialization.
   // Switch a read-only app tab to exercise explicit navigation analytics.
   console.log(JSON.stringify({ check: 'gosta-click', stage: 'starting' }));
-  await page.getByRole('button', { name: 'Gösta: Tarjoushaku', exact: true }).click({ timeout: 10000, noWaitAfter: true });
-  console.log(JSON.stringify({ check: 'gosta-click', stage: 'completed' }));
-  await page.waitForTimeout(3000);
+  if (!searchMode) {
+    await page.getByRole('button', { name: 'Gösta: Tarjoushaku', exact: true }).click({ timeout: 10000, noWaitAfter: true });
+    console.log(JSON.stringify({ check: 'gosta-click', stage: 'completed' }));
+    await page.waitForTimeout(3000);
+  }
   if (searchMode) {
     // Preview-only, read-only synthetic search. Never execute against the public main alias.
     if (url.hostname === 'ziiply.vercel.app' || url.hostname === 'ziiply.fi' || url.hostname === 'www.ziiply.fi') {
       throw new Error('Search smoke must target an isolated preview deployment, not production');
     }
-    // Gösta is the offers mode; explicitly return to Justiina before normal search.
-    await page.getByRole('button', { name: /Justiina/i }).first().click({ timeout: 10000 });
+    // Default landing view already exposes normal product search. Avoid switching to
+    // Gösta and back: that navigation can hide the Justiina control in mobile UI.
     const searchInput = page.locator('textarea[placeholder="maito, kahvi"], textarea[placeholder="Kirjoita yksi tuote"]').first();
     await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
