@@ -22,8 +22,17 @@ test('Monta live all chains: '+device,async({browser})=>{
     const sparResponse=await context.request.get(base+'/api/eurospar-stores?search=Hyvinkää');
     expect(lidlResponse.ok(),'Live Lidl store discovery failed').toBe(true);
     expect(sparResponse.ok(),'Live SPAR/Tokmanni store discovery failed').toBe(true);
-    const lidlStores=(await lidlResponse.json()).items||[];
-    const sparStores=(await sparResponse.json()).items||[];
+    async function readDiscoveryJson(response, provider) {
+      const body = await response.text();
+      const contentType = response.headers()['content-type'] || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`${provider} discovery returned non-JSON: status=${response.status()}, url=${response.url()}, content-type=${contentType}, body=${body.slice(0,350)}`);
+      }
+      try { return JSON.parse(body); }
+      catch (error) { throw new Error(`${provider} discovery invalid JSON: status=${response.status()}, url=${response.url()}, body=${body.slice(0,350)}, error=${error}`); }
+    }
+    const lidlStores=(await readDiscoveryJson(lidlResponse,'Lidl')).items||[];
+    const sparStores=(await readDiscoveryJson(sparResponse,'SPAR/Tokmanni')).items||[];
     const selectedLidl=lidlStores.find(x=>x.id&&/hyvinkää/i.test(x.city||x.name));
     const selectedSpar=sparStores.find(x=>x.id&&/^(EUROSPAR|TOKMANNI)$/i.test(x.chain||''));
     expect(selectedLidl,'No real Lidl Hyvinkää store returned').toBeTruthy();
