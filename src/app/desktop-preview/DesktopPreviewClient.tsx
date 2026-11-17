@@ -865,7 +865,7 @@ export default function DesktopPreviewPage() {
       const Html5Qrcode = (window as any).Html5Qrcode;
       const formats = (window as any).Html5QrcodeSupportedFormats;
       htmlScanner = new Html5Qrcode(region.id, formats ? { formatsToSupport: [formats.EAN_13, formats.EAN_8, formats.UPC_A, formats.UPC_E] } : undefined);
-      await htmlScanner.start({ facingMode: { ideal: "environment" } }, { fps: 12, qrbox: undefined }, onCode, () => undefined);
+      await htmlScanner.start({ facingMode: "environment" }, { fps: 12, qrbox: undefined }, onCode, () => undefined);
       if (stopped) await htmlScanner.stop().catch(() => undefined);
       else setDesktopScannerMessage("");
     };
