@@ -16,12 +16,31 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     try{
       const response=await page.goto(device==='mobile'?base:base.replace(/\/$/,'')+'/desktop-preview',{waitUntil:'domcontentloaded',timeout:60000});
       expect(response.status()).toBeLessThan(400);
-      await page.evaluate(()=>{
+      // Use the same verified store selection as the existing working live comparison.
+      // Do not infer independent-chain store IDs or silently proceed with an empty selection.
+      const lidlResponse=await context.request.get(base+'/api/lidl/store-search?search=Hyvinkää');
+      const sparResponse=await context.request.get(base+'/api/eurospar-stores?search=Hyvinkää');
+      expect(lidlResponse.ok(),'Lidl discovery failed').toBe(true);
+      expect(sparResponse.ok(),'SPAR discovery failed').toBe(true);
+      const lidlStores=(await lidlResponse.json()).items||[];
+      const sparStores=(await sparResponse.json()).items||[];
+      const selectedLidl=lidlStores.find(x=>x.id&&/hyvinkää/i.test(x.city||x.name));
+      const selectedSpar=sparStores.find(x=>x.id&&/^(EUROSPAR|TOKMANNI)$/i.test(x.chain||''));
+      expect(selectedLidl,'No real Lidl Hyvinkää store').toBeTruthy();
+      expect(selectedSpar,'No real SPAR/Tokmanni store').toBeTruthy();
+      await page.evaluate(({selectedLidl,selectedSpar})=>{
         const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
         const k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'};
-        localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'many',storeCompareScope:'between_chains',allStoreSelections:{hyper:{[s.id]:s,[k.id]:k},local:{}}}));
-        localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',sStoreId:s.id,sStoreName:s.name,kStoreId:k.id,kStoreName:k.name},storeMode:'hyper',storeModeChosenV299:true,storeCompareScope:'between_chains',betweenChainSelectionModeV749:'many',selectedChains:{s:true,k:true,lidl:false,tokmanni:false},usingOwnLocation:false}));
-      });
+        const lidl=selectedLidl,spar=selectedSpar;
+        localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'many',storeCompareScope:'between_chains',allStoreSelections:{hyper:{[s.id]:s,[k.id]:k,[lidl.id]:lidl,[spar.id]:spar},local:{}}}));
+        localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({
+          version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',sStoreId:s.id,sStoreName:s.name,kStoreId:k.id,kStoreName:k.name},storeMode:'hyper',storeModeChosenV299:true,
+          storeCompareScope:'between_chains',betweenChainSelectionModeV749:'many',
+          selectedChains:{s:true,k:true,lidl:true,tokmanni:true},
+          selectedLidlStoreV750:lidl,selectedEurosparStoreV751:spar.chain==='EUROSPAR'?spar:null,
+          selectedTokmanniStoreV756:spar.chain==='TOKMANNI'?spar:null,usingOwnLocation:false
+        }));
+      },{selectedLidl,selectedSpar});
       await page.reload({waitUntil:'domcontentloaded'});
       await page.getByRole('button',{name:device==='mobile'?'Justiina: Tuotehaku':'Avaa Justiina',exact:true}).click({timeout:30000});
       const input=device==='mobile'?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true}):page.getByRole('textbox',{name:'Hae tuotteita'});
