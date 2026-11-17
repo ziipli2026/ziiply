@@ -73,6 +73,7 @@ export type ZiiplyMobileScannerCardProps = {
   storeLocation?: {name:string;verified:boolean;checking?:boolean} | null;
   successMessage?: string;
   cameraOverlay?: React.ReactNode;
+  scanGuide?: boolean;
   torchOn?: boolean;
   manualInputOpen?: boolean;
   selectionResults?: ZiiplyMobileScannerSelectionResult[];
@@ -99,6 +100,7 @@ export default function ZiiplyMobileScannerCard({
   storeLocation = null,
   successMessage = "✓",
   cameraOverlay,
+  scanGuide = false,
   torchOn = false,
   manualInputOpen = false,
   selectionResults = [],
@@ -525,6 +527,14 @@ export default function ZiiplyMobileScannerCard({
             </div>
           )}
 
+
+          {/* Arvon todellinen html5-qrcode-lukualue: samat prosentit kuin qrbox-asetuksessa. */}
+          {scanGuide && !cameraOverlay && (
+            <div data-arvo-scan-guide="true" aria-label="Viivakoodin lukualue" className="pointer-events-none absolute left-1/2 top-1/2 z-[32] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl border-[3px] border-[#b4ff94] bg-transparent shadow-[0_0_0_999px_rgba(0,0,0,0.18),0_0_16px_rgba(134,255,128,0.4)]" style={{width:"88%",height:"42%"}}>
+              <span className="absolute -top-8 rounded-md bg-[#102f20]/85 px-2 py-1 text-xs font-bold text-white">EAN-lukualue</span>
+              <span className="absolute -bottom-8 rounded-md bg-[#102f20]/85 px-2 py-1 text-xs font-semibold text-white">Kohdista viivakoodi kehykseen</span>
+            </div>
+          )}
 
           {/* Kohdistuskulmat */}
           <ScannerCorner className="left-5 top-5" />
