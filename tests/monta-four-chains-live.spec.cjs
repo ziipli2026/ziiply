@@ -75,7 +75,18 @@ test('Monta live all chains: '+device,async({browser})=>{
       await input.fill(query);
       if(device==='desktop')await input.press('Enter');
       else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click();
-      await page.waitForTimeout(3000);
+      // The mobile results sheet can close after a prior product selection.
+      // Reopen the existing findings rather than mistaking a closed sheet for zero products.
+      if(device==='mobile'){
+        const visibleEans=page.getByText(/EAN \\d{13}/).filter({visible:true});
+        if(await visibleEans.count()===0){
+          const ledger=page.getByRole('button',{name:/Avaa löytöluettelo/i}).filter({visible:true});
+          if(await ledger.count())await ledger.first().click();
+        }
+      }
+      await page.getByText(/EAN \\d{13}/).filter({visible:true}).first().waitFor({timeout:30000}).catch(()=>{});
+      await page.getByText(/Haetaan lisää tuotteita/).filter({visible:true}).first().waitFor({state:'hidden',timeout:45000}).catch(()=>{});
+      await page.waitForTimeout(700);
       const visible=await page.locator('body').innerText();
       // Capture identified result EANs independently of shopping-list text.
       // Both UIs must expose the same EAN-backed product set for the same query.
