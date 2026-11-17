@@ -542,6 +542,16 @@ export function getVerifiedOfferCategory(item: ZiiplyGostaOfferLike): string {
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
+  // EAN-first: only a category resolved from the exact GTIN/EAN in the Neon
+  // product registry may override provider metadata and text heuristics.
+  // An exact-name match is intentionally NOT authoritative: names may refer to
+  // different pack sizes or products. Unknown/ambiguous EANs keep the existing
+  // conservative fallback until the registry has verified taxonomy evidence.
+  const eanMatch = (item as ZiiplyGostaOfferLike & { neonCategoryMatch?: string; neonDisplayCategory?: string }).neonCategoryMatch;
+  const eanCategory = (item as ZiiplyGostaOfferLike & { neonDisplayCategory?: string }).neonDisplayCategory;
+  if (eanMatch === "ean" && typeof eanCategory === "string" &&
+      GOSTA_CATEGORY_LABELS_V136.includes(eanCategory)) return eanCategory;
+
   const verifiedCategory = getVerifiedOfferCategory(item);
   if (verifiedCategory) return verifiedCategory;
   const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
