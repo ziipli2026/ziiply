@@ -45,7 +45,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
             Object.entries(event.properties || {}).filter(([key, value]) =>
               (value === null || typeof value !== 'object') && (key.startsWith('$')
                 ? !/url|referrer|current_url|pathname|host|search|query/i.test(key)
-                : (key === 'search_id' || key === 'search_kind' || !bannedKey.test(key)))
+                : (key === 'search_id' || key === 'search_kind' || key === 'search_type' || !bannedKey.test(key)))
             )
           )
           event.properties = {
