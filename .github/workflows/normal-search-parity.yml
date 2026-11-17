@@ -1,0 +1,38 @@
+name: Normal product search parity (isolated)
+on:
+  push:
+    branches: [test/monta-four-chains-live-20261116]
+    paths:
+      - 'tests/normal-search-parity.spec.cjs'
+      - '.github/workflows/normal-search-parity.yml'
+      - 'src/app/components/ziiply/cards/ZiiplyMobileSearchResultsCard.tsx'
+      - 'src/app/desktop-preview/DesktopPreviewClient.tsx'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  normal-search-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install chromium
+      - name: Verify mobile/desktop normal product search only
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
+        run: |
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
+          npx playwright test tests/normal-search-parity.spec.cjs --browser=chromium --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: normal-search-parity-evidence
+          path: normal-search-evidence/
+          if-no-files-found: ignore
