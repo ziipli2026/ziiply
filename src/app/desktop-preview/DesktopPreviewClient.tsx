@@ -877,6 +877,7 @@ export default function DesktopPreviewPage() {
     let htmlScanner: any = null;
     let nativeVideo: HTMLVideoElement | null = null;
     let recognized = false;
+    let stopSharedMobileFallback: (() => void) | null = null;
     const isDesktopMac = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(navigator.userAgent);
     const cameraFacingMode = isDesktopMac ? "user" : "environment";
     const unmirrorCameraPreview = () => {
@@ -900,6 +901,7 @@ export default function DesktopPreviewPage() {
       const code = String(value || "").trim();
       if (stopped || recognized || !/^\d{8,14}$/.test(code)) return;
       recognized = true;
+      stopSharedMobileFallback?.();
       desktopScannerStatsRef.current.decodeHits++;
       logDesktopScanner("decode_success",{ean:code});
       setDesktopScannerDebug("EAN löytyi: " + code);
@@ -932,6 +934,13 @@ export default function DesktopPreviewPage() {
       logDesktopScanner("decoder_config",{source:"desktop-arvo",formats:"library_default",fps:12,aspectRatio:1.7778,cameraFacingMode:"environment"});
       await htmlScanner.start({facingMode:"environment"}, {fps:12, aspectRatio:1.7778}, onCode, (message: string) => { desktopScannerStatsRef.current.decodeMisses++; if (desktopScannerStatsRef.current.decodeMisses % 50 === 1) logDesktopScanner("decode_no_match",{count:desktopScannerStatsRef.current.decodeMisses,sample:String(message).slice(0,180)}); });
       unmirrorCameraPreview();
+      // Trial: run the same still-frame fallback as the mobile scanner.
+      const { createScannerFallbackLoop } = await import("../components/ziiply/cards/scannerCore");
+      stopSharedMobileFallback = createScannerFallbackLoop({
+        regionId: region.id,
+        onDecoded: result => onCode(result.text),
+      });
+      logDesktopScanner("mobile_fallback_started",{engine:"shared-scannerCore",nativeBarcodeDetector:!!(window as any).BarcodeDetector});
       const activeVideo = region.querySelector("video");
       if (activeVideo) setDesktopScannerDebug("Kamera: " + (activeVideo.videoWidth || "?") + "×" + (activeVideo.videoHeight || "?") + " · EAN-lukija käynnissä");
       scannerStarted = true;
@@ -985,6 +994,7 @@ export default function DesktopPreviewPage() {
     return () => {
       logDesktopScanner("scanner_closed",{decodeMisses:desktopScannerStatsRef.current.decodeMisses,decodeHits:desktopScannerStatsRef.current.decodeHits});
       stopped = true;
+      stopSharedMobileFallback?.();
       if (timer) clearInterval(timer);
       stream?.getTracks().forEach(track => track.stop());
       if (nativeVideo) { nativeVideo.srcObject = null; nativeVideo.remove(); }
