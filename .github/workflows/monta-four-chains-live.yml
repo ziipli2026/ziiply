@@ -19,26 +19,13 @@ jobs:
       - name: Install Playwright test runner
         run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install --with-deps chromium
-      - name: Install Vercel CLI and link test project
+      - name: Test protected branch preview with Chromium and Automation Bypass
         env:
-          VERCEL_TOKEN: ${{ secrets.ZIIPLY_TEST_VERCEL_TOKEN }}
-        run: |
-          test -n "$VERCEL_TOKEN" || { echo '::error::Missing ZIIPLY_TEST_VERCEL_TOKEN secret (dedicated to Monta live test); existing VERCEL_TOKEN is untouched'; exit 1; }
-          npm install --global vercel@65.9.0
-          if ! vercel whoami --token "$VERCEL_TOKEN" > /dev/null; then
-            echo "::error::Dedicated ZIIPLY_TEST_VERCEL_TOKEN is rejected by Vercel; existing VERCEL_TOKEN is untouched. Supply a valid token for ziipli2026s-projects to run protected preview tests."
-            exit 1
-          fi
-          vercel link --yes --project ziiply --scope ziipli2026s-projects --token "$VERCEL_TOKEN"
-      - name: Test protected branch preview with authenticated real APIs
-        env:
-          VERCEL_TOKEN: ${{ secrets.ZIIPLY_TEST_VERCEL_TOKEN }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
         run: |
-          vercel env run -- sh -c '
-            test -n "$VERCEL_OIDC_TOKEN" || { echo "::error::No Vercel development OIDC token available"; exit 1; }
-            npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line
-          '
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || { echo '::error::Missing existing VERCEL_AUTOMATION_BYPASS_SECRET for Chromium'; exit 1; }
+          npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
