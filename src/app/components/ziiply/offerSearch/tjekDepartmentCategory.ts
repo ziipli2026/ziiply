@@ -24,3 +24,8 @@ export const TJEK_NON_GROCERY_DEPARTMENTS: ReadonlySet<string> = new Set([
 export function isTjekNonGroceryDepartment(slug: unknown): boolean {
   return typeof slug === 'string' && TJEK_NON_GROCERY_DEPARTMENTS.has(slug);
 }
+
+/** Apply the same source-department gate to live offers and persisted snapshots. */
+export function filterTjekGroceryRows<T extends {debug?: {tjekDepartmentSlug?: unknown};tjekDepartmentSlug?: unknown}>(rows: T[]): T[] {
+  return rows.filter(row => !isTjekNonGroceryDepartment(row.debug?.tjekDepartmentSlug ?? row.tjekDepartmentSlug));
+}
