@@ -13,6 +13,7 @@ on:
 jobs:
   inventory:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     permissions:
       contents: read
     steps:
@@ -35,6 +36,7 @@ jobs:
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright
           npx playwright install --with-deps chromium
       - name: Check PR preview event ingestion
+        timeout-minutes: 3
         env:
           ZIIPLY_SMOKE_URL: ${{ vars.ZIIPLY_POSTHOG_PREVIEW_URL || 'https://ziiply-oouatzdpi-ziipli2026s-projects.vercel.app/' }}
           ZIIPLY_SMOKE_SEARCH: '1'
