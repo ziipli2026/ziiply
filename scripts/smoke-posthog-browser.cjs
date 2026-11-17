@@ -46,6 +46,8 @@ const watchdog = setTimeout(() => {
   const responses = [];
   const eventNames = [];
   const eventResponses = [];
+  const canaryRequests = new Set();
+  const canaryResponseStatuses = [];
   const ingestionDiagnostics = [];
   const internalFlags = [];
   const searchTypes = [];
@@ -85,6 +87,7 @@ const watchdog = setTimeout(() => {
       const endpoint = new URL(response.url()).pathname;
       responses.push({ status: response.status(), endpoint });
       if (!/\/flags\/?$/.test(endpoint)) {
+        if (canaryRequests.has(response.request())) canaryResponseStatuses.push(response.status());
         eventResponses.push(response.status());
         if (response.status() >= 400) {
           const headers = response.headers();
@@ -120,6 +123,7 @@ const watchdog = setTimeout(() => {
           ? JSON.parse(new URLSearchParams(raw).get('data') || '{}')
           : JSON.parse(raw);
         const events = Array.isArray(parsed.batch) ? parsed.batch : (parsed.event ? [parsed] : []);
+        if (events.some(event => event.event === 'ziiply_posthog_transport_probe')) canaryRequests.add(request);
         for (const event of events) {
           if (typeof event.event === 'string') eventNames.push(event.event);
           if (typeof event.properties?.ziiply_internal_test === 'boolean') internalFlags.push(event.properties.ziiply_internal_test);
@@ -382,11 +386,11 @@ const watchdog = setTimeout(() => {
   console.log(JSON.stringify({check:'posthog-sdk-readiness',diagnostics:sdkDiagnostics}));
   await page.waitForTimeout(250);
   console.log(JSON.stringify({check:'posthog-ingestion-errors',details:ingestionDiagnostics}));
-  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses }));
+  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses, canaryResponseStatuses }));
   // A preview-only SDK canary must traverse the browser PostHog capture path.
   // A 200 from /flags is not proof of event ingestion.
   const isProductionHost = ['ziiply.fi', 'www.ziiply.fi', 'ziiply.vercel.app'].includes(url.hostname);
-  if (!isProductionHost && !(eventNames.includes('ziiply_posthog_transport_probe') && sdkDiagnostics.some(e=>e.stage==='before-send' && e.reached===true) && eventResponses.some(status=>status>=200 && status<300))) {
+  if (!isProductionHost && !(eventNames.includes('ziiply_posthog_transport_probe') && sdkDiagnostics.some(e=>e.stage==='before-send' && e.reached===true) && canaryResponseStatuses.some(status=>status>=200 && status<300))) {
     console.error('FAIL: preview SDK transport canary missing; feature-flag requests do not count as events');
     process.exitCode = 1;
   }
