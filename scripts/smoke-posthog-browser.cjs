@@ -136,6 +136,14 @@ const watchdog = setTimeout(() => {
     const searchInput = page.locator('textarea:visible, input[type="search"]:visible, input[placeholder*="tuote" i]:visible, input[placeholder*="hae" i]:visible').first();
     await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
+    const preflight = await page.evaluate(() => ({
+      inputLength: [...document.querySelectorAll('textarea')].find(e => !!e.getClientRects().length)?.value.length ?? null,
+      selectedStoreLabels: [...document.querySelectorAll('button,[role="checkbox"],input[type="checkbox"]')]
+        .filter(e => !!e.getClientRects().length && /Prisma|S-market|K-Citymarket|K-Supermarket|Lidl|Tokmanni|Valitse|Kaupat/i.test((e.textContent||'')+' '+(e.getAttribute('aria-label')||'')))
+        .map(e => ({label:(e.textContent||e.getAttribute('aria-label')||'').trim().slice(0,65),checked:e.getAttribute('aria-checked')||e.getAttribute('aria-pressed')||('checked' in e ? String(e.checked) : null)})).slice(0,15),
+      localStorageKeys: Object.keys(localStorage).filter(k=>/store|kaup|area|location|zip/i.test(k)).slice(0,15)
+    }));
+    console.log(JSON.stringify({check:'search-preflight',preflight}));
     // The normal Tuotehaku card requires explicit Hae submission after filling.
     const beforeSubmit = await page.evaluate(() => ({path:location.pathname,searchModeText:document.body.innerText.slice(-220),buttonDisabled:[...document.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')==='Hae')?.disabled}));
     const submitMechanics = await page.evaluate(() => {const b=[...document.querySelectorAll('button')].find(e=>e.getAttribute('aria-label')==='Hae');return {type:b?.getAttribute('type'),formTag:b?.closest('form')?.tagName||null,formMethod:b?.closest('form')?.getAttribute('method')||null,formAction:b?.closest('form')?.getAttribute('action')||null,outerHTML:b?.outerHTML.slice(0,420)}});
