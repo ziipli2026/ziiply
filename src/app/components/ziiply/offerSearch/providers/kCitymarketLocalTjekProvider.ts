@@ -1,5 +1,6 @@
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 import { neon } from "@neondatabase/serverless";
+import { tjekDepartmentCategory, isTjekNonGroceryDepartment, filterTjekGroceryRows } from "../tjekDepartmentCategory";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
@@ -100,7 +101,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           && isActiveOffer(row, now))
     : [];
   const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
-  const fallback = (await readPublishedSnapshot(fallbackKey) ?? [])
+  const fallback = filterTjekGroceryRows((await readPublishedSnapshot(fallbackKey) ?? []))
     .filter(row => isActiveOffer(row, now)
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
@@ -144,7 +145,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
       new Promise<void>(resolve => setTimeout(resolve, 4000)),
     ]);
   }
-  const live = (entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
+  const live = filterTjekGroceryRows(entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
   // Return verified rows from the exact selected store as soon as they have
   // been fetched. In serverless requests the process may end before a long
   // Tjek scan completes; suppressing these rows made every non-N183 store look
@@ -298,6 +299,9 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
         const unitValue=numeric(offer.unitPrice);
+        const sourceDepartment = typeof offer.departmentSlug === "string" ? offer.departmentSlug : null;
+        if (isTjekNonGroceryDepartment(sourceDepartment)) { reject("non-grocery-source-department"); sampleReject("non-grocery-source-department",id); continue; }
+        const sourceCategory = tjekDepartmentCategory(sourceDepartment);
         const offerKey=publicationId+":"+id;
         if(acceptedOfferKeys.has(offerKey)){duplicateOfferRows++;continue;}
         acceptedOfferKeys.add(offerKey);
@@ -312,7 +316,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
           validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
           isPlussaOffer:member!=null||hasPlussaLabel,offerQuantity:quantity,
           sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
-          category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
+          category:sourceCategory ?? classifyCitymarketCategory(title),categoryPath:sourceCategory ?? classifyCitymarketCategory(title),productGroup:sourceCategory ?? classifyCitymarketCategory(title),mainCategory:sourceCategory ?? classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION",tjekDepartmentSlug:sourceDepartment,categorySource:sourceCategory ? "tjek-department" : "legacy-title"}});
       }
       }
       entry.progress.accepted = entry.rows.length; entry.progress.updatedAt = new Date().toISOString();

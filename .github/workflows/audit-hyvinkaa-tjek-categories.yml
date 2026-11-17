@@ -1,0 +1,45 @@
+name: Audit Hyvinkaa local Tjek categories
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit-hyvinkaa-tjek-departments.mjs'
+      - 'scripts/prepare-tjek-snapshot-enrichment.mjs'
+      - 'scripts/verify-tjek-baseline-enrichment.mjs'
+      - 'tests/prepare-tjek-snapshot-enrichment.test.cjs'
+      - 'scripts/fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs'
+      - 'scripts/fixtures/hyvinkaa-tjek-snapshot-fields-20261117.json'
+      - '.github/workflows/audit-hyvinkaa-tjek-categories.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies for actual TypeScript filter execution
+        run: npm ci
+      - name: Verify safe offline snapshot enrichment
+        run: node --test tests/prepare-tjek-snapshot-enrichment.test.cjs
+      - name: Compare public Tjek source departments with saved category baseline
+        run: node scripts/audit-hyvinkaa-tjek-departments.mjs
+      - name: Verify source-verified enrichment against 139 historical offer IDs
+        run: node scripts/verify-tjek-baseline-enrichment.mjs
+      - name: Upload enriched Neon snapshot fields for review
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyvinkaa-tjek-snapshot-enriched-preview
+          path: artifacts/hyvinkaa-tjek-baseline-enriched.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload verified department manifest for review
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyvinkaa-tjek-departments-verified
+          path: artifacts/hyvinkaa-tjek-departments-verified.json
+          if-no-files-found: error
+          retention-days: 14
