@@ -9,9 +9,10 @@ test('Monta live all chains: '+device,async({browser})=>{
   const page=await context.newPage();
   const calls=[],errors=[];
   const providerEvidence=[];
+  const selectedStoreIds={lidl:null,tokmanni:null};
   const chains={s:0,k:0,lidl:0,tokmanni:0};
   page.on('pageerror',e=>errors.push(String(e)));
-  page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\/products$/,tokmanni:/\/api\/tokmanni\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;if(/\/api\/(?:lidl|tokmanni)\/products$/.test(url)){const requestUrl=new URL(r.url());r.json().then(data=>{const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.products)?data.products:[];providerEvidence.push({chain:url.includes('/lidl/')?'lidl':'tokmanni',query:requestUrl.searchParams.get('search'),intent:requestUrl.searchParams.get('intent'),mode:requestUrl.searchParams.get('mode'),source:data?.source,priceVerified:data?.priceVerified,returned:items.length,priced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0).length,localPriced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0&&p.priceVerified===true&&p.priceScope==='local_store'&&String(p.priceStoreId??'').trim().length>0).length,priceScope:url.includes('/tokmanni/')?'online-catalog-not-local-store':'research-unverified'});}).catch(()=>{});}}});
+  page.on('response',r=>{if(r.url().includes('/api/')){const url=r.url().split('?')[0];calls.push({url,status:r.status()});for(const [chain,pattern] of Object.entries({s:/\/api\/s-products$/,k:/\/api\/k-products$/,lidl:/\/api\/lidl\/products$/,tokmanni:/\/api\/tokmanni\/products$/}))if(pattern.test(url)&&r.status()===200)chains[chain]++;if(/\/api\/(?:lidl|tokmanni)\/products$/.test(url)){const requestUrl=new URL(r.url());r.json().then(data=>{const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.products)?data.products:[];providerEvidence.push({chain:url.includes('/lidl/')?'lidl':'tokmanni',query:requestUrl.searchParams.get('search'),intent:requestUrl.searchParams.get('intent'),mode:requestUrl.searchParams.get('mode'),source:data?.source,priceVerified:data?.priceVerified,returned:items.length,priced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0).length,localPriced:items.filter(p=>Number(p.price??p.storeItems?.[0]?.price)>0&&p.priceVerified===true&&p.priceScope==='local_store'&&String(p.priceStoreId??'').trim().length>0&&String(p.priceStoreId)===String(selectedStoreIds[url.includes('/lidl/')?'lidl':'tokmanni']??'__not_selected__')).length,priceScope:url.includes('/tokmanni/')?'online-catalog-not-local-store':'research-unverified'});}).catch(()=>{});}}});
   const result={device,base,queries,results:[],calls,errors,chains,providerEvidence};
   try{
     const first=await page.goto(device==='desktop'?base.replace(/\/$/,'')+'/desktop-preview':base,{waitUntil:'domcontentloaded',timeout:60000});
@@ -28,6 +29,8 @@ test('Monta live all chains: '+device,async({browser})=>{
     expect(selectedLidl,'No real Lidl Hyvinkää store returned').toBeTruthy();
     expect(selectedSpar,'No real Tokmanni/SPAR store returned').toBeTruthy();
     result.discoveredStores={lidl:selectedLidl,spar:selectedSpar};
+    selectedStoreIds.lidl=String(selectedLidl.id);
+    selectedStoreIds.tokmanni=String(selectedSpar.id);
     await page.evaluate(({selectedLidl,selectedSpar})=>{
       const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
       const k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'};
