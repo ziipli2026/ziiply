@@ -4,7 +4,7 @@ const base=process.env.ZIIPLY_LIVE_URL;
 const fullCorpus=require('./normal-search-100-queries.cjs');
 const legacyQueries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
 const auditBatch=process.env.NORMAL_SEARCH_AUDIT_BATCH;
-const queries=auditBatch!==undefined?fullCorpus.slice(Number(auditBatch)*10,(Number(auditBatch)+1)*10):legacyQueries;
+const queries=process.env.NORMAL_SEARCH_SMOKE==='1'?['maito','juusto']:(auditBatch!==undefined?fullCorpus.slice(Number(auditBatch)*10,(Number(auditBatch)+1)*10):legacyQueries);
 if(auditBatch!==undefined && (!/^[0-9]$/.test(auditBatch)||queries.length!==10))throw Error('Invalid NORMAL_SEARCH_AUDIT_BATCH');
 const auth=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:{};
 test('Normal product search: scoped EAN parity, no cart or Monta assertions',async({browser})=>{
@@ -14,7 +14,8 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   if(!base)throw Error('ZIIPLY_LIVE_URL missing');
   const evidence={base,queries,auditBatch:auditBatch??null,layouts:{},differences:[],orderDifferences:[],duplicates:[]};
   for(const device of ['mobile','desktop']){
-    const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
+    const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
+    const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
     const page=await context.newPage();
     const errors=[],apiResponses=[],providerEanPresence=[],providerChecks=[];
     let currentSearchQuery='';
