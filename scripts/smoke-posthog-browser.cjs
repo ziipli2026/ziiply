@@ -15,11 +15,16 @@ const watchdog = setTimeout(() => {
   const failures = [];
   const responses = [];
   const eventNames = [];
+  const eventResponses = [];
   const internalFlags = [];
   const payloadShapes = [];
   page.on('response', response => {
     if (response.url().includes('/ph-ingest/') && response.request().method() === 'POST')
-      responses.push({ status: response.status(), endpoint: new URL(response.url()).pathname });
+    {
+      const endpoint = new URL(response.url()).pathname;
+      responses.push({ status: response.status(), endpoint });
+      if (!/\/flags\/?$/.test(endpoint)) eventResponses.push(response.status());
+    }
   });
   page.on('request', request => {
     if (request.url().includes('/ph-ingest/') && request.method() === 'POST')
@@ -71,9 +76,9 @@ const watchdog = setTimeout(() => {
   await page.getByRole('button', { name: 'Gösta: Tarjoushaku', exact: true }).click({ timeout: 10000, noWaitAfter: true });
   console.log(JSON.stringify({ check: 'gosta-click', stage: 'completed' }));
   await page.waitForTimeout(3000);
-  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes }));
-  if (captures.length === 0 || !responses.some(r => r.status === 200) || failures.length || responses.some(r => r.status >= 400)) {
-    console.error('FAIL: PostHog ingest did not return successful HTTP responses');
+  console.log(JSON.stringify({ check: 'posthog-network', requests: captures.length, responses: responses.map(r => r.status), failures: failures.length, eventNames, internalFlags, payloadShapes, eventResponses }));
+  if (!eventResponses.some(status => status >= 200 && status < 300) || failures.length || eventResponses.some(status => status >= 400)) {
+    console.error('FAIL: no successful PostHog event-ingest response (feature-flag requests do not count)');
     process.exitCode = 1;
   }
   await browser.close();
