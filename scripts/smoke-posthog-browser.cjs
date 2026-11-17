@@ -4,6 +4,7 @@
 const { chromium } = require('playwright');
 const target = process.env.ZIIPLY_SMOKE_URL || 'https://ziiply.vercel.app/';
 const searchMode = process.env.ZIIPLY_SMOKE_SEARCH === '1';
+const comparisonMode = process.env.ZIIPLY_SMOKE_COMPARE === '1';
 // A hung browser must fail quickly rather than consuming the full CI timeout.
 let activeBrowser;
 const watchdog = setTimeout(() => {
@@ -127,14 +128,15 @@ const watchdog = setTimeout(() => {
     const fixtureStore = {id:'292',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
     await page.evaluate(store => {
       localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({
-        storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'one',
+        storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:comparisonMode?'many':'one',
         storeCompareScope:'between_chains',allStoreSelections:{hyper:{[store.id]:store},local:{}}
       }));
       localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({
         version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',sStoreId:store.id,sStoreName:store.name},
         storeMode:'hyper',storeModeChosenV299:true,storeCompareScope:'between_chains',
-        betweenChainSelectionModeV749:'one',withinChain:null,
-        selectedChains:{s:true,k:false,lidl:false,tokmanni:false},usingOwnLocation:false
+        betweenChainSelectionModeV749:comparisonMode?'many':'one',withinChain:null,
+        selectedChains:{s:true,k:false,lidl:comparisonMode,tokmanni:false},
+        ...(comparisonMode?{selectedLidlStoreV750:{id:'hyvinkaa-keskusta',name:'Lidl Hyvinkää Keskusta',city:'Hyvinkää'}}:{}),usingOwnLocation:false
       }));
     },fixtureStore);
     await page.reload({waitUntil:'domcontentloaded',timeout:45000});
@@ -258,6 +260,23 @@ const watchdog = setTimeout(() => {
           overlayCartText: [...document.querySelectorAll('div.fixed')].filter(e=>e.className.includes('z-[95]')).map(e=>(e.textContent||'').slice(-400)).slice(0,1)
         }));
         console.log(JSON.stringify({check:'beta-cart-after-search',cartEnabled,comparisonEnabled,cartEvents,serverAnalyticsResponses,cartUi}));
+        if (comparisonMode) {
+          if (!comparisonEnabled) {
+            console.error('FAIL: Monta-mode comparison did not enable after adding a priced product');
+            process.exitCode = 1;
+          } else {
+            const compareNav = page.locator('nav button').filter({hasText:/Vertailu/}).last();
+            await compareNav.click({timeout:10000});
+            await page.waitForTimeout(900);
+            const compareOpen = await page.locator('.ziiply-mobile-compare-pop').evaluateAll(nodes =>
+              nodes.some(el=>!!el.getClientRects().length));
+            console.log(JSON.stringify({check:'beta-monta-comparison-open',comparisonEnabled,compareOpen,cartEvents}));
+            if (!compareOpen) {
+              console.error('FAIL: Monta-mode comparison nav enabled but comparison view did not open');
+              process.exitCode = 1;
+            }
+          }
+        }
         if (cartEnabled && process.env.ZIIPLY_SMOKE_CART === '1') {
           // Verify the cart can actually be opened, not merely that its nav is enabled.
           // Do not log product names or other user data.
