@@ -41,7 +41,13 @@ const safeCapture = (event: string, props: Record<string, string | number | bool
     void fetch("/api/analytics/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event, ...props, anonymous_user_id: anonymousSearchUserId() }),
+      body: JSON.stringify({
+        event, ...props, anonymous_user_id: anonymousSearchUserId(),
+        ziiply_internal_test: (() => {
+          try { return window.localStorage.getItem("ziiply_internal_test_user") === "1"; }
+          catch { return false; }
+        })(),
+      }),
       keepalive: true,
     }).catch(() => { /* analytics must never block search */ });
   } catch { /* analytics must never block search */ }
