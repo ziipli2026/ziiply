@@ -106,6 +106,12 @@ const watchdog = setTimeout(() => {
     // never log field values or user-entered content.
     const inputs = await page.locator('input, textarea, [role="searchbox"]').evaluateAll(els => els.map(el => ({ tag: el.tagName.toLowerCase(), type: el.getAttribute('type'), placeholder: el.getAttribute('placeholder'), ariaLabel: el.getAttribute('aria-label'), visible: !!(el.getClientRects().length) })).filter(x => x.visible));
     console.log(JSON.stringify({ check: 'visible-search-inputs', inputs }));
+    const searchDom = await page.evaluate(() => ({
+      inputs: [...document.querySelectorAll('input,textarea,[contenteditable],[role="textbox"],[role="searchbox"]')].map(el => ({tag:el.tagName.toLowerCase(),type:el.getAttribute('type'),placeholder:el.getAttribute('placeholder'),role:el.getAttribute('role'),visible:!!el.getClientRects().length})).slice(0,30),
+      candidates: [...document.querySelectorAll('button,[role="button"]')].filter(el => /Hae|Tuotteet|Vertailu/i.test((el.textContent||'').trim())).slice(0,12).map(el=>({text:(el.textContent||'').trim().slice(0,65),disabled:!!el.disabled,visible:!!el.getClientRects().length,ariaLabel:el.getAttribute('aria-label')})),
+      headings:[...document.querySelectorAll('h1,h2,h3')].map(el=>(el.textContent||'').trim().slice(0,65)).slice(0,15)
+    }));
+    console.log(JSON.stringify({check:'search-dom-diagnostic',...searchDom}));
     const searchInput = page.locator('textarea:visible, input[type="search"]:visible, input[placeholder*="tuote" i]:visible, input[placeholder*="hae" i]:visible').first();
     await searchInput.waitFor({ state: 'visible', timeout: 10000 });
     await searchInput.fill('maito');
