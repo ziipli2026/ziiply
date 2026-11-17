@@ -97,7 +97,10 @@ const watchdog = setTimeout(() => {
     // Gösta and back: that navigation can hide the Justiina control in mobile UI.
     // Normal product search is accessed through the comparison dashboard's Hae
     // control, not Justiina's recipe search (which has a different input).
-    await page.getByRole('button', { name: 'Hae', exact: true }).click({ timeout: 10000 });
+    const searchButtons = await page.locator('button').evaluateAll(els => els.filter(el => (el.textContent || '').trim() === 'Hae').map(el => ({ disabled: el.disabled, ariaDisabled: el.getAttribute('aria-disabled'), visible: !!el.getClientRects().length, title: el.getAttribute('title'), outerTag: el.tagName.toLowerCase() })));
+    console.log(JSON.stringify({ check: 'search-button-state', buttons: searchButtons }));
+    // 'Hae' submits an existing query and can be disabled while empty; inspect
+    // the search UI before attempting submission rather than clicking blindly.
     await page.waitForTimeout(1200);
     // Mobile and desktop use different search controls. Inspect visible input metadata,
     // never log field values or user-entered content.
