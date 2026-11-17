@@ -14263,6 +14263,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    // Cart additions must not start a hidden multi-store price comparison.
+    // Once the user has opened Halpuuta, later cart changes may refresh it.
+    if (options.openCompare === false && !comparisonUserStartedRefV768.current) return;
+
     // V738: physical scale-label products are never price-comparison candidates.
     // Their label total is authoritative, but store-specific comparable unit price
     // cannot be guaranteed even when product identity is known.
