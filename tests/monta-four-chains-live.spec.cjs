@@ -93,7 +93,7 @@ test('Monta live all chains: '+device,async({browser})=>{
       // Result sheets may hide the literal EAN label. Capture both rendered
       // product cards and the actual response payload, not only EAN text nodes.
       const eans=await page.getByText(/EAN \d{13}/).filter({visible:true}).allTextContents();
-      const resultEans=[...new Set(eans.flatMap(v=>[...v.matchAll(/EAN\s*(\d{13})/g)].map(m=>m[1])))].sort();
+      const resultEans=[...new Set(eans.flatMap(v=>[...v.matchAll(/EAN\s*(\d{13})/g)].map(m=>m[1])))];
       const visibleProductButtons=await page.getByRole('button',{name:/Lisää (?:ostoskoriin|koriin)/i}).filter({visible:true}).count();
       const findingsLedger=device==='mobile'?await page.getByRole('button',{name:/Avaa löytöluettelo/i}).filter({visible:true}).count():0;
       result.results.push({query,visibleExcerpt:visible.slice(-1800),apiCalls:calls.length,resultEans,visibleProductButtons,findingsLedger});
@@ -204,9 +204,11 @@ test('Monta: mobile and desktop visible EAN sets match per query',async()=>{
   const mobile=load('mobile'),desktop=load('desktop');
   const byQuery=result=>Object.fromEntries(result.results.map(x=>[x.query,x.resultEans||[]]));
   const a=byQuery(mobile),b=byQuery(desktop);
-  const differences=queries.filter(q=>JSON.stringify(a[q])!==JSON.stringify(b[q])).map(q=>({query:q,mobile:a[q]||[],desktop:b[q]||[]}));
+  const differences=queries.filter(q=>JSON.stringify([...(a[q]||[])].sort())!==JSON.stringify([...(b[q]||[])].sort())).map(q=>({query:q,mobile:a[q]||[],desktop:b[q]||[]}));
+  const orderDifferences=queries.filter(q=>JSON.stringify(a[q]||[])!==JSON.stringify(b[q]||[])).map(q=>({query:q,mobile:a[q]||[],desktop:b[q]||[]}));
   const missingEvidence=queries.filter(q=>!(a[q]?.length>0&&b[q]?.length>0)).map(q=>({query:q,mobile:a[q]?.length||0,desktop:b[q]?.length||0}));
-  fs.writeFileSync('monta-evidence/monta-mobile-desktop-parity.json',JSON.stringify({queries,matched:queries.length-differences.length,differences,missingEvidence},null,2));
+  fs.writeFileSync('monta-evidence/monta-mobile-desktop-parity.json',JSON.stringify({queries,matched:queries.length-differences.length,differences,orderDifferences,missingEvidence},null,2));
   expect(missingEvidence,'Every query must contain real visible EAN-backed products on BOTH layouts; empty sets cannot pass parity').toEqual([]);
   expect(differences,'EAN product sets must match for every query').toEqual([]);
+  expect(orderDifferences,'Visible EAN product order must match for every query').toEqual([]);
 });
