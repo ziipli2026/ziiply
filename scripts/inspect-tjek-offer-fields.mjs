@@ -1,6 +1,6 @@
 // Diagnostic only. Query one publicly advertised Tjek offer and print field
 // paths/types, never prices, descriptions, personal data, or raw payloads.
-const ids = (process.env.TJEK_PUBLIC_OFFER_IDS || 'F455VH7rfhkbvjBhXCfmi,7A38SVgTsOHsUsW7-X_m5,uP65e3Xh3DVpROf43IoMx,tuM_di4gnuiuUFDW65nUU').split(',');
+const ids = (process.env.TJEK_PUBLIC_OFFER_IDS || 'F455VH7rfhkbvjBhXCfmi,7A38SVgTsOHsUsW7-X_m5,uP65e3Xh3DVpROf43IoMx,tuM_di4gnuiuUFDW65nUU,TMBsndz2Baq06T9tCPzVQ,auaNlutxoSp8jNu1c8zW9,cxBI0DS2WqmBj8TuunZqz,Npxb1_hSrw2uT1vjPZgPE,VQeiQB813pBaQkFe0RnDN,xBrHYmnHa8cpvSwP0Lg9P,EiQSHtp6SpBkgWf1V8hKA,v-_VB2JYUfMoqqBzPNbMZ,ehZTLZy3kaF8ZYLrJyZjU,ttgzIYWhUjdoOR4N3ORJ7,EuhPS0_xkMbgHbiIxWtr9,Ol-WpZES_Sa0IsTOMlBOw').split(',');
 for (const id of ids) {
 const stable = v => JSON.stringify(v, (_k,x) => x && Object.prototype.toString.call(x)==='[object Object]' ? Object.keys(x).sort().reduce((a,k)=>(a[k]=x[k],a),{}) : x);
 const key = Buffer.from(stable(['offer',{publicId:id}]),'utf8').toString('base64');
