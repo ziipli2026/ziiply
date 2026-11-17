@@ -14,7 +14,8 @@ test('Monta live all chains: '+device,async({browser})=>{
   let activeSearchQuery='';
   const pendingTargetResponses=[];
   page.on('response',response=>{
-    if(!/\\/api\\/(?:s-products|k-products|neon-first-search|lidl\\/products|tokmanni\\/products)/.test(response.url()))return;
+    if(!response.url().includes('/api/'))return;
+    if(!['/api/s-products','/api/k-products','/api/neon-first-search','/api/lidl/products','/api/tokmanni/products'].some(path=>response.url().includes(path)))return;
     const requestedDuring=activeSearchQuery;
     const task=response.json().then(data=>{
       const items=Array.isArray(data?.items)?data.items:Array.isArray(data?.products)?data.products:Array.isArray(data?.results)?data.results:[];
