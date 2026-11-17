@@ -60,7 +60,7 @@ if (callbackStart < 0) {
       ean: '1234567890123', product_name: 'sensitive',
       $current_url: 'https://example.test/?token=private',
       $referrer: 'https://example.test/?secret=private',
-      search_kind: 'normal', search_id: 'synthetic-id',
+      search_kind: 'normal', search_type: 'normal', search_id: 'synthetic-id',
       result_count: 3,
       metadata: { email: 'nested@example.test', token: 'nested-secret' },
       items: [{ ean: '1234567890123' }],
@@ -70,7 +70,7 @@ if (callbackStart < 0) {
       'search', 'ean', 'product_name', '$current_url', '$referrer'];
     const passed = sensitive.every(key => !(key in props)) &&
       !('metadata' in props) && !('items' in props) &&
-      props.search_kind === 'normal' && props.result_count === 3 &&
+      props.search_kind === 'normal' && props.search_type === 'normal' && props.result_count === 3 &&
       props.ziiply_environment === 'preview' &&
       props.ziiply_internal_test === true &&
       props.ziiply_analytics_schema === 1;
