@@ -17,6 +17,7 @@ export function repairCitymarketOCRTitle(value) {
   title=title.replace(/\bT1ORTILLA\b/gi,"TORTILLA");
   title=title.replace(/\bA4LKOHOLITON\b/gi,"ALKOHOLITON");
   title=title.replace(/\bC8HARDONNAY\b/gi,"CHARDONNAY");
+  title=title.replace(/\bG9LÖGI\b/gi,"GLÖGI");
   title=title.replace(/\bH9aribo\b/gi,"Haribo");
   // OCR can drop the initial letter from a line at the page margin.
   // Do not guess the missing character; keep the row for quality review.
