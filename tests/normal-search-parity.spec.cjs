@@ -112,6 +112,20 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
       }
       const input=device==='mobile'?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true}):page.getByRole('textbox',{name:'Hae tuotteita'});
+      if(device==='desktop'&&!await input.isVisible().catch(()=>false)){
+        // A click can land during hydration and leave the desktop workspace
+        // without the search dialog. Retry the entry once, not the search.
+        await page.waitForTimeout(750);
+        const entry=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
+        if(await entry.count())await entry.first().click({timeout:10000});
+        if(!await input.isVisible().catch(()=>false)){
+          console.log('[normal-parity] desktop entry hydration retry',page.url());
+          await page.reload({waitUntil:'domcontentloaded',timeout:45000});
+          const afterReload=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
+          await expect(afterReload).toBeVisible({timeout:30000});
+          await afterReload.first().click({timeout:10000});
+        }
+      }
       const results=[];
       const noResultDiagnostics=[];
       fs.mkdirSync('normal-search-evidence',{recursive:true});
