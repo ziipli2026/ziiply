@@ -4,15 +4,15 @@ const base=process.env.ZIIPLY_LIVE_URL;
 const fullCorpus=require('./normal-search-100-queries.cjs');
 const legacyQueries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
 const auditBatch=process.env.NORMAL_SEARCH_AUDIT_BATCH;
-const queries=process.env.NORMAL_SEARCH_SMOKE==='1'?['maito','juusto']:(auditBatch!==undefined?fullCorpus.slice(Number(auditBatch)*10,(Number(auditBatch)+1)*10):legacyQueries);
-if(auditBatch!==undefined && (!/^[0-9]$/.test(auditBatch)||queries.length!==10))throw Error('Invalid NORMAL_SEARCH_AUDIT_BATCH');
+const queries=process.env.NORMAL_SEARCH_SMOKE==='1'?['maito','juusto']:(auditBatch!==undefined?fullCorpus.slice(Number(auditBatch)*5,(Number(auditBatch)+1)*5):legacyQueries);
+if(auditBatch!==undefined && (!/^(?:[0-9]|1[0-9])$/.test(auditBatch)||queries.length!==5))throw Error('Invalid NORMAL_SEARCH_AUDIT_BATCH');
 const auth=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:{};
 test('Normal product search: scoped EAN parity, no cart or Monta assertions',async({browser})=>{
   // This test runs 22 live searches plus real store discovery. Preserve evidence even
   // when a single provider stalls; cap each operation independently.
   // A 10-query batch searches mobile and desktop sequentially; the previous
   // 20-minute cap closed the browser before parity could be evaluated.
-  test.setTimeout(auditBatch!==undefined ? 2400000 : 1200000);
+  test.setTimeout(auditBatch!==undefined ? 1500000 : 1200000);
   if(!base)throw Error('ZIIPLY_LIVE_URL missing');
   const evidence={base,queries,auditBatch:auditBatch??null,expectedCommit:process.env.GITHUB_SHA||null,deployments:{},layouts:{},differences:[],orderDifferences:[],duplicates:[],noResults:[]};
   // Record the actual Vercel deployment identifiers used by each layout.
