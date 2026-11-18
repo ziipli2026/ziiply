@@ -169,6 +169,20 @@ export default function ZiiplyMobileSearchResultsCard({
   useEffect(()=>{if(loading)setExpandedProduct(null);},[loading]);
   if (!open) return null;
 
+  // The results sheet is a product-level selection list, not a per-store
+  // quote list. Keep the first (already ranked) product for each normalized
+  // EAN; never mutate the source rows used for store-price comparisons.
+  const visibleProducts = (() => {
+    const seen = new Set<string>();
+    return products.filter(product => {
+      const raw = String(product.ean ?? product.product?.ean ?? product.barcode ?? "").replace(/\\D/g, "");
+      if (raw.length !== 13) return true;
+      if (seen.has(raw)) return false;
+      seen.add(raw);
+      return true;
+    });
+  })();
+
   const expandedComparison = expandedProduct
     ? formatSearchResultComparisonPrice(expandedProduct, priceToEuros(pickRawPrice(expandedProduct), expandedProduct))
     : "";
@@ -245,7 +259,7 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             )}
 
-            {products.map((product, index) => {
+            {visibleProducts.map((product, index) => {
                 const image = getImage(product);
                 const name = getName(product);
                 const rawPrice = pickRawPrice(product);
