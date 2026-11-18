@@ -12,7 +12,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   // when a single provider stalls; cap each operation independently.
   test.setTimeout(1200000);
   if(!base)throw Error('ZIIPLY_LIVE_URL missing');
-  const evidence={base,queries,auditBatch:auditBatch??null,layouts:{},differences:[],orderDifferences:[],duplicates:[],noResults:[]};
+  const evidence={base,queries,auditBatch:auditBatch??null,expectedCommit:process.env.GITHUB_SHA||null,deployments:{},layouts:{},differences:[],orderDifferences:[],duplicates:[],noResults:[]};
+  // Record the actual Vercel deployment identifiers used by each layout.
+  // The workflow currently targets a fixed preview alias: a passing audit
+  // must not be mistaken for proof that it exercised the current Git SHA.
+  console.log('[normal-parity] deployment target',JSON.stringify({base,expectedCommit:evidence.expectedCommit}));
+
   for(const device of ['mobile','desktop']){
     const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
@@ -93,6 +98,13 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       });
       expect(cacheMarkerReady,'CacheStorage V778 returning-user marker must exist before hydration').toBe(true);
       const response=await page.goto(device==='mobile'?base:base.replace(/\/$/,'')+'/desktop-preview',{waitUntil:'domcontentloaded',timeout:60000});
+      evidence.deployments[device]={
+        url:response.url(),status:response.status(),
+        vercelId:response.headers()['x-vercel-id']||null,
+        deploymentUrl:response.headers()['x-vercel-deployment-url']||null,
+        gitCommit:response.headers()['x-vercel-git-commit-sha']||null
+      };
+      console.log('[normal-parity] deployment response',device,JSON.stringify(evidence.deployments[device]));
       expect(response.status()).toBeLessThan(400);
       // The page may be hydrating store selection after DOMContentLoaded. Wait for
       // the active Justiina control rather than clicking an unhydrated button.
