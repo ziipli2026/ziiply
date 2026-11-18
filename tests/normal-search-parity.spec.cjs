@@ -23,7 +23,11 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     page.on('response',r=>{
       try {
         const u=new URL(r.url());
-        if(u.pathname.startsWith('/api/'))apiResponses.push({path:u.pathname,status:r.status()});
+        if(u.pathname.startsWith('/api/'))apiResponses.push({
+          path:u.pathname,status:r.status(),method:r.request().method(),
+          search:u.searchParams.get('search'),requestUrl:u.pathname+u.search,
+          searchAtResponse:currentSearchQuery
+        });
         if(currentSearchQuery==='juusto' && /\/api\/(?:k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
           const requestSearch=u.searchParams.get('search');
           const check=r.text().then(body=>{
@@ -180,6 +184,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             findingsButtonCount:await page.getByRole('button',{name:/Avaa löytöluettelo/i}).count(),
             visibleText:(await page.locator('body').innerText()).slice(-5000),
             apiResponses:apiResponses.slice(apiResponseStart),errors:errors.slice(browserErrorStart),
+            lastSearchResponses:apiResponses.slice(apiResponseStart).filter(x=>/k-products|s-products|lidl|tokmanni|eurospar/.test(x.path)),
             searchLoading:await page.getByTestId('mobile-normal-search-results').getAttribute('data-search-loading').catch(()=>null),
             searchStatus:await page.getByRole('status').allTextContents().catch(()=>[]),
             searchInputValue:await input.inputValue().catch(()=>null),
@@ -242,7 +247,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         if(stable<3)console.log('[normal-parity] DOM UNSTABLE',device,query,'cards='+snapshots.length);
         const eans=[...new Set(snapshots.map(x=>x.ean))];
         results.push({query,eans,uniqueEans:eans.length,renderedCards:snapshots.length,duplicates:snapshots.length-eans.length,
-          providerResponses:apiResponses.slice(apiResponseStart).map(x=>({url:x.url,status:x.status,method:x.method})),
+          providerResponses:apiResponses.slice(apiResponseStart).map(x=>({
+            path:x.path,search:x.search,status:x.status,method:x.method,searchAtResponse:x.searchAtResponse
+          })),
           samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='6407204002559')||null,durationMs:Date.now()-startedAt});
         console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
