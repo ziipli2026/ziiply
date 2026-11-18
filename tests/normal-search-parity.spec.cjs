@@ -10,7 +10,9 @@ const auth=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-byp
 test('Normal product search: scoped EAN parity, no cart or Monta assertions',async({browser})=>{
   // This test runs 22 live searches plus real store discovery. Preserve evidence even
   // when a single provider stalls; cap each operation independently.
-  test.setTimeout(1200000);
+  // A 10-query batch searches mobile and desktop sequentially; the previous
+  // 20-minute cap closed the browser before parity could be evaluated.
+  test.setTimeout(auditBatch!==undefined ? 2400000 : 1200000);
   if(!base)throw Error('ZIIPLY_LIVE_URL missing');
   const evidence={base,queries,auditBatch:auditBatch??null,expectedCommit:process.env.GITHUB_SHA||null,deployments:{},layouts:{},differences:[],orderDifferences:[],duplicates:[],noResults:[]};
   // Record the actual Vercel deployment identifiers used by each layout.
