@@ -40,3 +40,11 @@ test('grocery corpus has exactly 100 distinct search terms',()=>{
   assert.equal(terms.length,100);
   assert.equal(new Set(terms).size,100);
 });
+
+test('mobile result sheet renders only one card per normalized EAN without modifying source rows',()=>{
+  assert.match(mobileCard,/const visibleProducts =/);
+  assert.match(mobileCard,/products\.filter\(product =>/);
+  assert.match(mobileCard,/seen\.has\(raw\)/);
+  assert.match(mobileCard,/visibleProducts\.map\(\(product, index\)/);
+  assert.doesNotMatch(mobileCard,/products\.map\(\(product, index\)/);
+});
