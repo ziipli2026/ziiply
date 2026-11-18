@@ -18,7 +18,7 @@ jobs:
       matrix:
         batch: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
     runs-on: ubuntu-latest
-    # Five live searches per layout can approach the 20-minute Playwright cap.
+    # Five live searches per layout use a capped browser run.
     # Give browser cleanup and evidence upload room to finish.
     timeout-minutes: 45
     steps:
@@ -30,11 +30,12 @@ jobs:
       - run: npm ci
       - run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install chromium
+      # Pinned to the READY preview built from 8f2b1fc7; not production and not an arbitrary stale build.
       - name: Compare 5 live grocery searches on mobile and desktop
         env:
           NORMAL_SEARCH_AUDIT_BATCH: ${{ matrix.batch }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          ZIIPLY_LIVE_URL: https://ziiply-5jhqi1m3h-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-88in1fwla-ziipli2026s-projects.vercel.app
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
           npx playwright test tests/normal-search-parity.spec.cjs --browser=chromium --reporter=line
