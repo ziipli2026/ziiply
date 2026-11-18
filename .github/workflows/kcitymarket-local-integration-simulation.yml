@@ -29,6 +29,8 @@ jobs:
       - run: npm install --package-lock=false --no-audit --no-fund
       - name: TypeScript compile
         run: npx tsc --noEmit
+      - name: Citymarket OCR title repair regression
+        run: node scripts/citymarket/test-ocr-repair.mjs
       - name: Citymarket preflight and Control Center regression
         run: node --test tests/citymarket-preflight.test.cjs
       - name: Citymarket verified PDF image normalization regression
