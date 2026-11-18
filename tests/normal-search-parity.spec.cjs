@@ -272,6 +272,13 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         if(stable<3)console.log('[normal-parity] DOM UNSTABLE',device,query,'cards='+snapshots.length);
         const eans=[...new Set(snapshots.map(x=>x.ean))];
+        const duplicateDetails=[...new Set(snapshots.map(x=>x.ean))]
+          .map(ean=>({ean,cards:snapshots.filter(x=>x.ean===ean)}))
+          .filter(x=>x.cards.length>1);
+        if(duplicateDetails.length)console.log('[normal-parity] DUPLICATE CARD DETAIL',JSON.stringify({
+          device,query,duplicateDetails:duplicateDetails.slice(0,25),
+          loading:await page.getByTestId('mobile-normal-search-results').getAttribute('data-search-loading').catch(()=>null)
+        }));
         results.push({query,eans,uniqueEans:eans.length,renderedCards:snapshots.length,duplicates:snapshots.length-eans.length,
           providerResponses:apiResponses.slice(apiResponseStart).map(x=>({
             path:x.path,search:x.search,status:x.status,method:x.method,searchAtResponse:x.searchAtResponse
