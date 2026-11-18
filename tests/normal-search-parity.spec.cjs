@@ -38,7 +38,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         if(currentSearchQuery==='juusto' && /\/api\/(?:k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
           const requestSearch=u.searchParams.get('search');
           const check=r.text().then(body=>{
-            const index=body.indexOf('6407204002559');
+            const index=body.indexOf('3073780902441');
             providerEanPresence.push({device,query:'juusto',path:u.pathname,requestSearch,status:r.status(),hasTarget:index>=0,
               targetExcerpt:index<0?null:body.slice(Math.max(0,index-350),index+450),bodyLength:body.length});
           }).catch(error=>providerEanPresence.push({device,query:'juusto',path:u.pathname,requestSearch,status:r.status(),error:String(error)}));
@@ -278,6 +278,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           .map(ean=>({ean,cards:snapshots.filter(x=>x.ean===ean)}))
           .filter(x=>x.cards.length>1);
         if(duplicateDetails.length)console.log('[normal-parity] DUPLICATE CARD DETAIL',JSON.stringify({
+          domSource:await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),container:n.closest('[data-testid="mobile-normal-search-results"]')?.getAttribute('data-testid')||null,ancestors:[...function*(el){for(let i=0;i<5 && el;i++,el=el.parentElement)yield {tag:el.tagName,testId:el.getAttribute('data-testid'),className:String(el.className||'').slice(0,100)};} (n)]})).filter(row=>duplicateDetails.some(d=>d.ean===row.ean)).slice(0,45)),
           device,query,duplicateDetails:duplicateDetails.slice(0,25),
           loading:await page.getByTestId('mobile-normal-search-results').getAttribute('data-search-loading').catch(()=>null)
         }));
@@ -285,7 +286,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           providerResponses:apiResponses.slice(apiResponseStart).map(x=>({
             path:x.path,search:x.search,status:x.status,method:x.method,searchAtResponse:x.searchAtResponse
           })),
-          samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='6407204002559')||null,durationMs:Date.now()-startedAt});
+          samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='3073780902441')||null,durationMs:Date.now()-startedAt});
         console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
       }
