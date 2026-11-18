@@ -244,8 +244,18 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   }
   fs.mkdirSync('normal-search-evidence',{recursive:true});
   fs.writeFileSync('normal-search-evidence/parity.json',JSON.stringify(evidence,null,2));
-  expect(evidence.noResults,'Unexpected zero-result live searches (see per-query diagnostics)').toEqual([]);
-  expect(evidence.differences,'Scoped normal search EAN parity').toEqual([]);
-  expect(evidence.orderDifferences,'Scoped normal search order parity').toEqual([]);
-  expect(evidence.duplicates,'Final visible search results must have no duplicate EAN cards').toEqual([]);
+  const auditSummary={
+    batch:auditBatch??'smoke',queries:queries.length,
+    noResults:evidence.noResults,
+    eanDifferences:evidence.differences,
+    orderDifferences:evidence.orderDifferences,
+    duplicates:evidence.duplicates
+  };
+  console.log('[normal-parity] AUDIT SUMMARY',JSON.stringify(auditSummary));
+  const failures=[];
+  if(evidence.noResults.length)failures.push('No-result searches: '+evidence.noResults.map(x=>x.device+':'+x.query).join(', '));
+  if(evidence.differences.length)failures.push('EAN set differences: '+JSON.stringify(evidence.differences));
+  if(evidence.orderDifferences.length)failures.push('EAN order differences: '+evidence.orderDifferences.join(', '));
+  if(evidence.duplicates.length)failures.push('Duplicate EAN cards: '+JSON.stringify(evidence.duplicates));
+  expect(failures,'All normal-search parity failures (full evidence in parity.json)').toEqual([]);
 });
