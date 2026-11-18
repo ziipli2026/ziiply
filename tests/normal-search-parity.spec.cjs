@@ -278,7 +278,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           .map(ean=>({ean,cards:snapshots.filter(x=>x.ean===ean)}))
           .filter(x=>x.cards.length>1);
         if(duplicateDetails.length)console.log('[normal-parity] DUPLICATE CARD DETAIL',JSON.stringify({
-          domSource:await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),container:n.closest('[data-testid="mobile-normal-search-results"]')?.getAttribute('data-testid')||null,ancestors:(()=>{const list=[];for(let el=n,i=0;el&&i<5;el=el.parentElement,i++)list.push({tag:el.tagName,testId:el.getAttribute("data-testid"),className:String(el.className||"").slice(0,100)});return list;})()})).filter(row=>duplicateDetails.some(d=>d.ean===row.ean)).slice(0,45)),
+          domSource:await cards.evaluateAll((nodes,duplicateEans)=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),container:n.closest('[data-testid="mobile-normal-search-results"]')?.getAttribute('data-testid')||null,ancestors:(()=>{const list=[];for(let el=n,i=0;el&&i<5;el=el.parentElement,i++)list.push({tag:el.tagName,testId:el.getAttribute("data-testid"),className:String(el.className||"").slice(0,100)});return list;})()})).filter(row=>duplicateEans.includes(row.ean)).slice(0,45),duplicateDetails.map(d=>d.ean)),
           device,query,duplicateDetails:duplicateDetails.slice(0,25),
           loading:await page.getByTestId('mobile-normal-search-results').getAttribute('data-search-loading').catch(()=>null)
         }));
