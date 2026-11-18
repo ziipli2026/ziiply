@@ -372,4 +372,8 @@ jobs:
             }
           })().catch(error => { console.error(error); process.exitCode = 1; });
           NODE
-
+      - name: Enforce complete Tjek source audit after browser checks
+        if: ${{ always() && steps.tjek_audit.outcome == 'failure' }}
+        run: |
+          echo '::error::Tjek source audit failed; browser checks were run independently but this workflow remains blocked.'
+          exit 1
