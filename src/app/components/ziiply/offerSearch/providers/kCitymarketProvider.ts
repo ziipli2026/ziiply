@@ -91,6 +91,10 @@ export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
+  // Product type wins over substring matches (juice is not fresh fruit).
+  if(/(?:appelsiini(?:täys)?mehu|täysmehu)/.test(joined)) return "Juomat";
+  // A dog treat must never be classified as a human hot-dog sausage.
+  if(/(?:the dog naughty hot dog|naughty hot dog)/.test(joined)) return "Lemmikit";
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
   // Product-form precedence: recognizable hygiene, cleaning and food items.
   if(/(?:nestesaippuoiden täyttöpuss|meikinkiinnityssuihke|meikinpoistoaine|\bvoiteet\s+50\s*ml)/.test(joined)) return "Hygienia & kosmetiikka";
