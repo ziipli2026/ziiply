@@ -17,7 +17,7 @@ export default function ConfirmBetaLogin() {
       if(cancelled)return;
       if(!response.ok){setStatus("Linkki on vanhentunut tai kirjautuminen ei ole vielä käytettävissä.");return;}
       setStatus("Kirjautuminen onnistui.");
-      router.replace("/arvo-tilastot");
+      router.replace("/beta/aloitus");
     }).catch(()=>{if(!cancelled)setStatus("Kirjautumisen vahvistaminen epäonnistui.");});
     return()=>{cancelled=true;};
   },[router]);
