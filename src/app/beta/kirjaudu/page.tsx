@@ -42,7 +42,7 @@ export default function BetaLoginPage() {
     <h1>Ziiply – beetakirjautuminen</h1>
     <p>Kirjaudu beetarekisteriin ilmoittamallasi sähköpostiosoitteella. Et tarvitse salasanaa.</p>
     {!ready && <p role="status">Sähköpostikirjautumisen testiä valmistellaan. Lomake avautuu, kun palvelu on valmis.</p>}
-    {authenticated && <section aria-label="Beetaistunto"><p>Olet kirjautunut beetatestaajana.</p><a href="/arvo-tilastot">Avaa Arvon tilastot</a><p><button type="button" onClick={logout} disabled={busy}>Kirjaudu ulos</button></p></section>}
+    {authenticated && <section aria-label="Beetaistunto"><p>Olet kirjautunut beetatestaajana.</p><a href="/beta/aloitus">Avaa betatestaajan aloitussivu</a><p><button type="button" onClick={logout} disabled={busy}>Kirjaudu ulos</button></p></section>}
     {!authenticated && <form onSubmit={submit}>
       <label htmlFor="beta-email">Sähköpostiosoite</label>
       <input id="beta-email" type="email" autoComplete="email" required value={email}
