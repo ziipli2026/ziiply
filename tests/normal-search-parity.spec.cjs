@@ -12,7 +12,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   // when a single provider stalls; cap each operation independently.
   test.setTimeout(1200000);
   if(!base)throw Error('ZIIPLY_LIVE_URL missing');
-  const evidence={base,queries,auditBatch:auditBatch??null,layouts:{},differences:[],orderDifferences:[],duplicates:[]};
+  const evidence={base,queries,auditBatch:auditBatch??null,layouts:{},differences:[],orderDifferences:[],duplicates:[],noResults:[]};
   for(const device of ['mobile','desktop']){
     const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
@@ -109,8 +109,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       }
       const input=device==='mobile'?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true}):page.getByRole('textbox',{name:'Hae tuotteita'});
       const results=[];
+      const noResultDiagnostics=[];
       fs.mkdirSync('normal-search-evidence',{recursive:true});
-      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress-'+device+'.json',JSON.stringify({base,device,results,apiResponses:apiResponses.slice(-100),providerEanPresence,errors},null,2));
+      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress-'+device+'.json',JSON.stringify({base,device,results,noResultDiagnostics,apiResponses:apiResponses.slice(-100),providerEanPresence,errors},null,2));
       checkpoint();
       for(const query of queries){
         const startedAt=Date.now();
@@ -164,9 +165,11 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             if(await ledger.count())await ledger.first().click();
           }
         }
+        let noVisibleCards=false;
         try{
           await expect.poll(async()=>cards.count(),{timeout:30000}).toBeGreaterThan(0);
         }catch(error){
+          noVisibleCards=true;
           fs.mkdirSync('normal-search-evidence',{recursive:true});
           const diagnostic={
             device,query,reason:String(error),pageUrl:page.url(),
@@ -179,9 +182,15 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             selectedMobile:await page.evaluate(()=>localStorage.getItem('ziiply-store-selection-v536')).catch(()=>null),
             allVisibleButtons:(await page.getByRole('button').allTextContents().catch(()=>[])).slice(-70),
           };
-          fs.writeFileSync('normal-search-evidence/failure-diagnostic.json',JSON.stringify(diagnostic,null,2));
-          await page.screenshot({path:'normal-search-evidence/failure.png',fullPage:true}).catch(()=>{});
-          throw error;
+          noResultDiagnostics.push(diagnostic);
+          fs.writeFileSync('normal-search-evidence/no-results-'+device+'-'+query.replace(/[^a-z0-9-]/gi,'_')+'.json',JSON.stringify(diagnostic,null,2));
+          await page.screenshot({path:'normal-search-evidence/no-results-'+device+'-'+query.replace(/[^a-z0-9-]/gi,'_')+'.png',fullPage:true}).catch(()=>{});
+          console.log('[normal-parity] NO RESULTS',device,query,'continuing audit');
+        }
+        if(noVisibleCards){
+          results.push({query,eans:[],uniqueEans:0,renderedCards:0,duplicates:0,samples:[],durationMs:Date.now()-startedAt,noResults:true});
+          checkpoint();
+          continue;
         }
         if(device==='mobile'){
           // Wait for the actual component's loading+completion flags.
@@ -218,7 +227,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
       }
-      evidence.layouts[device]={results,errors};
+      evidence.layouts[device]={results,errors,noResultDiagnostics};
       expect(errors,'Browser page errors').toEqual([]);
     }finally{await context.close();}
   }
@@ -229,11 +238,13 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     if(mobile.join(',')!==desktop.join(','))evidence.orderDifferences.push(query);
     for(const device of ['mobile','desktop']){
       const result=evidence.layouts[device].results.find(x=>x.query===query);
+      if(result.noResults)evidence.noResults.push({device,query});
       if(result.duplicates)evidence.duplicates.push({device,query,count:result.duplicates});
     }
   }
   fs.mkdirSync('normal-search-evidence',{recursive:true});
   fs.writeFileSync('normal-search-evidence/parity.json',JSON.stringify(evidence,null,2));
+  expect(evidence.noResults,'Unexpected zero-result live searches (see per-query diagnostics)').toEqual([]);
   expect(evidence.differences,'Scoped normal search EAN parity').toEqual([]);
   expect(evidence.orderDifferences,'Scoped normal search order parity').toEqual([]);
   expect(evidence.duplicates,'Final visible search results must have no duplicate EAN cards').toEqual([]);
