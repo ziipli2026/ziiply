@@ -63,6 +63,10 @@ export async function middleware(request: NextRequest) {
   // Opt-in only. This flag must be enabled exclusively in the isolated preview
   // after origin/cookie configuration and automated tests have been verified.
   if (process.env.ZIIPLY_BETA_APP_GATE !== "true") return NextResponse.next();
+  // Scope the gate to the beta hostname; production and other preview URLs
+  // must never become gated merely because they share this Vercel project.
+  const expectedHost = process.env.ZIIPLY_BETA_GATE_HOST;
+  if (!expectedHost || request.nextUrl.hostname !== expectedHost) return NextResponse.next();
   const pathname = request.nextUrl.pathname;
   if (publicPath(pathname)) return NextResponse.next();
   if (await authorized(request)) return NextResponse.next();
