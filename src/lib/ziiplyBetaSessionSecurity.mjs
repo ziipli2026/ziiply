@@ -6,7 +6,7 @@ export function betaCookieOptions(maxAgeSeconds = 7 * 24 * 3600) {
 }
 export function validateBetaRedirect(path) {
   if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//") ||
-      path.includes("\\") || /[\r\n]/.test(path)) return "/arvo-tilastot";
+      path.includes("\\") || /[\r\n]/.test(path)) return "/beta/aloitus";
   return path;
 }
 export function signBetaState(payload, secret) {
