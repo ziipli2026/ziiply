@@ -14,8 +14,15 @@ export async function POST(request: NextRequest) {
     try { hash = hashBetaToken(token); } catch { /* invalid cookie */ }
     if (hash) {
       const sql = neon(process.env.DATABASE_URL);
-      await sql`UPDATE public.ziiply_beta_sessions SET revoked_at = now()
-        WHERE token_hash = ${hash} AND revoked_at IS NULL`;
+      try {
+        await sql`UPDATE public.ziiply_beta_sessions SET revoked_at = now()
+          WHERE token_hash = ${hash} AND revoked_at IS NULL`;
+      } catch {
+        // Fail closed: do not report a successful logout if revocation failed.
+        return NextResponse.json({ ok: false, error: "LOGOUT_RETRY_REQUIRED" }, {
+          status: 503, headers: { "Cache-Control": "no-store" },
+        });
+      }
     }
   }
   const response = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
