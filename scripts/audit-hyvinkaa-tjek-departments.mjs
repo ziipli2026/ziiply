@@ -22,7 +22,7 @@ for(let i=0;i<baseline.length;i+=8){
      try{
        const response=await fetch('https://etarjouslehdet.fi/',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/plain, */*',Referer:'https://etarjouslehdet.fi/K-Citymarket'},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(15000)});
        if(!response.ok)throw Error('HTTP '+response.status);
-       payload=(await response.text()).split(/\\r?\\n/).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).find(x=>x?.key===key)?.value??null;
+       payload=(await response.text()).split(/\r?\n/).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).find(x=>x?.key===key)?.value??null;
        if(payload && typeof payload==='object')break;
      }catch(error){if(attempt===2)throw error;}
      if(attempt<2)await new Promise(resolve=>setTimeout(resolve,300*(attempt+1)));
