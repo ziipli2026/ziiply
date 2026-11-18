@@ -462,6 +462,48 @@
         "kcm:spatial:20:virvoitusjuomat:3.99": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#0a2ad2a36027a33e25cb",
         "kcm:spatial:20:energiajuomat 0,25 l/tlk:4": "/citymarket-leaflets/16aafdea833b66ab92c39c065dc416a72f1db8fbaa7cadcb9d459085b39a7985/images.svg#19669103a81f29a099eb"
       }
+    },
+    "https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html": {
+      "pdfSha256": "3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449",
+      "pageCount": 20,
+      "offerCount": 49,
+      "images": {
+        "kcm:spatial:2:l’oréal paris meikkivoiteet, peiteaineet & telescopic mascarat voimassa to–su 19.–22.11.2026 l’oréal paris foundation, concealers & telescopic mascaror:percent:30": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#d5736c9691a07ce68146",
+        "kcm:spatial:13:nestesaippuoiden täyttöpussit 300 ml:3.5": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#d8b97d1f53b97bb51d9b",
+        "kcm:spatial:13:meikinkiinnityssuihke 150 ml:12.9": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#78e85458cf1f5c4dd34a",
+        "kcm:spatial:13:smuuti skin -ihonhoito-:percent:25": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#72281178aeacfae3430d",
+        "kcm:spatial:13:rantit 45 ml:8": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#0d9f8590862a09b6c114",
+        "kcm:spatial:13:suuvesi 1000 ml:5.95": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#95c8da139d2d066f44e4",
+        "kcm:spatial:13:voiteet 50 ml sekä meikinpoistoaine 125 ml:percent:49": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#2bb7ab405eec02641a5d",
+        "kcm:spatial:13:tuotteet ja cosrx-tuotteet:percent:25": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#e161a631282c61953813",
+        "kcm:spatial:14:pyykinpesunesteet 840 ml:2.9": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#05e138b2be47a03bf126",
+        "kcm:spatial:14:wc-raikastimet 50 g:3": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#77b54e19c7fe7c66be6a",
+        "kcm:spatial:14:sini siivoussooda 800 g, sitruunahappo 600 g, puhdistuskivi 300 g sitruuna ja raikastus- sooda 300 g:percent:20": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#d1ce7693d98227953432",
+        "kcm:spatial:15:punakaali kg päärynä kg kpl 125 g ps:1.49": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#3c97e06ed06083574b57",
+        "kcm:spatial:15:kiviuunipizzat 310–350 g:2.49": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#f9a15704fda2aa519577",
+        "kcm:spatial:16:rieskat - 6–7 kpl/250–260 g (5,77–6,00/kg):3": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#095ac81119700abc8575",
+        "kcm:spatial:16:täysmehut 900 ml/pl tai smoothiet 750 ml/pl (3,66–4,39/l):3.05": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#91d4f6cb5f38d4ef1db5",
+        "kcm:spatial:16:appelsiinitäysmehu 1 l:4": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#05c8a5e557a6a2399359",
+        "kcm:spatial:16:jogurttijuomat protein rahkat 200 g 8 x 100 g:14.02": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#dfdc0e83af8c0dc06339",
+        "kcm:spatial:16:4 levitteet 400 g 2:2.6": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#84561cbd3f22f1143b58",
+        "kcm:spatial:17:airfry kanan fileeviipale tai paistipala 300–320 g (12,47–13,30/kg):3.99": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#e2ebb5ee51890f44d09b",
+        "kcm:spatial:17:t1ortilla chipsit 160–185 g (7,51–8,69/kg):1.4": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#6f7b24bccbff8f06fe0b",
+        "kcm:spatial:17:t1ortilla original medium 320 g (3,59/kg)15:1.39": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#c4c1693f88b1f3d31e22",
+        "kcm:spatial:17:lempi crem-e fraiche 200 g ja smetana 150 g (7,50–10,00/kg):3": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#3eea8e02f84f26552c1c",
+        "kcm:spatial:17:guacamole style toppin kastike 260 g:2.69": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#11a2594ce4636d5ed0ef",
+        "kcm:spatial:17:spicy pepper topping kastike 270 g:2.69": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#2b790d88fac2b24591b1",
+        "kcm:spatial:18:the dog naughty hot dog 6 kpl/300 g (10,30/kg) 09:3.09": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#6a03b8b5493066f70375",
+        "kcm:spatial:18:kermaviilidipit 200 g:2.5": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#d9f25564dbe5cfe5e80c",
+        "kcm:spatial:18:salame milano 70 g:2.49": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#5f7826586d043d51ed72",
+        "kcm:spatial:19:h9aribo joulukalenteri 300 g (32,63/kg) 79:9.79": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#863de4573be8f9d7e065",
+        "kcm:spatial:19:joulukalenteri 200 g:12.95": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#cef5db92bb95664e5a52",
+        "kcm:spatial:19:joulukalenteri 351 g:18.95": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#0f1827fcec7865744015",
+        "kcm:spatial:19:teddy joulukalenteri 170 g:14.45": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#1f4d4010fe343f40d9ef",
+        "kcm:spatial:19:joulukalenteri 189–208 g:11.95": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#dab86b880105966a71bd",
+        "kcm:spatial:20:c8hardonnay tai cabernet sauvignon 8 % 1 l/pl (8,59/l) sis. pantin 0,40:8.99": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#dbf8b0267ad024ec2581",
+        "kcm:spatial:20:imperial riesling 8 % 0,75 l/pl:8.99": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#802c7b171217ef1f0b8f",
+        "kcm:spatial:20:vadelmainen, mausteinen. 0 % 0,33 l/tlk oluet 0,0 % 0,33 l/tlk (11,85/l) sis. pantin 0,10 (6,67/l) sis. pantit 0,30 (4,09/l) sis. pantit 0,30:4": "/citymarket-leaflets/3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449/images.svg#85f0bc7fad640ab154e0"
+      }
     }
   }
 }
