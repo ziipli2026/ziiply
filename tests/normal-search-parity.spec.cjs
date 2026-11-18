@@ -152,6 +152,8 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           await page.screenshot({path:'normal-search-evidence/input-'+device+'-'+query+'.png',fullPage:true}).catch(()=>{});
           throw error;
         }
+        const apiResponseStart=apiResponses.length;
+        const browserErrorStart=errors.length;
         await input.fill(query,{timeout:12000});
         if(device==='desktop')await input.press('Enter',{timeout:12000});
         else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click({timeout:12000});
@@ -177,7 +179,10 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             oldVisibleEans:await page.getByText(/EAN \d{13}/).filter({visible:true}).count(),
             findingsButtonCount:await page.getByRole('button',{name:/Avaa löytöluettelo/i}).count(),
             visibleText:(await page.locator('body').innerText()).slice(-5000),
-            apiResponses:apiResponses.slice(-50),errors,
+            apiResponses:apiResponses.slice(apiResponseStart),errors:errors.slice(browserErrorStart),
+            searchLoading:await page.getByTestId('mobile-normal-search-results').getAttribute('data-search-loading').catch(()=>null),
+            searchStatus:await page.getByRole('status').allTextContents().catch(()=>[]),
+            searchInputValue:await input.inputValue().catch(()=>null),
             selectedDesktop:await page.evaluate(()=>localStorage.getItem('ziiply-desktop-store-choices-v1')).catch(()=>null),
             selectedMobile:await page.evaluate(()=>localStorage.getItem('ziiply-store-selection-v536')).catch(()=>null),
             allVisibleButtons:(await page.getByRole('button').allTextContents().catch(()=>[])).slice(-70),
@@ -223,7 +228,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         await Promise.allSettled(providerChecks.splice(0));
         const snapshots=await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),label:(n.textContent||'').replace(/\s+/g,' ').slice(0,240)})).filter(x=>/^\d{13}$/.test(x.ean||'')));
         const eans=[...new Set(snapshots.map(x=>x.ean))];
-        results.push({query,eans,uniqueEans:eans.length,renderedCards:snapshots.length,duplicates:snapshots.length-eans.length,samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='6407204002559')||null,durationMs:Date.now()-startedAt});
+        results.push({query,eans,uniqueEans:eans.length,renderedCards:snapshots.length,duplicates:snapshots.length-eans.length,
+          providerResponses:apiResponses.slice(apiResponseStart).map(x=>({url:x.url,status:x.status,method:x.method})),
+          samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='6407204002559')||null,durationMs:Date.now()-startedAt});
         console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
       }
