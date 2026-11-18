@@ -92,6 +92,13 @@ export function category(t:string){
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
+  // Product-form precedence for hygiene, cleaning, fresh foods and prepared meat.
+  // Avoid interpreting a cooking method (AIRFRY) as an air-fryer appliance.
+  if(/(?:nestesaippuoiden täyttöpuss|meikinkiinnityssuihke|meikinpoistoaine|\\bvoiteet\\s+50\\s*ml)/.test(joined)) return "Hygienia & kosmetiikka";
+  if(/(?:wc.raikastim|siivoussooda|sitruunahappo|puhdistuskivi|raikastussooda)/.test(joined)) return "Kodinhoito";
+  if(/(?:airfry\\s+kanan|kanan\\s+fileeviipale|kanan\\s+paistipala|salame\\s+milano)/.test(joined)) return "Liha & makkarat";
+  if(/(?:\\blevitteet\\s+400\\s*g|\\bhot\\s+dog\\s+\\d+\\s*kpl)/.test(joined)) return "Maitotuotteet";
+  if(/(?:alkoholiton\\s+glögi|\\bglögi\\s+8\\s*%|chardonnay|cabernet\\s+sauvignon)/.test(joined)) return "Juomat";
   // Plant-based slices are prepared protein products, not potato chips.
   if(/(?:kanaton|lihaton)\s+lastu|(?:lihaton|kanaton).*\b(?:kanaton|lihaton)\s+lastu|\bvebablastu/.test(joined)) return "Valmisruoka";
   // General food forms observed in 47AV. Classify by product type, not issue.
