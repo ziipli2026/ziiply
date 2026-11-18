@@ -15,10 +15,19 @@ for(let i=0;i<baseline.length;i+=8){
  await Promise.all(batch.map(async row=>{
   try{
    const key=Buffer.from(stable(['offer',{publicId:row.id}]),'utf8').toString('base64');
-   const response=await fetch('https://etarjouslehdet.fi/',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/plain, */*',Referer:'https://etarjouslehdet.fi/K-Citymarket'},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(15000)});
-   if(!response.ok)throw Error('HTTP '+response.status);
-   const payload=(await response.text()).split(/\r?\n/).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).find(x=>x?.key===key)?.value;
-   if(!payload || typeof payload!=='object'){counts.missing++;return;}
+   let payload=null;
+   // A transient source miss must not abort the browser suite. Retry the same
+   // exact publicId, but never invent metadata or count an absent row as verified.
+   for(let attempt=0;attempt<3;attempt++){
+     try{
+       const response=await fetch('https://etarjouslehdet.fi/',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/plain, */*',Referer:'https://etarjouslehdet.fi/K-Citymarket'},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(15000)});
+       if(!response.ok)throw Error('HTTP '+response.status);
+       payload=(await response.text()).split(/\\r?\\n/).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).find(x=>x?.key===key)?.value??null;
+       if(payload && typeof payload==='object')break;
+     }catch(error){if(attempt===2)throw error;}
+     if(attempt<2)await new Promise(resolve=>setTimeout(resolve,300*(attempt+1)));
+   }
+   if(!payload || typeof payload!=='object'){counts.missing++;console.error('TJEK_AUDIT_SOURCE_MISSING',row.id);return;}
    counts.matched++;
    const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
    departments[department]=(departments[department]||0)+1;
