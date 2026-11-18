@@ -70,6 +70,24 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           usingOwnLocation:false
         }));
       },{selectedLidl,selectedSpar});
+      // The real mobile app treats a missing CacheStorage V778 marker as a
+      // deliberate browser-cache clear: it removes ALL saved store selections.
+      // An isolated Playwright context always has an empty CacheStorage, so
+      // seed this marker in a synthetic same-origin document before app mount.
+      // This tests a RETURNING user's explicitly selected stores instead of
+      // accidentally exercising the first-install reset path.
+      await page.route('**/ziiply-audit-bootstrap',route=>route.fulfill({
+        status:200,contentType:'text/html',
+        body:'<!doctype html><html lang="fi"><title>Audit bootstrap</title></html>'
+      }));
+      await page.goto(base.replace(/\/$/,'')+'/ziiply-audit-bootstrap',{waitUntil:'domcontentloaded'});
+      const cacheMarkerReady=await page.evaluate(async()=>{
+        const cache=await window.caches.open('ziiply-boot-marker-v778');
+        const req=new Request('/__ziiply_boot_marker_v778__');
+        await cache.put(req,new Response('1',{headers:{'content-type':'text/plain'}}));
+        return Boolean(await cache.match(req));
+      });
+      expect(cacheMarkerReady,'CacheStorage V778 returning-user marker must exist before hydration').toBe(true);
       const response=await page.goto(device==='mobile'?base:base.replace(/\/$/,'')+'/desktop-preview',{waitUntil:'domcontentloaded',timeout:60000});
       expect(response.status()).toBeLessThan(400);
       // The page may be hydrating store selection after DOMContentLoaded. Wait for
