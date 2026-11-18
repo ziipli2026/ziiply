@@ -14,5 +14,6 @@ assert.equal(fix('T1ORTILLA ORIGINAL MEDIUM 320 g (3,59/kg)15'),'TORTILLA ORIGIN
 assert.equal(fix('A4LKOHOLITON GLÖGI 0,75 l/pl'),'ALKOHOLITON GLÖGI 0,75 l/pl');
 assert.equal(fix('C8HARDONNAY tai CABERNET SAUVIGNON 8 %'),'CHARDONNAY tai CABERNET SAUVIGNON 8 %');
 assert.equal(fix('H9aribo JOULUKALENTERI 300 g'),'Haribo JOULUKALENTERI 300 g');
+assert.equal(fix('G9LÖGI 8 % 0,75 l/pl (12,25/l)'),'GLÖGI 8 % 0,75 l/pl (12,25/l)');
 assert.equal(fix('50.31'),'50.31');
-console.log('Citymarket reusable OCR title repair: 11 checks passed');
+console.log('Citymarket reusable OCR title repair: 12 checks passed');
