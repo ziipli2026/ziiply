@@ -4,7 +4,7 @@ const guideUrl="https://ziiply-protected-guide.vercel.app/ohje";
 const cards=[
  {icon:"📱",tag:"KÄYTTÖOHJE",title:"Mobiili",description:"Näin käytät Ziiplyä puhelimella: haku, tarjoukset, ostoskori ja muut ominaisuudet.",href:guideUrl,action:"Tutustu mobiiliohjeisiin"},
  {icon:"💻",tag:"KÄYTTÖOHJE",title:"Tietokone",description:"Tutustu Ziiplyn työpöytäversion käyttöön kuvitetun käyttöohjeen avulla.",href:"https://ziiply-protected-guide.vercel.app/ohje/sisalto?versio=desktop",action:"Tutustu desktop-ohjeisiin"},
- {icon:"🛒",tag:"BETASOVELLUS",title:"Aloita testaus",description:"Kokeile Ziiplyä ja tutustu ominaisuuksiin käytännössä.",href:"https://ziiply.vercel.app",action:"Avaa Ziiply"}
+ {icon:"🛒",tag:"BETASOVELLUS",title:"Aloita testaus",description:"Kokeile Ziiplyä ja tutustu ominaisuuksiin käytännössä.",href:"/",action:"Avaa Ziiply"}
 ];
 export default function BetaStart(){
  const [authenticated,setAuthenticated]=useState<boolean|null>(null);
