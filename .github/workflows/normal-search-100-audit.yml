@@ -13,6 +13,8 @@ jobs:
   search-audit:
     strategy:
       fail-fast: false
+      # Avoid ten simultaneous batches saturating the same live S/K providers.
+      max-parallel: 2
       matrix:
         batch: [0,1,2,3,4,5,6,7,8,9]
     runs-on: ubuntu-latest
