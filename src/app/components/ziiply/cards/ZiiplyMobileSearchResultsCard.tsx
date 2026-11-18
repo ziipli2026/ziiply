@@ -175,7 +175,7 @@ export default function ZiiplyMobileSearchResultsCard({
   const visibleProducts = (() => {
     const seen = new Set<string>();
     return products.filter(product => {
-      const raw = String(product.ean ?? product.product?.ean ?? product.barcode ?? "").replace(/\\D/g, "");
+      const raw = String(product.ean ?? product.product?.ean ?? product.barcode ?? "").replace(/\D/g, "");
       if (raw.length !== 13) return true;
       if (seen.has(raw)) return false;
       seen.add(raw);
