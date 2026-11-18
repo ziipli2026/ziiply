@@ -26,3 +26,17 @@ test("signed beta state expires and rejects tampering", () => {
   assert.equal(verifyBetaState(signed, secret, now + 60_001), null);
   assert.equal(verifyBetaState(signed, "wrong-secret-012345678901234567890123", now), null);
 });
+
+test("beta welcome opens the app on the same origin", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const page = await readFile(new URL("../src/app/beta/aloitus/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /href:"\/",action:"Avaa Ziiply"/);
+  assert.doesNotMatch(page, /href:"https:\/\/ziiply\.vercel\.app"/);
+});
+test("beta middleware is explicitly opt-in and host-scoped", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const middleware = await readFile(new URL("../src/middleware.ts", import.meta.url), "utf8");
+  assert.match(middleware, /ZIIPLY_BETA_APP_GATE !== "true"/);
+  assert.match(middleware, /request\.nextUrl\.hostname !== expectedHost/);
+  assert.match(middleware, /ZIIPLY_BETA_GATE_HOST/);
+});
