@@ -36,7 +36,11 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'category','') IN ('','Muut')) AS missing_categories,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'resolutionSanity','pass')<>'pass') AS unverified_prices,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
-        COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)? WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state IN ('candidate','approved') ORDER BY parsed_at DESC LIMIT 1`;
+        COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$'
+        AND CASE WHEN COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$'
+          THEN (o->>'price')::numeric > 30 ELSE false END
+        AND COALESCE(o->>'title','') ~* '0[,.]75[[:space:]]*l/(pl|plo)') AS suspicious_prices
+      FROM ziiply_offer_publications WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state IN ('candidate','approved') ORDER BY parsed_at DESC LIMIT 1`;
     quality = rows[0] as Record<string, number> ?? null;
     // Expose concrete next-edition category defects to the repair workflow.
     // Counts alone leave the automation unable to identify which offers need repair.
@@ -107,164 +111,6 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
     ...(quality?.missing_categories ? ["missing-categories"] : []),
     ...(quality?.unverified_prices ? ["unverified-prices"] : []),
     ...(quality?.suspicious_prices ? ["suspicious-prices"] : []),
-  ];
-  const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
-    quality, missingCategoryTitles, missingImageTitles, suspiciousNameTitles, errors,
-    severity: pending ? "warning" : "error", pdfReview: "pending", imageEnrichment, blockingReasons };
-  await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:false,
-    count:quality?.total??input.parsed?.offers??0,outcome,details }, databaseUrl);
-  return {ok:false,pending,outcome,...details};
-}
-
-        AND CASE WHEN COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)? WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state IN ('candidate','approved') ORDER BY parsed_at DESC LIMIT 1`;
-    quality = rows[0] as Record<string, number> ?? null;
-    // Expose concrete next-edition category defects to the repair workflow.
-    // Counts alone leave the automation unable to identify which offers need repair.
-    if (quality?.missing_images > 0) {
-      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
-        FROM (
-          SELECT offers FROM ziiply_offer_publications
-          WHERE chain='K-Citymarket'
-            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
-            AND approval_state IN ('candidate','approved')
-          ORDER BY parsed_at DESC LIMIT 1
-        ) p
-        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE COALESCE(o->>'imageUrl','')=''
-        LIMIT 40`;
-      missingImageTitles = defects.map(row => String(row.title));
-    }
-    if (quality?.suspicious_names > 0) {
-      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
-        FROM (
-          SELECT offers FROM ziiply_offer_publications
-          WHERE chain='K-Citymarket'
-            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
-            AND approval_state IN ('candidate','approved')
-          ORDER BY parsed_at DESC LIMIT 1
-        ) p
-        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$))'
-        LIMIT 20`;
-      suspiciousNameTitles = defects.map(row => String(row.title));
-    }
-    if (quality?.missing_categories > 0) {
-      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
-        FROM (
-          SELECT offers FROM ziiply_offer_publications
-          WHERE chain='K-Citymarket'
-            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
-            AND approval_state IN ('candidate','approved')
-          ORDER BY parsed_at DESC LIMIT 1
-        ) p
-        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE COALESCE(o->>'category','') IN ('','Muut')
-        LIMIT 20`;
-      missingCategoryTitles = defects.map(row => String(row.title));
-    }
-
-  }
-  // Image enrichment is an independent background workflow. Missing images never
-  // turn a successfully parsed edition into a parser failure, at any hour.
-  const parserReady = Boolean(input.parsed && errors.length === 0 && quality &&
-    quality.total === input.parsed.offers && quality.total > 0 &&
-    quality.missing_names === 0 && (quality.suspicious_names ?? 0) === 0 &&
-    quality.missing_prices === 0 && quality.unverified_prices === 0);
-  const failed = !parserReady || Boolean(quality?.missing_categories);
-  const imageEnrichment = !quality ? "unknown" : quality.missing_images > 0 ? "pending" : "complete";
-  const outcome = !input.parsed ? "preflight-parser-failed" : !quality ? "preflight-snapshot-missing" :
-    failed ? "preflight-quality-failed" : "preflight-awaiting-pdf-review";
-  const pending = !failed;
-  const blockingReasons = [
-    ...(!input.parsed ? ["parser-no-result"] : []),
-    ...(errors.length ? ["parser-errors"] : []),
-    ...(!quality ? ["snapshot-missing"] : []),
-    ...(quality && input.parsed && quality.total !== input.parsed.offers ? ["snapshot-count-mismatch"] : []),
-    ...(quality?.missing_names ? ["missing-names"] : []),
-    ...(quality?.suspicious_names ? ["suspicious-names"] : []),
-    ...(quality?.missing_prices ? ["missing-prices"] : []),
-    ...(quality?.missing_categories ? ["missing-categories"] : []),
-    ...(quality?.unverified_prices ? ["unverified-prices"] : []),
-  ];
-  const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
-    quality, missingCategoryTitles, missingImageTitles, suspiciousNameTitles, errors,
-    severity: pending ? "warning" : "error", pdfReview: "pending", imageEnrichment, blockingReasons };
-  await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:false,
-    count:quality?.total??input.parsed?.offers??0,outcome,details }, databaseUrl);
-  return {ok:false,pending,outcome,...details};
-}
-
-          THEN (o->>'price')::numeric > 30 ELSE false END
-        AND COALESCE(o->>'title','') ~* '0[,.]75[[:space:]]*l/(pl|plo)') AS suspicious_prices
-      FROM ziiply_offer_publications WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state IN ('candidate','approved') ORDER BY parsed_at DESC LIMIT 1`;
-    quality = rows[0] as Record<string, number> ?? null;
-    // Expose concrete next-edition category defects to the repair workflow.
-    // Counts alone leave the automation unable to identify which offers need repair.
-    if (quality?.missing_images > 0) {
-      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
-        FROM (
-          SELECT offers FROM ziiply_offer_publications
-          WHERE chain='K-Citymarket'
-            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
-            AND approval_state IN ('candidate','approved')
-          ORDER BY parsed_at DESC LIMIT 1
-        ) p
-        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE COALESCE(o->>'imageUrl','')=''
-        LIMIT 40`;
-      missingImageTitles = defects.map(row => String(row.title));
-    }
-    if (quality?.suspicious_names > 0) {
-      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
-        FROM (
-          SELECT offers FROM ziiply_offer_publications
-          WHERE chain='K-Citymarket'
-            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
-            AND approval_state IN ('candidate','approved')
-          ORDER BY parsed_at DESC LIMIT 1
-        ) p
-        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$))'
-        LIMIT 20`;
-      suspiciousNameTitles = defects.map(row => String(row.title));
-    }
-    if (quality?.missing_categories > 0) {
-      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
-        FROM (
-          SELECT offers FROM ziiply_offer_publications
-          WHERE chain='K-Citymarket'
-            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
-            AND approval_state IN ('candidate','approved')
-          ORDER BY parsed_at DESC LIMIT 1
-        ) p
-        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE COALESCE(o->>'category','') IN ('','Muut')
-        LIMIT 20`;
-      missingCategoryTitles = defects.map(row => String(row.title));
-    }
-
-  }
-  // Image enrichment is an independent background workflow. Missing images never
-  // turn a successfully parsed edition into a parser failure, at any hour.
-  const parserReady = Boolean(input.parsed && errors.length === 0 && quality &&
-    quality.total === input.parsed.offers && quality.total > 0 &&
-    quality.missing_names === 0 && (quality.suspicious_names ?? 0) === 0 &&
-    quality.missing_prices === 0 && quality.unverified_prices === 0);
-  const failed = !parserReady || Boolean(quality?.missing_categories);
-  const imageEnrichment = !quality ? "unknown" : quality.missing_images > 0 ? "pending" : "complete";
-  const outcome = !input.parsed ? "preflight-parser-failed" : !quality ? "preflight-snapshot-missing" :
-    failed ? "preflight-quality-failed" : "preflight-awaiting-pdf-review";
-  const pending = !failed;
-  const blockingReasons = [
-    ...(!input.parsed ? ["parser-no-result"] : []),
-    ...(errors.length ? ["parser-errors"] : []),
-    ...(!quality ? ["snapshot-missing"] : []),
-    ...(quality && input.parsed && quality.total !== input.parsed.offers ? ["snapshot-count-mismatch"] : []),
-    ...(quality?.missing_names ? ["missing-names"] : []),
-    ...(quality?.suspicious_names ? ["suspicious-names"] : []),
-    ...(quality?.missing_prices ? ["missing-prices"] : []),
-    ...(quality?.missing_categories ? ["missing-categories"] : []),
-    ...(quality?.unverified_prices ? ["unverified-prices"] : []),
   ];
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
     quality, missingCategoryTitles, missingImageTitles, suspiciousNameTitles, errors,
