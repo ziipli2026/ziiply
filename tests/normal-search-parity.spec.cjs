@@ -230,7 +230,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         if(noVisibleCards){
           results.push({query,eans:[],uniqueEans:0,renderedCards:0,duplicates:0,samples:[],durationMs:Date.now()-startedAt,noResults:true});
           checkpoint();
-          continue;
+          return;
         }
         if(device==='mobile'){
           // Wait for the actual component's loading+completion flags.
