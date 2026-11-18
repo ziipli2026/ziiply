@@ -45,6 +45,7 @@ test('mobile result sheet renders only one card per normalized EAN without modif
   assert.match(mobileCard,/const visibleProducts =/);
   assert.match(mobileCard,/products\.filter\(product =>/);
   assert.match(mobileCard,/seen\.has\(raw\)/);
+  assert.ok(mobileCard.includes(String.raw`replace(/\D/g, "")`),'EAN normalization strips non-digits');
   assert.match(mobileCard,/visibleProducts\.map\(\(product, index\)/);
   assert.doesNotMatch(mobileCard,/products\.map\(\(product, index\)/);
 });
