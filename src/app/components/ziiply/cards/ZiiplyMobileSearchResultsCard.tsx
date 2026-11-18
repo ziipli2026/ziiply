@@ -223,11 +223,6 @@ export default function ZiiplyMobileSearchResultsCard({
           </div>
         </header>
 
-        <div className="relative z-20 shrink-0 px-4 pb-2">
-          <button type="button" onClick={onDownloadDebug} disabled={!onDownloadDebug} className="min-h-10 rounded-lg border-2 border-[#6f5730] bg-[#fff2cb] px-3 text-sm font-bold text-[#123d32]">
-            Lataa koko hakupolun debug-JSON
-          </button>
-        </div>
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2">
             {loading && products.length === 0 && (
