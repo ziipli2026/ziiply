@@ -287,7 +287,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   for(const query of queries){
     const mobile=evidence.layouts.mobile.results.find(x=>x.query===query).eans;
     const desktop=evidence.layouts.desktop.results.find(x=>x.query===query).eans;
-    if([...mobile].sort().join(',')!==[...desktop].sort().join(','))evidence.differences.push({query,mobileOnly:mobile.filter(x=>!desktop.includes(x)),desktopOnly:desktop.filter(x=>!mobile.includes(x)),mobileCount:mobile.length,desktopCount:desktop.length});
+    if([...mobile].sort().join(',')!==[...desktop].sort().join(','))evidence.differences.push({query,mobileOnly:mobile.filter(x=>!desktop.includes(x)),desktopOnly:desktop.filter(x=>!mobile.includes(x)),mobileCount:mobile.length,desktopCount:desktop.length,atResultCap:mobile.length===100||desktop.length===100,mobileTail:mobile.slice(-5),desktopTail:desktop.slice(-5)});
     if(mobile.join(',')!==desktop.join(','))evidence.orderDifferences.push(query);
     for(const device of ['mobile','desktop']){
       const result=evidence.layouts[device].results.find(x=>x.query===query);
