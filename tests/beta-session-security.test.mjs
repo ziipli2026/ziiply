@@ -40,3 +40,11 @@ test("beta middleware is explicitly opt-in and host-scoped", async () => {
   assert.match(middleware, /request\.nextUrl\.hostname !== expectedHost/);
   assert.match(middleware, /ZIIPLY_BETA_GATE_HOST/);
 });
+
+test("logout reports revocation failures without claiming success", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const route = await readFile(new URL("../src/app/api/beta/login/logout/route.ts", import.meta.url), "utf8");
+  assert.match(route, /LOGOUT_RETRY_REQUIRED/);
+  assert.match(route, /status: 503/);
+  assert.match(route, /revoked_at = now\(\)/);
+});
