@@ -64,6 +64,10 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     quality.missing_images=0;quality.missing_categories=0;quality.unverified_prices=4;
     assert.equal((await record(input)).outcome,'preflight-quality-failed','unverified prices must block approval');
     quality.unverified_prices=0;
+    quality.suspicious_prices=1;
+    assert.equal((await record(input)).outcome,'preflight-quality-failed','implausible 0.75-litre bottle price must block approval');
+    assert.ok(records.at(-1).details.blockingReasons.includes('suspicious-prices'));
+    quality.suspicious_prices=0;
     assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
     assert.equal(records.at(-1).details.pdfReview,'pending');
     assert.equal(records.at(-1).ok,false,'PDF review pending must never be logged as approved');
