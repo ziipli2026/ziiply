@@ -18,7 +18,16 @@ function publicPath(pathname: string): boolean {
     pathname === "/beta/ilmoittaudu" ||
     pathname === "/beta/hallinta" ||
     pathname.startsWith("/beta/hallinta/") ||
-    pathname.startsWith("/api/beta/") ||
+    (
+      pathname === "/api/beta/register" ||
+      pathname === "/api/beta/municipality" ||
+      pathname === "/api/beta/login/request" ||
+      pathname === "/api/beta/login/verify" ||
+      pathname === "/api/beta/login/session" ||
+      pathname === "/api/beta/login/status" ||
+      pathname === "/api/beta/login/logout" ||
+      pathname.startsWith("/api/beta/admin/")
+    ) ||
     pathname === "/manifest.webmanifest" ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml" ||
