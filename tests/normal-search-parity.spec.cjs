@@ -224,9 +224,22 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             throw error;
           }
         }
-        await page.waitForTimeout(500);
         await Promise.allSettled(providerChecks.splice(0));
-        const snapshots=await cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),label:(n.textContent||'').replace(/\s+/g,' ').slice(0,240)})).filter(x=>/^\d{13}$/.test(x.ean||'')));
+        // React can render the last initial S/K rows immediately before the
+        // final ranked list. Do not compare a transitional DOM snapshot.
+        // Require the rendered EAN sequence to remain unchanged across
+        // three 350ms samples after the loading indicator is cleared.
+        const readSnapshots=()=>cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),label:(n.textContent||'').replace(/\s+/g,' ').slice(0,240)})).filter(x=>/^\d{13}$/.test(x.ean||'')));
+        let snapshots=await readSnapshots();
+        let stable=0;
+        for(let attempt=0;attempt<18 && stable<3;attempt++){
+          await page.waitForTimeout(350);
+          const next=await readSnapshots();
+          const same=JSON.stringify(next.map(x=>x.ean))===JSON.stringify(snapshots.map(x=>x.ean));
+          stable=same?stable+1:0;
+          snapshots=next;
+        }
+        if(stable<3)console.log('[normal-parity] DOM UNSTABLE',device,query,'cards='+snapshots.length);
         const eans=[...new Set(snapshots.map(x=>x.ean))];
         results.push({query,eans,uniqueEans:eans.length,renderedCards:snapshots.length,duplicates:snapshots.length-eans.length,
           providerResponses:apiResponses.slice(apiResponseStart).map(x=>({url:x.url,status:x.status,method:x.method})),
