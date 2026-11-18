@@ -12,7 +12,13 @@ const encoder = new TextEncoder();
 function publicPath(pathname: string): boolean {
   // Authentication, enrollment, and public framework assets must remain reachable.
   return pathname === "/beta" ||
-    (pathname.startsWith("/beta/") && pathname !== "/beta/suojattu") ||
+    pathname === "/beta/aloitus" ||
+    pathname === "/beta/kirjaudu" ||
+    pathname.startsWith("/beta/kirjaudu/") ||
+    pathname === "/beta/ilmoittaudu" ||
+    pathname === "/beta/hallinta" ||
+    pathname.startsWith("/beta/hallinta/") ||
+    pathname.startsWith("/api/beta/") ||
     pathname === "/manifest.webmanifest" ||
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml" ||
