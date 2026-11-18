@@ -146,6 +146,8 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress-'+device+'.json',JSON.stringify({base,device,results,noResultDiagnostics,apiResponses:apiResponses.slice(-100),providerEanPresence,errors},null,2));
       checkpoint();
       for(const query of queries){
+        // Per-query watchdog: a stuck browser RPC must not consume the entire 25-minute batch.
+        await test.step(`${device}: ${query}`,async()=>{
         const startedAt=Date.now();
         currentSearchQuery=query;
         console.log('[normal-parity] start',device,query);
@@ -289,6 +291,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='3073780902441')||null,durationMs:Date.now()-startedAt});
         console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
+        },{timeout:120000});
       }
       evidence.layouts[device]={results,errors,noResultDiagnostics};
       expect(errors,'Browser page errors').toEqual([]);
