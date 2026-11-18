@@ -64,7 +64,23 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }));
       },{selectedLidl,selectedSpar});
       await page.reload({waitUntil:'domcontentloaded'});
-      await page.getByRole('button',{name:device==='mobile'?'Justiina: Tuotehaku':'Avaa Justiina',exact:true}).click({timeout:30000});
+      // The page may be hydrating store selection after DOMContentLoaded. Wait for
+      // the active Justiina control rather than clicking an unhydrated button.
+      const openSearch=page.getByRole('button',{name:device==='mobile'?'Justiina: Tuotehaku':'Avaa Justiina',exact:true}).filter({visible:true});
+      await expect(openSearch).toBeVisible({timeout:30000});
+      await openSearch.click({timeout:30000});
+      if(device==='desktop'){
+        const desktopInput=page.getByRole('textbox',{name:'Hae tuotteita'});
+        if(!await desktopInput.isVisible().catch(()=>false)){
+          // Desktop Justiina sometimes opens an intermediate workspace. Record
+          // actual controls and try the explicit search entry once.
+          const possible=page.getByRole('button',{name:/Justiina|Tuotehaku|Hae tuotteita/i}).filter({visible:true});
+          const labels=await possible.allTextContents();
+          console.log('[normal-parity] desktop search entry not yet visible',JSON.stringify(labels.slice(0,20)));
+          const reopen=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
+          if(await reopen.count())await reopen.first().click({timeout:8000});
+        }
+      }
       const input=device==='mobile'?page.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({visible:true}):page.getByRole('textbox',{name:'Hae tuotteita'});
       const results=[];
       fs.mkdirSync('normal-search-evidence',{recursive:true});
@@ -98,7 +114,17 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           const reopen=page.getByRole('button',{name:'Avaa Justiina',exact:true}).filter({visible:true});
           if(await reopen.count())await reopen.first().click();
         }
-        await expect(input).toBeVisible({timeout:15000});
+        try{await expect(input).toBeVisible({timeout:15000});}
+        catch(error){
+          const diagnostic={device,query,reason:String(error),url:page.url(),buttons:await page.getByRole('button').allTextContents().catch(()=>[]),
+            body:(await page.locator('body').innerText().catch(()=>'')).slice(-6500),
+            selectedDesktop:await page.evaluate(()=>localStorage.getItem('ziiply-desktop-store-choices-v1')).catch(()=>null),
+            selectedMobile:await page.evaluate(()=>localStorage.getItem('ziiply-store-selection-v536')).catch(()=>null),
+            apiResponses:apiResponses.slice(-80),errors};
+          fs.writeFileSync('normal-search-evidence/input-'+device+'-'+query+'.json',JSON.stringify(diagnostic,null,2));
+          await page.screenshot({path:'normal-search-evidence/input-'+device+'-'+query+'.png',fullPage:true}).catch(()=>{});
+          throw error;
+        }
         await input.fill(query,{timeout:12000});
         if(device==='desktop')await input.press('Enter',{timeout:12000});
         else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click({timeout:12000});
@@ -123,6 +149,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             findingsButtonCount:await page.getByRole('button',{name:/Avaa löytöluettelo/i}).count(),
             visibleText:(await page.locator('body').innerText()).slice(-5000),
             apiResponses:apiResponses.slice(-50),errors,
+            selectedDesktop:await page.evaluate(()=>localStorage.getItem('ziiply-desktop-store-choices-v1')).catch(()=>null),
+            selectedMobile:await page.evaluate(()=>localStorage.getItem('ziiply-store-selection-v536')).catch(()=>null),
+            allVisibleButtons:(await page.getByRole('button').allTextContents().catch(()=>[])).slice(-70),
           };
           fs.writeFileSync('normal-search-evidence/failure-diagnostic.json',JSON.stringify(diagnostic,null,2));
           await page.screenshot({path:'normal-search-evidence/failure.png',fullPage:true}).catch(()=>{});
