@@ -188,9 +188,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         const apiResponseStart=apiResponses.length;
         const browserErrorStart=errors.length;
+        console.log('[normal-parity] stage input-fill',device,query);
         await input.fill(query,{timeout:12000});
+        console.log('[normal-parity] stage input-filled',device,query);
         if(device==='desktop')await input.press('Enter',{timeout:12000});
         else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click({timeout:12000});
+        console.log('[normal-parity] stage submitted',device,query);
         const cards=page.locator('[data-testid="normal-search-result"][data-ean]');
         // Mobile may keep the findings sheet closed after a previous selection.
         // Reopen the existing results instead of treating a hidden sheet as an empty search.
@@ -203,7 +206,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         let noVisibleCards=false;
         try{
+          console.log('[normal-parity] stage waiting-cards',device,query);
           await expect.poll(async()=>cards.count(),{timeout:30000}).toBeGreaterThan(0);
+          console.log('[normal-parity] stage cards-found',device,query);
         }catch(error){
           noVisibleCards=true;
           fs.mkdirSync('normal-search-evidence',{recursive:true});
