@@ -171,3 +171,17 @@ test('47AV control center accepts parser with missing images, but not missing ca
   const legacy={...run,outcome:'preflight-awaiting-images'};
   assert.equal(status([legacy],now).parserOk,true,'older pending-image records remain recognized');
 });
+
+test('47LV category regression: orange juice and dog treats override generic fruit and sausage',()=>{
+  const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=source.indexOf('export function category(t:string){');
+  assert.ok(start>=0,'category function exists');
+  const end=source.indexOf('\n}',start);
+  assert.ok(end>start,'category function terminates');
+  const fn=source.slice(start,end+2).replace('export function category(t:string)','function category(t)');
+  const category=new Function('clean',fn+';return category;')(text=>String(text));
+  assert.equal(category('APPELSIINITÄYSMEHU 1 l'),'Juomat');
+  assert.equal(category('APPELSIINIT 1 kg'),'Hevi');
+  assert.equal(category('THE DOG NAUGHTY HOT DOG 6 kpl/300 g'),'Lemmikit');
+  assert.equal(category('KANAN FILEEVIIPALE 300 g'),'Liha & makkarat');
+});
