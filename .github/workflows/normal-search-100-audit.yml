@@ -32,7 +32,7 @@ jobs:
         env:
           NORMAL_SEARCH_AUDIT_BATCH: ${{ matrix.batch }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-5jhqi1m3h-ziipli2026s-projects.vercel.app
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
           npx playwright test tests/normal-search-parity.spec.cjs --browser=chromium --reporter=line
