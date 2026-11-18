@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   if (!token || !process.env.DATABASE_URL) return NextResponse.json({ authenticated: false }, { headers });
   let hash: string;
   try { hash = hashBetaToken(token); } catch { return NextResponse.json({ authenticated: false }, { headers }); }
+  try {
   const sql = neon(process.env.DATABASE_URL);
   const rows = await sql`
     SELECT s.expires_at FROM public.ziiply_beta_sessions s
@@ -19,4 +20,7 @@ export async function GET(request: NextRequest) {
       AND s.expires_at > now() AND u.disabled_at IS NULL
       AND a.status IN ('invited','active') LIMIT 1`;
   return NextResponse.json({ authenticated: rows.length > 0 }, { headers });
+  } catch {
+    return NextResponse.json({ authenticated: false }, { headers, status: 503 });
+  }
 }
