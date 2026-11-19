@@ -4,7 +4,7 @@ const compiled=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.Com
 const moduleExports={};vm.runInNewContext(compiled,{exports:moduleExports});
 const map=moduleExports.tjekDepartmentCategory;
 test('source department maps broad grocery groups',()=>{
-  for(const [slug,expected] of Object.entries({'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka''cold-cuts':'Liha & makkarat'}))assert.equal(map(slug),expected);
+  for(const [slug,expected] of Object.entries({'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka','cold-cuts':'Liha & makkarat'}))assert.equal(map(slug),expected);
 });
 test('ambiguous departments never receive guessed categories',()=>{
   for(const slug of ['meat-and-fish','dairy-and-cold','colonial','bread-and-cakes','snacks-and-candies','electronics','apparel','unknown',null])assert.equal(map(slug),null);
