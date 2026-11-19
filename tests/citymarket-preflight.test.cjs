@@ -300,3 +300,27 @@ test('47LV reviewed publisher headings, category repairs and implausible price g
   assert.match(provider,/^    if\(is47LV && \(/m);
   assert.match(provider,/^      continue;$/m);
 });
+
+
+test('47LV title repairs execute against publisher geometry examples and do not alter 47AV',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('    const is47LV=/_47LV_KCM/i.test(leafletUrl);');
+  const end=provider.indexOf('    const title=/_47AV_KCM/i.test(leafletUrl)',start);
+  assert.ok(start>=0&&end>start);
+  const fragment=provider.slice(start,end).replace(/\(part:any\)/g,'(part)=>');
+  const run=(url,page,title,nearby=[],price=2.39)=>{
+    const fn=new Function('leafletUrl','row','titleBeforeSourceReview','resolved','console',
+      'let skipped=false;'+fragment.replace(/\bcontinue;/g,'skipped=true;')+
+      ';return {title:reviewed47LVTitle,skipped};');
+    return fn(url,{page,nearby},title,{value:price},{warn(){}});
+  };
+  const url='https://kcm-tarjouslehdet.k-ruoka.fi/example_47LV_KCM/index.html';
+  assert.equal(run(url,13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'Rexona ja Rexona Men Max Protection DEODORANTIT 45 ml');
+  assert.equal(run(url,18,'H3O T D O G MAKKARAT 210 g (17,57/kg) 69',['Naughty','MAKKARAT 210 g']).title,'Naughty HOT DOG MAKKARAT 210 g');
+  assert.equal(run(url,19,'H9aribo JOULUKALENTERI 300 g (32,63/kg) 79').title,'Haribo JOULUKALENTERI 300 g');
+  assert.equal(run(url,16,'4 LEVITTEET 400 g 2').skipped,true);
+  assert.equal(run(url,18,'ULKOFILEESTÄ tai MUREUTETTU').skipped,true);
+  assert.equal(run(url,20,'GLÖGI 8 % 0,75 l/pl (12,25/l)',[],50.31).skipped,true);
+  assert.equal(run(url,20,'GLÖGI 8 % 0,75 l/pl (12,25/l)',[],9.29).skipped,false);
+  assert.equal(run(url.replace('47LV','47AV'),13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'RANTIT 45 ml');
+});
