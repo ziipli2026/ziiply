@@ -41,6 +41,7 @@ export function filterTjekGroceryRows<T extends {title?: unknown;name?: unknown;
     // Only apply title exclusions when the source department is verified.
     if (typeof slug !== 'string' || !slug) return true;
     const title = typeof row.title === 'string' ? row.title : typeof row.name === 'string' ? row.name : '';
+    if (slug === 'other' && /(?:TOPPATAKKI|COLLEGEHUPPARI|COLLEGEPAITA|COLLEGEHOUSUT|FLANELLIHOUSUT|\\bNEULE\\b|NASTAKENGÄT|PITOPOHJAKENGÄT|FLEECEVAATTEET|LÄMMITTELYTAKKI|NAHKA-NILKKURIT|TALVIKENGÄT|TOPPAHOUSUT|YÖASUJA)/i.test(title)) return false;
     return !TJEK_NON_GROCERY_TITLE_PATTERN.test(title);
   });
 }
