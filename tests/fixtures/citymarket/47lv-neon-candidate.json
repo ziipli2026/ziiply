@@ -698,8 +698,8 @@
     "sourceUrl": "https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html"
   },
   {
-    "id": "kcm:spatial:19:haribo joulukalenteri 300 g (32,63/kg) 79:9.79",
-    "title": "Haribo JOULUKALENTERI 300 g (32,63/kg) 79",
+    "id": "kcm:spatial:19:haribo joulukalenteri 300 g:9.79",
+    "title": "Haribo JOULUKALENTERI 300 g",
     "price": 9.79,
     "normalPrice": null,
     "unitPrice": 32.63,
