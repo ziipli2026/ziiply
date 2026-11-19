@@ -352,7 +352,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         },{timeout:120000});
       }
       console.log('[normal-parity] BABYBEL PROVIDER TRACE',JSON.stringify({device,requests:providerEanPresence}));
-      evidence.layouts[device]={results,errors,noResultDiagnostics,providerEanPresence};
+      evidence.layouts[device]={results,errors,noResultDiagnostics,providerEanPresence,apiResponses};
       expect(errors,'Browser page errors').toEqual([]);
     }finally{await context.close();}
   }
@@ -367,6 +367,14 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       if(result.duplicates)evidence.duplicates.push({device,query,count:result.duplicates});
     }
   }
+  // Preserve the provider request/HTTP evidence alongside every EAN mismatch.
+  // This distinguishes incomplete upstream requests from relevance/dedup losses.
+  evidence.mismatchProviderRequests=evidence.differences.map(diff=>({
+    query:diff.query,
+    mobile:evidence.layouts.mobile.apiResponses.filter(x=>x.searchAtResponse===diff.query),
+    desktop:evidence.layouts.desktop.apiResponses.filter(x=>x.searchAtResponse===diff.query)
+  }));
+  console.log('[normal-parity] MISMATCH PROVIDER REQUESTS',JSON.stringify(evidence.mismatchProviderRequests));
   // Regression against concrete wrong-type EANs observed in live results.
   // Keep positive controls so the filter cannot pass by removing all produce.
   const produceChecks={
