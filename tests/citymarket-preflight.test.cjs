@@ -182,7 +182,7 @@ test('47LV category regression: orange juice and dog treats override generic fru
   const category=new Function('clean',fn+';return category;')(text=>String(text));
   assert.equal(category('APPELSIINITÄYSMEHU 1 l'),'Juomat');
   assert.equal(category('APPELSIINIT 1 kg'),'Hevi');
-  assert.equal(category('THE DOG NAUGHTY HOT DOG 6 kpl/300 g'),'Lemmikit');
+  assert.equal(category('THE DOG NAUGHTY HOT DOG 6 kpl/300 g'),'Leipomo');
   assert.equal(category('Naughty HOT DOG MAKKARAT 210 g'),'Liha & makkarat');
   assert.equal(category('KANAN FILEEVIIPALE 300 g'),'Liha & makkarat');
 });
@@ -321,6 +321,9 @@ test('47LV title repairs execute against publisher geometry examples and do not 
   assert.equal(run(url,19,'H9aribo JOULUKALENTERI 300 g (32,63/kg) 79').title,'Haribo JOULUKALENTERI 300 g');
   assert.equal(run(url,16,'4 LEVITTEET 400 g 2').skipped,true);
   assert.equal(run(url,18,'ULKOFILEESTÄ tai MUREUTETTU').skipped,true);
+  assert.equal(run(url,18,'NAUDAN LEHTIPIHVI').skipped,true);
+  assert.equal(run(url,18,'NAUGHTY BURGER').skipped,true);
+  assert.equal(run(url,18,'THE DOG NAUGHTY HOT DOG 6 kpl/300 g').title,'Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g');
   assert.equal(run(url,20,'GLÖGI 8 % 0,75 l/pl (12,25/l)',[],50.31).skipped,true);
   assert.equal(run(url,20,'GLÖGI 8 % 0,75 l/pl (12,25/l)',[],9.29).skipped,false);
   assert.equal(run(url.replace('47LV','47AV'),13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'RANTIT 45 ml');
