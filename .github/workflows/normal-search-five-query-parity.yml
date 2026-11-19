@@ -21,11 +21,11 @@ jobs:
       - run: npm ci
       - run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install chromium
-      - name: Eight fruit and berry terms mobile desktop parity
+      - name: Isolated strawberry EAN mobile desktop diagnosis
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           ZIIPLY_LIVE_URL: https://ziiply-nvny6zy40-ziipli2026s-projects.vercel.app
-          NORMAL_SEARCH_SELECTED_QUERIES: salaatti,omena,päärynä,appelsiini,mandariini,sitruuna,viinirypäle,mansikka
+          NORMAL_SEARCH_SELECTED_QUERIES: mansikka
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
           npx playwright test tests/normal-search-targeted-diagnostic.spec.cjs --browser=chromium --reporter=line
