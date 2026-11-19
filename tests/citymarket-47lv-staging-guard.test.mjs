@@ -14,6 +14,7 @@ for(const [name,mutate,reason] of [
  ['glögi 50.31',a=>a[7]={title:'GLÖGI 8 % 0,75 l/pl',price:50.31,category:'Juomat'},'unverified-glogi-price'],
  ['orphan heading',a=>a[7]={title:'NAUDAN LEHTIPIHVI',price:2.39,category:'Liha'},'merged-or-orphan-title'],
  ['merged heading',a=>a[7]={title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS',price:0.99,category:'Hedelmät & vihannekset'},'merged-or-orphan-title'],
+ ['detached Haribo price digits',a=>a[7].title='Haribo JOULUKALENTERI 300 g (32,63/kg) 79','detached-price-digits-in-title'],
  ['publisher footer in title',a=>a[7].title='L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT Voimassa TO–SU 19.–22.11.2026 L’Oréal Paris foundation, Concealers & Telescopic mascaror','publisher-footer-in-title'],
  ['missing category',a=>a[7].category='Muut','missing-category'],
  ['missing price',a=>a[7].price=null,'missing-price-and-discount'],
