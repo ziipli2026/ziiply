@@ -559,6 +559,19 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     }
     return row;
   }));
+  // A canonical title reconstruction must not erase a collision warning
+  // originating from the publisher's printed-card geometry.
+  for(const row of rows){
+    const title=String(row?.title||'').replace(/\s+/g,' ').trim();
+    if(!row.debugSuspiciousPublisherTitle &&
+       (/PUNAKAALI\s+KG\s+PÄÄRYNÄ\s+KG/i.test(title) ||
+        /JOGURTTIJUOMAT\s+PROTEIN\s+RAHKAT/i.test(title))){
+      row.debugSuspiciousPublisherTitle={
+        title:row.title,reason:'merged-publisher-product-headings',
+        requiresSeparateCardPriceProof:true
+      };
+    }
+  }
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
