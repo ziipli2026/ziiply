@@ -200,6 +200,22 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     }
   }
   const rankedRows = rankStoreRows(query, rows);
+  // Scoped diagnostic: distinguish source absence from relevance, price and
+  // EAN-deduplication losses without changing the returned search results.
+  if (['mansikka', 'mustikka', 'suklaa', 'makkara', 'kala', 'muro', 'vadelma'].includes(query.toLocaleLowerCase('fi-FI'))) {
+    const targetEans = new Set(['6417801801004', '6411020008015', '6407800000980', '6410405181091', '4010168056678', '8445292269520']);
+    const tracked = rows.filter(item => targetEans.has(normalizeEan(item.ean || item.barcode || item.product?.ean)));
+    trace('target_ean_final_decision', {
+      query, inputCount:rows.length, rankedCount:rankedRows.length,
+      catalogCount:neonRaw.length, catalogAcceptedCount:neonRows.length,
+      tracked:tracked.map(item=>({
+        ean:normalizeEan(item.ean || item.barcode || item.product?.ean),
+        name:item.name, chain:item.__chain, store:item.__store,
+        price:item.__price, accepted:desktopSearchDecision(query,item).accepted,
+        inRanked:rankedRows.some(row=>normalizeEan(row.ean || row.barcode || row.product?.ean)===normalizeEan(item.ean || item.barcode || item.product?.ean))
+      }))
+    });
+  }
   const sortedRows = [...rankedRows, ...research.values()].slice(0, 100);
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};
