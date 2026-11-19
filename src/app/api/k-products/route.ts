@@ -154,12 +154,13 @@ export async function GET(request: Request) {
     // A full first page is not a complete product set. Also paginate ordinary
     // grocery searches, with the existing bounded timeout, so a product near
     // the provider's first-page boundary is not randomly omitted.
+    const paginationEvents: {page:number;status:string;count:number}[] = [];
     const primaryItems = await appendRuoanhintaPages(firstPage, 100, async (skip, signal) => {
       const pageUrl=new URL(endpoint);pageUrl.searchParams.set("skip",String(skip));
       const page=await fetch(pageUrl,{headers:{accept:"application/json"},cache:"no-store",signal});
       if(!page.ok)throw new Error("Provider page HTTP "+page.status);
       const body=await page.json();return Array.isArray(body.items)?body.items:[];
-    }, 3, 4500);
+    }, 3, 4500, event => paginationEvents.push(event));
     // Only when a generic bread search returns no priced items, retry two
     // narrower bread queries. Do not expand nonempty results or other categories.
     const breadFallbackTerms = normalizedSearch === "leipä" && ![...primaryItems, ...extraResponses.flat()].some(product => getPrice(product) > 0)
@@ -234,6 +235,7 @@ export async function GET(request: Request) {
       storeId,
       source: "ruoanhinta-k",
       endpoint,
+      pagination: {firstPageCount:firstPage.length, primaryCount:primaryItems.length, events:paginationEvents},
       status: response.status,
       items: rankGrocerySearchResults(items, search),
     });
