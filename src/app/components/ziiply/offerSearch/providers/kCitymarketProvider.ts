@@ -660,7 +660,8 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // standalone offers. Preserve evidence in the frozen parser archive.
     if(is47LV && (/^4 LEVITTEET 400 g 2$/i.test(reviewed47LVTitle) ||
       /^ULKOFILEESTÄ tai MUREUTETTU$/i.test(reviewed47LVTitle) ||
-      /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(reviewed47LVTitle))) {
+      /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(reviewed47LVTitle) ||
+      (/^GLÖGI 8 % 0,75 l\/pl/i.test(reviewed47LVTitle) && Number(resolved.value)>20))) {
       console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);
       continue;
     }
@@ -728,7 +729,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       campaignType,
       validFrom:row.printedValidity?.from??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
       validTo:row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
-      category:is47LV && /JOULUKALENTERI/i.test(title) && /(?:Haribo|Kinder|Lindt|After Eight|KitKat|Smarties|Nestlé|Dolci)/i.test(title) ? "Makeiset" : /\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(title,category(title)):category(title),
+      category:is47LV && /(?:DEODORANTIT|DEODO-)/i.test(title) ? "Hygienia & kosmetiikka" : is47LV && /WC-RAIKASTIMET/i.test(title) ? "Kodinhoito" : is47LV && /JOULUKALENTERI/i.test(title) && /(?:Haribo|Kinder|Lindt|After Eight|KitKat|Smarties|Nestlé|Dolci)/i.test(title) ? "Makeiset" : /\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(title,category(title)):category(title),
       chain:"K",
       storeType:"K-Citymarket",
       source:"K-Citymarket tarjouslehti",
