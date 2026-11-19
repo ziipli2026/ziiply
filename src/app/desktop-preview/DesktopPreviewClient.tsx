@@ -686,7 +686,7 @@ export default function DesktopPreviewPage() {
     const refreshFuelStations = () => {
       fetch(`/api/fuel/stations?lat=${fuelCoords.latitude}&lon=${fuelCoords.longitude}&t=${Date.now()}`, {cache:"no-store"})
         .then(async response => { const data=await response.json(); if(!response.ok||!data.ok) throw new Error(data.error||"Asematietojen haku epäonnistui"); return data; })
-        .then(data => { if(!controller.signal.aborted) setFuelStations(Array.isArray(data.stations)?data.stations:[]); })
+        .then(data => { if(!controller.signal.aborted) setFuelStations((Array.isArray(data.stations)?data.stations:[]).filter((station:any)=>!/\bteboil\b/i.test(String(station?.chain??"")+" "+String(station?.name??"")))); })
         .catch(() => {});
     };
     document.addEventListener("visibilitychange",refreshOnFocus);
