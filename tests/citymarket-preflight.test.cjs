@@ -397,3 +397,14 @@ test('47LV pages 3–12 must not be treated as empty publisher pages',async()=>{
   assert.match(html4,/LEGO/i);
   assert.match(html4,/LAUTA-/i);
 });
+
+
+test('47LV non-food pages are intentionally excluded without dropping grocery hygiene',async()=>{
+  const {productish}=await import('../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js');
+  for(const title of ['KAIKKI VIKING LASTEN KENGÄT','SÄHKÖHAMMASHARJA 1 kpl','VARAVIRTALÄHDE 10000 mAh','LEGO LELUT 1 kpl','LANGATTOMAT KUULOKKEET 1 kpl']){
+    assert.equal(productish(title),false,title);
+  }
+  for(const title of ['NESTESAIPPUOIDEN TÄYTTÖPUSSIT 300 ml','PYYKINPESUNESTEET 840 ml','WC-PAPERI 24 rl','MEIKKIVOITEET 30 ml']){
+    assert.equal(productish(title),true,title);
+  }
+});
