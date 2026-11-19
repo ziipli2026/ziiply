@@ -4,10 +4,10 @@ const compiled=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.Com
 const moduleExports={};vm.runInNewContext(compiled,{exports:moduleExports});
 const map=moduleExports.tjekDepartmentCategory;
 test('source department maps broad grocery groups',()=>{
-  for(const [slug,expected] of Object.entries({'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka'}))assert.equal(map(slug),expected);
+  for(const [slug,expected] of Object.entries({'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka','snacks-and-candies':'Makeiset & keksit','cold-cuts':'Liha & makkarat','bread-and-cakes':'Leipomo'}))assert.equal(map(slug),expected);
 });
 test('ambiguous departments never receive guessed categories',()=>{
-  for(const slug of ['meat-and-fish','dairy-and-cold','colonial','bread-and-cakes','electronics','apparel','unknown',null])assert.equal(map(slug),null);
+  for(const slug of ['meat-and-fish','dairy-and-cold','colonial','electronics','apparel','unknown',null])assert.equal(map(slug),null);
 });
 test('only local Tjek parser uses department mapper',()=>{
   const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
@@ -27,7 +27,7 @@ test('Gosta respects verified local Tjek category after EAN priority',()=>{
 
 test('only explicitly non-grocery Tjek departments are excluded',()=>{
  const excluded=moduleExports.isTjekNonGroceryDepartment;
- for(const slug of ['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home'])assert.equal(excluded(slug),true);
+ for(const slug of ['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home','do-it-yourself'])assert.equal(excluded(slug),true);
  for(const slug of ['garden','household','beauty','baby','meat-and-fish','dairy-and-cold','unknown',null])assert.equal(excluded(slug),false);
  const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
  assert.match(provider,/if \(isTjekNonGroceryDepartment\(sourceDepartment\)\)/);
