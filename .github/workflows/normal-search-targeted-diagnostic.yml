@@ -1,4 +1,4 @@
-name: Normal search targeted regression (eight queries)
+name: Normal search targeted regression (twelve queries)
 on:
   workflow_dispatch:
   push:
@@ -20,7 +20,7 @@ jobs:
       - run: npm ci
       - run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install chromium
-      - name: Check eight normal searches on mobile and desktop
+      - name: Check twelve normal searches on mobile and desktop
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           ZIIPLY_LIVE_URL: https://ziiply-81f3j5hrr-ziipli2026s-projects.vercel.app
