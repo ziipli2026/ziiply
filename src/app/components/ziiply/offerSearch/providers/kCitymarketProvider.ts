@@ -745,6 +745,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         : null;
     if(verified45LV?.reviewedCard) unitPrice=null;
     if(innocent45AV) unitPrice=/TÄYSMEHUT/i.test(title)?3.66:4.39;
+    // 47LV: two distinct Innocent bottle sizes share a transaction price.
+    // A single litres comparison would be misleading; do not borrow a nearby card's rate.
+    if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl$/i.test(title)) unitPrice=null;
+    // 47LV alcohol-free glögi: printed 5,59 €/l excludes the 0,10 € bottle deposit.
+    if(is47LV && Number(row?.page)===20 && /^ALKOHOLITON GLÖGI 0,75 l\/pl Ei luomu \(5,59\/l\) Sis\. pantin 0,10$/i.test(title) && price===4.29) unitPrice=5.59;
 
     // Classify only from the offer's own nearby leaflet text. Never infer an EAN
     // or product image from a broad leaflet heading or a similarly named SKU.
