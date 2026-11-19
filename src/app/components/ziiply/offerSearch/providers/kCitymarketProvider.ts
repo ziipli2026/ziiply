@@ -9,6 +9,7 @@ import citymarketPublisherImageRegistry from "./data/kCitymarketLeafletImages.js
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 import { validate47LVPublication } from "./kCitymarket47LVStagingGuard.js";
+import { partitionDailyGroceryOffers } from "./kCitymarketDailyGroceryGate.js";
 import { getKCitymarketPublisherImage, auditKCitymarketPublisherImages } from "./kCitymarketPublisherImages";
 
 // ============================================================================
@@ -1031,19 +1032,25 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
   const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
-  const stagingGate=validate47LVPublication(enriched,active.key);
+  const grocery=partitionDailyGroceryOffers(enriched);
+  if(grocery.quarantined.length)console.warn("[K-Citymarket] non-grocery or uncertain rows quarantined",grocery.quarantined.map(x=>({title:x.offer?.title,category:x.offer?.category,reason:x.reason})));
+  if(!grocery.accepted.length)throw new Error("Citymarket publication has no verified grocery offers");
+  // Forensic 47LV is not approved for publication: require full automatic source proof,
+  // not the old edition-specific hand-edited 53-row fixture.
+  if(active.key==='2026-11-19-W47-LV')throw new Error("47LV requires independent automatic source-card verification before publication");
+  const stagingGate=validate47LVPublication(grocery.accepted,active.key);
   if(!stagingGate.ok)throw new Error("47LV publication quality gate rejected candidate: "+stagingGate.issues.join(" | "));
   const beforeImages=offers.filter(offer=>Boolean(offer.imageUrl)).length;
   const afterImages=enriched.filter(offer=>Boolean(offer.imageUrl)).length;
   console.info("[K-Citymarket] publication image enrichment result",{
-    period:active.key,total:enriched.length,beforeImages,afterImages,
+    period:active.key,total:grocery.accepted.length,beforeImages,afterImages,
     addedImages:afterImages-beforeImages,missingImages:enriched.length-afterImages,
     missingTitles:enriched.filter(offer=>!offer.imageUrl).map(offer=>offer.title),
   });
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
   return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v165",validFrom:start,
-    validUntil:until,parsedAt:new Date().toISOString(),offers:enriched}, {approvalState:"candidate"});
+    validUntil:until,parsedAt:new Date().toISOString(),offers:grocery.accepted}, {approvalState:"candidate"});
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
