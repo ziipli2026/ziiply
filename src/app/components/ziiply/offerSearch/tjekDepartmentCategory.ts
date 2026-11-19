@@ -41,6 +41,9 @@ export function filterTjekGroceryRows<T extends {title?: unknown;name?: unknown;
     // Only apply title exclusions when the source department is verified.
     if (typeof slug !== 'string' || !slug) return true;
     const title = typeof row.title === 'string' ? row.title : typeof row.name === 'string' ? row.name : '';
+    // Garden merchandise and electrical grooming accessories are not grocery offers.
+    if (slug === 'garden' && /(?:PERHOSORKIDEA|KUKKAKIMPPU|SÄHKÖSAVUSTIN)/i.test(title)) return false;
+    if (slug === 'beauty' && /(?:KASVOHARJA|VAIHTOHARJAT)/i.test(title)) return false;
     if (slug === 'other' && /(?:TOPPATAKKI|COLLEGEHUPPARI|COLLEGEPAITA|COLLEGEHOUSUT|FLANELLIHOUSUT|\\bNEULE\\b|NASTAKENGÄT|PITOPOHJAKENGÄT|FLEECEVAATTEET|LÄMMITTELYTAKKI|NAHKA-NILKKURIT|TALVIKENGÄT|TOPPAHOUSUT|YÖASUJA)/i.test(title)) return false;
     return !TJEK_NON_GROCERY_TITLE_PATTERN.test(title);
   });
