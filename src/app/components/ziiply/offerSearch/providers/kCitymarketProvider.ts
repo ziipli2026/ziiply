@@ -671,7 +671,13 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       : titleBeforeSourceReview;
     // Incomplete headings and geometrically merged cards must not be sold as
     // standalone offers. Preserve evidence in the frozen parser archive.
-    if(is47LV && (/^JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g$/i.test(reviewed47LVTitle) ||
+    if(is47LV && (/^HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA$/i.test(reviewed47LVTitle) ||
+      /^4 kpl\/pkt, LASTEN HAMMA SHARJA/i.test(reviewed47LVTitle) ||
+      /^SUIHKU- ja NESTE- SAIPPUAT 500 ml$/i.test(reviewed47LVTitle) ||
+      /^SMUUTI SKIN -IHONHOITO-$/i.test(reviewed47LVTitle) ||
+      /^TUOTTEET ja COSRX-TUOTTEET$/i.test(reviewed47LVTitle) ||
+      /^VOITEET 50 ml sekä MEIKINPOISTOAINE/i.test(reviewed47LVTitle) ||
+      /^JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g$/i.test(reviewed47LVTitle) ||
       /^vadelmainen, mausteinen\./i.test(reviewed47LVTitle) ||
       /^ULKOFILEESTÄ tai MUREUTETTU$/i.test(reviewed47LVTitle) ||
       /^NAUDAN LEHTIPIHVI$/i.test(reviewed47LVTitle) ||
