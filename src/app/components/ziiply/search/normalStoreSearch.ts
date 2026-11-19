@@ -263,6 +263,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
         priceRejected: decisions.filter(d => !d.normalRejected && !d.included).length}];
     })),
   };
+  if (typeof window !== "undefined" && window.sessionStorage.getItem("ziiply-normal-search-diagnostic") === "1") console.info("[normal-search-decision-summary]", JSON.stringify(decisionSummary));
   report("decision_summary", decisionSummary);
   trace("decision_summary", decisionSummary);
   const rankedRows = rankStoreRows(query, rows);
