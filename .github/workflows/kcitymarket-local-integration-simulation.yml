@@ -202,6 +202,14 @@ jobs:
             sleep 1
           done
           node scripts/test-citymarket-67-browser.cjs
+      - name: Compare 19 Nov current Tjek snapshot in mobile and desktop Chromium
+        run: |
+          npm run start -- -H 127.0.0.1 -p 3101 &
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3101/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/test-citymarket-current-browser.cjs
       - name: Check the same address on phone, tablet and desktop
         run: |
           npm run start -- -H 127.0.0.1 -p 3100 &
