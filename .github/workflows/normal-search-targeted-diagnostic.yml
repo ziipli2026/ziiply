@@ -20,10 +20,11 @@ jobs:
       - run: npm ci
       - run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install chromium
-      - name: Review twelve normal searches and product labels on mobile and desktop
+      - name: Verify suola parity on mobile and desktop
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          ZIIPLY_LIVE_URL: https://ziiply-6bl0y5ill-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-nvny6zy40-ziipli2026s-projects.vercel.app
+          NORMAL_SEARCH_SINGLE_QUERY: suola
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
           npx playwright test tests/normal-search-targeted-diagnostic.spec.cjs --browser=chromium --reporter=line
