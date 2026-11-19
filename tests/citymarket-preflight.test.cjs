@@ -236,3 +236,19 @@ test('47LV spatial parser marks merged source headings before returning offers',
   assert.equal(out[1].spatialResolved.value,14.02,'guard must preserve original price');
   assert.equal(out[0].debugSuspiciousPublisherTitle.requiresSeparateCardPriceProof,true);
 });
+
+
+test('47LV unresolved merged cards are not emitted by the provider',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('  for(const row of rows){\n    // Do not publish a merged 47LV product card');
+  const end=provider.indexOf('    const campaignTitle=repairCitymarketOCRTitle',start);
+  assert.ok(start>=0&&end>start,'merged-card rejection must run before offer creation');
+  const guard=provider.slice(start,end);
+  const rows=[
+    {title:'PUNAKAALI KG PÄÄRYNÄ KG',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}},
+    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}},
+    {title:'PUNAKAALI KG'},
+  ];
+  const emitted=new Function('rows','console', 'const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}});
+  assert.deepEqual(emitted,['PUNAKAALI KG']);
+});
