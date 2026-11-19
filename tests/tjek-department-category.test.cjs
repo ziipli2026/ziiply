@@ -54,7 +54,7 @@ test('local Tjek non-grocery rejection happens before offer acceptance',()=>{
 
 test('stored Tjek snapshots are screened using source department metadata',()=>{
  const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
- assert.match(provider,/const fallback = filterTjekGroceryRows\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
+ assert.match(provider,/const fallback = normalizeTjekGroceryCategories\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
 });
 
 test('shared filter removes non-grocery rows from real-shaped persisted snapshots',()=>{
@@ -67,8 +67,8 @@ test('shared filter removes non-grocery rows from real-shaped persisted snapshot
 
 test('live and stored Tjek offers use the same grocery-only filter',()=>{
  const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
- assert.match(provider,/const fallback = filterTjekGroceryRows\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
- assert.match(provider,/const live = filterTjekGroceryRows\(entry\?\.rows \?\? \[\]\)\.filter\(row => isActiveOffer\(row, Date\.now\(\)\)\)/);
+ assert.match(provider,/const fallback = normalizeTjekGroceryCategories\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
+ assert.match(provider,/const live = normalizeTjekGroceryCategories\(entry\?\.rows \?\? \[\]\)\.filter\(row => isActiveOffer\(row, Date\.now\(\)\)\)/);
 });
 
 test('persisted snapshot and live Tjek rows use the same verified category without mutating source',()=>{
