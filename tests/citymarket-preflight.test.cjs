@@ -438,3 +438,16 @@ test('47LV non-food pages are intentionally excluded without dropping grocery hy
     assert.equal(productish(title),true,title);
   }
 });
+
+test('47LV L’Oreal title cleanup removes only the printed footer',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const match=provider.match(/is47LV && (\/\^L’ORÉAL PARIS[^\n]+?\/i)\.test\(titleBeforeSourceReview\)\s*\? titleBeforeSourceReview\.replace\((\/[^\n]+?\/i),""\)\.trim\(\)/);
+  assert.ok(match,'cleanup must remain part of the actual provider');
+  const titlePattern=new Function('return '+match[1])();
+  const footerPattern=new Function('return '+match[2])();
+  const original='L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT Voimassa TO–SU 19.–22.11.2026 L’Oréal Paris foundation, Concealers & Telescopic mascaror';
+  const expected='L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT';
+  assert.equal(titlePattern.test(original),true);
+  assert.equal(original.replace(footerPattern,'').trim(),expected);
+  assert.equal('L’ORÉAL PARIS MEIKKIVOITEET'.replace(footerPattern,'').trim(),'L’ORÉAL PARIS MEIKKIVOITEET');
+});
