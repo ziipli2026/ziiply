@@ -4,13 +4,11 @@ export const TJEK_DEPARTMENT_CATEGORIES: Readonly<Record<string,string>> = Objec
   'beverages':'Juomat',
   'frozen':'Pakasteet',
   'household':'Kodinhoito',
-  'beauty':'Hygienia & kosmetiikka',
-  'snacks-and-candies':'Makeiset & keksit',
+  'beauty':'Hygienia & kosmetiikka'
   'cold-cuts':'Liha & makkarat',
-  'bread-and-cakes':'Leipomo',
 });
 /** Return null for broad or uncertain departments (dairy-and-cold, colonial,
- * meat-and-fish, electronics, apparel, etc.) until verified mapping exists. */
+ * bread-and-cakes, snacks-and-candies, meat-and-fish, electronics, apparel, etc.) until verified mapping exists. */
 export function tjekDepartmentCategory(slug: unknown): string | null {
   if (typeof slug !== 'string') return null;
   return Object.prototype.hasOwnProperty.call(TJEK_DEPARTMENT_CATEGORIES,slug)
