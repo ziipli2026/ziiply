@@ -1,0 +1,27 @@
+name: 47LV fresh source forensic reparse
+on:
+  push:
+    branches:
+      - audit/47lv-fresh-raw-reparse-20261119
+  workflow_dispatch:
+jobs:
+  forensic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reparse original 47LV directly from publisher
+        run: node scripts/citymarket/export-leaflet.mjs https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/ 47lv-fresh
+      - name: Compare fresh uncorrected spatial rows against previous 53-row fixture
+        if: always()
+        run: node scripts/citymarket/compare-47lv-fresh.mjs 47lv-fresh
+      - name: Preserve PDF and raw comparison for independent inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: citymarket-47lv-fresh-raw-forensic
+          path: 47lv-fresh/
+          retention-days: 14
