@@ -594,10 +594,17 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     }
     const campaignTitle=repairCitymarketOCRTitle(clean(row?.title||""));
     const percent=Number(row?.percentageOffer?.percent);
+    const is47LVPercent=/_47LV_KCM/i.test(leafletUrl);
+    // Printed 47LV p13: a single Smuuti Skin/COSRX -25% campaign was
+    // split across two parser rows. Never show the orphan continuation or
+    // imply a flat 49% discount for a printed "jopa -49%" range.
+    if(is47LVPercent && Number(row?.page)===13 && (/^TUOTTEET ja COSRX-TUOTTEET$/i.test(campaignTitle) || /^VOITEET 50 ml sekä MEIKINPOISTOAINE/i.test(campaignTitle))) continue;
+    const reviewedCampaignTitle=is47LVPercent && Number(row?.page)===13 && /^SMUUTI SKIN -IHONHOITO-$/i.test(campaignTitle)
+      ? "Smuuti Skin -ihonhoitotuotteet ja COSRX-tuotteet (ei lahjapakkaukset)" : campaignTitle;
     if(!row?.spatialResolved && campaignTitle && !isNoiseLine(campaignTitle) && percent>0 && percent<100){
       const validity=extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))||leafletValidity;
-      offers.push({id:`kcm:spatial:${row?.page??0}:${campaignTitle.toLowerCase()}:percent:${percent}`,
-        title:campaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
+      offers.push({id:`kcm:spatial:${row?.page??0}:${reviewedCampaignTitle.toLowerCase()}:percent:${percent}`,
+        title:reviewedCampaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
         resolutionSource:row.percentageOffer.source,plussa:/plussa/i.test((row.nearby||[]).join(" ")),
         validFrom:validity?.from??null,validTo:validity?.to??null,category:/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(campaignTitle,category(campaignTitle)):category(campaignTitle),
         chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
