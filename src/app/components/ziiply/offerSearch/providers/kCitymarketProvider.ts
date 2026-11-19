@@ -785,6 +785,12 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){
     const hasMerged=(page:number,pattern:RegExp)=>sourceRows.some((r:any)=>Number(r?.page)===page && pattern.test(String(r?.title||"")));
     const reviewed=[
+      // Page 13: printed price blocks are not paired with their headings.
+      // Keep separate price/quantity transactions rather than accepting OCR's
+      // spurious 4,10 / 2,75 / 5,10 prices.
+      {page:13,evidence:/HIUSTENHOITOTUOTTEET 100–300 ml/i,title:"HIUSTENHOITOTUOTTEET 100–300 ml",price:10.90,quantity:2,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
+      {page:13,evidence:/HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA/i,title:"Colgate HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJAT, LASTEN HAMMASHARJAT, BREATH-TAKING SUUVESI 500 ml tai Palmolive SUIHKU- ja NESTESAIPPUAT 500 ml",price:10.00,quantity:4,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
+      {page:13,evidence:/VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml/i,title:"L’Oréal Paris Triple Active, Hyaluron Expert ja Collagen Expert VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml",price:5.00,quantity:1,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
       // Cover page: spatial OCR merges the two-pack soft-drink offer and
       // Kivikylä kassler into one heading; persimmon is missing entirely.
       {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOITUSJUOMAT 0,33 l/tlk 6-pack",price:7.00,quantity:2,unit:"6-PACK",category:"Juomat",to:"22.11."},
