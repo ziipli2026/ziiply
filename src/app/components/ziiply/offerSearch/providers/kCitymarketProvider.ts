@@ -769,7 +769,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       benefitText:verified45LV?.reviewedCard?"Plussa-etu":benefitText,
       campaignType,
       validFrom:row.printedValidity?.from??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
-      validTo:is47LV && (Number(row?.page)===1 || Number(row?.page)===17 || Number(row?.page)===18 || (Number(row?.page)===20 && /^(?:ALKOHOLITON GLÖGI|GLÖGI 8 %)/i.test(title))) ? "22.11." : row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
+      validTo:is47LV && (Number(row?.page)===1 || (Number(row?.page)===17 && !/^LEMPI CREM-E FRAICHE/i.test(title)) || Number(row?.page)===18 || (Number(row?.page)===20 && /^(?:ALKOHOLITON GLÖGI|GLÖGI 8 %)/i.test(title))) ? "22.11." : row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
       category:is47LV && /^Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET/i.test(title) ? "Maitotuotteet" : is47LV && /(?:DEODORANTIT|DEODO-)/i.test(title) ? "Hygienia & kosmetiikka" : is47LV && /WC-RAIKASTIMET/i.test(title) ? "Kodinhoito" : is47LV && /JOULUKALENTERI/i.test(title) && /(?:Haribo|Kinder|Lindt|After Eight|KitKat|Smarties|Nestlé|Dolci)/i.test(title) ? "Makeiset & keksit" : /\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(title,category(title)):category(title),
       chain:"K",
       storeType:"K-Citymarket",
