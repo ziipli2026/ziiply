@@ -381,3 +381,19 @@ test('47LV PDF-reviewed cards require exact edition and matching page evidence',
   assert.equal(run(url,rows.map(r=>({...r,page:99}))).length,0);
   assert.equal(run(url,[]).length,0);
 });
+
+
+test('47LV pages 3–12 must not be treated as empty publisher pages',async()=>{
+  const leaflet='https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/';
+  const page=await fetch(leaflet+'files/basic-html/page3.html');
+  assert.equal(page.status,200);
+  const html=await page.text();
+  assert.match(html,/Familon/i);
+  assert.match(html,/VIKING/i);
+  assert.match(html,/VARAVIRTALÄHDE/i);
+  const page4=await fetch(leaflet+'files/basic-html/page4.html');
+  assert.equal(page4.status,200);
+  const html4=await page4.text();
+  assert.match(html4,/LEGO/i);
+  assert.match(html4,/LAUTA-/i);
+});
