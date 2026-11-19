@@ -99,7 +99,7 @@ export function category(t:string){
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
   // Product-form precedence: recognizable hygiene, cleaning and food items.
   if(/(?:nestesaippuoiden täyttöpuss|meikinkiinnityssuihke|meikinpoistoaine|\bvoiteet\s+50\s*ml)/.test(joined)) return "Hygienia & kosmetiikka";
-  if(/(?:wc.raikastim|siivoussooda|sitruunahappo|puhdistuskivi|raikastussooda)/.test(joined)) return "Kodinhoito";
+  if(/(?:wc.?raikastim|siivoussooda|sitruunahappo|puhdistuskivi|raikastussooda)/.test(joined)) return "Kodinhoito";
   if(/(?:airfry\s+kanan|kanan\s+fileeviipale|kanan\s+paistipala|salame\s+milano|\bhot\s+dog\s+\d+\s*kpl)/.test(joined)) return "Liha & makkarat";
   if(/\blevitteet\s+400\s*g/.test(joined)) return "Maitotuotteet";
   if(/(?:alkoholiton\s+glögi|\bglögi\s+8\s*%|chardonnay|cabernet\s+sauvignon)/.test(joined)) return "Juomat";
