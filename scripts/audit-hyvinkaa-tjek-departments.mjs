@@ -2,7 +2,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import baseline from './fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs';
 // Read-only comparison of the previously saved Neon snapshot with public Tjek
 // source department metadata. This is a source-data audit, not an EAN match.
-const mapping = {'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka'};
+const mapping = {'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka','snacks-and-candies':'Makeiset & keksit','cold-cuts':'Liha & makkarat','bread-and-cakes':'Leipomo'};
 const stable = v => JSON.stringify(v, (_k,x) => x && Object.prototype.toString.call(x)==='[object Object]' ? Object.keys(x).sort().reduce((a,k)=>(a[k]=x[k],a),{}) : x);
 const counts={total:baseline.length,matched:0,missing:0,failed:0,mapped:0,changed:0,unchanged:0,ambiguous:0};
 const transitions={};const departments={};const failures=[];
@@ -40,7 +40,7 @@ for(let i=0;i<baseline.length;i+=8){
    const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
    departments[department]=(departments[department]||0)+1;
    verifiedDepartments.push({offerId:row.id,departmentSlug:department,sourceName:String(payload.name??'')});
-   if(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home'].includes(department)){
+   if(['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home','do-it-yourself'].includes(department)){
      excludedByDepartment[department]=(excludedByDepartment[department]||0)+1;
      excludedByOldCategory[row.category]=(excludedByOldCategory[row.category]||0)+1;
    } else {
