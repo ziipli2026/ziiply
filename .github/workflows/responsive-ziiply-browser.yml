@@ -248,7 +248,7 @@ jobs:
                   for (const api of searchEndpoints) await search.route('**'+api+'?*', route => {
                     const params = new URL(route.request().url()).searchParams;
                     if (/maito/i.test(params.get('search') || '')) {
-                      if (api === '/api/s-products' || api === '/api/k-products') assert.ok([storeId, ...(within ? [chain.toLowerCase() + '-local-test'] : []), ...(many ? ['C130'] : [])].includes(params.get('store')));
+                      if (api === '/api/s-products' || api === '/api/k-products') assert.ok([storeId, ...(within ? [chain.toLowerCase() + '-local-test'] : []), ...(many ? ['C130'] : [])].includes(params.get('store')), `Unexpected ${api} store=${JSON.stringify(params.get('store'))}; expected=${JSON.stringify([storeId, ...(within ? [chain.toLowerCase() + '-local-test'] : []), ...(many ? ['C130'] : [])])}; chain=${chain}; within=${within}; many=${many}`);
                       if (api === '/api/lidl/products') assert.equal(params.get('mode'), 'research');
                       if (api === '/api/tokmanni/products') assert.equal(params.get('intent'), 'maito');
                       queries++;
