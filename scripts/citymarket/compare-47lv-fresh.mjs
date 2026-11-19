@@ -12,4 +12,7 @@ const suspicious=freshRows.filter(x=>x.flags||!x.title||Number(x.rawPrice)>50||/
 const report={sourcePdfSha256:fresh.pdfSha256,pageCount:fresh.pageCount,rawRows:freshRows.length,exportedRows:fresh.rows.length,previousApprovedRows:old.length,exactTitleMatches:matches.length,unmatchedOld,suspicious,matchedRows:matches,rawRowsByPage:Object.fromEntries([...new Set(freshRows.map(x=>x.page))].map(p=>[p,freshRows.filter(x=>x.page===p).length]))};
 fs.writeFileSync(folder+'/old-vs-fresh-audit.json',JSON.stringify(report,null,2));
 console.log('FRESH_47LV_AUDIT',JSON.stringify({pdfSha256:report.sourcePdfSha256,pages:report.pageCount,raw:report.rawRows,exported:report.exportedRows,old:report.previousApprovedRows,exactMatches:report.exactTitleMatches,unmatchedOld:report.unmatchedOld.length,suspicious:report.suspicious.length}));
+console.log('FRESH_47LV_UNMATCHED_OLD',JSON.stringify(unmatchedOld));
+console.log('FRESH_47LV_SUSPICIOUS',JSON.stringify(suspicious.map(x=>({page:x.page,title:x.title,rawPrice:x.rawPrice,flags:x.flags}))));
+console.log('FRESH_47LV_PRICE_DIFFS',JSON.stringify(matches.filter(x=>x.rawPrice!=null&&x.previousPrice!=null&&Math.abs(Number(x.rawPrice)-Number(x.previousPrice))>0.01)));
 if(fresh.pageCount!==20||fresh.pdfSha256!=='3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449')throw Error('Original 47LV PDF changed; stop comparison');
