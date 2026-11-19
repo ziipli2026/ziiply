@@ -1,4 +1,4 @@
-name: Normal search produce relevance regression (twelve queries)
+name: Normal search produce EAN guard regression (twelve queries)
 on:
   workflow_dispatch:
   push:
