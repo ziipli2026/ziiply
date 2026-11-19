@@ -9,6 +9,7 @@ const transitions={};const departments={};const failures=[];
 const baselineByDepartment={};const excludedByDepartment={};const excludedByOldCategory={};
 const remainingByDepartment={};const remainingByOldCategory={};
 const reviewRows=[];
+const missingRows=[];
 const verifiedDepartments=[];
 for(let i=0;i<baseline.length;i+=8){
  const batch=baseline.slice(i,i+8);
@@ -16,18 +17,25 @@ for(let i=0;i<baseline.length;i+=8){
   try{
    const key=Buffer.from(stable(['offer',{publicId:row.id}]),'utf8').toString('base64');
    let payload=null;
+   const sourceResponses=[];
    // A transient source miss must not abort the browser suite. Retry the same
    // exact publicId, but never invent metadata or count an absent row as verified.
    for(let attempt=0;attempt<3;attempt++){
      try{
        const response=await fetch('https://etarjouslehdet.fi/',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/plain, */*',Referer:'https://etarjouslehdet.fi/K-Citymarket'},body:JSON.stringify({data:[key]}),signal:AbortSignal.timeout(15000)});
-       if(!response.ok)throw Error('HTTP '+response.status);
+       if(!response.ok){sourceResponses.push('HTTP '+response.status);throw Error('HTTP '+response.status);}
        payload=(await response.text()).split(/\r?\n/).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).find(x=>x?.key===key)?.value??null;
+       sourceResponses.push(payload && typeof payload==='object'?'found':'no-matching-payload');
        if(payload && typeof payload==='object')break;
      }catch(error){if(attempt===2)throw error;}
      if(attempt<2)await new Promise(resolve=>setTimeout(resolve,300*(attempt+1)));
    }
-   if(!payload || typeof payload!=='object'){counts.missing++;console.error('TJEK_AUDIT_SOURCE_MISSING',row.id);return;}
+   if(!payload || typeof payload!=='object'){
+     counts.missing++;
+     missingRows.push({id:row.id,oldCategory:row.category,sourceResponses});
+     console.error('TJEK_AUDIT_SOURCE_MISSING',row.id,JSON.stringify(sourceResponses));
+     return;
+   }
    counts.matched++;
    const department=typeof payload.departmentSlug==='string'?payload.departmentSlug:'(missing)';
    departments[department]=(departments[department]||0)+1;
@@ -52,6 +60,7 @@ for(let i=0;i<baseline.length;i+=8){
  }));
 }
 console.log('TJEK_AUDIT_COUNTS',JSON.stringify(counts));
+console.log('TJEK_AUDIT_MISSING_ROWS',JSON.stringify(missingRows.sort((a,b)=>a.id.localeCompare(b.id))));
 console.log('TJEK_AUDIT_DEPARTMENTS',JSON.stringify(Object.entries(departments).sort((a,b)=>b[1]-a[1])));
 console.log('TJEK_AUDIT_TRANSITIONS',JSON.stringify(Object.entries(transitions).sort((a,b)=>b[1]-a[1])));
 console.log('TJEK_AUDIT_BASELINE_BY_DEPARTMENT',JSON.stringify(Object.entries(baselineByDepartment).sort((a,b)=>b[1]-a[1])));
