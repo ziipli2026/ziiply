@@ -3,7 +3,7 @@ const folder=process.argv[2]||'47lv-fresh';
 const source=JSON.parse(fs.readFileSync(folder+'/parser-evidence.json'));
 const fresh=JSON.parse(fs.readFileSync(folder+'/leaflet.json'));
 const old=JSON.parse(fs.readFileSync('tests/fixtures/citymarket/47lv-neon-candidate.json'));
-const norm=s=>String(s||'').toLowerCase().normalize('NFKC').replace(/[^\\p{L}\\p{N}]+/gu,' ').trim();
+const norm=s=>String(s||'').toLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 const oldByTitle=new Map(old.map(x=>[norm(x.title),x]));
 const freshRows=source.rows.map(x=>({page:x.page,title:x.title,rawPrice:x.spatialResolved?.value??null,percentage:x.percentageOffer?.percent??null,nearby:x.nearby,spatialResolved:x.spatialResolved,flags:x.debugSuspiciousPublisherTitle}));
 const matches=freshRows.filter(x=>oldByTitle.has(norm(x.title))).map(x=>({page:x.page,title:x.title,rawPrice:x.rawPrice,previousPrice:oldByTitle.get(norm(x.title)).price,previousUnitPrice:oldByTitle.get(norm(x.title)).unitPrice}));
