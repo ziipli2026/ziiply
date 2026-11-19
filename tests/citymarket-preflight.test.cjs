@@ -190,7 +190,7 @@ test('47LV category regression: orange juice and dog treats override generic fru
 test('47LV candidate v165: all reported missing categories have a real product classification',()=>{
   const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
   const start=source.indexOf('export function category(t:string){');
-  const end=source.indexOf('\\n}',start);
+  const end=source.indexOf('\n}',start);
   assert.ok(start>=0&&end>start);
   const category=new Function('clean',source.slice(start,end+2).replace('export function category(t:string)','function category(t)')+';return category;')(text=>String(text));
   const cases=[
