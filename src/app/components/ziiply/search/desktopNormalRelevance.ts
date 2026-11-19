@@ -325,6 +325,15 @@ export function desktopSearchDecision(query: string, product: Row) {
     return {accepted:false,score:-10000,reason:'egg_substitute_not_eggs'};
   if(requestedTerms.includes('cola') && /juomatiiviste|sodastream|siirappi/.test(originalIdentity))
     return {accepted:false,score:-10000,reason:'cola_concentrate_original_identity'};
+  // Bare fresh-produce searches must not accept drinks, flavourings or meals
+  // merely because their name contains the fruit/vegetable ingredient.
+  // Explicit compound searches (e.g. "appelsiinitee") remain unaffected.
+  if(requestedTerms.length===1 && ['appelsiini','banaani','tomaatti','kurkku'].includes(requestedTerms[0])) {
+    const term=requestedTerms[0];
+    const incompatible=/lonkero|juoma|drink|tee(?: |$)|mehu|smoothie|proteiinijuoma|ruokakerma|kaururuoka|kastike|keitto|marinoitu|mauste|keksi|kakku|jogurtti|rahka|vanukas|suklaa|aromi|maku/;
+    if(incompatible.test(originalIdentity))
+      return {accepted:false,score:-10000,reason:'fresh_produce_not_ingredient_flavour'};
+  }
   // Protect primary product identity from ingredient matches in prepared meals.
   // Aliases may clarify a genuine product but cannot turn a muffin, salad or
   // ready meal into the ingredient sought by the shopper.
