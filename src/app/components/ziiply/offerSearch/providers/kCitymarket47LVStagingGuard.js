@@ -10,6 +10,8 @@ export function validate47LVPublication(offers, publicationKey) {
     const price=offer?.price;
     const discount=offer?.discountPercent;
     if (!title) issues.push('missing-title:'+index);
+    if (/\bVoimassa\s+TO[–-]SU\b|\bConcealers\s*&\s*Telescopic\b|\bmascaror\b/i.test(title))
+      issues.push('publisher-footer-in-title:'+index+':'+title);
     if (/^(?:TUOTTEET ja COSRX-TUOTTEET|NAUDAN LEHTIPIHVI|ULKOFILEESTÄ tai MUREUTETTU|NAUGHTY BURGER)$/i.test(title)
       || /PUNAKAALI KG PÄÄRYNÄ KG|JOGURTTIJUOMAT PROTEIN RAHKAT|^vadelmainen, mausteinen/i.test(title)
       || /^4 LEVITTEET|^H3O T D O G|^RANTIT 45 ml/i.test(title))
