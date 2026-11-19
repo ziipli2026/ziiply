@@ -644,7 +644,8 @@ export default function DesktopPreviewPage() {
   const fuelChangeStation=(group:string)=>{setFuelStationIndex(prev=>({...prev,[group]:((prev[group]||0)+1)%Math.max(1,fuelCandidates(group).length)}));setFuelCompared(false);};
   // Match the mobile topbar: show the nearest station that has a valid fuel price.
   // Stations with no reported prices must not hide available prices from nearby stations.
-  const fuelNearestStation=fuelStations.filter((station:any)=>{
+  // Use the same station results as the desktop fuel price list, including locality searches.
+  const fuelNearestStation=fuelComparisonStations.filter((station:any)=>{
     const distance=Number(station.distanceKm);
     const hasPrice=(["diesel","price95","price98"] as const).some(type=>{
       const value=station?.[type];
