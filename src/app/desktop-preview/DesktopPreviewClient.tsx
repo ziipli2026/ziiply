@@ -583,17 +583,6 @@ export default function DesktopPreviewPage() {
   const [fuelMode, setFuelMode] = useState<"nearby" | "compare">("nearby");
   const [fuelStations, setFuelStations] = useState<any[]>([]);
   const [fuelLocationCoords,setFuelLocationCoords]=useState<{latitude:number;longitude:number}|null>(null);
-  const [fuelTopbarGpsCoords,setFuelTopbarGpsCoords]=useState<{latitude:number;longitude:number}|null>(null);
-  // Fuel prices need their own location, just like the mobile topbar.
-  // This does not enable the desktop store-selection GPS or change the chosen stores.
-  useEffect(()=>{
-    if(typeof navigator==="undefined"||!navigator.geolocation)return;
-    navigator.geolocation.getCurrentPosition(
-      ({coords})=>setFuelTopbarGpsCoords({latitude:coords.latitude,longitude:coords.longitude}),
-      ()=>undefined,
-      {enableHighAccuracy:false,timeout:10000,maximumAge:60000}
-    );
-  },[]);
   const [fuelPlaceQuery,setFuelPlaceQuery]=useState("");
   const [fuelPlaceBounds,setFuelPlaceBounds]=useState<number[]|null>(null);
   const [fuelPlaceCoords,setFuelPlaceCoords]=useState<{latitude:number;longitude:number}|null>(null);
@@ -683,7 +672,7 @@ export default function DesktopPreviewPage() {
   const fuelVisible=fuelStations.filter((s:any)=>fuelWithinSearchArea(s) && fuelGroups.includes(fuelGroupOf(s)) && (fuelStationSide==="both" || (fuelStationSide==="traffic" ? fuelIsTraffic(s) : !fuelIsTraffic(s))));
 
   useEffect(() => {
-    const fuelCoords=gpsCoords||fuelLocationCoords||fuelTopbarGpsCoords;
+    const fuelCoords=gpsCoords||fuelLocationCoords;
     if (!fuelCoords) { setFuelStations([]); setFuelLoading(false); setFuelError("Käynnistä GPS, jotta lähimmät asemat voidaan järjestää etäisyyden mukaan."); return; }
     const controller = new AbortController();
     setFuelLoading(true); setFuelError("");
@@ -704,7 +693,7 @@ export default function DesktopPreviewPage() {
     window.addEventListener("focus",refreshOnFocus);
     const interval=window.setInterval(refreshFuelStations,60000);
     return () => { controller.abort(); document.removeEventListener("visibilitychange",refreshOnFocus);window.removeEventListener("focus",refreshOnFocus);window.clearInterval(interval); };
-  }, [gpsCoords?.latitude, gpsCoords?.longitude,fuelLocationCoords?.latitude,fuelLocationCoords?.longitude,fuelTopbarGpsCoords?.latitude,fuelTopbarGpsCoords?.longitude]);
+  }, [gpsCoords?.latitude, gpsCoords?.longitude,fuelLocationCoords?.latitude,fuelLocationCoords?.longitude]);
 
   const [weather, setWeather] = useState({ value: "—", detail: "haetaan" });
   const [weatherExtras, setWeatherExtras] = useState<{pressure:number|null;humidity:number|null;windSpeed:number|null;windDirection:number|null}>({pressure:null,humidity:null,windSpeed:null,windDirection:null});
