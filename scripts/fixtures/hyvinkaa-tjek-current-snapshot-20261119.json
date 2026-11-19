@@ -1,0 +1,1342 @@
+{
+  "capturedAt": "2026-11-19T04:35:14.046Z",
+  "storeId": "fe95rtb",
+  "publicationIds": [
+    "2EwcKJWA",
+    "kDRXlXuY"
+  ],
+  "offers": [
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-vlMiWpvRxxWj84BoTbvl8",
+      "offerId": "vlMiWpvRxxWj84BoTbvl8",
+      "title": "PERSIMON",
+      "price": 2.49,
+      "category": "Hevi",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "fruits-and-vegetables"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-78Xk04CsqmwqoAD3P7ziS",
+      "offerId": "78Xk04CsqmwqoAD3P7ziS",
+      "title": "TUORE KIRJOLOHIFILEE",
+      "price": 12.95,
+      "category": "Kala",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "meat-and-fish"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-siry76nw_ZO99oK1xq_Jr",
+      "offerId": "siry76nw_ZO99oK1xq_Jr",
+      "title": "VIRVOITUSJUOMAT",
+      "price": 7,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-5ewawbI8jQbKxQ2Q4OG4L",
+      "offerId": "5ewawbI8jQbKxQ2Q4OG4L",
+      "title": "PORSAAN KASSLER",
+      "price": 5.99,
+      "category": "Liha & makkarat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "meat-and-fish"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-TXSIlWxzcnL-0EC7eBY9J",
+      "offerId": "TXSIlWxzcnL-0EC7eBY9J",
+      "title": "KUKKAKIMPPU",
+      "price": 10,
+      "category": "Koti & vapaa-aika",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "garden"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-ty30JrtoIq4VjbeGdppsQ",
+      "offerId": "ty30JrtoIq4VjbeGdppsQ",
+      "title": "ERÄ PERHOSORKIDEA",
+      "price": 10,
+      "category": "Koti & vapaa-aika",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "garden"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-LKfOMcGw8h3oKQKOXcksL",
+      "offerId": "LKfOMcGw8h3oKQKOXcksL",
+      "title": "Tarmo PORRASJAKKARA",
+      "price": 23.99,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "do-it-yourself"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-Ba0mIHofITRwuz8pYpxBd",
+      "offerId": "Ba0mIHofITRwuz8pYpxBd",
+      "title": "REMINGTON PROluxe You -sarjan HIUSTENMUOTOILULAITTEET",
+      "price": 39.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-8RXRNGF15oZ7cvPeWxUY4",
+      "offerId": "8RXRNGF15oZ7cvPeWxUY4",
+      "title": "Oral-B iO9S Black Onyx SÄHKÖHAMMASHARJA",
+      "price": 169.9,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-Mpe2vz4reO49ZHGjRd8cD",
+      "offerId": "Mpe2vz4reO49ZHGjRd8cD",
+      "title": "Oral-B VAIHTOHARJAT",
+      "price": 20,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-oVRMcwcETzhwx4St6cHYg",
+      "offerId": "oVRMcwcETzhwx4St6cHYg",
+      "title": "Oral-B iO2 Giftset SÄHKÖHAMMASHARJA",
+      "price": 49.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-nppXZWQbtvdHi31Fh6IBb",
+      "offerId": "nppXZWQbtvdHi31Fh6IBb",
+      "title": "GESKE Sonic Facial Brush KASVOHARJA",
+      "price": 19.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-wNyF_zihIhr6O96N4PI3Y",
+      "offerId": "wNyF_zihIhr6O96N4PI3Y",
+      "title": "LIVIA Aurora LED-VALOMASKI",
+      "price": 49.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-lK46eDTcHyvZ1f1c0LnDQ",
+      "offerId": "lK46eDTcHyvZ1f1c0LnDQ",
+      "title": "Oral-B Pro 1 SÄHKÖHAMMASHARJA",
+      "price": 39.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-kdg7PlTJbMqHtsxozYYlG",
+      "offerId": "kdg7PlTJbMqHtsxozYYlG",
+      "title": "PHILIPS OneBlade 360 QP430/50 VAIHTOTERÄ 3 kpl/pkt",
+      "price": 29.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-QZYE9_HCPE04d1llWSova",
+      "offerId": "QZYE9_HCPE04d1llWSova",
+      "title": "PHILIPS OneBlade QI1864/65 TRIMMERI",
+      "price": 25,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-jKuM_-a61fdDTQOgga3TD",
+      "offerId": "jKuM_-a61fdDTQOgga3TD",
+      "title": "BRAUN Series 7 72-G1200s PARRANAJOKONE",
+      "price": 139.9,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-skIc5dAvbWCz7miiSrDYD",
+      "offerId": "skIc5dAvbWCz7miiSrDYD",
+      "title": "PHILIPS 5000 Series S5880/50 PARRANAJOKONE",
+      "price": 99.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-SaiH9VncsvyqcuFASphnZ",
+      "offerId": "SaiH9VncsvyqcuFASphnZ",
+      "title": "PHILIPS 3000 Series S3144/00 PARRANAJOKONE",
+      "price": 39.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-zX8eCYl-3q0xnW53egY81",
+      "offerId": "zX8eCYl-3q0xnW53egY81",
+      "title": "KAHVA ja 4 PÖLYHUISKAA tai TÄYTTÖPAKKAUS 5 kpl/pkt",
+      "price": 4,
+      "category": "Kodinhoito",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "household"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-HGzn6OGHOKknt1JP4oLEA",
+      "offerId": "HGzn6OGHOKknt1JP4oLEA",
+      "title": "SÄHKÖSAVUSTIN",
+      "price": 39,
+      "category": "Koti & vapaa-aika",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "garden"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-_Dg6PCgSTWyW_loyswtA7",
+      "offerId": "_Dg6PCgSTWyW_loyswtA7",
+      "title": "Colgate tai Palmolive",
+      "price": 10,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-m0k27skrmDmuKM1dzCdM1",
+      "offerId": "m0k27skrmDmuKM1dzCdM1",
+      "title": "AUSSIE HIUSTENHOITOTUOTTEET",
+      "price": 10.9,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-5St_-HlFgiooGsgZ9KltY",
+      "offerId": "5St_-HlFgiooGsgZ9KltY",
+      "title": "bliw NESTESAIPPUOIDEN TÄYTTÖPUSSIT",
+      "price": 3.5,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-GG1TflPahDgpNYRwiSxyD",
+      "offerId": "GG1TflPahDgpNYRwiSxyD",
+      "title": "LUMENE Klassikko VARTALONHOITOTUOTTEET",
+      "price": 5.9,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-c7rON4tOBgr06noZHGFxQ",
+      "offerId": "c7rON4tOBgr06noZHGFxQ",
+      "title": "Rexona ja Rexona Men Max Protection DEODORANTIT",
+      "price": 8,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-fUkZZGBH0BKPOM0-x8lc8",
+      "offerId": "fUkZZGBH0BKPOM0-x8lc8",
+      "title": "LISTERINE SUUVESI",
+      "price": 5.95,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-n_dv72Ui7OOt283AiGR5a",
+      "offerId": "n_dv72Ui7OOt283AiGR5a",
+      "title": "L'ORÉAL PARIS Infaillible 3-Second MEIKINKIINNITYSSUIHKE",
+      "price": 12.9,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-DcXlhG0G4JGf8K0w-tFqY",
+      "offerId": "DcXlhG0G4JGf8K0w-tFqY",
+      "title": "L'ORÉAL PARIS Triple Active, Hyaluron Expert ja Collagen Expert VOITEET sekä MEIKINPOISTOAINE",
+      "price": 5,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-xeICtwXfjqaaWIGxv-WNC",
+      "offerId": "xeICtwXfjqaaWIGxv-WNC",
+      "title": "Libero",
+      "price": 22.5,
+      "category": "Koti & vapaa-aika",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "baby"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-9izrENN4H_5f7K2zmDE7e",
+      "offerId": "9izrENN4H_5f7K2zmDE7e",
+      "title": "Lotus Lempi",
+      "price": 9.9,
+      "category": "Kodinhoito",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "household"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-shbnC8RK6EMlBxF76boEg",
+      "offerId": "shbnC8RK6EMlBxF76boEg",
+      "title": "Bref",
+      "price": 3,
+      "category": "Kodinhoito",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "household"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-wCbdB6ZOpU0rY_68dmP7P",
+      "offerId": "wCbdB6ZOpU0rY_68dmP7P",
+      "title": "PIRKKA VÄRILLINEN JÄTEKASSI",
+      "price": 4.5,
+      "category": "Kodinhoito",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "household"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-D2Wi_hBYXwdNXDvpOAUux",
+      "offerId": "D2Wi_hBYXwdNXDvpOAUux",
+      "title": "SAGA LEIVINPAPERI",
+      "price": 3.4,
+      "category": "Kodinhoito",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "colonial"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-B4FaYFQ5UOidjOclZJMm2",
+      "offerId": "B4FaYFQ5UOidjOclZJMm2",
+      "title": "PUNAKAALI",
+      "price": 0.99,
+      "category": "Hevi",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "fruits-and-vegetables"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-R36izijST39-5LLsJgH--",
+      "offerId": "R36izijST39-5LLsJgH--",
+      "title": "CELINA PÄÄRYNÄ",
+      "price": 2.99,
+      "category": "Hevi",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "fruits-and-vegetables"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-dwZpVeB0q-dNEde6wq04c",
+      "offerId": "dwZpVeB0q-dNEde6wq04c",
+      "title": "Järvikylä ROSMARIINI",
+      "price": 2.99,
+      "category": "Hevi",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "fruits-and-vegetables"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-oUFixD-a3Gn54041Fuetc",
+      "offerId": "oUFixD-a3Gn54041Fuetc",
+      "title": "Oksasen puutarha JUICY SALAATTI",
+      "price": 1.49,
+      "category": "Hevi",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "fruits-and-vegetables"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-obYunglxNYZ58_Cx-DG4q",
+      "offerId": "obYunglxNYZ58_Cx-DG4q",
+      "title": "Grandiosa KIVIUUNIPIZZAT",
+      "price": 2.49,
+      "category": "Pakasteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-15T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "frozen"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-QpMXabQ4Rwr1cTO-Q-fLe",
+      "offerId": "QpMXabQ4Rwr1cTO-Q-fLe",
+      "title": "Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl",
+      "price": 3.49,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-UsUPgl8kZ3g5sdp3AldCV",
+      "offerId": "UsUPgl8kZ3g5sdp3AldCV",
+      "title": "Lännentilan RIESKAT",
+      "price": 3,
+      "category": "Leipomo",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "bread-and-cakes"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-euVFTG33aT5Krex5cw3OP",
+      "offerId": "euVFTG33aT5Krex5cw3OP",
+      "title": "PIRKKA APPELSIINITÄYSMEHU 1 l",
+      "price": 4,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-Zx8eYMV-nZ-EAnghMJp6f",
+      "offerId": "Zx8eYMV-nZ-EAnghMJp6f",
+      "title": "Arla PROTEIN RAHKAT 200 g",
+      "price": 3.5,
+      "category": "Maitotuotteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "dairy-and-cold"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-xwt058yXTNdvyooEZ6uf8",
+      "offerId": "xwt058yXTNdvyooEZ6uf8",
+      "title": "Eleplant KASVIVOIMAA LEVITTEET 400 g",
+      "price": 5.2,
+      "category": "Koti & vapaa-aika",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "dairy-and-cold"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-2gdH78BeX_YaqMmRF-hpk",
+      "offerId": "2gdH78BeX_YaqMmRF-hpk",
+      "title": "Danone ACTIMEL JOGURTTIJUOMAT 8 x 100 g",
+      "price": 3.69,
+      "category": "Maitotuotteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "dairy-and-cold"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-xQUcv_x9BdYM_Ebz7hhMB",
+      "offerId": "xQUcv_x9BdYM_Ebz7hhMB",
+      "title": "Atria AIRFRY KANAN FILEEVIIPALE tai PAISTIPALA",
+      "price": 3.99,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "meat-and-fish"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-sD_xkThgxO_t2sUxj73fK",
+      "offerId": "sD_xkThgxO_t2sUxj73fK",
+      "title": "Santa Maria TORTILLA CHIPSIT",
+      "price": 1.39,
+      "category": "Kuivatuotteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "snacks-and-candies"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-INrDNfi-1BJththTgzoep",
+      "offerId": "INrDNfi-1BJththTgzoep",
+      "title": "Santa Maria TORTILLA ORIGINAL MEDIUM",
+      "price": 1.15,
+      "category": "Kuivatuotteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "colonial"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-6qCPY1Fhs2z6uXsFvdHnf",
+      "offerId": "6qCPY1Fhs2z6uXsFvdHnf",
+      "title": "Pirkka Parhaat GUACAMOLE STYLE TOPPIN KASTIKE",
+      "price": 2.69,
+      "category": "Kuivatuotteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "colonial"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-L5-8CQK4kSqF5Y3gi_wv8",
+      "offerId": "L5-8CQK4kSqF5Y3gi_wv8",
+      "title": "Pirkka Parhaat SPICY PEPPER TOPPING KASTIKE",
+      "price": 2.69,
+      "category": "Kuivatuotteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "colonial"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-tc-t-HhaxYlkp1VdXY3y5",
+      "offerId": "tc-t-HhaxYlkp1VdXY3y5",
+      "title": "Arla LEMPI CREME FRAICHE ja SMETANA",
+      "price": 3,
+      "category": "Maitotuotteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "dairy-and-cold"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-SMESxcJh6ME81Suh3c1bt",
+      "offerId": "SMESxcJh6ME81Suh3c1bt",
+      "title": "Naughty HOT DOG MAKKARAT",
+      "price": 3.69,
+      "category": "Liha & makkarat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "meat-and-fish"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-7avxpL1OwF2VZKMvQZ5RL",
+      "offerId": "7avxpL1OwF2VZKMvQZ5RL",
+      "title": "Vaasan THE BRGR NAUGHTY BURGER",
+      "price": 2.39,
+      "category": "Valmisruoka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "bread-and-cakes"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-3qZoSMnuEpNQvazfyU-7J",
+      "offerId": "3qZoSMnuEpNQvazfyU-7J",
+      "title": "Vaasan THE DOG NAUGHTY HOT DOG",
+      "price": 3.09,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "bread-and-cakes"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-LnwMAb-H4xiN_YdxPLYG_",
+      "offerId": "LnwMAb-H4xiN_YdxPLYG_",
+      "title": "Snellman NAUDAN LEHTIPIHVI ULKOFILEESTÄ tai MUREUTETTU ULKOFILEEPIHVI",
+      "price": 10.99,
+      "category": "Liha & makkarat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "meat-and-fish"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-yWUiRevsF6E0dtyaQ_gHu",
+      "offerId": "yWUiRevsF6E0dtyaQ_gHu",
+      "title": "PIRKKA Parhaat SALAME MILANO",
+      "price": 2.49,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "cold-cuts"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-C17ELO5gNkKRz0IMZNubq",
+      "offerId": "C17ELO5gNkKRz0IMZNubq",
+      "title": "Valio KERMAVIILIDIPIT",
+      "price": 2.5,
+      "category": "Maitotuotteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "snacks-and-candies"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-iDYBnQMwZ2_eoUx9L883-",
+      "offerId": "iDYBnQMwZ2_eoUx9L883-",
+      "title": "Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET",
+      "price": 2.99,
+      "category": "Valmisruoka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "dairy-and-cold"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-dcKKWsPntgj37kCOZUEBk",
+      "offerId": "dcKKWsPntgj37kCOZUEBk",
+      "title": "Pokemon sekä Dolci Lilo ja Stitch",
+      "price": 12.95,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "snacks-and-candies"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-iCIEt4UeY72jgQ2S5d6ix",
+      "offerId": "iCIEt4UeY72jgQ2S5d6ix",
+      "title": "BonBon",
+      "price": 16.95,
+      "category": "Makeiset & keksit",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "snacks-and-candies"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-uHmxjQU8yXZvqux05BN8-",
+      "offerId": "uHmxjQU8yXZvqux05BN8-",
+      "title": "Kinder",
+      "price": 18.95,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "snacks-and-candies"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-iyaYFGhLzKe2VcrI7bb4F",
+      "offerId": "iyaYFGhLzKe2VcrI7bb4F",
+      "title": "Lindt",
+      "price": 14.45,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "snacks-and-candies"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-B6QZmlmlEHh-LUu_YiluB",
+      "offerId": "B6QZmlmlEHh-LUu_YiluB",
+      "title": "Haribo",
+      "price": 9.79,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "snacks-and-candies"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-bo6IAiUjaxNicb0mbTomk",
+      "offerId": "bo6IAiUjaxNicb0mbTomk",
+      "title": "After Eight, Kitkat, Smarties ja Nestlé mix",
+      "price": 11.95,
+      "category": "Muut",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "snacks-and-candies"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-Kw7MqVGQS18Rth-vbozPr",
+      "offerId": "Kw7MqVGQS18Rth-vbozPr",
+      "title": "Pirkka Parhaat ALKOHOLITON GLÖGI",
+      "price": 4.29,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-bm92a4LAjZUjZ9s5Fkvlf",
+      "offerId": "bm92a4LAjZUjZ9s5Fkvlf",
+      "title": "Pirkka Parhaat GLÖGI 8 %",
+      "price": 9.29,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-ttQUl_nv49M5bpEDLIhQz",
+      "offerId": "ttQUl_nv49M5bpEDLIhQz",
+      "title": "Chill Out CHARDONNAY tai CABERNET SAUVIGNON 8 %",
+      "price": 8.99,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-aB3x1jM-lSQKiJUIGTSBE",
+      "offerId": "aB3x1jM-lSQKiJUIGTSBE",
+      "title": "Charles Vienot CLASSIC RESERVE PINOT NOIR tai Ruppertsberger IMPERIAL RIESLING 8 %",
+      "price": 8.99,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-0uThkUD0ETGSb1JnzoAzh",
+      "offerId": "0uThkUD0ETGSb1JnzoAzh",
+      "title": "Kåska SELVIN PÄIN SPRITZIT 0 %",
+      "price": 4.7,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-2EwcKJWA-azo2YNJpsQNUHL3c7k53P",
+      "offerId": "azo2YNJpsQNUHL3c7k53P",
+      "title": "Crisp RADLER ALKOHOLITTOMAT OLUET 0,0 %",
+      "price": 3,
+      "category": "Juomat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-18T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "2EwcKJWA",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beverages"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-kDRXlXuY-F455VH7rfhkbvjBhXCfmi",
+      "offerId": "F455VH7rfhkbvjBhXCfmi",
+      "title": "WANHANAJAN NAKKI",
+      "price": 3.99,
+      "category": "Liha & makkarat",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-15T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "kDRXlXuY",
+        "categorySource": "legacy-title",
+        "tjekDepartmentSlug": "meat-and-fish"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-kDRXlXuY-yYuGXZ-q9xMisU9iN5LIZ",
+      "offerId": "yYuGXZ-q9xMisU9iN5LIZ",
+      "title": "KIVIUUNIPIZZAT",
+      "price": 2.49,
+      "category": "Pakasteet",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-15T22:00:00+0000",
+      "validUntil": "2026-11-22T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "kDRXlXuY",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "frozen"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-kDRXlXuY-TqOz97WFNyeYORxEhCgOd",
+      "offerId": "TqOz97WFNyeYORxEhCgOd",
+      "title": "iO9S Black Onyx SÄHKÖHAMMASHARJA",
+      "price": 169.9,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-15T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "kDRXlXuY",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    },
+    {
+      "id": "citymarket-local-fe95rtb-kDRXlXuY-WjX2vCAwF8d0uCl4IvyZE",
+      "offerId": "WjX2vCAwF8d0uCl4IvyZE",
+      "title": "PROluxe You -sarjan HIUSTENMUOTOILULAITTEET",
+      "price": 39.99,
+      "category": "Hygienia & kosmetiikka",
+      "storeId": "fe95rtb",
+      "storeName": "K‑Citymarket Hyvinkää",
+      "validFrom": "2026-11-15T22:00:00+0000",
+      "validUntil": "2026-11-29T21:59:59+0000",
+      "debug": {
+        "sourceScope": "SELECTED_STORE_PUBLICATION",
+        "tjekStoreId": "fe95rtb",
+        "publicationId": "kDRXlXuY",
+        "categorySource": "tjek-department",
+        "tjekDepartmentSlug": "beauty"
+      }
+    }
+  ]
+}
