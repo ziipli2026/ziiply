@@ -94,7 +94,8 @@ export function category(t:string){
   // Product type wins over substring matches (juice is not fresh fruit).
   if(/(?:appelsiini(?:täys)?mehu|täysmehu)/.test(joined)) return "Juomat";
   // A dog treat must never be classified as a human hot-dog sausage.
-  if(/(?:the dog naughty hot dog|naughty hot dog)/.test(joined)) return "Lemmikit";
+  if(/the dog naughty hot dog/.test(joined)) return "Lemmikit";
+  if(/naughty hot dog makkarat/.test(joined)) return "Liha & makkarat";
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
   // Product-form precedence: recognizable hygiene, cleaning and food items.
   if(/(?:nestesaippuoiden täyttöpuss|meikinkiinnityssuihke|meikinpoistoaine|\bvoiteet\s+50\s*ml)/.test(joined)) return "Hygienia & kosmetiikka";
