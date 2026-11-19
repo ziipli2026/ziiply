@@ -101,6 +101,27 @@ jobs:
           npx --yes tsx offer-card-regression.mts
       - name: Prisma and Cittari cart multi-buy regression
         run: node scripts/audit-gosta-cart-multibuy-20261001.cjs
+      # A read-only Neon connection must be configured as an Actions secret.
+      # Never expose the connection string in logs or use a write-capable role.
+      - name: Check read-only live snapshot prerequisites
+        env:
+          CITYMARKET_READONLY_DATABASE_URL: ${{ secrets.CITYMARKET_READONLY_DATABASE_URL }}
+        run: |
+          if [ -z "$CITYMARKET_READONLY_DATABASE_URL" ]; then
+            echo "::notice::Read-only live snapshot check not configured: add CITYMARKET_READONLY_DATABASE_URL secret."
+          else
+            echo "Read-only live snapshot credential configured."
+          fi
+      - name: Verify current Hyvinkää Tjek snapshot with read-only SQL
+        if: ${{ env.CITYMARKET_SNAPSHOT_TEST_ENABLED == 'true' }}
+        env:
+          DATABASE_URL: ${{ secrets.CITYMARKET_READONLY_DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::CITYMARKET_READONLY_DATABASE_URL is required for live verification"
+            exit 1
+          fi
+          node scripts/verify-citymarket-live-readonly.mjs
       # Snapshot-backed tests require a database with active store publications.
       # Never mistake an unconfigured runner for an empty production feed.
       - name: Explain snapshot integration prerequisites
