@@ -297,12 +297,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         // React can render the last initial S/K rows immediately before the
         // final ranked list. Do not compare a transitional DOM snapshot.
         // Require the rendered EAN sequence to remain unchanged across
-        // three 350ms samples after the loading indicator is cleared.
+        // three 1000ms samples after the loading indicator is cleared.
         const readSnapshots=()=>cards.evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>({ean:n.getAttribute('data-ean'),label:(n.textContent||'').replace(/\s+/g,' ').slice(0,240)})).filter(x=>/^\d{13}$/.test(x.ean||'')));
         let snapshots=await readSnapshots();
         let stable=0;
         for(let attempt=0;attempt<18 && stable<3;attempt++){
-          await page.waitForTimeout(350);
+          await page.waitForTimeout(1000);
           const next=await readSnapshots();
           const same=JSON.stringify(next.map(x=>x.ean))===JSON.stringify(snapshots.map(x=>x.ean));
           stable=same?stable+1:0;
