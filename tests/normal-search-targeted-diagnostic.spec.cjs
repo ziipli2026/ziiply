@@ -26,6 +26,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     const page=await context.newPage();
     const errors=[],apiResponses=[],providerEanPresence=[],providerChecks=[],responseBodyChecks=[],providerBodyShapes=[],decisionSummaries=[];
     page.on('console',msg=>{if(msg.text().startsWith('[normal-search-decision-summary]')){try{const item=JSON.parse(msg.text().slice('[normal-search-decision-summary]'.length).trim());decisionSummaries.push({device,...item});console.log('[normal-parity] DECISION SUMMARY',JSON.stringify({device,...item}));}catch{}}});
+    page.on('console',msg=>{if(msg.text().startsWith('[normal-search-finalization-summary]')){try{const item=JSON.parse(msg.text().slice('[normal-search-finalization-summary]'.length).trim());decisionSummaries.push({device,stage:'finalization',...item});console.log('[normal-parity] FINALIZATION SUMMARY',JSON.stringify({device,...item}));}catch{}}});
     let currentSearchQuery='';
     page.on('pageerror',e=>errors.push(String(e)));
     page.on('response',r=>{
