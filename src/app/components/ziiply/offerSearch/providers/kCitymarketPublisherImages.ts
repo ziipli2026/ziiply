@@ -33,8 +33,8 @@ export function getKCitymarketPublisherImage(sourceUrl:string,offerId:string):st
   // before accepting a normalized title.
   const normalized=(title:string)=>title
     .normalize("NFKC").toLowerCase()
-    .replace(/([a-zåäö])-\\s*([a-zåäö])/g,"$1$2")
-    .replace(/\\s+/g," ").trim();
+    .replace(/([a-zåäö])-\s*([a-zåäö])/g,"$1$2")
+    .replace(/\s+/g," ").trim();
   const key=normalized(wanted);
   const imageEntries=Object.entries(publication.images);
   const matching=imageEntries.filter(([id])=>normalized(titleFromId(id))===key);

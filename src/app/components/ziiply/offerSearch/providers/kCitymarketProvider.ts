@@ -91,7 +91,17 @@ export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
+  // Product type wins over substring matches (juice is not fresh fruit).
+  if(/(?:appelsiini(?:täys)?mehu|täysmehu)/.test(joined)) return "Juomat";
+  // A dog treat must never be classified as a human hot-dog sausage.
+  if(/(?:the dog naughty hot dog|naughty hot dog)/.test(joined)) return "Lemmikit";
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
+  // Product-form precedence: recognizable hygiene, cleaning and food items.
+  if(/(?:nestesaippuoiden täyttöpuss|meikinkiinnityssuihke|meikinpoistoaine|\bvoiteet\s+50\s*ml)/.test(joined)) return "Hygienia & kosmetiikka";
+  if(/(?:wc.raikastim|siivoussooda|sitruunahappo|puhdistuskivi|raikastussooda)/.test(joined)) return "Kodinhoito";
+  if(/(?:airfry\s+kanan|kanan\s+fileeviipale|kanan\s+paistipala|salame\s+milano|\bhot\s+dog\s+\d+\s*kpl)/.test(joined)) return "Liha & makkarat";
+  if(/\blevitteet\s+400\s*g/.test(joined)) return "Maitotuotteet";
+  if(/(?:alkoholiton\s+glögi|\bglögi\s+8\s*%|chardonnay|cabernet\s+sauvignon)/.test(joined)) return "Juomat";
   // Plant-based slices are prepared protein products, not potato chips.
   if(/(?:kanaton|lihaton)\s+lastu|(?:lihaton|kanaton).*\b(?:kanaton|lihaton)\s+lastu|\bvebablastu/.test(joined)) return "Valmisruoka";
   // General food forms observed in 47AV. Classify by product type, not issue.
@@ -549,6 +559,19 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     }
     return row;
   }));
+  // A canonical title reconstruction must not erase a collision warning
+  // originating from the publisher's printed-card geometry.
+  for(const row of rows){
+    const title=String(row?.title||'').replace(/\s+/g,' ').trim();
+    if(!row.debugSuspiciousPublisherTitle &&
+       (/PUNAKAALI\s+KG\s+PÄÄRYNÄ\s+KG/i.test(title) ||
+        /JOGURTTIJUOMAT\s+PROTEIN\s+RAHKAT/i.test(title))){
+      row.debugSuspiciousPublisherTitle={
+        title:row.title,reason:'merged-publisher-product-headings',
+        requiresSeparateCardPriceProof:true
+      };
+    }
+  }
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
@@ -562,6 +585,12 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
 
   const offers:CitymarketOffer[]=[];
   for(const row of rows){
+    // Do not publish a merged 47LV product card with a price belonging to
+    // only one of its headings. Retain the parser evidence for preflight.
+    if(/_47LV_KCM/i.test(leafletUrl) && row?.debugSuspiciousPublisherTitle?.reason==='merged-publisher-product-headings'){
+      console.warn('[K-Citymarket] Suppressed unresolved merged publisher card:',row?.page,row?.title);
+      continue;
+    }
     const campaignTitle=repairCitymarketOCRTitle(clean(row?.title||""));
     const percent=Number(row?.percentageOffer?.percent);
     if(!row?.spatialResolved && campaignTitle && !isNoiseLine(campaignTitle) && percent>0 && percent<100){

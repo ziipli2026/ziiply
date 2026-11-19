@@ -26,7 +26,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
         COALESCE(NULLIF(o->>'title',''),NULLIF(o->>'name','')) IS NULL) AS missing_names,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
-        btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$))') AS suspicious_names,
+        btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$)|PUNAKAALI[[:space:]]+KG[[:space:]]+PÄÄRYNÄ[[:space:]]+KG|JOGURTTIJUOMAT[[:space:]]+PROTEIN[[:space:]]+RAHKAT)') AS suspicious_names,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
         NOT (COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$' AND
           CASE WHEN COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$' THEN (o->>'price')::numeric>0 ELSE false END)
@@ -34,7 +34,12 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
           CASE WHEN COALESCE(o->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?$' THEN (o->>'discountPercent')::numeric>0 AND (o->>'discountPercent')::numeric<100 ELSE false END)) AS missing_prices,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'imageUrl','')='') AS missing_images,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'category','') IN ('','Muut')) AS missing_categories,
-      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'resolutionSanity','pass')<>'pass') AS unverified_prices
+      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'resolutionSanity','pass')<>'pass') AS unverified_prices,
+      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
+        COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$'
+        AND CASE WHEN COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$'
+          THEN (o->>'price')::numeric > 30 ELSE false END
+        AND COALESCE(o->>'title','') ~* '0[,.]75[[:space:]]*l/(pl|plo)') AS suspicious_prices
       FROM ziiply_offer_publications WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state IN ('candidate','approved') ORDER BY parsed_at DESC LIMIT 1`;
     quality = rows[0] as Record<string, number> ?? null;
     // Expose concrete next-edition category defects to the repair workflow.
@@ -63,7 +68,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
           ORDER BY parsed_at DESC LIMIT 1
         ) p
         CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$))'
+        WHERE btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$)|PUNAKAALI[[:space:]]+KG[[:space:]]+PÄÄRYNÄ[[:space:]]+KG|JOGURTTIJUOMAT[[:space:]]+PROTEIN[[:space:]]+RAHKAT)'
         LIMIT 20`;
       suspiciousNameTitles = defects.map(row => String(row.title));
     }
@@ -88,7 +93,8 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
   const parserReady = Boolean(input.parsed && errors.length === 0 && quality &&
     quality.total === input.parsed.offers && quality.total > 0 &&
     quality.missing_names === 0 && (quality.suspicious_names ?? 0) === 0 &&
-    quality.missing_prices === 0 && quality.unverified_prices === 0);
+    quality.missing_prices === 0 && quality.unverified_prices === 0 &&
+    (quality.suspicious_prices ?? 0) === 0);
   const failed = !parserReady || Boolean(quality?.missing_categories);
   const imageEnrichment = !quality ? "unknown" : quality.missing_images > 0 ? "pending" : "complete";
   const outcome = !input.parsed ? "preflight-parser-failed" : !quality ? "preflight-snapshot-missing" :
@@ -104,6 +110,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
     ...(quality?.missing_prices ? ["missing-prices"] : []),
     ...(quality?.missing_categories ? ["missing-categories"] : []),
     ...(quality?.unverified_prices ? ["unverified-prices"] : []),
+    ...(quality?.suspicious_prices ? ["suspicious-prices"] : []),
   ];
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
     quality, missingCategoryTitles, missingImageTitles, suspiciousNameTitles, errors,

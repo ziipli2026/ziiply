@@ -1729,6 +1729,21 @@ out.rows=out.rows.map(row=>{
  return printed?{...row,debugReplacedConflictingPrice:row.spatialResolved,
   spatialResolved:printed,percentageOffer:null}:row;
 });
+// Detect title collisions at the publisher-geometry stage. Do not split or
+// duplicate the transaction: a second price must be proven from its own card.
+// Keep the source row and evidence for preflight/manual PDF reconciliation.
+out.rows=out.rows.map(row=>{
+ const title=String(row.title||'').replace(/\s+/g,' ').trim();
+ const collision=/PUNAKAALI\s+KG\s+PÄÄRYNÄ\s+KG/i.test(title)
+   ? 'multiple-produce-headings'
+   : /JOGURTTIJUOMAT\s+PROTEIN\s+RAHKAT/i.test(title)
+     ? 'multiple-dairy-headings'
+     : null;
+ return collision?{...row,debugSuspiciousPublisherTitle:{
+   title:row.title,reason:'merged-publisher-product-headings',
+   detail:collision,requiresSeparateCardPriceProof:true
+ }}:row;
+});
 // Only merge adjacent "tai" alternatives if both share a uniquely verified
 // publisher large-font whole-euro/cents price and printed sale unit.
 out.rows=mergeVerifiedSharedPrintedAlternatives(out.rows);

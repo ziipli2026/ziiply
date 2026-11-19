@@ -29,8 +29,12 @@ jobs:
       - run: npm install --package-lock=false --no-audit --no-fund
       - name: TypeScript compile
         run: npx tsc --noEmit
+      - name: Citymarket OCR title repair regression
+        run: node scripts/citymarket/test-ocr-repair.mjs
       - name: Citymarket preflight and Control Center regression
         run: node --test tests/citymarket-preflight.test.cjs
+      - name: Citymarket verified PDF image normalization regression
+        run: node --test tests/kcitymarket-publisher-image-normalization.test.cjs
       - name: K-Ruoka and Tjek coexistence regression
         run: node --test tests/kcitymarket-source-coexistence.test.cjs
       - name: K offer tab policy regression
@@ -180,9 +184,17 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - name: Compare real Tjek 67-offer fixture in mobile and desktop Chromium
+      # The 17 Nov baseline is historical: expired Tjek public IDs are not
+      # evidence that current Citymarket offers are missing. Never approve a
+      # partial historical enrichment manifest.
+      - name: Diagnose historical Tjek baseline without blocking current browser checks
+        id: tjek_audit
+        env:
+          TJEK_HISTORICAL_AUDIT: '1'
+        run: node scripts/audit-hyvinkaa-tjek-departments.mjs
+      - name: Compare real Tjek 67-offer fixture in mobile and desktop Chromium (verified historical manifest only)
+        if: ${{ hashFiles('artifacts/hyvinkaa-tjek-departments-verified.json') != '' }}
         run: |
-          node scripts/audit-hyvinkaa-tjek-departments.mjs
           node scripts/verify-tjek-baseline-enrichment.mjs
           npm run start -- -H 127.0.0.1 -p 3101 &
           for i in {1..30}; do
@@ -190,6 +202,14 @@ jobs:
             sleep 1
           done
           node scripts/test-citymarket-67-browser.cjs
+      - name: Compare 19 Nov current Tjek snapshot in mobile and desktop Chromium
+        run: |
+          npm run start -- -H 127.0.0.1 -p 3101 &
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3101/ > /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/test-citymarket-current-browser.cjs
       - name: Check the same address on phone, tablet and desktop
         run: |
           npm run start -- -H 127.0.0.1 -p 3100 &
@@ -367,3 +387,6 @@ jobs:
             }
           })().catch(error => { console.error(error); process.exitCode = 1; });
           NODE
+      - name: Explain unavailable historical Tjek browser fixture
+        if: ${{ hashFiles('artifacts/hyvinkaa-tjek-departments-verified.json') == '' }}
+        run: echo "::warning::The historical 17 Nov Tjek manifest is not source-verified. Its 67-offer browser fixture is skipped, not passed; current publication coverage needs a separate test."
