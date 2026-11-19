@@ -153,6 +153,8 @@ jobs:
           git add tests/fixtures/citymarket/47lv-neon-candidate.json tests/fixtures/citymarket/47lv-neon-candidate-report.json
           if ! git diff --cached --quiet; then
             git commit -m "test(citymarket): archive validated 47LV Neon candidate for isolated DB verification"
+            git fetch origin fix/citymarket-47lv-printed-quality-20261119
+            git rebase origin/fix/citymarket-47lv-printed-quality-20261119
             git push origin HEAD:refs/heads/fix/citymarket-47lv-printed-quality-20261119
           fi
       - name: Upload real 47LV candidate and validation report
