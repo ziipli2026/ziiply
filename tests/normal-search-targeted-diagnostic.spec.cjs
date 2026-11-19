@@ -8,7 +8,8 @@ const smokeQueries=['tomaatti','paprika','salaatti','appelsiini','maito','kahvi'
 if(auditBatch!==undefined && !/^[0-9]$/.test(auditBatch))throw Error('Invalid NORMAL_SEARCH_AUDIT_BATCH: expected 0-9');
 if(new Set(fullCorpus).size!==100)throw Error('100-query corpus must contain exactly 100 distinct queries');
 const singleQuery=process.env.NORMAL_SEARCH_SINGLE_QUERY?.trim();
-const queries=singleQuery?[singleQuery]:(auditBatch===undefined?smokeQueries:fullCorpus.slice(Number(auditBatch)*10,(Number(auditBatch)+1)*10));
+const selectedQueries=process.env.NORMAL_SEARCH_SELECTED_QUERIES?.split(',').map(query=>query.trim()).filter(Boolean);
+const queries=selectedQueries?.length?selectedQueries:(singleQuery?[singleQuery]:(auditBatch===undefined?smokeQueries:fullCorpus.slice(Number(auditBatch)*10,(Number(auditBatch)+1)*10)));
 const auth=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:{};
 test('Normal product search: scoped EAN parity, no cart or Monta assertions',async({browser})=>{
   // This test runs 22 live searches plus real store discovery. Preserve evidence even
