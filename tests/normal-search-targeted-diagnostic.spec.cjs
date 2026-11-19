@@ -348,7 +348,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   // Keep positive controls so the filter cannot pass by removing all produce.
   const produceChecks={
     tomaatti:{reject:['6413300026849'],keep:['2003304300003']},
-    appelsiini:{reject:['6419800082682'],keep:['2000041000005']},
+    appelsiini:{reject:['6419800082682','4009300528395'],keep:['2000041000005']},
     banaani:{reject:['4002971329001'],keep:['2005603200008']},
     kurkku:{reject:['4823006806522'],keep:['2000604700007']}
   };
