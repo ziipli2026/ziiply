@@ -212,25 +212,16 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }catch(error){
           noVisibleCards=true;
           fs.mkdirSync('normal-search-evidence',{recursive:true});
+          // Preserve network and console evidence without further potentially
+          // blocked browser RPCs after a results wait has already failed.
           const diagnostic={
-            device,query,reason:String(error),pageUrl:page.url(),
-            resultCardCount:await cards.count(),
-            oldVisibleEans:await page.getByText(/EAN \d{13}/).filter({visible:true}).count(),
-            findingsButtonCount:await page.getByRole('button',{name:/Avaa löytöluettelo/i}).count(),
-            visibleText:(await page.locator('body').innerText()).slice(-5000),
-            apiResponses:apiResponses.slice(apiResponseStart),errors:errors.slice(browserErrorStart),
-            lastSearchResponses:apiResponses.slice(apiResponseStart).filter(x=>/k-products|s-products|lidl|tokmanni|eurospar/.test(x.path)),
-            searchLoading:await page.getByTestId('mobile-normal-search-results').getAttribute('data-search-loading').catch(()=>null),
-            searchStatus:await page.getByRole('status').allTextContents().catch(()=>[]),
-            searchInputValue:await input.inputValue().catch(()=>null),
-            selectedDesktop:await page.evaluate(()=>localStorage.getItem('ziiply-desktop-store-choices-v1')).catch(()=>null),
-            selectedMobile:await page.evaluate(()=>localStorage.getItem('ziiply-store-selection-v536')).catch(()=>null),
-            allVisibleButtons:(await page.getByRole('button').allTextContents().catch(()=>[])).slice(-70),
+            device,query,reason:String(error),elapsedMs:Date.now()-startedAt,
+            apiResponses:apiResponses.slice(apiResponseStart),
+            errors:errors.slice(browserErrorStart),
           };
           noResultDiagnostics.push(diagnostic);
           fs.writeFileSync('normal-search-evidence/no-results-'+device+'-'+query.replace(/[^a-z0-9-]/gi,'_')+'.json',JSON.stringify(diagnostic,null,2));
-          await page.screenshot({path:'normal-search-evidence/no-results-'+device+'-'+query.replace(/[^a-z0-9-]/gi,'_')+'.png',fullPage:true}).catch(()=>{});
-          console.log('[normal-parity] NO RESULTS',device,query,'continuing audit');
+          console.log('[normal-parity] NO RESULTS',device,query,JSON.stringify(diagnostic));
         }
         if(noVisibleCards){
           results.push({query,eans:[],uniqueEans:0,renderedCards:0,duplicates:0,samples:[],durationMs:Date.now()-startedAt,noResults:true});
