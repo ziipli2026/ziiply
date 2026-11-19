@@ -185,3 +185,32 @@ test('47LV category regression: orange juice and dog treats override generic fru
   assert.equal(category('THE DOG NAUGHTY HOT DOG 6 kpl/300 g'),'Lemmikit');
   assert.equal(category('KANAN FILEEVIIPALE 300 g'),'Liha & makkarat');
 });
+
+test('47LV Neon snapshot v165: preserve source evidence and flag malformed merged rows',()=>{
+  // Source: publication 2026-11-19-W47-LV-printed-transactions-v165,
+  // 48 rows, candidate, inspected read-only on 2026-11-19.
+  const snapshot=[
+    {title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS',price:1.49,issue:'merged-produce'},
+    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g',price:14.02,issue:'merged-dairy'},
+    {title:'ULKOFILEESTÄ tai MUREUTETTU',price:2.39,issue:'orphan-heading'},
+    {title:'G9LÖGI 8 % 0,75 l/pl (12,25/l) Sis. pantin 0,10',price:50.31,issue:'price-unit-conflict'},
+    {title:'TUOTTEET ja COSRX-TUOTTEET',price:null,issue:'orphan-heading'},
+  ];
+  assert.equal(snapshot.length,5);
+  const flag=(row)=>{
+    const t=row.title;
+    if(/PUNAKAALI KG PÄÄRYNÄ KG/.test(t))return 'merged-produce';
+    if(/JOGURTTIJUOMAT PROTEIN RAHKAT/.test(t))return 'merged-dairy';
+    if(/^(?:ULKOFILEESTÄ tai MUREUTETTU|TUOTTEET ja )/.test(t))return 'orphan-heading';
+    const unit=t.match(/\\((\\d+[,.]\\d+)\\/l\\)/);
+    const volume=t.match(/(\\d+[,.]\\d+)\\s*l\\/pl/);
+    if(unit&&volume&&Number.isFinite(row.price)){
+      const expected=Number(unit[1].replace(',','.'))*Number(volume[1].replace(',','.'));
+      if(Math.abs(row.price-expected)>Math.max(1,expected*.25))return 'price-unit-conflict';
+    }
+    return null;
+  };
+  for(const row of snapshot)assert.equal(flag(row),row.issue,row.title);
+  // Never replace a suspicious source price with a guessed value.
+  assert.equal(snapshot[3].price,50.31);
+});
