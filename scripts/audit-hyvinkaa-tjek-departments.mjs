@@ -2,7 +2,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import baseline from './fixtures/hyvinkaa-tjek-offer-baseline-20261117.mjs';
 // Read-only comparison of the previously saved Neon snapshot with public Tjek
 // source department metadata. This is a source-data audit, not an EAN match.
-const mapping = {'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka','snacks-and-candies':'Makeiset & keksit','cold-cuts':'Liha & makkarat','bread-and-cakes':'Leipomo'};
+const mapping = {'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka''cold-cuts':'Liha & makkarat'};
 const stable = v => JSON.stringify(v, (_k,x) => x && Object.prototype.toString.call(x)==='[object Object]' ? Object.keys(x).sort().reduce((a,k)=>(a[k]=x[k],a),{}) : x);
 const counts={total:baseline.length,matched:0,missing:0,failed:0,mapped:0,changed:0,unchanged:0,ambiguous:0};
 const transitions={};const departments={};const failures=[];
