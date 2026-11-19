@@ -24,7 +24,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
     const page=await context.newPage();
-    const errors=[],apiResponses=[],providerEanPresence=[],providerChecks=[];
+    const errors=[],apiResponses=[],providerEanPresence=[],providerChecks=[],responseBodyChecks=[];
     let currentSearchQuery='';
     page.on('pageerror',e=>errors.push(String(e)));
     page.on('response',r=>{
@@ -35,6 +35,24 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           search:u.searchParams.get('search'),requestUrl:u.pathname+u.search,
           searchAtResponse:currentSearchQuery
         });
+        // Capture the response structure for queries that currently produce no
+        // rendered cards. HTTP 200 alone does not prove the API returned products.
+        if(['paprika','salaatti','appelsiini'].includes(currentSearchQuery)
+          && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
+          const queryAtRequest=currentSearchQuery;
+          const check=r.text().then(body=>{
+            let shape;
+            try {
+              const parsed=JSON.parse(body);
+              shape={type:Array.isArray(parsed)?'array':typeof parsed,
+                keys:parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?Object.keys(parsed).slice(0,25):[],
+                arrayLengths:Object.fromEntries(Object.entries(parsed&&typeof parsed==='object'&&!Array.isArray(parsed)?parsed:{}).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,v.length])),
+                topLevelLength:Array.isArray(parsed)?parsed.length:null};
+            }catch{shape={type:'non-json',bodyLength:body.length};}
+            console.log('[normal-parity] PROVIDER BODY SHAPE',JSON.stringify({device,query:queryAtRequest,path:u.pathname,requestSearch:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),shape}));
+          }).catch(error=>console.log('[normal-parity] PROVIDER BODY ERROR',JSON.stringify({device,query:queryAtRequest,path:u.pathname,error:String(error)})));
+          responseBodyChecks.push(check);
+        }
         if(currentSearchQuery==='juusto' && /\/api\/(?:k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
           const requestSearch=u.searchParams.get('search');
           const check=r.text().then(body=>{
