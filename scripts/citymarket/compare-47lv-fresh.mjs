@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+const folder=process.argv[2]||'47lv-fresh';
+const source=JSON.parse(fs.readFileSync(folder+'/parser-evidence.json'));
+const fresh=JSON.parse(fs.readFileSync(folder+'/leaflet.json'));
+const old=JSON.parse(fs.readFileSync('tests/fixtures/citymarket/47lv-neon-candidate.json'));
+const norm=s=>String(s||'').toLowerCase().normalize('NFKC').replace(/[^\\p{L}\\p{N}]+/gu,' ').trim();
+const oldByTitle=new Map(old.map(x=>[norm(x.title),x]));
+const freshRows=source.rows.map(x=>({page:x.page,title:x.title,rawPrice:x.spatialResolved?.value??null,percentage:x.percentageOffer?.percent??null,nearby:x.nearby,spatialResolved:x.spatialResolved,flags:x.debugSuspiciousPublisherTitle}));
+const matches=freshRows.filter(x=>oldByTitle.has(norm(x.title))).map(x=>({page:x.page,title:x.title,rawPrice:x.rawPrice,previousPrice:oldByTitle.get(norm(x.title)).price,previousUnitPrice:oldByTitle.get(norm(x.title)).unitPrice}));
+const unmatchedOld=old.filter(x=>!freshRows.some(y=>norm(y.title)===norm(x.title))).map(x=>({title:x.title,price:x.price,category:x.category}));
+const suspicious=freshRows.filter(x=>x.flags||!x.title||Number(x.rawPrice)>50||/^(?:TUOTTEET|ULKOFILEESTÄ|NAUDAN LEHTIPIHVI|NAUGHTY BURGER)/i.test(x.title));
+const report={sourcePdfSha256:fresh.pdfSha256,pageCount:fresh.pageCount,rawRows:freshRows.length,exportedRows:fresh.rows.length,previousApprovedRows:old.length,exactTitleMatches:matches.length,unmatchedOld,suspicious,matchedRows:matches,rawRowsByPage:Object.fromEntries([...new Set(freshRows.map(x=>x.page))].map(p=>[p,freshRows.filter(x=>x.page===p).length]))};
+fs.writeFileSync(folder+'/old-vs-fresh-audit.json',JSON.stringify(report,null,2));
+console.log('FRESH_47LV_AUDIT',JSON.stringify({pdfSha256:report.sourcePdfSha256,pages:report.pageCount,raw:report.rawRows,exported:report.exportedRows,old:report.previousApprovedRows,exactMatches:report.exactTitleMatches,unmatchedOld:report.unmatchedOld.length,suspicious:report.suspicious.length}));
+if(fresh.pageCount!==20||fresh.pdfSha256!=='3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449')throw Error('Original 47LV PDF changed; stop comparison');
