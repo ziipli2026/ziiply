@@ -307,7 +307,7 @@ test('47LV title repairs execute against publisher geometry examples and do not 
   const start=provider.indexOf('    const is47LV=/_47LV_KCM/i.test(leafletUrl);');
   const end=provider.indexOf('    const title=/_47AV_KCM/i.test(leafletUrl)',start);
   assert.ok(start>=0&&end>start);
-  const fragment=provider.slice(start,end).replace(/\(part:any\)/g,'(part)=>');
+  const fragment=provider.slice(start,end).replace(/\(part:any\)/g,'(part)');
   const run=(url,page,title,nearby=[],price=2.39)=>{
     const fn=new Function('leafletUrl','row','titleBeforeSourceReview','resolved','console',
       'let skipped=false;'+fragment.replace(/\bcontinue;/g,'skipped=true;')+
