@@ -676,7 +676,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "GLÖGI 8 % 0,75 l/pl"
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 200 g$/i.test(titleBeforeSourceReview)
         ? "Pokemon ja Dolci Lilo ja Stitch JOULUKALENTERI 200 g"
-      : is47LV && Number(row?.page)===19 && /^H9aribo JOULUKALENTERI 300 g/i.test(titleBeforeSourceReview)
+      : is47LV && Number(row?.page)===19 && /^(?:H9aribo|Haribo) JOULUKALENTERI 300 g(?: \(32,63\/kg\) 79)?$/i.test(titleBeforeSourceReview)
         ? "Haribo JOULUKALENTERI 300 g"
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 351 g$/i.test(titleBeforeSourceReview) &&
         /Kinder/.test(nearby47) && /MAXI MIX/.test(nearby47)
