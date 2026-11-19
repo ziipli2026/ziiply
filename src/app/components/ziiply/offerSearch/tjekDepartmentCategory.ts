@@ -56,7 +56,12 @@ export function normalizeTjekGroceryCategories<T extends {
 }>(rows: T[]): T[] {
   return filterTjekGroceryRows(rows).map(row => {
     const slug = row.debug?.tjekDepartmentSlug ?? row.tjekDepartmentSlug;
-    const mapped = tjekDepartmentCategory(slug);
+    // The source's broad "other" department mixes clothing, cosmetics and food.
+    // These two verified consumable types are more precise than legacy "Muut".
+    const title = typeof row.title === 'string' ? row.title : typeof row.name === 'string' ? row.name : '';
+    const otherCategory = slug === 'other' && /(?:MEIKINKIINNITYSSUIHKE|NESTESAIPPUOIDEN TÄYTTÖPUSSIT)/i.test(title)
+      ? 'Hygienia & kosmetiikka' : null;
+    const mapped = tjekDepartmentCategory(slug) ?? otherCategory;
     if (!mapped) return row;
     if (row.category === mapped && row.categoryPath === mapped
       && row.productGroup === mapped && row.mainCategory === mapped
