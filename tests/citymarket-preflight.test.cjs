@@ -269,3 +269,17 @@ test('47LV canonical title reconstruction cannot bypass merged-card publication 
   assert.equal(rows[1].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
   assert.equal(rows[2].debugSuspiciousPublisherTitle,undefined);
 });
+
+
+test('47LV suppression does not affect older or newer leaflet editions',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('  for(const row of rows){\n    // Do not publish a merged 47LV product card');
+  const end=provider.indexOf('    const campaignTitle=repairCitymarketOCRTitle',start);
+  assert.ok(start>=0&&end>start);
+  const guard=provider.slice(start,end);
+  const rows=[{title:'PUNAKAALI KG PÄÄRYNÄ KG',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}}];
+  const run=url=>new Function('rows','console','leafletUrl','const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}},url);
+  assert.deepEqual(run('https://example.test/46LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
+  assert.deepEqual(run('https://example.test/47LV_KCM/index.html'),[]);
+  assert.deepEqual(run('https://example.test/48LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
+});
