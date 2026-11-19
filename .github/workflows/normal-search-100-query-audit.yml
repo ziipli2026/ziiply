@@ -1,0 +1,41 @@
+name: Normal search 100 distinct queries mobile-desktop audit
+on:
+  push:
+    branches: [test/normal-search-main-isolated-20261119]
+    paths:
+      - '.github/workflows/normal-search-100-query-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        batch: [0,1,2,3,4,5,6,7,8,9]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install chromium
+      - name: Compare ten live searches on mobile and desktop
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          ZIIPLY_LIVE_URL: https://ziiply-6bl0y5ill-ziipli2026s-projects.vercel.app
+          NORMAL_SEARCH_AUDIT_BATCH: ${{ matrix.batch }}
+        run: |
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
+          npx playwright test tests/normal-search-targeted-diagnostic.spec.cjs --browser=chromium --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: normal-search-100-batch-${{ matrix.batch }}
+          path: normal-search-evidence/
+          if-no-files-found: ignore
