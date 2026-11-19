@@ -89,3 +89,18 @@ test('persisted snapshot and live Tjek rows use the same verified category witho
   assert.equal(row.debug.categorySource,'legacy-title');
   assert.notEqual(result[0],row);
 });
+
+test('verified other-department hygiene products are categorized and nightwear is excluded',()=>{
+  const rows=[
+    {title:"L'ORÉAL PARIS Infaillible 3-Second MEIKINKIINNITYSSUIHKE",category:'Muut',debug:{tjekDepartmentSlug:'other'}},
+    {title:'bliw NESTESAIPPUOIDEN TÄYTTÖPUSSIT',category:'Muut',debug:{tjekDepartmentSlug:'other'}},
+    {title:'Aikuisten YÖASUJA',category:'Muut',debug:{tjekDepartmentSlug:'other'}},
+    {title:'Tuntematon tuote',category:'Muut',debug:{tjekDepartmentSlug:'other'}}
+  ];
+  const result=moduleExports.normalizeTjekGroceryCategories(rows);
+  assert.equal(result.length,3);
+  assert.equal(result[0].category,'Hygienia & kosmetiikka');
+  assert.equal(result[1].category,'Hygienia & kosmetiikka');
+  assert.equal(result[2].category,'Muut');
+  assert.equal(rows[0].category,'Muut');
+});
