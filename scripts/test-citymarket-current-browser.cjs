@@ -42,8 +42,8 @@ assert.ok(shown>0,label+' did not render a real Tjek fixture offer: '+sample.tit
 const expectedTitles=[...new Set(offers.map(row=>String(row.title).trim()))];
 const visibleTitles=[];
 for(const title of expectedTitles){
-  const matches=page.getByText(title,{exact:true}).filter({visible:true});
-  if(await matches.count()) visibleTitles.push(title);
+  const matches=page.getByText(title,{exact:true});
+  if(await matches.first().isVisible().catch(()=>false)) visibleTitles.push(title);
 }
 assert.equal(visibleTitles.length,expectedTitles.length,label+' omitted '+(expectedTitles.length-visibleTitles.length)+' source titles: '+expectedTitles.filter(title=>!visibleTitles.includes(title)).slice(0,12).join(' | '));
 const orderedTitles=await page.evaluate(titles=>{
@@ -68,5 +68,5 @@ await context.close();
 }
 assert.equal(results.mobile.shownSample,results.desktop.shownSample);
 assert.deepEqual(results.mobile.orderedTitles,results.desktop.orderedTitles,'mobile and desktop visible Tjek offer ordering differs');
-console.log('CITYMARKET_CURRENT_GROCERY_BROWSER_FIXTURE',JSON.stringify({fixtureRows:139,eligible:allowed.length,results}));
+console.log('CITYMARKET_CURRENT_GROCERY_BROWSER_FIXTURE',JSON.stringify({fixtureRows:rows.length,eligible:allowed.length,results}));
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
