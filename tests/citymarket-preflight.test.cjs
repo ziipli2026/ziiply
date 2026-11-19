@@ -353,7 +353,7 @@ test('47LV PDF-reviewed cards require exact edition and matching page evidence',
   assert.ok(start>=0 && end>start,'reviewed PDF block must exist');
   const run=(leafletUrl,sourceRows)=>{
     const offers=[];
-    new Function('leafletUrl','sourceRows','offers',provider.slice(start,end))(leafletUrl,sourceRows,offers);
+    new Function('leafletUrl','sourceRows','offers',provider.slice(start,end).replace(/:number/g,'').replace(/:RegExp/g,'').replace(/:any/g,'').replace(/ as CitymarketOffer/g,''))(leafletUrl,sourceRows,offers);
     return offers;
   };
   const url='https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html';
