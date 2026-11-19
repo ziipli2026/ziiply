@@ -1,6 +1,6 @@
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 import { neon } from "@neondatabase/serverless";
-import { tjekDepartmentCategory, isTjekNonGroceryDepartment, filterTjekGroceryRows } from "../tjekDepartmentCategory";
+import { tjekDepartmentCategory, isTjekNonGroceryDepartment, normalizeTjekGroceryCategories } from "../tjekDepartmentCategory";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
