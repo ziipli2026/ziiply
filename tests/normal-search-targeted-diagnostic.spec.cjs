@@ -62,9 +62,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         if(currentSearchQuery==='juusto' && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
           const requestSearch=u.searchParams.get('search');
           const check=r.text().then(body=>{
-            const index=body.indexOf('3073780902441');
-            providerEanPresence.push({device,query:'juusto',path:u.pathname,requestSearch,status:r.status(),hasTarget:index>=0,
-              targetExcerpt:index<0?null:body.slice(Math.max(0,index-350),index+450),bodyLength:body.length});
+            const targets=['3073780902441','6407204002559'];
+            const matches=targets.map(ean=>{const index=body.indexOf(ean);return {ean,present:index>=0,excerpt:index<0?null:body.slice(Math.max(0,index-350),index+450)};});
+            providerEanPresence.push({device,query:'juusto',path:u.pathname,requestSearch,status:r.status(),matches,bodyLength:body.length});
           }).catch(error=>providerEanPresence.push({device,query:'juusto',path:u.pathname,requestSearch,status:r.status(),error:String(error)}));
           providerChecks.push(check);
         }
