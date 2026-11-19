@@ -4,7 +4,7 @@ export const TJEK_DEPARTMENT_CATEGORIES: Readonly<Record<string,string>> = Objec
   'beverages':'Juomat',
   'frozen':'Pakasteet',
   'household':'Kodinhoito',
-  'beauty':'Hygienia & kosmetiikka'
+  'beauty':'Hygienia & kosmetiikka',
   'cold-cuts':'Liha & makkarat',
 });
 /** Return null for broad or uncertain departments (dairy-and-cold, colonial,
