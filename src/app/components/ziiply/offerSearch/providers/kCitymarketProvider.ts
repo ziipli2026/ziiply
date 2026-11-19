@@ -8,6 +8,7 @@ import { readActivePublicationOffers, storeParsedPublication } from "../publicat
 import citymarketPublisherImageRegistry from "./data/kCitymarketLeafletImages.json";
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
+import { validate47LVPublication } from "./kCitymarket47LVStagingGuard.js";
 import { getKCitymarketPublisherImage, auditKCitymarketPublisherImages } from "./kCitymarketPublisherImages";
 
 // ============================================================================
@@ -1019,6 +1020,8 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
   const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
+  const stagingGate=validate47LVPublication(enriched,active.key);
+  if(!stagingGate.ok)throw new Error("47LV publication quality gate rejected candidate: "+stagingGate.issues.join(" | "));
   const beforeImages=offers.filter(offer=>Boolean(offer.imageUrl)).length;
   const afterImages=enriched.filter(offer=>Boolean(offer.imageUrl)).length;
   console.info("[K-Citymarket] publication image enrichment result",{
