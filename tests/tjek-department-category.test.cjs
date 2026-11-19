@@ -104,3 +104,17 @@ test('verified other-department hygiene products are categorized and nightwear i
   assert.equal(result[2].category,'Muut');
   assert.equal(rows[0].category,'Muut');
 });
+
+test('mixed other department excludes verified apparel while retaining hygiene',()=>{
+ const rows=[
+  {title:'Adaire Naisten TOPPATAKKI',debug:{tjekDepartmentSlug:'other'}},
+  {title:'Adidas Miesten COLLEGEHUPPARI tai -HOUSUT',debug:{tjekDepartmentSlug:'other'}},
+  {title:'Aikuisten tai lasten FLANELLIHOUSUT',debug:{tjekDepartmentSlug:'other'}},
+  {title:'Huurre Aikuisten NASTAKENGÄT tai PITOPOHJAKENGÄT',debug:{tjekDepartmentSlug:'other'}},
+  {title:'LISTERINE SUUVESI',debug:{tjekDepartmentSlug:'other'}},
+  {title:'AUSSIE HIUSTENHOITOTUOTTEET',debug:{tjekDepartmentSlug:'other'}},
+  {title:'Tuntematon tuote',debug:{tjekDepartmentSlug:'other'}}
+ ];
+ const kept=moduleExports.normalizeTjekGroceryCategories(rows);
+ assert.deepEqual(kept.map(row=>row.title),rows.slice(4).map(row=>row.title));
+});
