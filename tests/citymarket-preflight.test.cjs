@@ -183,6 +183,7 @@ test('47LV category regression: orange juice and dog treats override generic fru
   assert.equal(category('APPELSIINITÄYSMEHU 1 l'),'Juomat');
   assert.equal(category('APPELSIINIT 1 kg'),'Hevi');
   assert.equal(category('THE DOG NAUGHTY HOT DOG 6 kpl/300 g'),'Lemmikit');
+  assert.equal(category('Naughty HOT DOG MAKKARAT 210 g'),'Liha & makkarat');
   assert.equal(category('KANAN FILEEVIIPALE 300 g'),'Liha & makkarat');
 });
 
