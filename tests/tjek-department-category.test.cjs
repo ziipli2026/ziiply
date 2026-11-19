@@ -70,3 +70,22 @@ test('live and stored Tjek offers use the same grocery-only filter',()=>{
  assert.match(provider,/const fallback = filterTjekGroceryRows\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
  assert.match(provider,/const live = filterTjekGroceryRows\(entry\?\.rows \?\? \[\]\)\.filter\(row => isActiveOffer\(row, Date\.now\(\)\)\)/);
 });
+
+test('persisted snapshot and live Tjek rows use the same verified category without mutating source',()=>{
+  const row={title:'PIRKKA Parhaat SALAME MILANO',category:'Muut',
+    categoryPath:'Muut',productGroup:'Muut',mainCategory:'Muut',
+    debug:{tjekDepartmentSlug:'cold-cuts',categorySource:'legacy-title'}};
+  const mixed={title:'Santa Maria TORTILLA CHIPSIT',category:'Kuivatuotteet',
+    debug:{tjekDepartmentSlug:'snacks-and-candies',categorySource:'legacy-title'}};
+  const excluded={title:'Tarmo PORRASJAKKARA',category:'Muut',
+    debug:{tjekDepartmentSlug:'do-it-yourself'}};
+  const result=moduleExports.normalizeTjekGroceryCategories([row,mixed,excluded]);
+  assert.equal(result.length,2);
+  for(const field of ['category','categoryPath','productGroup','mainCategory'])
+    assert.equal(result[0][field],'Liha & makkarat');
+  assert.equal(result[0].debug.categorySource,'tjek-department');
+  assert.equal(result[1],mixed);
+  assert.equal(row.category,'Muut');
+  assert.equal(row.debug.categorySource,'legacy-title');
+  assert.notEqual(result[0],row);
+});
