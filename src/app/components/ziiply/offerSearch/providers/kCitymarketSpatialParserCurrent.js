@@ -1733,10 +1733,10 @@ out.rows=out.rows.map(row=>{
 // duplicate the transaction: a second price must be proven from its own card.
 // Keep the source row and evidence for preflight/manual PDF reconciliation.
 out.rows=out.rows.map(row=>{
- const title=String(row.title||'').replace(/\\s+/g,' ').trim();
- const collision=/PUNAKAALI\\s+KG\\s+PÄÄRYNÄ\\s+KG/i.test(title)
+ const title=String(row.title||'').replace(/\s+/g,' ').trim();
+ const collision=/PUNAKAALI\s+KG\s+PÄÄRYNÄ\s+KG/i.test(title)
    ? 'multiple-produce-headings'
-   : /JOGURTTIJUOMAT\\s+PROTEIN\\s+RAHKAT/i.test(title)
+   : /JOGURTTIJUOMAT\s+PROTEIN\s+RAHKAT/i.test(title)
      ? 'multiple-dairy-headings'
      : null;
  return collision?{...row,debugSuspiciousPublisherTitle:{
