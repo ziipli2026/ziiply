@@ -1041,7 +1041,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   // The cron job populates this durable Neon snapshot ahead of publication.
   // Offline CI simulations have no Neon credentials; exercise the real leaflet
   // fallback without attempting to open the production database.
-  const stored=process.env.DATABASE_URL
+  const stored=(process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL)
     ? await readActivePublicationOffers<CitymarketOffer>("K-Citymarket")
     : [];
   if(stored.length){
@@ -1071,7 +1071,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   }
   // Production must never bypass publication approval by parsing and seeding
   // a leaflet during a user request. Keep the offline fixture path for CI only.
-  if (process.env.DATABASE_URL) {
+  if (process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL) {
     console.warn("[K-Citymarket] no approved publication; refusing unreviewed live fallback");
     return [];
   }
