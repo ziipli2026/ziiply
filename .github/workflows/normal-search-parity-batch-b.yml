@@ -24,7 +24,7 @@ jobs:
       - name: Further baseline and high variance normal search terms
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          ZIIPLY_LIVE_URL: https://ziiply-86r85zyyu-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-k3ajyhh15-ziipli2026s-projects.vercel.app
           NORMAL_SEARCH_SELECTED_QUERIES: valkosipuli,salaatti,omena,päärynä,appelsiini,mandariini,sitruuna,viinirypäle,puolukka,vesimeloni,kana,broileri,naudanliha,sianliha,kinkku,makkara,nakki,pekoni,kala,lohi,kirjolohi,tonnikala,katkarapu,kalapuikko,juustoraaste,raejuusto,rahka,kerma,ruokakerma,kermaviili
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
