@@ -1,0 +1,36 @@
+// Publication gate for the PDF-reviewed 47LV edition. Do not silently
+// rewrite a questionable price: fail the candidate before it reaches Neon.
+export function validate47LVPublication(offers, publicationKey) {
+  if (publicationKey !== '2026-11-19-W47-LV') return {ok:true,issues:[]};
+  const issues=[];
+  if (!Array.isArray(offers) || offers.length < 45) issues.push('47LV-offer-count-below-reviewed-minimum');
+  const titles=new Set();
+  for (const [index,offer] of (offers||[]).entries()) {
+    const title=String(offer?.title||'').trim();
+    const price=offer?.price;
+    const discount=offer?.discountPercent;
+    if (!title) issues.push('missing-title:'+index);
+    if (/^(?:TUOTTEET ja COSRX-TUOTTEET|NAUDAN LEHTIPIHVI|ULKOFILEESTÄ tai MUREUTETTU|NAUGHTY BURGER)$/i.test(title)
+      || /PUNAKAALI KG PÄÄRYNÄ KG|JOGURTTIJUOMAT PROTEIN RAHKAT|^vadelmainen, mausteinen/i.test(title)
+      || /^4 LEVITTEET|^H3O T D O G|^RANTIT 45 ml/i.test(title))
+      issues.push('merged-or-orphan-title:'+index+':'+title);
+    if (!(typeof price==='number' && Number.isFinite(price) && price>0)
+      && !(typeof discount==='number' && Number.isFinite(discount) && discount>0 && discount<100))
+      issues.push('missing-price-and-discount:'+index+':'+title);
+    if (/(?:G9LÖGI|GLÖGI) 8 %/i.test(title) && Number(price)>20)
+      issues.push('unverified-glogi-price:'+index+':'+price);
+    if (!offer?.category || offer.category==='Muut')
+      issues.push('missing-category:'+index+':'+title);
+    const key=title.toLocaleLowerCase('fi')+'|'+price+'|'+(discount??'');
+    if(titles.has(key))issues.push('duplicate-offer:'+index+':'+title);
+    titles.add(key);
+  }
+  const required=[
+    'PUNAKAALI Suomi','CELINA PÄÄRYNÄ Suomi','Järvikylä ROSMARIINI Suomi',
+    'Oksasen puutarha JUICY SALAATTI 125 g Suomi',
+    'Arla PROTEIN RAHKAT 200 g','Danone ACTIMEL JOGURTTIJUOMAT 8 x 100 g',
+    'Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g'
+  ];
+  for(const title of required)if(!(offers||[]).some(o=>o.title===title))issues.push('missing-pdf-reviewed-card:'+title);
+  return {ok:issues.length===0,issues};
+}
