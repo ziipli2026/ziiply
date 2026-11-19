@@ -148,15 +148,20 @@ jobs:
           mkdir -p tests/fixtures/citymarket
           cp /tmp/kcm-47lv-candidate/offers.json tests/fixtures/citymarket/47lv-neon-candidate.json
           cp /tmp/kcm-47lv-candidate/report.json tests/fixtures/citymarket/47lv-neon-candidate-report.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/fixtures/citymarket/47lv-neon-candidate.json tests/fixtures/citymarket/47lv-neon-candidate-report.json
-          if ! git diff --cached --quiet; then
-            git commit -m "test(citymarket): archive validated 47LV Neon candidate for isolated DB verification"
-            git fetch origin fix/citymarket-47lv-printed-quality-20261119
-            git rebase origin/fix/citymarket-47lv-printed-quality-20261119
-            git push origin HEAD:refs/heads/fix/citymarket-47lv-printed-quality-20261119
-          fi
+          # Write only the two validated JSON files through GitHub Contents API.
+          # Do not rebase a detached pull_request checkout: it may conflict with
+          # unrelated changes or merge the synthetic PR merge commit.
+          for file in tests/fixtures/citymarket/47lv-neon-candidate.json tests/fixtures/citymarket/47lv-neon-candidate-report.json; do
+            # The path is fixed, the contents are generated above and validated.
+            encoded=$(base64 -w0 "$file")
+            remote=$(gh api "repos/${GITHUB_REPOSITORY}/contents/$file?ref=fix/citymarket-47lv-printed-quality-20261119" 2>/dev/null || true)
+            sha=$(printf '%s' "$remote" | node -e 'let s="";process.stdin.on("data",x=>s+=x).on("end",()=>{try{process.stdout.write(JSON.parse(s).sha||"")}catch{}})')
+            if [ -n "$sha" ]; then
+              gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/$file" -f message="test(citymarket): archive validated 47LV candidate" -f branch="fix/citymarket-47lv-printed-quality-20261119" -f sha="$sha" -f content="$encoded" >/dev/null
+            else
+              gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/$file" -f message="test(citymarket): archive validated 47LV candidate" -f branch="fix/citymarket-47lv-printed-quality-20261119" -f content="$encoded" >/dev/null
+            fi
+          done
       - name: Upload real 47LV candidate and validation report
         if: always()
         uses: actions/upload-artifact@v4
