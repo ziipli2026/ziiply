@@ -324,6 +324,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             path:x.path,search:x.search,status:x.status,method:x.method,searchAtResponse:x.searchAtResponse
           })),
           samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='3073780902441')||null,durationMs:Date.now()-startedAt});
+        console.log('[normal-parity] CONTENT SAMPLES',JSON.stringify({device,query,total:snapshots.length,first:snapshots.slice(0,12)}));
         console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
         },{timeout:120000});
