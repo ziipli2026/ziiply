@@ -130,3 +130,12 @@ test('current live Tjek garden and electrical grooming merchandise do not leak i
  ];
  assert.deepEqual(moduleExports.normalizeTjekGroceryCategories(rows).map(x=>x.title),rows.slice(4).map(x=>x.title));
 });
+
+test('verified knitwear in mixed other department is excluded without affecting groceries',()=>{
+ const rows=[
+  {title:'Eva tai Elise Naisten NEULE',debug:{tjekDepartmentSlug:'other'}},
+  {title:'LISTERINE SUUVESI',debug:{tjekDepartmentSlug:'other'}},
+  {title:'PORSAAN KASSLER',debug:{tjekDepartmentSlug:'meat-and-fish'}}
+ ];
+ assert.deepEqual(moduleExports.normalizeTjekGroceryCategories(rows).map(x=>x.title),rows.slice(1).map(x=>x.title));
+});
