@@ -1,6 +1,6 @@
 import { desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence, searchWords } from "./desktopNormalRelevance";
 import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./normalSearchCatalog";
-import { finalizeNormalSearchResults, rankNormalSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
+import { comparePricedSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
 
 export type NormalSearchStore = { chain: "S" | "K" | "LIDL" | "TOKMANNI" | "SPAR"; id: string | number; name: string; city?: string; address?: string; type?: "local" | "hyper" };
 type Observer = (stage: string, data: Record<string, unknown>) => void;
@@ -37,13 +37,23 @@ function shapeStoreRow(x: any, store: NormalSearchStore, source: string | undefi
 }
 
 function rankStoreRows(query: string, rows: any[]) {
-  return finalizeNormalSearchResults(
-    query,
-    rows,
-    product => product.__price ?? Number.POSITIVE_INFINITY,
-    product => product.ean || product.barcode || product.product?.ean,
-    product => `${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`,
-  );
+  // The caller already applies shared relevance and store-price verification.
+  // Do not reapply legacy rankNormalSearchResults: the second gate removes
+  // valid paprika, salaatti and appelsiini products.
+  const seen = new Set<string>();
+  return rows
+    .filter(product => Number.isFinite(product.__price) && product.__price > 0
+      && desktopSearchDecision(query, product).accepted)
+    .sort((a, b) => comparePricedSearchResults(a, b, product => product.__price))
+    .filter(product => {
+      const ean = normalizeEan(product.ean || product.barcode || product.product?.ean);
+      const key = /^(?:\d{8}|\d{12,14})$/.test(ean)
+        ? `ean:${ean}`
+        : `fallback:${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 // Shared UI cache policy for mobile and desktop: show a recent snapshot immediately,
@@ -272,7 +282,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   const finalizationSummary = {
     query,
     acceptedBeforeFinalization: rows.length,
-    afterLegacySemanticRanking: rankNormalSearchResults(query, rows, product => product.__price ?? Number.POSITIVE_INFINITY).length,
+    afterSharedDecisionAndPriceGate: rows.filter(product => Number.isFinite(product.__price) && product.__price > 0 && desktopSearchDecision(query, product).accepted).length,
     afterFinalization: rankedRows.length,
   };
   if (typeof window !== "undefined" && window.sessionStorage.getItem("ziiply-normal-search-diagnostic") === "1") console.info("[normal-search-finalization-summary]", JSON.stringify(finalizationSummary));
