@@ -44,7 +44,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           search:u.searchParams.get('search'),requestUrl:u.pathname+u.search,
           searchAtResponse:currentSearchQuery
         });
-        if(currentSearchQuery==='suklaa' && /\\/api\\/(?:neon-first-search|k-products|s-products)/.test(u.pathname)){
+        if(currentSearchQuery==='suklaa' && u.pathname.match(/^\\/api\\/(?:neon-first-search|k-products|s-products)$/)){
           const queryAtResponse=currentSearchQuery;
           const fingerprint=r.body().then(body=>{
             const record={device,query:queryAtResponse,path:u.pathname,search:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),bytes:body.length,sha256:crypto.createHash('sha256').update(body).digest('hex')};
