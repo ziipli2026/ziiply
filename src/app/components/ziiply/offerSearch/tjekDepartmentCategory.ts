@@ -5,9 +5,12 @@ export const TJEK_DEPARTMENT_CATEGORIES: Readonly<Record<string,string>> = Objec
   'frozen':'Pakasteet',
   'household':'Kodinhoito',
   'beauty':'Hygienia & kosmetiikka',
+  'snacks-and-candies':'Makeiset & keksit',
+  'cold-cuts':'Liha & makkarat',
+  'bread-and-cakes':'Leipomo',
 });
 /** Return null for broad or uncertain departments (dairy-and-cold, colonial,
- * bread-and-cakes, meat-and-fish, electronics, apparel, etc.) until verified mapping exists. */
+ * meat-and-fish, electronics, apparel, etc.) until verified mapping exists. */
 export function tjekDepartmentCategory(slug: unknown): string | null {
   if (typeof slug !== 'string') return null;
   return Object.prototype.hasOwnProperty.call(TJEK_DEPARTMENT_CATEGORIES,slug)
@@ -20,6 +23,7 @@ export function tjekDepartmentCategory(slug: unknown): string | null {
 export const TJEK_NON_GROCERY_DEPARTMENTS: ReadonlySet<string> = new Set([
   'electronics', 'apparel', 'entertainment',
   'automotive', 'outdoor', 'sports', 'pharmacy', 'home',
+  'do-it-yourself',
 ]);
 export function isTjekNonGroceryDepartment(slug: unknown): boolean {
   return typeof slug === 'string' && TJEK_NON_GROCERY_DEPARTMENTS.has(slug);
