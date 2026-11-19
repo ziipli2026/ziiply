@@ -249,7 +249,7 @@ test('47LV unresolved merged cards are not emitted by the provider',()=>{
     {title:'JOGURTTIJUOMAT PROTEIN RAHKAT',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}},
     {title:'PUNAKAALI KG'},
   ];
-  const emitted=new Function('rows','console', 'const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}});
+  const emitted=new Function('rows','console','leafletUrl', 'const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}},'https://example.test/47LV_KCM/index.html');
   assert.deepEqual(emitted,['PUNAKAALI KG']);
 });
 
