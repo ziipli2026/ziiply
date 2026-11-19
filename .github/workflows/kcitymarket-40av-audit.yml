@@ -45,6 +45,11 @@ jobs:
         run: node --test tests/kcitymarket-category-regression.test.cjs
       - name: Install isolated TypeScript for display regression
         run: npm install --prefix /tmp/ziiply-ci-typescript --no-package-lock --ignore-scripts --no-audit --no-fund typescript@5.9.3
+      - name: Run 47LV provider and publication regression tests
+        if: github.head_ref == 'fix/citymarket-47lv-printed-quality-20261119' || (github.event_name == 'workflow_dispatch' && inputs.publication != '41AV')
+        env:
+          NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
+        run: node --test --test-name-pattern='^47LV (?!pages 3)' tests/citymarket-preflight.test.cjs
       - name: Run Citymarket multibuy display regression
         env:
           NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
