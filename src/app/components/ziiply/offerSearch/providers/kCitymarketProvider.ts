@@ -792,7 +792,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         priceBasis:card.quantity>1?"set-total":"package-total",
         priceText:card.price.toFixed(2).replace(".",",")+" € / "+(card.quantity>1?card.quantity+" "+card.unit.toLowerCase():card.unit.toLowerCase()),
         category:card.category,campaignType:"offer",validFrom:"19.11.",validTo:card.to,
-        resolutionSource:"publisher-pdf-reviewed-47lv-merged-card",chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
+        resolutionSource:"publisher-pdf-reviewed-47lv-merged-card",chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl} as CitymarketOffer);
     }
   }
 
