@@ -10,6 +10,9 @@ export function validate47LVPublication(offers, publicationKey) {
     const price=offer?.price;
     const discount=offer?.discountPercent;
     if (!title) issues.push('missing-title:'+index);
+    if (/^Haribo JOULUKALENTERI 300 g(?: \(32,63\/kg\))?\s+79$/i.test(title))
+      issues.push('detached-price-digits-in-title:'+index+':'+title);
+
     if (/\bVoimassa\s+TO[–-]SU\b|\bConcealers\s*&\s*Telescopic\b|\bmascaror\b/i.test(title))
       issues.push('publisher-footer-in-title:'+index+':'+title);
     if (/^(?:TUOTTEET ja COSRX-TUOTTEET|NAUDAN LEHTIPIHVI|ULKOFILEESTÄ tai MUREUTETTU|NAUGHTY BURGER)$/i.test(title)
