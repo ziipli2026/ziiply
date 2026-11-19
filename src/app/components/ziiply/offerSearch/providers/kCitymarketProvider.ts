@@ -774,6 +774,28 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     });
   }
 
+  // 47LV publisher PDF pages 16 and 18: the spatial text layer merges three
+  // independently priced cards into neighbouring headings. Recover only these
+  // exact printed transactions when the original merged evidence is present.
+  // Never transfer these values to another edition or an unrelated card.
+  if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){
+    const hasMerged=(page:number,pattern:RegExp)=>sourceRows.some((r:any)=>Number(r?.page)===page && pattern.test(String(r?.title||"")));
+    const reviewed=[
+      {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Arla PROTEIN RAHKAT 200 g",price:3.50,quantity:4,unit:"PRK",category:"Maitotuotteet",to:"29.11."},
+      {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Danone ACTIMEL JOGURTTIJUOMAT 8 x 100 g",price:3.69,quantity:1,unit:"PKT",category:"Maitotuotteet",to:"29.11."},
+      {page:18,evidence:/ULKOFILEEPIHVI 2 kpl\\/240 g BURGER 4 kpl\\/320 g/i,title:"Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g",price:2.39,quantity:1,unit:"PS",category:"Leipomo",to:"22.11."}
+    ];
+    for(const card of reviewed){
+      if(!hasMerged(card.page,card.evidence) || offers.some(o=>o.title===card.title))continue;
+      offers.push({id:`kcm:47lv:pdf-reviewed:${card.page}:${card.title.toLowerCase()}`,publisherOfferId:`kcm:47lv:pdf-reviewed:${card.page}:${card.title.toLowerCase()}`,
+        title:card.title,price:card.price,offerQuantity:card.quantity,offerUnit:card.unit,
+        priceBasis:card.quantity>1?"set-total":"package-total",
+        priceText:card.price.toFixed(2).replace(".",",")+" € / "+(card.quantity>1?card.quantity+" "+card.unit.toLowerCase():card.unit.toLowerCase()),
+        category:card.category,campaignType:"offer",validFrom:"19.11.",validTo:card.to,
+        resolutionSource:"publisher-pdf-reviewed-47lv-merged-card",chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
+    }
+  }
+
   const seen=new Set<string>();
   return offers.filter(o=>{
     const key=`${o.title.toLowerCase()}|${o.price}|${o.discountPercent??""}|${o.packageSize??""}`;
