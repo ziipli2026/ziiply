@@ -85,6 +85,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S',latitude:60.63,longitude:24.86};
         const k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'};
         const lidl=selectedLidl,spar=selectedSpar;
+        sessionStorage.setItem('ziiply-normal-search-diagnostic','1');
         localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({
           storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'many',
           storeCompareScope:'between_chains',
