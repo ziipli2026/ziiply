@@ -651,7 +651,7 @@ export default function DesktopPreviewPage() {
   const fuelClosestPrice=(type:"diesel"|"price95"|"price98")=>{
     const value=fuelNearestStation?.[type];
     const timestamp=Date.parse(String(fuelNearestStation?.[type==="diesel"?"observedDiesel":type==="price95"?"observed95":"observed98"]??""));
-    return value!=null && Number.isFinite(Number(value)) && Number(value)>0 && Number.isFinite(timestamp) && timestamp<=Date.now() && Date.now()-timestamp<=7*24*60*60*1000?Number(value):undefined;
+    return value!=null && Number.isFinite(Number(value)) && Number(value)>0 ? Number(value) : undefined;
   };
   const fuelStationBrand=(station:any)=>{
     const combined=String(station?.name??"")+" "+String(station?.chain??"");
