@@ -783,7 +783,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const reviewed=[
       {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Arla PROTEIN RAHKAT 200 g",price:3.50,quantity:4,unit:"PRK",category:"Maitotuotteet",to:"29.11."},
       {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Danone ACTIMEL JOGURTTIJUOMAT 8 x 100 g",price:3.69,quantity:1,unit:"PKT",category:"Maitotuotteet",to:"29.11."},
-      {page:18,evidence:/ULKOFILEEPIHVI 2 kpl\\/240 g BURGER 4 kpl\\/320 g/i,title:"Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g",price:2.39,quantity:1,unit:"PS",category:"Leipomo",to:"22.11."}
+      {page:18,evidence:/ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i,title:"Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g",price:2.39,quantity:1,unit:"PS",category:"Leipomo",to:"22.11."}
     ];
     for(const card of reviewed){
       if(!hasMerged(card.page,card.evidence) || offers.some(o=>o.title===card.title))continue;
