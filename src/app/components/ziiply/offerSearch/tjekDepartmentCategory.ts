@@ -44,7 +44,7 @@ export function filterTjekGroceryRows<T extends {title?: unknown;name?: unknown;
     // Garden merchandise and electrical grooming accessories are not grocery offers.
     if (slug === 'garden' && /(?:PERHOSORKIDEA|KUKKAKIMPPU|SÄHKÖSAVUSTIN)/i.test(title)) return false;
     if (slug === 'beauty' && /(?:KASVOHARJA|VAIHTOHARJAT)/i.test(title)) return false;
-    if (slug === 'other' && /(?:TOPPATAKKI|COLLEGEHUPPARI|COLLEGEPAITA|COLLEGEHOUSUT|FLANELLIHOUSUT|\\bNEULE\\b|NASTAKENGÄT|PITOPOHJAKENGÄT|FLEECEVAATTEET|LÄMMITTELYTAKKI|NAHKA-NILKKURIT|TALVIKENGÄT|TOPPAHOUSUT|YÖASUJA)/i.test(title)) return false;
+    if (slug === 'other' && /(?:TOPPATAKKI|COLLEGEHUPPARI|COLLEGEPAITA|COLLEGEHOUSUT|FLANELLIHOUSUT|\bNEULE\b|NASTAKENGÄT|PITOPOHJAKENGÄT|FLEECEVAATTEET|LÄMMITTELYTAKKI|NAHKA-NILKKURIT|TALVIKENGÄT|TOPPAHOUSUT|YÖASUJA)/i.test(title)) return false;
     return !TJEK_NON_GROCERY_TITLE_PATTERN.test(title);
   });
 }
