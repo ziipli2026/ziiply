@@ -13,6 +13,9 @@ export function validate47LVPublication(offers, publicationKey) {
     if (/^Haribo JOULUKALENTERI 300 g(?: \(32,63\/kg\))?\s+79$/i.test(title))
       issues.push('detached-price-digits-in-title:'+index+':'+title);
 
+    const offerId=String(offer?.id||'');
+    if (/mascaror|voimassa to[–-]su|joulukalenteri 300 g \(32,63\/kg\) 79/i.test(offerId))
+      issues.push('publisher-artifact-in-offer-id:'+index+':'+offerId);
     if (/\bVoimassa\s+TO[–-]SU\b|\bConcealers\s*&\s*Telescopic\b|\bmascaror\b/i.test(title))
       issues.push('publisher-footer-in-title:'+index+':'+title);
     if (/^(?:TUOTTEET ja COSRX-TUOTTEET|NAUDAN LEHTIPIHVI|ULKOFILEESTÄ tai MUREUTETTU|NAUGHTY BURGER)$/i.test(title)
