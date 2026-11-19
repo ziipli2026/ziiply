@@ -252,3 +252,20 @@ test('47LV unresolved merged cards are not emitted by the provider',()=>{
   const emitted=new Function('rows','console', 'const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}});
   assert.deepEqual(emitted,['PUNAKAALI KG']);
 });
+
+
+test('47LV canonical title reconstruction cannot bypass merged-card publication guard',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('  // A canonical title reconstruction must not erase a collision warning');
+  const end=provider.indexOf('  const allLeafletText=',start);
+  assert.ok(start>=0&&end>start,'canonical reconstruction collision guard must exist');
+  const rows=[
+    {title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS'},
+    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g'},
+    {title:'PUNAKAALI KG'},
+  ];
+  new Function('rows',provider.slice(start,end))(rows);
+  assert.equal(rows[0].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
+  assert.equal(rows[1].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
+  assert.equal(rows[2].debugSuspiciousPublisherTitle,undefined);
+});
