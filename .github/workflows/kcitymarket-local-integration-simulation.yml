@@ -189,6 +189,7 @@ jobs:
         continue-on-error: true
         run: node scripts/audit-hyvinkaa-tjek-departments.mjs
       - name: Compare real Tjek 67-offer fixture in mobile and desktop Chromium
+        if: ${{ steps.tjek_audit.outcome == 'success' }}
         run: |
           node scripts/verify-tjek-baseline-enrichment.mjs
           npm run start -- -H 127.0.0.1 -p 3101 &
