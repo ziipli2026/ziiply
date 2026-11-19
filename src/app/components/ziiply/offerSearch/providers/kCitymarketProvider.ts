@@ -684,6 +684,8 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 189–208 g$/i.test(titleBeforeSourceReview) &&
         /After Eight/.test(nearby47) && /Smarties/.test(nearby47)
         ? "After Eight, KitKat, Smarties ja Nestlé mix JOULUKALENTERI 189–208 g"
+      : is47LV && /^L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT\b/i.test(titleBeforeSourceReview)
+        ? titleBeforeSourceReview.replace(/\s+Voimassa\s+TO[–-]SU\s+19\.[–-]22\.11\.2026\b.*$/i,"").trim()
       : titleBeforeSourceReview;
     // Incomplete headings and geometrically merged cards must not be sold as
     // standalone offers. Preserve evidence in the frozen parser archive.
