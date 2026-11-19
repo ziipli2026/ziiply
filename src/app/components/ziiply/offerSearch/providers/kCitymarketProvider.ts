@@ -677,7 +677,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       /^NAUDAN LEHTIPIHVI$/i.test(reviewed47LVTitle) ||
       /^NAUGHTY BURGER$/i.test(reviewed47LVTitle) ||
 
-      (/^GLÖGI 8 % 0,75 l\/pl/i.test(reviewed47LVTitle) && Number(resolved.value)>20))) {
+      (/^GLÖGI 8 % 0,75 l\/pl/i.test(reviewed47LVTitle) && Number(resolved.value)>20 && Number(row?.page)!==20))) {
       console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);
       continue;
     }
@@ -693,7 +693,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(innocent45AV) price=3.49;
 
     const normalMin=Number(row?.normal?.min);
-    const offerQuantity=reviewed46LV?.quantity??verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
+    const offerQuantity=(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(title) ? 2 : null)??reviewed46LV?.quantity??verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
     // the same basis so UI comparisons and strike-through prices are meaningful.
