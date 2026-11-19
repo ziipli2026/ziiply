@@ -26,7 +26,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
         COALESCE(NULLIF(o->>'title',''),NULLIF(o->>'name','')) IS NULL) AS missing_names,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
-        btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$))') AS suspicious_names,
+        btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$)|PUNAKAALI[[:space:]]+KG[[:space:]]+PÄÄRYNÄ[[:space:]]+KG|JOGURTTIJUOMAT[[:space:]]+PROTEIN[[:space:]]+RAHKAT)') AS suspicious_names,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
         NOT (COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$' AND
           CASE WHEN COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$' THEN (o->>'price')::numeric>0 ELSE false END)
@@ -68,7 +68,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
           ORDER BY parsed_at DESC LIMIT 1
         ) p
         CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
-        WHERE btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$))'
+        WHERE btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$)|PUNAKAALI[[:space:]]+KG[[:space:]]+PÄÄRYNÄ[[:space:]]+KG|JOGURTTIJUOMAT[[:space:]]+PROTEIN[[:space:]]+RAHKAT)'
         LIMIT 20`;
       suspiciousNameTitles = defects.map(row => String(row.title));
     }
