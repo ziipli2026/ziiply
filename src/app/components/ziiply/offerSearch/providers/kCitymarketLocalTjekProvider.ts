@@ -1,6 +1,6 @@
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 import { neon } from "@neondatabase/serverless";
-import { tjekDepartmentCategory, isTjekNonGroceryDepartment, filterTjekGroceryRows } from "../tjekDepartmentCategory";
+import { tjekDepartmentCategory, isTjekNonGroceryDepartment, normalizeTjekGroceryCategories } from "../tjekDepartmentCategory";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
@@ -101,7 +101,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           && isActiveOffer(row, now))
     : [];
   const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
-  const fallback = filterTjekGroceryRows((await readPublishedSnapshot(fallbackKey) ?? []))
+  const fallback = normalizeTjekGroceryCategories((await readPublishedSnapshot(fallbackKey) ?? []))
     .filter(row => isActiveOffer(row, now)
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
@@ -145,7 +145,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
       new Promise<void>(resolve => setTimeout(resolve, 4000)),
     ]);
   }
-  const live = filterTjekGroceryRows(entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
+  const live = normalizeTjekGroceryCategories(entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
   // Return verified rows from the exact selected store as soon as they have
   // been fetched. In serverless requests the process may end before a long
   // Tjek scan completes; suppressing these rows made every non-N183 store look

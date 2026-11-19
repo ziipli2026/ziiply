@@ -4,6 +4,7 @@ on:
     paths:
       - 'src/app/api/offers/watch/route.ts'
       - 'tests/gosta-prisma-campaign-dedupe.test.cjs'
+      - 'tests/gosta-hammastahna-compound.test.cjs'
       - '.github/workflows/gosta-prisma-campaign-dedupe.yml'
   workflow_dispatch:
 jobs:
@@ -16,5 +17,5 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --package-lock=false --no-audit --no-fund
-      - run: node --test tests/gosta-prisma-campaign-dedupe.test.cjs
+      - run: node --test tests/gosta-prisma-campaign-dedupe.test.cjs tests/gosta-hammastahna-compound.test.cjs
       - run: npx tsc --noEmit

@@ -4,10 +4,10 @@ const compiled=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.Com
 const moduleExports={};vm.runInNewContext(compiled,{exports:moduleExports});
 const map=moduleExports.tjekDepartmentCategory;
 test('source department maps broad grocery groups',()=>{
-  for(const [slug,expected] of Object.entries({'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka'}))assert.equal(map(slug),expected);
+  for(const [slug,expected] of Object.entries({'fruits-and-vegetables':'Hevi','beverages':'Juomat','frozen':'Pakasteet','household':'Kodinhoito','beauty':'Hygienia & kosmetiikka','cold-cuts':'Liha & makkarat'}))assert.equal(map(slug),expected);
 });
 test('ambiguous departments never receive guessed categories',()=>{
-  for(const slug of ['meat-and-fish','dairy-and-cold','colonial','bread-and-cakes','electronics','apparel','unknown',null])assert.equal(map(slug),null);
+  for(const slug of ['meat-and-fish','dairy-and-cold','colonial','bread-and-cakes','snacks-and-candies','electronics','apparel','unknown',null])assert.equal(map(slug),null);
 });
 test('only local Tjek parser uses department mapper',()=>{
   const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
@@ -27,7 +27,7 @@ test('Gosta respects verified local Tjek category after EAN priority',()=>{
 
 test('only explicitly non-grocery Tjek departments are excluded',()=>{
  const excluded=moduleExports.isTjekNonGroceryDepartment;
- for(const slug of ['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home'])assert.equal(excluded(slug),true);
+ for(const slug of ['electronics','apparel','entertainment','automotive','outdoor','sports','pharmacy','home','do-it-yourself'])assert.equal(excluded(slug),true);
  for(const slug of ['garden','household','beauty','baby','meat-and-fish','dairy-and-cold','unknown',null])assert.equal(excluded(slug),false);
  const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
  assert.match(provider,/if \(isTjekNonGroceryDepartment\(sourceDepartment\)\)/);
@@ -54,7 +54,7 @@ test('local Tjek non-grocery rejection happens before offer acceptance',()=>{
 
 test('stored Tjek snapshots are screened using source department metadata',()=>{
  const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
- assert.match(provider,/const fallback = filterTjekGroceryRows\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
+ assert.match(provider,/const fallback = normalizeTjekGroceryCategories\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
 });
 
 test('shared filter removes non-grocery rows from real-shaped persisted snapshots',()=>{
@@ -67,6 +67,75 @@ test('shared filter removes non-grocery rows from real-shaped persisted snapshot
 
 test('live and stored Tjek offers use the same grocery-only filter',()=>{
  const provider=fs.readFileSync(path.join(__dirname,'../src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'),'utf8');
- assert.match(provider,/const fallback = filterTjekGroceryRows\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
- assert.match(provider,/const live = filterTjekGroceryRows\(entry\?\.rows \?\? \[\]\)\.filter\(row => isActiveOffer\(row, Date\.now\(\)\)\)/);
+ assert.match(provider,/const fallback = normalizeTjekGroceryCategories\(\(await readPublishedSnapshot\(fallbackKey\) \?\? \[\]\)\)/);
+ assert.match(provider,/const live = normalizeTjekGroceryCategories\(entry\?\.rows \?\? \[\]\)\.filter\(row => isActiveOffer\(row, Date\.now\(\)\)\)/);
+});
+
+test('persisted snapshot and live Tjek rows use the same verified category without mutating source',()=>{
+  const row={title:'PIRKKA Parhaat SALAME MILANO',category:'Muut',
+    categoryPath:'Muut',productGroup:'Muut',mainCategory:'Muut',
+    debug:{tjekDepartmentSlug:'cold-cuts',categorySource:'legacy-title'}};
+  const mixed={title:'Santa Maria TORTILLA CHIPSIT',category:'Kuivatuotteet',
+    debug:{tjekDepartmentSlug:'snacks-and-candies',categorySource:'legacy-title'}};
+  const excluded={title:'Tarmo PORRASJAKKARA',category:'Muut',
+    debug:{tjekDepartmentSlug:'do-it-yourself'}};
+  const result=moduleExports.normalizeTjekGroceryCategories([row,mixed,excluded]);
+  assert.equal(result.length,2);
+  for(const field of ['category','categoryPath','productGroup','mainCategory'])
+    assert.equal(result[0][field],'Liha & makkarat');
+  assert.equal(result[0].debug.categorySource,'tjek-department');
+  assert.equal(result[1],mixed);
+  assert.equal(row.category,'Muut');
+  assert.equal(row.debug.categorySource,'legacy-title');
+  assert.notEqual(result[0],row);
+});
+
+test('verified other-department hygiene products are categorized and nightwear is excluded',()=>{
+  const rows=[
+    {title:"L'ORÉAL PARIS Infaillible 3-Second MEIKINKIINNITYSSUIHKE",category:'Muut',debug:{tjekDepartmentSlug:'other'}},
+    {title:'bliw NESTESAIPPUOIDEN TÄYTTÖPUSSIT',category:'Muut',debug:{tjekDepartmentSlug:'other'}},
+    {title:'Aikuisten YÖASUJA',category:'Muut',debug:{tjekDepartmentSlug:'other'}},
+    {title:'Tuntematon tuote',category:'Muut',debug:{tjekDepartmentSlug:'other'}}
+  ];
+  const result=moduleExports.normalizeTjekGroceryCategories(rows);
+  assert.equal(result.length,3);
+  assert.equal(result[0].category,'Hygienia & kosmetiikka');
+  assert.equal(result[1].category,'Hygienia & kosmetiikka');
+  assert.equal(result[2].category,'Muut');
+  assert.equal(rows[0].category,'Muut');
+});
+
+test('mixed other department excludes verified apparel while retaining hygiene',()=>{
+ const rows=[
+  {title:'Adaire Naisten TOPPATAKKI',debug:{tjekDepartmentSlug:'other'}},
+  {title:'Adidas Miesten COLLEGEHUPPARI tai -HOUSUT',debug:{tjekDepartmentSlug:'other'}},
+  {title:'Aikuisten tai lasten FLANELLIHOUSUT',debug:{tjekDepartmentSlug:'other'}},
+  {title:'Huurre Aikuisten NASTAKENGÄT tai PITOPOHJAKENGÄT',debug:{tjekDepartmentSlug:'other'}},
+  {title:'LISTERINE SUUVESI',debug:{tjekDepartmentSlug:'other'}},
+  {title:'AUSSIE HIUSTENHOITOTUOTTEET',debug:{tjekDepartmentSlug:'other'}},
+  {title:'Tuntematon tuote',debug:{tjekDepartmentSlug:'other'}}
+ ];
+ const kept=moduleExports.normalizeTjekGroceryCategories(rows);
+ assert.deepEqual(kept.map(row=>row.title),rows.slice(4).map(row=>row.title));
+});
+
+test('current live Tjek garden and electrical grooming merchandise do not leak into groceries',()=>{
+ const rows=[
+  {title:'Reilun kaupan KUKKAKIMPPU',debug:{tjekDepartmentSlug:'garden'}},
+  {title:'SÄHKÖSAVUSTIN',debug:{tjekDepartmentSlug:'garden'}},
+  {title:'GESKE Sonic Facial Brush KASVOHARJA',debug:{tjekDepartmentSlug:'beauty'}},
+  {title:'Oral-B VAIHTOHARJAT',debug:{tjekDepartmentSlug:'beauty'}},
+  {title:'LISTERINE SUUVESI',debug:{tjekDepartmentSlug:'other'}},
+  {title:'TUORE KIRJOLOHIFILEE',debug:{tjekDepartmentSlug:'meat-and-fish'}}
+ ];
+ assert.deepEqual(moduleExports.normalizeTjekGroceryCategories(rows).map(x=>x.title),rows.slice(4).map(x=>x.title));
+});
+
+test('verified knitwear in mixed other department is excluded without affecting groceries',()=>{
+ const rows=[
+  {title:'Eva tai Elise Naisten NEULE',debug:{tjekDepartmentSlug:'other'}},
+  {title:'LISTERINE SUUVESI',debug:{tjekDepartmentSlug:'other'}},
+  {title:'PORSAAN KASSLER',debug:{tjekDepartmentSlug:'meat-and-fish'}}
+ ];
+ assert.deepEqual(moduleExports.normalizeTjekGroceryCategories(rows).map(x=>x.title),rows.slice(1).map(x=>x.title));
 });

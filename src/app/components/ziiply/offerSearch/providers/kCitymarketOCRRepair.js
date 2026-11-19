@@ -12,6 +12,13 @@ export function repairCitymarketOCRTitle(value) {
   title=title.replace(/\bS2UKLAAPATUKAT\b/gi,"SUKLAAPATUKAT");
   title=title.replace(/\bVITAMIINIJ\s*[-–]\s*UOMAT\b/gi,"VITAMIINIJUOMAT");
   title=title.replace(/\bWC\s*[-–]\s*PAPERI\b/gi,"WC-PAPERI");
+  // A page-edge numeral can be fused to a complete, unambiguous product word.
+  // Only repair complete known words, never prices or unidentified brands.
+  title=title.replace(/\bT1ORTILLA\b/gi,"TORTILLA");
+  title=title.replace(/\bA4LKOHOLITON\b/gi,"ALKOHOLITON");
+  title=title.replace(/\bC8HARDONNAY\b/gi,"CHARDONNAY");
+  title=title.replace(/\bG9LÖGI\b/gi,"GLÖGI");
+  title=title.replace(/\bH9aribo\b/gi,"Haribo");
   // OCR can drop the initial letter from a line at the page margin.
   // Do not guess the missing character; keep the row for quality review.
   return title;

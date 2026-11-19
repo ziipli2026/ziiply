@@ -64,6 +64,10 @@ test('preflight records failed fetch, missing snapshot, count mismatch and perce
     quality.missing_images=0;quality.missing_categories=0;quality.unverified_prices=4;
     assert.equal((await record(input)).outcome,'preflight-quality-failed','unverified prices must block approval');
     quality.unverified_prices=0;
+    quality.suspicious_prices=1;
+    assert.equal((await record(input)).outcome,'preflight-quality-failed','implausible 0.75-litre bottle price must block approval');
+    assert.ok(records.at(-1).details.blockingReasons.includes('suspicious-prices'));
+    quality.suspicious_prices=0;
     assert.equal((await record(input)).outcome,'preflight-awaiting-pdf-review');
     assert.equal(records.at(-1).details.pdfReview,'pending');
     assert.equal(records.at(-1).ok,false,'PDF review pending must never be logged as approved');
@@ -166,4 +170,116 @@ test('47AV control center accepts parser with missing images, but not missing ca
   assert.equal(status([run,reviewed],now).level,'green','image-only gaps do not block reviewed publication status');
   const legacy={...run,outcome:'preflight-awaiting-images'};
   assert.equal(status([legacy],now).parserOk,true,'older pending-image records remain recognized');
+});
+
+test('47LV category regression: orange juice and dog treats override generic fruit and sausage',()=>{
+  const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=source.indexOf('export function category(t:string){');
+  assert.ok(start>=0,'category function exists');
+  const end=source.indexOf('\n}',start);
+  assert.ok(end>start,'category function terminates');
+  const fn=source.slice(start,end+2).replace('export function category(t:string)','function category(t)');
+  const category=new Function('clean',fn+';return category;')(text=>String(text));
+  assert.equal(category('APPELSIINITÄYSMEHU 1 l'),'Juomat');
+  assert.equal(category('APPELSIINIT 1 kg'),'Hevi');
+  assert.equal(category('THE DOG NAUGHTY HOT DOG 6 kpl/300 g'),'Lemmikit');
+  assert.equal(category('KANAN FILEEVIIPALE 300 g'),'Liha & makkarat');
+});
+
+test('47LV Neon snapshot v165: preserve source evidence and flag malformed merged rows',()=>{
+  // Source: publication 2026-11-19-W47-LV-printed-transactions-v165,
+  // 48 rows, candidate, inspected read-only on 2026-11-19.
+  const snapshot=[
+    {title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS',price:1.49,issue:'merged-produce'},
+    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g',price:14.02,issue:'merged-dairy'},
+    {title:'ULKOFILEESTÄ tai MUREUTETTU',price:2.39,issue:'orphan-heading'},
+    {title:'G9LÖGI 8 % 0,75 l/pl (12,25/l) Sis. pantin 0,10',price:50.31,issue:'price-unit-conflict'},
+    {title:'TUOTTEET ja COSRX-TUOTTEET',price:null,issue:'orphan-heading'},
+  ];
+  assert.equal(snapshot.length,5);
+  const flag=(row)=>{
+    const t=row.title;
+    if(/PUNAKAALI KG PÄÄRYNÄ KG/.test(t))return 'merged-produce';
+    if(/JOGURTTIJUOMAT PROTEIN RAHKAT/.test(t))return 'merged-dairy';
+    if(/^(?:ULKOFILEESTÄ tai MUREUTETTU|TUOTTEET ja )/.test(t))return 'orphan-heading';
+    const unit=t.match(/\((\d+[,.]\d+)\/l\)/);
+    const volume=t.match(/(\d+[,.]\d+)\s*l\/pl/);
+    if(unit&&volume&&Number.isFinite(row.price)){
+      const expected=Number(unit[1].replace(',','.'))*Number(volume[1].replace(',','.'));
+      if(Math.abs(row.price-expected)>Math.max(1,expected*.25))return 'price-unit-conflict';
+    }
+    return null;
+  };
+  for(const row of snapshot)assert.equal(flag(row),row.issue,row.title);
+  // Never replace a suspicious source price with a guessed value.
+  assert.equal(snapshot[3].price,50.31);
+});
+
+
+test('47LV spatial parser marks merged source headings before returning offers',()=>{
+  const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js','utf8');
+  const start=source.indexOf('// Detect title collisions at the publisher-geometry stage.');
+  const end=source.indexOf('// Only merge adjacent "tai" alternatives',start);
+  assert.ok(start>=0&&end>start,'spatial collision guard must execute before final merge');
+  const block=source.slice(start,end);
+  const rows=[
+    {title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS',spatialResolved:{value:1.49}},
+    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g',spatialResolved:{value:14.02}},
+    {title:'PUNAKAALI KG',spatialResolved:{value:1.49}},
+  ];
+  const out=new Function('rows','let out={rows};'+block+';return out.rows;')(rows);
+  assert.equal(out.length,3,'guard must not silently drop offers');
+  assert.equal(out[0].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
+  assert.equal(out[1].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
+  assert.equal(out[2].debugSuspiciousPublisherTitle,undefined);
+  assert.equal(out[0].spatialResolved.value,1.49,'guard must preserve original price');
+  assert.equal(out[1].spatialResolved.value,14.02,'guard must preserve original price');
+  assert.equal(out[0].debugSuspiciousPublisherTitle.requiresSeparateCardPriceProof,true);
+});
+
+
+test('47LV unresolved merged cards are not emitted by the provider',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('  for(const row of rows){\n    // Do not publish a merged 47LV product card');
+  const end=provider.indexOf('    const campaignTitle=repairCitymarketOCRTitle',start);
+  assert.ok(start>=0&&end>start,'merged-card rejection must run before offer creation');
+  const guard=provider.slice(start,end);
+  const rows=[
+    {title:'PUNAKAALI KG PÄÄRYNÄ KG',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}},
+    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}},
+    {title:'PUNAKAALI KG'},
+  ];
+  const emitted=new Function('rows','console','leafletUrl', 'const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}},'https://example.test/offer_47LV_KCM/index.html');
+  assert.deepEqual(emitted,['PUNAKAALI KG']);
+});
+
+
+test('47LV canonical title reconstruction cannot bypass merged-card publication guard',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('  // A canonical title reconstruction must not erase a collision warning');
+  const end=provider.indexOf('  const allLeafletText=',start);
+  assert.ok(start>=0&&end>start,'canonical reconstruction collision guard must exist');
+  const rows=[
+    {title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS'},
+    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g'},
+    {title:'PUNAKAALI KG'},
+  ];
+  new Function('rows',provider.slice(start,end))(rows);
+  assert.equal(rows[0].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
+  assert.equal(rows[1].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
+  assert.equal(rows[2].debugSuspiciousPublisherTitle,undefined);
+});
+
+
+test('47LV suppression does not affect older or newer leaflet editions',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('  for(const row of rows){\n    // Do not publish a merged 47LV product card');
+  const end=provider.indexOf('    const campaignTitle=repairCitymarketOCRTitle',start);
+  assert.ok(start>=0&&end>start);
+  const guard=provider.slice(start,end);
+  const rows=[{title:'PUNAKAALI KG PÄÄRYNÄ KG',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}}];
+  const run=url=>new Function('rows','console','leafletUrl','const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}},url);
+  assert.deepEqual(run('https://example.test/offer_46LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
+  assert.deepEqual(run('https://example.test/offer_47LV_KCM/index.html'),[]);
+  assert.deepEqual(run('https://example.test/offer_48LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
 });
