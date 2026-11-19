@@ -165,7 +165,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       const results=[];
       const noResultDiagnostics=[];
       fs.mkdirSync('normal-search-evidence',{recursive:true});
-      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress-'+device+'.json',JSON.stringify({base,device,results,noResultDiagnostics,apiResponses:apiResponses.slice(-100),providerEanPresence,errors},null,2));
+      const checkpoint=()=>fs.writeFileSync('normal-search-evidence/progress-'+device+'.json',JSON.stringify({base,device,results,noResultDiagnostics,apiResponses:apiResponses.slice(-100),providerEanPresence,decisionSummaries,errors},null,2));
       checkpoint();
       for(const query of queries){
         // Per-query watchdog: a stuck browser RPC must not consume the entire 25-minute batch.
