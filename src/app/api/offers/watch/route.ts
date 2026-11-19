@@ -29,6 +29,10 @@ function matches(query:string,offer:Record<string,unknown>){
   // processed-meat department assigned by an upstream provider.
   if(q==="jauheliha" && /(?:^| )jauheliha(?: |$)/.test(n)
     && !/kasvis|vege|soija|lemmikki|koiran|kissan/.test(n)) return true;
+  // Verified Tjek leaflet compound: Colgate HAMMASTAHNARASIAT must also
+  // be found by the product-family query "hammastahna". Do not broaden
+  // arbitrary substring matches (e.g. spagetti/spagettikurpitsa).
+  if(q==="hammastahna" && words.some(w=>/^hammastahnarasiat?$/.test(w)))return true;
   // Generic terms must be complete words, not arbitrary substrings:
   // "spagetti" must not match "spagettikurpitsa".
   // For multiword queries, require the full contiguous phrase.
