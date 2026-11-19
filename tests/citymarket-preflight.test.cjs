@@ -404,7 +404,7 @@ test('47LV non-food pages are intentionally excluded without dropping grocery hy
   for(const title of ['KAIKKI VIKING LASTEN KENGÄT','SÄHKÖHAMMASHARJA 1 kpl','VARAVIRTALÄHDE 10000 mAh','LEGO LELUT 1 kpl','LANGATTOMAT KUULOKKEET 1 kpl']){
     assert.equal(productish(title),false,title);
   }
-  for(const title of ['NESTESAIPPUOIDEN TÄYTTÖPUSSIT 300 ml','PYYKINPESUNESTEET 840 ml','WC-PAPERI 24 rl','MEIKKIVOITEET 30 ml']){
+  for(const title of ['NESTESAIPPUOIDEN TÄYTTÖPUSSIT 300 ml','PYYKINPESUNESTEET 840 ml','WC-PAPERI 24 rl','MEIKKIVOITEET 30 ml','LUMENE KLASSIKKO VARTALONHOITOTUOTTEET','LUMENE KLASSIKKO KASVOJENHOITO- JA PUHDISTUSTUOTTEET','VARTALONHOITOTUOTTEET']){
     assert.equal(productish(title),true,title);
   }
 });
