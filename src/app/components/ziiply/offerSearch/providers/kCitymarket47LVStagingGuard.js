@@ -14,6 +14,10 @@ export function validate47LVPublication(offers, publicationKey) {
       issues.push('detached-price-digits-in-title:'+index+':'+title);
 
     const offerId=String(offer?.id||'');
+    if (/^Innocent TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl$/i.test(title) && offer?.unitPrice != null)
+      issues.push('ambiguous-innocent-unit-price:'+index);
+    if (/^ALKOHOLITON GLÖGI 0,75 l\/pl Ei luomu \(5,59\/l\) Sis\. pantin 0,10$/i.test(title) && (Number(price)!==4.29 || Number(offer?.unitPrice)!==5.59))
+      issues.push('incorrect-deposit-adjusted-glogi-unit-price:'+index);
     if (/mascaror|voimassa to[–-]su|joulukalenteri 300 g \(32,63\/kg\) 79/i.test(offerId))
       issues.push('publisher-artifact-in-offer-id:'+index+':'+offerId);
     if (/\bVoimassa\s+TO[–-]SU\b|\bConcealers\s*&\s*Telescopic\b|\bmascaror\b/i.test(title))
