@@ -2,6 +2,15 @@ name: K-Citymarket leaflet parser history
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      publication:
+        description: 'Leaflet issue to capture (default: 47LV)'
+        required: false
+        type: choice
+        options:
+          - 47LV
+          - 41AV
+        default: 47LV
   push:
     paths:
       - ".github/workflows/kcitymarket-40av-audit.yml"
@@ -80,8 +89,44 @@ jobs:
           // Source PDF integrity and parser replay were verified in earlier steps.
           NODE
 
+  capture-47lv:
+    if: github.event_name == 'workflow_dispatch' && inputs.publication != '41AV'
+    needs: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Capture and reparse original 47LV publisher source
+        run: |
+          node scripts/citymarket/export-leaflet.mjs 'https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html' /tmp/kcm-47lv-capture
+      - name: Verify exact 47LV issue, archived PDF, and parsed offers
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const dir='/tmp/kcm-47lv-capture/';
+          const manifest=JSON.parse(fs.readFileSync(dir+'archive-manifest.json','utf8'));
+          const leaflet=JSON.parse(fs.readFileSync(dir+'leaflet.json','utf8'));
+          if(!String(manifest.publisherUrl).toUpperCase().includes('_47LV_KCM'))throw Error('Publisher returned an unexpected issue: '+manifest.publisherUrl);
+          const pdfHash=createHash('sha256').update(fs.readFileSync(dir+'leaflet.pdf')).digest('hex');
+          if(pdfHash!==manifest.pdfSha256||manifest.pageCount!==20)throw Error('47LV original PDF source mismatch');
+          if(!leaflet.rows?.length||leaflet.rows.length!==manifest.offerCount)throw Error('47LV parsed offer count mismatch');
+          console.log('KCM_47LV_CAPTURE',JSON.stringify({pdfSha256:pdfHash,pages:manifest.pageCount,offers:leaflet.rows.length}));
+          NODE
+      - name: Upload 47LV source, PDF and parser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcitymarket-47lv-source-and-parser-evidence
+          path: /tmp/kcm-47lv-capture/
+          retention-days: 30
+          if-no-files-found: warn
+
   archive-current:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.publication == '41AV'
     permissions:
       contents: write
     needs: audit
