@@ -19,6 +19,8 @@ on:
 jobs:
   simulation:
     runs-on: ubuntu-latest
+    env:
+      CITYMARKET_READONLY_TEST_ENABLED: ${{ secrets.CITYMARKET_READONLY_DATABASE_URL != '' }}
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -113,7 +115,7 @@ jobs:
             echo "Read-only live snapshot credential configured."
           fi
       - name: Verify current Hyvinkää Tjek snapshot with read-only SQL
-        if: ${{ env.CITYMARKET_SNAPSHOT_TEST_ENABLED == 'true' }}
+        if: ${{ env.CITYMARKET_READONLY_TEST_ENABLED == 'true' }}
         env:
           DATABASE_URL: ${{ secrets.CITYMARKET_READONLY_DATABASE_URL }}
         run: |
