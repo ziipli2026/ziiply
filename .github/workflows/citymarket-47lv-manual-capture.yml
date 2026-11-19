@@ -1,0 +1,30 @@
+name: Citymarket 47LV manual source capture
+on:
+  workflow_dispatch:
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Capture original 47LV PDF and reparse current publisher geometry
+        run: node scripts/citymarket/export-leaflet.mjs https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/ 47lv-capture
+      - name: Verify source issue and parser evidence
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const m=JSON.parse(fs.readFileSync('47lv-capture/archive-manifest.json','utf8'));
+          const l=JSON.parse(fs.readFileSync('47lv-capture/leaflet.json','utf8'));
+          if(!String(m.publisherUrl).toUpperCase().includes('_47LV_KCM'))throw Error('Wrong publisher issue: '+m.publisherUrl);
+          if(!m.pdfSha256||!m.pageCount||!l.rows?.length)throw Error('Missing PDF or parsed offers');
+          console.log(JSON.stringify({issue:'47LV',pdfSha256:m.pdfSha256,pages:m.pageCount,offers:l.rows.length}));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: citymarket-47lv-original-and-reparsed
+          path: 47lv-capture/
+          retention-days: 14

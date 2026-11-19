@@ -182,8 +182,39 @@ test('47LV category regression: orange juice and dog treats override generic fru
   const category=new Function('clean',fn+';return category;')(text=>String(text));
   assert.equal(category('APPELSIINITÄYSMEHU 1 l'),'Juomat');
   assert.equal(category('APPELSIINIT 1 kg'),'Hevi');
-  assert.equal(category('THE DOG NAUGHTY HOT DOG 6 kpl/300 g'),'Lemmikit');
+  assert.equal(category('THE DOG NAUGHTY HOT DOG 6 kpl/300 g'),'Leipomo');
+  assert.equal(category('Naughty HOT DOG MAKKARAT 210 g'),'Liha & makkarat');
   assert.equal(category('KANAN FILEEVIIPALE 300 g'),'Liha & makkarat');
+});
+
+test('47LV candidate v165: all reported missing categories have a real product classification',()=>{
+  const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=source.indexOf('export function category(t:string){');
+  const end=source.indexOf('\n}',start);
+  assert.ok(start>=0&&end>start);
+  const category=new Function('clean',source.slice(start,end+2).replace('export function category(t:string)','function category(t)')+';return category;')(text=>String(text));
+  const cases=[
+    ['NESTESAIPPUOIDEN TÄYTTÖPUSSIT 300 ml','Hygienia & kosmetiikka'],
+    ['MEIKINKIINNITYSSUIHKE 150 ml','Hygienia & kosmetiikka'],
+    ['RANTIT 45 ml','Muut'],
+    ['VOITEET 50 ml sekä MEIKINPOISTOAINE 50 ml','Hygienia & kosmetiikka'],
+    ['WC-RAIKASTIMET 50 g','Kodinhoito'],
+    ['SINI SIIVOUSSOODA 800 g, SITRUUNAHAPPO 600 g','Kodinhoito'],
+    ['4 LEVITTEET 400 g 2','Maitotuotteet'],
+    ['AIRFRY KANAN FILEEVIIPALE tai PAISTIPALA 300–320 g','Liha & makkarat'],
+    ['T1ORTILLA ORIGINAL MEDIUM 320 g (3,59/kg)15','Kuivatuotteet'],
+    ['ULKOFILEESTÄ tai MUREUTETTU','Muut'],
+    ['THE DOG NAUGHTY HOT DOG 6 kpl/300 g','Leipomo'],
+    ['SALAME MILANO 70 g','Liha & makkarat'],
+    ['A4LKOHOLITON GLÖGI 0,75 l/pl','Juomat'],
+    ['G9LÖGI 8 % 0,75 l/pl','Juomat'],
+    ['C8HARDONNAY tai CABERNET SAUVIGNON 8 % 1 l/pl','Juomat'],
+  ];
+  for(const [title,expected] of cases){
+    // Old preflight flagged these rows before 47LV title repairs were applied.
+    // Orphan headings are suppressed separately and must not be approved as products.
+    if(expected!=='Muut')assert.equal(category(title),expected,title);
+  }
 });
 
 test('47LV Neon snapshot v165: preserve source evidence and flag malformed merged rows',()=>{
@@ -282,4 +313,141 @@ test('47LV suppression does not affect older or newer leaflet editions',()=>{
   assert.deepEqual(run('https://example.test/offer_46LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
   assert.deepEqual(run('https://example.test/offer_47LV_KCM/index.html'),[]);
   assert.deepEqual(run('https://example.test/offer_48LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
+});
+
+
+test('47LV reviewed publisher headings, category repairs and implausible price guard stay edition-scoped',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  assert.match(provider,/const is47LV=\/_47LV_KCM\/i\.test\(leafletUrl\)/);
+  assert.match(provider,/Rexona ja Rexona Men Max Protection DEODORANTIT 45 ml/);
+  assert.match(provider,/Naughty HOT DOG MAKKARAT 210 g/);
+  assert.match(provider,/Haribo JOULUKALENTERI 300 g/);
+  assert.match(provider,/Kinder MAXI MIX JOULUKALENTERI 351 g/);
+  assert.match(provider,/Lindt TEDDY JOULUKALENTERI 170 g/);
+  assert.match(provider,/GLÖGI 8 % 0,75 l/);
+  assert.match(provider,/Number\(resolved\.value\)>20/);
+  assert.match(provider,/WC-RAIKASTIMET.*"Kodinhoito"/);
+  assert.match(provider,/JOULUKALENTERI.*"Makeiset & keksit"/);
+  assert.match(provider,/^    if\(is47LV && \(/m);
+  assert.match(provider,/^      continue;$/m);
+});
+
+
+test('47LV title repairs execute against publisher geometry examples and do not alter 47AV',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('    const is47LV=/_47LV_KCM/i.test(leafletUrl);');
+  const end=provider.indexOf('    const title=/_47AV_KCM/i.test(leafletUrl)',start);
+  assert.ok(start>=0&&end>start);
+  const fragment=provider.slice(start,end).replace(/\(part:any\)/g,'(part)');
+  const run=(url,page,title,nearby=[],price=2.39)=>{
+    const fn=new Function('leafletUrl','row','titleBeforeSourceReview','resolved','console',
+      'let skipped=false;'+fragment.replace(/\bcontinue;/g,'skipped=true;')+
+      ';return {title:reviewed47LVTitle,skipped};');
+    return fn(url,{page,nearby},title,{value:price},{warn(){}});
+  };
+  const url='https://kcm-tarjouslehdet.k-ruoka.fi/example_47LV_KCM/index.html';
+  assert.equal(run(url,13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'Rexona ja Rexona Men Max Protection DEODORANTIT 45 ml');
+  assert.equal(run(url,18,'H3O T D O G MAKKARAT 210 g (17,57/kg) 69',['Naughty','MAKKARAT 210 g']).title,'Naughty HOT DOG MAKKARAT 210 g');
+  assert.equal(run(url,19,'H9aribo JOULUKALENTERI 300 g (32,63/kg) 79').title,'Haribo JOULUKALENTERI 300 g');
+  assert.equal(run(url,16,'4 LEVITTEET 400 g 2').title,'Eleplant KASVIVOIMAA LEVITTEET 400 g');
+  assert.equal(run(url,18,'ULKOFILEESTÄ tai MUREUTETTU').skipped,true);
+  assert.equal(run(url,18,'NAUDAN LEHTIPIHVI').skipped,true);
+  assert.equal(run(url,18,'NAUGHTY BURGER').skipped,true);
+  assert.equal(run(url,16,'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g').skipped,true);
+  assert.equal(run(url,20,'vadelmainen, mausteinen. 0 % 0,33 l/tlk OLUET 0,0 % 0,33 l/tlk').skipped,true);
+  assert.equal(run(url,18,'THE DOG NAUGHTY HOT DOG 6 kpl/300 g').title,'Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g');
+  assert.equal(run(url,20,'G9LÖGI 8 % 0,75 l/pl (12,25/l)',[],50.31).title,'GLÖGI 8 % 0,75 l/pl');
+  assert.equal(run(url,20,'GLÖGI 8 % 0,75 l/pl (12,25/l)',[],9.29).skipped,false);
+  assert.equal(run(url.replace('47LV','47AV'),13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'RANTIT 45 ml');
+});
+
+
+test('47LV PDF-reviewed price overrides execute on actual parser values',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('    if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT/');
+  const end=provider.indexOf('    const title=/_47AV_KCM/i.test(leafletUrl)',start);
+  assert.ok(start>=0 && end>start);
+  const fn=new Function('is47LV','row','reviewed47LVTitle','initialPrice',
+    'let price=initialPrice;'+provider.slice(start,end)+'return price;');
+  assert.equal(fn(true,{page:16},'Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl',3.05),3.49);
+  assert.equal(fn(true,{page:16},'Eleplant KASVIVOIMAA LEVITTEET 400 g',2.60),5.20);
+  assert.equal(fn(true,{page:20},'GLÖGI 8 % 0,75 l/pl',50.31),9.29);
+  assert.equal(fn(false,{page:20},'GLÖGI 8 % 0,75 l/pl',50.31),50.31);
+});
+
+
+test('47LV PDF-reviewed cards require exact edition and matching page evidence',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('  if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){');
+  const end=provider.indexOf('  const seen=new Set<string>();',start);
+  assert.ok(start>=0 && end>start,'reviewed PDF block must exist');
+  const run=(leafletUrl,sourceRows)=>{
+    const offers=[];
+    new Function('leafletUrl','sourceRows','offers',provider.slice(start,end).replace(/:number/g,'').replace(/:RegExp/g,'').replace(/:any/g,'').replace(/ as CitymarketOffer/g,''))(leafletUrl,sourceRows,offers);
+    return offers;
+  };
+  const url='https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html';
+  const rows=[
+    {page:1,title:'Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT-USJUOMAT'},
+    {page:1,title:'Ilman Plussa-korttia PORSAAN KASSLER n. 1 kg'},
+    {page:13,title:'HIUSTENHOITOTUOTTEET 100–300 ml'},
+    {page:13,title:'HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA'},
+    {page:13,title:'VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml'},
+    {page:15,title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS'},
+    {page:16,title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g'},
+    {page:18,title:'ULKOFILEEPIHVI 2 kpl/240 g BURGER 4 kpl/320 g'},
+    {page:20,title:'vadelmainen, mausteinen. 0 % 0,33 l/tlk OLUET 0,0 % 0,33 l/tlk'}
+  ];
+  const result=run(url,rows);
+  assert.equal(result.length,15);
+  const byTitle=(needle)=>result.find(o=>o.title.includes(needle));
+  assert.deepEqual([byTitle('PUNAKAALI').price,byTitle('PUNAKAALI').validTo],[0.99,'22.11.']);
+  assert.deepEqual([byTitle('KASSLER').price,byTitle('KASSLER').validTo],[5.99,'22.11.']);
+  assert.deepEqual([byTitle('HIUSTENHOITOTUOTTEET').price,byTitle('HIUSTENHOITOTUOTTEET').offerQuantity],[10.90,2]);
+  assert.deepEqual([byTitle('HAMMASTAHNARASIAT').price,byTitle('HAMMASTAHNARASIAT').offerQuantity],[10,4]);
+  assert.deepEqual([byTitle('Crisp RADLER').price,byTitle('Crisp RADLER').offerQuantity],[3,2]);
+  assert.deepEqual([byTitle('Kåska').price,byTitle('Kåska').offerQuantity],[4.7,2]);
+  assert.equal(run(url.replace('47LV','47AV'),rows).length,0);
+  assert.equal(run(url,rows.map(r=>({...r,page:99}))).length,0);
+  assert.equal(run(url,[]).length,0);
+});
+
+
+test('47LV pages 3–12 must not be treated as empty publisher pages',async()=>{
+  const leaflet='https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/';
+  const page=await fetch(leaflet+'files/basic-html/page3.html');
+  assert.equal(page.status,200);
+  const html=await page.text();
+  assert.match(html,/Familon/i);
+  assert.match(html,/VIKING/i);
+  assert.match(html,/VARAVIRTALÄHDE/i);
+  const page4=await fetch(leaflet+'files/basic-html/page4.html');
+  assert.equal(page4.status,200);
+  const html4=await page4.text();
+  assert.match(html4,/LEGO/i);
+  assert.match(html4,/LAUTA-/i);
+});
+
+
+test('47LV non-food pages are intentionally excluded without dropping grocery hygiene',async()=>{
+  const {productish}=await import('../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js');
+  for(const title of ['KAIKKI VIKING LASTEN KENGÄT','SÄHKÖHAMMASHARJA 1 kpl','VARAVIRTALÄHDE 10000 mAh','LEGO LELUT 1 kpl','LANGATTOMAT KUULOKKEET 1 kpl']){
+    assert.equal(productish(title),false,title);
+  }
+  for(const title of ['NESTESAIPPUOIDEN TÄYTTÖPUSSIT 300 ml','PYYKINPESUNESTEET 840 ml','WC-PAPERI 24 rl','MEIKKIVOITEET 30 ml','LUMENE KLASSIKKO VARTALONHOITOTUOTTEET','LUMENE KLASSIKKO KASVOJENHOITO- JA PUHDISTUSTUOTTEET','VARTALONHOITOTUOTTEET']){
+    assert.equal(productish(title),true,title);
+  }
+});
+
+test('47LV L’Oreal title cleanup removes only the printed footer',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const match=provider.match(/is47LV && (\/\^L’ORÉAL PARIS[^\n]+?\/i)\.test\(titleBeforeSourceReview\)\s*\? titleBeforeSourceReview\.replace\((\/[^\n]+?\/i),""\)\.trim\(\)/);
+  assert.ok(match,'cleanup must remain part of the actual provider');
+  const titlePattern=new Function('return '+match[1])();
+  const footerPattern=new Function('return '+match[2])();
+  const original='L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT Voimassa TO–SU 19.–22.11.2026 L’Oréal Paris foundation, Concealers & Telescopic mascaror';
+  const expected='L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT';
+  assert.equal(titlePattern.test(original),true);
+  assert.equal(original.replace(footerPattern,'').trim(),expected);
+  assert.equal('L’ORÉAL PARIS MEIKKIVOITEET'.replace(footerPattern,'').trim(),'L’ORÉAL PARIS MEIKKIVOITEET');
 });

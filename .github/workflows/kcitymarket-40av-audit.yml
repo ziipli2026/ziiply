@@ -2,6 +2,15 @@ name: K-Citymarket leaflet parser history
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      publication:
+        description: 'Leaflet issue to capture (default: 47LV)'
+        required: false
+        type: choice
+        options:
+          - 47LV
+          - 41AV
+        default: 47LV
   push:
     paths:
       - ".github/workflows/kcitymarket-40av-audit.yml"
@@ -36,6 +45,16 @@ jobs:
         run: node --test tests/kcitymarket-category-regression.test.cjs
       - name: Install isolated TypeScript for display regression
         run: npm install --prefix /tmp/ziiply-ci-typescript --no-package-lock --ignore-scripts --no-audit --no-fund typescript@5.9.3
+      - name: Run Citymarket publication database URL and approval safety tests
+        run: node --test tests/citymarket-publication-database-config.test.cjs
+      - name: Run 47LV Neon staging safety tests
+        if: github.head_ref == 'fix/citymarket-47lv-printed-quality-20261119' || (github.event_name == 'workflow_dispatch' && inputs.publication != '41AV')
+        run: node --test tests/citymarket-47lv-staging-guard.test.mjs
+      - name: Run 47LV provider and publication regression tests
+        if: github.head_ref == 'fix/citymarket-47lv-printed-quality-20261119' || (github.event_name == 'workflow_dispatch' && inputs.publication != '41AV')
+        env:
+          NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
+        run: node --test --test-name-pattern='^47LV (?!pages 3)' tests/citymarket-preflight.test.cjs
       - name: Run Citymarket multibuy display regression
         env:
           NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
@@ -80,8 +99,95 @@ jobs:
           // Source PDF integrity and parser replay were verified in earlier steps.
           NODE
 
+  capture-47lv:
+    permissions:
+      contents: write
+    if: (github.event_name == 'workflow_dispatch' && inputs.publication != '41AV') || (github.event_name == 'pull_request' && github.head_ref == 'fix/citymarket-47lv-printed-quality-20261119')
+    needs: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Capture and reparse original 47LV publisher source
+        run: |
+          node scripts/citymarket/export-leaflet.mjs 'https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html' /tmp/kcm-47lv-capture
+      - name: Verify exact 47LV issue, archived PDF, and parsed offers
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const dir='/tmp/kcm-47lv-capture/';
+          const manifest=JSON.parse(fs.readFileSync(dir+'archive-manifest.json','utf8'));
+          const leaflet=JSON.parse(fs.readFileSync(dir+'leaflet.json','utf8'));
+          if(!String(manifest.publisherUrl).toUpperCase().includes('_47LV_KCM'))throw Error('Publisher returned an unexpected issue: '+manifest.publisherUrl);
+          const pdfHash=createHash('sha256').update(fs.readFileSync(dir+'leaflet.pdf')).digest('hex');
+          if(pdfHash!==manifest.pdfSha256||manifest.pageCount!==20)throw Error('47LV original PDF source mismatch');
+          if(!leaflet.rows?.length||leaflet.rows.length!==manifest.offerCount)throw Error('47LV parsed offer count mismatch');
+          console.log('KCM_47LV_CAPTURE',JSON.stringify({pdfSha256:pdfHash,pages:manifest.pageCount,offers:leaflet.rows.length}));
+          NODE
+      - name: Audit unresolved 47LV raw cards (block approval on ambiguity)
+        run: node scripts/citymarket/audit-47lv-capture.mjs /tmp/kcm-47lv-capture
+      - name: Generate corrected 47LV Neon candidate with actual provider
+        env:
+          NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
+        run: |
+          npm install --prefix /tmp/ziiply-ci-typescript --no-package-lock --ignore-scripts --no-audit --no-fund typescript@5.9.3
+          node scripts/citymarket/build-47lv-neon-candidate.cjs
+      - name: Commit validated 47LV candidate to test branch for isolated Neon import
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/citymarket-47lv-printed-quality-20261119'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const report=JSON.parse(fs.readFileSync('/tmp/kcm-47lv-candidate/report.json','utf8'));
+          if(!report.ok||report.offerCount!==53||report.issues.length)throw Error('Candidate is not approved for test import');
+          NODE
+          mkdir -p tests/fixtures/citymarket
+          cp /tmp/kcm-47lv-candidate/offers.json tests/fixtures/citymarket/47lv-neon-candidate.json
+          cp /tmp/kcm-47lv-candidate/report.json tests/fixtures/citymarket/47lv-neon-candidate-report.json
+          # Write only the two validated JSON files through GitHub Contents API.
+          # Do not rebase a detached pull_request checkout: it may conflict with
+          # unrelated changes or merge the synthetic PR merge commit.
+          for file in tests/fixtures/citymarket/47lv-neon-candidate.json tests/fixtures/citymarket/47lv-neon-candidate-report.json; do
+            # The path is fixed, the contents are generated above and validated.
+            encoded=$(base64 -w0 "$file")
+            remote=$(gh api "repos/${GITHUB_REPOSITORY}/contents/$file?ref=fix/citymarket-47lv-printed-quality-20261119" 2>/dev/null || true)
+            sha=$(printf '%s' "$remote" | node -e 'let s="";process.stdin.on("data",x=>s+=x).on("end",()=>{try{process.stdout.write(JSON.parse(s).sha||"")}catch{}})')
+            # Skip byte-identical files: repeated writes cause an endless PR CI loop.
+            if [ -n "$sha" ] && printf '%s' "$remote" | node -e 'let s="";process.stdin.on("data",x=>s+=x).on("end",()=>{try{process.stdout.write(JSON.parse(s).content||"")}catch{}})' | base64 -d | cmp -s "$file" -; then
+              echo "Unchanged: $file"
+              continue
+            fi
+            if [ -n "$sha" ]; then
+              gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/$file" -f message="test(citymarket): archive validated 47LV candidate" -f branch="fix/citymarket-47lv-printed-quality-20261119" -f sha="$sha" -f content="$encoded" >/dev/null
+            else
+              gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/$file" -f message="test(citymarket): archive validated 47LV candidate" -f branch="fix/citymarket-47lv-printed-quality-20261119" -f content="$encoded" >/dev/null
+            fi
+          done
+      - name: Upload real 47LV candidate and validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcitymarket-47lv-neon-candidate
+          path: /tmp/kcm-47lv-candidate/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Upload 47LV source, PDF and parser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcitymarket-47lv-source-and-parser-evidence
+          path: /tmp/kcm-47lv-capture/
+          retention-days: 30
+          if-no-files-found: warn
+
   archive-current:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.publication == '41AV'
     permissions:
       contents: write
     needs: audit
