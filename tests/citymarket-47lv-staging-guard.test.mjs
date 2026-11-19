@@ -11,6 +11,8 @@ const valid=()=>[...names,...Array.from({length:48},(_,i)=>'Reviewed item '+i)]
 test('47LV valid PDF-reviewed staged publication is allowed',()=>assert.equal(validate47LVPublication(valid(),'2026-11-19-W47-LV').ok,true));
 test('other editions do not inherit 47LV-specific gate',()=>assert.equal(validate47LVPublication([{title:'x'}],'2026-11-23-W48-AV').ok,true));
 for(const [name,mutate,reason] of [
+ ['ambiguous Innocent litre rate',a=>a[7]={title:'Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl',price:3.49,unitPrice:3.39,category:'Juomat'},'ambiguous-innocent-unit-price'],
+ ['wrong glögi deposit rate',a=>a[7]={title:'ALKOHOLITON GLÖGI 0,75 l/pl Ei luomu (5,59/l) Sis. pantin 0,10',price:4.29,unitPrice:12.25,category:'Juomat'},'incorrect-deposit-adjusted-glogi-unit-price'],
  ['glögi 50.31',a=>a[7]={title:'GLÖGI 8 % 0,75 l/pl',price:50.31,category:'Juomat'},'unverified-glogi-price'],
  ['orphan heading',a=>a[7]={title:'NAUDAN LEHTIPIHVI',price:2.39,category:'Liha'},'merged-or-orphan-title'],
  ['merged heading',a=>a[7]={title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS',price:0.99,category:'Hedelmät & vihannekset'},'merged-or-orphan-title'],
