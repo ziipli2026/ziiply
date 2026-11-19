@@ -24,7 +24,7 @@ jobs:
       - name: Repeat parity for anomalies and previously untested terms
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          ZIIPLY_LIVE_URL: https://ziiply-k3ajyhh15-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-r1uzkbjsf-ziipli2026s-projects.vercel.app
           NORMAL_SEARCH_SELECTED_QUERIES: mustikka,vadelma,suklaa,muro,pakastevihannes,mansikka,cola,kahvi,kananmunat,banaani,pasta,jauheliha,jogurtti,oliiviöljy,rypsiöljy,peruna,porkkana,sipuli,tomaatti,paprika
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
