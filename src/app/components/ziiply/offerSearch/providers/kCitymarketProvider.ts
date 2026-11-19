@@ -785,6 +785,12 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){
     const hasMerged=(page:number,pattern:RegExp)=>sourceRows.some((r:any)=>Number(r?.page)===page && pattern.test(String(r?.title||"")));
     const reviewed=[
+      // Page 15 publisher PDF has four independent produce cards but the
+      // spatial parser merges all four into one unusable title.
+      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"PUNAKAALI Suomi",price:0.99,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
+      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"CELINA PÄÄRYNÄ Suomi",price:2.99,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
+      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"Järvikylä ROSMARIINI Suomi",price:2.99,quantity:1,unit:"KPL",category:"Hedelmät & vihannekset",to:"22.11."},
+      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"Oksasen puutarha JUICY SALAATTI 125 g Suomi",price:1.49,quantity:1,unit:"PS",category:"Hedelmät & vihannekset",to:"22.11."},
       {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Arla PROTEIN RAHKAT 200 g",price:3.50,quantity:4,unit:"PRK",category:"Maitotuotteet",to:"29.11."},
       {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Danone ACTIMEL JOGURTTIJUOMAT 8 x 100 g",price:3.69,quantity:1,unit:"PKT",category:"Maitotuotteet",to:"29.11."},
       {page:18,evidence:/ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i,title:"Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g",price:2.39,quantity:1,unit:"PS",category:"Leipomo",to:"22.11."},
