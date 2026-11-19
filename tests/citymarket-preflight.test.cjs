@@ -297,7 +297,7 @@ test('47LV reviewed publisher headings, category repairs and implausible price g
   assert.match(provider,/GLÖGI 8 % 0,75 l/);
   assert.match(provider,/Number\(resolved\.value\)>20/);
   assert.match(provider,/WC-RAIKASTIMET.*"Kodinhoito"/);
-  assert.match(provider,/JOULUKALENTERI.*"Makeiset"/);
+  assert.match(provider,/JOULUKALENTERI.*"Makeiset & keksit"/);
   assert.match(provider,/^    if\(is47LV && \(/m);
   assert.match(provider,/^      continue;$/m);
 });
