@@ -159,7 +159,7 @@ export async function GET(request: Request) {
       const page=await fetch(pageUrl,{headers:{accept:"application/json"},cache:"no-store",signal});
       if(!page.ok)throw new Error("Provider page HTTP "+page.status);
       const body=await page.json();return Array.isArray(body.items)?body.items:[];
-    });
+    }, 3, 4500);
     // Only when a generic bread search returns no priced items, retry two
     // narrower bread queries. Do not expand nonempty results or other categories.
     const breadFallbackTerms = normalizedSearch === "leipä" && ![...primaryItems, ...extraResponses.flat()].some(product => getPrice(product) > 0)
