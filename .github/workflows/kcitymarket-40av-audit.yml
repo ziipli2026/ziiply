@@ -158,6 +158,11 @@ jobs:
             encoded=$(base64 -w0 "$file")
             remote=$(gh api "repos/${GITHUB_REPOSITORY}/contents/$file?ref=fix/citymarket-47lv-printed-quality-20261119" 2>/dev/null || true)
             sha=$(printf '%s' "$remote" | node -e 'let s="";process.stdin.on("data",x=>s+=x).on("end",()=>{try{process.stdout.write(JSON.parse(s).sha||"")}catch{}})')
+            # Skip byte-identical files: repeated writes cause an endless PR CI loop.
+            if [ -n "$sha" ] && printf '%s' "$remote" | node -e 'let s="";process.stdin.on("data",x=>s+=x).on("end",()=>{try{process.stdout.write(JSON.parse(s).content||"")}catch{}})' | base64 -d | cmp -s "$file" -; then
+              echo "Unchanged: $file"
+              continue
+            fi
             if [ -n "$sha" ]; then
               gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/$file" -f message="test(citymarket): archive validated 47LV candidate" -f branch="fix/citymarket-47lv-printed-quality-20261119" -f sha="$sha" -f content="$encoded" >/dev/null
             else
