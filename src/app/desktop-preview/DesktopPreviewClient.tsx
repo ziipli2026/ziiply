@@ -642,20 +642,16 @@ export default function DesktopPreviewPage() {
   const fuelCandidates=(group:string)=>fuelStations.filter((s:any)=>{const distance=Number(s.distanceKm);return Boolean(gpsCoords||fuelLocationCoords) && fuelGroupOf(s)===group && Number.isFinite(distance) && distance>=0 && distance<=100 && (fuelStationSide==="both" || (fuelStationSide==="traffic"?fuelIsTraffic(s):!fuelIsTraffic(s)));}).sort((a:any,b:any)=>Number(a.distanceKm)-Number(b.distanceKm));
   const fuelSelectedStation=(group:string)=>{const items=fuelCandidates(group);return items.length?items[(fuelStationIndex[group]||0)%items.length]:null;};
   const fuelChangeStation=(group:string)=>{setFuelStationIndex(prev=>({...prev,[group]:((prev[group]||0)+1)%Math.max(1,fuelCandidates(group).length)}));setFuelCompared(false);};
-  // Match the mobile topbar: show the nearest station that has a valid fuel price.
-  // Stations with no reported prices must not hide available prices from nearby stations.
-  // Use the same station results as the desktop fuel price list, including locality searches.
-  const fuelNearestStation=fuelComparisonStations.filter((station:any)=>{
+  // The topbar shows the geographically closest station, regardless of price coverage.
+  // Never substitute a more distant station when the closest has missing prices.
+  const fuelNearestStation=fuelStations.filter((station:any)=>{
     const distance=Number(station.distanceKm);
-    const hasPrice=(["diesel","price95","price98"] as const).some(type=>{
-      const value=station?.[type];
-      return value!=null && Number.isFinite(Number(value)) && Number(value)>0;
-    });
-    return Number.isFinite(distance)&&distance>=0&&hasPrice;
+    return Number.isFinite(distance)&&distance>=0;
   }).sort((a:any,b:any)=>Number(a.distanceKm)-Number(b.distanceKm))[0]??null;
   const fuelClosestPrice=(type:"diesel"|"price95"|"price98")=>{
     const value=fuelNearestStation?.[type];
-    return value!=null && Number.isFinite(Number(value)) && Number(value)>0 ? Number(value) : undefined;
+    const timestamp=Date.parse(String(fuelNearestStation?.[type==="diesel"?"observedDiesel":type==="price95"?"observed95":"observed98"]??""));
+    return value!=null && Number.isFinite(Number(value)) && Number(value)>0 && Number.isFinite(timestamp) && timestamp<=Date.now() && Date.now()-timestamp<=7*24*60*60*1000?Number(value):undefined;
   };
   const fuelStationBrand=(station:any)=>{
     const combined=String(station?.name??"")+" "+String(station?.chain??"");
@@ -687,7 +683,7 @@ export default function DesktopPreviewPage() {
     const refreshFuelStations = () => {
       fetch(`/api/fuel/stations?lat=${fuelCoords.latitude}&lon=${fuelCoords.longitude}&t=${Date.now()}`, {cache:"no-store"})
         .then(async response => { const data=await response.json(); if(!response.ok||!data.ok) throw new Error(data.error||"Asematietojen haku epäonnistui"); return data; })
-        .then(data => { if(!controller.signal.aborted) setFuelStations((Array.isArray(data.stations)?data.stations:[]).filter((station:any)=>!/\bteboil\b/i.test(String(station?.chain??"")+" "+String(station?.name??"")))); })
+        .then(data => { if(!controller.signal.aborted) setFuelStations(Array.isArray(data.stations)?data.stations:[]); })
         .catch(() => {});
     };
     document.addEventListener("visibilitychange",refreshOnFocus);
