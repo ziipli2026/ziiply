@@ -118,3 +118,15 @@ test('mixed other department excludes verified apparel while retaining hygiene',
  const kept=moduleExports.normalizeTjekGroceryCategories(rows);
  assert.deepEqual(kept.map(row=>row.title),rows.slice(4).map(row=>row.title));
 });
+
+test('current live Tjek garden and electrical grooming merchandise do not leak into groceries',()=>{
+ const rows=[
+  {title:'Reilun kaupan KUKKAKIMPPU',debug:{tjekDepartmentSlug:'garden'}},
+  {title:'SÄHKÖSAVUSTIN',debug:{tjekDepartmentSlug:'garden'}},
+  {title:'GESKE Sonic Facial Brush KASVOHARJA',debug:{tjekDepartmentSlug:'beauty'}},
+  {title:'Oral-B VAIHTOHARJAT',debug:{tjekDepartmentSlug:'beauty'}},
+  {title:'LISTERINE SUUVESI',debug:{tjekDepartmentSlug:'other'}},
+  {title:'TUORE KIRJOLOHIFILEE',debug:{tjekDepartmentSlug:'meat-and-fish'}}
+ ];
+ assert.deepEqual(moduleExports.normalizeTjekGroceryCategories(rows).map(x=>x.title),rows.slice(4).map(x=>x.title));
+});
