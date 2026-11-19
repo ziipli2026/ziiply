@@ -585,6 +585,12 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
 
   const offers:CitymarketOffer[]=[];
   for(const row of rows){
+    // Do not publish a merged 47LV product card with a price belonging to
+    // only one of its headings. Retain the parser evidence for preflight.
+    if(row?.debugSuspiciousPublisherTitle?.reason==='merged-publisher-product-headings'){
+      console.warn('[K-Citymarket] Suppressed unresolved merged publisher card:',row?.page,row?.title);
+      continue;
+    }
     const campaignTitle=repairCitymarketOCRTitle(clean(row?.title||""));
     const percent=Number(row?.percentageOffer?.percent);
     if(!row?.spatialResolved && campaignTitle && !isNoiseLine(campaignTitle) && percent>0 && percent<100){
