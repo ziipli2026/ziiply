@@ -5,6 +5,7 @@ on:
       - test/normal-search-main-isolated-20261119
     paths:
       - '.github/workflows/normal-search-five-query-parity.yml'
+      - 'tests/normal-search-targeted-diagnostic.spec.cjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,7 +22,7 @@ jobs:
       - run: npm ci
       - run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install chromium
-      - name: Repeat parity for anomalies and previously untested terms
+      - name: Repeat parity with per-query provider request evidence
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           ZIIPLY_LIVE_URL: https://ziiply-r1uzkbjsf-ziipli2026s-projects.vercel.app
