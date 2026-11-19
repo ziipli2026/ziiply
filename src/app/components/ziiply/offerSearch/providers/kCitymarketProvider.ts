@@ -647,6 +647,14 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "Naughty HOT DOG MAKKARAT 210 g"
       : is47LV && Number(row?.page)===18 && /^THE DOG NAUGHTY HOT DOG 6 kpl\/300 g/i.test(titleBeforeSourceReview)
         ? "Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g"
+      : is47LV && Number(row?.page)===16 && /^TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl/i.test(titleBeforeSourceReview)
+        ? "Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl"
+      : is47LV && Number(row?.page)===16 && /^4 LEVITTEET 400 g 2$/i.test(titleBeforeSourceReview)
+        ? "Eleplant KASVIVOIMAA LEVITTEET 400 g"
+      : is47LV && Number(row?.page)===18 && /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(titleBeforeSourceReview)
+        ? "Snellman NAUDAN LEHTIPIHVI ULKOFILEESTÄ tai MUREUTETTU ULKOFILEEPIHVI 2 kpl/240 g"
+      : is47LV && Number(row?.page)===20 && /^G9LÖGI 8 % 0,75 l\/pl/i.test(titleBeforeSourceReview)
+        ? "GLÖGI 8 % 0,75 l/pl"
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 200 g$/i.test(titleBeforeSourceReview)
         ? "Pokemon ja Dolci Lilo ja Stitch JOULUKALENTERI 200 g"
       : is47LV && Number(row?.page)===19 && /^H9aribo JOULUKALENTERI 300 g/i.test(titleBeforeSourceReview)
@@ -663,15 +671,19 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       : titleBeforeSourceReview;
     // Incomplete headings and geometrically merged cards must not be sold as
     // standalone offers. Preserve evidence in the frozen parser archive.
-    if(is47LV && (/^4 LEVITTEET 400 g 2$/i.test(reviewed47LVTitle) ||
+    if(is47LV && (/^JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g$/i.test(reviewed47LVTitle) ||
+      /^vadelmainen, mausteinen\./i.test(reviewed47LVTitle) ||
       /^ULKOFILEESTÄ tai MUREUTETTU$/i.test(reviewed47LVTitle) ||
       /^NAUDAN LEHTIPIHVI$/i.test(reviewed47LVTitle) ||
       /^NAUGHTY BURGER$/i.test(reviewed47LVTitle) ||
-      /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(reviewed47LVTitle) ||
+
       (/^GLÖGI 8 % 0,75 l\/pl/i.test(reviewed47LVTitle) && Number(resolved.value)>20))) {
       console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);
       continue;
     }
+    if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT/.test(reviewed47LVTitle)) price=3.49;
+    if(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(reviewed47LVTitle)) price=5.20;
+    if(is47LV && Number(row?.page)===20 && /^GLÖGI 8 %/.test(reviewed47LVTitle)) price=9.29;
     const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
       ? "MUU LIHATON- tai KANATON LASTU 220 g" : reviewed47LVTitle;
     if(!title || isNoiseLine(title)) continue;
