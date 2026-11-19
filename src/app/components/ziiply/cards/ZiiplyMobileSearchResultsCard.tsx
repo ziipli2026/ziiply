@@ -240,7 +240,14 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             )}
 
-            {products.map((product, index) => {
+            {products.filter((product, index, all) => {
+              const ean = String(product.ean ?? product.product?.ean ?? "").replace(/\D/g, "");
+              // The same EAN can arrive from multiple selected stores. Keep the
+              // first (already price-ranked) product, but retain distinct items
+              // without a valid barcode rather than collapsing them together.
+              if (!/^(?:\d{8}|\d{12,14})$/.test(ean)) return true;
+              return all.findIndex(item => String(item.ean ?? item.product?.ean ?? "").replace(/\D/g, "") === ean) === index;
+            }).map((product, index) => {
                 const image = getImage(product);
                 const name = getName(product);
                 const rawPrice = pickRawPrice(product);
