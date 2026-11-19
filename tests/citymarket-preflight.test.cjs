@@ -319,12 +319,14 @@ test('47LV title repairs execute against publisher geometry examples and do not 
   assert.equal(run(url,13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'Rexona ja Rexona Men Max Protection DEODORANTIT 45 ml');
   assert.equal(run(url,18,'H3O T D O G MAKKARAT 210 g (17,57/kg) 69',['Naughty','MAKKARAT 210 g']).title,'Naughty HOT DOG MAKKARAT 210 g');
   assert.equal(run(url,19,'H9aribo JOULUKALENTERI 300 g (32,63/kg) 79').title,'Haribo JOULUKALENTERI 300 g');
-  assert.equal(run(url,16,'4 LEVITTEET 400 g 2').skipped,true);
+  assert.equal(run(url,16,'4 LEVITTEET 400 g 2').title,'Eleplant KASVIVOIMAA LEVITTEET 400 g');
   assert.equal(run(url,18,'ULKOFILEESTÄ tai MUREUTETTU').skipped,true);
   assert.equal(run(url,18,'NAUDAN LEHTIPIHVI').skipped,true);
   assert.equal(run(url,18,'NAUGHTY BURGER').skipped,true);
+  assert.equal(run(url,16,'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g').skipped,true);
+  assert.equal(run(url,20,'vadelmainen, mausteinen. 0 % 0,33 l/tlk OLUET 0,0 % 0,33 l/tlk').skipped,true);
   assert.equal(run(url,18,'THE DOG NAUGHTY HOT DOG 6 kpl/300 g').title,'Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g');
-  assert.equal(run(url,20,'GLÖGI 8 % 0,75 l/pl (12,25/l)',[],50.31).skipped,true);
+  assert.equal(run(url,20,'G9LÖGI 8 % 0,75 l/pl (12,25/l)',[],50.31).title,'GLÖGI 8 % 0,75 l/pl');
   assert.equal(run(url,20,'GLÖGI 8 % 0,75 l/pl (12,25/l)',[],9.29).skipped,false);
   assert.equal(run(url.replace('47LV','47AV'),13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'RANTIT 45 ml');
 });
