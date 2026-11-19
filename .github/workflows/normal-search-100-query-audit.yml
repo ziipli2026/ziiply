@@ -4,6 +4,7 @@ on:
     branches: [test/normal-search-main-isolated-20261119]
     paths:
       - '.github/workflows/normal-search-100-query-audit.yml'
+      - 'tests/normal-search-targeted-diagnostic.spec.cjs'
   workflow_dispatch:
 permissions:
   contents: read
