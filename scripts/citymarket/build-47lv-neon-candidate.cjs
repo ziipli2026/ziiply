@@ -31,7 +31,7 @@ const ts=require('typescript');
  const offers=await mod.exports.fetchKCitymarketOffersFresh(url);
  const result=modules['./kCitymarket47LVStagingGuard.js'].validate47LVPublication(offers,'2026-11-19-W47-LV');
  const report={edition:'2026-11-19-W47-LV',sourceUrl:url,offerCount:offers.length,ok:result.ok,issues:result.issues,
-   missingImages:offers.filter(x=>!x.imageUrl).length};
+   imageCoverage:'not-checked-in-isolated-provider-replay'};
  fs.mkdirSync('/tmp/kcm-47lv-candidate',{recursive:true});
  fs.writeFileSync('/tmp/kcm-47lv-candidate/report.json',JSON.stringify(report,null,2));
  fs.writeFileSync('/tmp/kcm-47lv-candidate/offers.json',JSON.stringify(offers,null,2));
