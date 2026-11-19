@@ -29,6 +29,8 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
     const page=await context.newPage();
     const errors=[],apiResponses=[],providerEanPresence=[],providerChecks=[],responseBodyChecks=[],providerBodyShapes=[],decisionSummaries=[];
+    const anomalyQueries=new Set(['mansikka','suklaa','makkara','vadelma','mustikka','muro','pakastevihannes']);
+    const anomalyEans=['6417801801004','6407800000980','6410405181091','6411020008015','8445292269520'];
     page.on('console',msg=>{if(msg.text().startsWith('[normal-search-decision-summary]')){try{const item=JSON.parse(msg.text().slice('[normal-search-decision-summary]'.length).trim());decisionSummaries.push({device,...item});console.log('[normal-parity] DECISION SUMMARY',JSON.stringify({device,...item}));}catch{}}});
     page.on('console',msg=>{if(msg.text().startsWith('[normal-search-finalization-summary]')){try{const item=JSON.parse(msg.text().slice('[normal-search-finalization-summary]'.length).trim());decisionSummaries.push({device,stage:'finalization',...item});console.log('[normal-parity] FINALIZATION SUMMARY',JSON.stringify({device,...item}));}catch{}}});
     let currentSearchQuery='';
@@ -60,6 +62,16 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
             console.log('[normal-parity] PROVIDER BODY SHAPE',JSON.stringify(item));
           }).catch(error=>console.log('[normal-parity] PROVIDER BODY ERROR',JSON.stringify({device,query:queryAtRequest,path:u.pathname,error:String(error)})));
           responseBodyChecks.push(check);
+        }
+        if(anomalyQueries.has(currentSearchQuery) && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
+          const queryAtResponse=currentSearchQuery;
+          const check=r.text().then(body=>{
+            const matches=anomalyEans.filter(ean=>body.includes(ean));
+            const item={device,query:queryAtResponse,path:u.pathname,requestSearch:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),bodyLength:body.length,matchingEans:matches};
+            providerEanPresence.push(item);
+            console.log('[normal-parity] ANOMALY PROVIDER EANS',JSON.stringify(item));
+          }).catch(error=>console.log('[normal-parity] ANOMALY PROVIDER ERROR',String(error)));
+          providerChecks.push(check);
         }
         if(currentSearchQuery==='juusto' && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
           const requestSearch=u.searchParams.get('search');
@@ -333,7 +345,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           providerResponses:apiResponses.slice(apiResponseStart).map(x=>({
             path:x.path,search:x.search,status:x.status,method:x.method,searchAtResponse:x.searchAtResponse
           })),
-          samples:snapshots.slice(0,25),targetProduct:snapshots.find(x=>x.ean==='3073780902441')||null,durationMs:Date.now()-startedAt});
+          samples:snapshots.slice(0,25),allCards:anomalyQueries.has(query)?snapshots:undefined,targetProduct:snapshots.find(x=>x.ean==='3073780902441')||null,durationMs:Date.now()-startedAt});
         console.log('[normal-parity] CONTENT SAMPLES',JSON.stringify({device,query,total:snapshots.length,first:snapshots.slice(0,12)}));
         console.log('[normal-parity] complete',device,query,'unique='+eans.length,'rendered='+snapshots.length,'ms='+String(Date.now()-startedAt));
         checkpoint();
