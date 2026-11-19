@@ -660,6 +660,10 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "Eleplant KASVIVOIMAA LEVITTEET 400 g"
       : is47LV && Number(row?.page)===18 && /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(titleBeforeSourceReview)
         ? "Snellman NAUDAN LEHTIPIHVI ULKOFILEESTÄ tai MUREUTETTU ULKOFILEEPIHVI 2 kpl/240 g"
+      : is47LV && Number(row?.page)===18 && /^JUUSTOVIIPALEET 120–200 g$/i.test(titleBeforeSourceReview) && /Kuusamon Juusto/.test(sourceRows.filter((x:any)=>Number(x?.page)===18).map((x:any)=>(x?.nearby||[]).join(" ")).join(" "))
+        ? "Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g"
+      : is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g \(3,59\/kg\)15$/i.test(titleBeforeSourceReview)
+        ? "TORTILLA ORIGINAL MEDIUM 320 g"
       : is47LV && Number(row?.page)===20 && /^G9LÖGI 8 % 0,75 l\/pl/i.test(titleBeforeSourceReview)
         ? "GLÖGI 8 % 0,75 l/pl"
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 200 g$/i.test(titleBeforeSourceReview)
