@@ -245,6 +245,26 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       if(included)rows.push(product);
     }
   }
+  // Aggregate diagnostic only: no product names, EANs, or raw provider payloads.
+  // This identifies whether empty results arise from relevance, price, or
+  // local-store verification, without altering the normal search result set.
+  const decisionSummary = {
+    query,
+    providerRows: productDecisions.length,
+    accepted: productDecisions.filter(d => d.included).length,
+    rejectedByRelevance: productDecisions.filter(d => d.normalRejected).length,
+    missingOrInvalidPrice: productDecisions.filter(d => !d.normalRejected && d.displayPrice === null).length,
+    explicitlyUnverifiedPrice: productDecisions.filter(d => !d.normalRejected && d.displayPrice !== null && d.product.priceVerified === false).length,
+    rejectedByOtherPriceGate: productDecisions.filter(d => !d.normalRejected && d.displayPrice !== null && d.product.priceVerified !== false && !d.included).length,
+    perChain: Object.fromEntries([...new Set(productDecisions.map(d => String(d.product.__chain)))].map(chain => {
+      const decisions = productDecisions.filter(d => String(d.product.__chain) === chain);
+      return [chain, {total: decisions.length, accepted: decisions.filter(d => d.included).length,
+        relevanceRejected: decisions.filter(d => d.normalRejected).length,
+        priceRejected: decisions.filter(d => !d.normalRejected && !d.included).length}];
+    })),
+  };
+  report("decision_summary", decisionSummary);
+  trace("decision_summary", decisionSummary);
   const rankedRows = rankStoreRows(query, rows);
   // Lidl public research and Neon catalog identities are useful for matching,
   // but neither establishes a current store price. Never show them as priced results.
