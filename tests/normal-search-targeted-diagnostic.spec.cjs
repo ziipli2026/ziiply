@@ -1,5 +1,6 @@
 const {test,expect,devices}=require('@playwright/test');
 const fs=require('node:fs');
+const crypto=require('node:crypto');
 const base=process.env.ZIIPLY_LIVE_URL;
 const fullCorpus=require('./normal-search-100-queries.cjs');
 const legacyQueries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
@@ -28,7 +29,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
     const page=await context.newPage();
-    const errors=[],apiResponses=[],providerEanPresence=[],providerChecks=[],responseBodyChecks=[],providerBodyShapes=[],decisionSummaries=[];
+    const errors=[],apiResponses=[],providerEanPresence=[],providerChecks=[],responseBodyChecks=[],providerBodyShapes=[],decisionSummaries=[],providerFingerprints=[];
     const anomalyQueries=new Set(['mansikka','suklaa','makkara','vadelma','mustikka','muro','pakastevihannes']);
     const anomalyEans=['6417801801004','6407800000980','6410405181091','6411020008015','8445292269520'];
     page.on('console',msg=>{if(msg.text().startsWith('[normal-search-decision-summary]')){try{const item=JSON.parse(msg.text().slice('[normal-search-decision-summary]'.length).trim());decisionSummaries.push({device,...item});console.log('[normal-parity] DECISION SUMMARY',JSON.stringify({device,...item}));}catch{}}});
@@ -43,6 +44,15 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           search:u.searchParams.get('search'),requestUrl:u.pathname+u.search,
           searchAtResponse:currentSearchQuery
         });
+        if(currentSearchQuery==='suklaa' && /\\/api\\/(?:neon-first-search|k-products|s-products)/.test(u.pathname)){
+          const queryAtResponse=currentSearchQuery;
+          const fingerprint=r.body().then(body=>{
+            const record={device,query:queryAtResponse,path:u.pathname,search:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),bytes:body.length,sha256:crypto.createHash('sha256').update(body).digest('hex')};
+            providerFingerprints.push(record);
+            console.log('[normal-parity] PROVIDER BODY SHA256',JSON.stringify(record));
+          }).catch(error=>console.log('[normal-parity] PROVIDER BODY SHA256 ERROR',String(error)));
+          providerChecks.push(fingerprint);
+        }
         // Capture the response structure for queries that currently produce no
         // rendered cards. HTTP 200 alone does not prove the API returned products.
         if(['paprika','salaatti','appelsiini'].includes(currentSearchQuery)
@@ -352,7 +362,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         },{timeout:120000});
       }
       console.log('[normal-parity] BABYBEL PROVIDER TRACE',JSON.stringify({device,requests:providerEanPresence}));
-      evidence.layouts[device]={results,errors,noResultDiagnostics,providerEanPresence,apiResponses};
+      evidence.layouts[device]={results,errors,noResultDiagnostics,providerEanPresence,apiResponses,providerFingerprints};
       expect(errors,'Browser page errors').toEqual([]);
     }finally{await context.close();}
   }
