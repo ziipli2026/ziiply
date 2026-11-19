@@ -202,8 +202,8 @@ test('47LV Neon snapshot v165: preserve source evidence and flag malformed merge
     if(/PUNAKAALI KG PÄÄRYNÄ KG/.test(t))return 'merged-produce';
     if(/JOGURTTIJUOMAT PROTEIN RAHKAT/.test(t))return 'merged-dairy';
     if(/^(?:ULKOFILEESTÄ tai MUREUTETTU|TUOTTEET ja )/.test(t))return 'orphan-heading';
-    const unit=t.match(/\\((\\d+[,.]\\d+)\\/l\\)/);
-    const volume=t.match(/(\\d+[,.]\\d+)\\s*l\\/pl/);
+    const unit=t.match(/\((\d+[,.]\d+)\/l\)/);
+    const volume=t.match(/(\d+[,.]\d+)\s*l\/pl/);
     if(unit&&volume&&Number.isFinite(row.price)){
       const expected=Number(unit[1].replace(',','.'))*Number(volume[1].replace(',','.'));
       if(Math.abs(row.price-expected)>Math.max(1,expected*.25))return 'price-unit-conflict';
