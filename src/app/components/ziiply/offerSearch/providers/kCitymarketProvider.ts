@@ -705,11 +705,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // The printed Santa Maria tortilla 320 g card is 1,15 € / pkt.
     if(is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g/i.test(reviewed47LVTitle)) price=1.15;
     if(is47LV && Number(row?.page)===17 && /^T1?ORTILLA CHIPSIT 160–185 g/i.test(reviewed47LVTitle)) price=1.39;
-    const title=is47LV && Number(row?.page)===17 && /^LEMPI CREM-E FRAICHE 200 g ja SMETANA 150 g/i.test(reviewed47LVTitle)
-      ? reviewed47LVTitle.replace(/^LEMPI CREM-E FRAICHE/i,"Arla LEMPI CRÈME FRAÎCHE")
-      : is47LV && /^Haribo JOULUKALENTERI 300 g \(32,63\/kg\) 79$/i.test(reviewed47LVTitle)
-      ? reviewed47LVTitle.replace(/ 79$/,"")
-      : /_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
+    const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
       ? "MUU LIHATON- tai KANATON LASTU 220 g" : reviewed47LVTitle;
     if(!title || isNoiseLine(title)) continue;
     // 45AV page 3: Innocent juice 900 ml OR smoothie 750 ml, 3.49 € incl. 0.20 € deposit.
