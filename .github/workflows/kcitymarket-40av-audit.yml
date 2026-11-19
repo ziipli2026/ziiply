@@ -90,7 +90,7 @@ jobs:
           NODE
 
   capture-47lv:
-    if: github.event_name == 'workflow_dispatch' && inputs.publication != '41AV'
+    if: (github.event_name == 'workflow_dispatch' && inputs.publication != '41AV') || (github.event_name == 'pull_request' && github.head_ref == 'fix/citymarket-47lv-printed-quality-20261119')
     needs: audit
     runs-on: ubuntu-latest
     timeout-minutes: 15
