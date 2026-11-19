@@ -249,7 +249,7 @@ test('47LV unresolved merged cards are not emitted by the provider',()=>{
     {title:'JOGURTTIJUOMAT PROTEIN RAHKAT',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}},
     {title:'PUNAKAALI KG'},
   ];
-  const emitted=new Function('rows','console','leafletUrl', 'const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}},'https://example.test/47LV_KCM/index.html');
+  const emitted=new Function('rows','console','leafletUrl', 'const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}},'https://example.test/offer_47LV_KCM/index.html');
   assert.deepEqual(emitted,['PUNAKAALI KG']);
 });
 
@@ -279,7 +279,7 @@ test('47LV suppression does not affect older or newer leaflet editions',()=>{
   const guard=provider.slice(start,end);
   const rows=[{title:'PUNAKAALI KG PÄÄRYNÄ KG',debugSuspiciousPublisherTitle:{reason:'merged-publisher-product-headings'}}];
   const run=url=>new Function('rows','console','leafletUrl','const emitted=[];'+guard+'emitted.push(row.title); } return emitted;')(rows,{warn(){}},url);
-  assert.deepEqual(run('https://example.test/46LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
-  assert.deepEqual(run('https://example.test/47LV_KCM/index.html'),[]);
-  assert.deepEqual(run('https://example.test/48LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
+  assert.deepEqual(run('https://example.test/offer_46LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
+  assert.deepEqual(run('https://example.test/offer_47LV_KCM/index.html'),[]);
+  assert.deepEqual(run('https://example.test/offer_48LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
 });
