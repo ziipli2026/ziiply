@@ -323,7 +323,7 @@ export function desktopSearchDecision(query: string, product: Row) {
   // A bare fresh-produce search must not match a drink, flavour or meal
   // only because it contains the requested fruit or vegetable ingredient.
   if(requestedTerms.length===1 && ['appelsiini','banaani','tomaatti','kurkku'].includes(requestedTerms[0])) {
-    const incompatible=/lonkero|juoma|drink|tee(?: |$)|mehu|smoothie|proteiinijuoma|ruokakerma|kaururuoka|kastike|keitto|marinoitu|mauste|keksi|kakku|jogurtti|rahka|vanukas|suklaa|aromi|maku/;
+    const incompatible=/lonkero|juoma|drink|tee(?: |$)|rooibos|yrttitee|hauduke|mehu|smoothie|proteiinijuoma|ruokakerma|kaururuoka|kastike|keitto|marinoitu|mauste|keksi|kakku|jogurtti|rahka|vanukas|suklaa|aromi|maku/;
     if(incompatible.test(originalIdentity))
       return {accepted:false,score:-10000,reason:'fresh_produce_not_ingredient_flavour'};
   }
