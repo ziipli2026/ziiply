@@ -701,6 +701,9 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT/.test(reviewed47LVTitle)) price=3.49;
     if(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(reviewed47LVTitle)) price=5.20;
     if(is47LV && Number(row?.page)===20 && /^GLÖGI 8 %/.test(reviewed47LVTitle)) price=9.29;
+    // 47LV p17: OCR borrowed the neighbouring chips price (1,39 €).
+    // The printed Santa Maria tortilla 320 g card is 1,15 € / pkt.
+    if(is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g/i.test(reviewed47LVTitle)) price=1.15;
     const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
       ? "MUU LIHATON- tai KANATON LASTU 220 g" : reviewed47LVTitle;
     if(!title || isNoiseLine(title)) continue;
@@ -765,7 +768,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       benefitText:verified45LV?.reviewedCard?"Plussa-etu":benefitText,
       campaignType,
       validFrom:row.printedValidity?.from??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
-      validTo:is47LV && (Number(row?.page)===18 || (Number(row?.page)===20 && /^(?:ALKOHOLITON GLÖGI|GLÖGI 8 %)/i.test(title))) ? "22.11." : row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
+      validTo:is47LV && (Number(row?.page)===17 || Number(row?.page)===18 || (Number(row?.page)===20 && /^(?:ALKOHOLITON GLÖGI|GLÖGI 8 %)/i.test(title))) ? "22.11." : row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
       category:is47LV && /^Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET/i.test(title) ? "Maitotuotteet" : is47LV && /(?:DEODORANTIT|DEODO-)/i.test(title) ? "Hygienia & kosmetiikka" : is47LV && /WC-RAIKASTIMET/i.test(title) ? "Kodinhoito" : is47LV && /JOULUKALENTERI/i.test(title) && /(?:Haribo|Kinder|Lindt|After Eight|KitKat|Smarties|Nestlé|Dolci)/i.test(title) ? "Makeiset & keksit" : /\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(title,category(title)):category(title),
       chain:"K",
       storeType:"K-Citymarket",
