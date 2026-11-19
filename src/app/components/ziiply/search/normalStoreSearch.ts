@@ -1,6 +1,6 @@
 import { desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence, searchWords } from "./desktopNormalRelevance";
 import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./normalSearchCatalog";
-import { finalizeNormalSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
+import { finalizeNormalSearchResults, rankNormalSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
 
 export type NormalSearchStore = { chain: "S" | "K" | "LIDL" | "TOKMANNI" | "SPAR"; id: string | number; name: string; city?: string; address?: string; type?: "local" | "hyper" };
 type Observer = (stage: string, data: Record<string, unknown>) => void;
@@ -269,6 +269,15 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   const rankedRows = rankStoreRows(query, rows);
   // Lidl public research and Neon catalog identities are useful for matching,
   // but neither establishes a current store price. Never show them as priced results.
+  const finalizationSummary = {
+    query,
+    acceptedBeforeFinalization: rows.length,
+    afterLegacySemanticRanking: rankNormalSearchResults(query, rows, product => product.__price ?? Number.POSITIVE_INFINITY).length,
+    afterFinalization: rankedRows.length,
+  };
+  if (typeof window !== "undefined" && window.sessionStorage.getItem("ziiply-normal-search-diagnostic") === "1") console.info("[normal-search-finalization-summary]", JSON.stringify(finalizationSummary));
+  report("finalization_summary", finalizationSummary);
+  trace("finalization_summary", finalizationSummary);
   const sortedRows = rankedRows.slice(0, 100);
   if (!signal?.aborted && failures.length === 0) rememberCachedSearch(cacheKey, sortedRows);
   trace("lidl_catalog_research", {researchCount:research.size, catalogCount:neonRows.length, pricedLidlCount:rows.filter(row=>row.__chain==="LIDL").length});
