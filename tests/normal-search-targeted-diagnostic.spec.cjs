@@ -59,7 +59,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           }).catch(error=>console.log('[normal-parity] PROVIDER BODY ERROR',JSON.stringify({device,query:queryAtRequest,path:u.pathname,error:String(error)})));
           responseBodyChecks.push(check);
         }
-        if(currentSearchQuery==='juusto' && /\/api\/(?:k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
+        if(currentSearchQuery==='juusto' && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
           const requestSearch=u.searchParams.get('search');
           const check=r.text().then(body=>{
             const index=body.indexOf('3073780902441');
@@ -331,7 +331,8 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         checkpoint();
         },{timeout:120000});
       }
-      evidence.layouts[device]={results,errors,noResultDiagnostics};
+      console.log('[normal-parity] BABYBEL PROVIDER TRACE',JSON.stringify({device,requests:providerEanPresence}));
+      evidence.layouts[device]={results,errors,noResultDiagnostics,providerEanPresence};
       expect(errors,'Browser page errors').toEqual([]);
     }finally{await context.close();}
   }
