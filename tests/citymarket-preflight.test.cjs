@@ -330,3 +330,17 @@ test('47LV title repairs execute against publisher geometry examples and do not 
   assert.equal(run(url,20,'GLÖGI 8 % 0,75 l/pl (12,25/l)',[],9.29).skipped,false);
   assert.equal(run(url.replace('47LV','47AV'),13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'RANTIT 45 ml');
 });
+
+
+test('47LV PDF-reviewed price overrides execute on actual parser values',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('    if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT/');
+  const end=provider.indexOf('    const title=/_47AV_KCM/i.test(leafletUrl)',start);
+  assert.ok(start>=0 && end>start);
+  const fn=new Function('is47LV','row','reviewed47LVTitle','initialPrice',
+    'let price=initialPrice;'+provider.slice(start,end)+'return price;');
+  assert.equal(fn(true,{page:16},'Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl',3.05),3.49);
+  assert.equal(fn(true,{page:16},'Eleplant KASVIVOIMAA LEVITTEET 400 g',2.60),5.20);
+  assert.equal(fn(true,{page:20},'GLÖGI 8 % 0,75 l/pl',50.31),9.29);
+  assert.equal(fn(false,{page:20},'GLÖGI 8 % 0,75 l/pl',50.31),50.31);
+});
