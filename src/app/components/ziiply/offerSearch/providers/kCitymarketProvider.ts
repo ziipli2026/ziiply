@@ -769,7 +769,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       benefitText:verified45LV?.reviewedCard?"Plussa-etu":benefitText,
       campaignType,
       validFrom:row.printedValidity?.from??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
-      validTo:is47LV && (Number(row?.page)===17 || Number(row?.page)===18 || (Number(row?.page)===20 && /^(?:ALKOHOLITON GLÖGI|GLÖGI 8 %)/i.test(title))) ? "22.11." : row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
+      validTo:is47LV && (Number(row?.page)===1 || Number(row?.page)===17 || Number(row?.page)===18 || (Number(row?.page)===20 && /^(?:ALKOHOLITON GLÖGI|GLÖGI 8 %)/i.test(title))) ? "22.11." : row.printedValidity?.to??extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
       category:is47LV && /^Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET/i.test(title) ? "Maitotuotteet" : is47LV && /(?:DEODORANTIT|DEODO-)/i.test(title) ? "Hygienia & kosmetiikka" : is47LV && /WC-RAIKASTIMET/i.test(title) ? "Kodinhoito" : is47LV && /JOULUKALENTERI/i.test(title) && /(?:Haribo|Kinder|Lindt|After Eight|KitKat|Smarties|Nestlé|Dolci)/i.test(title) ? "Makeiset & keksit" : /\bBONBONS\b/i.test(title)&&(row.nearby||[]).some((line:string)=>/^JÄÄTELÖT$/i.test(line.trim()))?"Pakasteet":/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(title,category(title)):category(title),
       chain:"K",
       storeType:"K-Citymarket",
@@ -785,6 +785,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){
     const hasMerged=(page:number,pattern:RegExp)=>sourceRows.some((r:any)=>Number(r?.page)===page && pattern.test(String(r?.title||"")));
     const reviewed=[
+      // Cover page: spatial OCR merges the two-pack soft-drink offer and
+      // Kivikylä kassler into one heading; persimmon is missing entirely.
+      {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOITUSJUOMAT 0,33 l/tlk 6-pack",price:7.00,quantity:2,unit:"6-PACK",category:"Juomat",to:"22.11."},
+      {page:1,evidence:/Ilman Plussa-korttia PORSAAN KASSLER/i,title:"Kivikylän PORSAAN KASSLER n. 1 kg",price:5.99,quantity:1,unit:"KG",category:"Liha",to:"22.11."},
+      {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"PERSIMON Espanja",price:2.49,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
       // Page 15 publisher PDF has four independent produce cards but the
       // spatial parser merges all four into one unusable title.
       {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"PUNAKAALI Suomi",price:0.99,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
