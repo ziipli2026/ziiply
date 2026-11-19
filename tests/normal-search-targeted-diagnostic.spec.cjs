@@ -344,6 +344,21 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       if(result.duplicates)evidence.duplicates.push({device,query,count:result.duplicates});
     }
   }
+  // Regression against concrete wrong-type EANs observed in live results.
+  // Keep positive controls so the filter cannot pass by removing all produce.
+  const produceChecks={
+    tomaatti:{reject:['6413300026849'],keep:['2003304300003']},
+    appelsiini:{reject:['6419800082682'],keep:['2000041000005']},
+    banaani:{reject:['4002971329001'],keep:['2005603200008']},
+    kurkku:{reject:['4823006806522'],keep:['2000604700007']}
+  };
+  for(const device of ['mobile','desktop']){
+    for(const [query,check] of Object.entries(produceChecks)){
+      const actual=evidence.layouts[device].results.find(x=>x.query===query)?.eans||[];
+      for(const ean of check.reject)expect(actual,device+' '+query+' must reject unrelated EAN '+ean).not.toContain(ean);
+      for(const ean of check.keep)expect(actual,device+' '+query+' must keep produce EAN '+ean).toContain(ean);
+    }
+  }
   fs.mkdirSync('normal-search-evidence',{recursive:true});
   fs.writeFileSync('normal-search-evidence/parity.json',JSON.stringify(evidence,null,2));
   const auditSummary={
