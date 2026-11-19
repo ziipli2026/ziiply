@@ -187,6 +187,36 @@ test('47LV category regression: orange juice and dog treats override generic fru
   assert.equal(category('KANAN FILEEVIIPALE 300 g'),'Liha & makkarat');
 });
 
+test('47LV candidate v165: all reported missing categories have a real product classification',()=>{
+  const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=source.indexOf('export function category(t:string){');
+  const end=source.indexOf('\\n}',start);
+  assert.ok(start>=0&&end>start);
+  const category=new Function('clean',source.slice(start,end+2).replace('export function category(t:string)','function category(t)')+';return category;')(text=>String(text));
+  const cases=[
+    ['NESTESAIPPUOIDEN TÄYTTÖPUSSIT 300 ml','Hygienia & kosmetiikka'],
+    ['MEIKINKIINNITYSSUIHKE 150 ml','Hygienia & kosmetiikka'],
+    ['RANTIT 45 ml','Muut'],
+    ['VOITEET 50 ml sekä MEIKINPOISTOAINE 50 ml','Hygienia & kosmetiikka'],
+    ['WC-RAIKASTIMET 50 g','Kodinhoito'],
+    ['SINI SIIVOUSSOODA 800 g, SITRUUNAHAPPO 600 g','Kodinhoito'],
+    ['4 LEVITTEET 400 g 2','Maitotuotteet'],
+    ['AIRFRY KANAN FILEEVIIPALE tai PAISTIPALA 300–320 g','Liha & makkarat'],
+    ['T1ORTILLA ORIGINAL MEDIUM 320 g (3,59/kg)15','Kuivatuotteet'],
+    ['ULKOFILEESTÄ tai MUREUTETTU','Muut'],
+    ['THE DOG NAUGHTY HOT DOG 6 kpl/300 g','Leipomo'],
+    ['SALAME MILANO 70 g','Liha & makkarat'],
+    ['A4LKOHOLITON GLÖGI 0,75 l/pl','Juomat'],
+    ['G9LÖGI 8 % 0,75 l/pl','Juomat'],
+    ['C8HARDONNAY tai CABERNET SAUVIGNON 8 % 1 l/pl','Juomat'],
+  ];
+  for(const [title,expected] of cases){
+    // Old preflight flagged these rows before 47LV title repairs were applied.
+    // Orphan headings are suppressed separately and must not be approved as products.
+    if(expected!=='Muut')assert.equal(category(title),expected,title);
+  }
+});
+
 test('47LV Neon snapshot v165: preserve source evidence and flag malformed merged rows',()=>{
   // Source: publication 2026-11-19-W47-LV-printed-transactions-v165,
   // 48 rows, candidate, inspected read-only on 2026-11-19.
