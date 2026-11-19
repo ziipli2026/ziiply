@@ -12,7 +12,13 @@ const categorySource=fs.readFileSync('src/app/components/ziiply/offerSearch/tjek
 const compiled=ts.transpileModule(categorySource,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const moduleExports={};vm.runInNewContext(compiled,{exports:moduleExports});
 const allowed=moduleExports.filterTjekGroceryRows(rows);
-assert.equal(rows.length,74);assert.equal(allowed.length,73);
+assert.equal(rows.length,74);
+const excluded=rows.filter(row=>!allowed.includes(row));
+assert.equal(allowed.length,59, '19 Nov source verified grocery filter should exclude 15 items');
+assert.equal(excluded.length,15);
+assert.ok(excluded.some(row=>/PORRASJAKKARA/i.test(row.title)));
+assert.ok(excluded.every(row=>moduleExports.isTjekNonGroceryDepartment(row.debug?.tjekDepartmentSlug) || /HIUSTENMUOTOILULAITTEET|PARRANAJOKONE|SÄHKÖHAMMASHARJA|LED-VALOMASKI|TRIMMERI|LIHASHUOLTOVASARA|DIAGNOSTIIKKAVAAKA|PÖLYHUISKAA|VAIHTOTERÄ|PERHOSORKIDEA/i.test(row.title)), 'Unexpected source product excluded');
+console.log('TJEK_CURRENT_FILTER',JSON.stringify({source:rows.length,eligible:allowed.length,excluded:excluded.map(r=>({title:r.title,department:r.debug?.tjekDepartmentSlug}))}));
 const sourceMap=moduleExports.tjekDepartmentCategory;
 const categoryCorrections=allowed.filter(r=>sourceMap(r.debug?.tjekDepartmentSlug) && sourceMap(r.debug?.tjekDepartmentSlug)!==r.category);
 console.log('TJEK_CURRENT_SOURCE_CATEGORY_CORRECTIONS',JSON.stringify(categoryCorrections.map(r=>({title:r.title,stored:r.category,expected:sourceMap(r.debug?.tjekDepartmentSlug)}))));
