@@ -116,6 +116,8 @@ jobs:
           if(!leaflet.rows?.length||leaflet.rows.length!==manifest.offerCount)throw Error('47LV parsed offer count mismatch');
           console.log('KCM_47LV_CAPTURE',JSON.stringify({pdfSha256:pdfHash,pages:manifest.pageCount,offers:leaflet.rows.length}));
           NODE
+      - name: Audit unresolved 47LV raw cards (block approval on ambiguity)
+        run: node scripts/citymarket/audit-47lv-capture.mjs /tmp/kcm-47lv-capture
       - name: Upload 47LV source, PDF and parser evidence
         if: always()
         uses: actions/upload-artifact@v4
