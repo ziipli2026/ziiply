@@ -283,3 +283,20 @@ test('47LV suppression does not affect older or newer leaflet editions',()=>{
   assert.deepEqual(run('https://example.test/offer_47LV_KCM/index.html'),[]);
   assert.deepEqual(run('https://example.test/offer_48LV_KCM/index.html'),['PUNAKAALI KG PÄÄRYNÄ KG']);
 });
+
+
+test('47LV reviewed publisher headings, category repairs and implausible price guard stay edition-scoped',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  assert.match(provider,/const is47LV=\/_47LV_KCM\/i\.test\(leafletUrl\)/);
+  assert.match(provider,/Rexona ja Rexona Men Max Protection DEODORANTIT 45 ml/);
+  assert.match(provider,/Naughty HOT DOG MAKKARAT 210 g/);
+  assert.match(provider,/Haribo JOULUKALENTERI 300 g/);
+  assert.match(provider,/Kinder MAXI MIX JOULUKALENTERI 351 g/);
+  assert.match(provider,/Lindt TEDDY JOULUKALENTERI 170 g/);
+  assert.match(provider,/GLÖGI 8 % 0,75 l/);
+  assert.match(provider,/Number\(resolved\.value\)>20/);
+  assert.match(provider,/WC-RAIKASTIMET.*"Kodinhoito"/);
+  assert.match(provider,/JOULUKALENTERI.*"Makeiset"/);
+  assert.match(provider,/^    if\(is47LV && \(/m);
+  assert.match(provider,/^      continue;$/m);
+});
