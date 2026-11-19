@@ -344,3 +344,40 @@ test('47LV PDF-reviewed price overrides execute on actual parser values',()=>{
   assert.equal(fn(true,{page:20},'GLÖGI 8 % 0,75 l/pl',50.31),9.29);
   assert.equal(fn(false,{page:20},'GLÖGI 8 % 0,75 l/pl',50.31),50.31);
 });
+
+
+test('47LV PDF-reviewed cards require exact edition and matching page evidence',()=>{
+  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
+  const start=provider.indexOf('  if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){');
+  const end=provider.indexOf('  const seen=new Set<string>();',start);
+  assert.ok(start>=0 && end>start,'reviewed PDF block must exist');
+  const run=(leafletUrl,sourceRows)=>{
+    const offers=[];
+    new Function('leafletUrl','sourceRows','offers',provider.slice(start,end))(leafletUrl,sourceRows,offers);
+    return offers;
+  };
+  const url='https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html';
+  const rows=[
+    {page:1,title:'Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT-USJUOMAT'},
+    {page:1,title:'Ilman Plussa-korttia PORSAAN KASSLER n. 1 kg'},
+    {page:13,title:'HIUSTENHOITOTUOTTEET 100–300 ml'},
+    {page:13,title:'HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA'},
+    {page:13,title:'VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml'},
+    {page:15,title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS'},
+    {page:16,title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g'},
+    {page:18,title:'ULKOFILEEPIHVI 2 kpl/240 g BURGER 4 kpl/320 g'},
+    {page:20,title:'vadelmainen, mausteinen. 0 % 0,33 l/tlk OLUET 0,0 % 0,33 l/tlk'}
+  ];
+  const result=run(url,rows);
+  assert.equal(result.length,15);
+  const byTitle=(needle)=>result.find(o=>o.title.includes(needle));
+  assert.deepEqual([byTitle('PUNAKAALI').price,byTitle('PUNAKAALI').validTo],[0.99,'22.11.']);
+  assert.deepEqual([byTitle('KASSLER').price,byTitle('KASSLER').validTo],[5.99,'22.11.']);
+  assert.deepEqual([byTitle('HIUSTENHOITOTUOTTEET').price,byTitle('HIUSTENHOITOTUOTTEET').offerQuantity],[10.90,2]);
+  assert.deepEqual([byTitle('HAMMASTAHNARASIAT').price,byTitle('HAMMASTAHNARASIAT').offerQuantity],[10,4]);
+  assert.deepEqual([byTitle('Crisp RADLER').price,byTitle('Crisp RADLER').offerQuantity],[3,2]);
+  assert.deepEqual([byTitle('Kåska').price,byTitle('Kåska').offerQuantity],[4.7,2]);
+  assert.equal(run(url.replace('47LV','47AV'),rows).length,0);
+  assert.equal(run(url,rows.map(r=>({...r,page:99}))).length,0);
+  assert.equal(run(url,[]).length,0);
+});
