@@ -309,6 +309,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           snapshots=next;
         }
         if(stable<3)console.log('[normal-parity] DOM UNSTABLE',device,query,'cards='+snapshots.length);
+        if(query==='mansikka') {
+          const targetEan='6417801801004';
+          const targetCards=snapshots.filter(x=>x.ean===targetEan);
+          const suspicious=snapshots.filter(x=>/mansikka/i.test(x.label)&&/641780/i.test(x.label));
+          console.log('[normal-parity] MANSIKKA TARGET EAN DIAGNOSTIC',JSON.stringify({device,query,targetEan,present:targetCards.length>0,targetCards,suspicious,stableSamples:stable,renderedCount:snapshots.length,providerResponses:apiResponses.slice(apiResponseStart).filter(x=>/\/api\/(s-products|k-products|neon-first-search)/.test(x.path)).map(x=>({path:x.path,search:x.search,status:x.status,method:x.method}))}));
+        }
         const eans=[...new Set(snapshots.map(x=>x.ean))];
         const duplicateDetails=[...new Set(snapshots.map(x=>x.ean))]
           .map(ean=>({ean,cards:snapshots.filter(x=>x.ean===ean)}))
