@@ -91,7 +91,7 @@ export function category(t:string){
   const s=clean(t).toLowerCase().replace(/([a-zåäö])-\s+(?!(?:ja|tai|sekä)\b)([a-zåäö])/g,"$1$2").replace(/\s+/g," ");
   // Publisher headings can contain line-break hyphens even inside a word.
   const joined = s.replace(/([a-zåäö])-([a-zåäö])/g,"$1$2");
-  // Publisher OCR sometimes prepends the printed price digit to the product heading.\n  // Classify those recognizable drinks without changing the printed price.\n  if(/^(?:a4lkoholiton|g9lögi|c8hardonnay)\b/.test(joined)) return "Juomat";\n  // Product type wins over substring matches (juice is not fresh fruit).
+  // A detached price glyph may also be prefixed to the tortilla heading.\n  if(/^t1ortilla original medium\\b/.test(joined)) return "Kuivatuotteet";\n  // Publisher OCR sometimes prepends the printed price digit to the product heading.\n  // Classify those recognizable drinks without changing the printed price.\n  if(/^(?:a4lkoholiton|g9lögi|c8hardonnay)\b/.test(joined)) return "Juomat";\n  // Product type wins over substring matches (juice is not fresh fruit).
   if(/(?:appelsiini(?:täys)?mehu|täysmehu)/.test(joined)) return "Juomat";
   // A dog treat must never be classified as a human hot-dog sausage.
   if(/the dog naughty hot dog/.test(joined)) return "Leipomo";
