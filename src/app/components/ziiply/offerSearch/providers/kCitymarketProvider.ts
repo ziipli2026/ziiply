@@ -634,8 +634,38 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const titleBeforeSourceReview=verified45LV?.title??(/_45AV_KCM/i.test(leafletUrl)?repairCitymarketPrintedTitle(row,rawTitle):/_42AV_KCM/i.test(leafletUrl)?clean42AVPrintedTitle(rawTitle):rawTitle);
     // Verified against the printed 47AV page 17: the OCR dropped the MUU brand
     // and the LIHATON- tai KANATON qualifier, leaving only LASTU 220 g.
+    // 47LV publisher geometry review: reconstruct only headings confirmed by
+    // the same printed card's nearby glyphs. Never repair a price by guessing.
+    const is47LV=/_47LV_KCM/i.test(leafletUrl);
+    const nearby47=(row?.nearby||[]).map((part:any)=>String(part)).join(" ");
+    const reviewed47LVTitle=is47LV && Number(row?.page)===13 && /^RANTIT 45 ml$/i.test(titleBeforeSourceReview) &&
+      /Rexona ja Rexona Men/.test(nearby47) && /DEODO-/.test(nearby47)
+        ? "Rexona ja Rexona Men Max Protection DEODORANTIT 45 ml"
+      : is47LV && Number(row?.page)===18 && /^H3O T D O G MAKKARAT 210 g/i.test(titleBeforeSourceReview) &&
+        /Naughty/.test(nearby47) && /MAKKARAT 210 g/.test(nearby47)
+        ? "Naughty HOT DOG MAKKARAT 210 g"
+      : is47LV && Number(row?.page)===19 && /^H9aribo JOULUKALENTERI 300 g/i.test(titleBeforeSourceReview)
+        ? "Haribo JOULUKALENTERI 300 g"
+      : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 351 g$/i.test(titleBeforeSourceReview) &&
+        /Kinder/.test(nearby47) && /MAXI MIX/.test(nearby47)
+        ? "Kinder MAXI MIX JOULUKALENTERI 351 g"
+      : is47LV && Number(row?.page)===19 && /^TEDDY JOULUKALENTERI 170 g$/i.test(titleBeforeSourceReview) &&
+        /Lindt/.test(nearby47)
+        ? "Lindt TEDDY JOULUKALENTERI 170 g"
+      : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 189–208 g$/i.test(titleBeforeSourceReview) &&
+        /After Eight/.test(nearby47) && /Smarties/.test(nearby47)
+        ? "After Eight, KitKat, Smarties ja Nestlé mix JOULUKALENTERI 189–208 g"
+      : titleBeforeSourceReview;
+    // Incomplete headings and geometrically merged cards must not be sold as
+    // standalone offers. Preserve evidence in the frozen parser archive.
+    if(is47LV && (/^4 LEVITTEET 400 g 2$/i.test(reviewed47LVTitle) ||
+      /^ULKOFILEESTÄ tai MUREUTETTU$/i.test(reviewed47LVTitle) ||
+      /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(reviewed47LVTitle))) {
+      console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);
+      continue;
+    }
     const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
-      ? "MUU LIHATON- tai KANATON LASTU 220 g" : titleBeforeSourceReview;
+      ? "MUU LIHATON- tai KANATON LASTU 220 g" : reviewed47LVTitle;
     if(!title || isNoiseLine(title)) continue;
     // 45AV page 3: Innocent juice 900 ml OR smoothie 750 ml, 3.49 € incl. 0.20 € deposit.
     // The printed unit-price range is 3.66–4.39 €/l excluding deposit.
