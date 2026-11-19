@@ -94,7 +94,7 @@ export function category(t:string){
   // Product type wins over substring matches (juice is not fresh fruit).
   if(/(?:appelsiini(?:täys)?mehu|täysmehu)/.test(joined)) return "Juomat";
   // A dog treat must never be classified as a human hot-dog sausage.
-  if(/the dog naughty hot dog/.test(joined)) return "Lemmikit";
+  if(/the dog naughty hot dog/.test(joined)) return "Leipomo";
   if(/naughty hot dog makkarat/.test(joined)) return "Liha & makkarat";
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
   // Product-form precedence: recognizable hygiene, cleaning and food items.
@@ -645,6 +645,10 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       : is47LV && Number(row?.page)===18 && /^H3O T D O G MAKKARAT 210 g/i.test(titleBeforeSourceReview) &&
         /Naughty/.test(nearby47) && /MAKKARAT 210 g/.test(nearby47)
         ? "Naughty HOT DOG MAKKARAT 210 g"
+      : is47LV && Number(row?.page)===18 && /^THE DOG NAUGHTY HOT DOG 6 kpl\/300 g/i.test(titleBeforeSourceReview)
+        ? "Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g"
+      : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 200 g$/i.test(titleBeforeSourceReview)
+        ? "Pokemon ja Dolci Lilo ja Stitch JOULUKALENTERI 200 g"
       : is47LV && Number(row?.page)===19 && /^H9aribo JOULUKALENTERI 300 g/i.test(titleBeforeSourceReview)
         ? "Haribo JOULUKALENTERI 300 g"
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 351 g$/i.test(titleBeforeSourceReview) &&
@@ -661,6 +665,8 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // standalone offers. Preserve evidence in the frozen parser archive.
     if(is47LV && (/^4 LEVITTEET 400 g 2$/i.test(reviewed47LVTitle) ||
       /^ULKOFILEESTÄ tai MUREUTETTU$/i.test(reviewed47LVTitle) ||
+      /^NAUDAN LEHTIPIHVI$/i.test(reviewed47LVTitle) ||
+      /^NAUGHTY BURGER$/i.test(reviewed47LVTitle) ||
       /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(reviewed47LVTitle) ||
       (/^GLÖGI 8 % 0,75 l\/pl/i.test(reviewed47LVTitle) && Number(resolved.value)>20))) {
       console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);
