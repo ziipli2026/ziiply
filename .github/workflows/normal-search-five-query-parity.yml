@@ -1,4 +1,4 @@
-name: Five-query isolated normal search parity
+name: Bounded isolated normal search parity
 on:
   push:
     branches:
@@ -21,17 +21,17 @@ jobs:
       - run: npm ci
       - run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install chromium
-      - name: Five search terms mobile desktop parity
+      - name: Eight additional search terms mobile desktop parity
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           ZIIPLY_LIVE_URL: https://ziiply-nvny6zy40-ziipli2026s-projects.vercel.app
-          NORMAL_SEARCH_SELECTED_QUERIES: suola,juusto,maito,öljy,riisi
+          NORMAL_SEARCH_SELECTED_QUERIES: kurkku,voi,leipä,ruisleipä,kauraleipä,sämpylä,vehnäjauho,sokeri
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
           npx playwright test tests/normal-search-targeted-diagnostic.spec.cjs --browser=chromium --reporter=line
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: five-query-parity-evidence
+          name: bounded-parity-evidence
           path: normal-search-evidence/
           if-no-files-found: ignore
