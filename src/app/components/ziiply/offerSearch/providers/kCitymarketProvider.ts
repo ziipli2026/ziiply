@@ -102,6 +102,7 @@ export function category(t:string){
   if(/naughty hot dog makkarat/.test(joined)) return "Liha & makkarat";
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
   // Product-form precedence: recognizable hygiene, cleaning and food items.
+  if(/\bvartalonhoitotuotteet\b/.test(joined)) return "Hygienia & kosmetiikka";
   if(/(?:nestesaippuoiden täyttöpuss|meikinkiinnityssuihke|meikinpoistoaine|\bvoiteet\s+50\s*ml)/.test(joined)) return "Hygienia & kosmetiikka";
   if(/(?:wc.?raikastim|siivoussooda|sitruunahappo|puhdistuskivi|raikastussooda)/.test(joined)) return "Kodinhoito";
   if(/(?:airfry\s+kanan|kanan\s+fileeviipale|kanan\s+paistipala|salame\s+milano|\bhot\s+dog\s+\d+\s*kpl)/.test(joined)) return "Liha & makkarat";
