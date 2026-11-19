@@ -98,6 +98,8 @@ jobs:
           NODE
 
   capture-47lv:
+    permissions:
+      contents: write
     if: (github.event_name == 'workflow_dispatch' && inputs.publication != '41AV') || (github.event_name == 'pull_request' && github.head_ref == 'fix/citymarket-47lv-printed-quality-20261119')
     needs: audit
     runs-on: ubuntu-latest
@@ -132,6 +134,27 @@ jobs:
         run: |
           npm install --prefix /tmp/ziiply-ci-typescript --no-package-lock --ignore-scripts --no-audit --no-fund typescript@5.9.3
           node scripts/citymarket/build-47lv-neon-candidate.cjs
+      - name: Commit validated 47LV candidate to test branch for isolated Neon import
+        if: github.event_name == 'pull_request' && github.head_ref == 'fix/citymarket-47lv-printed-quality-20261119'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          const report=JSON.parse(fs.readFileSync('/tmp/kcm-47lv-candidate/report.json','utf8'));
+          if(!report.ok||report.offerCount!==53||report.issues.length)throw Error('Candidate is not approved for test import');
+          NODE
+          mkdir -p tests/fixtures/citymarket
+          cp /tmp/kcm-47lv-candidate/offers.json tests/fixtures/citymarket/47lv-neon-candidate.json
+          cp /tmp/kcm-47lv-candidate/report.json tests/fixtures/citymarket/47lv-neon-candidate-report.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/fixtures/citymarket/47lv-neon-candidate.json tests/fixtures/citymarket/47lv-neon-candidate-report.json
+          if ! git diff --cached --quiet; then
+            git commit -m "test(citymarket): archive validated 47LV Neon candidate for isolated DB verification"
+            git push origin HEAD:refs/heads/fix/citymarket-47lv-printed-quality-20261119
+          fi
       - name: Upload real 47LV candidate and validation report
         if: always()
         uses: actions/upload-artifact@v4
