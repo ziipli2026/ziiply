@@ -44,3 +44,24 @@ export function filterTjekGroceryRows<T extends {title?: unknown;name?: unknown;
     return !TJEK_NON_GROCERY_TITLE_PATTERN.test(title);
   });
 }
+
+/** Normalize verified Tjek categories on both live rows and old persisted snapshots.
+ * Unknown/mixed departments retain their existing title-based category.
+ * No database writes and no mutation of the input rows. */
+export function normalizeTjekGroceryCategories<T extends {
+  title?: unknown; name?: unknown; category?: unknown; categoryPath?: unknown;
+  productGroup?: unknown; mainCategory?: unknown;
+  debug?: {tjekDepartmentSlug?: unknown;categorySource?: unknown};
+  tjekDepartmentSlug?: unknown;
+}>(rows: T[]): T[] {
+  return filterTjekGroceryRows(rows).map(row => {
+    const slug = row.debug?.tjekDepartmentSlug ?? row.tjekDepartmentSlug;
+    const mapped = tjekDepartmentCategory(slug);
+    if (!mapped) return row;
+    if (row.category === mapped && row.categoryPath === mapped
+      && row.productGroup === mapped && row.mainCategory === mapped
+      && row.debug?.categorySource === 'tjek-department') return row;
+    return {...row, category:mapped, categoryPath:mapped, productGroup:mapped,
+      mainCategory:mapped, debug:{...row.debug,categorySource:'tjek-department'}} as T;
+  });
+}
