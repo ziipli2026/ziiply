@@ -126,6 +126,20 @@ jobs:
           NODE
       - name: Audit unresolved 47LV raw cards (block approval on ambiguity)
         run: node scripts/citymarket/audit-47lv-capture.mjs /tmp/kcm-47lv-capture
+      - name: Generate corrected 47LV Neon candidate with actual provider
+        env:
+          NODE_PATH: /tmp/ziiply-ci-typescript/node_modules
+        run: |
+          npm install --prefix /tmp/ziiply-ci-typescript --no-package-lock --ignore-scripts --no-audit --no-fund typescript@5.9.3
+          node scripts/citymarket/build-47lv-neon-candidate.cjs
+      - name: Upload real 47LV candidate and validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kcitymarket-47lv-neon-candidate
+          path: /tmp/kcm-47lv-candidate/
+          retention-days: 30
+          if-no-files-found: warn
       - name: Upload 47LV source, PDF and parser evidence
         if: always()
         uses: actions/upload-artifact@v4
