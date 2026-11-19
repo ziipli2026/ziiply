@@ -26,7 +26,7 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
         COALESCE(NULLIF(o->>'title',''),NULLIF(o->>'name','')) IS NULL) AS missing_names,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
-        btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$)|PUNAKAALI[[:space:]]+KG[[:space:]]+PÄÄRYNÄ[[:space:]]+KG|JOGURTTIJUOMAT[[:space:]]+PROTEIN[[:space:]]+RAHKAT)') AS suspicious_names,
+        btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$)|PUNAKAALI[[:space:]]+KG[[:space:]]+PÄÄRYNÄ[[:space:]]+KG|JOGURTTIJUOMAT[[:space:]]+PROTEIN[[:space:]]+RAHKAT|RANTIT[[:space:]]+45[[:space:]]*ml|4[[:space:]]+LEVITTEET|H3O[[:space:]]+T[[:space:]]+D[[:space:]]+O[[:space:]]+G|vadelmainen,[[:space:]]+mausteinen)') AS suspicious_names,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
         NOT (COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$' AND
           CASE WHEN COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$' THEN (o->>'price')::numeric>0 ELSE false END)
