@@ -704,6 +704,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     // 47LV p17: OCR borrowed the neighbouring chips price (1,39 €).
     // The printed Santa Maria tortilla 320 g card is 1,15 € / pkt.
     if(is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g/i.test(reviewed47LVTitle)) price=1.15;
+    if(is47LV && Number(row?.page)===17 && /^T1?ORTILLA CHIPSIT 160–185 g/i.test(reviewed47LVTitle)) price=1.39;
     const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
       ? "MUU LIHATON- tai KANATON LASTU 220 g" : reviewed47LVTitle;
     if(!title || isNoiseLine(title)) continue;
