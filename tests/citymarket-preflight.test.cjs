@@ -214,3 +214,25 @@ test('47LV Neon snapshot v165: preserve source evidence and flag malformed merge
   // Never replace a suspicious source price with a guessed value.
   assert.equal(snapshot[3].price,50.31);
 });
+
+
+test('47LV spatial parser marks merged source headings before returning offers',()=>{
+  const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js','utf8');
+  const start=source.indexOf('// Detect title collisions at the publisher-geometry stage.');
+  const end=source.indexOf('// Only merge adjacent "tai" alternatives',start);
+  assert.ok(start>=0&&end>start,'spatial collision guard must execute before final merge');
+  const block=source.slice(start,end);
+  const rows=[
+    {title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS',spatialResolved:{value:1.49}},
+    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g',spatialResolved:{value:14.02}},
+    {title:'PUNAKAALI KG',spatialResolved:{value:1.49}},
+  ];
+  const out=new Function('rows','let out={rows};'+block+';return out.rows;')(rows);
+  assert.equal(out.length,3,'guard must not silently drop offers');
+  assert.equal(out[0].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
+  assert.equal(out[1].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
+  assert.equal(out[2].debugSuspiciousPublisherTitle,undefined);
+  assert.equal(out[0].spatialResolved.value,1.49,'guard must preserve original price');
+  assert.equal(out[1].spatialResolved.value,14.02,'guard must preserve original price');
+  assert.equal(out[0].debugSuspiciousPublisherTitle.requiresSeparateCardPriceProof,true);
+});
