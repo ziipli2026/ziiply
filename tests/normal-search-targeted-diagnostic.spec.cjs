@@ -4,15 +4,17 @@ const base=process.env.ZIIPLY_LIVE_URL;
 const fullCorpus=require('./normal-search-100-queries.cjs');
 const legacyQueries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
 const auditBatch=process.env.NORMAL_SEARCH_AUDIT_BATCH;
-const queries=['tomaatti','paprika','salaatti','appelsiini','maito','kahvi','kananmunat','jauheliha','kurkku','banaani','riisi','jogurtti']; // twelve-query scoped regression; do not run the cancelled 100-term audit
-if(auditBatch!==undefined && (!/^(?:[0-9]|1[0-9])$/.test(auditBatch)||queries.length!==5))throw Error('Invalid NORMAL_SEARCH_AUDIT_BATCH');
+const smokeQueries=['tomaatti','paprika','salaatti','appelsiini','maito','kahvi','kananmunat','jauheliha','kurkku','banaani','riisi','jogurtti'];
+if(auditBatch!==undefined && !/^[0-9]$/.test(auditBatch))throw Error('Invalid NORMAL_SEARCH_AUDIT_BATCH: expected 0-9');
+if(new Set(fullCorpus).size!==100)throw Error('100-query corpus must contain exactly 100 distinct queries');
+const queries=auditBatch===undefined?smokeQueries:fullCorpus.slice(Number(auditBatch)*10,(Number(auditBatch)+1)*10);
 const auth=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:{};
 test('Normal product search: scoped EAN parity, no cart or Monta assertions',async({browser})=>{
   // This test runs 22 live searches plus real store discovery. Preserve evidence even
   // when a single provider stalls; cap each operation independently.
   // A 10-query batch searches mobile and desktop sequentially; the previous
   // 20-minute cap closed the browser before parity could be evaluated.
-  test.setTimeout(auditBatch!==undefined ? 1500000 : 1200000);
+  test.setTimeout(auditBatch!==undefined ? 1800000 : 1200000);
   if(!base)throw Error('ZIIPLY_LIVE_URL missing');
   const evidence={base,queries,auditBatch:auditBatch??null,expectedCommit:process.env.GITHUB_SHA||null,deployments:{},layouts:{},differences:[],orderDifferences:[],duplicates:[],noResults:[]};
   // Record the actual Vercel deployment identifiers used by each layout.
@@ -354,6 +356,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   };
   for(const device of ['mobile','desktop']){
     for(const [query,check] of Object.entries(produceChecks)){
+      if(!queries.includes(query))continue;
       const actual=evidence.layouts[device].results.find(x=>x.query===query)?.eans||[];
       for(const ean of check.reject)expect(actual,device+' '+query+' must reject unrelated EAN '+ean).not.toContain(ean);
       for(const ean of check.keep)expect(actual,device+' '+query+' must keep produce EAN '+ean).toContain(ean);
