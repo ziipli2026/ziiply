@@ -4,7 +4,7 @@ const base=process.env.ZIIPLY_LIVE_URL;
 const fullCorpus=require('./normal-search-100-queries.cjs');
 const legacyQueries=['maito','cola','kahvi','kananmunat','juusto','banaani','pasta','riisi','jauheliha','jogurtti','kurkku'];
 const auditBatch=process.env.NORMAL_SEARCH_AUDIT_BATCH;
-const queries=['tomaatti','paprika','salaatti','appelsiini','maito','kahvi','kananmunat','jauheliha']; // eight-query scoped regression, never the cancelled 100-term audit
+const queries=['tomaatti','paprika','salaatti','appelsiini','maito','kahvi','kananmunat','jauheliha','kurkku','banaani','riisi','jogurtti']; // twelve-query scoped regression; do not run the cancelled 100-term audit
 if(auditBatch!==undefined && (!/^(?:[0-9]|1[0-9])$/.test(auditBatch)||queries.length!==5))throw Error('Invalid NORMAL_SEARCH_AUDIT_BATCH');
 const auth=process.env.VERCEL_AUTOMATION_BYPASS_SECRET?{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}:{};
 test('Normal product search: scoped EAN parity, no cart or Monta assertions',async({browser})=>{
