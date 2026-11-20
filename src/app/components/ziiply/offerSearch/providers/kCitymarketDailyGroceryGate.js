@@ -33,6 +33,10 @@ export function filterCitymarketAdditionalGroceryOffers(offers, classifyTitle) {
   if(!title||isNonGroceryLeafletTitle(title)||
     /paistoasti|keittoast|paistinpann|lelut?|lego|palikkarasi|korttipel|lautapeli|kirjoja|kirjat\b|kirjallisuus|pokkare|pyykinkuivausteline|pukupuss|säilytyslaatik|kodintekstiil|sesonkival|jääkiekkomail|pussilakana|koristetyyny|päiväpeit|kylpyhuonetekstiil|aterinset|\baterimet\b|leivontakulh|\bastioita\b|matkalauk|lompak|vaatte|keng[äe]|kenki|päähine|huivit|otsavalo|(?:finlayson|hemtex).*pyyhke|pyjama/i.test(title))return [];
 
+  // Personal-care appliances are durable goods, even when a store labels them
+  // as hygiene. Keep consumable replacement heads/blades and paper products.
+  if(/(?:sähköhammasharj|parranajokon|trimmer|hiustenmuotoilulait|hiustenkuivain|suoristusraut|kiharrin|led[- ]?valomask|kasvoharj|sähköinen\s+kasvoharj)/i.test(title))return [];
+
   let category=String(offer.category||'').trim();
   if(/joulukalenteri/i.test(title)&&/haribo|kinder|lindt|teddy|after eight|kitkat|smarties|nestlé|dolci/i.test(title)){
    category='Makeiset & keksit';

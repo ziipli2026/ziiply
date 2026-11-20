@@ -112,3 +112,26 @@ test("Citymarket supplemental feed retains groceries and excludes durable goods 
   const result = filterCitymarketAdditionalGroceryOffers(rows, context.classify);
   assert.deepEqual(result.map(row => [row.title,row.category]), accepted);
 });
+
+test("Citymarket grocery gate excludes durable hygiene appliances but keeps consumables", async () => {
+ const {filterCitymarketAdditionalGroceryOffers}=await import("../src/app/components/ziiply/offerSearch/providers/kCitymarketDailyGroceryGate.js");
+ const durable=[
+  "Oral-B iO9S Black Onyx SÄHKÖHAMMASHARJA",
+  "PHILIPS 5000 Series PARRANAJOKONE",
+  "PHILIPS OneBlade TRIMMERI",
+  "REMINGTON PROluxe HIUSTENMUOTOILULAITTEET",
+  "LIVIA Aurora LED-VALOMASKI",
+  "GESKE Sonic Facial Brush KASVOHARJA"
+ ];
+ const consumables=[
+  "Oral-B VAIHTOHARJAT",
+  "PHILIPS OneBlade VAIHTOTERÄ 3 kpl",
+  "LUMENE Klassikko VARTALONHOITOTUOTTEET",
+  "Libero BIG PACK TEIPPIVAIPAT",
+  "OMO Wonder Wash PYYKINPESUNESTEET",
+  "Bref WC-RAIKASTIMET"
+ ];
+ const rows=[...durable,...consumables].map(title=>({title,category:/OMO|Bref/.test(title)?"Kodinhoito":"Hygienia & kosmetiikka"}));
+ const result=filterCitymarketAdditionalGroceryOffers(rows,context.classify);
+ assert.deepEqual(result.map(x=>x.title),consumables);
+});
