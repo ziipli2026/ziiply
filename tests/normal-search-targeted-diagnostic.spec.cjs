@@ -30,7 +30,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   const replayEnabled=process.env.NORMAL_SEARCH_REPLAY==='1';
   const replayResponses=new Map();
   const replayCaptures=[];
-  const replayPaths=/^\\/api\\/(?:k-products|s-products|neon-first-search|lidl\\/products|tokmanni\\/products|ean-bank)(?:\\/|$)/;
+  const replayPaths=/^\/api\/(?:k-products|s-products|neon-first-search|lidl\/products|tokmanni\/products|ean-bank)(?:\/|$)/;
   for(const device of ['mobile','desktop']){
     const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
