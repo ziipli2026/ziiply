@@ -18,3 +18,27 @@ export function isNonGroceryLeafletTitle(title) {
  const repaired=String(title||'').replace(/(?<=\p{L})\d(?=\p{L})/gu,'');
  return /(?:kalenteri\s+a[456]|pöytäkalenter|kopieringspapper|kopiopaper|juomalas|viinilas|valosarj|led[- ]?valais|taskulamp|säilytyslaatik|lautapel|peittoset|sähkömopp|silitysraut|merinovilla\s+aluspaita)/i.test(repaired);
 }
+
+// Tjek discount cards can arrive without a category, and a store selection
+// can include durable goods from the same nationwide leaflet.
+/**
+ * @template {{title?: unknown, name?: unknown, category?: unknown}} T
+ * @param {T[]} offers
+ * @param {(title: string) => string} classifyTitle
+ * @returns {Array<T & {category: string}>}
+ */
+export function filterCitymarketAdditionalGroceryOffers(offers, classifyTitle) {
+ return offers.flatMap(offer=>{
+  const title=String(offer.title||offer.name||'').trim();
+  if(!title||isNonGroceryLeafletTitle(title)||
+    /paistoasti|keittoast|paistinpann|lelut?|lego|palikkarasi|korttipel|lautapeli|kirjoja|kirjat\b|kirjallisuus|pokkare|pyykinkuivausteline|pukupuss|säilytyslaatik|kodintekstiil|sesonkival|jääkiekkomail|pussilakana|koristetyyny|päiväpeit|kylpyhuonetekstiil|aterinset|\baterimet\b|leivontakulh|\bastioita\b|matkalauk|lompak|vaatte|keng[äe]|kenki|päähine|huivit|otsavalo|(?:finlayson|hemtex).*pyyhke|pyjama/i.test(title))return [];
+
+  let category=String(offer.category||'').trim();
+  if(/joulukalenteri/i.test(title)&&/haribo|kinder|lindt|teddy|after eight|kitkat|smarties|nestlé|dolci/i.test(title)){
+   category='Makeiset & keksit';
+  }else if(!ALLOWED.has(category)){
+   category=classifyTitle(title);
+  }
+  return ALLOWED.has(category)?[{...offer,category}]:[];
+ });
+}

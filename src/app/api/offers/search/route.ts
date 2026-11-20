@@ -66,7 +66,8 @@ import { NextResponse, after } from "next/server";
 import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
 import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
-import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { category as classifyCitymarketTitle, fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { filterCitymarketAdditionalGroceryOffers } from "../../../components/ziiply/offerSearch/providers/kCitymarketDailyGroceryGate.js";
 import { fetchKCitymarketSelectedStoreOffers, fetchKCitymarketUnpricedDiscounts, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
@@ -965,7 +966,7 @@ export async function GET(request: Request) {
           // The store-specific campaigns may be omitted for this request after 6.5s;
           // they are never allowed to block the entire mobile offer search.
           const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
-          const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
+          const matchingLocalOffers = filterCitymarketAdditionalGroceryOffers(localOffers, classifyCitymarketTitle).filter(offer => offerMatchesQuery(q, offer));
           // The two sources are independent: preserve every selected-store campaign
           // even when its name and price match a national leaflet offer.
           const uniqueLocalCampaigns = matchingLocalOffers;
@@ -975,7 +976,7 @@ export async function GET(request: Request) {
           // Display-only percentage/Plussa offers have no verified euro price.
           // They must never be used as priced basket rows.
           const discounts = await fetchKCitymarketUnpricedDiscounts(selectedCitymarket);
-          citymarketResults.push(...discounts.filter(offer => offerMatchesQuery(q, offer)));
+          citymarketResults.push(...filterCitymarketAdditionalGroceryOffers(discounts, classifyCitymarketTitle).filter(offer => offerMatchesQuery(q, offer)));
         }
       } catch (localError) {
         console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);
