@@ -556,7 +556,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(row?.publisherOfferId)return row;
     const page=Number(row?.page)||0;
     const rawTitle=clean(row?.title||"").toLowerCase();
-    if(/_45AV_KCM/i.test(leafletUrl)){
+    if(/_(?:45AV|47LV)_KCM/i.test(leafletUrl)){
       const price=Number(row?.spatialResolved?.value);
       const percent=Number(row?.percentageOffer?.percent);
       const suffix=Number.isFinite(price)&&price>0?String(price):percent>0&&percent<100?"percent:"+percent:"";
@@ -597,7 +597,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(!row?.spatialResolved && campaignTitle && !isNoiseLine(campaignTitle) && percent>0 && percent<100){
       const validity=extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))||leafletValidity;
       offers.push({id:`kcm:spatial:${row?.page??0}:${reviewedCampaignTitle.toLowerCase()}:percent:${percent}`,
-        title:reviewedCampaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
+        publisherOfferId:row.publisherOfferId,title:reviewedCampaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
         resolutionSource:row.percentageOffer.source,plussa:/plussa/i.test((row.nearby||[]).join(" ")),
         validFrom:validity?.from??null,validTo:validity?.to??null,category:/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(campaignTitle,category(campaignTitle)):category(campaignTitle),
         chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
