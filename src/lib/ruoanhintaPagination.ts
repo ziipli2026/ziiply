@@ -43,37 +43,8 @@ export async function appendRuoanhintaPages<T extends { id?: string | number }>(
     if (!newCount) break;
     previous = next;
   }
-  // The upstream offset ordering is unstable. Recheck page boundaries only
-  // while a pass actually discovers new IDs. Stop after convergence or two
-  // bounded verification passes; preserve all earlier successful pages.
-  if (firstPage.length === pageSize && maxPages > 1) {
-    for (let sweep = 0; sweep < 2; sweep++) {
-      let added = 0;
-      let failed = false;
-      for (let page = 0; page < maxPages; page++) {
-        const controller = new AbortController();
-        let timer: ReturnType<typeof setTimeout> | undefined;
-        try {
-          const next = await Promise.race([
-            fetchPage(page * pageSize, controller.signal),
-            new Promise<never>((_, reject) => {
-              timer = setTimeout(() => { controller.abort(); reject(new Error('Provider verification timeout')); }, extraPageTimeoutMs);
-            }),
-          ]);
-          if (!Array.isArray(next)) { failed = true; break; }
-          for (const item of next) {
-            const key = String(item.id ?? '');
-            if (key && seen.has(key)) continue;
-            if (key) seen.add(key);
-            result.push(item);
-            added++;
-          }
-          if (next.length < pageSize) break;
-        } catch { failed = true; break; }
-        finally { if (timer) clearTimeout(timer); }
-      }
-      if (failed || added === 0) break;
-    }
-  }
+  // Do not retry unstable offset pages in the user's interactive request.
+  // Extra sweeps increase latency but cannot establish a consistent provider
+  // snapshot; correctness requires stable upstream ordering or shared snapshots.
   return result;
 }
