@@ -38,7 +38,22 @@ test('API through final price rendering retains all source offers and hides prod
  const mapped=clean.map(core.mapZiiplyGostaOfferToCardOfferV147);
  const rows=mapped.map(row=>({id:row.id,title:row.title,tab:row.campaignType,display:cards.getOfferPrice(row),layout:cards.splitOfferDisplayPrice(cards.getOfferPrice(row)),source:row.__sourceOfferSearchResult}));
  const counts={input:offers.length+campaigns.length,api:apiRows,core:result.results.length,clean:clean.length,cards:rows.length,offers:rows.filter(r=>r.tab!=='campaign').length,campaigns:rows.filter(r=>r.tab==='campaign').length,apiCalls,externalCalls:externalCalls.length};
- assert.equal(apiRows,544);assert.equal(rows.length,544);assert.equal(counts.offers,89);assert.equal(counts.campaigns,455);assert.equal(externalCalls.length,0);
+ // The supplemental feed must be grocery-only; source counts can shrink by design.
+ const {filterCitymarketAdditionalGroceryOffers}=require('../src/app/components/ziiply/offerSearch/providers/kCitymarketDailyGroceryGate.js');
+ const providerSource=fs.readFileSync(path.join(root,'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'),'utf8');
+ const categoryMatch=providerSource.match(/export function category\\(t:string\\)\\{[\\s\\S]*?\\n\\}\\nfunction isNoiseLine/);
+ assert.ok(categoryMatch,'Production Citymarket classifier exists');
+ const vm=require('node:vm'),classifier={clean:value=>String(value).trim()};
+ vm.runInNewContext(categoryMatch[0].replace('export function category(t:string)','function category(t)').replace(/\\nfunction isNoiseLine$/,'')+'\\nthis.classify=category;',classifier);
+ const expectedCampaigns=filterCitymarketAdditionalGroceryOffers(campaigns,classifier.classify);
+ const originalCampaignIds=new Set(campaigns.map(row=>row.id));
+ const expectedCampaignIds=new Set(expectedCampaigns.map(row=>row.id));
+ const actualCampaigns=rows.filter(row=>originalCampaignIds.has(row.id));
+ assert.equal(apiRows,result.results.length,'API and core row counts differ');
+ assert.equal(rows.length,apiRows,'Cards lost rows after API mapping');
+ assert.equal(actualCampaigns.length,expectedCampaigns.length,'Supplemental grocery row count changed');
+ assert.deepEqual(new Set(actualCampaigns.map(row=>row.id)),expectedCampaignIds,'Supplemental row identities differ from grocery filter');
+ assert.equal(externalCalls.length,0);
  // Regression: both independent publication streams must survive every client stage.
  // A product EAN is not a promotion identity; even identical names/prices/EANs
  // must survive if the origin or publication differs.
