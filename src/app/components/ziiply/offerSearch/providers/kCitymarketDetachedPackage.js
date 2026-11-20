@@ -280,3 +280,37 @@ export function recoverJoinedDrinkOffers(rows, rawBoxes, page) {
   return matches.length===2?matches.map(({rate,...card})=>card):[row];
  });
 }
+
+// Two sizes sharing a price can prove the whole-euro badge at both ends
+// of the printed comparison range, even if the dash was lost by OCR.
+export function recoverSharedSizeWholePrice(row, boxes) {
+ const anchor=row.debugCardAnchor;
+ if(row.spatialResolved||!anchor||!row.percentageOffer||!row.normal||!row.package)return row;
+ const nearby=row.nearby||[];
+ const start=nearby.indexOf(anchor.text);
+ if(start<0||!/\b(?:sekä|ja|tai)$/i.test(anchor.text))return row;
+ const next=nearby[start+1]||'';
+ const volume=next.match(/^\p{Lu}{3,}.*?\b(\d{2,4}) ml$/u);
+ const rate=(nearby[start+2]||'').match(/^(\d+,\d{2})[–-](\d+,\d{2})\/l$/);
+ if(!volume||!rate||boxes.filter(b=>b.text===next.split(' ')[0]&&Math.abs(b.left-anchor.left)<.002&&
+  b.top-anchor.top>.008&&b.top-anchor.top<.018).length===0)return row;
+ const litres=[row.package.min,Number(volume[1])/1000].sort((a,b)=>a-b);
+ const rates=rate.slice(1).map(v=>Number(v.replace(',','.')));
+ const proofs=new Map();
+ for(const euro of boxes.filter(b=>/^\d{1,2}$/.test(b.text)&&b.height>.045&&b.height<.075&&
+  Math.abs(b.left-anchor.left)<.004&&b.top-anchor.top>.032&&b.top-anchor.top<.065)){
+  const value=Number(euro.text);
+  if(value>=row.normal.min||Math.abs(value-litres[0]*rates[1])>.015||
+   Math.abs(value-litres[1]*rates[0])>.015)continue;
+  const unit=boxes.find(b=>b.text===row.normal.unit&&b.height<.017&&b.left>=euro.left+euro.width-.002&&
+   b.left-euro.left-euro.width<.012&&b.top-euro.top>.01&&b.top-euro.top<.025);
+  if(unit)proofs.set([euro.left,euro.top,value].join(':'),{value,unit:unit.text});
+ }
+ if(proofs.size!==1)return row;
+ const lead=boxes.filter(b=>b.top<anchor.top&&anchor.top-b.top<.022&&b.left>=anchor.left-.002&&
+  b.left<anchor.left+.14&&b.height>.009&&b.height<.012&&/^(?:\p{Lu}\p{Ll}+|ja|tai)$/u.test(b.text))
+  .sort((a,b)=>a.top-b.top||a.left-b.left);
+ const prefix=[...new Set(lead.map(b=>[b.top,b.left,b.text].join(':')))].map(part=>part.split(':').at(-1));
+ return {...row,title:[...prefix,anchor.text,next].join(' '),percentageOffer:null,package:null,unitPrice:null,
+  spatialResolved:{...proofs.values().next().value,quantity:null,source:'owned-printed-shared-size-whole-price',sanity:'pass',confidence:'high'}};
+}

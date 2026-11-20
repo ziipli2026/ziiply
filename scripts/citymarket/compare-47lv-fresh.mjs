@@ -81,3 +81,8 @@ assert.deepEqual(drinks.map(row=>[row.title,row.spatialResolved?.value,row.spati
  ['Kåska SELVIN PÄIN SPRITZIT 0 % 0,33 l/tlk',4.70,2,'TLK',.30],
  ['Crisp RADLER ALKOHOLITTOMAT OLUET 0,0 % 0,33 l/tlk',3,2,'TLK',.30],
 ]);
+
+const skinCarePrice=source.rows.filter(row=>row.page===13&&/VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml/.test(row.title));
+assert.deepEqual(skinCarePrice.map(row=>[row.title,row.spatialResolved?.value,row.spatialResolved?.unit,row.percentageOffer]),[
+ ['Triple Active Hyaluron Expert ja Collagen Expert VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml',5,'KPL',null],
+]);

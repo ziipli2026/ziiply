@@ -770,7 +770,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       // Keep separate price/quantity transactions rather than accepting OCR's
       // spurious 4,10 / 2,75 / 5,10 prices.
       {page:13,evidence:/HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA/i,title:"Colgate HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJAT, LASTEN HAMMASHARJAT, BREATH-TAKING SUUVESI 500 ml tai Palmolive SUIHKU- ja NESTESAIPPUAT 500 ml",price:10.00,quantity:4,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
-      {page:13,evidence:/VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml/i,title:"L’Oréal Paris Triple Active, Hyaluron Expert ja Collagen Expert VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml",price:5.00,quantity:1,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
     ];
     for(const card of reviewed){
       if(!hasMerged(card.page,card.evidence) || offers.some(o=>o.title===card.title))continue;
