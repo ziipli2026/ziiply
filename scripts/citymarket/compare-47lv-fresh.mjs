@@ -49,3 +49,7 @@ const mulledWine=source.rows.filter(row=>row.page===20&&/^GLÖGI 8 % 0,75 l\/pl/
 assert.equal(mulledWine.length,1);
 assert.deepEqual(mulledWine.map(row=>[row.spatialResolved?.value,row.spatialResolved?.unit,row.spatialResolved?.source]),
  [[9.29,'PL','owned-printed-overlaid-heading-price']]);
+
+const skinCare=source.rows.filter(row=>row.page===13&&/SMUUTI|COSRX/i.test(row.title));
+assert.deepEqual(skinCare.map(row=>[row.title,row.percentageOffer?.percent]),
+ [['SMUUTI SKIN -IHONHOITOTUOTTEET ja COSRX-TUOTTEET (ei lahjapakkaukset)',25]]);

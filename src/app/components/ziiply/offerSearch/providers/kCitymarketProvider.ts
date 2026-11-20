@@ -589,14 +589,10 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const campaignTitle=repairCitymarketOCRTitle(clean(row?.title||""));
     const percent=Number(row?.percentageOffer?.percent);
     const is47LVPercent=/_47LV_KCM/i.test(leafletUrl);
-    // Printed 47LV p13: a single Smuuti Skin/COSRX -25% campaign was
-    // split across two parser rows. Never show the orphan continuation or
-    // imply a flat 49% discount for a printed "jopa -49%" range.
-    if(is47LVPercent && Number(row?.page)===13 && (/^TUOTTEET ja COSRX-TUOTTEET$/i.test(campaignTitle) || /^VOITEET 50 ml sekä MEIKINPOISTOAINE/i.test(campaignTitle))) continue;
-    const reviewedCampaignTitle=is47LVPercent && Number(row?.page)===13 && /^SMUUTI SKIN -IHONHOITO-$/i.test(campaignTitle)
-      ? "Smuuti Skin -ihonhoitotuotteet ja COSRX-tuotteet (ei lahjapakkaukset)"
-      : is47LVPercent && /^L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT\b/i.test(campaignTitle)
-        ? campaignTitle.replace(/\s+Voimassa\s+TO[–-]SU\s+19\.[–-]22\.11\.2026\b.*$/i,"").trim()
+    // The printed "jopa -49%" campaign does not state a flat percentage.
+    if(is47LVPercent && Number(row?.page)===13 && /^VOITEET 50 ml sekä MEIKINPOISTOAINE/i.test(campaignTitle)) continue;
+    const reviewedCampaignTitle=is47LVPercent && /^L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT\b/i.test(campaignTitle)
+      ? campaignTitle.replace(/\s+Voimassa\s+TO[–-]SU\s+19\.[–-]22\.11\.2026\b.*$/i,"").trim()
       : campaignTitle;
     if(!row?.spatialResolved && campaignTitle && !isNoiseLine(campaignTitle) && percent>0 && percent<100){
       const validity=extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))||leafletValidity;

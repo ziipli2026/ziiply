@@ -23,3 +23,37 @@ export function flagMergedPublisherHeadings(rows){
   return disjoint?{...row,debugSuspiciousPublisherTitle:{title,reason:'merged-publisher-product-headings',detail:'independent-headings-on-same-page',requiresSeparateCardPriceProof:true}}:row;
  });
 }
+
+// The same discount badge can emit two rows for a centered, hyphenated
+// heading. Merge only adjacent lines with their own matching text anchors.
+export function mergeWrappedCampaignHeadings(rows) {
+ const consumed=new Set();
+ const result=rows.map(row=>{
+  const anchor=row.debugCardAnchor;
+  if(row.spatialResolved || row.percentageOffer?.source!=='aligned-printed-standalone-percentage' ||
+     anchor?.text!==row.title || !/\p{L}{3,}-$/u.test(row.title))return row;
+  const center=(anchor.left+anchor.right)/2;
+  const continuations=rows.filter(other=>{
+   const next=other.debugCardAnchor;
+   return !consumed.has(other) && other.page===row.page && !other.spatialResolved &&
+    other.percentageOffer?.source==='wrapped-column-printed-percentage' &&
+    other.percentageOffer.percent===row.percentageOffer.percent && next?.text===other.title &&
+    /^\p{Lu}{3,}(?:\s|$)/u.test(other.title) &&
+    Math.abs((next.left+next.right)/2-center)<.012 &&
+    Math.abs(next.height-anchor.height)<.002 &&
+    next.top-anchor.top>.008 && next.top-anchor.top<.02;
+  });
+  if(continuations.length!==1)return row;
+  const [next]=continuations;
+  consumed.add(next);
+  const line=next.debugCardAnchor;
+  const note=(next.debugNearbyBoxes||[]).filter(box=>box.top-line.top>.008 &&
+    box.top-line.top<.019 && box.left>=line.left && box.left+box.width<=line.right);
+  const fullWords=note.filter(box=>!note.some(other=>other!==box && other.width>box.width &&
+   other.left<=box.left && other.left+other.width>=box.left+box.width));
+  const noteText=[...new Set(fullWords.sort((a,b)=>a.left-b.left).map(box=>box.text))].join(' ');
+  const exclusion=/^Ei [\p{L}-]+\.?$/u.test(noteText)?' ('+noteText.replace(/\.$/,'').toLowerCase()+')':'';
+  return {...row,title:row.title.slice(0,-1)+next.title+exclusion};
+ });
+ return result.filter((_,index)=>!consumed.has(rows[index]));
+}
