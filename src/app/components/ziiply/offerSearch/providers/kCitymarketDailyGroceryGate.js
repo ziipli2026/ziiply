@@ -40,6 +40,9 @@ export function filterCitymarketAdditionalGroceryOffers(offers, classifyTitle) {
   let category=String(offer.category||'').trim();
   if(/joulukalenteri/i.test(title)&&/haribo|kinder|lindt|teddy|after eight|kitkat|smarties|nestlé|dolci/i.test(title)){
    category='Makeiset & keksit';
+  }else if(/(?:juustoviipale|juustosiivu|cheese\\s+slices?|hampurilaiss[äa]mpyl|burgeris[äa]mpyl|burger\\s+buns?|hamburger\\s+buns?|the\\s+brgr\\s+naughty\\s+burger)/i.test(title)){
+   // Product-form precedence overrides a stale but technically allowed Tjek category.
+   category=classifyTitle(title);
   }else if(!ALLOWED.has(category)){
    category=classifyTitle(title);
   }
