@@ -69,3 +69,9 @@ assert.deepEqual(cover.map(row=>[row.title,row.spatialResolved?.value,row.spatia
  ['PERSIMON Espanja',2.49,null,'KG',null],
  ['Kivikylän PORSAAN KASSLER n. 1 kg',5.99,null,'KG',null],
 ]);
+
+const tortillas=source.rows.filter(row=>row.page===17&&/^T.?ORTILLA /.test(row.title));
+assert.deepEqual(tortillas.map(row=>[row.title,row.spatialResolved?.value,row.spatialResolved?.unit]),[
+ ['TORTILLA CHIPSIT 160–185 g (7,51–8,69/kg)',1.39,'PS'],
+ ['TORTILLA ORIGINAL MEDIUM 320 g (3,59/kg)',1.15,'PKT'],
+]);

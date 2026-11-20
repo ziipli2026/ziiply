@@ -135,7 +135,9 @@ export function verifiedOwnedPublisherOverprint(row) {
 // Some publisher boxes combine the first heading word with a large euro
 // glyph. Require the independent euro box at the same origin before using it.
 export function recoverOverprintedHeadingPrice(row, boxes) {
-  if(row.spatialResolved?.source!=='fixed-package-own-unitrate-derived')return row;
+  const originalProof=row.spatialResolved?.source==='fixed-package-own-unitrate-derived';
+  if(!originalProof && (!row.package || !row.unitPrice ||
+    !['large-cents-expected-visual','title-linked-large-split-price'].includes(row.spatialResolved?.source)))return row;
   const firstWord=row.title.match(/^(\p{Lu}+)(\d)(\p{Lu}{2,})(?=\s|$)/u);
   if(!firstWord)return row;
   const [,prefix,whole,suffix]=firstWord;
@@ -143,25 +145,32 @@ export function recoverOverprintedHeadingPrice(row, boxes) {
   for(const heading of boxes.filter(box=>box.text===firstWord[0] && box.height>=.09)){
     const euro=boxes.find(box=>box.text===whole &&
       Math.abs(box.left-heading.left)<.002 &&
-      Math.abs(box.top-heading.top)<.002 &&
-      Math.abs(box.height-heading.height)<.002);
+      Math.abs(box.top-heading.top)<(originalProof ? .002 : .008) &&
+      Math.abs(box.height-heading.height)<(originalProof ? .002 : .008));
     if(!euro)continue;
-    for(const cents of boxes.filter(box=>/^\d{2}$/.test(box.text) &&
-      box.left-euro.left>.035 && box.left-euro.left<.085 &&
+    for(const cents of boxes.filter(box=>
+      box.left-euro.left>(originalProof ? .035 : .01) && box.left-euro.left<.085 &&
       box.top-euro.top>.01 && box.top-euro.top<.027 &&
       box.height>=.045 && box.height<euro.height*.7)){
-      const unit=row.spatialResolved.unit;
-      if(!/^(KPL|PKT|PRK|PS|RS|PL|TLK)$/.test(unit || ''))continue;
-      const hasUnit=boxes.some(box=>box.text===unit && box.left>=cents.left &&
-        box.left<=cents.left+cents.width && Math.abs(box.top-cents.top-cents.height)<.01);
-      if(!hasUnit)continue;
-      const value=Number(whole+'.'+cents.text);
-      prices.set([euro.left,euro.top,value].join(':'),{value,unit});
+      const split=cents.text.match(/^\d{2}$/)?.[0];
+      const fused=!originalProof&&cents.text.match(/^\d{2}\/(?:kg|l)\)(\d{2})$/)?.[1];
+      const digits=split||fused;
+      if(!digits)continue;
+      const value=Number(whole+'.'+digits);
+      if(!originalProof && Math.max(
+        Math.abs(value-row.package.min*row.unitPrice.max),
+        Math.abs(value-row.package.max*row.unitPrice.min))>.02)continue;
+      for(const unit of boxes.filter(box=>/^(KPL|PKT|PRK|PS|RS|PL|TLK)$/.test(box.text) &&
+        (!originalProof||box.text===row.spatialResolved.unit) && box.left>=cents.left &&
+        box.left<=cents.left+cents.width && Math.abs(box.top-cents.top-cents.height)<.01)){
+        prices.set([euro.left,euro.top,value,unit.text].join(':'),{value,unit:unit.text,fused});
+      }
     }
   }
   if(prices.size!==1)return row;
-  const price=prices.values().next().value;
-  return {...row,title:prefix+suffix+row.title.slice(firstWord[0].length),
+  const {fused,...price}=prices.values().next().value;
+  const title=prefix+suffix+row.title.slice(firstWord[0].length);
+  return {...row,title:fused&&title.endsWith(')'+fused)?title.slice(0,-fused.length):title,
     debugReplacedConflictingPrice:row.spatialResolved,
     spatialResolved:{...price,quantity:null,source:'owned-printed-overlaid-heading-price',sanity:'pass',confidence:'high'}};
 }

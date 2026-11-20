@@ -649,8 +649,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g"
       : is47LV && Number(row?.page)===16 && /^TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl/i.test(titleBeforeSourceReview)
         ? "Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl"
-      : is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g \(3,59\/kg\)15$/i.test(titleBeforeSourceReview)
-        ? "TORTILLA ORIGINAL MEDIUM 320 g"
       : is47LV && Number(row?.page)===20 && /^(?:G9LÖGI|GLÖGI) 8 % 0,75 l\/pl/i.test(titleBeforeSourceReview)
         ? "GLÖGI 8 % 0,75 l/pl"
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 200 g$/i.test(titleBeforeSourceReview)
@@ -686,10 +684,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);
       continue;
     }
-    // 47LV p17: OCR borrowed the neighbouring chips price (1,39 €).
-    // The printed Santa Maria tortilla 320 g card is 1,15 € / pkt.
-    if(is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g/i.test(reviewed47LVTitle)) price=1.15;
-    if(is47LV && Number(row?.page)===17 && /^T1?ORTILLA CHIPSIT 160–185 g/i.test(reviewed47LVTitle)) price=1.39;
     const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
       ? "MUU LIHATON- tai KANATON LASTU 220 g" : reviewed47LVTitle;
     if(!title || isNoiseLine(title)) continue;
