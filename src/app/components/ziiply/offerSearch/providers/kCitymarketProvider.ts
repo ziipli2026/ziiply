@@ -158,6 +158,7 @@ export function category(t:string){
   if(/(?:wc[- ]?raikastintik|kahvinkeittimen\s+puhdistusaine)/.test(s)) return "Kodinhoito";
   if(/(?:kreikkalaiset\s+jogurtit|\bjogurtit\b)/.test(s)) return "Maitotuotteet";
   // General product-form classification, independent of leaflet issue or chain.
+  if(/(?:punakaal|rosmariin)/.test(s)) return "Hevi";
   if(/(?:rypäle(?:et|itä)?|viinirypäle)/.test(s)) return "Hevi";
   if(/(?:kasvovoide|kasvoseerumi|collagen lifter|hyaluron expert|triple active|\bexpert\b.*\blifter\b)/.test(s)) return "Hygienia & kosmetiikka";
   if(/(?:wc[- ]?spray|wc[- ]?suihke)/.test(s)) return "Kodinhoito";
@@ -566,19 +567,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     }
     return row;
   }));
-  // A canonical title reconstruction must not erase a collision warning
-  // originating from the publisher's printed-card geometry.
-  for(const row of rows){
-    const title=String(row?.title||'').replace(/\s+/g,' ').trim();
-    if(!row.debugSuspiciousPublisherTitle &&
-       (/PUNAKAALI\s+KG\s+PÄÄRYNÄ\s+KG/i.test(title) ||
-        /JOGURTTIJUOMAT\s+PROTEIN\s+RAHKAT/i.test(title))){
-      row.debugSuspiciousPublisherTitle={
-        title:row.title,reason:'merged-publisher-product-headings',
-        requiresSeparateCardPriceProof:true
-      };
-    }
-  }
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
@@ -665,8 +653,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g"
       : is47LV && Number(row?.page)===16 && /^TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl/i.test(titleBeforeSourceReview)
         ? "Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl"
-      : is47LV && Number(row?.page)===16 && /^4 LEVITTEET 400 g 2$/i.test(titleBeforeSourceReview)
-        ? "Eleplant KASVIVOIMAA LEVITTEET 400 g"
       : is47LV && Number(row?.page)===18 && /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(titleBeforeSourceReview)
         ? "Snellman NAUDAN LEHTIPIHVI ULKOFILEESTÄ tai MUREUTETTU ULKOFILEEPIHVI 2 kpl/240 g"
       : is47LV && Number(row?.page)===18 && /^JUUSTOVIIPALEET 120–200 g$/i.test(titleBeforeSourceReview)
@@ -710,7 +696,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       continue;
     }
     if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT/.test(reviewed47LVTitle)) price=3.49;
-    if(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(reviewed47LVTitle)) price=5.20;
     if(is47LV && Number(row?.page)===20 && /^GLÖGI 8 %/.test(reviewed47LVTitle)) price=9.29;
     // 47LV p17: OCR borrowed the neighbouring chips price (1,39 €).
     // The printed Santa Maria tortilla 320 g card is 1,15 € / pkt.
@@ -725,7 +710,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(innocent45AV) price=3.49;
 
     const normalMin=Number(row?.normal?.min);
-    const offerQuantity=(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(title) ? 2 : null)??reviewed46LV?.quantity??verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
+    const offerQuantity=reviewed46LV?.quantity??verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
     // the same basis so UI comparisons and strike-through prices are meaningful.
@@ -777,7 +762,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       packageSize:verified45LV?.reviewedCard?null:row?.package?.raw??null,
       offerQuantity,
       ...(reviewed46LV?.quantity?{priceBasis:"package-total",priceText:price.toFixed(2).replace(".",",")+" € / "+reviewed46LV.quantity+"-pack"}:{}),
-      ...(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(title)?{priceBasis:"set-total",priceText:"5,20 € / 2 rs"}:{}),
       offerUnit:verified45LV?.unit??(reviewed46LV?.quantity?"PACK":resolved?.unit?String(resolved.unit).toUpperCase():null),
       resolutionSource:reviewed46LV?.source??(resolved?.source?String(resolved.source):null),
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
@@ -812,14 +796,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOITUSJUOMAT 0,33 l/tlk 6-pack",price:7.00,quantity:2,unit:"6-PACK",category:"Juomat",to:"22.11."},
       {page:1,evidence:/Ilman Plussa-korttia PORSAAN KASSLER/i,title:"Kivikylän PORSAAN KASSLER n. 1 kg",price:5.99,quantity:1,unit:"KG",category:"Liha",to:"22.11."},
       {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"PERSIMON Espanja",price:2.49,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
-      // Page 15 publisher PDF has four independent produce cards but the
-      // spatial parser merges all four into one unusable title.
-      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"PUNAKAALI Suomi",price:0.99,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"CELINA PÄÄRYNÄ Suomi",price:2.99,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"Järvikylä ROSMARIINI Suomi",price:2.99,quantity:1,unit:"KPL",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"Oksasen puutarha JUICY SALAATTI 125 g Suomi",price:1.49,quantity:1,unit:"PS",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Arla PROTEIN RAHKAT 200 g",price:3.50,quantity:4,unit:"PRK",category:"Maitotuotteet",to:"29.11."},
-      {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Danone ACTIMEL JOGURTTIJUOMAT 8 x 100 g",price:3.69,quantity:1,unit:"PKT",category:"Maitotuotteet",to:"29.11."},
       {page:18,evidence:/ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i,title:"Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g",price:2.39,quantity:1,unit:"PS",category:"Leipomo",to:"22.11."},
       {page:20,evidence:/vadelmainen, mausteinen\. 0 % 0,33 l\/tlk OLUET 0,0 % 0,33 l\/tlk/i,title:"Kåska SELVIN PÄIN SPRITZIT 0 % 0,33 l/tlk",price:4.70,quantity:2,unit:"TLK",category:"Juomat",to:"29.11."},
       {page:20,evidence:/vadelmainen, mausteinen\. 0 % 0,33 l\/tlk OLUET 0,0 % 0,33 l\/tlk/i,title:"Crisp RADLER ALKOHOLITTOMAT OLUET 0,0 % 0,33 l/tlk",price:3.00,quantity:2,unit:"TLK",category:"Juomat",to:"29.11."}

@@ -16,7 +16,7 @@ jobs:
       - name: Check grocery-only publication gate
         run: node --test tests/kcitymarket-daily-grocery-gate.test.mjs tests/kcitymarket-heading-collision.test.mjs
       - name: Reparse original 47LV directly from publisher
-        run: node scripts/citymarket/export-leaflet.mjs https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/ 47lv-fresh
+        run: node scripts/citymarket/export-leaflet.mjs https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html 47lv-fresh
       - name: Compare fresh uncorrected spatial rows against previous 53-row fixture
         if: always()
         run: node scripts/citymarket/compare-47lv-fresh.mjs 47lv-fresh

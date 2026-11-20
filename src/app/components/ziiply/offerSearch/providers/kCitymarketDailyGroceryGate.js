@@ -12,3 +12,9 @@ export function partitionDailyGroceryOffers(offers){
  }
  return {accepted,quarantined};
 }
+
+// Recognizable durable goods must be excluded before offer rows are created.
+export function isNonGroceryLeafletTitle(title) {
+ const repaired=String(title||'').replace(/(?<=\p{L})\d(?=\p{L})/gu,'');
+ return /(?:kalenteri\s+a[456]|pöytäkalenter|kopieringspapper|kopiopaper|juomalas|viinilas|valosarj|led[- ]?valais|taskulamp|säilytyslaatik|lautapel|peittoset|sähkömopp|silitysraut|merinovilla\s+aluspaita)/i.test(repaired);
+}

@@ -13,7 +13,8 @@ export function flagMergedPublisherHeadings(rows){
    const tokens=distinctive(other.title);
    if(tokens.length<1||tokens.length>own.length)return false;
    const hits=tokens.filter(x=>own.includes(x));
-   return hits.length>=2&&hits.length/tokens.length>=0.75;
+   const pack=String(other.title).match(/\b\d+(?:\s*[x×]\s*\d+)?\s*(?:g|kg|ml|l)\b/i)?.[0];
+   return hits.length/tokens.length>=0.75&&(hits.length>=2||(hits.length===1&&pack&&title.includes(pack)));
   });
   const disjoint=matches.some((a,i)=>matches.slice(i+1).some(b=>{
    const wa=distinctive(a.title),wb=distinctive(b.title);
