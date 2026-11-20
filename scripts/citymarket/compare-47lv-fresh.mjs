@@ -86,3 +86,8 @@ const skinCarePrice=source.rows.filter(row=>row.page===13&&/VOITEET 50 ml sekä 
 assert.deepEqual(skinCarePrice.map(row=>[row.title,row.spatialResolved?.value,row.spatialResolved?.unit,row.percentageOffer]),[
  ['Triple Active Hyaluron Expert ja Collagen Expert VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml',5,'KPL',null],
 ]);
+
+const dental=source.rows.filter(row=>row.page===13&&/HAMMASTAHNARASIAT|^4 kpl\/pkt, LASTEN|^SUIHKU- ja NESTE-/.test(row.title));
+assert.equal(dental.length,1);
+assert.match(dental[0].title,/^Colgate .* tai Palmolive .*500 ml$/);
+assert.deepEqual([dental[0].spatialResolved?.value,dental[0].spatialResolved?.quantity,dental[0].spatialResolved?.unit],[10,4,'KPL']);

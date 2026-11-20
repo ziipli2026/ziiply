@@ -314,3 +314,53 @@ export function recoverSharedSizeWholePrice(row, boxes) {
  return {...row,title:[...prefix,anchor.text,next].join(' '),percentageOffer:null,package:null,unitPrice:null,
   spatialResolved:{...proofs.values().next().value,quantity:null,source:'owned-printed-shared-size-whole-price',sanity:'pass',confidence:'high'}};
 }
+
+// A long alternatives list may yield several rows from one printed card.
+// Join consecutive title lines only beside a complete counted price badge.
+export function recoverWrappedCountedAlternatives(rows, rawBoxes, page) {
+ const boxes=[...new Map(rawBoxes.map(box=>[JSON.stringify(box),box])).values()];
+ let result=rows;
+ for(const euro of boxes.filter(b=>/^\d{1,2}$/.test(b.text)&&b.height>.085)){
+  const dash=boxes.find(b=>/^(?:%?[-–.]|\.-)$/.test(b.text)&&b.height>.08&&
+   Math.abs(b.left-euro.left-euro.width)<.008&&Math.abs(b.top-euro.top)<.009);
+  if(!dash)continue;
+  const units=boxes.filter(b=>/^(KPL|PKT|PS|RS|PRK|TLK|PL)$/.test(b.text)&&
+   b.left>=dash.left+dash.width-.006&&b.left-dash.left-dash.width<.018&&b.top-euro.top>.025&&b.top-euro.top<.05);
+  if(units.length!==1)continue;
+  const [unit]=units;
+  const counts=boxes.filter(b=>/^[2-9]$/.test(b.text)&&b.height>.025&&b.height<.055&&
+   Math.abs(b.left-unit.left)<.006&&unit.top-b.top>.02&&unit.top-b.top<.043);
+  if(counts.length!==1)continue;
+  const candidates=result.filter(row=>row.page===page&&
+   euro.left-row.debugCardAnchor?.left>.23&&euro.left-row.debugCardAnchor?.left<.32&&
+   row.debugCardAnchor.top>euro.top-.085&&row.debugCardAnchor.top<euro.top+.012);
+  if(candidates.length<3||!candidates.some(row=>/\btai\b/i.test(row.title)))continue;
+  const x=candidates[0].debugCardAnchor.left;
+  if(candidates.some(row=>Math.abs(row.debugCardAnchor.left-x)>.003))continue;
+  const heading=boxes.filter(b=>b.left>=x-.002&&b.left<euro.left-.04&&
+   b.top>euro.top-.105&&b.top<euro.top+.023&&b.height>.012&&b.height<.019);
+  const tops=[...new Set(heading.filter(b=>Math.abs(b.left-x)<.002).map(b=>b.top))].sort((a,b)=>a-b);
+  if(tops.length<6||tops.some((top,i)=>i&&top-tops[i-1]>.016))continue;
+  const lines=tops.map(top=>{
+   const words=heading.filter(b=>Math.abs(b.top-top)<.001).sort((a,b)=>a.left-b.left);
+   return words.filter(b=>!words.some(other=>other!==b&&other.width>b.width+.002&&
+    other.left<=b.left+.001&&other.left+other.width>=b.left+b.width-.001));
+  });
+  const brandLine=lines[0];
+  if(brandLine.length!==1||!/^\p{Lu}\p{Ll}{3,}$/u.test(brandLine[0].text))continue;
+  const titleLines=lines.map(words=>words.every(b=>/^\p{L}$/u.test(b.text))?
+   words.map(b=>b.text).join(''):words.map(b=>b.text).join(' '));
+  const joined=titleLines.reduce((title,line)=>{
+   const end=title.match(/\b([A-ZÅÄÖ]{3,})$/)?.[1];
+   const first=line.match(/^([A-ZÅÄÖ]{3,})\b/)?.[1];
+   return title+(title.endsWith('-')||(end&&first&&title.split(/\s+/).includes(end+first))?'':' ')+line;
+  });
+  if(!/\btai\b/i.test(joined)||!joined.match(/\b\d+\s+ml\b.*\b\d+\s+ml\b/i))continue;
+  result=[...result.filter(row=>!candidates.includes(row)),{page,title:joined,
+   imageAnchor:brandLine[0],
+   spatialResolved:{value:Number(euro.text),quantity:Number(counts[0].text),unit:unit.text,
+    source:'owned-printed-wrapped-alternatives',sanity:'pass',confidence:'high'},
+  }];
+ }
+ return result;
+}

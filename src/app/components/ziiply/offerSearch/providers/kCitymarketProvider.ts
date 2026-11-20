@@ -766,10 +766,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){
     const hasMerged=(page:number,pattern:RegExp)=>sourceRows.some((r:any)=>Number(r?.page)===page && pattern.test(String(r?.title||"")));
     const reviewed=[
-      // Page 13: printed price blocks are not paired with their headings.
-      // Keep separate price/quantity transactions rather than accepting OCR's
-      // spurious 4,10 / 2,75 / 5,10 prices.
-      {page:13,evidence:/HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA/i,title:"Colgate HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJAT, LASTEN HAMMASHARJAT, BREATH-TAKING SUUVESI 500 ml tai Palmolive SUIHKU- ja NESTESAIPPUAT 500 ml",price:10.00,quantity:4,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
     ];
     for(const card of reviewed){
       if(!hasMerged(card.page,card.evidence) || offers.some(o=>o.title===card.title))continue;
