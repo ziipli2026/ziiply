@@ -537,16 +537,22 @@ export default function ZiiplyMobileTopBar({
         if (cancelled) return;
         const items = Array.isArray(data?.prices) ? data.prices : [];
         const quarterMs = 15 * 60 * 1000;
+        // Anchor the chart to the moment the response was received, not the
+        // request start; a fetch can cross a quarter-hour boundary.
         const firstStart = Math.floor(Date.now() / quarterMs) * quarterMs;
         const pricesByStart = new Map<number, number>();
         for (const item of items) {
-          const time = Date.parse(String(item.startDate ?? item.start ?? ""));
+          const rawStart = item.startDate ?? item.start;
+          const time = typeof rawStart === "string" && rawStart.trim()
+            ? Date.parse(rawStart) : NaN;
           const rawPrice = item.price ?? item.priceWithTax ?? item.PriceWithTax;
           // Null/empty API prices are missing data, never zero-cent prices.
           const price = rawPrice === null || rawPrice === undefined ||
             (typeof rawPrice === "string" && rawPrice.trim() === "")
             ? null : Number(rawPrice);
-          const endTime = Date.parse(String(item.endDate ?? item.end ?? ""));
+          const rawEnd = item.endDate ?? item.end;
+          const endTime = typeof rawEnd === "string" && rawEnd.trim()
+            ? Date.parse(rawEnd) : NaN;
           if (Number.isFinite(time) && price !== null && Number.isFinite(price) &&
               endTime - time === quarterMs && time % quarterMs === 0 &&
               !pricesByStart.has(time)) {
