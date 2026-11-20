@@ -155,11 +155,18 @@ export async function GET(request: Request) {
     // grocery searches, with the existing bounded timeout, so a product near
     // the provider's first-page boundary is not randomly omitted.
     const paginationEvents: {page:number;status:string;count:number}[] = [];
+    // Preserve provider page evidence for every request in both pagination passes.
+    // Different page boundaries under the same query can otherwise be mistaken
+    // for a frontend-only EAN mismatch.
+    const pageEvidence: {skip:number;take:number;count:number;firstIds:(string|number)[];lastIds:(string|number)[]}[] = [];
     const primaryItems = await appendRuoanhintaPages(firstPage, 100, async (skip, signal) => {
       const pageUrl=new URL(endpoint);pageUrl.searchParams.set("skip",String(skip));
       const page=await fetch(pageUrl,{headers:{accept:"application/json"},cache:"no-store",signal});
       if(!page.ok)throw new Error("Provider page HTTP "+page.status);
-      const body=await page.json();return Array.isArray(body.items)?body.items:[];
+      const body=await page.json();
+      const pageItems: RuoanhintaProduct[] = Array.isArray(body.items)?body.items:[];
+      pageEvidence.push({skip,take:100,count:pageItems.length,firstIds:pageItems.slice(0,5).map(p=>p.id),lastIds:pageItems.slice(-5).map(p=>p.id)});
+      return pageItems;
     }, 3, 4500, event => paginationEvents.push(event));
     // Only when a generic bread search returns no priced items, retry two
     // narrower bread queries. Do not expand nonempty results or other categories.
@@ -235,7 +242,7 @@ export async function GET(request: Request) {
       storeId,
       source: "ruoanhinta-k",
       endpoint,
-      pagination: {firstPageCount:firstPage.length, primaryCount:primaryItems.length, events:paginationEvents, firstPageLastIds:firstPage.slice(-5).map(p=>p.id), primaryLastIds:primaryItems.slice(-5).map(p=>p.id)},
+      pagination: {firstPageCount:firstPage.length, primaryCount:primaryItems.length, events:paginationEvents, firstPageLastIds:firstPage.slice(-5).map(p=>p.id), primaryLastIds:primaryItems.slice(-5).map(p=>p.id), pageEvidence},
       status: response.status,
       items: rankGrocerySearchResults(items, search),
     });
