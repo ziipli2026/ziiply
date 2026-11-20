@@ -541,9 +541,13 @@ export default function ZiiplyMobileTopBar({
         const pricesByStart = new Map<number, number>();
         for (const item of items) {
           const time = Date.parse(String(item.startDate ?? item.start ?? ""));
-          const price = Number(item.price ?? item.priceWithTax ?? item.PriceWithTax);
+          const rawPrice = item.price ?? item.priceWithTax ?? item.PriceWithTax;
+          // Null/empty API prices are missing data, never zero-cent prices.
+          const price = rawPrice === null || rawPrice === undefined ||
+            (typeof rawPrice === "string" && rawPrice.trim() === "")
+            ? null : Number(rawPrice);
           const endTime = Date.parse(String(item.endDate ?? item.end ?? ""));
-          if (Number.isFinite(time) && Number.isFinite(price) &&
+          if (Number.isFinite(time) && price !== null && Number.isFinite(price) &&
               endTime - time === quarterMs && time % quarterMs === 0) {
             pricesByStart.set(time, price);
           }
