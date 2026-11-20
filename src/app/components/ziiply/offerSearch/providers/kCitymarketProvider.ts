@@ -213,7 +213,9 @@ export function category(t:string){
   if(/palvikinkku|palvikana|keittokinkku|ohuen\s+ohut/.test(s)) return "Liha & makkarat";
   if(/proteiinivanukas|proteiinivaahto|proteiinimousse|proteiinimousse|proteiinivaa/.test(s)) return "Maitotuotteet";
   if(/kuivattu\s+mango|kuivattuja\s+mango|tomaattimurska/.test(s)) return "Kuivatuotteet";
-  // Cheese slices remain dairy even when the product line includes "burger".\n  if(/(?:juustoviipale|juustosiivu|cheese\\s+slices?)/.test(s)) return "Maitotuotteet";\n  // A burger bun is bakery, not a prepared burger meal. The source may
+  // Cheese slices remain dairy even when the product line includes "burger".
+  if(/(?:juustoviipale|juustosiivu|cheese\s+slices?)/.test(s)) return "Maitotuotteet";
+  // A burger bun is bakery, not a prepared burger meal. The source may
   // abbreviate the product as THE BRGR without spelling out "sämpylä".
   if(/(?:the\s+brgr\s+naughty\s+burger|hampurilaissämpyl|burgerisämpyl|burger\s+buns?|hamburger\s+buns?)/.test(s)) return "Leipomo";
   if(/pehmosämpyl/.test(s)) return "Leipomo";
