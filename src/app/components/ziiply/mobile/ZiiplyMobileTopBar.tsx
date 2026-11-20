@@ -735,11 +735,10 @@ export default function ZiiplyMobileTopBar({
                     </div>
                   </>;
                 })()}
-                {chartPrices.some(row => row.price === null) && (
-                  <p className="mt-2 text-center text-[11px] font-semibold text-[#805a36]">
-                    Tyhjät kohdat: hintaa ei ole vielä saatavilla.
-                  </p>
-                )}
+                <p className="mt-2 text-center text-[11px] font-semibold text-[#805a36]">
+                  Saatavilla {chartPrices.filter(row => row.price !== null).length}/96 varttihintaa.
+                  {chartPrices.some(row => row.price === null) ? " Tyhjät kohdat: hintaa ei ole saatavilla." : ""}
+                </p>
                 <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
                   <span>{chartPrices[0] ? new Date(chartPrices[0].start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit"}) : ""}</span>
                   <span>snt/kWh</span>
