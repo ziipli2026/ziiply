@@ -152,3 +152,79 @@ export function resolvePrintedSingleWithReference(row, boxes, reference) {
   Math.abs(b.left-e.left-e.width)<.006&&Math.abs(b.top-e.top)<.004)))return null;
  return {...recovered,source:'owned-printed-single-with-reference-label'};
 }
+
+// A dated weight offer can identify its own card even when the flattened
+// title is absent or contains text from a neighbouring offer.
+export function recoverDatedWeightCards(rows, rawBoxes, page) {
+ const boxes=[...new Map(rawBoxes.map(b=>[JSON.stringify(b),b])).values()];
+ let result=rows;
+ for(const date of boxes.filter(b=>b.text==='Voimassa'&&b.height<.014)){
+  const heading=boxes.filter(b=>Math.abs(b.left-date.left)<.002&&
+   date.top-b.top>.007&&date.top-b.top<.024&&b.height>.012&&b.height<.016&&/^\p{Lu}{4,}$/u.test(b.text))
+   .sort((a,b)=>b.top-a.top)[0];
+  if(!heading)continue;
+  const line=boxes.filter(b=>Math.abs(b.top-heading.top)<.001&&b.left>=heading.left-.001&&
+   b.left<heading.left+.16&&Math.abs(b.height-heading.height)<.001).sort((a,b)=>a.left-b.left);
+  const headingText=line.map(b=>b.text).join(' ').replace(/\bn (?=\d)/g,'n. ');
+  const leading=headingText.match(/^[\p{Lu} ]+/u)?.[0].trim();
+  const label=boxes.find(b=>Math.abs(b.left-heading.left)<.002&&/^\p{Lu}\p{Ll}{3,}$/u.test(b.text)&&
+   (heading.top-b.top>.006&&heading.top-b.top<.012||b.top>heading.top&&b.top<date.top));
+  const title=label?(label.top<heading.top?label.text+' '+headingText:headingText+' '+label.text):headingText;
+  const unit=boxes.filter(b=>b.text==='KG'&&b.left>date.left+.12&&b.left<date.left+.28&&
+   date.top-b.top>.005&&date.top-b.top<.018);
+  if(unit.length!==1)continue;
+  const kg=unit[0];
+  const values=[];
+  for(const euro of boxes.filter(b=>/^\d{1,3}$/.test(b.text)&&b.height>.09&&
+   kg.top-b.top>.06&&kg.top-b.top<.09&&kg.left-b.left>.04&&kg.left-b.left<.1)){
+   if(euro.text.length===3&&kg.left<euro.left+euro.width)values.push(Number(euro.text)/100);
+   if(euro.text.length===1)for(const cents of boxes.filter(b=>/^\d{2}$/.test(b.text)&&b.height>.04&&
+    Math.abs(b.left-euro.left-euro.width)<.006&&Math.abs(b.top-euro.top-.017)<.004&&
+    kg.left>=b.left&&kg.left<=b.left+b.width))values.push(Number(euro.text+'.'+cents.text));
+  }
+  const unique=[...new Set(values)];
+  if(unique.length!==1)continue;
+  const related=result.filter(row=>row.page===page&&leading&&row.title.includes(leading));
+  if(related.length>1||related.some(row=>row.spatialResolved))continue;
+  const relative=(top,regex)=>boxes.find(b=>Math.abs(b.top-top)<.001&&b.left>=date.left&&
+   b.left<date.left+.14&&regex.test(b.text));
+  const day=relative(date.top,/^\d{2}$/);
+  const end=relative(date.top,/^[–-]\d{2}$/);
+  const month=end&&boxes.find(b=>Math.abs(b.top-date.top)<.001&&b.left>end.left&&
+   b.left-end.left-end.width<.009&&/^(0[1-9]|1[0-2])$/.test(b.text));
+  if(!day||!end||!month)continue;
+  result=[...result.filter(row=>!related.includes(row)),{
+   page,title,imageAnchor:heading,
+   printedValidity:{from:day.text+'.'+month.text+'.',to:end.text.slice(1)+'.'+month.text+'.'},
+   spatialResolved:{value:unique[0],quantity:null,unit:'KG',source:'owned-dated-weight-card',sanity:'pass',confidence:'high'},
+  }];
+ }
+ return result;
+}
+
+// Confirm a whole-euro pack deal against its printed pack count, volume,
+// comparison rate and deposit. Each glyph must sit beside the title column.
+export function recoverCountedPackPrice(row, boxes) {
+ const anchor=row.debugCardAnchor;
+ const label=row.title.match(/^(.*?\b(\d{1,2})-pack)\s+\((\d+[,.]\d+)\/l\)\s+Sis\.? pantit\s+(\d+[,.]\d+)/i);
+ if(row.spatialResolved||!anchor||!label||!row.package?.min||row.package.min!==row.package.max)return row;
+ const [,title,size,rate,deposit]=label;
+ const number=text=>Number(text.replace(',','.'));
+ const totalDeposit=number(deposit);
+ const proofs=new Map();
+ for(const euro of boxes.filter(b=>/^\d{1,2}$/.test(b.text)&&b.height>=.09&&
+  Math.abs(b.left-anchor.left)<.004&&b.top>anchor.top&&b.top-anchor.top<.05)){
+  for(const pack of boxes.filter(b=>/^[2-9][x×]\d{1,2}$/i.test(b.text)&&b.height>.017&&
+   b.left-euro.left>.06&&b.left-euro.left<.12&&b.top-euro.top>.04&&b.top-euro.top<.08)){
+   const [quantity,count]=pack.text.split(/[x×]/i).map(Number);
+   if(count!==Number(size)||Math.abs(quantity*count*row.package.min*number(rate)+totalDeposit-Number(euro.text))>.04||
+    !boxes.some(b=>/^[-–]PACK$/i.test(b.text)&&Math.abs(b.left-pack.left)<.012&&b.top>pack.top&&b.top-pack.top<.028))continue;
+   proofs.set([euro.left,euro.top,euro.text,pack.text].join(':'),{
+    value:Number(euro.text),quantity,unit:size+'-PACK',depositTotal:totalDeposit,
+    source:'owned-printed-pack-count-and-rate',sanity:'pass',confidence:'high',
+   });
+  }
+ }
+ return proofs.size===1?{...row,title:title.replace(/(\p{Lu})-(?=\p{Lu}{3,}\b)/gu,'$1'),
+  spatialResolved:proofs.values().next().value}:row;
+}

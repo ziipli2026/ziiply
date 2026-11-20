@@ -251,7 +251,7 @@ export function category(t:string){
   if(/smoothie|mehu|limon|virvoitus|energiajuoma|vitamiinijuoma|urheilujuoma|kivennäisves|vichy|cola|hard seltzer|seltzer|radler|olut|oluet|riesling|blanco|tinto|juoma|vesi\b/.test(s)) return "Juomat";
   if(/jäätel|tuut|multipack|pakaste|palko\+/.test(s)) return "Pakasteet";
   if(/kilokartonki|huopakynä|\btee\b|pasta|riisi|jauho|hiutale|muro|mysli|säilyke|kastik|sriracha|ketsupp|hiiva|ruokaöljy|mauste|tortilla|pähkinä|cashew|bonbon|aakkoset|fasupalat|salsa/.test(s)) return "Kuivatuotteet";
-  if(/omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
+  if(/persimon|omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
   if(/suojapaper|lautasliin|konetiskitablet|astianpesutablet|käsitiski|fairy|foliovuo|leivinpaper|tuorekelmu|alumiinifolio|suihkeet|wc-paper|wc-geel|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietik|tahranpoist|huuhteluaine|biojätekassi|jätekassi|roskapussi|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
   if(/sävytteet|hiusväri|pesulappu|ruokalappu|vuodesuoja|vaippa|shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|meikkivoide|meikki|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
   if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
@@ -777,11 +777,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       // spurious 4,10 / 2,75 / 5,10 prices.
       {page:13,evidence:/HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA/i,title:"Colgate HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJAT, LASTEN HAMMASHARJAT, BREATH-TAKING SUUVESI 500 ml tai Palmolive SUIHKU- ja NESTESAIPPUAT 500 ml",price:10.00,quantity:4,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
       {page:13,evidence:/VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml/i,title:"L’Oréal Paris Triple Active, Hyaluron Expert ja Collagen Expert VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml",price:5.00,quantity:1,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
-      // Cover page: spatial OCR merges the two-pack soft-drink offer and
-      // Kivikylä kassler into one heading; persimmon is missing entirely.
-      {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOITUSJUOMAT 0,33 l/tlk 6-pack",price:7.00,quantity:2,unit:"6-PACK",category:"Juomat",to:"22.11."},
-      {page:1,evidence:/Ilman Plussa-korttia PORSAAN KASSLER/i,title:"Kivikylän PORSAAN KASSLER n. 1 kg",price:5.99,quantity:1,unit:"KG",category:"Liha",to:"22.11."},
-      {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"PERSIMON Espanja",price:2.49,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
       {page:20,evidence:/vadelmainen, mausteinen\. 0 % 0,33 l\/tlk OLUET 0,0 % 0,33 l\/tlk/i,title:"Kåska SELVIN PÄIN SPRITZIT 0 % 0,33 l/tlk",price:4.70,quantity:2,unit:"TLK",category:"Juomat",to:"29.11."},
       {page:20,evidence:/vadelmainen, mausteinen\. 0 % 0,33 l\/tlk OLUET 0,0 % 0,33 l\/tlk/i,title:"Crisp RADLER ALKOHOLITTOMAT OLUET 0,0 % 0,33 l/tlk",price:3.00,quantity:2,unit:"TLK",category:"Juomat",to:"29.11."}
     ];

@@ -62,3 +62,10 @@ assert.ok(!source.rows.some(row=>row.page===18&&row.title==='NAUGHTY BURGER'));
 const hairCare=source.rows.filter(row=>row.page===13&&row.title==='HIUSTENHOITOTUOTTEET 100–300 ml');
 assert.deepEqual(hairCare.map(row=>[row.spatialResolved?.value,row.spatialResolved?.quantity,row.spatialResolved?.unit,row.spatialResolved?.source]),
  [[10.90,2,'KPL','owned-printed-fused-count-and-price']]);
+
+const cover=source.rows.filter(row=>row.page===1&&/PERSIMON|KASSLER|Coca-Cola/.test(row.title));
+assert.deepEqual(cover.map(row=>[row.title,row.spatialResolved?.value,row.spatialResolved?.quantity,row.spatialResolved?.unit,row.spatialResolved?.depositTotal??null]),[
+ ['Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOITUSJUOMAT 0,33 l/tlk 6-pack',7,2,'6-PACK',1.80],
+ ['PERSIMON Espanja',2.49,null,'KG',null],
+ ['Kivikylän PORSAAN KASSLER n. 1 kg',5.99,null,'KG',null],
+]);
