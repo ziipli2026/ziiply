@@ -1,6 +1,6 @@
 // Publication-independent evidence gate: a publisher row that joins two
 // separately printed product headings is not one purchasable transaction.
-const words=s=>String(s||'').toLocaleLowerCase('fi-FI').normalize('NFKC').replace(/[^\p{L}\\p{N}]+/gu,' ').split(' ').filter(x=>x.length>=4);
+const words=s=>String(s||'').toLocaleLowerCase('fi-FI').normalize('NFKC').replace(/[^\p{L}\p{N}]+/gu,' ').split(' ').filter(x=>x.length>=4);
 const distinctive=s=>[...new Set(words(s))];
 export function flagMergedPublisherHeadings(rows){
  return (rows||[]).map(row=>{
