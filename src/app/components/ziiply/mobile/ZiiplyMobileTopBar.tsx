@@ -729,7 +729,6 @@ export default function ZiiplyMobileTopBar({
           <section className="w-full max-w-[520px] rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-2">
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
-              <span className="shrink-0 rounded bg-[#e9d6a7] px-1 py-0.5 text-[9px] font-bold text-[#164b38]">VARTTI 96 · TESTI 311B</span>
               <button type="button" onClick={() => setChartOpen(false)} className="shrink-0 rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
             </div>
             {chartLoading ? <p className="py-10 text-center">Haetaan varttihintoja…</p> : chartError ? <p className="py-10 text-center">{chartError}</p> : (
