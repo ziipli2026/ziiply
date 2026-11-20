@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: '22'
       - name: Check grocery-only publication gate
-        run: node --test tests/kcitymarket-daily-grocery-gate.test.mjs
+        run: node --test tests/kcitymarket-daily-grocery-gate.test.mjs tests/kcitymarket-heading-collision.test.mjs
       - name: Reparse original 47LV directly from publisher
         run: node scripts/citymarket/export-leaflet.mjs https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/ 47lv-fresh
       - name: Compare fresh uncorrected spatial rows against previous 53-row fixture
