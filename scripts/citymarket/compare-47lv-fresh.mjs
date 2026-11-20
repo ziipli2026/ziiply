@@ -37,3 +37,13 @@ for(const [page,title,price,quantity,unit] of expectedCards){
 }
 assert.ok(!source.rows.some(row=>/KOPIERINGSPAPPER|JUOMALASI|PUNAKAALI.*PÄÄRYNÄ|JOGURTTIJUOMAT.*PROTEIN RAHKAT/i.test(row.title)),
  'Non-grocery or mixed-card rows must be absent from parser output');
+
+const bottle=source.rows.filter(row=>row.page===16&&/^TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl/.test(row.title));
+assert.equal(bottle.length,1);
+assert.deepEqual(bottle.map(row=>[row.spatialResolved?.value,row.spatialResolved?.unit,row.spatialResolved?.source]),
+ [[3.49,'PL','owned-printed-split-euro-cents']]);
+
+const mulledWine=source.rows.filter(row=>row.page===20&&/^GLÖGI 8 % 0,75 l\/pl/.test(row.title));
+assert.equal(mulledWine.length,1);
+assert.deepEqual(mulledWine.map(row=>[row.spatialResolved?.value,row.spatialResolved?.unit,row.spatialResolved?.source]),
+ [[9.29,'PL','owned-printed-overlaid-heading-price']]);

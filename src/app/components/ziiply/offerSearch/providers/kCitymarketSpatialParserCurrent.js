@@ -3,7 +3,7 @@ import {recoverAlignedPriceCards} from './kCitymarketAlignedPriceCards.js';
 import {flagMergedPublisherHeadings} from './kCitymarketPublisherHeadingCollision.js';
 import {restoreSplitPublisherCard} from './kCitymarketSplitPublisherCard.js';
 import {verifyPrintedTransaction} from './kCitymarketPrintedTransactionProof.js';
-import {verifiedOwnedPublisherOverprint} from './kCitymarketOwnedPublisherOverprints.js';
+import {recoverOverprintedHeadingPrice,verifiedOwnedPublisherOverprint} from './kCitymarketOwnedPublisherOverprints.js';
 import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
@@ -1738,6 +1738,7 @@ out.rows=out.rows.map(row=>{
 for (const [page, boxes] of publicationWordBoxes) {
  out.rows = recoverAlignedPriceCards(out.rows, boxes, page);
 }
+out.rows=out.rows.map(row=>recoverOverprintedHeadingPrice(row,publicationWordBoxes.get(row.page)||[]));
 out.rows=flagMergedPublisherHeadings(out.rows.filter(row=>!isNonGroceryLeafletTitle(row.title)).map(row=>
  row.spatialResolved?.source==='publisher-aligned-price-cards' ? {...row,package:pkg(row.title)} : row));
 // Only merge adjacent "tai" alternatives if both share a uniquely verified

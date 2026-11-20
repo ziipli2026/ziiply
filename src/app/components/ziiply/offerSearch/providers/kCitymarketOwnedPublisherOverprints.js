@@ -19,6 +19,29 @@ export function verifiedOwnedPublisherOverprint(row) {
   const nearby=row.nearby||[];
   const boxes=row.debugNearbyBoxes||[];
 
+  // A unit-rate estimate is weaker than a complete printed price beside
+  // the heading. Require the original glyphs and the sale label to align.
+  if(row.spatialResolved?.source==='same-card-box-unitrate-derived' &&
+     anchor && card?.quantity==null && card?.parts?.length===2 &&
+     /^(KPL|PKT|PRK|PS|RS|PL|TLK)$/.test(card.unit || '')){
+    const [euro,cents]=card.parts;
+    const headingRight=anchor.right ?? anchor.left+(anchor.width||0);
+    const centsBottom=cents.top+cents.height;
+    const ownUnit=boxes.some(box=>box.text===card.unit &&
+      box.left>=cents.left && box.left<=cents.left+cents.width &&
+      Math.abs(box.top-centsBottom)<.009);
+    if(/^\d{1,2}$/.test(euro.text) && /^\d{2}$/.test(cents.text) &&
+       euro.height>=.09 && cents.height>=.04 && cents.height<euro.height*.7 &&
+       euro.left>=headingRight-.003 && euro.left-headingRight<.035 &&
+       euro.top<=anchor.top && anchor.top-euro.top<.05 &&
+       Math.abs(euro.left+euro.width-cents.left)<.007 &&
+       cents.top>euro.top && cents.top-euro.top<.03 && ownUnit &&
+       Math.abs(card.value-Number(euro.text)-Number(cents.text)/100)<.005){
+      return {value:card.value,quantity:null,unit:card.unit,
+        source:'owned-printed-split-euro-cents',sanity:'pass',confidence:'high'};
+    }
+  }
+
   // 3x6-PACK describes three six-packs, not a 0.72-euro individual drink.
   // Require the publisher's own large total, the matching 3x6 label and
   // the same printed total in the surrounding text before accepting it.
@@ -107,4 +130,38 @@ export function verifiedOwnedPublisherOverprint(row) {
         source:'owned-overprinted-euro-cents-and-rounded-roll-rate',sanity:'pass',confidence:'high'};
   }
   return null;
+}
+
+// Some publisher boxes combine the first heading word with a large euro
+// glyph. Require the independent euro box at the same origin before using it.
+export function recoverOverprintedHeadingPrice(row, boxes) {
+  if(row.spatialResolved?.source!=='fixed-package-own-unitrate-derived')return row;
+  const firstWord=row.title.match(/^(\p{Lu}+)(\d)(\p{Lu}{2,})(?=\s|$)/u);
+  if(!firstWord)return row;
+  const [,prefix,whole,suffix]=firstWord;
+  const prices=new Map();
+  for(const heading of boxes.filter(box=>box.text===firstWord[0] && box.height>=.09)){
+    const euro=boxes.find(box=>box.text===whole &&
+      Math.abs(box.left-heading.left)<.002 &&
+      Math.abs(box.top-heading.top)<.002 &&
+      Math.abs(box.height-heading.height)<.002);
+    if(!euro)continue;
+    for(const cents of boxes.filter(box=>/^\d{2}$/.test(box.text) &&
+      box.left-euro.left>.035 && box.left-euro.left<.085 &&
+      box.top-euro.top>.01 && box.top-euro.top<.027 &&
+      box.height>=.045 && box.height<euro.height*.7)){
+      const unit=row.spatialResolved.unit;
+      if(!/^(KPL|PKT|PRK|PS|RS|PL|TLK)$/.test(unit || ''))continue;
+      const hasUnit=boxes.some(box=>box.text===unit && box.left>=cents.left &&
+        box.left<=cents.left+cents.width && Math.abs(box.top-cents.top-cents.height)<.01);
+      if(!hasUnit)continue;
+      const value=Number(whole+'.'+cents.text);
+      prices.set([euro.left,euro.top,value].join(':'),{value,unit});
+    }
+  }
+  if(prices.size!==1)return row;
+  const price=prices.values().next().value;
+  return {...row,title:prefix+suffix+row.title.slice(firstWord[0].length),
+    debugReplacedConflictingPrice:row.spatialResolved,
+    spatialResolved:{...price,quantity:null,source:'owned-printed-overlaid-heading-price',sanity:'pass',confidence:'high'}};
 }

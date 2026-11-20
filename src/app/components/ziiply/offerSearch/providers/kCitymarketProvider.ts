@@ -659,7 +659,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g"
       : is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g \(3,59\/kg\)15$/i.test(titleBeforeSourceReview)
         ? "TORTILLA ORIGINAL MEDIUM 320 g"
-      : is47LV && Number(row?.page)===20 && /^G9LÖGI 8 % 0,75 l\/pl/i.test(titleBeforeSourceReview)
+      : is47LV && Number(row?.page)===20 && /^(?:G9LÖGI|GLÖGI) 8 % 0,75 l\/pl/i.test(titleBeforeSourceReview)
         ? "GLÖGI 8 % 0,75 l/pl"
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 200 g$/i.test(titleBeforeSourceReview)
         ? "Pokemon ja Dolci Lilo ja Stitch JOULUKALENTERI 200 g"
@@ -695,8 +695,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);
       continue;
     }
-    if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT/.test(reviewed47LVTitle)) price=3.49;
-    if(is47LV && Number(row?.page)===20 && /^GLÖGI 8 %/.test(reviewed47LVTitle)) price=9.29;
     // 47LV p17: OCR borrowed the neighbouring chips price (1,39 €).
     // The printed Santa Maria tortilla 320 g card is 1,15 € / pkt.
     if(is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g/i.test(reviewed47LVTitle)) price=1.15;
