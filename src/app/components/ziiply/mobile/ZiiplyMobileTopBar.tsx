@@ -561,7 +561,7 @@ export default function ZiiplyMobileTopBar({
           setChartError("Hintatietoja ei ole saatavilla seuraavalle 24 tunnille.");
         }
       })
-      .catch(() => { if (!cancelled) setChartError("Hintakäyrän päivitys epäonnistui; aiemmat hinnat säilyvät."); })
+      .catch(() => { if (!cancelled) setChartError("Hintakäyrän lataus epäonnistui. Yritä avata käyrä uudelleen."); })
       .finally(() => { if (!cancelled) setChartLoading(false); });
     return () => { cancelled = true; };
   }, [chartOpen]);
@@ -721,7 +721,7 @@ export default function ZiiplyMobileTopBar({
                           const color = item.price === null ? "transparent" : item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544";
                           const label = new Date(item.start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"}) + " – " + (item.price === null ? "Hinta ei vielä saatavilla" : fmtFi(item.price, 2) + " snt/kWh");
                           return <button type="button" key={item.start + index} aria-label={label} aria-pressed={selectedPriceIndex === index} onClick={() => setSelectedPriceIndex(index)} className="relative flex h-full min-w-0 flex-1 items-end touch-manipulation" title={label}>
-                            <span className={selectedPriceIndex === index ? "block w-full rounded-t-[3px] outline outline-2 outline-[#164b38]" : "block w-full rounded-t-[3px]"} style={{height: height + "%", minHeight: "3px", backgroundColor: color}} />
+                            <span className={selectedPriceIndex === index ? "block w-full rounded-t-[3px] outline outline-2 outline-[#164b38]" : "block w-full rounded-t-[3px]"} style={{height: height + "%", minHeight: item.price === null ? "0" : "3px", backgroundColor: color}} />
                           </button>;
                         })}
                       </div>
@@ -731,6 +731,11 @@ export default function ZiiplyMobileTopBar({
                     </div>
                   </>;
                 })()}
+                {chartPrices.some(row => row.price === null) && (
+                  <p className="mt-2 text-center text-[11px] font-semibold text-[#805a36]">
+                    Tyhjät kohdat: hintaa ei ole vielä saatavilla.
+                  </p>
+                )}
                 <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
                   <span>{chartPrices[0] ? new Date(chartPrices[0].start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit"}) : ""}</span>
                   <span>snt/kWh</span>
