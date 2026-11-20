@@ -4277,5 +4277,137 @@
         ]
       ]
     }
+  },
+  "3d0769f7ec3c3944163d694abdda85227a70fd33574b015209055af5abc45449": {
+    "kcm:spatial:20:a4lkoholiton glögi 0,75 l/pl ei luomu (5,59/l) sis. pantin 0,10:4.29": {
+      "page": 20,
+      "rectangles": [
+        [
+          59.432499,
+          66.963242,
+          105.470299,
+          255.201905
+        ]
+      ]
+    },
+    "kcm:spatial:20:glögi 8 % 0,75 l/pl (12,25/l) sis. pantin 0,10:9.29": {
+      "page": 20,
+      "rectangles": [
+        [
+          52.852509,
+          283.130005,
+          104.146217,
+          472.371033
+        ]
+      ]
+    },
+    "kcm:spatial:1:tuore kirjolohifilee:12.95": {
+      "page": 1,
+      "rectangles": [
+        [
+          257.986115,
+          588.059753,
+          463.074341,
+          661.151062
+        ]
+      ]
+    },
+    "kcm:spatial:1:kivikylän porsaan kassler n. 1 kg:5.99": {
+      "page": 1,
+      "rectangles": [
+        [
+          273.992126,
+          775.145691,
+          443.912109,
+          859.751709
+        ]
+      ]
+    },
+    "kcm:spatial:6:kahvinkeittimen puhdistusaine 250 ml:11.99": {
+      "page": 6,
+      "rectangles": [
+        [
+          471.657684,
+          24.89006,
+          503.304718,
+          100.091003
+        ]
+      ]
+    },
+    "kcm:spatial:13:hiustenhoitotuotteet 100–300 ml:10.9": {
+      "page": 13,
+      "rectangles": [
+        [
+          157.158615,
+          112.082153,
+          232.760498,
+          341.608459
+        ],
+        [
+          221.954895,
+          164.493973,
+          289.627747,
+          394.057251
+        ]
+      ]
+    },
+    "kcm:spatial:13:colgate hammastahnarasiat 75 ml twister hammasharja 4 kpl/pkt lasten hammasharja 2 kpl/pkt breath-taking suuvesi 500 ml tai palmolive suihku- ja neste-saippuat 500 ml:10": {
+      "page": 13,
+      "rectangles": [
+        [
+          618.279175,
+          22.788467,
+          699.168396,
+          202.21814
+        ],
+        [
+          509.250854,
+          53.656601,
+          569.898804,
+          215.292969
+        ],
+        [
+          566.266357,
+          65.364594,
+          618.44574,
+          231.161499
+        ],
+        [
+          448.814728,
+          136.125488,
+          521.717957,
+          255.343689
+        ],
+        [
+          608.969971,
+          148.064789,
+          675.695374,
+          314.730225
+        ],
+        [
+          641.608459,
+          230.533249,
+          709.5495,
+          400.388794
+        ]
+      ]
+    },
+    "kcm:spatial:18:h3o t d o g makkarat 210 g (17,57/kg) 69:3.69": {
+      "page": 18,
+      "rectangles": [
+        [
+          528.366638,
+          280.543488,
+          601.807922,
+          417.853577
+        ],
+        [
+          478.476318,
+          326.785614,
+          553.133789,
+          464.095703
+        ]
+      ]
+    }
   }
 }

@@ -8,7 +8,8 @@ test('Published 42AV selects the same approved archive without preview-only envi
   assert.equal(parsed.sourceMode,'immutable-publisher-archive');
   assert.equal(parsed.approvalStatus,'APPROVED-20261012');
   assert.match(parsed.revision,/V159/);
-  assert.equal(parsed.rows.length,99);
+  assert.equal(parsed.rows.length,97);
+  assert.ok(parsed.rows.every(row=>!/JUOMALASI/i.test(row.title)));
   const bun=parsed.rows.find(row=>row.title==='KORVAPUUSTI 6/360 g');
   assert.equal(bun.spatialResolved.value,2.99);
   assert.equal(bun.unitPrice.min,8.31);

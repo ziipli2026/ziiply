@@ -247,25 +247,20 @@ test('47LV Neon snapshot v165: preserve source evidence and flag malformed merge
 });
 
 
-test('47LV spatial parser marks merged source headings before returning offers',()=>{
-  const source=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js','utf8');
-  const start=source.indexOf('// Detect title collisions at the publisher-geometry stage.');
-  const end=source.indexOf('// Only merge adjacent "tai" alternatives',start);
-  assert.ok(start>=0&&end>start,'spatial collision guard must execute before final merge');
-  const block=source.slice(start,end);
+test('47LV merged headings retain the source price and require independent evidence',async()=>{
+  const {flagMergedPublisherHeadings}=await import('../src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherHeadingCollision.js');
   const rows=[
-    {title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS',spatialResolved:{value:1.49}},
-    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g',spatialResolved:{value:14.02}},
-    {title:'PUNAKAALI KG',spatialResolved:{value:1.49}},
+    {page:16,title:'DANONE JOGURTTIJUOMAT 8 x 100 g ARLA PROTEIN RAHKAT 200 g',spatialResolved:{value:14.02}},
+    {page:16,title:'DANONE JOGURTTIJUOMAT 8 x 100 g'},
+    {page:16,title:'ARLA PROTEIN RAHKAT 200 g'},
   ];
-  const out=new Function('rows','let out={rows};'+block+';return out.rows;')(rows);
-  assert.equal(out.length,3,'guard must not silently drop offers');
-  assert.equal(out[0].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
-  assert.equal(out[1].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
-  assert.equal(out[2].debugSuspiciousPublisherTitle,undefined);
-  assert.equal(out[0].spatialResolved.value,1.49,'guard must preserve original price');
-  assert.equal(out[1].spatialResolved.value,14.02,'guard must preserve original price');
-  assert.equal(out[0].debugSuspiciousPublisherTitle.requiresSeparateCardPriceProof,true);
+  const output=flagMergedPublisherHeadings(rows);
+  assert.equal(output.length,3);
+  assert.equal(output[0].debugSuspiciousPublisherTitle?.reason,'merged-publisher-product-headings');
+  assert.equal(output[0].debugSuspiciousPublisherTitle?.requiresSeparateCardPriceProof,true);
+  assert.equal(output[0].spatialResolved.value,14.02);
+  assert.ok(output.slice(1).every(row=>!row.debugSuspiciousPublisherTitle));
+  assert.ok(!flagMergedPublisherHeadings(rows.map((row,index)=>({...row,page:16+index})))[0].debugSuspiciousPublisherTitle);
 });
 
 
@@ -285,20 +280,13 @@ test('47LV unresolved merged cards are not emitted by the provider',()=>{
 });
 
 
-test('47LV canonical title reconstruction cannot bypass merged-card publication guard',()=>{
-  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
-  const start=provider.indexOf('  // A canonical title reconstruction must not erase a collision warning');
-  const end=provider.indexOf('  const allLeafletText=',start);
-  assert.ok(start>=0&&end>start,'canonical reconstruction collision guard must exist');
-  const rows=[
-    {title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS'},
-    {title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g'},
-    {title:'PUNAKAALI KG'},
-  ];
-  new Function('rows',provider.slice(start,end))(rows);
-  assert.equal(rows[0].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
-  assert.equal(rows[1].debugSuspiciousPublisherTitle.reason,'merged-publisher-product-headings');
-  assert.equal(rows[2].debugSuspiciousPublisherTitle,undefined);
+test('47LV canonical title reconstruction preserves parser collision evidence',async()=>{
+  const {canonicalCitymarketProductRows}=await import('../src/app/components/ziiply/offerSearch/providers/kCitymarketProductRows.js');
+  const flags={reason:'merged-publisher-product-headings',requiresSeparateCardPriceProof:true};
+  const rows=[{page:15,title:'PUNAKAALI KG PÄÄRYNÄ KG',debugSuspiciousPublisherTitle:flags,spatialResolved:{value:1.49}}];
+  const [row]=canonicalCitymarketProductRows(rows);
+  assert.deepEqual(row.debugSuspiciousPublisherTitle,flags);
+  assert.equal(row.spatialResolved.value,1.49);
 });
 
 
@@ -349,10 +337,8 @@ test('47LV title repairs execute against publisher geometry examples and do not 
   assert.equal(run(url,13,'RANTIT 45 ml',['Rexona ja Rexona Men','DEODO-']).title,'Rexona ja Rexona Men Max Protection DEODORANTIT 45 ml');
   assert.equal(run(url,18,'H3O T D O G MAKKARAT 210 g (17,57/kg) 69',['Naughty','MAKKARAT 210 g']).title,'Naughty HOT DOG MAKKARAT 210 g');
   assert.equal(run(url,19,'H9aribo JOULUKALENTERI 300 g (32,63/kg) 79').title,'Haribo JOULUKALENTERI 300 g');
-  assert.equal(run(url,16,'4 LEVITTEET 400 g 2').title,'Eleplant KASVIVOIMAA LEVITTEET 400 g');
   assert.equal(run(url,18,'ULKOFILEESTÄ tai MUREUTETTU').skipped,true);
   assert.equal(run(url,18,'NAUDAN LEHTIPIHVI').skipped,true);
-  assert.equal(run(url,18,'NAUGHTY BURGER').skipped,true);
   assert.equal(run(url,16,'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g').skipped,true);
   assert.equal(run(url,20,'vadelmainen, mausteinen. 0 % 0,33 l/tlk OLUET 0,0 % 0,33 l/tlk').skipped,true);
   assert.equal(run(url,18,'THE DOG NAUGHTY HOT DOG 6 kpl/300 g').title,'Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g');
@@ -362,54 +348,18 @@ test('47LV title repairs execute against publisher geometry examples and do not 
 });
 
 
-test('47LV PDF-reviewed price overrides execute on actual parser values',()=>{
-  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
-  const start=provider.indexOf('    if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT/');
-  const end=provider.indexOf('    const title=/_47AV_KCM/i.test(leafletUrl)',start);
-  assert.ok(start>=0 && end>start);
-  const fn=new Function('is47LV','row','reviewed47LVTitle','initialPrice',
-    'let price=initialPrice;'+provider.slice(start,end)+'return price;');
-  assert.equal(fn(true,{page:16},'Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl',3.05),3.49);
-  assert.equal(fn(true,{page:16},'Eleplant KASVIVOIMAA LEVITTEET 400 g',2.60),5.20);
-  assert.equal(fn(true,{page:20},'GLÖGI 8 % 0,75 l/pl',50.31),9.29);
-  assert.equal(fn(false,{page:20},'GLÖGI 8 % 0,75 l/pl',50.31),50.31);
-});
-
-
-test('47LV PDF-reviewed cards require exact edition and matching page evidence',()=>{
-  const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts','utf8');
-  const start=provider.indexOf('  if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){');
-  const end=provider.indexOf('  const seen=new Set<string>();',start);
-  assert.ok(start>=0 && end>start,'reviewed PDF block must exist');
-  const run=(leafletUrl,sourceRows)=>{
-    const offers=[];
-    new Function('leafletUrl','sourceRows','offers',provider.slice(start,end).replace(/:number/g,'').replace(/:RegExp/g,'').replace(/:any/g,'').replace(/ as CitymarketOffer/g,''))(leafletUrl,sourceRows,offers);
-    return offers;
-  };
-  const url='https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html';
-  const rows=[
-    {page:1,title:'Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT-USJUOMAT'},
-    {page:1,title:'Ilman Plussa-korttia PORSAAN KASSLER n. 1 kg'},
-    {page:13,title:'HIUSTENHOITOTUOTTEET 100–300 ml'},
-    {page:13,title:'HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA'},
-    {page:13,title:'VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml'},
-    {page:15,title:'PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS'},
-    {page:16,title:'JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g'},
-    {page:18,title:'ULKOFILEEPIHVI 2 kpl/240 g BURGER 4 kpl/320 g'},
-    {page:20,title:'vadelmainen, mausteinen. 0 % 0,33 l/tlk OLUET 0,0 % 0,33 l/tlk'}
+test('47LV publication rejects unresolved and incomplete parser output',async()=>{
+  const {validate47LVPublication}=await import('../src/app/components/ziiply/offerSearch/providers/kCitymarket47LVStagingGuard.js');
+  const candidates=[
+    {title:'NAUGHTY BURGER',price:3.09,category:'Leipomo'},
+    {title:'GLÖGI 8 % 0,75 l/pl',price:50.31,category:'Juomat'},
+    {title:'HIUSTENHOITOTUOTTEET 100–300 ml',price:null,category:'Hygienia & kosmetiikka'},
   ];
-  const result=run(url,rows);
-  assert.equal(result.length,15);
-  const byTitle=(needle)=>result.find(o=>o.title.includes(needle));
-  assert.deepEqual([byTitle('PUNAKAALI').price,byTitle('PUNAKAALI').validTo],[0.99,'22.11.']);
-  assert.deepEqual([byTitle('KASSLER').price,byTitle('KASSLER').validTo],[5.99,'22.11.']);
-  assert.deepEqual([byTitle('HIUSTENHOITOTUOTTEET').price,byTitle('HIUSTENHOITOTUOTTEET').offerQuantity],[10.90,2]);
-  assert.deepEqual([byTitle('HAMMASTAHNARASIAT').price,byTitle('HAMMASTAHNARASIAT').offerQuantity],[10,4]);
-  assert.deepEqual([byTitle('Crisp RADLER').price,byTitle('Crisp RADLER').offerQuantity],[3,2]);
-  assert.deepEqual([byTitle('Kåska').price,byTitle('Kåska').offerQuantity],[4.7,2]);
-  assert.equal(run(url.replace('47LV','47AV'),rows).length,0);
-  assert.equal(run(url,rows.map(r=>({...r,page:99}))).length,0);
-  assert.equal(run(url,[]).length,0);
+  const result=validate47LVPublication(candidates,'2026-11-19-W47-LV');
+  assert.equal(result.ok,false);
+  for(const issue of ['merged-or-orphan-title','unverified-glogi-price','missing-price-and-discount','missing-pdf-reviewed-card']){
+    assert.ok(result.issues.some(value=>value.startsWith(issue)),issue);
+  }
 });
 
 

@@ -9,6 +9,7 @@ import citymarketPublisherImageRegistry from "./data/kCitymarketLeafletImages.js
 import { neon } from "@neondatabase/serverless";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 import { validate47LVPublication } from "./kCitymarket47LVStagingGuard.js";
+import { partitionDailyGroceryOffers } from "./kCitymarketDailyGroceryGate.js";
 import { getKCitymarketPublisherImage, auditKCitymarketPublisherImages } from "./kCitymarketPublisherImages";
 
 // ============================================================================
@@ -157,6 +158,7 @@ export function category(t:string){
   if(/(?:wc[- ]?raikastintik|kahvinkeittimen\s+puhdistusaine)/.test(s)) return "Kodinhoito";
   if(/(?:kreikkalaiset\s+jogurtit|\bjogurtit\b)/.test(s)) return "Maitotuotteet";
   // General product-form classification, independent of leaflet issue or chain.
+  if(/(?:punakaal|rosmariin)/.test(s)) return "Hevi";
   if(/(?:rypäle(?:et|itä)?|viinirypäle)/.test(s)) return "Hevi";
   if(/(?:kasvovoide|kasvoseerumi|collagen lifter|hyaluron expert|triple active|\bexpert\b.*\blifter\b)/.test(s)) return "Hygienia & kosmetiikka";
   if(/(?:wc[- ]?spray|wc[- ]?suihke)/.test(s)) return "Kodinhoito";
@@ -249,7 +251,7 @@ export function category(t:string){
   if(/smoothie|mehu|limon|virvoitus|energiajuoma|vitamiinijuoma|urheilujuoma|kivennäisves|vichy|cola|hard seltzer|seltzer|radler|olut|oluet|riesling|blanco|tinto|juoma|vesi\b/.test(s)) return "Juomat";
   if(/jäätel|tuut|multipack|pakaste|palko\+/.test(s)) return "Pakasteet";
   if(/kilokartonki|huopakynä|\btee\b|pasta|riisi|jauho|hiutale|muro|mysli|säilyke|kastik|sriracha|ketsupp|hiiva|ruokaöljy|mauste|tortilla|pähkinä|cashew|bonbon|aakkoset|fasupalat|salsa/.test(s)) return "Kuivatuotteet";
-  if(/omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
+  if(/persimon|omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
   if(/suojapaper|lautasliin|konetiskitablet|astianpesutablet|käsitiski|fairy|foliovuo|leivinpaper|tuorekelmu|alumiinifolio|suihkeet|wc-paper|wc-geel|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietik|tahranpoist|huuhteluaine|biojätekassi|jätekassi|roskapussi|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
   if(/sävytteet|hiusväri|pesulappu|ruokalappu|vuodesuoja|vaippa|shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|meikkivoide|meikki|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
   if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
@@ -554,7 +556,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(row?.publisherOfferId)return row;
     const page=Number(row?.page)||0;
     const rawTitle=clean(row?.title||"").toLowerCase();
-    if(/_45AV_KCM/i.test(leafletUrl)){
+    if(/_(?:45AV|47LV)_KCM/i.test(leafletUrl)){
       const price=Number(row?.spatialResolved?.value);
       const percent=Number(row?.percentageOffer?.percent);
       const suffix=Number.isFinite(price)&&price>0?String(price):percent>0&&percent<100?"percent:"+percent:"";
@@ -565,19 +567,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     }
     return row;
   }));
-  // A canonical title reconstruction must not erase a collision warning
-  // originating from the publisher's printed-card geometry.
-  for(const row of rows){
-    const title=String(row?.title||'').replace(/\s+/g,' ').trim();
-    if(!row.debugSuspiciousPublisherTitle &&
-       (/PUNAKAALI\s+KG\s+PÄÄRYNÄ\s+KG/i.test(title) ||
-        /JOGURTTIJUOMAT\s+PROTEIN\s+RAHKAT/i.test(title))){
-      row.debugSuspiciousPublisherTitle={
-        title:row.title,reason:'merged-publisher-product-headings',
-        requiresSeparateCardPriceProof:true
-      };
-    }
-  }
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
@@ -600,19 +589,15 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     const campaignTitle=repairCitymarketOCRTitle(clean(row?.title||""));
     const percent=Number(row?.percentageOffer?.percent);
     const is47LVPercent=/_47LV_KCM/i.test(leafletUrl);
-    // Printed 47LV p13: a single Smuuti Skin/COSRX -25% campaign was
-    // split across two parser rows. Never show the orphan continuation or
-    // imply a flat 49% discount for a printed "jopa -49%" range.
-    if(is47LVPercent && Number(row?.page)===13 && (/^TUOTTEET ja COSRX-TUOTTEET$/i.test(campaignTitle) || /^VOITEET 50 ml sekä MEIKINPOISTOAINE/i.test(campaignTitle))) continue;
-    const reviewedCampaignTitle=is47LVPercent && Number(row?.page)===13 && /^SMUUTI SKIN -IHONHOITO-$/i.test(campaignTitle)
-      ? "Smuuti Skin -ihonhoitotuotteet ja COSRX-tuotteet (ei lahjapakkaukset)"
-      : is47LVPercent && /^L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT\b/i.test(campaignTitle)
-        ? campaignTitle.replace(/\s+Voimassa\s+TO[–-]SU\s+19\.[–-]22\.11\.2026\b.*$/i,"").trim()
+    // The printed "jopa -49%" campaign does not state a flat percentage.
+    if(is47LVPercent && Number(row?.page)===13 && /^VOITEET 50 ml sekä MEIKINPOISTOAINE/i.test(campaignTitle)) continue;
+    const reviewedCampaignTitle=is47LVPercent && /^L’ORÉAL PARIS MEIKKIVOITEET, PEITEAINEET & TELESCOPIC MASCARAT\b/i.test(campaignTitle)
+      ? campaignTitle.replace(/\s+Voimassa\s+TO[–-]SU\s+19\.[–-]22\.11\.2026\b.*$/i,"").trim()
       : campaignTitle;
     if(!row?.spatialResolved && campaignTitle && !isNoiseLine(campaignTitle) && percent>0 && percent<100){
       const validity=extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))||leafletValidity;
       offers.push({id:`kcm:spatial:${row?.page??0}:${reviewedCampaignTitle.toLowerCase()}:percent:${percent}`,
-        title:reviewedCampaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
+        publisherOfferId:row.publisherOfferId,title:reviewedCampaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
         resolutionSource:row.percentageOffer.source,plussa:/plussa/i.test((row.nearby||[]).join(" ")),
         validFrom:validity?.from??null,validTo:validity?.to??null,category:/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(campaignTitle,category(campaignTitle)):category(campaignTitle),
         chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
@@ -664,15 +649,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g"
       : is47LV && Number(row?.page)===16 && /^TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl/i.test(titleBeforeSourceReview)
         ? "Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl"
-      : is47LV && Number(row?.page)===16 && /^4 LEVITTEET 400 g 2$/i.test(titleBeforeSourceReview)
-        ? "Eleplant KASVIVOIMAA LEVITTEET 400 g"
-      : is47LV && Number(row?.page)===18 && /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(titleBeforeSourceReview)
-        ? "Snellman NAUDAN LEHTIPIHVI ULKOFILEESTÄ tai MUREUTETTU ULKOFILEEPIHVI 2 kpl/240 g"
-      : is47LV && Number(row?.page)===18 && /^JUUSTOVIIPALEET 120–200 g$/i.test(titleBeforeSourceReview)
-        ? "Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g"
-      : is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g \(3,59\/kg\)15$/i.test(titleBeforeSourceReview)
-        ? "TORTILLA ORIGINAL MEDIUM 320 g"
-      : is47LV && Number(row?.page)===20 && /^G9LÖGI 8 % 0,75 l\/pl/i.test(titleBeforeSourceReview)
+      : is47LV && Number(row?.page)===20 && /^(?:G9LÖGI|GLÖGI) 8 % 0,75 l\/pl/i.test(titleBeforeSourceReview)
         ? "GLÖGI 8 % 0,75 l/pl"
       : is47LV && Number(row?.page)===19 && /^JOULUKALENTERI 200 g$/i.test(titleBeforeSourceReview)
         ? "Pokemon ja Dolci Lilo ja Stitch JOULUKALENTERI 200 g"
@@ -702,19 +679,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       /^vadelmainen, mausteinen\./i.test(reviewed47LVTitle) ||
       /^ULKOFILEESTÄ tai MUREUTETTU$/i.test(reviewed47LVTitle) ||
       /^NAUDAN LEHTIPIHVI$/i.test(reviewed47LVTitle) ||
-      /^NAUGHTY BURGER$/i.test(reviewed47LVTitle) ||
 
       (/^GLÖGI 8 % 0,75 l\/pl/i.test(reviewed47LVTitle) && Number(resolved.value)>20 && Number(row?.page)!==20))) {
       console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);
       continue;
     }
-    if(is47LV && Number(row?.page)===16 && /^Innocent TÄYSMEHUT/.test(reviewed47LVTitle)) price=3.49;
-    if(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(reviewed47LVTitle)) price=5.20;
-    if(is47LV && Number(row?.page)===20 && /^GLÖGI 8 %/.test(reviewed47LVTitle)) price=9.29;
-    // 47LV p17: OCR borrowed the neighbouring chips price (1,39 €).
-    // The printed Santa Maria tortilla 320 g card is 1,15 € / pkt.
-    if(is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g/i.test(reviewed47LVTitle)) price=1.15;
-    if(is47LV && Number(row?.page)===17 && /^T1?ORTILLA CHIPSIT 160–185 g/i.test(reviewed47LVTitle)) price=1.39;
     const title=/_47AV_KCM/i.test(leafletUrl) && Number(row?.page)===17 && /^LASTU\s+220\s*g$/i.test(titleBeforeSourceReview)
       ? "MUU LIHATON- tai KANATON LASTU 220 g" : reviewed47LVTitle;
     if(!title || isNoiseLine(title)) continue;
@@ -724,7 +693,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(innocent45AV) price=3.49;
 
     const normalMin=Number(row?.normal?.min);
-    const offerQuantity=(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(title) ? 2 : null)??reviewed46LV?.quantity??verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
+    const offerQuantity=reviewed46LV?.quantity??verified45LV?.quantity??(resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null);
     // The leaflet's normal price is a single-item price, while resolved.value is
     // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
     // the same basis so UI comparisons and strike-through prices are meaningful.
@@ -772,11 +741,16 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         priceBasis: resolved.packageCount > 1 ? "package-total" : "set-total",
         priceText: price.toFixed(2).replace(".", ",") + " € / " + (resolved.packageCount > 1 ? "pkt (" + resolved.packageCount + " kpl)" : "setti"),
       } : {}),
+      ...(resolved?.source?.startsWith("owned-printed") && offerQuantity && offerQuantity > 1 &&
+          resolved.unit && resolved.unit !== "KG" && !(resolved.packageCount > 1) ? {
+        priceBasis: "set-total",
+        priceText: price.toFixed(2).replace(".", ",") + " € / " + offerQuantity +
+          (/-PACK$/i.test(resolved.unit) ? " × " : " ") + resolved.unit.toLowerCase(),
+      } : {}),
       ...(verified45LV?{priceBasis:verified45LV.reviewedCard?(verified45LV.quantity>1?"set-total":"package-total"):verified45LV.unit==="PKT"?"package-total":"set-total",priceText:price.toFixed(2).replace(".",",")+" € / "+(verified45LV.priceLabel??(verified45LV.unit==="PKT"?"24-pack":"2 kpl"))}:{}),
       packageSize:verified45LV?.reviewedCard?null:row?.package?.raw??null,
       offerQuantity,
       ...(reviewed46LV?.quantity?{priceBasis:"package-total",priceText:price.toFixed(2).replace(".",",")+" € / "+reviewed46LV.quantity+"-pack"}:{}),
-      ...(is47LV && Number(row?.page)===16 && /^Eleplant KASVIVOIMAA LEVITTEET/.test(title)?{priceBasis:"set-total",priceText:"5,20 € / 2 rs"}:{}),
       offerUnit:verified45LV?.unit??(reviewed46LV?.quantity?"PACK":resolved?.unit?String(resolved.unit).toUpperCase():null),
       resolutionSource:reviewed46LV?.source??(resolved?.source?String(resolved.source):null),
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
@@ -791,47 +765,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       source:"K-Citymarket tarjouslehti",
       sourceUrl:leafletUrl
     });
-  }
-
-  // 47LV publisher PDF pages 16 and 18: the spatial text layer merges three
-  // independently priced cards into neighbouring headings. Recover only these
-  // exact printed transactions when the original merged evidence is present.
-  // Never transfer these values to another edition or an unrelated card.
-  if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){
-    const hasMerged=(page:number,pattern:RegExp)=>sourceRows.some((r:any)=>Number(r?.page)===page && pattern.test(String(r?.title||"")));
-    const reviewed=[
-      // Page 13: printed price blocks are not paired with their headings.
-      // Keep separate price/quantity transactions rather than accepting OCR's
-      // spurious 4,10 / 2,75 / 5,10 prices.
-      {page:13,evidence:/HIUSTENHOITOTUOTTEET 100–300 ml/i,title:"HIUSTENHOITOTUOTTEET 100–300 ml",price:10.90,quantity:2,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
-      {page:13,evidence:/HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJA/i,title:"Colgate HAMMASTAHNARASIAT 75 ml, TWISTER HAMMASHARJAT, LASTEN HAMMASHARJAT, BREATH-TAKING SUUVESI 500 ml tai Palmolive SUIHKU- ja NESTESAIPPUAT 500 ml",price:10.00,quantity:4,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
-      {page:13,evidence:/VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml/i,title:"L’Oréal Paris Triple Active, Hyaluron Expert ja Collagen Expert VOITEET 50 ml sekä MEIKINPOISTOAINE 125 ml",price:5.00,quantity:1,unit:"KPL",category:"Hygienia & kosmetiikka",to:"29.11."},
-      // Cover page: spatial OCR merges the two-pack soft-drink offer and
-      // Kivikylä kassler into one heading; persimmon is missing entirely.
-      {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOITUSJUOMAT 0,33 l/tlk 6-pack",price:7.00,quantity:2,unit:"6-PACK",category:"Juomat",to:"22.11."},
-      {page:1,evidence:/Ilman Plussa-korttia PORSAAN KASSLER/i,title:"Kivikylän PORSAAN KASSLER n. 1 kg",price:5.99,quantity:1,unit:"KG",category:"Liha",to:"22.11."},
-      {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"PERSIMON Espanja",price:2.49,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
-      // Page 15 publisher PDF has four independent produce cards but the
-      // spatial parser merges all four into one unusable title.
-      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"PUNAKAALI Suomi",price:0.99,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"CELINA PÄÄRYNÄ Suomi",price:2.99,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"Järvikylä ROSMARIINI Suomi",price:2.99,quantity:1,unit:"KPL",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:15,evidence:/PUNAKAALI KG PÄÄRYNÄ KG KPL 125 g PS/i,title:"Oksasen puutarha JUICY SALAATTI 125 g Suomi",price:1.49,quantity:1,unit:"PS",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Arla PROTEIN RAHKAT 200 g",price:3.50,quantity:4,unit:"PRK",category:"Maitotuotteet",to:"29.11."},
-      {page:16,evidence:/JOGURTTIJUOMAT PROTEIN RAHKAT 200 g 8 x 100 g/i,title:"Danone ACTIMEL JOGURTTIJUOMAT 8 x 100 g",price:3.69,quantity:1,unit:"PKT",category:"Maitotuotteet",to:"29.11."},
-      {page:18,evidence:/ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i,title:"Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g",price:2.39,quantity:1,unit:"PS",category:"Leipomo",to:"22.11."},
-      {page:20,evidence:/vadelmainen, mausteinen\. 0 % 0,33 l\/tlk OLUET 0,0 % 0,33 l\/tlk/i,title:"Kåska SELVIN PÄIN SPRITZIT 0 % 0,33 l/tlk",price:4.70,quantity:2,unit:"TLK",category:"Juomat",to:"29.11."},
-      {page:20,evidence:/vadelmainen, mausteinen\. 0 % 0,33 l\/tlk OLUET 0,0 % 0,33 l\/tlk/i,title:"Crisp RADLER ALKOHOLITTOMAT OLUET 0,0 % 0,33 l/tlk",price:3.00,quantity:2,unit:"TLK",category:"Juomat",to:"29.11."}
-    ];
-    for(const card of reviewed){
-      if(!hasMerged(card.page,card.evidence) || offers.some(o=>o.title===card.title))continue;
-      offers.push({id:`kcm:47lv:pdf-reviewed:${card.page}:${card.title.toLowerCase()}`,publisherOfferId:`kcm:47lv:pdf-reviewed:${card.page}:${card.title.toLowerCase()}`,
-        title:card.title,price:card.price,offerQuantity:card.quantity,offerUnit:card.unit,
-        priceBasis:card.quantity>1?"set-total":"package-total",
-        priceText:card.price.toFixed(2).replace(".",",")+" € / "+(card.quantity>1?card.quantity+" "+card.unit.toLowerCase():card.unit.toLowerCase()),
-        category:card.category,campaignType:"offer",validFrom:"19.11.",validTo:card.to,
-        resolutionSource:"publisher-pdf-reviewed-47lv-merged-card",chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl} as CitymarketOffer);
-    }
   }
 
   const seen=new Set<string>();
@@ -894,6 +827,12 @@ export function getNextKCitymarketPeriod(now=new Date()):KCitymarketPeriod|null{
 function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
   return String(url||"").toUpperCase().includes("_"+period.week+period.kind+"_KCM");
 }
+const verified47LVPeriod = "2026-11-19-W47-LV";
+const verified47LVLeaflet = "https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html";
+export function kCitymarketPublicationCandidateId(periodKey:string){
+  return periodKey+(periodKey===verified47LVPeriod?"-printed-transactions-v166":"-printed-transactions-v165");
+}
+
 // Immutable publication URL for a period whose public entry already rolled forward.
 const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
   "2026-10-01-W40-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/80s40wg_tarjouslehti_40LV_KCM/index.html",
@@ -901,6 +840,7 @@ const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
   "2026-10-15-W42-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html",
 };
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
+  if(period.key===verified47LVPeriod)return verified47LVLeaflet;
   // Prefer immutable publisher URLs already verified by the automated image pipeline.
   // This avoids a rolling landing page silently switching to another publication.
   const knownPublications=Object.keys(citymarketPublisherImageRegistry.publications);
@@ -917,7 +857,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-printed-transactions-v170-20261115-47av-reviewed-title-category"],
+  ["ziiply-kcitymarket-printed-transactions-v171"],
   // Retry discovery of upcoming editions after a late publisher release. A permanent
   // cache otherwise freezes the first incomplete parse until another deployment.
   {revalidate:300},
@@ -1031,19 +971,26 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
   const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
-  const stagingGate=validate47LVPublication(enriched,active.key);
+  const grocery=partitionDailyGroceryOffers(enriched);
+  if(grocery.quarantined.length)console.warn("[K-Citymarket] non-grocery or uncertain rows quarantined",grocery.quarantined.map(x=>({title:x.offer?.title,category:x.offer?.category,reason:x.reason})));
+  if(!grocery.accepted.length)throw new Error("Citymarket publication has no verified grocery offers");
+  if(active.key===verified47LVPeriod && (grocery.accepted.length!==53||grocery.quarantined.length||
+    grocery.accepted.some(offer=>offer.sourceUrl!==verified47LVLeaflet))){
+    throw new Error("47LV candidate differs from the verified nationwide leaflet");
+  }
+  const stagingGate=validate47LVPublication(grocery.accepted,active.key);
   if(!stagingGate.ok)throw new Error("47LV publication quality gate rejected candidate: "+stagingGate.issues.join(" | "));
   const beforeImages=offers.filter(offer=>Boolean(offer.imageUrl)).length;
   const afterImages=enriched.filter(offer=>Boolean(offer.imageUrl)).length;
   console.info("[K-Citymarket] publication image enrichment result",{
-    period:active.key,total:enriched.length,beforeImages,afterImages,
+    period:active.key,total:grocery.accepted.length,beforeImages,afterImages,
     addedImages:afterImages-beforeImages,missingImages:enriched.length-afterImages,
     missingTitles:enriched.filter(offer=>!offer.imageUrl).map(offer=>offer.title),
   });
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
-  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v165",validFrom:start,
-    validUntil:until,parsedAt:new Date().toISOString(),offers:enriched}, {approvalState:"candidate"});
+  return storeParsedPublication({chain:"K-Citymarket",id:kCitymarketPublicationCandidateId(active.key),validFrom:start,
+    validUntil:until,parsedAt:new Date().toISOString(),offers:grocery.accepted}, {approvalState:"candidate"});
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{

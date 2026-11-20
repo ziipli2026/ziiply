@@ -26,4 +26,9 @@ const single=inspect([{...base,title:'VIRVOITUSJUOMAT 0,33 l/pl'}]);
 assert.equal(single.inconsistentUnitPrices,1,'A single bottle must not inherit the 24-pack exemption');
 const bad=inspect([{...base,title:'VIRVOITUSJUOMAT 0,33 l/pl 24-pack',unitPrice:4.44}]);
 assert.equal(bad.inconsistentUnitPrices,1,'Wrong multipack unit price must still fail');
-console.log('Citymarket multipack quality audit: 3 checks passed');
+const bundle={...base,title:'VIRVOITUSJUOMAT 0,33 l/tlk 6-pack',price:7,
+  offerQuantity:2,offerUnit:'6-PACK',priceBasis:'set-total',unitPrice:1.31,
+  depositAmount:undefined,depositTotal:1.80};
+assert.equal(inspect([bundle]).inconsistentUnitPrices,0,'Two six-packs contain 12 cans and the total deposit is 1.80');
+assert.equal(inspect([{...bundle,unitPrice:1.70}]).inconsistentUnitPrices,1,'An incorrect unit price still fails');
+console.log('Citymarket multipack quality audit passed');

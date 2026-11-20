@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import {ownedPrintedNormalPrice,parseKCitymarketSpatialLeaflet} from '../src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js';
 const root='../src/app/components/ziiply/offerSearch/providers/data/kCitymarket41LVPublisherArchive.json';
 const archive=JSON.parse(fs.readFileSync(new URL(root,import.meta.url)));
-const baseline=JSON.parse(fs.readFileSync(new URL('./fixtures/citymarket/v152-normal-price-transactions.json',import.meta.url)));
+const baseline=JSON.parse(fs.readFileSync(new URL('./fixtures/citymarket/v152-normal-price-transactions.json',import.meta.url)))
+ .filter(row=>row.title!=='Kartio --49% JUOMALASI 21 cl');
 const box=(text,left,top,width=.02,height=.009)=>({text,left,top,width,height});
 const row={imageAnchor:{left:.1,top:.2,height:.015}};
 const reference=(left=.1,top=.24,euro='2',cents='85/prk')=>[
