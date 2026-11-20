@@ -135,3 +135,12 @@ test("Citymarket grocery gate excludes durable hygiene appliances but keeps cons
  const result=filterCitymarketAdditionalGroceryOffers(rows,context.classify);
  assert.deepEqual(result.map(x=>x.title),consumables);
 });
+
+for (const [title,wanted] of [
+ ["Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g","Leipomo"],
+ ["HAMPURILAISSÄMPYLÄT 4 kpl","Leipomo"],
+ ["Burger buns 4 kpl","Leipomo"],
+ ["Naughty HOT DOG MAKKARAT","Liha & makkarat"],
+ ["Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g","Maitotuotteet"],
+ ["Hampurilaisateria 300 g","Valmisruoka"],
+]) test("Burger product-form precedence: "+title,()=>assert.equal(context.classify(title),wanted));
