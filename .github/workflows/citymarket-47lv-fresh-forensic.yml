@@ -24,6 +24,8 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/47lv-audit" --no-audit --no-fund --ignore-scripts typescript@5.9.3
           NODE_PATH="$RUNNER_TEMP/47lv-audit/node_modules" node scripts/citymarket/verify-47lv-provider.cjs 47lv-fresh
+          ln -s "$RUNNER_TEMP/47lv-audit/node_modules" node_modules
+          node scripts/citymarket/test-quality-multipack.mjs
       - name: Preserve PDF and raw comparison for independent inspection
         if: always()
         uses: actions/upload-artifact@v4

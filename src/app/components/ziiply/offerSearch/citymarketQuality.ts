@@ -16,7 +16,7 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
     const category = String(offer.category ?? "").trim();
     const quantity = Number(offer.offerQuantity) || 1;
     const unitPrice = Number(offer.unitPrice);
-    const deposit = Number(offer.depositAmount) || 0;
+    const deposit = Number(offer.depositTotal) || Number(offer.depositAmount) || 0;
     const problem = (type: keyof Pick<CitymarketOfferQuality, "missingNames"|"missingPrices"|"missingCategories"|"suspiciousTitles"|"inconsistentUnitPrices">) => {
       result[type]++;
       if (result.examples.length < 12) result.examples.push(type + ": " + (title || "(empty)"));
@@ -42,7 +42,9 @@ export function inspectCitymarketOffers(offers: Record<string, unknown>[]): City
         ? .15 * quantity : 0;
       const depositToCheck = deposit > 0 ? deposit : expectedDeposit;
       // A 6-pack may also expose offerQuantity=6 as package metadata. Do not multiply twice.
-      const effectiveCount = packCount > 1 ? packCount : quantity;
+      const countedPacks = packCount > 1 && offer.priceBasis === "set-total" &&
+        String(offer.offerUnit ?? "").toUpperCase() === packCount + "-PACK";
+      const effectiveCount = packCount > 1 ? packCount * (countedPacks ? quantity : 1) : quantity;
       const expected = (price - depositToCheck) / (amount * effectiveCount);
       if (amount > 0 && Math.abs(expected - unitPrice) > Math.max(.08, expected * .06)) problem("inconsistentUnitPrices");
     }
