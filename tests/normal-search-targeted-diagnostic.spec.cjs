@@ -50,6 +50,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         const saved=replayResponses.get(key);
         if(!saved){
           console.log('[normal-parity] REPLAY MISS',key);
+          // A missing EAN enrichment is not a missing product-search response.
+          // Preserve the live enrichment path, but fail closed for search providers.
+          if(url.pathname==='/api/ean-bank')return route.continue();
           return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Missing recorded provider response',key})});
         }
         return route.fulfill({status:saved.status,headers:saved.headers,body:saved.body});
