@@ -83,3 +83,32 @@ for(const [title,wanted] of [
 test("47AV page 17 full reviewed MUU title has correct category",()=>{
  assert.equal(context.classify("MUU LIHATON- tai KANATON LASTU 220 g"),"Valmisruoka");
 });
+
+test("Citymarket supplemental feed retains groceries and excludes durable goods before display", async () => {
+  const {filterCitymarketAdditionalGroceryOffers} = await import(
+    "../src/app/components/ziiply/offerSearch/providers/kCitymarketDailyGroceryGate.js"
+  );
+  const accepted = [
+    ["L’ORÉAL PARIS MEIKKIVOITEET", "Hygienia & kosmetiikka"],
+    ["LUMENE KLASSIKKO KASVOJEN-HOITO- ja PUHDISTUSTUOTTEET", "Hygienia & kosmetiikka"],
+    ["SMUUTI SKIN -IHONHOITOTUOTTEET ja COSRX-TUOTTEET", "Hygienia & kosmetiikka"],
+    ["SAGA FOLIO 30 cm x 20 m, TUOREKELMU ja EVÄSPUSSI", "Kodinhoito"],
+    ["SINI SIIVOUSSOODA ja PUHDISTUSKIVI", "Kodinhoito"],
+    ["Kinder MAXI MIX JOULUKALENTERI 351 g", "Makeiset & keksit"],
+  ];
+  const rejected = [
+    "FISKARS AINA KEITTO- ja PAISTOASTIAT", "TEFAL ROBUSTO PAISTOASTIAT",
+    "KAIKKI LEGO CITY -PALIKKARASIAT", "KAIKKI LAUTA-, PALA,- ja KORTTIPELIT",
+    "PENTIK SATUPORO KODINTEKSTIILIT", "PALJON SPORTTIBRÄNDIEN KENKIÄ",
+    "KAIKKI A.ERIKSSON ja ULRIKA LAUKUT ja A.ERIKSSON LOMPAKOT",
+    "MYHOME SESONKIVALOT ja LYHDYT", "KAIKKI PYYKINKUIVAUSTELINEET",
+    "IITTALA TAIKA ja TEEMA ASTIOITA", "KAMPANJAPOKKAREITA", "TUOTTEET",
+  ];
+  const rows = [
+    ...accepted.map(([title]) => ({title, category:"Koti & vapaa-aika"})),
+    ...rejected.map(title => ({title})),
+    {title:"FISKARS PAISTINPANNU",category:"Kodinhoito"},
+  ];
+  const result = filterCitymarketAdditionalGroceryOffers(rows, context.classify);
+  assert.deepEqual(result.map(row => [row.title,row.category]), accepted);
+});
