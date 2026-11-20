@@ -29,6 +29,15 @@ async function fetchItems(query,take,skip=0,sort=''){
   const intersection=(x,y)=>x.ids.filter(id=>set(y).has(id)).length;
   console.log('COMPARISON',JSON.stringify({query,firstVsRepeat:intersection(first,repeat),firstVsLarge:intersection(first,large),firstVsSecondPage:intersection(first,page),firstVsSortId:intersection(first,sorted),largeCount:large.count,sortedChanged:sorted.ids.join(',')!==first.ids.join(',')}));
  }
+ // Measure repeated identical first-page calls without changing the upstream.
+ for(const query of ['kala','muro','suklaa','makkara']){
+  const samples=[];
+  for(let i=0;i<8;i++)samples.push(await fetchItems(query,100));
+  const counts=new Map();
+  for(const sample of samples)for(const id of new Set(sample.ids))counts.set(id,(counts.get(id)||0)+1);
+  const union=counts.size,stable=[...counts.values()].filter(n=>n===samples.length).length;
+  console.log('STABILITY',JSON.stringify({query,samples:samples.length,union,stable,variable:union-stable,counts:samples.map(x=>x.count),elapsedMs:samples.map(x=>x.elapsedMs)}));
+ }
  fs.writeFileSync('ruoanhinta-pagination-contract.json',JSON.stringify({createdAt:new Date().toISOString(),probes},null,2));
  // A rejected experimental sort parameter is an expected contract finding, not a test failure.
  if(probes.some(p=>p.error||(p.status!==200&&!p.sort)))process.exitCode=1;
