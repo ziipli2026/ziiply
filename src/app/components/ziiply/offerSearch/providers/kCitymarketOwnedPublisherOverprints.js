@@ -163,14 +163,16 @@ export function recoverOverprintedHeadingPrice(row, boxes) {
       for(const unit of boxes.filter(box=>/^(KPL|PKT|PRK|PS|RS|PL|TLK)$/.test(box.text) &&
         (!originalProof||box.text===row.spatialResolved.unit) && box.left>=cents.left &&
         box.left<=cents.left+cents.width && Math.abs(box.top-cents.top-cents.height)<.01)){
-        prices.set([euro.left,euro.top,value,unit.text].join(':'),{value,unit:unit.text,fused});
+        prices.set([euro.left,euro.top,value,unit.text].join(':'),{value,unit:unit.text,fused,heading});
       }
     }
   }
   if(prices.size!==1)return row;
-  const {fused,...price}=prices.values().next().value;
+  const {fused,heading,...price}=prices.values().next().value;
   const title=prefix+suffix+row.title.slice(firstWord[0].length);
   return {...row,title:fused&&title.endsWith(')'+fused)?title.slice(0,-fused.length):title,
+    ...(row.imageAnchor && Math.abs(row.imageAnchor.top-heading.top)>.09
+      ? {imageAnchor:{left:heading.left,top:heading.top,width:heading.width,height:row.imageAnchor.height}} : {}),
     debugReplacedConflictingPrice:row.spatialResolved,
     spatialResolved:{...price,quantity:null,source:'owned-printed-overlaid-heading-price',sanity:'pass',confidence:'high'}};
 }
