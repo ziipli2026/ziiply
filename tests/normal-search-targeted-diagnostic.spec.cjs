@@ -35,17 +35,20 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     page.on('console',msg=>{if(msg.text().startsWith('[normal-search-decision-summary]')){try{const item=JSON.parse(msg.text().slice('[normal-search-decision-summary]'.length).trim());decisionSummaries.push({device,...item});console.log('[normal-parity] DECISION SUMMARY',JSON.stringify({device,...item}));}catch{}}});
     page.on('console',msg=>{if(msg.text().startsWith('[normal-search-finalization-summary]')){try{const item=JSON.parse(msg.text().slice('[normal-search-finalization-summary]'.length).trim());decisionSummaries.push({device,stage:'finalization',...item});console.log('[normal-parity] FINALIZATION SUMMARY',JSON.stringify({device,...item}));}catch{}}});
     let currentSearchQuery='';
+    const queryAtRequest=new WeakMap();
+    page.on('request',request=>{ queryAtRequest.set(request,currentSearchQuery); });
     page.on('pageerror',e=>errors.push(String(e)));
     page.on('response',r=>{
       try {
         const u=new URL(r.url());
+        const requestQuery=queryAtRequest.get(r.request())||currentSearchQuery;
         if(u.pathname.startsWith('/api/'))apiResponses.push({
           path:u.pathname,status:r.status(),method:r.request().method(),
           search:u.searchParams.get('search'),requestUrl:u.pathname+u.search,
-          searchAtResponse:currentSearchQuery
+          searchAtResponse:requestQuery
         });
-        if(currentSearchQuery==='suklaa' && ['/api/neon-first-search','/api/k-products','/api/s-products'].includes(u.pathname)){
-          const queryAtResponse=currentSearchQuery;
+        if(requestQuery==='suklaa' && ['/api/neon-first-search','/api/k-products','/api/s-products'].includes(u.pathname)){
+          const queryAtResponse=requestQuery;
           const fingerprint=r.body().then(body=>{
             const record={device,query:queryAtResponse,path:u.pathname,search:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),bytes:body.length,sha256:crypto.createHash('sha256').update(body).digest('hex')};
             providerFingerprints.push(record);
@@ -55,9 +58,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         // Compare the actual provider EAN sets and pagination completeness, not
         // just raw response hashes (which can change with metadata/order).
-        if(['mustikka','vadelma','suklaa','mansikka','makkara','kala'].includes(currentSearchQuery)
+        if(['mustikka','vadelma','suklaa','mansikka','makkara','kala'].includes(requestQuery)
           && ['/api/k-products','/api/s-products','/api/neon-first-search'].includes(u.pathname)){
-          const queryAtResponse=currentSearchQuery;
+          const queryAtResponse=requestQuery;
           const check=r.json().then(data=>{
             const rows=Array.isArray(data)?data:(Array.isArray(data?.items)?data.items:(Array.isArray(data?.products)?data.products:(Array.isArray(data?.results)?data.results:[])));
             const eans=[...new Set(rows.map(p=>String(p?.ean||p?.barcode||p?.gtin||p?.product?.ean||'').replace(/\D/g,'')).filter(x=>/^(?:\d{8}|\d{12,14})$/.test(x)))].sort();
@@ -69,9 +72,9 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         // Capture the response structure for queries that currently produce no
         // rendered cards. HTTP 200 alone does not prove the API returned products.
-        if(['paprika','salaatti','appelsiini'].includes(currentSearchQuery)
+        if(['paprika','salaatti','appelsiini'].includes(requestQuery)
           && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
-          const queryAtRequest=currentSearchQuery;
+          const queryAtRequest=requestQuery;
           const check=r.text().then(body=>{
             let shape;
             try {
@@ -87,8 +90,8 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           }).catch(error=>console.log('[normal-parity] PROVIDER BODY ERROR',JSON.stringify({device,query:queryAtRequest,path:u.pathname,error:String(error)})));
           responseBodyChecks.push(check);
         }
-        if(anomalyQueries.has(currentSearchQuery) && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
-          const queryAtResponse=currentSearchQuery;
+        if(anomalyQueries.has(requestQuery) && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
+          const queryAtResponse=requestQuery;
           const check=r.text().then(body=>{
             const matches=anomalyEans.filter(ean=>body.includes(ean));
             const item={device,query:queryAtResponse,path:u.pathname,requestSearch:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),bodyLength:body.length,matchingEans:matches};
@@ -97,7 +100,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           }).catch(error=>console.log('[normal-parity] ANOMALY PROVIDER ERROR',String(error)));
           providerChecks.push(check);
         }
-        if(currentSearchQuery==='juusto' && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
+        if(requestQuery==='juusto' && /\/api\/(?:neon-first-search|k-products|s-products|lidl\/products|tokmanni\/products)/.test(u.pathname)){
           const requestSearch=u.searchParams.get('search');
           const check=r.text().then(body=>{
             const targets=['3073780902441','6407204002559'];
