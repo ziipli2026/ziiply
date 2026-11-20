@@ -25,6 +25,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   // must not be mistaken for proof that it exercised the current Git SHA.
   console.log('[normal-parity] deployment target',JSON.stringify({base,expectedCommit:evidence.expectedCommit}));
 
+  // Optional deterministic provider replay: capture mobile API responses and
+  // serve identical bytes to desktop for the same search query and URL.
+  const replayEnabled=process.env.NORMAL_SEARCH_REPLAY==='1';
+  const replayResponses=new Map();
+  const replayCaptures=[];
+  const replayPaths=/^\\/api\\/(?:k-products|s-products|neon-first-search|lidl\\/products|tokmanni\\/products|ean-bank)(?:\\/|$)/;
   for(const device of ['mobile','desktop']){
     const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
@@ -36,12 +42,34 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     page.on('console',msg=>{if(msg.text().startsWith('[normal-search-finalization-summary]')){try{const item=JSON.parse(msg.text().slice('[normal-search-finalization-summary]'.length).trim());decisionSummaries.push({device,stage:'finalization',...item});console.log('[normal-parity] FINALIZATION SUMMARY',JSON.stringify({device,...item}));}catch{}}});
     let currentSearchQuery='';
     const queryAtRequest=new WeakMap();
+    if(replayEnabled && device==='desktop'){
+      await page.route('**/api/**',async route=>{
+        const url=new URL(route.request().url());
+        if(!replayPaths.test(url.pathname))return route.continue();
+        const key=currentSearchQuery+'|'+url.pathname+url.search;
+        const saved=replayResponses.get(key);
+        if(!saved){
+          console.log('[normal-parity] REPLAY MISS',key);
+          return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Missing recorded provider response',key})});
+        }
+        return route.fulfill({status:saved.status,headers:saved.headers,body:saved.body});
+      });
+    }
     page.on('request',request=>{ queryAtRequest.set(request,currentSearchQuery); });
     page.on('pageerror',e=>errors.push(String(e)));
     page.on('response',r=>{
       try {
         const u=new URL(r.url());
         const requestQuery=queryAtRequest.get(r.request())||currentSearchQuery;
+        if(replayEnabled && device==='mobile' && replayPaths.test(u.pathname) && requestQuery){
+          const key=requestQuery+'|'+u.pathname+u.search;
+          const capture=r.body().then(body=>{
+            const headers={...r.headers()};
+            delete headers['content-encoding'];delete headers['content-length'];delete headers['transfer-encoding'];
+            replayResponses.set(key,{status:r.status(),headers,body});
+          });
+          replayCaptures.push(capture);
+        }
         if(u.pathname.startsWith('/api/'))apiResponses.push({
           path:u.pathname,status:r.status(),method:r.request().method(),
           search:u.searchParams.get('search'),requestUrl:u.pathname+u.search,
@@ -381,7 +409,10 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       console.log('[normal-parity] BABYBEL PROVIDER TRACE',JSON.stringify({device,requests:providerEanPresence}));
       evidence.layouts[device]={results,errors,noResultDiagnostics,providerEanPresence,apiResponses,providerFingerprints};
       expect(errors,'Browser page errors').toEqual([]);
-    }finally{await context.close();}
+    }finally{
+      if(replayEnabled && device==='mobile')await Promise.allSettled(replayCaptures);
+      await context.close();
+    }
   }
   for(const query of queries){
     const mobile=evidence.layouts.mobile.results.find(x=>x.query===query).eans;
@@ -448,6 +479,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     orderDifferences:evidence.orderDifferences,
     duplicates:evidence.duplicates
   };
+  console.log('[normal-parity] REPLAY MODE',JSON.stringify({enabled:replayEnabled,capturedResponses:replayResponses.size}));
   console.log('[normal-parity] AUDIT SUMMARY',JSON.stringify(auditSummary));
   const failures=[];
   if(evidence.noResults.length)failures.push('No-result searches: '+evidence.noResults.map(x=>x.device+':'+x.query).join(', '));
