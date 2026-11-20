@@ -8,12 +8,17 @@ async function main(){
  const parsed=JSON.parse(fs.readFileSync(path.join(folder,'parser-evidence.json'),'utf8'));
  const base=path.resolve('src/app/components/ziiply/offerSearch/providers');
  const blocked=()=>{throw Error('Publication audit must not access a database');};
+ const writes=[];
  const dependencies={
-  './kCitymarketSpatialParser.js':{parseKCitymarketSpatialLeaflet:async()=>parsed},
+  './kCitymarketSpatialParser.js':{parseKCitymarketSpatialLeaflet:async entry=>{assert.equal(entry,parsed.leaflet);return parsed;}},
   'next/cache':{unstable_cache:fn=>fn},
   '@neondatabase/serverless':{neon:blocked},
-  '../publicationStore':{readActivePublicationOffers:blocked,storeParsedPublication:blocked},
-  './kCitymarketPublisherImages':{},
+  '../publicationStore':{readActivePublicationOffers:blocked,storeParsedPublication:async (candidate,options)=>{writes.push({candidate,options});return 'stored';}},
+  './kCitymarketLocalTjekProvider':{fetchKCitymarketNationalTjekImages:async()=>new Map()},
+  './kCitymarketPublisherImages':{
+   getKCitymarketPublisherImage:()=>null,
+   auditKCitymarketPublisherImages:(_,ids)=>({publicationKnown:false,total:ids.length,matched:0,missing:ids}),
+  },
  };
  const filename=path.join(base,'kCitymarketProvider.ts');
  const source=fs.readFileSync(filename,'utf8')
@@ -66,6 +71,22 @@ async function main(){
   assert.equal(offer?.depositTotal,amount,String(title));
   assert.equal(offer?.depositIncluded,true,String(title));
  }
+ delete process.env.DATABASE_URL;
+ delete process.env.OFFER_PUBLICATION_DATABASE_URL;
+ const clock=new Date('2026-11-20T08:00:00+02:00');
+ assert.equal(await mod.exports.persistKCitymarketOfferPublication(clock),'stored');
+ assert.equal(writes.length,1);
+ const [{candidate,options}]=writes;
+ assert.equal(candidate.id,'2026-11-19-W47-LV-printed-transactions-v166');
+ assert.equal(candidate.validFrom,'2026-11-19');
+ assert.equal(candidate.validUntil,'2026-11-22');
+ assert.equal(options.approvalState,'candidate');
+ const snapshotFields=({imageUrl,ean,...offer})=>offer;
+ assert.deepEqual(candidate.offers.map(snapshotFields),result.accepted.map(snapshotFields));
+ assert.equal(mod.exports.kCitymarketPublicationCandidateId('2026-11-16-W47-AV'),'2026-11-16-W47-AV-printed-transactions-v165');
+ parsed.rows.pop();
+ await assert.rejects(mod.exports.persistKCitymarketOfferPublication(clock),/differs from the verified nationwide leaflet/);
+ assert.equal(writes.length,1);
  console.log('47LV provider rows',offers.length,'accepted',result.accepted.length,'quarantined',result.quarantined.length);
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

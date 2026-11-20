@@ -827,6 +827,12 @@ export function getNextKCitymarketPeriod(now=new Date()):KCitymarketPeriod|null{
 function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
   return String(url||"").toUpperCase().includes("_"+period.week+period.kind+"_KCM");
 }
+const verified47LVPeriod = "2026-11-19-W47-LV";
+const verified47LVLeaflet = "https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html";
+export function kCitymarketPublicationCandidateId(periodKey:string){
+  return periodKey+(periodKey===verified47LVPeriod?"-printed-transactions-v166":"-printed-transactions-v165");
+}
+
 // Immutable publication URL for a period whose public entry already rolled forward.
 const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
   "2026-10-01-W40-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/80s40wg_tarjouslehti_40LV_KCM/index.html",
@@ -834,6 +840,7 @@ const PINNED_KCITYMARKET_LEAFLETS:Record<string,string>={
   "2026-10-15-W42-LV":"https://kcm-tarjouslehdet.k-ruoka.fi/84s5057_tarjouslehti_42LV_KCM/index.html",
 };
 function kCitymarketPeriodEntry(period:KCitymarketPeriod){
+  if(period.key===verified47LVPeriod)return verified47LVLeaflet;
   // Prefer immutable publisher URLs already verified by the automated image pipeline.
   // This avoids a rolling landing page silently switching to another publication.
   const knownPublications=Object.keys(citymarketPublisherImageRegistry.publications);
@@ -850,7 +857,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-printed-transactions-v170-20261115-47av-reviewed-title-category"],
+  ["ziiply-kcitymarket-printed-transactions-v171"],
   // Retry discovery of upcoming editions after a late publisher release. A permanent
   // cache otherwise freezes the first incomplete parse until another deployment.
   {revalidate:300},
@@ -967,9 +974,10 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   const grocery=partitionDailyGroceryOffers(enriched);
   if(grocery.quarantined.length)console.warn("[K-Citymarket] non-grocery or uncertain rows quarantined",grocery.quarantined.map(x=>({title:x.offer?.title,category:x.offer?.category,reason:x.reason})));
   if(!grocery.accepted.length)throw new Error("Citymarket publication has no verified grocery offers");
-  // Forensic 47LV is not approved for publication: require full automatic source proof,
-  // not the old edition-specific hand-edited 53-row fixture.
-  if(active.key==='2026-11-19-W47-LV')throw new Error("47LV requires independent automatic source-card verification before publication");
+  if(active.key===verified47LVPeriod && (grocery.accepted.length!==53||grocery.quarantined.length||
+    grocery.accepted.some(offer=>offer.sourceUrl!==verified47LVLeaflet))){
+    throw new Error("47LV candidate differs from the verified nationwide leaflet");
+  }
   const stagingGate=validate47LVPublication(grocery.accepted,active.key);
   if(!stagingGate.ok)throw new Error("47LV publication quality gate rejected candidate: "+stagingGate.issues.join(" | "));
   const beforeImages=offers.filter(offer=>Boolean(offer.imageUrl)).length;
@@ -981,7 +989,7 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   });
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
-  return storeParsedPublication({chain:"K-Citymarket",id:active.key+"-printed-transactions-v165",validFrom:start,
+  return storeParsedPublication({chain:"K-Citymarket",id:kCitymarketPublicationCandidateId(active.key),validFrom:start,
     validUntil:until,parsedAt:new Date().toISOString(),offers:grocery.accepted}, {approvalState:"candidate"});
 }
 

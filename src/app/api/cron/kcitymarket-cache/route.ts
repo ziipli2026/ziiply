@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
-import { warmKCitymarketOfferCache, persistKCitymarketOfferPublication, getNextKCitymarketPeriod } from "@/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { warmKCitymarketOfferCache, persistKCitymarketOfferPublication, getNextKCitymarketPeriod, kCitymarketPublicationCandidateId } from "@/app/components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { readActivePublicationOffers, readPublicationCandidate } from "@/app/components/ziiply/offerSearch/publicationStore";
 import { recordPublicationRun } from "@/app/components/ziiply/offerSearch/publicationRunLog";
 import { inspectCitymarketOffers } from "@/app/components/ziiply/offerSearch/citymarketQuality";
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     }
     // Diagnose the staged edition separately. A candidate must never be
     // counted as an approved consumer publication.
-    const candidateId = result.active?.period ? result.active.period + "-printed-transactions-v165" : null;
+    const candidateId = result.active?.period ? kCitymarketPublicationCandidateId(result.active.period) : null;
     let candidateQuality: ReturnType<typeof inspectCitymarketOffers> | null = null;
     if (candidateId) {
       try {
