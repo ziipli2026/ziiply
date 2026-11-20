@@ -761,23 +761,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     });
   }
 
-  // Keep previously reviewed 47LV transactions for the remaining unresolved cards.
-  // Never transfer these values to another edition or an unrelated card.
-  if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){
-    const hasMerged=(page:number,pattern:RegExp)=>sourceRows.some((r:any)=>Number(r?.page)===page && pattern.test(String(r?.title||"")));
-    const reviewed=[
-    ];
-    for(const card of reviewed){
-      if(!hasMerged(card.page,card.evidence) || offers.some(o=>o.title===card.title))continue;
-      offers.push({id:`kcm:47lv:pdf-reviewed:${card.page}:${card.title.toLowerCase()}`,publisherOfferId:`kcm:47lv:pdf-reviewed:${card.page}:${card.title.toLowerCase()}`,
-        title:card.title,price:card.price,offerQuantity:card.quantity,offerUnit:card.unit,
-        priceBasis:card.quantity>1?"set-total":"package-total",
-        priceText:card.price.toFixed(2).replace(".",",")+" € / "+(card.quantity>1?card.quantity+" "+card.unit.toLowerCase():card.unit.toLowerCase()),
-        category:card.category,campaignType:"offer",validFrom:"19.11.",validTo:card.to,
-        resolutionSource:"publisher-pdf-reviewed-47lv-merged-card",chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl} as CitymarketOffer);
-    }
-  }
-
   const seen=new Set<string>();
   return offers.filter(o=>{
     const key=`${o.title.toLowerCase()}|${o.price}|${o.discountPercent??""}|${o.packageSize??""}`;
