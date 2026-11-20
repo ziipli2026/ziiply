@@ -220,7 +220,7 @@ export default function ZiiplyMobileTopBar({
     setFuelReportOpen(false);
     setActiveUtility(previous => previous === "fuel" ? null : "fuel");
   };
-  const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number }>>([]);
+  const [chartPrices, setChartPrices] = useState<Array<{ start: string; price: number | null }>>([]);
   const [chartError, setChartError] = useState("");
   const [chartLoading, setChartLoading] = useState(false);
   const [selectedPriceIndex, setSelectedPriceIndex] = useState<number | null>(null);
@@ -536,20 +536,29 @@ export default function ZiiplyMobileTopBar({
       .then(data => {
         if (cancelled) return;
         const items = Array.isArray(data?.prices) ? data.prices : [];
-        const now = Date.now();
-        const end = now + 24 * 60 * 60 * 1000;
-        const rows = items.map((item: any) => ({
-          start: String(item.startDate ?? item.start ?? ""),
-          price: Number(item.price ?? item.priceWithTax ?? item.PriceWithTax),
-        })).filter((item: {start: string; price: number}) => {
-          const time = Date.parse(item.start);
-          return Number.isFinite(time) && time >= now - 60 * 60 * 1000 && time < end && Number.isFinite(item.price);
-        }).sort((a: {start: string}, b: {start: string}) => Date.parse(a.start) - Date.parse(b.start)).slice(0, 96);
-        if (rows.length) {
+        const quarterMs = 15 * 60 * 1000;
+        const firstStart = Math.floor(Date.now() / quarterMs) * quarterMs;
+        const pricesByStart = new Map<number, number>();
+        for (const item of items) {
+          const time = Date.parse(String(item.startDate ?? item.start ?? ""));
+          const price = Number(item.price ?? item.priceWithTax ?? item.PriceWithTax);
+          const endTime = Date.parse(String(item.endDate ?? item.end ?? ""));
+          if (Number.isFinite(time) && Number.isFinite(price) &&
+              endTime - time === quarterMs && time % quarterMs === 0) {
+            pricesByStart.set(time, price);
+          }
+        }
+        // Always render exactly 96 consecutive quarter-hour slots. Missing future
+        // prices remain gaps rather than shifting later prices to the left.
+        const rows = Array.from({ length: 96 }, (_, index) => {
+          const time = firstStart + index * quarterMs;
+          return { start: new Date(time).toISOString(), price: pricesByStart.get(time) ?? null };
+        });
+        if (rows.some(row => row.price !== null)) {
           setChartPrices(rows);
           setChartError("");
         } else {
-          setChartError("Uusia hintatietoja ei saatu; aiemmin ladatut hinnat säilyvät.");
+          setChartError("Hintatietoja ei ole saatavilla seuraavalle 24 tunnille.");
         }
       })
       .catch(() => { if (!cancelled) setChartError("Hintakäyrän päivitys epäonnistui; aiemmat hinnat säilyvät."); })
@@ -697,8 +706,8 @@ export default function ZiiplyMobileTopBar({
             {chartLoading ? <p className="py-10 text-center">Haetaan tuntihintoja…</p> : chartError ? <p className="py-10 text-center">{chartError}</p> : (
               <>
                 {(() => {
-                  const min = Math.min(0, ...chartPrices.map(row => row.price));
-                  const max = Math.max(10, ...chartPrices.map(row => row.price));
+                  const min = Math.min(0, ...chartPrices.flatMap(row => row.price === null ? [] : [row.price]));
+                  const max = Math.max(10, ...chartPrices.flatMap(row => row.price === null ? [] : [row.price]));
                   const range = Math.max(1, max - min);
                   const selected = selectedPriceIndex == null ? null : chartPrices[selectedPriceIndex] ?? null;
                   return <>
@@ -708,9 +717,9 @@ export default function ZiiplyMobileTopBar({
                       </div>
                       <div className="flex h-full items-end gap-[2px]">
                         {chartPrices.map((item, index) => {
-                          const height = Math.max(2, (item.price - min) / range * 100);
-                          const color = item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544";
-                          const label = new Date(item.start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"}) + " – " + fmtFi(item.price, 2) + " snt/kWh";
+                          const height = item.price === null ? 0 : Math.max(2, (item.price - min) / range * 100);
+                          const color = item.price === null ? "transparent" : item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544";
+                          const label = new Date(item.start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"}) + " – " + (item.price === null ? "Hinta ei vielä saatavilla" : fmtFi(item.price, 2) + " snt/kWh");
                           return <button type="button" key={item.start + index} aria-label={label} aria-pressed={selectedPriceIndex === index} onClick={() => setSelectedPriceIndex(index)} className="relative flex h-full min-w-0 flex-1 items-end touch-manipulation" title={label}>
                             <span className={selectedPriceIndex === index ? "block w-full rounded-t-[3px] outline outline-2 outline-[#164b38]" : "block w-full rounded-t-[3px]"} style={{height: height + "%", minHeight: "3px", backgroundColor: color}} />
                           </button>;
@@ -718,18 +727,18 @@ export default function ZiiplyMobileTopBar({
                       </div>
                     </div>
                     <div className="mt-2 min-h-[36px] rounded-lg bg-[#f3e6c9] px-2 py-2 text-center text-[12px] font-bold text-[#164b38]" aria-live="polite">
-                      {selected ? new Date(selected.start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"}) + " – " + fmtFi(selected.price, 2) + " snt/kWh" : "Kosketa pylvästä nähdäksesi kellonajan ja hinnan"}
+                      {selected ? new Date(selected.start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit"}) + " – " + (selected.price === null ? "Hinta ei vielä saatavilla" : fmtFi(selected.price, 2) + " snt/kWh") : "Kosketa pylvästä nähdäksesi kellonajan ja hinnan"}
                     </div>
                   </>;
                 })()}
                 <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
                   <span>{chartPrices[0] ? new Date(chartPrices[0].start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit"}) : ""}</span>
                   <span>snt/kWh</span>
-                  <span>{chartPrices.length ? new Date(chartPrices[chartPrices.length-1].start).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit"}) : ""}</span>
+                  <span>{chartPrices.length ? new Date(Date.parse(chartPrices[chartPrices.length-1].start) + 15 * 60 * 1000).toLocaleString("fi-FI", {day:"numeric",month:"numeric",hour:"2-digit"}) : ""}</span>
                 </div>
                 <div className="mt-3 flex justify-between gap-2 text-[12px] font-bold text-[#164b38]">
-                  <span>Halvin {fmtFi(Math.min(...chartPrices.map(row=>row.price)))} snt/kWh</span>
-                  <span>Kallein {fmtFi(Math.max(...chartPrices.map(row=>row.price)))} snt/kWh</span>
+                  <span>Halvin {fmtFi(Math.min(...chartPrices.flatMap(row=>row.price === null ? [] : [row.price])))} snt/kWh</span>
+                  <span>Kallein {fmtFi(Math.max(...chartPrices.flatMap(row=>row.price === null ? [] : [row.price])))} snt/kWh</span>
                 </div>
               </>
             )}
