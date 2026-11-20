@@ -26,6 +26,9 @@ async function main(){
  const {partitionDailyGroceryOffers}=modules('./kCitymarketDailyGroceryGate.js');
  const result=partitionDailyGroceryOffers(offers);
  fs.writeFileSync(path.join(folder,'provider-offers.json'),JSON.stringify(result,null,2));
+ const {validate47LVPublication}=modules('./kCitymarket47LVStagingGuard.js');
+ const staging=validate47LVPublication(result.accepted,'2026-11-19-W47-LV');
+ assert.ok(staging.ok,JSON.stringify(staging.issues));
  const reconciled=JSON.parse(fs.readFileSync(path.join(folder,'reconciled-offers.json'),'utf8'));
  const fixture=JSON.parse(fs.readFileSync('tests/fixtures/citymarket/47lv-neon-candidate.json','utf8'));
  const aliases=[
