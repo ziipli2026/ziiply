@@ -153,7 +153,8 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
         .filter(Boolean);
       // Recover missing EAN quotes even when another matching product is already priced.
       // Otherwise Jozo salt and Salonen bread can be silently omitted from the visible results.
-      const lookupNames=[...neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)) && desktopSearchDecision(query,item).accepted).flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases:[])]),...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
+      const lookupNames=[...neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)) && desktopSearchDecision(query,item).accepted).flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases:[])]),...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index)
+         .sort((a,b)=>lookupKey(a).localeCompare(lookupKey(b),'fi-FI')).slice(0,3);
       if(!lookupNames.length)return;
       const store=batch.store;
       const url=storeUrl(store, query);
