@@ -41,10 +41,12 @@ test('API through final price rendering retains all source offers and hides prod
  // The supplemental feed must be grocery-only; source counts can shrink by design.
  const {filterCitymarketAdditionalGroceryOffers}=require('../src/app/components/ziiply/offerSearch/providers/kCitymarketDailyGroceryGate.js');
  const providerSource=fs.readFileSync(path.join(root,'src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts'),'utf8');
- const categoryMatch=providerSource.match(/export function category\\(t:string\\)\\{[\\s\\S]*?\\n\\}\\nfunction isNoiseLine/);
- assert.ok(categoryMatch,'Production Citymarket classifier exists');
+ const start=providerSource.indexOf('export function category(t:string){');
+ const end=providerSource.indexOf('function isNoiseLine',start);
+ assert.ok(start>=0&&end>start,'Production Citymarket classifier exists');
  const vm=require('node:vm'),classifier={clean:value=>String(value).trim()};
- vm.runInNewContext(categoryMatch[0].replace('export function category(t:string)','function category(t)').replace(/\\nfunction isNoiseLine$/,'')+'\\nthis.classify=category;',classifier);
+ const categorySource=providerSource.slice(start,end).replace('export function category(t:string)','function category(t)');
+ vm.runInNewContext(categorySource+'\nthis.classify=category;',classifier);
  const expectedCampaigns=filterCitymarketAdditionalGroceryOffers(campaigns,classifier.classify);
  const originalCampaignIds=new Set(campaigns.map(row=>row.id));
  const expectedCampaignIds=new Set(expectedCampaigns.map(row=>row.id));
