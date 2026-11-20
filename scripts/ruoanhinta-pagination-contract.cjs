@@ -30,5 +30,6 @@ async function fetchItems(query,take,skip=0,sort=''){
   console.log('COMPARISON',JSON.stringify({query,firstVsRepeat:intersection(first,repeat),firstVsLarge:intersection(first,large),firstVsSecondPage:intersection(first,page),firstVsSortId:intersection(first,sorted),largeCount:large.count,sortedChanged:sorted.ids.join(',')!==first.ids.join(',')}));
  }
  fs.writeFileSync('ruoanhinta-pagination-contract.json',JSON.stringify({createdAt:new Date().toISOString(),probes},null,2));
- if(probes.some(p=>p.error||p.status!==200))process.exitCode=1;
+ // A rejected experimental sort parameter is an expected contract finding, not a test failure.
+ if(probes.some(p=>p.error||(p.status!==200&&!p.sort)))process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1;});
