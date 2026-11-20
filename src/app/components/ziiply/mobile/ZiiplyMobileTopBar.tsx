@@ -548,7 +548,8 @@ export default function ZiiplyMobileTopBar({
             ? null : Number(rawPrice);
           const endTime = Date.parse(String(item.endDate ?? item.end ?? ""));
           if (Number.isFinite(time) && price !== null && Number.isFinite(price) &&
-              endTime - time === quarterMs && time % quarterMs === 0) {
+              endTime - time === quarterMs && time % quarterMs === 0 &&
+              !pricesByStart.has(time)) {
             pricesByStart.set(time, price);
           }
         }
@@ -559,6 +560,8 @@ export default function ZiiplyMobileTopBar({
           return { start: new Date(time).toISOString(), price: pricesByStart.get(time) ?? null };
         });
         if (rows.some(row => row.price !== null)) {
+          // A refreshed chart must never keep a selected index from an older data set.
+          setSelectedPriceIndex(null);
           setChartPrices(rows);
           setChartError("");
         } else {
