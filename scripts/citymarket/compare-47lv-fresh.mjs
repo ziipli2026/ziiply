@@ -27,6 +27,8 @@ const expectedCards=[
  [16,'PROTEIN RAHKAT 200 g',3.50,4,'PRK'],
  [16,'ACTIMEL JOGURTTIJUOMAT 8 x 100 g',3.69,null,'PKT'],
  [16,'KASVIVOIMAA LEVITTEET 400 g',5.20,2,'RS'],
+ [18,'Snellman NAUDAN LEHTIPIHVI ULKOFILEESTÄ tai MUREUTETTU ULKOFILEEPIHVI 2 kpl/240 g',10.99,null,'RS'],
+ [18,'Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g',2.39,null,'PS'],
 ];
 for(const [page,title,price,quantity,unit] of expectedCards){
  const matches=source.rows.filter(row=>row.page===page&&row.title.includes(title));
@@ -35,7 +37,7 @@ for(const [page,title,price,quantity,unit] of expectedCards){
  assert.equal(proof?.source,'publisher-aligned-price-cards',title);
  assert.deepEqual([proof.value,proof.quantity,proof.unit],[price,quantity,unit],title);
 }
-assert.ok(!source.rows.some(row=>/KOPIERINGSPAPPER|JUOMALASI|PUNAKAALI.*PÄÄRYNÄ|JOGURTTIJUOMAT.*PROTEIN RAHKAT/i.test(row.title)),
+assert.ok(!source.rows.some(row=>/KOPIERINGSPAPPER|JUOMALASI|PUNAKAALI.*PÄÄRYNÄ|JOGURTTIJUOMAT.*PROTEIN RAHKAT|ULKOFILEEPIHVI.*BURGER|^NAUDAN LEHTIPIHVI$|^ULKOFILEESTÄ tai MUREUTETTU$/i.test(row.title)),
  'Non-grocery or mixed-card rows must be absent from parser output');
 
 const bottle=source.rows.filter(row=>row.page===16&&/^TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl/.test(row.title));

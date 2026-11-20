@@ -653,8 +653,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g"
       : is47LV && Number(row?.page)===16 && /^TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl/i.test(titleBeforeSourceReview)
         ? "Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl"
-      : is47LV && Number(row?.page)===18 && /^ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i.test(titleBeforeSourceReview)
-        ? "Snellman NAUDAN LEHTIPIHVI ULKOFILEESTÄ tai MUREUTETTU ULKOFILEEPIHVI 2 kpl/240 g"
       : is47LV && Number(row?.page)===18 && /^JUUSTOVIIPALEET 120–200 g$/i.test(titleBeforeSourceReview)
         ? "Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g"
       : is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g \(3,59\/kg\)15$/i.test(titleBeforeSourceReview)
@@ -776,9 +774,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     });
   }
 
-  // 47LV publisher PDF pages 16 and 18: the spatial text layer merges three
-  // independently priced cards into neighbouring headings. Recover only these
-  // exact printed transactions when the original merged evidence is present.
+  // Keep previously reviewed 47LV transactions for the remaining unresolved cards.
   // Never transfer these values to another edition or an unrelated card.
   if(/94s5ius_tarjouslehti_47LV_KCM/i.test(leafletUrl)){
     const hasMerged=(page:number,pattern:RegExp)=>sourceRows.some((r:any)=>Number(r?.page)===page && pattern.test(String(r?.title||"")));
@@ -794,7 +790,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOITUSJUOMAT 0,33 l/tlk 6-pack",price:7.00,quantity:2,unit:"6-PACK",category:"Juomat",to:"22.11."},
       {page:1,evidence:/Ilman Plussa-korttia PORSAAN KASSLER/i,title:"Kivikylän PORSAAN KASSLER n. 1 kg",price:5.99,quantity:1,unit:"KG",category:"Liha",to:"22.11."},
       {page:1,evidence:/Coca-Cola Zero Sugar, Sprite Zero Sugar ja Fanta Zero Sugar VIRVOIT/i,title:"PERSIMON Espanja",price:2.49,quantity:1,unit:"KG",category:"Hedelmät & vihannekset",to:"22.11."},
-      {page:18,evidence:/ULKOFILEEPIHVI 2 kpl\/240 g BURGER 4 kpl\/320 g/i,title:"Vaasan THE BRGR NAUGHTY BURGER 4 kpl/320 g",price:2.39,quantity:1,unit:"PS",category:"Leipomo",to:"22.11."},
       {page:20,evidence:/vadelmainen, mausteinen\. 0 % 0,33 l\/tlk OLUET 0,0 % 0,33 l\/tlk/i,title:"Kåska SELVIN PÄIN SPRITZIT 0 % 0,33 l/tlk",price:4.70,quantity:2,unit:"TLK",category:"Juomat",to:"29.11."},
       {page:20,evidence:/vadelmainen, mausteinen\. 0 % 0,33 l\/tlk OLUET 0,0 % 0,33 l\/tlk/i,title:"Crisp RADLER ALKOHOLITTOMAT OLUET 0,0 % 0,33 l/tlk",price:3.00,quantity:2,unit:"TLK",category:"Juomat",to:"29.11."}
     ];

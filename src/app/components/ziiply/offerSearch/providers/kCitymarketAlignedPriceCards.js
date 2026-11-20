@@ -10,15 +10,27 @@ export function recoverAlignedPriceCards(rows, wordBoxes, page) {
   const boxes = [...new Map(wordBoxes.map(box => [boxKey(box), box])).values()];
   const cents = boxes.filter(box => /^\d{2}$/.test(box.text) && box.height >= .04 && box.height < .09 && box.width >= .04);
   const euroGroups = boxes.filter(box => /^\d{2,6}$/.test(box.text) && box.height >= .09 && box.width > .23);
+  const splitBadges = cents.flatMap(cent => {
+    const euros = boxes.filter(box => /^\d{1,2}$/.test(box.text) && box.height >= .09 &&
+      box.width < .16 && Math.abs(right(box) - cent.left) < .009 &&
+      Math.abs(cent.top - box.top - .017) < .004);
+    return euros.length === 1 ? [{cent, euro: euros[0]}] : [];
+  });
+  const standaloneBands = splitBadges
+    .map(({cent}) => splitBadges.filter(badge => Math.abs(cent.top - badge.cent.top) < .004)
+      .sort((a, b) => a.cent.left - b.cent.left))
+    .filter((band, index) => band.length >= 2 && band[0] === splitBadges[index]);
+  const groups = euroGroups.map(euros => ({euros})).concat(
+    standaloneBands.map(badges => ({euros: badges[0].euro, badges})));
   let result = rows;
-  for (const euros of euroGroups) {
-    const band = cents.filter(box => Math.abs(box.top - euros.top - .017) < .004)
+  for (const {euros, badges} of groups) {
+    const band = badges?.map(badge => badge.cent) ?? cents.filter(box => Math.abs(box.top - euros.top - .017) < .004)
       .sort((a, b) => a.left - b.left);
     const shared = band.filter(box => box.left >= euros.left && box.left <= right(euros) + .01);
-    if (shared.length !== euros.text.length) continue;
+    if (!badges && shared.length !== euros.text.length) continue;
 
     const cards = band.map((cent, index) => {
-      const sharedIndex = shared.indexOf(cent);
+      const sharedIndex = badges ? -1 : shared.indexOf(cent);
       const left = index ? right(band[index - 1]) + .005 : Math.max(0, euros.left - .35);
       const units = boxes.filter(box => saleUnit.test(box.text) &&
         box.left >= cent.left && box.left <= right(cent) + .028 &&
@@ -39,11 +51,13 @@ export function recoverAlignedPriceCards(rows, wordBoxes, page) {
       const standalone = boxes.filter(box => box.height >= .09 && Math.abs(box.top - euros.top) < .003 &&
         box.left >= left && box.left < cent.left &&
         (digit.test(box.text) || box.text === box.text[0] + cent.text));
-      if (sharedIndex < 0 && standalone.length !== 1) return null;
-      const whole = sharedIndex >= 0 ? euros.text[sharedIndex] : standalone[0].text[0];
+      if (!badges && sharedIndex < 0 && standalone.length !== 1) return null;
+      const whole = badges ? badges[index].euro.text :
+        sharedIndex >= 0 ? euros.text[sharedIndex] : standalone[0].text[0];
 
+      const headingTop = badges ? euros.top - .043 : euros.top - .018;
       const headings = boxes.filter(box => box.left >= left && box.left < right(cent) &&
-        box.top >= euros.top - .018 && box.top <= unit.top &&
+        box.top >= headingTop && box.top <= unit.top &&
         box.height >= .013 && box.height <= .024 && headingWord.test(box.text) && !saleUnit.test(box.text));
       const first = headings.sort((a, b) => a.left - b.left || a.top - b.top)[0];
       if (!first) return null;
@@ -57,7 +71,9 @@ export function recoverAlignedPriceCards(rows, wordBoxes, page) {
         !boxes.some(other => other !== box && Math.abs(other.top - box.top) < .001 &&
           other.left <= box.left + .001 && right(other) >= right(box) && other.width > box.width + .002));
       const lines = [...new Set(text.map(box => box.top))].sort((a, b) => a - b);
-      const title = lines.map(y => text.filter(box => box.top === y).sort((a, b) => a.left - b.left)
+      const title = lines.filter(y => !badges || y<=bottom+.002 ||
+        text.some(box=>box.top===y&&/^[\p{L}]{3,}$/u.test(box.text)))
+        .map(y => text.filter(box => box.top === y).sort((a, b) => a.left - b.left)
         .map(box => box.text).join(' ')).join(' ');
       if (!title || !headingWord.test(title)) return null;
       const quantities = boxes.filter(box => /^[2-9]$/.test(box.text) && box.height >= .019 && box.height < .04 &&
@@ -84,6 +100,9 @@ export function recoverAlignedPriceCards(rows, wordBoxes, page) {
     const uniqueWords = cards.map(card => card.headingWords.filter(word =>
       cards.every(other => other === card || !other.headingWords.includes(word))));
     const ownership = result.map(row => {
+      const anchor = row.debugCardAnchor ?? row.imageAnchor;
+      if (badges && (!anchor || anchor.left > right(band.at(-1)) + .04 ||
+          Math.abs(anchor.top - euros.top) > .09)) return [];
       const tokens = new Set(row.title.toUpperCase().match(/[A-ZÅÄÖ]{4,}/g) || []);
       return row.page === page ? cards.filter((_, index) => uniqueWords[index].some(word => tokens.has(word))) : [];
     });
