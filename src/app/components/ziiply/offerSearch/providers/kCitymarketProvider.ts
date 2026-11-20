@@ -741,6 +741,12 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         priceBasis: resolved.packageCount > 1 ? "package-total" : "set-total",
         priceText: price.toFixed(2).replace(".", ",") + " € / " + (resolved.packageCount > 1 ? "pkt (" + resolved.packageCount + " kpl)" : "setti"),
       } : {}),
+      ...(resolved?.source?.startsWith("owned-printed") && offerQuantity && offerQuantity > 1 &&
+          resolved.unit && resolved.unit !== "KG" && !(resolved.packageCount > 1) ? {
+        priceBasis: "set-total",
+        priceText: price.toFixed(2).replace(".", ",") + " € / " + offerQuantity +
+          (/-PACK$/i.test(resolved.unit) ? " × " : " ") + resolved.unit.toLowerCase(),
+      } : {}),
       ...(verified45LV?{priceBasis:verified45LV.reviewedCard?(verified45LV.quantity>1?"set-total":"package-total"):verified45LV.unit==="PKT"?"package-total":"set-total",priceText:price.toFixed(2).replace(".",",")+" € / "+(verified45LV.priceLabel??(verified45LV.unit==="PKT"?"24-pack":"2 kpl"))}:{}),
       packageSize:verified45LV?.reviewedCard?null:row?.package?.raw??null,
       offerQuantity,
