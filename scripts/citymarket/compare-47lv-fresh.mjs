@@ -58,3 +58,7 @@ const cheese=source.rows.filter(row=>row.page===18&&/JUUSTOVIIPALEET/.test(row.t
 assert.deepEqual(cheese.map(row=>[row.title,row.spatialResolved?.value,row.spatialResolved?.unit]),
  [['Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g',2.99,'PKT']]);
 assert.ok(!source.rows.some(row=>row.page===18&&row.title==='NAUGHTY BURGER'));
+
+const hairCare=source.rows.filter(row=>row.page===13&&row.title==='HIUSTENHOITOTUOTTEET 100–300 ml');
+assert.deepEqual(hairCare.map(row=>[row.spatialResolved?.value,row.spatialResolved?.quantity,row.spatialResolved?.unit,row.spatialResolved?.source]),
+ [[10.90,2,'KPL','owned-printed-fused-count-and-price']]);

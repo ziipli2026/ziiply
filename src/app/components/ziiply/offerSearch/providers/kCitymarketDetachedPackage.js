@@ -86,6 +86,21 @@ export function resolvePrintedCountedTransaction(row,rawBoxes){
    proofs.push({value,quantity:q,unit:compact?compact[2]:u.text,source:'owned-printed-total-and-count-label',sanity:'pass',confidence:'high'});
   }
  }
+ // The large count and euros can share a single text box. Its left edge
+ // owns the sale unit, and its right edge must meet the separate cents.
+ if(!row.spatialResolved && row.package?.min<row.package?.max){
+  for(const merged of boxes.filter(b=>/^[2-9][1-9]\d$/.test(b.text)&&b.height>=.09&&
+   Math.abs(b.left-a.left)<.008&&b.top-a.top>.06&&b.top-a.top<.12)){
+   const units=boxes.filter(b=>/^(KPL|PKT|PS|RS|PRK|TLK|PL)$/.test(b.text)&&b.height<.017&&
+    Math.abs(b.left-merged.left)<.006&&b.top-merged.top>.018&&b.top-merged.top<.045);
+   const cents=boxes.filter(b=>/^\d{2}$/.test(b.text)&&b.height>=.04&&b.height<merged.height*.65&&
+    Math.abs(b.left-merged.left-merged.width)<.006&&b.top-merged.top>.012&&b.top-merged.top<.035);
+   if(units.length!==1||cents.length!==1)continue;
+   proofs.push({value:Number(merged.text.slice(1)+'.'+cents[0].text),
+    quantity:Number(merged.text[0]),unit:units[0].text,
+    source:'owned-printed-fused-count-and-price',sanity:'pass',confidence:'high'});
+  }
+ }
  const unique=[...new Map(proofs.map(p=>[`${p.value}:${p.quantity}:${p.unit}`,p])).values()];
  return unique.length===1?unique[0]:null;
 }
