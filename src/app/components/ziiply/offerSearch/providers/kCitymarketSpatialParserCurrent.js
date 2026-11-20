@@ -7,7 +7,7 @@ import {recoverOverprintedHeadingPrice,verifiedOwnedPublisherOverprint} from './
 import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
-import {reattachDetachedPackage,recoverCountedPackPrice,recoverDatedWeightCards,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
+import {reattachDetachedPackage,recoverCountedPackPrice,recoverDatedWeightCards,recoverJoinedDrinkOffers,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
 import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy,mergeVerifiedSharedPrintedAlternatives} from './kCitymarketProductRows.js';
 import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle,verifiedSplitAcrossCardsSingle} from './kCitymarketPrintedBundleProof.js';
 // Publisher coordinates, rather than PDF reading order, define price ownership.
@@ -1738,6 +1738,7 @@ out.rows=out.rows.map(row=>{
 for (const [page, boxes] of publicationWordBoxes) {
  out.rows = recoverAlignedPriceCards(out.rows, boxes, page);
  out.rows = recoverDatedWeightCards(out.rows, boxes, page);
+ out.rows = recoverJoinedDrinkOffers(out.rows, boxes, page);
 }
 out.rows=out.rows.map(row=>recoverOverprintedHeadingPrice(row,publicationWordBoxes.get(row.page)||[]));
 out.rows=mergeWrappedCampaignHeadings(out.rows);

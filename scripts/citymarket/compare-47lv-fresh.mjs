@@ -75,3 +75,9 @@ assert.deepEqual(tortillas.map(row=>[row.title,row.spatialResolved?.value,row.sp
  ['TORTILLA CHIPSIT 160–185 g (7,51–8,69/kg)',1.39,'PS'],
  ['TORTILLA ORIGINAL MEDIUM 320 g (3,59/kg)',1.15,'PKT'],
 ]);
+
+const drinks=source.rows.filter(row=>row.page===20&&/SPRITZIT|RADLER|^vadelmainen/.test(row.title));
+assert.deepEqual(drinks.map(row=>[row.title,row.spatialResolved?.value,row.spatialResolved?.quantity,row.spatialResolved?.unit,row.spatialResolved?.depositTotal]),[
+ ['Kåska SELVIN PÄIN SPRITZIT 0 % 0,33 l/tlk',4.70,2,'TLK',.30],
+ ['Crisp RADLER ALKOHOLITTOMAT OLUET 0,0 % 0,33 l/tlk',3,2,'TLK',.30],
+]);

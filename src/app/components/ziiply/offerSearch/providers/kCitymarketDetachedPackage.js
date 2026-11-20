@@ -228,3 +228,55 @@ export function recoverCountedPackPrice(row, boxes) {
  return proofs.size===1?{...row,title:title.replace(/(\p{Lu})-(?=\p{Lu}{3,}\b)/gu,'$1'),
   spatialResolved:proofs.values().next().value}:row;
 }
+
+// A flattened line may concatenate several drinks and their comparison
+// rates. Recover each card only when its own printed count and price agree.
+export function recoverJoinedDrinkOffers(rows, rawBoxes, page) {
+ const boxes=[...new Map(rawBoxes.map(box=>[JSON.stringify(box),box])).values()];
+ const recovered=[];
+ for(const euro of boxes.filter(box=>/^\d{1,2}$/.test(box.text)&&box.height>=.09)){
+  const x=euro.left,y=euro.top;
+  const lineAt=(top,tolerance=.001)=>boxes.filter(b=>Math.abs(b.top-top)<tolerance&&
+   b.left>=x-.002&&b.left<x+.17&&b.height<.018).sort((a,b)=>a.left-b.left);
+  const volume=lineAt(y+.006).find(b=>b.text==='l/tlk');
+  if(!volume)continue;
+  const rawVolume=lineAt(volume.top).find(b=>/^\d{2}$/.test(b.text)&&
+   volume.left-b.left-b.width>=-.001&&volume.left-b.left-b.width<.005);
+  const rateStart=lineAt(y+.019).find(b=>/^\(\d{1,2}$/.test(b.text)&&Math.abs(b.left-x)<.002);
+  if(!rawVolume||!rateStart)continue;
+  const rateLine=lineAt(rateStart.top);
+  const centsRate=rateLine.find(b=>/^\d{2}\/l\)$/.test(b.text)&&b.left>rateStart.left&&b.left-rateStart.left<.023);
+  const depositLabel=rateLine.find(b=>b.text==='pantit');
+  const deposit=depositLabel&&rateLine.find(b=>/^\d{2}$/.test(b.text)&&b.left>depositLabel.left+depositLabel.width&&b.left-depositLabel.left<.05);
+  if(!centsRate||!deposit)continue;
+  const rate=rateStart.text.slice(1)+','+centsRate.text.slice(0,2);
+  const litres=Number(rawVolume.text)/100;
+  const depositTotal=Number(deposit.text)/100;
+  const badge=boxes.filter(b=>b.left>x+.045&&b.left<x+.09&&
+   (/^\d{2}$/.test(b.text)&&b.height>.045&&b.height<.085&&Math.abs(b.top-y-.017)<.005||
+    /^[-–.]$/.test(b.text)&&b.height>.09&&Math.abs(b.top-y)<.005));
+  const values=[...new Set(badge.map(b=>Number(euro.text)+(/^\d{2}$/.test(b.text)?Number(b.text)/100:0)))];
+  if(values.length!==1)continue;
+  const [value]=values;
+  const countLabels=boxes.filter(b=>b.text==='TLK'&&b.left>x-.04&&b.left<x+.135&&b.top-y>.05&&b.top-y<.09);
+  const counts=[...new Set(countLabels.flatMap(unit=>boxes.filter(b=>/^[2-9]$/.test(b.text)&&b.height>.02&&b.height<.04&&
+   Math.abs(b.left-unit.left)<.004&&unit.top-b.top>.015&&unit.top-b.top<.027).map(b=>Number(b.text))))];
+  if(counts.length!==1||Math.abs(counts[0]*litres*Number(rate.replace(',','.'))+depositTotal-value)>.025)continue;
+  const brand=lineAt(y-.015).find(b=>Math.abs(b.left-x)<.002&&/^\p{Lu}\p{Ll}{2,}$/u.test(b.text));
+  const heading=lineAt(y-.006).filter(b=>/^\p{Lu}{3,}$/u.test(b.text));
+  if(!brand||heading.length<2)continue;
+  const detail=lineAt(volume.top,.003);
+  const percentLabel=detail.find(b=>b.text==='%'&&b.left<rawVolume.left);
+  if(!percentLabel)continue;
+  const body=detail.filter(b=>b.left<percentLabel.left&&/^\p{Lu}{3,}$/u.test(b.text)).map(b=>b.text);
+  const percent=detail.filter(b=>b.text==='0'&&b.left<percentLabel.left&&percentLabel.left-b.left<.035).length>1?'0,0':'0';
+  recovered.push({page,rate,title:[brand.text,...heading.map(b=>b.text),...body,percent,'%','0,'+rawVolume.text,'l/tlk'].join(' '),
+   imageAnchor:{left:brand.left,top:brand.top,width:brand.width,height:brand.height},
+   spatialResolved:{value,quantity:counts[0],unit:'TLK',depositTotal,source:'owned-printed-can-count-and-rate',sanity:'pass',confidence:'high'}});
+ }
+ return rows.flatMap(row=>{
+  if(row.page!==page)return [row];
+  const matches=recovered.filter(card=>row.title.includes('('+card.rate+'/l)'));
+  return matches.length===2?matches.map(({rate,...card})=>card):[row];
+ });
+}
