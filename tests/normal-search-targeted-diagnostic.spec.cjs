@@ -60,7 +60,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           const queryAtResponse=currentSearchQuery;
           const check=r.json().then(data=>{
             const rows=Array.isArray(data)?data:(Array.isArray(data?.items)?data.items:(Array.isArray(data?.products)?data.products:(Array.isArray(data?.results)?data.results:[])));
-            const eans=[...new Set(rows.map(p=>String(p?.ean||p?.barcode||p?.gtin||p?.product?.ean||'').replace(/\\D/g,'')).filter(x=>/^(?:\\d{8}|\\d{12,14})$/.test(x)))].sort();
+            const eans=[...new Set(rows.map(p=>String(p?.ean||p?.barcode||p?.gtin||p?.product?.ean||'').replace(/\D/g,'')).filter(x=>/^(?:\d{8}|\d{12,14})$/.test(x)))].sort();
             const item={device,query:queryAtResponse,path:u.pathname,requestSearch:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),rowCount:rows.length,eanCount:eans.length,eans,pagination:data?.pagination||null};
             providerFingerprints.push(item);
             console.log('[normal-parity] PROVIDER EAN SET',JSON.stringify(item));
