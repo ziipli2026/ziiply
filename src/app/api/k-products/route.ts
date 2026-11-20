@@ -235,7 +235,7 @@ export async function GET(request: Request) {
       storeId,
       source: "ruoanhinta-k",
       endpoint,
-      pagination: {firstPageCount:firstPage.length, primaryCount:primaryItems.length, events:paginationEvents},
+      pagination: {firstPageCount:firstPage.length, primaryCount:primaryItems.length, events:paginationEvents, firstPageLastIds:firstPage.slice(-5).map(p=>p.id), primaryLastIds:primaryItems.slice(-5).map(p=>p.id)},
       status: response.status,
       items: rankGrocerySearchResults(items, search),
     });
