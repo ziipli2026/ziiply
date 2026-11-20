@@ -91,3 +91,50 @@ const dental=source.rows.filter(row=>row.page===13&&/HAMMASTAHNARASIAT|^4 kpl\/p
 assert.equal(dental.length,1);
 assert.match(dental[0].title,/^Colgate .* tai Palmolive .*500 ml$/);
 assert.deepEqual([dental[0].spatialResolved?.value,dental[0].spatialResolved?.quantity,dental[0].spatialResolved?.unit],[10,4,'KPL']);
+
+// Reviewed title differences pair source cards for the audit only.
+const titlePairs=[
+ ['L’ORÉAL PARIS MEIKKIVOITEET','L’ORÉAL PARIS MEIKKIVOITEET',2],
+ ['Rexona ja Rexona Men','RANTIT 45 ml',13],
+ ['Innocent TÄYSMEHUT','TÄYSMEHUT 900 ml',16],
+ ['TORTILLA ORIGINAL MEDIUM','TORTILLA ORIGINAL MEDIUM',17],
+ ['Naughty HOT DOG MAKKARAT','H3O T D O G MAKKARAT',18],
+ ['Vaasan THE DOG','THE DOG NAUGHTY HOT DOG',18],
+ ['Pokemon ja Dolci','JOULUKALENTERI 200 g',19],
+ ['Kinder MAXI MIX','JOULUKALENTERI 351 g',19],
+ ['Haribo JOULUKALENTERI','H9aribo JOULUKALENTERI',19],
+ ['After Eight, KitKat','JOULUKALENTERI 189–208 g',19],
+ ['Lindt TEDDY','TEDDY JOULUKALENTERI',19],
+ ['ALKOHOLITON GLÖGI','A4LKOHOLITON GLÖGI',20],
+ ['CHARDONNAY tai CABERNET','C8HARDONNAY tai CABERNET',20],
+ ['Colgate HAMMASTAHNARASIAT','Colgate HAMMASTAHNARASIAT',13],
+ ['L’Oréal Paris Triple Active','Triple Active Hyaluron',13],
+];
+const sourceUnits=[
+ [/^TORTILLA ORIGINAL MEDIUM/,'PS','PKT'],
+ [/^Eleplant KASVIVOIMAA/,'PKT','RS'],
+ [/^Kuusamon Juusto NAUGHTY BURGER/,'KPL','PKT'],
+];
+const matchedCards=new Set();
+const reconciled=old.map(expected=>{
+ const exact=source.rows.filter(row=>norm(row.title)===norm(expected.title));
+ const pair=titlePairs.find(([prefix])=>expected.title.startsWith(prefix));
+ const candidates=exact.length?exact:pair?source.rows.filter(row=>row.page===pair[2]&&row.title.startsWith(pair[1])):[];
+ assert.equal(candidates.length,1,expected.title);
+ const [row]=candidates;
+ assert.ok(!matchedCards.has(row),row.title);
+ matchedCards.add(row);
+ const offer=row.spatialResolved;
+ assert.equal(offer?.value??null,expected.price,expected.title);
+ assert.equal(offer?.quantity??1,expected.offerQuantity??1,expected.title);
+ assert.equal(row.percentageOffer?.percent??null,expected.discountPercent??null,expected.title);
+ const corrected=sourceUnits.find(([pattern])=>pattern.test(expected.title));
+ if(corrected)assert.equal(expected.offerUnit,corrected[1],expected.title);
+ if(expected.offerUnit)assert.equal(offer?.unit,corrected?.[2]??expected.offerUnit,expected.title);
+ return {page:row.page,referenceTitle:expected.title,sourceTitle:row.title,price:offer?.value??null,
+  quantity:offer?.quantity??null,unit:offer?.unit??null,discountPercent:row.percentageOffer?.percent??null,
+  ...(corrected?{referenceUnit:corrected[1]}:{})};
+});
+assert.equal(matchedCards.size,source.rows.length,'Every raw row must match one reviewed card');
+fs.writeFileSync(folder+'/reconciled-offers.json',JSON.stringify(reconciled,null,2));
+console.log('FRESH_47LV_RECONCILED',JSON.stringify({offers:reconciled.length,titleDifferences:unmatchedOld.length,correctedUnits:sourceUnits.length}));
