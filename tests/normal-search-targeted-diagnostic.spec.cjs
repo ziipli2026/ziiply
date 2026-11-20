@@ -55,7 +55,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         // Compare the actual provider EAN sets and pagination completeness, not
         // just raw response hashes (which can change with metadata/order).
-        if(['mustikka','suklaa','mansikka','makkara','kala'].includes(currentSearchQuery)
+        if(['mustikka','vadelma','suklaa','mansikka','makkara','kala'].includes(currentSearchQuery)
           && ['/api/k-products','/api/s-products','/api/neon-first-search'].includes(u.pathname)){
           const queryAtResponse=currentSearchQuery;
           const check=r.json().then(data=>{
@@ -399,6 +399,27 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
     desktop:evidence.layouts.desktop.apiResponses.filter(x=>x.searchAtResponse===diff.query)
   }));
   console.log('[normal-parity] MISMATCH PROVIDER REQUESTS',JSON.stringify(evidence.mismatchProviderRequests));
+  // Show exactly where identical search terms return different provider EANs.
+  // Keep complete normalized sets in the uploaded parity.json evidence file.
+  evidence.providerEanDifferences=[];
+  for(const query of queries){
+    const find=(device)=>evidence.layouts[device].providerFingerprints.filter(x=>x.query===query && Array.isArray(x.eans));
+    const mobile=find('mobile'),desktop=find('desktop');
+    const keys=new Set([...mobile,...desktop].map(x=>[x.path,x.requestSearch].join('|')));
+    for(const key of keys){
+      const m=mobile.find(x=>[x.path,x.requestSearch].join('|')===key);
+      const d=desktop.find(x=>[x.path,x.requestSearch].join('|')===key);
+      if(!m||!d||m.eans.join(',')!==d.eans.join(',')||JSON.stringify(m.pagination)!==JSON.stringify(d.pagination)){
+        evidence.providerEanDifferences.push({query,key,
+          mobile:m?{rowCount:m.rowCount,eanCount:m.eanCount,pagination:m.pagination}:null,
+          desktop:d?{rowCount:d.rowCount,eanCount:d.eanCount,pagination:d.pagination}:null,
+          mobileOnly:m?m.eans.filter(x=>!d?.eans.includes(x)):[],
+          desktopOnly:d?d.eans.filter(x=>!m?.eans.includes(x)):[]});
+      }
+    }
+  }
+  console.log('[normal-parity] PROVIDER EAN DIFFERENCES',JSON.stringify(evidence.providerEanDifferences));
+
   // Regression against concrete wrong-type EANs observed in live results.
   // Keep positive controls so the filter cannot pass by removing all produce.
   const produceChecks={
