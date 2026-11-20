@@ -53,6 +53,20 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
           }).catch(error=>console.log('[normal-parity] PROVIDER BODY SHA256 ERROR',String(error)));
           providerChecks.push(fingerprint);
         }
+        // Compare the actual provider EAN sets and pagination completeness, not
+        // just raw response hashes (which can change with metadata/order).
+        if(['mustikka','suklaa','mansikka','makkara','kala'].includes(currentSearchQuery)
+          && ['/api/k-products','/api/s-products','/api/neon-first-search'].includes(u.pathname)){
+          const queryAtResponse=currentSearchQuery;
+          const check=r.json().then(data=>{
+            const rows=Array.isArray(data)?data:(Array.isArray(data?.items)?data.items:(Array.isArray(data?.products)?data.products:(Array.isArray(data?.results)?data.results:[])));
+            const eans=[...new Set(rows.map(p=>String(p?.ean||p?.barcode||p?.gtin||p?.product?.ean||'').replace(/\\D/g,'')).filter(x=>/^(?:\\d{8}|\\d{12,14})$/.test(x)))].sort();
+            const item={device,query:queryAtResponse,path:u.pathname,requestSearch:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),rowCount:rows.length,eanCount:eans.length,eans,pagination:data?.pagination||null};
+            providerFingerprints.push(item);
+            console.log('[normal-parity] PROVIDER EAN SET',JSON.stringify(item));
+          }).catch(error=>console.log('[normal-parity] PROVIDER EAN SET ERROR',String(error)));
+          providerChecks.push(check);
+        }
         // Capture the response structure for queries that currently produce no
         // rendered cards. HTTP 200 alone does not prove the API returned products.
         if(['paprika','salaatti','appelsiini'].includes(currentSearchQuery)
