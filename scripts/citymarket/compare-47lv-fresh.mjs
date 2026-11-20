@@ -53,3 +53,8 @@ assert.deepEqual(mulledWine.map(row=>[row.spatialResolved?.value,row.spatialReso
 const skinCare=source.rows.filter(row=>row.page===13&&/SMUUTI|COSRX/i.test(row.title));
 assert.deepEqual(skinCare.map(row=>[row.title,row.percentageOffer?.percent]),
  [['SMUUTI SKIN -IHONHOITOTUOTTEET ja COSRX-TUOTTEET (ei lahjapakkaukset)',25]]);
+
+const cheese=source.rows.filter(row=>row.page===18&&/JUUSTOVIIPALEET/.test(row.title));
+assert.deepEqual(cheese.map(row=>[row.title,row.spatialResolved?.value,row.spatialResolved?.unit]),
+ [['Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g',2.99,'PKT']]);
+assert.ok(!source.rows.some(row=>row.page===18&&row.title==='NAUGHTY BURGER'));

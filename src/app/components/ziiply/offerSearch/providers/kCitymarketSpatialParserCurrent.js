@@ -1,6 +1,6 @@
 import {isNonGroceryLeafletTitle} from './kCitymarketDailyGroceryGate.js';
 import {recoverAlignedPriceCards} from './kCitymarketAlignedPriceCards.js';
-import {flagMergedPublisherHeadings,mergeWrappedCampaignHeadings} from './kCitymarketPublisherHeadingCollision.js';
+import {flagMergedPublisherHeadings,mergePackagedHeadingLines,mergeWrappedCampaignHeadings} from './kCitymarketPublisherHeadingCollision.js';
 import {restoreSplitPublisherCard} from './kCitymarketSplitPublisherCard.js';
 import {verifyPrintedTransaction} from './kCitymarketPrintedTransactionProof.js';
 import {recoverOverprintedHeadingPrice,verifiedOwnedPublisherOverprint} from './kCitymarketOwnedPublisherOverprints.js';
@@ -1740,6 +1740,7 @@ for (const [page, boxes] of publicationWordBoxes) {
 }
 out.rows=out.rows.map(row=>recoverOverprintedHeadingPrice(row,publicationWordBoxes.get(row.page)||[]));
 out.rows=mergeWrappedCampaignHeadings(out.rows);
+out.rows=mergePackagedHeadingLines(out.rows,publicationWordBoxes);
 out.rows=flagMergedPublisherHeadings(out.rows.filter(row=>!isNonGroceryLeafletTitle(row.title)).map(row=>
  row.spatialResolved?.source==='publisher-aligned-price-cards' ? {...row,package:pkg(row.title)} : row));
 // Only merge adjacent "tai" alternatives if both share a uniquely verified

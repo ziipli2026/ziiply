@@ -649,8 +649,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
         ? "Vaasan THE DOG NAUGHTY HOT DOG 6 kpl/300 g"
       : is47LV && Number(row?.page)===16 && /^TÄYSMEHUT 900 ml\/pl tai SMOOTHIET 750 ml\/pl/i.test(titleBeforeSourceReview)
         ? "Innocent TÄYSMEHUT 900 ml/pl tai SMOOTHIET 750 ml/pl"
-      : is47LV && Number(row?.page)===18 && /^JUUSTOVIIPALEET 120–200 g$/i.test(titleBeforeSourceReview)
-        ? "Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g"
       : is47LV && Number(row?.page)===17 && /^TORTILLA ORIGINAL MEDIUM 320 g \(3,59\/kg\)15$/i.test(titleBeforeSourceReview)
         ? "TORTILLA ORIGINAL MEDIUM 320 g"
       : is47LV && Number(row?.page)===20 && /^(?:G9LÖGI|GLÖGI) 8 % 0,75 l\/pl/i.test(titleBeforeSourceReview)
@@ -683,7 +681,6 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       /^vadelmainen, mausteinen\./i.test(reviewed47LVTitle) ||
       /^ULKOFILEESTÄ tai MUREUTETTU$/i.test(reviewed47LVTitle) ||
       /^NAUDAN LEHTIPIHVI$/i.test(reviewed47LVTitle) ||
-      /^NAUGHTY BURGER$/i.test(reviewed47LVTitle) ||
 
       (/^GLÖGI 8 % 0,75 l\/pl/i.test(reviewed47LVTitle) && Number(resolved.value)>20 && Number(row?.page)!==20))) {
       console.warn('[K-Citymarket] 47LV incomplete/merged heading suppressed:',row?.page,reviewed47LVTitle);

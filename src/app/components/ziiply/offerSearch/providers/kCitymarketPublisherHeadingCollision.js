@@ -57,3 +57,45 @@ export function mergeWrappedCampaignHeadings(rows) {
  });
  return result.filter((_,index)=>!consumed.has(rows[index]));
 }
+
+// Attach an unpriced heading line only when the following package has an
+// independently resolved price and the publisher prints its own sale unit.
+export function mergePackagedHeadingLines(rows, pageBoxes) {
+ const consumed=new Set();
+ const result=rows.map(row=>{
+  const anchor=row.debugCardAnchor;
+  const price=row.spatialResolved;
+  if(!row.package || anchor?.text!==row.title ||
+     price?.source!=='mixed-size-endpoint-equivalence-proof')return row;
+  const leads=rows.filter(other=>{
+   const lead=other.debugCardAnchor;
+   return other.page===row.page && !other.package && !other.percentageOffer &&
+    !other.spatialResolved?.unit && !consumed.has(other) &&
+    lead?.text===other.title && /^[\p{Lu} -]+$/u.test(other.title) &&
+    Math.abs(lead.left-anchor.left)<.003 && Math.abs(lead.height-anchor.height)<.002 &&
+    anchor.top-lead.top>.008 && anchor.top-lead.top<.017 && lead.right<anchor.right;
+  });
+  if(leads.length!==1)return row;
+  const [lead]=leads;
+  const boxes=pageBoxes.get(row.page)||[];
+  const centsText=price.value.toFixed(2).split('.')[1];
+  const units=new Set(boxes.flatMap(cents=>{
+   if(cents.text!==centsText || cents.height<.045 || cents.left<=anchor.left ||
+      cents.left>=anchor.right || cents.top<=anchor.top || cents.top-anchor.top>.026)return [];
+   return boxes.filter(box=>/^(KPL|PKT|PS|RS|PRK|PL|TLK)$/.test(box.text) &&
+    box.left>=cents.left && box.left<=cents.left+cents.width &&
+    Math.abs(box.top-cents.top-cents.height)<.009).map(box=>box.text);
+  }));
+  if(units.size!==1)return row;
+  const top=lead.debugCardAnchor.top;
+  const brand=boxes.filter(box=>top-box.top>.006 && top-box.top<.012 &&
+   box.left>=anchor.left-.002 && box.left+box.width<=lead.debugCardAnchor.right &&
+   /^\p{Lu}\p{Ll}{2,}$/u.test(box.text)).sort((a,b)=>a.left-b.left);
+  const label=brand.length && Math.abs(brand[0].left-anchor.left)<.003
+   ? [...new Set(brand.map(box=>box.text))] : [];
+  consumed.add(lead);
+  return {...row,title:[...label,lead.title,row.title].join(' '),
+   spatialResolved:{...price,unit:[...units][0]}};
+ });
+ return result.filter((_,index)=>!consumed.has(rows[index]));
+}
