@@ -862,9 +862,10 @@ export async function GET(request: Request) {
       // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
       // visible catch-all category: general merchandise/campaign rows stay out,
       // while real groceries must be classified into a concrete grocery category.
-      const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
-        .filter((offer) => normalizeText(offer.category) !== "muut");
-      const neonEnriched = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
+      // Do not discard "Muut" before checking the authoritative Lidl department:
+      // stale provider labels can hide actual groceries from both UIs.
+      const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi);
+      const neonEnriched = await enrichOfferCategoriesFromNeon(currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)));
       // Prefer the official Lidl department over ambiguous ingredient words in
       // product names or legacy Neon categories. Only first-party /h/ category
       // paths are authoritative; product and campaign URLs are not categories.
@@ -909,7 +910,7 @@ export async function GET(request: Request) {
                 mainCategory: category, neonDisplayCategory: category }
             : source,
         };
-      });
+      }).filter((offer) => normalizeText(offer.category) !== "muut");
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
