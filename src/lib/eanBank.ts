@@ -57,7 +57,13 @@ export async function observeEanProductsBestEffort(observations: EanObservation[
         INSERT INTO ziiply_ean_products (ean, name, brand, image_url, category, source)
         VALUES (${item.ean}, ${item.name}, ${item.brand}, ${item.imageUrl}, ${item.category}, ${item.source})
         ON CONFLICT (ean) DO UPDATE SET
-          name = CASE WHEN EXCLUDED.name <> '' THEN EXCLUDED.name ELSE ziiply_ean_products.name END,
+          -- Store observations may seed a missing name. Existing catalog names
+          -- also drive search relevance and must not change with each search.
+          name = CASE
+            WHEN NULLIF(TRIM(ziiply_ean_products.name), '') IS NULL AND EXCLUDED.name <> ''
+            THEN EXCLUDED.name
+            ELSE ziiply_ean_products.name
+          END,
           brand = COALESCE(EXCLUDED.brand, ziiply_ean_products.brand),
           image_url = COALESCE(EXCLUDED.image_url, ziiply_ean_products.image_url),
           category = CASE

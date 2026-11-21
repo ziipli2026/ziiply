@@ -1,6 +1,6 @@
 import { desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence, searchWords } from "./desktopNormalRelevance";
 import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./normalSearchCatalog";
-import { finalizeNormalSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
+import { comparePricedSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
 
 export type NormalSearchStore = { chain: "S" | "K" | "LIDL" | "TOKMANNI" | "SPAR"; id: string | number; name: string; city?: string; address?: string; type?: "local" | "hyper" };
 type Observer = (stage: string, data: Record<string, unknown>) => void;
@@ -37,13 +37,22 @@ function shapeStoreRow(x: any, store: NormalSearchStore, source: string | undefi
 }
 
 function rankStoreRows(query: string, rows: any[]) {
-  return finalizeNormalSearchResults(
-    query,
-    rows,
-    product => product.__price ?? Number.POSITIVE_INFINITY,
-    product => product.ean || product.barcode || product.product?.ean,
-    product => `${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`,
-  );
+  // Relevance is already checked upstream; the legacy second ranking gate
+  // incorrectly removed valid paprika, salaatti and appelsiini products.
+  const seen = new Set<string>();
+  return rows
+    .filter(product => Number.isFinite(product.__price) && product.__price > 0
+      && desktopSearchDecision(query, product).accepted)
+    .sort((a, b) => comparePricedSearchResults(a, b, product => product.__price))
+    .filter(product => {
+      const ean = normalizeEan(product.ean || product.barcode || product.product?.ean);
+      const key = /^(?:\d{8}|\d{12,14})$/.test(ean)
+        ? `ean:${ean}`
+        : `fallback:${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 export async function searchNormalStores(query: string, stores: NormalSearchStore[], options: {
@@ -144,7 +153,8 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
         .filter(Boolean);
       // Recover missing EAN quotes even when another matching product is already priced.
       // Otherwise Jozo salt and Salonen bread can be silently omitted from the visible results.
-      const lookupNames=[...neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)) && desktopSearchDecision(query,item).accepted).flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases:[])]),...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index).slice(0,3);
+      const lookupNames=[...neonRows.filter((item:any)=>!pricedEans.has(normalizeEan(item.ean)) && desktopSearchDecision(query,item).accepted).flatMap((item:any)=>[String(item.name||''),...(Array.isArray(item.aliases)?item.aliases:[])]),...missingCatalogNames,...brandLookups,...fallbackNames].filter((name,index,array)=>!tried.has(lookupKey(name)) && array.indexOf(name)===index)
+         .sort((a,b)=>lookupKey(a).localeCompare(lookupKey(b),'fi-FI')).slice(0,3);
       if(!lookupNames.length)return;
       const store=batch.store;
       const url=storeUrl(store, query);
@@ -191,6 +201,22 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     }
   }
   const rankedRows = rankStoreRows(query, rows);
+  // Scoped diagnostic: distinguish source absence from relevance, price and
+  // EAN-deduplication losses without changing the returned search results.
+  if (['mansikka', 'mustikka', 'suklaa', 'makkara', 'kala', 'muro', 'vadelma'].includes(query.toLocaleLowerCase('fi-FI'))) {
+    const targetEans = new Set(['6417801801004', '6411020008015', '6407800000980', '6410405181091', '4010168056678', '8445292269520']);
+    const tracked = rows.filter(item => targetEans.has(normalizeEan(item.ean || item.barcode || item.product?.ean)));
+    trace('target_ean_final_decision', {
+      query, inputCount:rows.length, rankedCount:rankedRows.length,
+      catalogCount:neonRaw.length, catalogAcceptedCount:neonRows.length,
+      tracked:tracked.map(item=>({
+        ean:normalizeEan(item.ean || item.barcode || item.product?.ean),
+        name:item.name, chain:item.__chain, store:item.__store,
+        price:item.__price, accepted:desktopSearchDecision(query,item).accepted,
+        inRanked:rankedRows.some(row=>normalizeEan(row.ean || row.barcode || row.product?.ean)===normalizeEan(item.ean || item.barcode || item.product?.ean))
+      }))
+    });
+  }
   const sortedRows = [...rankedRows, ...research.values()].slice(0, 100);
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};

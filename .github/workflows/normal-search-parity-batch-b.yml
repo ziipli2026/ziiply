@@ -1,0 +1,37 @@
+name: Bounded isolated normal search parity batch B
+on:
+  push:
+    branches:
+      - test/normal-search-main-isolated-20261119
+    paths:
+      - '.github/workflows/normal-search-parity-batch-b.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 46
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install chromium
+      - name: Further baseline and high variance normal search terms
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          ZIIPLY_LIVE_URL: https://ziiply-lafm6daw8-ziipli2026s-projects.vercel.app
+          NORMAL_SEARCH_SELECTED_QUERIES: valkosipuli,salaatti,omena,päärynä,appelsiini,mandariini,sitruuna,viinirypäle,puolukka,vesimeloni,kana,broileri,naudanliha,sianliha,kinkku,makkara,nakki,pekoni,kala,lohi,kirjolohi,tonnikala,katkarapu,kalapuikko,juustoraaste,raejuusto,rahka,kerma,ruokakerma,kermaviili
+        run: |
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
+          npx playwright test tests/normal-search-targeted-diagnostic.spec.cjs --browser=chromium --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bounded-parity-evidence-b
+          path: normal-search-evidence/
+          if-no-files-found: ignore

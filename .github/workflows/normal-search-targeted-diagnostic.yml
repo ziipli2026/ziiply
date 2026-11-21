@@ -1,0 +1,69 @@
+name: Main-based isolated normal search regression (twelve queries)
+on:
+  workflow_dispatch:
+  push:
+    branches: [test/normal-search-main-isolated-20261119]
+    paths:
+      - '.github/workflows/normal-search-targeted-diagnostic.yml'
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install chromium
+      - name: Verify five targeted queries on mobile and desktop
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          ZIIPLY_LIVE_URL: https://ziiply-nvny6zy40-ziipli2026s-projects.vercel.app
+          NORMAL_SEARCH_SELECTED_QUERIES: suola,juusto,maito,öljy,riisi
+        run: |
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
+          npx playwright test tests/normal-search-targeted-diagnostic.spec.cjs --browser=chromium --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: normal-search-targeted-evidence
+          path: normal-search-evidence/
+          if-no-files-found: ignore
+
+  short-interval:
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        query: [pakastevihannes]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --no-package-lock @playwright/test
+      - run: npx playwright install chromium
+      - name: Compare one live query and log provider response versions
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          ZIIPLY_LIVE_URL: https://ziiply-ar035t2b9-ziipli2026s-projects.vercel.app
+          NORMAL_SEARCH_PARALLEL: '1'
+          NORMAL_SEARCH_SINGLE_QUERY: ${{ matrix.query }}
+        run: |
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
+          npx playwright test tests/normal-search-targeted-diagnostic.spec.cjs --browser=chromium --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: normal-search-short-interval-${{ matrix.query }}
+          path: normal-search-evidence/
+          if-no-files-found: ignore
