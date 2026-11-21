@@ -1,7 +1,7 @@
 const {chromium,devices}=require('playwright');
 const assert=require('node:assert/strict');
 (async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{
-await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers','normal'].map(async mode=>{
+await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers','normal',...(desktop?[]:['offers-stale'])].map(async mode=>{
 let ctx=await b.newContext(desktop?{viewport:{width:1440,height:1000}}:devices['iPhone 13']);
 const tag=(desktop?'desktop':'mobiili')+' '+mode;
 let p=await ctx.newPage(); const req=[];p.on('request',r=>req.push(r.url()));p.on('pageerror',e=>console.log(tag,'pageerror',e.message));
@@ -9,7 +9,7 @@ await p.addInitScript(({mode})=>{
  const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S'},k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'},l={id:'FI0218',name:'Lidl Hyvinkää',chain:'LIDL'};
  const many=mode!=='one' && mode!=='normal',lidl=mode!=='control',betweenMode=many?'many':'one';
  const item={id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',quantity:1,price:1.79,chain:'S',source:'search',product:{id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',price:179}};
- if (mode !== 'offers' && mode !== 'normal') {
+ if (mode !== 'offers' && mode !== 'offers-stale' && mode !== 'normal') {
  localStorage.setItem('ziiply-cart-v1',JSON.stringify({items:[item],savedAt:Date.now()}));
  sessionStorage.setItem('ziiply-active-panel-v812','cart');
  sessionStorage.setItem('ziiply-desktop-current-cart-v1',JSON.stringify([item]));
@@ -20,7 +20,7 @@ await p.addInitScript(({mode})=>{
 const lidlResponses = [];
 await p.route('**/api/**', async route => {
   const url = new URL(route.request().url());
-  if (mode === 'offers' && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
+  if ((mode === 'offers' || mode === 'offers-stale') && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
     try {
       const response = await fetch(new URL(url.pathname + url.search, 'https://ziiply.vercel.app'), {signal:AbortSignal.timeout(35000)});
       const data = await response.json();
@@ -68,10 +68,25 @@ if (mode === 'normal') {
   }
   await ctx.close();return;
 }
-if (mode === 'offers') {
+if (mode === 'offers' || mode === 'offers-stale') {
+  if (mode === 'offers-stale') {
+    await p.getByRole('button',{name:'Hae',exact:true}).filter({visible:true}).last().click({timeout:20000});
+    await p.locator('textarea').filter({visible:true}).first().fill('erikoishakusana987');
+    // Keep a previous normal-search term in the input, then switch to Gösta.
+    // The test does not require triggering the normal search itself.
+    // The product search panel must not leak its query to Gösta.
+    await p.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).first().click({timeout:15000});
+    // Dismiss the normal-search results overlay before opening Gösta from home.
+    await p.getByRole('button',{name:'Hae',exact:true}).filter({visible:true}).last().click({timeout:20000});
+  }
   await p.getByRole('button',{name:desktop?'Avaa Gösta':/Gösta: Tarjoushaku/}).filter({visible:true}).first().click({timeout:25000});
   await p.getByRole('button',{name:desktop?'Lidl':'Hae Lidlin tarjoukset',exact:true}).filter({visible:true}).first().click({timeout:25000});
   await p.getByRole('button',{name:/liha.*makkara/i}).filter({visible:true}).first().click({timeout:60000});
+  if(mode === 'offers-stale') {
+    const offerCalls=req.filter(u=>new URL(u).pathname==='/api/offers/search');
+    assert.ok(offerCalls.length>0,'Gösta must call offer search');
+    assert.ok(offerCalls.every(u=>!decodeURIComponent(u).includes('erikoishakusana987')),'Gösta must not inherit normal search query: '+offerCalls.join(','));
+  }
   const response = lidlResponses.find(row => row.status === 200 && row.key === 'FI0218' && row.data.ok);
   assert.ok(response, 'Gösta requested the live Lidl provider for FI0218');
   const today = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Helsinki'}).format(new Date());
