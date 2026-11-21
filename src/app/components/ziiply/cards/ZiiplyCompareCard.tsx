@@ -51,7 +51,7 @@ function getChainBadge(chain?: "S" | "K") {
 }
 
 export function ZiiplyCompareCard({
-  stores: comparisonStores,
+  stores,
   items = [],
   title = "Vertailu",
   subtitle,
@@ -60,7 +60,6 @@ export function ZiiplyCompareCard({
   onBackToCart,
   onOpenStore,
 }: ZiiplyCompareCardProps) {
-  const stores = comparisonStores.filter((store) => store.id !== "lidl");
   const cheapest = getCheapestStore(stores);
 
   return (
@@ -99,10 +98,6 @@ export function ZiiplyCompareCard({
           )}
         </div>
       </header>
-
-      <p className="relative z-10 mt-2 shrink-0 px-2 text-sm font-bold text-[#6b6048]">
-        Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
-      </p>
 
       <div className="relative z-10 mt-4 min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
         {loading ? (
