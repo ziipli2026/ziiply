@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/normal-search-five-query-parity.yml'
       - 'tests/normal-search-targeted-diagnostic.spec.cjs'
+      - 'src/app/components/ziiply/search/normalSearchCatalog.ts'
   workflow_dispatch:
 permissions:
   contents: read
