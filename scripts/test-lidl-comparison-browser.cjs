@@ -183,7 +183,12 @@ if (mode === 'categories') {
       // the category grid before checking the next product's category.
       if (desktop) {
         const backToCategories = p.getByRole('button',{name:'Palaa tarjoushaussa'}).filter({visible:true});
-        if (await backToCategories.count()) await backToCategories.first().click({timeout:15000});
+        // Only click Back from an opened category. On the category grid the
+        // same button closes the entire Gösta overlay.
+        const categoryDetailOpen = p.getByRole('button', {name:/ostoskori/i}).filter({visible:true});
+        if (await categoryDetailOpen.count() && await backToCategories.count()) {
+          await backToCategories.first().click({timeout:15000});
+        }
       }
       const tabButton = p.getByRole('button',{name:tab,exact:true}).filter({visible:true});
       if (await tabButton.count()) await tabButton.first().click();
