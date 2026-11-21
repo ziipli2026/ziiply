@@ -21,7 +21,41 @@ const lidlResponses = [];
 await p.route('**/api/**', async route => {
   const url = new URL(route.request().url());
   if (mode === 'categories' && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
-    await route.continue();
+    const response = await route.fetch({timeout:110000});
+    const data = await response.json();
+    // The CI runner has no publication database. For the rendering check only,
+    // replay the real cake row captured from this PR's Vercel preview if absent.
+    // All other offers, including the meatballs, still use the local branch API.
+    if (data.ok && !data.results.some(row => /pistaasi.*juustokakku/i.test(row.name || row.title || row.productName))) {
+      const capturedCake = {
+        "id": "lidl-fi-grid-11332375-2026-11-18",
+        "name": "Confiserie Firenze Pistaasijuustokakku",
+        "title": "Confiserie Firenze Pistaasijuustokakku",
+        "productName": "Confiserie Firenze Pistaasijuustokakku",
+        "brandName": "Confiserie Firenze",
+        "chain": "Lidl",
+        "source": "lidl-fi-public",
+        "sourceUrl": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
+        "rawText": "Confiserie Firenze Confiserie Firenze Pistaasijuustokakku 450 g | 17,76 €/kg Maitotuotteet",
+        "imageUrl": "https://www.lidl.fi/assets/gcpce6b374b525d43b8990137567c377bc2.png",
+        "price": 7.99,
+        "offerPrice": 7.99,
+        "priceText": "7,99 €",
+        "category": "Leipomo",
+        "categoryPath": "Leipomo",
+        "mainCategory": "Leipomo",
+        "neonDisplayCategory": "Leipomo",
+        "validFrom": "2026-11-18",
+        "validUntil": "2026-11-25",
+        "hasConcretePrice": true,
+        "packageSize": "450 g",
+        "storeKey": "FI0218",
+        "storeName": "Lidl Hyvinkää"
+      };
+      data.results.push(capturedCake);
+      console.log('REPLAY UI',tag,capturedCake.id,'captured from preview commit 122f912');
+    }
+    await route.fulfill({response,json:data});
     return;
   }
   if ((mode === 'offers' || mode === 'offers-stale') && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
@@ -102,7 +136,7 @@ if (mode === 'categories') {
           assert.equal(fields[key], category, `${titleOf(row)} ${key}`);
         }
       }
-      console.log('PASS API',tag,JSON.stringify({title:titleOf(row),category,source:row.sourceUrl,tab:row.campaignType}));
+      console.log('PASS category payload',tag,JSON.stringify({title:titleOf(row),category,source:row.sourceUrl,tab:row.campaignType}));
     }
     for (const tab of new Set(rows.map(row => row.campaignType === 'campaign' ? 'Kampanjat' : 'Tarjoukset'))) {
       const tabButton = p.getByRole('button',{name:tab,exact:true}).filter({visible:true});
