@@ -80,6 +80,15 @@ const money = (value: unknown) => {
   return Number.isFinite(n) && n > 0 ? n : null;
 };
 
+function discountBundleQuantity(label: unknown) {
+  return Number(String(label ?? "").match(/^\s*([1-9]\d*)\s*kpl\s*[−-]\s*\d+(?:[,.]\d+)?\s*%\s*$/i)?.[1] || 0);
+}
+
+function visibleBundleQuantity(text: string, price: number) {
+  const match = text.match(/\b([1-9]\d*\s*kpl\s*[−-]\s*\d+(?:[,.]\d+)?\s*%)\s*(\d+[,.]\d{2})\s*€/i);
+  return match && money(match[2]) === price ? discountBundleQuantity(match[1]) : 0;
+}
+
 const GROCERY_CATEGORIES = new Set([
   "Hevi", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Pakasteet",
   "Valmisruoka", "Juomat", "Kahvi & tee", "Kuivatuotteet", "Makeiset & keksit",
@@ -163,8 +172,8 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     const fullName = name;
     const discountText = String(product.price?.discount?.discountText || "");
     const limitedBatch = /erä/i.test(discountText);
-    const quantity = Number(fullName.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
-    const weighted = /(?:€|eur)\s*\/\s*kg/i.test([packagingText, baseText].join(" ")) && !packageText;
+    const quantity = discountBundleQuantity(discountText) || Number(fullName.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
+    const weighted = quantity < 2 && /(?:€|eur)\s*\/\s*kg/i.test([packagingText, baseText].join(" ")) && !packageText;
     const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
     const imageUrl = (() => {
       const candidate = product.image ?? product.imageUrl ?? product.pictureUrl ?? product.keyfacts?.image;
@@ -218,8 +227,8 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       const limitedBatch = /\bera\b|erä/.test(rawWindow);
       const packageSize = [product.size, product.weight, product.description, name].map(value => String(value ?? "").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "").find(Boolean) || "";
       const comparisonPriceText = [offer.description, product.description].map(value => String(value ?? "").match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "").find(Boolean) || "";
-      const quantity = Number(name.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
-      const weighted = /(?:€|eur)\s*\/\s*kg|hinta\s*\/\s*kg|\birto\b/i.test([product.description, offer.description, rawWindow].join(" "));
+      const quantity = (products.length === 1 && /\/p\//i.test(sourceUrl) ? visibleBundleQuantity(pageText, price) : 0) || Number(name.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
+      const weighted = quantity < 2 && /(?:€|eur)\s*\/\s*kg|hinta\s*\/\s*kg|\birto\b/i.test([product.description, offer.description, rawWindow].join(" "));
       const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
       const imageCandidate = Array.isArray(product.image) ? product.image[0] : product.image;
       const imageObjectUrl = imageCandidate && typeof imageCandidate === "object"
@@ -327,12 +336,14 @@ function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackD
     if (!GROCERY_CATEGORIES.has(category)) continue;
     if (publicationState({ validFrom, validUntil }, fallbackDate) !== "current") continue;
 
+    const quantity = discountBundleQuantity(window[priceIndex - 1]);
     const key = normalize([name, price, validFrom, validUntil].join(" ")).replace(/\s+/g, "-");
     output.push({
       id: `lidl-fi-campaign-visible-${key}`, source: "lidl-fi-public", chain: "Lidl",
       title: name, name, productName: name, brandName: "",
-      price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €`,
-      originalPrice: null, normalPrice: null, priceBasis: "unit",
+      price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €${quantity >= 2 ? ` / ${quantity} kpl` : ""}`,
+      originalPrice: null, normalPrice: null, priceBasis: quantity >= 2 ? "multi-buy-total" : "unit",
+      ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
       requiresLidlPlus: false, eligibility: "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl: "", image: "", pictureUrl: "",
@@ -505,7 +516,24 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     if (state === "expired" || state === "invalid" || (!options.includeUpcoming && state !== "current")) continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
-    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+    if (!old) {
+      byKey.set(key, row);
+      continue;
+    }
+    const preferred = row.imageUrl && !old.imageUrl ? row : old;
+    const other = preferred === row ? old : row;
+    if (!preferred.multiBuyQuantity && other.multiBuyQuantity && preferred.price === other.price) {
+      byKey.set(key, {
+        ...preferred,
+        priceBasis: other.priceBasis,
+        priceText: other.priceText,
+        multiBuyQuantity: other.multiBuyQuantity,
+        multiBuyTotalPrice: other.multiBuyTotalPrice,
+        isWeightedProduct: false,
+      });
+    } else {
+      byKey.set(key, preferred);
+    }
   }
   return {
     offers: [...byKey.values()],
