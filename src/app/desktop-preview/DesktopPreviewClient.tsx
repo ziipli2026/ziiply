@@ -1336,7 +1336,14 @@ export default function DesktopPreviewPage() {
           if(isDesktopMemoItem(item)||item.__recipeWeightNeedsReview)return {cartItemId:String(item.id||""),name,ean,quantity:Number(item.quantity||1),price:null,match:"none" as const};
           try{
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
-            const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            // Tokmanni search results added to the cart can lack an EAN.
+            // A unique identical product name includes the original pack description.
+            const exactTokmanniName = kind === "spar" && !normalizeEan(ean)
+              ? candidates.filter(candidate => String(candidate.name || "").normalize("NFC").trim().toLocaleLowerCase("fi") === name.normalize("NFC").toLocaleLowerCase("fi") && desktopReliableComparePrice(candidate))
+              : [];
+            const matched = exactTokmanniName.length === 1
+              ? exactTokmanniName[0]
+              : desktopPickCompareCandidate(candidates,name,ean,isS);
             logCompareAudit("product_search_result",{store:store.name,storeId:store.id,externalId:store.externalId,kind,name,ean,candidateCount:candidates.length,exactEanCandidates:candidates.filter((p:any)=>ean&&normalizeEan(p.ean)===normalizeEan(ean)).slice(0,12).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),candidates:candidates.slice(0,15).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),matched:matched?{name:matched.name,ean:matched.ean,priceCents:matched.price}:null,reason:matched?"matched":candidates.length?"no_compatible_match":"no_candidates"});
             desktopDebug(`${store.name}: ${name} EAN=${ean||"-"} → ehdokkaita=${candidates.length}, osuma=${matched?`${matched.name} (${matched.price}c)`:"EI"}, ehdokkaat=${candidates.slice(0,3).map((p:any)=>`${p.name} (${p.price}c)`).join(" | ")||"-"}`);
             // A variable-weight EAN is a kilogram-priced item, not a fixed retail package.
