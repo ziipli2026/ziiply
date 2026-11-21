@@ -124,7 +124,8 @@ jobs:
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, 'TOKMANNI'],
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, null, 'maito'],
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, null, 'kirjolohi'],
-                  ['LIDL', 'lidl-test', 'Lidl Hyvinkää', false, false, null, 'maito'],
+                  // Lidl has no verified normal-price catalogue; its unavailability is checked in the scenario above.
+
                   ['SPAR', 'spar-test', 'EUROSPAR Hyvinkää', false, false, null, 'sokeri'],
                   ['TOKMANNI', 'tokmanni-test', 'Tokmanni Hyvinkää', false, false, null, 'sokeri'],
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, 'SPAR', 'sokeri'],
