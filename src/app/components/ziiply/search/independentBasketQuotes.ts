@@ -4,6 +4,7 @@ type ComparisonQuote = {
   price: number;
   priceAmountUnit: "eur";
   pictureUrl?: string;
+  productUrl?: string;
 };
 
 function normalizedEan(value: unknown) {
@@ -39,10 +40,17 @@ export async function fetchSparBasketQuotes(name: string, barcode: string, alter
       const price = Number(item.price);
       const name = String(item.name ?? item.title ?? "").trim();
       if (!name || item.priceVerified === false || item.priceAmountUnit !== "eur" || !Number.isFinite(price) || price <= 0) return [];
-      return [{ name, ean: normalizedEan(item.ean), price, priceAmountUnit: "eur" as const, pictureUrl: String(item.pictureUrl ?? "") }];
+      return [{ name, ean: normalizedEan(item.ean), price, priceAmountUnit: "eur" as const, pictureUrl: String(item.pictureUrl ?? ""), productUrl: String(item.productUrl ?? "") }];
     });
   }));
   const successful = batches.filter(batch => batch.status === "fulfilled");
   if (batches.length && !successful.length) throw new Error("SPAR–Tokmanni basket price lookup failed");
-  return successful.flatMap(batch => batch.value);
+  const quotes = successful.flatMap(batch => batch.value);
+  const unique = new Map<string, ComparisonQuote>();
+  for (const quote of quotes) {
+    const key = JSON.stringify([quote.productUrl, quote.name, quote.price]);
+    const previous = unique.get(key);
+    if (!previous || (!previous.ean && quote.ean)) unique.set(key, quote);
+  }
+  return [...unique.values()];
 }
