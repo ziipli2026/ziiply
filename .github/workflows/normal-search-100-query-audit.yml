@@ -31,7 +31,7 @@ jobs:
       - name: Compare ten live searches on mobile and desktop
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          ZIIPLY_LIVE_URL: https://ziiply-uanqeyowf-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-qkuzb5pvt-ziipli2026s-projects.vercel.app
           NORMAL_SEARCH_PARALLEL: '1'
           NORMAL_SEARCH_AUDIT_BATCH: ${{ matrix.batch }}
         run: |
