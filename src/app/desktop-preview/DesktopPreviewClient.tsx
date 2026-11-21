@@ -2617,6 +2617,17 @@ export default function DesktopPreviewPage() {
     report("stores",{stores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)}))});
     if(!diagnostic)traceNormal("selected_stores",{stores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)}))});
     if(!diagnostic)setJustiinaDebug({query,selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),sStore:s?.name||null,kStore:k?.name||null,status:"Haku käynnissä"});
+    // A single selected Lidl has no verified normal-price search. Stop before any provider request.
+    if (betweenMode === "one" && selected.length === 1 && storeKind(selected[0]) === "lidl") {
+      report("lidl_normal_search_blocked", {query, mode:"one"});
+      if (!diagnostic) {
+        setJustiinaResults([]);
+        setJustiinaResultsOpen(false);
+        setJustiinaLoading(false);
+        setJustiinaMessage("Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.");
+      }
+      return false;
+    }
     const independent = selected.filter(store => ["lidl", "spar"].includes(storeKind(store)));
     if(!s&&!k&&!independent.length){report("validation_error",{error:"Valitse ensin kauppa."});if(!diagnostic)setJustiinaMessage("Valitse ensin kauppa.");return false;}
     if(!diagnostic){
@@ -2659,7 +2670,7 @@ export default function DesktopPreviewPage() {
       if(generation!==desktopVoiceRunRef.current)return false;
       setJustiinaDebug({query,status:"Valmis",selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,storeId:b.store?.id,source:b.data?.source,apiStatus:b.data?.status,error:b.data?.error,rawCount:Array.isArray(b.data?.items)?b.data.items.length:Array.isArray(b.data?.products)?b.data.products.length:0,examples:(b.data?.items||b.data?.products||[]).slice(0,3).map((x:any)=>x.name)})),rankedCount:sortedRows.length});
       setJustiinaResults(sortedRows);
-            justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
+            justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(stores.some(store=>store.chain==="LIDL"))setJustiinaMessage("Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.");else if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
       return sortedRows.length > 0;
     }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaResults([]);setJustiinaResultsOpen(false);setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
   }

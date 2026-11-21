@@ -12860,6 +12860,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false, recipeContext?:MobileRecipeContext) {
+    if (blockLidlOnlyNormalSearchV782()) return;
     const recipeIngredient=recipeContext?.ingredient;
     if(!recipeContext&&mobileRecipeContextRef.current){
       mobileRecipeRunRef.current++;
@@ -19628,7 +19629,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  function blockLidlOnlyNormalSearchV782() {
+    if (storeCompareScope !== "between_chains" ||
+        betweenChainSelectionModeV749 !== "one" ||
+        !selectedChains.lidl || selectedChains.s || selectedChains.k || selectedChains.tokmanni) return false;
+    activeNormalSearchRequestRefV441.current += 1;
+    setLoadingNormal(false);
+    setNormalResultsStableV441([]);
+    setMobileResultsReadyQueryV537("");
+    setNormalSearchAttempted(false);
+    setSearchNotFoundNoticeV471("Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.");
+    return true;
+  }
+
   function handleMainNormalSearch() {
+    if (blockLidlOnlyNormalSearchV782()) return;
     // V160: Göstan ollessa auki normaalin Hae-haun triggerit estetään.
     if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) return;
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;

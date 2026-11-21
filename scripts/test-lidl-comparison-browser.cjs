@@ -1,15 +1,15 @@
 const {chromium,devices}=require('playwright');
 const assert=require('node:assert/strict');
 (async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{
-await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers'].map(async mode=>{
+await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers','normal'].map(async mode=>{
 let ctx=await b.newContext(desktop?{viewport:{width:1440,height:1000}}:devices['iPhone 13']);
 const tag=(desktop?'desktop':'mobiili')+' '+mode;
 let p=await ctx.newPage(); const req=[];p.on('request',r=>req.push(r.url()));p.on('pageerror',e=>console.log(tag,'pageerror',e.message));
 await p.addInitScript(({mode})=>{
  const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S'},k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'},l={id:'FI0218',name:'Lidl Hyvinkää',chain:'LIDL'};
- const many=mode!=='one',lidl=mode!=='control',betweenMode=many?'many':'one';
+ const many=mode!=='one' && mode!=='normal',lidl=mode!=='control',betweenMode=many?'many':'one';
  const item={id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',quantity:1,price:1.79,chain:'S',source:'search',product:{id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',price:179}};
- if (mode !== 'offers') {
+ if (mode !== 'offers' && mode !== 'normal') {
  localStorage.setItem('ziiply-cart-v1',JSON.stringify({items:[item],savedAt:Date.now()}));
  sessionStorage.setItem('ziiply-active-panel-v812','cart');
  sessionStorage.setItem('ziiply-desktop-current-cart-v1',JSON.stringify([item]));
@@ -45,6 +45,23 @@ if (!desktop) {
 }
 await p.goto('http://127.0.0.1:3179/',{timeout:90000,waitUntil:'domcontentloaded'});
 if (desktop) await p.locator('[data-desktop-layout]').waitFor({timeout:35000});
+if (mode === 'normal') {
+  const searches=['maito','kahvi','jauheliha'];
+  if(desktop) await p.getByRole('button',{name:'Avaa Justiina'}).filter({visible:true}).first().click({timeout:20000});
+  else { await p.getByRole('button',{name:'Hae',exact:true}).filter({visible:true}).last().click({timeout:20000}); await p.locator('textarea').filter({visible:true}).first().waitFor({timeout:20000}); }
+  for(const word of searches){
+    const field=desktop?p.getByRole('textbox',{name:'Hae tuotteita'}).filter({visible:true}).first():p.locator('textarea').filter({visible:true}).first();
+    await field.fill(word);
+    const before=req.length;
+    await p.getByRole('button',{name:desktop?'Hae kirjoitetut tuotteet':'Justiina',exact:true}).filter({visible:true}).first().click({timeout:15000});
+    await p.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/).filter({visible:true}).first().waitFor({timeout:15000});
+    const calls=req.slice(before).filter(u=>new URL(u).pathname.startsWith("/api/") && /products|search|ean-bank/i.test(new URL(u).pathname) && !new URL(u).pathname.includes("/offers/"));
+    assert.equal(calls.length,0,'Normal search must not request product APIs: '+calls.join(','));
+    assert.equal(await p.locator('[data-testid="normal-search-result"]:visible').count(),0,'No product cards');
+    console.log('PASS',tag,word,'no product requests, no cards, notice shown');
+  }
+  await ctx.close();return;
+}
 if (mode === 'offers') {
   await p.getByRole('button',{name:desktop?'Avaa Gösta':/Gösta: Tarjoushaku/}).filter({visible:true}).first().click({timeout:25000});
   await p.getByRole('button',{name:desktop?'Lidl':'Hae Lidlin tarjoukset',exact:true}).filter({visible:true}).first().click({timeout:25000});

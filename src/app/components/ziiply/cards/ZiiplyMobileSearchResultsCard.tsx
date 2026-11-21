@@ -167,6 +167,14 @@ export default function ZiiplyMobileSearchResultsCard({
 }: ZiiplyMobileSearchResultsCardProps) {
   const [expandedProduct, setExpandedProduct] = useState<ZiiplyMobileSearchResultProduct | null>(null);
   useEffect(()=>{if(loading)setExpandedProduct(null);},[loading]);
+  // Lidl's public research catalog has no verified normal prices. Do not render
+  // these observations as products or offer an add-to-cart action.
+  const isUnpricedLidlResearch = (product: ZiiplyMobileSearchResultProduct) =>
+    product.source === "lidl.fi-public-research" ||
+    ((product.priceVerified === false || product.product?.priceVerified === false) &&
+      String(product.chain ?? product.__chain ?? product.product?.chain ?? "").toUpperCase() === "LIDL");
+  const hasUnpricedLidlResearch = products.some(isUnpricedLidlResearch);
+  const visibleProducts = products.filter(product => !isUnpricedLidlResearch(product));
   if (!open) return null;
 
   const expandedComparison = expandedProduct
@@ -231,7 +239,7 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             )}
 
-            {!loading && products.length === 0 && (
+            {!loading && visibleProducts.length === 0 && !hasUnpricedLidlResearch && (
               <div className="rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
                 {onSkip ? <>
                   <p><strong className="text-[#123d32]">{title || "Aines"}</strong>: sopivaa tuotetta ei löytynyt valitun kaupan hakutiedoista.</p>
@@ -240,7 +248,10 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             )}
 
-            {products.filter((product, index, all) => {
+            {hasUnpricedLidlResearch && !loading && !onSkip && (
+              <div role="status" className="rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-4 py-5 text-center text-sm font-bold text-[#123d32]">Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.</div>
+            )}
+            {visibleProducts.filter((product, index, all) => {
               const ean = String(product.ean ?? product.product?.ean ?? "").replace(/\D/g, "");
               // The same EAN can arrive from multiple selected stores. Keep the
               // first (already price-ranked) product, but retain distinct items
