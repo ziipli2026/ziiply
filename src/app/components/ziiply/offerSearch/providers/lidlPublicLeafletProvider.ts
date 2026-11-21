@@ -92,7 +92,9 @@ function visibleBundleQuantity(text: string, price: number) {
 
 // Category resolution is shared across chains in neonOfferCategory.ts.
 // Source collection must not infer product taxonomy from titles or URLs.
-const sourceCategory = (_name: string, _url: string) => "Muut";
+// Unknown is not the same as the genuine "Muut" merchandise category.
+// Leave taxonomy empty until the shared catalog resolver supplies evidence.
+const sourceCategory = (_name: string, _url: string) => "";
 
 function visitProducts(value: unknown, output: AnyRecord[]) {
   if (!value || typeof value !== "object") return;
