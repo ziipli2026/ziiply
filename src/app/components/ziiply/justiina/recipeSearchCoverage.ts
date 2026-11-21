@@ -30,6 +30,7 @@ export function recipeCoverageQueries(query: string, ingredient?: RecipeIngredie
   if(term==='kerma')return ['kuohukerma','ruokakerma','vispikerma','kerma'];
   if (term === 'sokeri') return [...new Set([query, 'taloussokeri', 'hienosokeri', 'ruokosokeri', 'fariinisokeri'])];
   const aliases: Record<string, string[]> = {
+    'punajuuri säilyke': ['punajuuri', 'etikkapunajuuri', 'punajuuriviipale', 'punajuurikuutio'],
     'punainen linssi esikeitetty': ['linssi'],
     'koskenlaskija viherpippuri sulatejuusto': ['koskenlaskija'],
     'tomaattisose': ['tomaattipyree'],

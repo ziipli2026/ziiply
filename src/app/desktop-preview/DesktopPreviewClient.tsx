@@ -2687,6 +2687,7 @@ export default function DesktopPreviewPage() {
           if (voiceRunId !== undefined && voiceRunId !== desktopVoiceRunRef.current) return null;
           const params = new URLSearchParams(url.split("?")[1]);
           params.set("search", searchQuery);
+          if (recipeIngredient) params.set("recipeIngredient", recipeIngredient.name);
           const requestUrl=url.split("?")[0]+"?"+params.toString();
           if(!diagnostic)appendDesktopRecipeDebug("api_request",{query,searchQuery,requestUrl,voiceRunId});
           report("request",{requestUrl,searchQuery});
@@ -2702,8 +2703,11 @@ export default function DesktopPreviewPage() {
           if (coverageQueries.length) coverageResponses.push(data);
           const items = readSearchProducts(data) as any[];
           report("response",{requestUrl,rawCount:items.length,source:data?.source,apiStatus:data?.status,error:data?.error});
-          const usable=rankNormalSearchResults(query, items).some((product:any)=>recipeAllows(product)&&(desktopSearchDecision(query,product).accepted||Boolean(recipeIngredient)));
-          if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:rankNormalSearchResults(query,items).filter((product:any)=>recipeAllows(product)&&(desktopSearchDecision(query,product).accepted||Boolean(recipeIngredient))).length});
+          const qualified = recipeIngredient
+            ? items.filter(recipeAllows)
+            : rankNormalSearchResults(query, items).filter(product => desktopSearchDecision(query, product).accepted);
+          const usable = qualified.length > 0;
+          if(diagnostic)report("qualification",{requestUrl,usable,acceptedCount:qualified.length});
           const hasFreshCandidate=!recipeIngredient||items.some((product:any)=>recipeAllows(product)&&recipeFishFreshnessTier(recipeIngredient.name,product,recipeIngredient)===0);
           if(!diagnostic)appendDesktopRecipeDebug("api_qualification",{query,searchQuery,requestUrl,usable,hasFreshCandidate,willTryNextQuery:coverageQueries.length ? searchQuery !== queries[queries.length - 1] : !usable||!hasFreshCandidate,decisions:items.map((product:any)=>({name:product.name||product.title||product.productName,recipeRejection:recipeIngredient?recipeProductRejectionReason(recipeIngredient.name,product,recipeIngredient):null,normalRejected:isBadNormalResult(product,query)}))});
           if(usable&&hasFreshCandidate&&!coverageQueries.length)return data;

@@ -1643,6 +1643,7 @@ import {
   scoreNormalSResult,
   rankNormalSearchResults,
   rankProductResultsByRelevanceAndPrice,
+  comparePricedSearchResults,
   finalizeNormalSearchResults,
   isNonFoodOffer,
   isBadNormalResult,
@@ -12869,6 +12870,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceSearchRunningRefV453.current=false;
       setVoiceProcessing(false);
     }
+    const isPickledRecipeIngredient = recipeIngredient?.searchTerm === "suolakurkku" ||
+      recipeIngredient?.searchTerm === "punajuuri säilyke";
     const recipeAllows=(product:Product)=>!recipeIngredient||recipeProductCompatible(recipeIngredient.name,product,recipeIngredient);
     // Keep the current list mounted while the next ingredient loads. Its buttons are disabled until the response is ready.
     const forceVoiceJustiinaCartSearch = voiceForceJustiinaCartSearchRefV461.current;
@@ -13342,7 +13345,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
           const finalItems = (betweenSingleLidl
             ? groupMatchedItems.filter((product) => Boolean(product.name?.trim()) && (product as Product & { source?: string }).source === "lidl.fi-public-research")
-            : rankProductResultsByRelevanceAndPrice(searchQuery, groupMatchedItems, (product: Product) => getProductPrice(product)))
+            : isPickledRecipeIngredient
+              ? groupMatchedItems.sort((a, b) => comparePricedSearchResults(a, b, getProductPrice))
+              : rankProductResultsByRelevanceAndPrice(searchQuery, groupMatchedItems, getProductPrice))
             .slice(0, 40)
             .map((product) => {
               const withMeta = {
@@ -13383,10 +13388,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       // Recipe selection retains its chain-specific identity.
       const normalCandidates = recipeIngredient
-        ? Array.from(new Map(all.map(item => [
-            `${(item as Product & MobileRecipeProduct).__recipeChain || ""}:${item.id}`,
-            item,
-          ] as const)).values())
+        ? Array.from(new Map(all.map(item => {
+            const { __recipeChain, __recipeStoreName } = item as Product & MobileRecipeProduct;
+            const ean = normalizeEan(item.ean);
+            const identity = isUsableEan(ean) ? `ean:${ean}` : `id:${item.id}`;
+            return [JSON.stringify([__recipeChain, __recipeStoreName, identity]), item] as const;
+          })).values())
         : all;
 
       // K-Ruoka's product search is anchored to the user's literal query. Our
@@ -13475,7 +13482,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
 
       const unique = usesSharedStoreQueries ? all : recipeIngredient
-        ? prioritizeRecipeFishProducts(recipeIngredient.name, rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0], normalUnique.filter(recipeAllows), getProductPrice), recipeIngredient)
+        ? prioritizeRecipeFishProducts(recipeIngredient.name, isPickledRecipeIngredient
+          ? normalUnique.filter(recipeAllows).sort((a, b) => comparePricedSearchResults(a, b, getProductPrice))
+          : rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0], normalUnique.filter(recipeAllows), getProductPrice), recipeIngredient)
         : finalizeNormalSearchResults(
             focusedSearchTerms[0] || useTerms[0] || "",
             normalUnique,
