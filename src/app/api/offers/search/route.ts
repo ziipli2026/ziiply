@@ -786,109 +786,14 @@ export async function GET(request: Request) {
         ...lidlCampaigns,
       ]);
 
-      // Final Lidl normalization must happen after every source has been merged.
-      // In particular, publicationStore rows may have been persisted before a
-      // provider/parser fix. Never require the product card to repair source data.
-      const normalizeLidlFinal = (offer: UnknownRecord): UnknownRecord => {
-        const name = normalizeText(firstString(offer.name, offer.title, offer.productName));
-        const quantity = Number(offer.multiBuyQuantity);
-        const total = Number(offer.multiBuyTotalPrice ?? offer.offerPrice ?? offer.price);
-        const next: UnknownRecord = { ...offer };
-
-        if (Number.isFinite(quantity) && quantity >= 2 && Number.isFinite(total) && total > 0) {
-          const totalText = total.toFixed(2).replace(".", ",");
-          next.priceBasis = "multi-buy-total";
-          next.multiBuyQuantity = quantity;
-          next.multiBuyTotalPrice = total;
-          next.multiBuyUnitPrice = total / quantity;
-          next.price = total;
-          next.offerPrice = total;
-          next.priceText = `${totalText} € / ${quantity} kpl`;
-        }
-
-        // RULE LEVEL: classify by the product form, not an ingredient substring.
-        // These rules run after every Lidl source has been merged, so old staged/
-        // Neon rows and future provider rows receive the same correction.
-        let correctedCategory = "";
-        if (/halloween[- ]?asu|koiran[- ]?asu|kissan[- ]?asu|lemmikin[- ]?asu/.test(name)) {
-          correctedCategory = "Muut";
-        } else if (/lihapulla/.test(name)) {
-          // Must precede bakery: "lihapulla" contains "pulla".
-          correctedCategory = "Liha & makkarat";
-        } else if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(name)) {
-          // Must precede Hevi: fruit words in juice names do not make them produce.
-          correctedCategory = "Juomat";
-        } else if (/maustekur|hapankurk|hapankaali|ajvar|paprikapyree/.test(name)) {
-          // Preserved vegetables, relishes and pastes are pantry products, not fresh produce.
-          correctedCategory = "Kuivatuotteet";
-        } else if (/valkokaalisalaatti/.test(name)) {
-          // Prepared salad belongs with ready-to-eat foods, not fresh produce.
-          correctedCategory = "Valmisruoka";
-        } else if (/keitto|lihapata|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(name)) {
-          // Prepared foods. Deliberately do NOT match generic "pata": e.g. Naudan uunipata is a raw meat cut.
-          correctedCategory = "Valmisruoka";
-        } else if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(name)) {
-          // Product form wins: rahkapulla/juustocroissant/perunapiirakka are bakery.
-          correctedCategory = "Leipomo";
-        }
-
-        // The morning Neon taxonomy takes precedence over legacy Lidl title regexes.
-        // Only use the old display-category fallback when Neon has no verified match.
-        const hasVerifiedNeonCategory = Boolean(String(next.neonCategoryMatch ?? "").trim()) &&
-          Boolean(String(next.neonCategoryPath ?? "").trim());
-        if (correctedCategory && !hasVerifiedNeonCategory) {
-          next.category = correctedCategory;
-          next.categoryPath = correctedCategory;
-          next.mainCategory = correctedCategory;
-
-          // The mobile offer card keeps the provider row under
-          // __sourceOfferSearchResult and some category paths still read that
-          // nested object. Keep the effective category synchronized there too;
-          // rawText remains untouched as source evidence.
-          const sourceOffer = next.__sourceOfferSearchResult;
-          if (sourceOffer && typeof sourceOffer === "object" && !Array.isArray(sourceOffer)) {
-            next.__sourceOfferSearchResult = {
-              ...(sourceOffer as UnknownRecord),
-              category: correctedCategory,
-              categoryPath: correctedCategory,
-              mainCategory: correctedCategory,
-            };
-          }
-        }
-        return next;
-      };
-      const normalizedMasterCombined = masterCombined.map(normalizeLidlFinal);
-
-      // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
-      // visible catch-all category: general merchandise/campaign rows stay out,
-      // while real groceries must be classified into a concrete grocery category.
-      // Do not discard "Muut" before checking the authoritative Lidl department:
-      // stale provider labels can hide actual groceries from both UIs.
-      const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi);
-      const neonEnriched = await enrichOfferCategoriesFromNeon(currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)));
-      // All API category fields and the nested mobile-card source must agree.
-      // Verified Neon EAN matches win when no authoritative Lidl department exists.
-      const results = neonEnriched.map((offer): UnknownRecord => {
-        const sourceCategory = firstString(offer.category);
-        // Product-level evidence only: never infer taxonomy from a campaign URL.
-        const verifiedCategory = offer.neonCategoryMatch === "ean"
-          ? firstString(offer.neonDisplayCategory, offer.neonCategoryPath)
-          : "";
-        // A merchandising shelf is never sufficient evidence for a product
-        // category. Preserve only product-level taxonomy, and exclude unknowns
-        // from the grocery view rather than mislabel them as frozen or produce.
-        const category = verifiedCategory || (sourceCategory !== "Muut" ? sourceCategory : "");
-        if (!category) return { ...offer, category: "Muut" };
-        const source = offer.__sourceOfferSearchResult;
-        return {
-          ...offer, category, categoryPath: category, mainCategory: category,
-          neonDisplayCategory: category,
-          __sourceOfferSearchResult: source && typeof source === "object" && !Array.isArray(source)
-            ? { ...(source as UnknownRecord), category, categoryPath: category,
-                mainCategory: category, neonDisplayCategory: category }
-            : source,
-        };
-      }).filter((offer) => normalizeText(offer.category) !== "muut");
+      // Match the S/K/Tokmanni path: providers supply product records,
+      // and the shared Neon enrichment resolves catalog categories.
+      // Do not run a Lidl-specific category classifier or rewrite taxonomy
+      // based on titles, landing-page URLs, or product-name exceptions.
+      const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(masterCombined, todayFi);
+      const results = await enrichOfferCategoriesFromNeon(
+        currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)),
+      );
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
