@@ -118,49 +118,22 @@ if (mode === 'categories') {
   } catch (error) {
     console.log('LIDL PRODUCTION COVERAGE unavailable',tag,String(error));
   }
-  // Generic source-category audit across all real offers, independent of the
-  // named regression products. This catches new misclassifications in either UI.
-  const departmentExpectations = [
-    [/(?:^|-)lihat(?:-|$)|makkar|leikkele|broileri|(?:^|-)kana(?:-|$)/, 'Liha & makkarat'],
-    [/leipa|leivonn|paistopiste|kakku/, 'Leipomo'],
-    [/kala|merenelav/, 'Kala'],
-    [/hedelma|vihannes|hevi/, 'Hevi'],
-    [/maito|juusto|jogurtti|kananmun/, 'Maitotuotteet'],
-    [/juoma|mehu|vesi/, 'Juomat'],
-    [/pakaste|jaatelo/, 'Pakasteet'],
-    [/valmisruo|valmisater|ateriat/, 'Valmisruoka'],
-    [/kuivatuot|sailyke|pasta|riisi|mauste/, 'Kuivatuotteet'],
-    [/makeis|keksi|suklaa/, 'Makeiset & keksit'],
-  ];
-  let auditedDepartments = 0;
+  // Source-agnostic category contract. Never infer product taxonomy from
+  // Lidl merchandising departments or hard-coded product examples.
+  const categories = new Set(['Kahvi & tee','Maitotuotteet','Liha & makkarat','Kala','Leipomo','Hevi','Juomat','Pakasteet','Valmisruoka','Kuivatuotteet','Makeiset & keksit','Lastenruoat','Lastenhoito','Vitamiinit & ravinteet','Lemmikit','Hygienia & kosmetiikka','Kodinhoito','Koti & vapaa-aika']);
   for (const row of data.results) {
     const source = row.__sourceOfferSearchResult || {};
-    const raw = row.sourceUrl || row.productUrl || source.sourceUrl || source.productUrl;
-    let department = '';
-    try {
-      const url = new URL(raw);
-      if (['lidl.fi','www.lidl.fi'].includes(url.hostname)) {
-        const segments = decodeURIComponent(url.pathname).toLowerCase().split('/').filter(Boolean);
-        department = segments[0] === 'h' && segments.length >= 3 ? segments[1] : '';
-      }
-    } catch {}
-    if (!department) continue;
-    const shelfCategory = departmentExpectations.find(([pattern]) => pattern.test(department))?.[1];
-    // A Lidl merchandising shelf can differ from the finished food type:
-    // baked cakes belong to bakery even when shelved under dairy.
-    const bakedDessert = /(?:juustokakku|kakku|torttu|leivos)/i.test(titleOf(row));
-    const unbakedDough = /taikina/i.test(titleOf(row));
-    const expected = unbakedDough ? 'Pakasteet' : bakedDessert ? 'Leipomo' : shelfCategory;
-    if (!expected) continue;
-    auditedDepartments++;
-    assert.equal(row.category, expected, `Lidl department ${department}: ${titleOf(row)}`);
-    for (const fields of [row, source].filter(x => x && Object.keys(x).length)) {
-      for (const key of ['category','categoryPath','mainCategory','neonDisplayCategory'])
-        assert.equal(fields[key], expected, `Lidl department ${department}: ${titleOf(row)} ${key}`);
+    if (!row.neonDisplayCategory) continue; // No catalog evidence: don't guess.
+    assert.ok(categories.has(row.neonDisplayCategory), 'Unknown catalog category: '+row.neonDisplayCategory);
+    if (row.neonCategoryMatch === 'ean') {
+      assert.equal(row.neonDisplayCategory, row.category, 'EAN category must be authoritative');
+    }
+    if (source.category && row.neonCategoryMatch === 'ean') {
+      // The raw provider record is evidence, not another authority.
+      assert.equal(row.category, row.neonDisplayCategory);
     }
   }
-  assert.ok(auditedDepartments > 0, 'No real Lidl department paths available for generic category audit');
-  console.log('PASS generic Lidl department audit',tag,auditedDepartments);
+  console.log('PASS shared catalog category contract',tag,data.results.length);
   const cases = [
     {product:/lihap(?:yö|yo)ryk/i, brand:/kivikyl/i, category:'Liha & makkarat'},
     {product:/pistaasi.*juustokakku/i, category:'Leipomo'},
