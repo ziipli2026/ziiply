@@ -209,20 +209,12 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
       }
     }
     const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
-    const byName = new Map<string, string | null>();
-    for (const row of nameRows) {
-      const key = String(row.name).trim().toLocaleLowerCase("fi");
-      const category = String(row.category);
-      const previous = byName.get(key);
-      if (previous !== undefined && previous !== category) byName.set(key, null);
-      else if (previous === undefined) byName.set(key, category);
-    }
     return offers.map(offer => {
       const ean = getEan(offer);
       const localIdentity = identityMatches.get(offer);
       const localCategory = localIdentity?.category ?? null;
-      const exactPath = byEan.get(ean) || localCategory || (ean ? byName.get(getName(offer).toLocaleLowerCase("fi")) : null);
-      const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : exactPath ? "exact-name" : null;
+      const exactPath = byEan.get(ean) || localCategory || null;
+      const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : null;
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
       if (!display) return offer;
       // The same catalog category is used by every provider, including
