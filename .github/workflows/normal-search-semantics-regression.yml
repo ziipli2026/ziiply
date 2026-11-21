@@ -70,6 +70,17 @@ jobs:
             {name:'Riisi-vihannessekoitus 450 g',price:2.39},
           ];
           assert.equal(core.pickCheapestCompatibleComparisonProduct(source,candidates)?.name,candidates[1].name);
+          // The guard must apply to product families, not a specific rice item or retailer.
+          const otherCompounds = [
+            ['Herne-maissisekoitus 400 g', 'Herne-maissisekoitus 400 g', 'Herne 400 g'],
+            ['Porkkana-perunasekoitus 500 g', 'Porkkana-perunasekoitus 500 g', 'Peruna 500 g'],
+          ];
+          for (const [requested, valid, invalid] of otherCompounds) {
+            assert.equal(core.isComparisonAttributeCompatible(requested, valid), true, requested + ' valid');
+            assert.equal(core.isComparisonAttributeCompatible(requested, invalid), false, requested + ' invalid');
+          }
+          assert.equal(core.isComparisonAttributeCompatible('Riisi 1 kg', 'Riisi 1 kg'), true,
+            'standalone rice must remain a valid grocery product');
           console.log('PASS cross-chain compound grocery counterpart identity');
           NODE
       - name: Verify Lidl store identity persistence and offer context
