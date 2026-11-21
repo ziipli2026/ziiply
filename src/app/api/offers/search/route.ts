@@ -866,47 +866,11 @@ export async function GET(request: Request) {
       // stale provider labels can hide actual groceries from both UIs.
       const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi);
       const neonEnriched = await enrichOfferCategoriesFromNeon(currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)));
-      // Prefer the official Lidl department over ambiguous ingredient words in
-      // product names or legacy Neon categories. Only first-party /h/ category
-      // paths are authoritative; product and campaign URLs are not categories.
-      const lidlDepartmentCategory = (offer: UnknownRecord): string => {
-        const raw = firstString(offer.sourceUrl, offer.productUrl, asRecord(offer.__sourceOfferSearchResult)?.sourceUrl, asRecord(offer.__sourceOfferSearchResult)?.productUrl);
-        let pathname = "";
-        try {
-          const url = new URL(raw);
-          if (url.hostname !== "www.lidl.fi" && url.hostname !== "lidl.fi") return "";
-          pathname = decodeURIComponent(url.pathname).toLocaleLowerCase("fi");
-        } catch { return ""; }
-        const match = pathname.match(/^\/h\/([^/]+)\//);
-        if (!match) return "";
-        const department = match[1].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const groups: Array<[RegExp, string]> = [
-          [/(?:^|-)lihat(?:-|$)|makkar|leikkele|broileri|(?:^|-)kana(?:-|$)/, "Liha & makkarat"],
-          [/leipa|leivonn|paistopiste|kakku/, "Leipomo"],
-          [/kala|merenelav/, "Kala"],
-          [/hedelma|vihannes|hevi/, "Hevi"],
-          [/maito|juusto|jogurtti|kananmun/, "Maitotuotteet"],
-          [/juoma|mehu|vesi/, "Juomat"],
-          [/pakaste|jaatelo/, "Pakasteet"],
-          [/valmisruo|valmisater|ateriat/, "Valmisruoka"],
-          [/kuivatuot|sailyke|pasta|riisi|mauste/, "Kuivatuotteet"],
-          [/makeis|keksi|suklaa/, "Makeiset & keksit"],
-        ];
-        return groups.find(([pattern]) => pattern.test(department))?.[1] || "";
-      };
       // All API category fields and the nested mobile-card source must agree.
       // Verified Neon EAN matches win when no authoritative Lidl department exists.
       const results = neonEnriched.map((offer): UnknownRecord => {
-        const departmentCategory = lidlDepartmentCategory(offer);
         const sourceCategory = firstString(offer.category);
-        // Source audit: classify by product form only if it is actually a bakery
-        // product, not simply because the imported shelf label says bakery.
-        const productName = normalizeText(firstString(offer.name, offer.title, offer.productName));
-        // Category resolution must use provenance, not a list of example
-        // product names. EAN-verified taxonomy wins; the provider's own
-        // classification is next. Lidl's /h/ page is a merchandising shelf,
-        // so it is only a fallback when no product category exists.
-        // Never promote an unverified shelf assignment to a verified product.
+        // Product-level evidence only: never infer taxonomy from a campaign URL.
         const verifiedCategory = offer.neonCategoryMatch === "ean"
           ? firstString(offer.neonDisplayCategory, offer.neonCategoryPath)
           : "";
