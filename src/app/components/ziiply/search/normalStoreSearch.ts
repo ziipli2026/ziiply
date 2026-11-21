@@ -1,6 +1,6 @@
 import { desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence, searchWords } from "./desktopNormalRelevance";
 import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./normalSearchCatalog";
-import { comparePricedSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
+import { comparePricedSearchResults, isUsableEan, normalizeEan, readSearchProducts } from "../ziiplyCore";
 
 export type NormalSearchStore = { chain: "S" | "K" | "LIDL" | "TOKMANNI" | "SPAR"; id: string | number; name: string; city?: string; address?: string; type?: "local" | "hyper" };
 const isTokmanniStore = (store: NormalSearchStore) => store.chain === "SPAR" || store.chain === "TOKMANNI";
@@ -218,7 +218,26 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
       if(included)rows.push(product);
     }
   }
-  const rankedRows = rankStoreRows(query, rows);
+  const quotesByEan = new Map<string, Map<string, { store: string; price: number }>>();
+  for (const row of rows) {
+    const ean = normalizeEan(row.ean || row.barcode || row.product?.ean);
+    if (!isUsableEan(ean) || !Number.isFinite(row.__price) || row.__price <= 0 || row.priceVerified === false) continue;
+    const quotes = quotesByEan.get(ean) ?? new Map();
+    const store = (row.__chain === "SPAR" || row.__chain === "TOKMANNI")
+      ? "Tokmanni / SPAR verkkohinta"
+      : row.__store;
+    if (!store) continue;
+    const previous = quotes.get(store);
+    if (!previous || row.__price < previous.price) quotes.set(store, { store, price: row.__price });
+    quotesByEan.set(ean, quotes);
+  }
+  const rankedRows = rankStoreRows(query, rows).map(row => {
+    const ean = normalizeEan(row.ean || row.barcode || row.product?.ean);
+    const quotes = quotesByEan.get(ean);
+    return quotes && quotes.size > 1
+      ? { ...row, __storeQuotes: [...quotes.values()].sort((a, b) => a.price - b.price) }
+      : row;
+  });
   const sortedRows = rankedRows.slice(0, 100);
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};

@@ -80,6 +80,7 @@ export default function ZiiplyDesktopCompareCard({
                     </div>
                     <div className="shrink-0 text-right">
                       {isBest && <div className="text-[10px] font-black uppercase text-[#07883c]">Paras hinta</div>}
+                      {store.chain === "SPAR" && found > 0 && <div className="text-[10px] font-bold text-[#76684e]">Verkkohinta</div>}
                       <div className="font-serif text-[clamp(21px,2vw,30px)] font-black italic text-[#29271e]">{isComplete ? euro(store.totalPrice) : "—"}</div>
                       {!isComplete && <div className="max-w-[180px] text-[11px] font-bold leading-tight text-[#9a4226]">{missing > 0 ? `Kokonaishinta puuttuu: ${missing} tuotteen hinta ei tiedossa` : "Kokonaishintaa ei voitu vahvistaa"}</div>}
                       {diff !== null && diff > 0 && <div className="text-xs font-bold text-[#76684e]">+{euro(diff)} kalliimpi</div>}

@@ -23,6 +23,7 @@ export type ZiiplyMobileSearchResultProduct = {
   chain?: string;
   store?: string;
   storeName?: string;
+  __storeQuotes?: { store: string; price: number }[];
   price?: number | string | null;
   image?: string;
   imageUrl?: string;
@@ -303,8 +304,13 @@ export default function ZiiplyMobileSearchResultsCard({
                         </div>
                       )}
                       <ProductEnergy ean={product.ean || product.product?.ean} nutrition={product.nutrition ?? product.product?.nutrition} quantity={product.packageSize ?? product.product?.packageSize ?? product.product?.quantity} />
-                      {product.storeName === "Tokmanni / SPAR verkkovalikoima" && (
-                        <div className="mt-1 text-[0.65rem] font-bold text-[#78633a]">{product.storeName}</div>
+                      {product.__storeQuotes?.map(quote => (
+                        <div key={quote.store} className="mt-1 text-[0.68rem] font-bold text-[#78633a]">
+                          {quote.store} · {quote.price.toFixed(2).replace(".", ",")} €
+                        </div>
+                      ))}
+                      {!product.__storeQuotes?.length && product.storeName === "Tokmanni / SPAR verkkovalikoima" && (
+                        <div className="mt-1 text-[0.65rem] font-bold text-[#78633a]">Tokmanni / SPAR verkkohinta</div>
                       )}
                       {researchOnly && (
                         <div className="mt-1 text-[0.65rem] font-bold leading-tight text-[#78633a]">
