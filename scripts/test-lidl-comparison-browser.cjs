@@ -126,7 +126,7 @@ if (mode === 'categories') {
     [/maito|juusto|jogurtti|kananmun/, 'Maitotuotteet'],
     [/juoma|mehu|vesi/, 'Juomat'],
     [/pakaste|jaatelo/, 'Pakasteet'],
-    [/valmisruo/, 'Valmisruoka'],
+    [/valmisruo|valmisater|ateriat/, 'Valmisruoka'],
     [/kuivatuot|sailyke|pasta|riisi|mauste/, 'Kuivatuotteet'],
     [/makeis|keksi|suklaa/, 'Makeiset & keksit'],
   ];
