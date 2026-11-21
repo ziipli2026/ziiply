@@ -6816,6 +6816,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!storesReadyForSearch) return;
+    // Lidl-only mode has no normal-price search: do not prefetch unrelated S/K products.
+    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" &&
+        selectedChains.lidl && !selectedChains.s && !selectedChains.k && !selectedChains.tokmanni) return;
     if (stableBootWarmupDoneRefV505.current) return;
 
     const sStore = String(activeStores?.sStoreId || "").trim();
@@ -6842,7 +6845,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // mutta aja se vasta startupin kriittisen vaiheen jälkeen.
     const timer = window.setTimeout(warmup, 3000);
     return () => window.clearTimeout(timer);
-  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId]);
+  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId, storeCompareScope, betweenChainSelectionModeV749, selectedChains.lidl, selectedChains.s, selectedChains.k, selectedChains.tokmanni]);
 
   const localStoreDebugV229 = useMemo(() => {
     try {
