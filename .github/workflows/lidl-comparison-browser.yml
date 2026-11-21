@@ -1,0 +1,30 @@
+name: Lidl comparison browser
+on:
+  pull_request:
+    paths:
+      - 'src/app/page.tsx'
+      - 'src/app/desktop-preview/DesktopPreviewClient.tsx'
+      - 'src/app/components/ziiply/**'
+      - 'scripts/test-lidl-comparison-browser.cjs'
+      - '.github/workflows/lidl-comparison-browser.yml'
+  push:
+    branches: ['fix/lidl-comparison-notice']
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm install --prefix /tmp/lidl-browser --no-save --package-lock=false playwright@1.56.1
+      - run: npm run build
+      - run: |
+          npm run start -- -H 127.0.0.1 -p 3179 &
+          for attempt in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:3179/ >/dev/null; then break; fi
+            sleep 2
+          done
+          NODE_PATH=/tmp/lidl-browser/node_modules node scripts/test-lidl-comparison-browser.cjs

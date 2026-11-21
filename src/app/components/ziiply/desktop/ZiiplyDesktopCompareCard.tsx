@@ -71,9 +71,9 @@ export default function ZiiplyDesktopCompareCard({
               const isOpen = expanded.includes(store.id);
               const rows = (store.matches || []) as MatchRow[];
               return (
-                <article key={store.id} className={`${store.chain === "S" ? "order-1" : store.chain === "K" ? "order-2" : store.chain === "LIDL" ? "order-3" : store.chain === "SPAR" ? "order-4" : "order-5"} flex h-fit min-w-0 self-start flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
+                <article key={store.id} className={`${store.chain === "S" ? "order-1" : store.chain === "K" ? "order-2" : store.chain === "SPAR" ? "order-4" : "order-5"} flex h-fit min-w-0 self-start flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
                   <div className="flex shrink-0 items-center gap-3 border-b border-[#c9ad76]/70 px-4 py-3">
-                    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : store.chain === "K" ? "border-[#85161c] bg-[#cf2028]" : store.chain === "LIDL" ? "border-[#153c8a] bg-[#235ac2]" : "border-[#8b4321] bg-[#bc7032]"}`}>{store.chain || "•"}</div>
+                    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : store.chain === "K" ? "border-[#85161c] bg-[#cf2028]" : "border-[#8b4321] bg-[#bc7032]"}`}>{store.chain || "•"}</div>
                     <div className="min-w-0 flex-1">
                       <h3 className="text-[clamp(14px,1.2vw,20px)] font-black leading-tight text-[#29271e]">{store.name}</h3>
                       <p className="text-[10px] font-extrabold uppercase text-[#7c725d]">#{index+1} · {found} tuotetta löytynyt · {missing ? `${missing} puuttuu` : "Täysi kori"}</p>

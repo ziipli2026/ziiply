@@ -455,11 +455,9 @@ export default function ZiiplyMobileCompareCardresponsive({
                               ? "border-[#7e1418] bg-[#c71d24] text-[#fff6d7]"
                               : store.chain === "S"
                                 ? "border-[#0b6330] bg-[#0b8f3a] text-[#fff6d7]"
-                                : store.chain === "LIDL"
-                                  ? "border-[#153c8a] bg-[#235ac2] text-white"
-                                  : store.chain === "SPAR"
-                                    ? "border-[#8b4321] bg-[#bc7032] text-white"
-                                    : "border-[#5a4427] bg-[#6f6045] text-[#fff6d7]",
+                                : store.chain === "SPAR"
+                                  ? "border-[#8b4321] bg-[#bc7032] text-white"
+                                  : "border-[#5a4427] bg-[#6f6045] text-[#fff6d7]",
                           )}
                           aria-label={`Avaa ${store.name}`}
                         >
