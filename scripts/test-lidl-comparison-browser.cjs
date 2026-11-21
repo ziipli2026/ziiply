@@ -7,7 +7,7 @@ const tag=(desktop?'desktop':'mobiili')+' '+mode;
 let p=await ctx.newPage(); const req=[];p.on('request',r=>req.push(r.url()));p.on('pageerror',e=>console.log(tag,'pageerror',e.message));
 await p.addInitScript(({mode})=>{
  const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S'},k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'},l={id:'FI0218',name:'Lidl Hyvinkää',chain:'LIDL'};
- const many=mode!=='one',lidl=mode!=='control',betweenMode=many?'many':'one';
+ const many=mode!=='one' && mode!=='normal',lidl=mode!=='control',betweenMode=many?'many':'one';
  const item={id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',quantity:1,price:1.79,chain:'S',source:'search',product:{id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',price:179}};
  if (mode !== 'offers' && mode !== 'normal') {
  localStorage.setItem('ziiply-cart-v1',JSON.stringify({items:[item],savedAt:Date.now()}));
@@ -54,7 +54,7 @@ if (mode === 'normal') {
     const before=req.length;
     await p.getByRole('button',{name:/Hae kirjoitetut tuotteet|^Hae$/}).filter({visible:true}).first().click({timeout:15000});
     await p.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/).filter({visible:true}).first().waitFor({timeout:15000});
-    const calls=req.slice(before).filter(u=>/\\/api\\/(lidl\\/products|search|s\\/|k\\/|products)/.test(new URL(u).pathname));
+    const calls=req.slice(before).filter(u=>new URL(u).pathname.startsWith("/api/") && /products|search|ean-bank/i.test(new URL(u).pathname) && !new URL(u).pathname.includes("/offers/"));
     assert.equal(calls.length,0,'Normal search must not request product APIs: '+calls.join(','));
     assert.equal(await p.locator('[data-testid="normal-search-result"]:visible').count(),0,'No product cards');
     console.log('PASS',tag,word,'no product requests, no cards, notice shown');
