@@ -623,6 +623,7 @@ export async function GET(request: Request) {
       // an availability restriction. Every selected Finnish Lidl must consume
       // the same active national publication; store identity is rebound below.
       let staged: UnknownRecord[] = [];
+      let stagedPublicationError: string | null = null;
       try {
         const nationalStaged = await readActivePublicationOffers<UnknownRecord>(LIDL_NATIONAL_PUBLICATION_CHAIN);
         staged = nationalStaged.map((offer) => ({
@@ -633,6 +634,7 @@ export async function GET(request: Request) {
           shopName: storeName,
         }));
       } catch (error) {
+        stagedPublicationError = error instanceof Error ? error.message : String(error);
         console.warn("[Ziiply offers] Lidl staged national publication unavailable", error);
       }
       // A stored publication can be partial. Merge the current official leaflet
@@ -892,6 +894,7 @@ export async function GET(request: Request) {
             structuredAndManual: enriched.length,
             structuredFeedError: structuredFeedError || null,
             staged: staged.length,
+            stagedPublicationError,
             currentPackaging: currentPackaging.size,
             combined: masterCombined.length,
             publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
