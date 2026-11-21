@@ -403,7 +403,6 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
     if (result.status === "rejected") { failedPages++; continue; }
     parsed.push(...[
       ...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date),
-      ...parseCampaignVisibleProducts(result.value.html, result.value.url, date),
     ]);
   }
 
@@ -464,7 +463,6 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     // those directly instead of requiring every card to expose a /p/ link.
     if (/\/c\//i.test(result.value.url)) {
       parsed.push(...parseCampaignProductCards(result.value.html, result.value.url, date));
-      parsed.push(...parseCampaignVisibleProducts(result.value.html, result.value.url, date));
     }
   }
 
