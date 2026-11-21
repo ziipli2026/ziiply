@@ -95,6 +95,42 @@ if (mode === 'categories') {
   assert.equal(data.ok, true);
   const today = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Helsinki'}).format(new Date());
   const titleOf = row => String(row.productName || row.title || row.name);
+  // Generic source-category audit across all real offers, independent of the
+  // named regression products. This catches new misclassifications in either UI.
+  const departmentExpectations = [
+    [/liha|makkar|leikkele|broileri|kana/, 'Liha & makkarat'],
+    [/leipa|leivonn|paistopiste|kakku/, 'Leipomo'],
+    [/kala|merenelav/, 'Kala'],
+    [/hedelma|vihannes|hevi/, 'Hevi'],
+    [/maito|juusto|jogurtti|kananmun/, 'Maitotuotteet'],
+    [/juoma|mehu|vesi/, 'Juomat'],
+    [/pakaste|jaatelo/, 'Pakasteet'],
+    [/valmisruo/, 'Valmisruoka'],
+    [/kuivatuot|sailyke|pasta|riisi|mauste/, 'Kuivatuotteet'],
+    [/makeis|keksi|suklaa/, 'Makeiset & keksit'],
+  ];
+  let auditedDepartments = 0;
+  for (const row of data.results) {
+    const source = row.__sourceOfferSearchResult || {};
+    const raw = row.sourceUrl || row.productUrl || source.sourceUrl || source.productUrl;
+    let department = '';
+    try {
+      const url = new URL(raw);
+      if (['lidl.fi','www.lidl.fi'].includes(url.hostname))
+        department = decodeURIComponent(url.pathname).toLowerCase().match(/^\\/h\\/([^/]+)\\//)?.[1] || '';
+    } catch {}
+    if (!department) continue;
+    const expected = departmentExpectations.find(([pattern]) => pattern.test(department))?.[1];
+    if (!expected) continue;
+    auditedDepartments++;
+    assert.equal(row.category, expected, `Lidl department ${department}: ${titleOf(row)}`);
+    for (const fields of [row, source].filter(x => x && Object.keys(x).length)) {
+      for (const key of ['category','categoryPath','mainCategory','neonDisplayCategory'])
+        assert.equal(fields[key], expected, `Lidl department ${department}: ${titleOf(row)} ${key}`);
+    }
+  }
+  assert.ok(auditedDepartments > 0, 'No real Lidl department paths available for generic category audit');
+  console.log('PASS generic Lidl department audit',tag,auditedDepartments);
   const cases = [
     {product:/lihap(?:yö|yo)ryk/i, brand:/kivikyl/i, category:'Liha & makkarat'},
     {product:/pistaasi.*juustokakku/i, category:'Leipomo'},
