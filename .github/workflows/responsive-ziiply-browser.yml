@@ -407,8 +407,10 @@ jobs:
                   // Lidl provides offers, not verified normal-price products. Do not
                   // expect mocked milk catalogue results in its normal search.
                   if (chain === 'LIDL' && !many) {
-                    const notice = search.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/i).filter({visible:true});
-                    await notice.first().waitFor({timeout:15000});
+                    const notice = search.getByRole('alertdialog', {name:'Lidlin normaalihinnat eivät ole saatavilla'}).filter({visible:true}).first();
+                    await notice.waitFor({timeout:20000});
+                    await search.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/i).filter({visible:true}).first().waitFor({timeout:10000});
+                    assert.equal(await search.locator('[data-testid="normal-search-result"]:visible').count(), 0);
                     assert.equal(await search.getByText('Kotimaista kevytmaito 1 l',{exact:true}).filter({visible:true}).count(),0);
                     console.log(name,'LIDL normal-price unavailable notice passed');
                     await searchContext.close();
@@ -428,7 +430,7 @@ jobs:
                     throw error;
                   }
                   if (chain !== 'LIDL') await expensive.waitFor();
-                  if (extra && extra !== 'SPAR' && extra !== 'TOKMANNI') await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
+                  if (extra && extra !== 'SPAR' && extra !== 'TOKMANNI') assert.equal(await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).count(), 0, 'Lidl does not provide verified normal-price milk results');
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
                   // Search results can appear before all parallel query variants are dispatched.
