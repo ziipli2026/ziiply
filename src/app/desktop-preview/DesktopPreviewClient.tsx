@@ -1,4 +1,5 @@
 "use client";
+import { fetchLidlBasketQuotes, fetchSparBasketQuotes } from "../components/ziiply/search/independentBasketQuotes";
 import { formatSearchResultComparisonPrice } from "../components/ziiply/search/searchResultComparisonPrice";
 import ProductEnergy from "../components/ziiply/cards/ProductEnergy";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonProductType, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "../components/ziiply/comparisonBrand";
@@ -990,25 +991,14 @@ export default function DesktopPreviewPage() {
   async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean,alternativeQueries: string[] = []){
     // The selected store is authoritative: never search S products for a K store (or vice versa).
     const kind=storeKind(store);
-    if(kind==="spar"){
-      const queries=[...new Set([...alternativeQueries,name,...getKSearchTerms(name)].filter(Boolean))].slice(0,6);
-      const responses=await Promise.all(queries.map(async search=>{
-        try{
-          const params=new URLSearchParams({search,intent:name});
-          const response=await fetch("/api/tokmanni/products?"+params.toString(),{cache:"no-store"});
-          if(!response.ok)return [];
-          const data=await response.json();
-          return (Array.isArray(data?.items)?data.items:[]).map((p:any)=>({
-            ...p,name:String(p.name||p.title||""),ean:String(p.ean||""),
-            price:Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100),
-            image:String(p.pictureUrl||p.imageUrl||"")
-          })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
-        }catch{return []}
-      }));
-      return responses.flat();
+    if(kind==="spar"||kind==="lidl"){
+      try {
+        const candidates=kind==="lidl"
+          ? await fetchLidlBasketQuotes(name,ean,String(store.storeKey||store.externalId||store.id||""))
+          : await fetchSparBasketQuotes(name,ean,[...alternativeQueries,...getKSearchTerms(name)]);
+        return candidates.map(product=>({...product,price:Math.round(product.price*100),image:product.pictureUrl||""}));
+      }catch{return []}
     }
-    // Lidl normal-price search is not yet verified; never substitute another chain's prices.
-    if(kind==="lidl")return [];
     if(!["sHyper","sLocal","kHyper","kLocal"].includes(kind))return [];
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
@@ -1346,7 +1336,14 @@ export default function DesktopPreviewPage() {
           if(isDesktopMemoItem(item)||item.__recipeWeightNeedsReview)return {cartItemId:String(item.id||""),name,ean,quantity:Number(item.quantity||1),price:null,match:"none" as const};
           try{
             const candidates=await desktopFindCompareCandidates(name,ean,store,isS);
-            const matched=desktopPickCompareCandidate(candidates,name,ean,isS);
+            // Tokmanni search results added to the cart can lack an EAN.
+            // A unique identical product name includes the original pack description.
+            const exactTokmanniName = kind === "spar" && !normalizeEan(ean)
+              ? candidates.filter(candidate => String(candidate.name || "").normalize("NFC").trim().toLocaleLowerCase("fi") === name.normalize("NFC").toLocaleLowerCase("fi") && desktopReliableComparePrice(candidate))
+              : [];
+            const matched = exactTokmanniName.length === 1
+              ? exactTokmanniName[0]
+              : desktopPickCompareCandidate(candidates,name,ean,isS);
             logCompareAudit("product_search_result",{store:store.name,storeId:store.id,externalId:store.externalId,kind,name,ean,candidateCount:candidates.length,exactEanCandidates:candidates.filter((p:any)=>ean&&normalizeEan(p.ean)===normalizeEan(ean)).slice(0,12).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),candidates:candidates.slice(0,15).map((p:any)=>({name:p.name,ean:p.ean,priceCents:p.price})),matched:matched?{name:matched.name,ean:matched.ean,priceCents:matched.price}:null,reason:matched?"matched":candidates.length?"no_compatible_match":"no_candidates"});
             desktopDebug(`${store.name}: ${name} EAN=${ean||"-"} → ehdokkaita=${candidates.length}, osuma=${matched?`${matched.name} (${matched.price}c)`:"EI"}, ehdokkaat=${candidates.slice(0,3).map((p:any)=>`${p.name} (${p.price}c)`).join(" | ")||"-"}`);
             // A variable-weight EAN is a kilogram-priced item, not a fixed retail package.
@@ -3198,7 +3195,7 @@ export default function DesktopPreviewPage() {
   onRejectPackageProposal={rejectDesktopPackageProposal}
   onAcceptWeightProposal={acceptDesktopWeightProposal}
   onRejectWeightProposal={rejectDesktopWeightProposal}
-  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":storeKind(result.store)==="lidl"?"LIDL":storeKind(result.store)==="spar"?"SPAR":"K") as "S"|"K"|"LIDL"|"SPAR",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*Number(row.quantity||1)*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
+  stores={Object.entries(desktopCompareResults).map(([id,result])=>({id,name:storeKind(result.store)==="spar"?"Tokmannin verkkokauppa":String(result.store?.name||"Kauppa"),chain:(["sHyper","sLocal"].includes(storeKind(result.store))?"S":storeKind(result.store)==="lidl"?"LIDL":storeKind(result.store)==="spar"?"SPAR":"K") as "S"|"K"|"LIDL"|"SPAR",totalPrice:result.missing===result.rows.length?undefined:Math.round(result.total*100),itemCount:result.rows.length-result.missing,missingItems:result.missing,matches:result.rows.map((row:any)=>{const original=cartItems.find((item:any)=>String(item.id||"")===row.cartItemId);return {...row,id:row.cartItemId,price:row.price==null?null:Math.round(row.price*Number(row.quantity||1)*100),isMissingComparisonItem:row.price==null,cartItem:original,sourceProductName:String(original?.name||original?.title||row.name),image:row.image||original?.image||original?.product?.image||original?.product?.imageUrl,product:{name:row.name,image:row.image||original?.product?.image||original?.product?.imageUrl},matchType:row.match==="name"?"name":row.match==="ean"?"ean":"manual"}})}))}
   items={cartItems}
   onChangeMatchMode={desktopChangeCompareMatchMode}
   onSelectMatchAlternative={desktopSelectCompareAlternative}

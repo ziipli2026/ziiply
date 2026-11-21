@@ -298,9 +298,11 @@
       "restriction": "Enintään 2 pkt/talous.",
       "isWeightedProduct": false,
       "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
+      "eans": [
+        "6409620011856"
+      ],
+      "identityStatus": "verified",
+      "identityReason": "Manufacturer product page confirms exact retail package: https://snellman.fi/fi/tuotteet/kunnon-naudan-jauheliha-20-400-g/",
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",
@@ -919,9 +921,11 @@
       "restriction": null,
       "isWeightedProduct": false,
       "offerUnit": null,
-      "eans": [],
-      "identityStatus": "leaflet-only",
-      "identityReason": "Publisher PDF; EAN not inferred",
+      "eans": [
+        "6409059760004"
+      ],
+      "identityStatus": "verified",
+      "identityReason": "Manufacturer product page confirms exact retail package: https://huhtahyvat.fi/tuoteet/meetvursti-350-g/",
       "chain": "EUROSPAR",
       "storeType": "EUROSPAR",
       "source": "EUROSPAR tarjouslehti",

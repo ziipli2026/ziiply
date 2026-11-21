@@ -694,6 +694,7 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import { fetchLidlBasketQuotes, fetchSparBasketQuotes } from "./components/ziiply/search/independentBasketQuotes";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "./components/ziiply/comparisonBrand";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
 import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordSearchProductAddedToCart, recordSearchResultsDismissed } from "./components/ziiply/search/searchTelemetry";
@@ -5188,6 +5189,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const comparisonUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
   const [kMatches, setKMatches] = useState<Record<string, Match>>({});
+  const [independentMatches, setIndependentMatches] = useState<{
+    key: string; lidl: Record<string, Match>; tokmanni: Record<string, Match>; incomplete: boolean;
+  } | null>(null);
   const [expandedAlternatives, setExpandedAlternatives] = useState<
     Record<string, boolean>
   >({});
@@ -9874,6 +9878,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const sTotal = visibleSListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
     const kTotal = visibleKListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
 
+    const independent = independentMatches?.key === getComparisonCacheKey(comparableCart)
+      ? independentMatches : null;
+    const independentResult = (key: "lidl" | "tokmanni", chain: string, storeName: string, icon: string): ChainResult => {
+      const matches = comparableCart.flatMap(item => {
+        const match = independent?.[key][item.id];
+        return match ? [{ ...match, quantity: item.quantity }] : [];
+      });
+      return {
+        key, chain, storeName, icon, matches, offerCount: 0,
+        foundItems: matches.length, missingItems: comparableCart.length - matches.length,
+        totalPrice: matches.reduce((total, match) => total + match.price * match.quantity, 0),
+        detail: matches.length ? (key === "lidl" ? "Kaupan vahvistetut EAN-hinnat" : "Verkkovalikoiman hinnat") : "Vahvistettuja hintoja ei löytynyt",
+      };
+    };
     const results: ChainResult[] =
       storeCompareScope === "within_chain" && withinChain
         ? [
@@ -9938,32 +9956,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               icon: "🔴",
               matches: visibleKListV804,
             },
-            {
-              key: "lidl",
-              chain: "Lidl",
-              storeName: "Lidl alueella",
-              detail: "Hintadata lisätään myöhemmin",
-              totalPrice: 0,
-              foundItems: 0,
-              missingItems: comparableCart.length,
-              offerCount: 0,
-              icon: "🔵",
-              matches: [],
-              comingSoon: true,
-            },
-            {
-              key: "tokmanni",
-              chain: "Tokmanni / Spar",
-              storeName: "Tokmanni / Spar alueella",
-              detail: "Hintadata lisätään myöhemmin",
-              totalPrice: 0,
-              foundItems: 0,
-              missingItems: comparableCart.length,
-              offerCount: 0,
-              icon: "🟡",
-              matches: [],
-              comingSoon: true,
-            },
+            independentResult("lidl", "Lidl", selectedLidlStoreV750?.name || "Lidl", "🔵"),
+            independentResult("tokmanni", "Tokmanni / SPAR", "Tokmanni / SPAR verkkovalikoima", "🟡"),
           ];
 
     const visibleResults = results.filter((result) => selectedChains[result.key]);
@@ -10000,6 +9994,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     comparableCart,
     sMatches,
     kMatches,
+    independentMatches,
+    selectedLidlStoreV750,
+    selectedTokmanniStoreV756,
+    selectedEurosparStoreV751,
     activeStores,
     activeArea,
     storeCompareScope,
@@ -10023,7 +10021,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? parsed : null;
     } catch { return null; }
   });
-  const comparePresentationSignatureV821 = comparisonCartSignatureV817(cart);
+  const independentComparisonStores = getIndependentComparisonStores();
+  const comparePresentationSignatureV821 = independentComparisonStores.some(Boolean)
+    ? JSON.stringify([comparisonCartSignatureV817(cart), independentComparisonStores])
+    : comparisonCartSignatureV817(cart);
   const currentComparePricedV821 = chainResults.some((result) =>
     (result.matches || []).some((match) => Number(match.price) > 0));
   useEffect(() => {
@@ -13696,12 +13697,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  function getIndependentComparisonStores() {
+    return storeCompareScope === "between_chains" ? [
+      selectedChains.lidl ? String((selectedLidlStoreV750 as (StoreSearchItem & { storeKey?: string }) | null)?.storeKey || selectedLidlStoreV750?.id || "") : "",
+      selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.id || selectedEurosparStoreV751?.id || "") : "",
+    ] : ["", ""];
+  }
+
   function getComparisonCacheKey(nextCart: CartItem[]) {
+    const independentStores = getIndependentComparisonStores();
     return JSON.stringify({
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
       schema: 19,
+      ...(independentStores.some(Boolean) ? { independentStores } : {}),
       items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source, (item as CartItem & {recipeIngredient?:RecipeIngredient}).recipeIngredient]),
       stores:
         storeCompareScope === "within_chain"
@@ -14276,7 +14286,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       comparisonUpdateTimerRef.current = null;
     }
     const cacheKey = getComparisonCacheKey(comparisonCartV738);
+    const [lidlStoreId, sparStoreId] = getIndependentComparisonStores();
+    const independentSelected = Boolean(lidlStoreId || sparStoreId);
     if (comparisonCompletedKeyRef.current === cacheKey &&
+      (!independentSelected || (independentMatches?.key === cacheKey && !independentMatches.incomplete)) &&
       [...Object.values(sMatches), ...Object.values(kMatches)].some((match) => Number(match.price) > 0)) {
       if (shouldOpenCompare) setActiveResult("compare");
       return;
@@ -14300,7 +14313,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       comparisonRawCountsV801.current = { s: 0, k: 0, sCalls: 0, kCalls: 0, errors: 0 };
       setComparisonDiagnosticV800(`Rajapintahaku käynnissä · ${comparisonCartV738.length} tuoteriviä`);
-      const itemMatches = await Promise.all(comparisonCartV738.map((item) => getComparisonItemMatches(item)));
+      const independentResult = { key: cacheKey, lidl: {} as Record<string, Match>, tokmanni: {} as Record<string, Match> };
+      const independentRequests = comparisonCartV738.flatMap(item => {
+        const name = String(item.product?.name || item.name).trim();
+        const ean = normalizeEan(item.ean || item.product?.ean);
+        const attach = async (key: "lidl" | "tokmanni", quotes: ReturnType<typeof fetchLidlBasketQuotes>) => {
+          const products: Product[] = (await quotes).map((quote, index) => ({ ...quote, id: index }));
+          const exact = ean ? products.find(product => product.ean === ean) : undefined;
+          const normalizedName = name.normalize("NFC").toLocaleLowerCase("fi");
+          const rollCount = normalizedName.match(/\b(\d+)\s*(?:rl|rullaa)\b/)?.[1];
+          const compatible = key === "tokmanni" ? products.filter(candidate =>
+            isComparisonAttributeCompatible(name, candidate.name) &&
+            (!rollCount || candidate.name.toLocaleLowerCase("fi").match(/\b(\d+)\s*(?:rl|rullaa)\b/)?.[1] === rollCount)
+          ) : [];
+          const exactNames = compatible.filter(candidate => candidate.name.normalize("NFC").trim().toLocaleLowerCase("fi") === normalizedName);
+          const product = exact || (exactNames.length === 1 ? exactNames[0] : pickBestSProduct(compatible, name));
+          if (!product || !product.price || product.price < 0.05) return;
+          independentResult[key][item.id] = {
+            product: { ...product, storeName: key === "lidl" ? selectedLidlStoreV750?.name : "Tokmanni / SPAR verkkovalikoima" },
+            price: product.price, quantity: item.quantity, matchType: exact ? "ean" : "name", cartItemId: item.id,
+          };
+        };
+        return [
+          ...(lidlStoreId ? [attach("lidl", fetchLidlBasketQuotes(name, ean, lidlStoreId))] : []),
+          ...(sparStoreId ? [attach("tokmanni", fetchSparBasketQuotes(name, ean, getNormalSearchQueries(name)))] : []),
+        ];
+      });
+      const [itemMatches, independentResponses] = await Promise.all([
+        Promise.all(comparisonCartV738.map(item => getComparisonItemMatches(item))),
+        Promise.allSettled(independentRequests),
+      ]);
+      const independentFailed = independentResponses.some(result => result.status === "rejected");
       let failed = false;
       comparisonCartV738.forEach((item, index) => {
         const match = itemMatches[index];
@@ -14312,7 +14355,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (comparisonCacheKeyRef.current === cacheKey) {
         setComparisonDiagnosticV800(`API: S ${comparisonRawCountsV801.current.s} tuotetta / ${comparisonRawCountsV801.current.sCalls} kutsua · K ${comparisonRawCountsV801.current.k} tuotetta / ${comparisonRawCountsV801.current.kCalls} kutsua · virheitä ${comparisonRawCountsV801.current.errors} · vastineet/kori S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length}${failed ? " · matcher-virhe" : ""}`);
         const noComparisonMatchesV810 = comparisonCartV738.length > 0 &&
-          !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length;
+          !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length &&
+          !Object.keys(independentResult.lidl).length && !Object.keys(independentResult.tokmanni).length;
         // A transient empty provider response is not proof that priced basket
         // products have no counterpart. Never announce or cache it as success.
         if (noComparisonMatchesV810 && shouldOpenCompare &&
@@ -14330,6 +14374,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // for the other rows. Only fully successful results are cached.
         setSMatches(nextSMatches);
         setKMatches(nextKMatches);
+        setIndependentMatches({ ...independentResult, incomplete: independentFailed });
         // Enrich unpriced scanned basket rows only from an exact-EAN match in a selected store.
         // A name-based substitute belongs to the comparison basket, never to the original product.
         const enrichedCartV805 = nextCart.map((item) => {
@@ -14395,7 +14440,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       const raw = window.localStorage.getItem("ziiply-comparison-snapshot-v1");
       const snapshot = raw ? JSON.parse(raw) : null;
-      if (snapshot?.cacheKey === cacheKey && snapshot.sMatches && snapshot.kMatches &&
+      if (!getIndependentComparisonStores().some(Boolean) && snapshot?.cacheKey === cacheKey && snapshot.sMatches && snapshot.kMatches &&
         [...Object.values(snapshot.sMatches), ...Object.values(snapshot.kMatches)]
           .some((match) => Number((match as Match).price) > 0)) {
         setSMatches(snapshot.sMatches);
