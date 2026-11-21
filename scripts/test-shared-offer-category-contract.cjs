@@ -9,9 +9,9 @@ const source = fs.readFileSync('src/app/components/ziiply/offerSearch/neonOfferC
 const compiled = ts.transpileModule(source, {
   compilerOptions: {module:ts.ModuleKind.CommonJS, target:ts.ScriptTarget.ES2022}
 }).outputText;
-const exports = {};
+const moduleExports = {};
 const sandbox = {
-  exports,
+  exports: moduleExports,
   require(name) {
     if (name === '@neondatabase/serverless') return {neon: () => {throw Error('Unexpected database access')}};
     if (name === './catalogIdentityResolver') return {};
@@ -19,7 +19,7 @@ const sandbox = {
   },
 };
 vm.runInNewContext(compiled, sandbox, {filename:'neonOfferCategory.js'});
-const classify = exports.neonOfferDisplayCategory;
+const classify = moduleExports.neonOfferDisplayCategory;
 assert.equal(typeof classify, 'function');
 const examples = [
   ['Juomat/Kahvi', 'Kahvi & tee'],
