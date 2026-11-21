@@ -3694,6 +3694,10 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 
 /** Preserve essential product attributes when comparing different retail brands. */
 export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
+  // Apply the same compound-food identity gate to actual basket counterpart
+  // selection, not only to search relevance scoring.
+  if (/\b[a-zåäö]{4,}-[a-zåäö]{4,}(?:sekoitus|sekoite|mix|pakaste)\b/iu.test(sourceName) &&
+      !productGroupGate(sourceName, candidateName)) return false;
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
   // Normalized strings have no accents; use a literal word boundary for linssit.
