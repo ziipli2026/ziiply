@@ -2,13 +2,14 @@ name: Lidl comparison browser
 on:
   pull_request:
     paths:
+      - 'src/app/api/offers/search/route.ts'
       - 'src/app/page.tsx'
       - 'src/app/desktop-preview/DesktopPreviewClient.tsx'
       - 'src/app/components/ziiply/**'
       - 'scripts/test-lidl-comparison-browser.cjs'
       - '.github/workflows/lidl-comparison-browser.yml'
   push:
-    branches: ['fix/lidl-comparison-notice']
+    branches: ['fix/lidl-comparison-notice', 'fix/lidl-final-category-pipeline']
 jobs:
   browser:
     runs-on: ubuntu-latest
@@ -21,7 +22,13 @@ jobs:
       - run: npm ci
       - run: npm install --prefix /tmp/lidl-browser --no-save --package-lock=false playwright@1.56.1
       - run: npm run build
-      - run: |
+      - name: Browser test against active leaflet publication
+        env:
+          # Secrets are never printed. If absent, the test still runs and
+          # reports the publication-source gap rather than silently passing.
+          OFFER_PUBLICATION_DATABASE_URL: ${{ secrets.OFFER_PUBLICATION_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
           npm run start -- -H 127.0.0.1 -p 3179 &
           for attempt in $(seq 1 45); do
             if curl -fsS http://127.0.0.1:3179/ >/dev/null; then break; fi

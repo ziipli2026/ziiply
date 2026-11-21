@@ -623,6 +623,7 @@ export async function GET(request: Request) {
       // an availability restriction. Every selected Finnish Lidl must consume
       // the same active national publication; store identity is rebound below.
       let staged: UnknownRecord[] = [];
+      let stagedPublicationError: string | null = null;
       try {
         const nationalStaged = await readActivePublicationOffers<UnknownRecord>(LIDL_NATIONAL_PUBLICATION_CHAIN);
         staged = nationalStaged.map((offer) => ({
@@ -633,6 +634,7 @@ export async function GET(request: Request) {
           shopName: storeName,
         }));
       } catch (error) {
+        stagedPublicationError = error instanceof Error ? error.message : String(error);
         console.warn("[Ziiply offers] Lidl staged national publication unavailable", error);
       }
       // A stored publication can be partial. Merge the current official leaflet
@@ -860,9 +862,72 @@ export async function GET(request: Request) {
       // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
       // visible catch-all category: general merchandise/campaign rows stay out,
       // while real groceries must be classified into a concrete grocery category.
-      const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
-        .filter((offer) => normalizeText(offer.category) !== "muut");
-      const results = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
+      // Do not discard "Muut" before checking the authoritative Lidl department:
+      // stale provider labels can hide actual groceries from both UIs.
+      const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi);
+      const neonEnriched = await enrichOfferCategoriesFromNeon(currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)));
+      // Prefer the official Lidl department over ambiguous ingredient words in
+      // product names or legacy Neon categories. Only first-party /h/ category
+      // paths are authoritative; product and campaign URLs are not categories.
+      const lidlDepartmentCategory = (offer: UnknownRecord): string => {
+        const raw = firstString(offer.sourceUrl, offer.productUrl, asRecord(offer.__sourceOfferSearchResult)?.sourceUrl, asRecord(offer.__sourceOfferSearchResult)?.productUrl);
+        let pathname = "";
+        try {
+          const url = new URL(raw);
+          if (url.hostname !== "www.lidl.fi" && url.hostname !== "lidl.fi") return "";
+          pathname = decodeURIComponent(url.pathname).toLocaleLowerCase("fi");
+        } catch { return ""; }
+        const match = pathname.match(/^\/h\/([^/]+)\//);
+        if (!match) return "";
+        const department = match[1].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const groups: Array<[RegExp, string]> = [
+          [/(?:^|-)lihat(?:-|$)|makkar|leikkele|broileri|(?:^|-)kana(?:-|$)/, "Liha & makkarat"],
+          [/leipa|leivonn|paistopiste|kakku/, "Leipomo"],
+          [/kala|merenelav/, "Kala"],
+          [/hedelma|vihannes|hevi/, "Hevi"],
+          [/maito|juusto|jogurtti|kananmun/, "Maitotuotteet"],
+          [/juoma|mehu|vesi/, "Juomat"],
+          [/pakaste|jaatelo/, "Pakasteet"],
+          [/valmisruo|valmisater|ateriat/, "Valmisruoka"],
+          [/kuivatuot|sailyke|pasta|riisi|mauste/, "Kuivatuotteet"],
+          [/makeis|keksi|suklaa/, "Makeiset & keksit"],
+        ];
+        return groups.find(([pattern]) => pattern.test(department))?.[1] || "";
+      };
+      // All API category fields and the nested mobile-card source must agree.
+      // Verified Neon EAN matches win when no authoritative Lidl department exists.
+      const results = neonEnriched.map((offer): UnknownRecord => {
+        const departmentCategory = lidlDepartmentCategory(offer);
+        const sourceCategory = firstString(offer.category);
+        // Source audit: classify by product form only if it is actually a bakery
+        // product, not simply because the imported shelf label says bakery.
+        const productName = normalizeText(firstString(offer.name, offer.title, offer.productName));
+        // Lidl's /h/ department is a merchandising shelf, not always the
+        // finished-product category. A verified baked dessert can be listed
+        // under dairy because it contains cheese: keep the parser's product-form
+        // classification rather than overwriting it with that shelf.
+        // A finished baked dessert remains bakery regardless of which Lidl
+        // merchandising shelf or older category carried the imported record.
+        // Product-form classification must not depend on the shelf being dairy.
+        const isUnbakedDough = /(?:taikina|taikinalevy|taikinalevyt)/.test(productName);
+        const productFormCategory = isUnbakedDough
+          ? "Pakasteet"
+          : /(?:juustokakku|kakku|torttu|leivos)/.test(productName)
+            ? "Leipomo" : "";
+        const category = productFormCategory || departmentCategory ||
+          (offer.neonCategoryMatch === "ean" ? firstString(offer.neonDisplayCategory) : "") ||
+          sourceCategory;
+        if (!category) return offer;
+        const source = offer.__sourceOfferSearchResult;
+        return {
+          ...offer, category, categoryPath: category, mainCategory: category,
+          neonDisplayCategory: category,
+          __sourceOfferSearchResult: source && typeof source === "object" && !Array.isArray(source)
+            ? { ...(source as UnknownRecord), category, categoryPath: category,
+                mainCategory: category, neonDisplayCategory: category }
+            : source,
+        };
+      }).filter((offer) => normalizeText(offer.category) !== "muut");
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
@@ -870,6 +935,7 @@ export async function GET(request: Request) {
             structuredAndManual: enriched.length,
             structuredFeedError: structuredFeedError || null,
             staged: staged.length,
+            stagedPublicationError,
             currentPackaging: currentPackaging.size,
             combined: masterCombined.length,
             publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
