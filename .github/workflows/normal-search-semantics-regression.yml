@@ -96,6 +96,20 @@ jobs:
             if (terms.test(lines[i])) console.log(String(i+1).padStart(6), lines[i].trim().slice(0,260));
           }
           if (lines.length < 1000) throw Error('App page missing or unexpectedly short');
+          // Ensure the real comparison path applies compatibility before selecting
+          // store-specific candidates; testing only core helpers is insufficient.
+          const comparisonStart = page.indexOf('V768: tästä alkaa käyttäjän nimenomaisesti käynnistämä Halpuusvertailu');
+          const selectionStart = page.indexOf('const score = (product: { name: string }) => scoreNameMatch(sourceName, product.name)');
+          if (comparisonStart < 0 || selectionStart < comparisonStart) {
+            throw Error('Real basket comparison path or candidate scoring not found');
+          }
+          const selection = page.slice(selectionStart, selectionStart + 15000);
+          if (!/productGroupGate\\(sourceName, product\\.name\\)/.test(selection) ||
+              !/isComparisonAttributeCompatible\\(sourceName, product\\.name\\)/.test(selection)) {
+            throw Error('Real basket comparison candidate selection bypasses identity guards');
+          }
+          console.log('PASS real basket comparison candidate selection has both identity guards');
+
           NODE
       - name: Verify Lidl store identity persistence and offer context
         shell: bash
