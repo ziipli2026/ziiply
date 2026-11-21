@@ -1,6 +1,7 @@
 require('./recipe-audit-runtime.cjs');
 const assert=require('node:assert/strict');
 const core=require('../src/app/components/ziiply/justiina/recipeCore.ts');
+const {rankMobileRecipeProducts}=require('../src/app/components/ziiply/justiina/mobileRecipeSearch.ts');
 const recipe=core.parseRecipeText([
  '1 kpl Omena', '1 kpl suippopaprika', '1 kpl Suolakurkku', '8 kpl Säilöttyä punajuuria',
  '1 kpl Punasipuli', '0,50 dl Majoneesia', '200 g Smetanaa', '1 tl Suolaa',
@@ -18,6 +19,9 @@ for(const [line,term,query,allowed,rejected] of [
  assert.equal(ingredient?.searchTerm,term,line);
  assert.ok([term,...recipeCoverageQueries(term,ingredient)].includes(query),line);
  assert.ok(core.recipeProductCompatible(line,{name:allowed},ingredient),allowed);
+ const offers=[{id:1,name:allowed,price:350},{id:2,name:allowed,price:200},{id:3,name:allowed,price:0},
+  ...rejected.map((name,index)=>({id:index+4,name,price:100}))];
+ assert.deepEqual(rankMobileRecipeProducts(offers,ingredient,product=>product.price).map(product=>product.id),[2,1],line);
  for(const name of rejected)assert.equal(core.recipeProductCompatible(line,{name},ingredient),false,name);
 }
 assert.equal(prepared.items.find(item=>item.searchTerm==='majoneesi').amount,50);
