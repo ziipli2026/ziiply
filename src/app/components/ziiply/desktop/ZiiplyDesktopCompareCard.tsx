@@ -29,14 +29,13 @@ const euro = (cents?: number | null) =>
   cents == null || !Number.isFinite(cents) ? "—" : `${(cents / 100).toFixed(2).replace(".", ",")} €`;
 
 export default function ZiiplyDesktopCompareCard({
-  open = true, stores: comparisonStores, title = "Halpuusvertailu", subtitle = "Kauppakohtaiset hinnat ja ostoskorit",
+  open = true, stores, title = "Halpuusvertailu", subtitle = "Kauppakohtaiset hinnat ja ostoskorit",
   loading = false, onSelectStore, onSaveStoreList, onBack, onBackToCart, onClose, items = [],
   onChangeMatchMode, onSelectMatchAlternative, onAcceptPackageProposal, onRejectPackageProposal, onAcceptWeightProposal, onRejectWeightProposal,
 }: Props) {
   const [expanded, setExpanded] = useState<string[]>([]);
   if (!open) return null;
-  const stores = comparisonStores.filter((store) => store.chain !== "LIDL" && store.id !== "lidl");
-  const complete = stores.filter(s => !s.missingItems && (s.itemCount || 0) > 0 && Number.isFinite(s.totalPrice));
+  const complete = stores.filter(s => s.chain !== "LIDL" && s.id !== "lidl" && !s.missingItems && (s.itemCount || 0) > 0 && Number.isFinite(s.totalPrice));
   const bestPrice = complete.length ? Math.min(...complete.map(s => Number(s.totalPrice))) : null;
   const toggle = (id: string) => setExpanded(current => current.includes(id) ? current.filter(x => x !== id) : [...current, id]);
   const back = onBack || onBackToCart || onClose;
@@ -52,14 +51,18 @@ export default function ZiiplyDesktopCompareCard({
             <div className="font-serif text-xs font-bold uppercase tracking-[.2em] text-[#7e6c4d]">Justiina · Tuotehaku</div>
             <h2 className="mt-1 font-serif text-[clamp(26px,3vw,43px)] font-black italic text-[#174c3a]">{title}</h2>
             <p className="mt-1 text-sm font-bold text-[#6b5839]">{subtitle}</p>
-            <p className="mt-1 text-sm font-bold text-[#6b5839]">
-              Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
-            </p>
             {loading && <p role="status" className="text-sm font-bold text-[#17633c]">Päivitetään hintoja…</p>}
           </header>
           <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${expanded.length ? "flex-1 content-start" : "content-start"}`}>
             {stores.length === 0 && <p className="col-span-full p-8 text-center font-bold">{loading ? "Vertailutuloksia haetaan…" : "Vertailutuloksia ei ole saatavilla."}</p>}
             {stores.map((store,index) => {
+              if (store.chain === "LIDL" || store.id === "lidl") {
+                return (
+                  <p key={store.id} className="order-3 px-2 py-1 text-sm font-bold leading-snug text-[#6b5839]">
+                    Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
+                  </p>
+                );
+              }
               const missing = Number(store.missingItems || 0);
               const found = Number(store.itemCount || 0);
               const isComplete = missing === 0 && found > 0 && Number.isFinite(store.totalPrice);
