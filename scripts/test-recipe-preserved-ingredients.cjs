@@ -22,4 +22,18 @@ for(const [line,term,query,allowed,rejected] of [
 }
 assert.equal(prepared.items.find(item=>item.searchTerm==='majoneesi').amount,50);
 assert.equal(prepared.items.find(item=>item.searchTerm==='smetana').amount,200);
+const preservingAgents='oljyt-etikat-ja-salaattikastikkeet/etikat-ja-sailontaaineet/sailontaaineet';
+for(const [ingredient,name] of [
+ ['säilöttyä punajuuria','Punajuurisäilöte 100 g'],
+ ['suolakurkkua','Suolakurkkujen säilöntäaine'],
+ ['kaprista','Kapriksen säilöntäaine'],
+ ['kalamataoliiveja','Kalamataoliivisäilöte'],
+]){
+ assert.equal(core.recipeProductCompatible(ingredient,{name}),false,name);
+}
+assert.equal(core.recipeProductCompatible('säilöttyä punajuuria',{name:'Punajuuri 100 g',category:preservingAgents}),false);
+assert.equal(core.recipeProductCompatible('säilöttyä punajuuria',{name:'Punajuurikuutiot 500 g',category:'pakasteet/vihannekset'}),false);
+assert.equal(core.recipeProductCompatible('säilöttyä punajuuria',{name:'Kokonaisia punajuuria 710 g',category:'sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/vihannessailykkeet'}),true);
+assert.equal(core.recipeProductCompatible('kaprista',{name:'Kapris 100 g'}),true);
+assert.equal(core.recipeProductCompatible('kalamataoliiveja',{name:'Kalamata oliiveja 300 g'}),true);
 console.log('Recipe ingredient matching: 4/4');
