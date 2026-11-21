@@ -76,9 +76,11 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         if(u.pathname.startsWith('/api/'))apiResponses.push({
           path:u.pathname,status:r.status(),method:r.request().method(),
           search:u.searchParams.get('search'),requestUrl:u.pathname+u.search,
-          searchAtResponse:requestQuery
+          searchAtResponse:requestQuery,
+          generatedAt:r.headers()['x-ziiply-k-search-generated-at']||null,
+          vercelId:r.headers()['x-vercel-id']||null
         });
-        if(requestQuery==='suklaa' && ['/api/neon-first-search','/api/k-products','/api/s-products'].includes(u.pathname)){
+        if(['suklaa','mustikka','muro','juusto'].includes(requestQuery) && ['/api/neon-first-search','/api/k-products','/api/s-products'].includes(u.pathname)){
           const queryAtResponse=requestQuery;
           const fingerprint=r.body().then(body=>{
             const record={device,query:queryAtResponse,path:u.pathname,search:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),bytes:body.length,sha256:crypto.createHash('sha256').update(body).digest('hex')};
@@ -89,13 +91,21 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         // Compare the actual provider EAN sets and pagination completeness, not
         // just raw response hashes (which can change with metadata/order).
-        if(['mustikka','vadelma','suklaa','mansikka','makkara','kala'].includes(requestQuery)
+        if(['mustikka','muro','juusto','vadelma','suklaa','mansikka','makkara','kala'].includes(requestQuery)
           && ['/api/k-products','/api/s-products','/api/neon-first-search'].includes(u.pathname)){
           const queryAtResponse=requestQuery;
           const check=r.json().then(data=>{
             const rows=Array.isArray(data)?data:(Array.isArray(data?.items)?data.items:(Array.isArray(data?.products)?data.products:(Array.isArray(data?.results)?data.results:[])));
             const eans=[...new Set(rows.map(p=>String(p?.ean||p?.barcode||p?.gtin||p?.product?.ean||'').replace(/\D/g,'')).filter(x=>/^(?:\d{8}|\d{12,14})$/.test(x)))].sort();
             const item={device,query:queryAtResponse,path:u.pathname,requestSearch:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),rowCount:rows.length,eanCount:eans.length,eans,pagination:data?.pagination||null};
+            if (['mustikka','muro','juusto'].includes(queryAtResponse)) {
+              console.log('[normal-parity] SEARCH SOURCE VERSION', JSON.stringify({
+                device, query:queryAtResponse, path:u.pathname, requestUrl:u.pathname+u.search,
+                generatedAt:data?.generatedAt||null, vercelId:r.headers()['x-vercel-id']||null,
+                rowCount:rows.length,
+                catalog:u.pathname==='/api/neon-first-search' ? rows.map(({ean,name,rank,aliases})=>({ean,name,rank,aliases})) : undefined
+              }));
+            }
             providerFingerprints.push(item);
             console.log('[normal-parity] PROVIDER EAN SET',JSON.stringify(item));
           }).catch(error=>console.log('[normal-parity] PROVIDER EAN SET ERROR',String(error)));
