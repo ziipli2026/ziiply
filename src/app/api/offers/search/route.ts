@@ -703,7 +703,25 @@ export async function GET(request: Request) {
           comparisonPriceText: firstString(offer.comparisonPriceText, current.comparisonPriceText),
         };
       });
-      const combined = dedupe([...imageEnriched, ...stagedWithPackaging, ...directPublicLeaflet]);
+      // A stored row can still carry the old amount-only price for the same offer.
+      const freshBundles = new Map(directPublicLeaflet
+        .filter(offer => Number(offer.multiBuyQuantity) >= 2 && typeof offer.id === "string" && offer.id)
+        .map(offer => [offer.id, offer]));
+      const stagedWithFreshBundles = stagedWithPackaging.map(offer => {
+        const fresh = freshBundles.get(offer.id);
+        if (!fresh || offer.source !== fresh.source ||
+          offer.validFrom !== fresh.validFrom || offer.validUntil !== fresh.validUntil ||
+          Number(offer.offerPrice ?? offer.price) !== Number(fresh.multiBuyTotalPrice)) return offer;
+        return {
+          ...offer,
+          priceBasis: fresh.priceBasis,
+          priceText: fresh.priceText,
+          multiBuyQuantity: fresh.multiBuyQuantity,
+          multiBuyTotalPrice: fresh.multiBuyTotalPrice,
+          isWeightedProduct: false,
+        };
+      });
+      const combined = dedupe([...imageEnriched, ...stagedWithFreshBundles, ...directPublicLeaflet]);
 
       // Lidl has two Gösta tabs just like Prisma/Citymarket:
       // 1) "Tarjoukset" = the dated paper/public leaflet publication
