@@ -295,7 +295,7 @@ jobs:
                       disabled: el.disabled, ariaDisabled: el.getAttribute('aria-disabled'), title: el.getAttribute('title')
                     })));
                   }
-                  if (name === 'phone' && !many && !liveTerm) {
+                  if (name === 'phone' && chain !== 'LIDL' && !many && !liveTerm) {
                     // A real user types a term and waits. Verify the normal 2-second
                     // automatic Justiina search, not only manual button submission.
                     const startedAt = Date.now();
@@ -313,6 +313,28 @@ jobs:
                     await search.getByRole('button', { name: 'Justiina', exact: true }).filter({ visible: true }).click();
                   } else {
                     await input.press('Enter');
+                  }
+                  if (chain === 'LIDL' && !many) {
+                    // Lidl has no verified regular prices: normal Justiina search must
+                    // display the informational dialog, not a product result.
+                    const notice = search.getByRole('alertdialog', {
+                      name: 'Lidlin normaalihinnat eivät ole saatavilla'
+                    }).filter({ visible: true }).first();
+                    await notice.waitFor({ timeout: 20000 });
+                    await search.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/)
+                      .filter({ visible: true }).first().waitFor({ timeout: 10000 });
+                    assert.equal(await search.locator('[data-testid="normal-search-result"]:visible').count(), 0,
+                      'Lidl regular-price search must not render product cards');
+                    const regularRequests = searchRequests.filter(value => {
+                      const path = new URL(value.split(' ').slice(1).join(' '), 'http://localhost').pathname;
+                      return ['/api/lidl/products', '/api/s-products', '/api/k-products',
+                        '/api/neon-first-search'].includes(path);
+                    });
+                    assert.equal(regularRequests.length, 0,
+                      'Lidl-only normal search must not request regular-price products');
+                    console.log('PASS Lidl normal search notice', name, desktop ? 'desktop' : 'mobile');
+                    await searchContext.close();
+                    continue;
                   }
                   if (liveTerm) {
                     const prices = desktop
@@ -409,7 +431,12 @@ jobs:
                     throw error;
                   }
                   if (chain !== 'LIDL') await expensive.waitFor();
-                  if (extra) await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
+                  if (extra) {
+                    // A multi-chain normal-price search must not require a Lidl product:
+                    // Lidl is excluded from verified regular-price results.
+                    assert.equal(await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).count(), 0,
+                      'Lidl products must not appear as priced normal-search results');
+                  }
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
                   // Search results can appear before all parallel query variants are dispatched.
