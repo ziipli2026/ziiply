@@ -224,7 +224,21 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
       const exactPath = byEan.get(ean) || localCategory || byName.get(getName(offer).toLocaleLowerCase("fi"));
       const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : exactPath ? "exact-name" : null;
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
-      return display ? {...offer, neonCategoryPath: exactPath, neonDisplayCategory: display, neonCategoryMatch: matchType} : offer;
+      if (!display) return offer;
+      // The same catalog category is used by every provider, including
+      // records with no provider-side taxonomy. Keep a specific provider
+      // category only when the catalog match is not EAN-verified.
+      const existing = String(offer.category ?? "").trim();
+      const category = matchType === "ean" || !existing || existing === "Muut"
+        ? display : existing;
+      const source = offer.__sourceOfferSearchResult;
+      return {
+        ...offer, category, categoryPath: category, mainCategory: category,
+        neonCategoryPath: exactPath, neonDisplayCategory: display, neonCategoryMatch: matchType,
+        ...(source && typeof source === "object" && !Array.isArray(source)
+          ? {__sourceOfferSearchResult: {...source, category, categoryPath: category, mainCategory: category}}
+          : {}),
+      };
     });
   } catch (error) {
     console.error("[offers] Neon category lookup failed; preserving provider categories", error);
