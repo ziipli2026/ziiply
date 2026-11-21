@@ -75,6 +75,9 @@ if (mode === 'offers' || mode === 'offers-stale') {
     // Keep a previous normal-search term in the input, then switch to Gösta.
     // The test does not require triggering the normal search itself.
     // The product search panel must not leak its query to Gösta.
+    await p.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).first().click({timeout:15000});
+    // Dismiss the normal-search results overlay before opening Gösta from home.
+    await p.getByRole('button',{name:'Hae',exact:true}).filter({visible:true}).last().click({timeout:20000});
   }
   await p.getByRole('button',{name:desktop?'Avaa Gösta':/Gösta: Tarjoushaku/}).filter({visible:true}).first().click({timeout:25000});
   await p.getByRole('button',{name:desktop?'Lidl':'Hae Lidlin tarjoukset',exact:true}).filter({visible:true}).first().click({timeout:25000});
