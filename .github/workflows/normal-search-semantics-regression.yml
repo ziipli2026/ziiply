@@ -83,6 +83,20 @@ jobs:
             'standalone rice must remain a valid grocery product');
           console.log('PASS cross-chain compound grocery counterpart identity');
           NODE
+      - name: Audit real basket comparison callsites on mobile and desktop
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const page = fs.readFileSync('src/app/page.tsx', 'utf8');
+          const lines = page.split(/\r?\n/);
+          const terms = /isComparisonAttributeCompatible|pickCheapestCompatibleComparisonProduct|productGroupGate|scoreNameMatch|pickBestSProduct|pickBestKProduct|onCompareCart|Halpuusvertailu|ZiiplyDesktopCompareCard|ZiiplyMobileCompareCard/;
+          console.log('PAGE_LINES', lines.length);
+          for (let i=0; i<lines.length; i++) {
+            if (terms.test(lines[i])) console.log(String(i+1).padStart(6), lines[i].trim().slice(0,260));
+          }
+          if (lines.length < 1000) throw Error('App page missing or unexpectedly short');
+          NODE
       - name: Verify Lidl store identity persistence and offer context
         shell: bash
         run: |
