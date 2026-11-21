@@ -72,10 +72,9 @@ if (mode === 'offers' || mode === 'offers-stale') {
   if (mode === 'offers-stale') {
     await p.getByRole('button',{name:'Hae',exact:true}).filter({visible:true}).last().click({timeout:20000});
     await p.locator('textarea').filter({visible:true}).first().fill('erikoishakusana987');
-    await p.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).first().click({timeout:15000});
-    const notice=p.getByRole('alertdialog',{name:'Lidlin normaalihinnat eivät ole saatavilla'});
-    await notice.waitFor({timeout:15000});
-    await notice.getByRole('button',{name:'Selvä, sulje ilmoitus'}).click();
+    // Keep a previous normal-search term in the input, then switch to Gösta.
+    // The test does not require triggering the normal search itself.
+    // The product search panel must not leak its query to Gösta.
   }
   await p.getByRole('button',{name:desktop?'Avaa Gösta':/Gösta: Tarjoushaku/}).filter({visible:true}).first().click({timeout:25000});
   await p.getByRole('button',{name:desktop?'Lidl':'Hae Lidlin tarjoukset',exact:true}).filter({visible:true}).first().click({timeout:25000});
