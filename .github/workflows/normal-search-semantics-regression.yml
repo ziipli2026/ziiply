@@ -106,8 +106,8 @@ jobs:
             ['K-Menu riisi-vihannessekoitus 450 g','K','Pirkka riisi 450 g',false],
             ['Pirkka herne-maissisekoitus 200 g','S','Coop herne-maissisekoitus 200 g',true],
             ['Pirkka herne-maissisekoitus 200 g','SPAR','Tokmanni maissipakaste 200 g',false],
-            ['Riisi','S','Coop pitkäjyväinen riisi 1 kg',true],
-            ['Riisi','SPAR','Tokmanni karkkirasia 1 kg',false],
+            ['Riisi 1 kg','S','Coop pitkäjyväinen riisi 1 kg',true],
+            ['Riisi 1 kg','SPAR','Tokmanni karkkirasia 1 kg',false],
           ];
           for(const [source,chain,candidate,expected] of cases){
             const group=core.productGroupGate(source,candidate);
