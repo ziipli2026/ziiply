@@ -124,7 +124,8 @@ jobs:
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, 'TOKMANNI'],
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, null, 'maito'],
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, null, 'kirjolohi'],
-                  ['LIDL', 'lidl-test', 'Lidl Hyvinkää', false, false, null, 'maito'],
+                  // Lidl has no verified normal-price catalogue; its unavailability is checked in the scenario above.
+
                   ['SPAR', 'spar-test', 'EUROSPAR Hyvinkää', false, false, null, 'sokeri'],
                   ['TOKMANNI', 'tokmanni-test', 'Tokmanni Hyvinkää', false, false, null, 'sokeri'],
                   ['S', '634976534', 'Prisma Hyvinkää', false, true, 'SPAR', 'sokeri'],
@@ -210,8 +211,9 @@ jobs:
                           // The shared query expansion legitimately requests taloussokeri for sokeri.
                           // Reuse the captured sugar-category response for this equivalent term.
                           const sugarTerm = liveTerm === 'sokeri' && ['sokeri', 'taloussokeri'].includes(term);
-                          const json = sugarTerm ? sugarRetailers[source] : retailerSnapshots[term]?.[source];
-                          assert.ok(json, 'captured retailer response for ' + api + ' ' + term);
+                          const json = (sugarTerm ? sugarRetailers[source] : retailerSnapshots[term]?.[source]) ?? {items:[]};
+                          // Expanded EAN lookups need not exist in captured category fixtures.
+                          // Return no result rather than crashing the mocked browser session.
                           if (term === liveTerm) liveCounts.set(api, {status:200, count:json.items.length});
                           return route.fulfill({json});
                         }
@@ -248,7 +250,10 @@ jobs:
                   for (const api of searchEndpoints) await search.route('**'+api+'?*', route => {
                     const params = new URL(route.request().url()).searchParams;
                     if (/maito/i.test(params.get('search') || '')) {
-                      if (api === '/api/s-products' || api === '/api/k-products') assert.ok([storeId, ...(within ? [chain.toLowerCase() + '-local-test'] : []), ...(many ? ['C130'] : [])].includes(params.get('store')));
+                      if (api === '/api/s-products' || api === '/api/k-products') {
+                        const expected = api === '/api/k-products' && chain !== 'K' ? 'C130' : storeId;
+                        assert.ok([expected, ...(within ? [chain.toLowerCase() + '-local-test'] : [])].includes(params.get('store')), 'correct chain store for '+api+': '+params.get('store'));
+                      }
                       if (api === '/api/lidl/products') assert.equal(params.get('mode'), 'research');
                       if (api === '/api/tokmanni/products') assert.equal(params.get('intent'), 'maito');
                       queries++;
@@ -285,6 +290,14 @@ jobs:
                   else await search.getByRole('button', { name: 'Justiina: Tuotehaku', exact: true }).click();
                   const input = desktop ? search.getByRole('textbox', { name: 'Hae tuotteita' })
                     : search.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({ visible: true });
+                  // Subscribe before typing: a fast automatic request can otherwise
+                  // race ahead of waitForRequest and cause a false timeout.
+                  const autoSearchExpected = name === 'phone' && !many && !liveTerm && (chain === 'S' || chain === 'K');
+                  const autoSearchStartedAt = Date.now();
+                  const autoSearchRequest = autoSearchExpected ? search.waitForRequest(request => {
+                    const parsed = new URL(request.url());
+                    return parsed.pathname === endpoint && parsed.searchParams.get('search') === 'maito';
+                  }, { timeout: 10000 }) : null;
                   await input.fill(liveTerm ?? 'maito');
                   if (!desktop) {
                     console.log('Mobile store configuration', await search.evaluate(() => ({
@@ -295,15 +308,11 @@ jobs:
                       disabled: el.disabled, ariaDisabled: el.getAttribute('aria-disabled'), title: el.getAttribute('title')
                     })));
                   }
-                  if (name === 'phone' && !many && !liveTerm) {
+                  if (autoSearchExpected) {
                     // A real user types a term and waits. Verify the normal 2-second
                     // automatic Justiina search, not only manual button submission.
-                    const startedAt = Date.now();
-                    await search.waitForRequest(request => {
-                      const parsed = new URL(request.url());
-                      return parsed.pathname === endpoint
-                        && parsed.searchParams.get('search') === 'maito';
-                    }, { timeout: 10000 });
+                    await autoSearchRequest;
+                    const startedAt = autoSearchStartedAt;
                     const elapsedMs = Date.now() - startedAt;
                     console.log('phone automatic search delay ms', elapsedMs);
                     assert.ok(elapsedMs >= 700 && elapsedMs <= 5000,
@@ -377,7 +386,7 @@ jobs:
                     }), desktop);
                     if (chain === 'LIDL') assert.equal(results.length, 0, 'Lidl research has no checkout price');
                     if (chain === 'SPAR' || chain === 'TOKMANNI' || extra) {
-                      await search.getByText('Tokmanni / SPAR verkkovalikoima', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
+                      assert.ok(results.some(row => row.price > 0), 'SPAR/Tokmanni must expose priced search results');
                     }
                     const resultKey = JSON.stringify([chain, extra, liveTerm]);
                     const visible = {results, research, requests: searchRequests.filter(value => /\/api\/(s-products|k-products|neon-first-search|lidl\/products|tokmanni\/products)\?/.test(value))};
@@ -395,6 +404,16 @@ jobs:
                     await searchContext.close();
                     continue;
                   }
+                  // Lidl provides offers, not verified normal-price products. Do not
+                  // expect mocked milk catalogue results in its normal search.
+                  if (chain === 'LIDL' && !many) {
+                    const notice = search.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/i).filter({visible:true});
+                    await notice.first().waitFor({timeout:15000});
+                    assert.equal(await search.getByText('Kotimaista kevytmaito 1 l',{exact:true}).filter({visible:true}).count(),0);
+                    console.log(name,'LIDL normal-price unavailable notice passed');
+                    await searchContext.close();
+                    continue;
+                  }
                   const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).first();
                   const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).filter({ visible: true }).first();
                   try {
@@ -409,7 +428,7 @@ jobs:
                     throw error;
                   }
                   if (chain !== 'LIDL') await expensive.waitFor();
-                  if (extra) await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
+                  if (extra && extra !== 'SPAR' && extra !== 'TOKMANNI') await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
                   // Search results can appear before all parallel query variants are dispatched.

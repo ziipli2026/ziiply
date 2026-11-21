@@ -1,6 +1,9 @@
 name: Ziiply comparison full regression
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - fix/comparison-compound-product-identity-20261121
 jobs:
   comparison:
     runs-on: ubuntu-latest

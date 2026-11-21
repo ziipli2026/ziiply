@@ -1982,6 +1982,22 @@ export function productGroupGate(sourceName: string, targetName: string) {
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
+  // A mixed grocery product must not be matched by weight, price or one
+  // ingredient alone. Read the product identity from its compound ingredient
+  // name, not from the store's category (which can differ between chains).
+  // This is shared by S, K and Tokmanni/SPAR basket comparison.
+  const sourceCompound = String(sourceName).normalize("NFKC").toLocaleLowerCase("fi-FI")
+    .match(/\b([a-zåäö]{4,})-([a-zåäö]{4,})(?:sekoitus|sekoite|mix|pakaste)\b/u);
+  if (sourceCompound) {
+    const candidateWords = normalize(targetName);
+    const sourceParts = [sourceCompound[1], sourceCompound[2]].map(part => normalize(part));
+    // Prefixes accommodate ordinary Finnish inflections without allowing
+    // unrelated products that happen to share the package size.
+    const matchesPart = (part: string) => candidateWords.split(/[^a-z0-9]+/).some(word =>
+      word.startsWith(part.slice(0, Math.max(4, part.length - 2))));
+    if (!sourceParts.every(matchesPart)) return false;
+  }
+
   // Product form matters: a chocolate bar containing biscuit is not a packet of biscuits.
   // Keep this guard common to mobile and desktop so either client accepts the same products.
   const sourceChocolateBar = /(?:suklaalevy|suklaalev|maitosuklaalevy|chocolate bar)/.test(source);
@@ -3678,6 +3694,10 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 
 /** Preserve essential product attributes when comparing different retail brands. */
 export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
+  // Apply the same compound-food identity gate to actual basket counterpart
+  // selection, not only to search relevance scoring.
+  if (/\b[a-zåäö]{4,}-[a-zåäö]{4,}(?:sekoitus|sekoite|mix|pakaste)\b/iu.test(sourceName) &&
+      !productGroupGate(sourceName, candidateName)) return false;
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
   // Normalized strings have no accents; use a literal word boundary for linssit.

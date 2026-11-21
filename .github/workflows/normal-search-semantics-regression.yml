@@ -50,6 +50,97 @@ jobs:
             --esModuleInterop \
             --skipLibCheck \
             --outDir .tmp-search-regression/search
+      - name: Verify cross-chain compound grocery counterpart identity
+        run: |
+          node scripts/test-compound-comparison-gate.cjs
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const source = 'K-Menu riisi-vihannessekoitus 450 g';
+          for (const wrong of ['Tokmanni karkkirasia 450 g', 'Prisma kasvispakaste 450 g', 'Riisi 450 g']) {
+            assert.equal(core.productGroupGate(source, wrong), false, wrong);
+            assert.equal(core.isComparisonAttributeCompatible(source, wrong), false, wrong);
+          }
+          for (const correct of ['Riisi-vihannessekoitus 450 g', 'Riisi vihannes sekoitus 450 g']) {
+            assert.equal(core.productGroupGate(source, correct), true, correct);
+            assert.equal(core.isComparisonAttributeCompatible(source, correct), true, correct);
+          }
+          const candidates = [
+            {name:'Tokmanni karkkirasia 450 g',price:0.49},
+            {name:'Riisi-vihannessekoitus 450 g',price:2.39},
+          ];
+          assert.equal(core.pickCheapestCompatibleComparisonProduct(source,candidates)?.name,candidates[1].name);
+          // The guard must apply to product families, not a specific rice item or retailer.
+          const otherCompounds = [
+            ['Herne-maissisekoitus 400 g', 'Herne-maissisekoitus 400 g', 'Herne 400 g'],
+            ['Porkkana-perunasekoitus 500 g', 'Porkkana-perunasekoitus 500 g', 'Peruna 500 g'],
+          ];
+          for (const [requested, valid, invalid] of otherCompounds) {
+            assert.equal(core.isComparisonAttributeCompatible(requested, valid), true, requested + ' valid');
+            assert.equal(core.isComparisonAttributeCompatible(requested, invalid), false, requested + ' invalid');
+          }
+          assert.equal(core.isComparisonAttributeCompatible('Riisi 1 kg', 'Riisi 1 kg'), true,
+            'standalone rice must remain a valid grocery product');
+          console.log('PASS cross-chain compound grocery counterpart identity');
+          NODE
+      - name: Cross-chain compound counterpart functional verification
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('fs');
+          const path = require('path');
+          const locate = (dir) => {
+            for (const entry of fs.readdirSync(dir, {withFileTypes:true})) {
+              const file = path.join(dir,entry.name);
+              if (entry.isDirectory()) {const found=locate(file);if(found)return found;}
+              else if(entry.name==='ziiplyCore.js')return file;
+            }
+          };
+          const core = require(path.resolve(locate('.tmp-search-regression')));
+          const cases = [
+            ['K-Menu riisi-vihannessekoitus 450 g','S','Coop riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','K','Pirkka riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','SPAR','SPAR riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','SPAR','Tokmanni makeisrasia 450 g',false],
+            ['K-Menu riisi-vihannessekoitus 450 g','S','Prisma kasvispakaste 450 g',false],
+            ['K-Menu riisi-vihannessekoitus 450 g','K','Pirkka riisi 450 g',false],
+            ['Pirkka herne-maissisekoitus 200 g','S','Coop herne-maissisekoitus 200 g',true],
+            ['Pirkka herne-maissisekoitus 200 g','SPAR','Tokmanni maissipakaste 200 g',false],
+            ['Riisi 1 kg','S','Coop pitkäjyväinen riisi 1 kg',true],
+            ['Riisi 1 kg','SPAR','Tokmanni karkkirasia 1 kg',false],
+          ];
+          for(const [source,chain,candidate,expected] of cases){
+            const group=core.productGroupGate(source,candidate);
+            const attribute=core.isComparisonAttributeCompatible(source,candidate);
+            const actual=group&&attribute;
+            assert.equal(actual,expected,JSON.stringify({source,chain,candidate,group,attribute}));
+            console.log('PASS',chain,source,'=>',candidate,actual);
+          }
+          console.log('PASS cross-chain compound counterpart verification');
+          NODE
+      - name: Audit real basket comparison callsites on mobile and desktop
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const page = fs.readFileSync('src/app/page.tsx', 'utf8');
+          const lines = page.split(/\r?\n/);
+          const terms = /isComparisonAttributeCompatible|pickCheapestCompatibleComparisonProduct|productGroupGate|scoreNameMatch|pickBestSProduct|pickBestKProduct|onCompareCart|Halpuusvertailu|ZiiplyDesktopCompareCard|ZiiplyMobileCompareCard/;
+          console.log('PAGE_LINES', lines.length);
+          for (let i=0; i<lines.length; i++) {
+            if (terms.test(lines[i])) console.log(String(i+1).padStart(6), lines[i].trim().slice(0,260));
+          }
+          if (lines.length < 1000) throw Error('App page missing or unexpectedly short');
+          // Audit the cart's primary candidate selection, not alternative cards.
+          const comparisonStart = page.indexOf('V768: tästä alkaa käyttäjän nimenomaisesti käynnistämä Halpuusvertailu');
+          if (comparisonStart < 0) throw Error('Comparison entrypoint missing');
+          const scope = page.slice(comparisonStart, comparisonStart + 90000);
+          const gate = 'productGroupGate(sourceName, product.name)';
+          const attr = 'isComparisonAttributeCompatible(sourceName, product.name)';
+          console.log('BASKET_GUARD_LOCATIONS', JSON.stringify({ gate: scope.indexOf(gate), attr: scope.indexOf(attr), examples: scope.split('\n').filter(x => x.includes('productGroupGate') || x.includes('isComparisonAttributeCompatible')).slice(0,25) }));
+          if (!scope.includes(gate) || !scope.includes(attr)) throw Error('Candidate guard missing in comparison section');
+          console.log('PASS basket guard verification');
+          NODE
       - name: Verify Lidl store identity persistence and offer context
         shell: bash
         run: |
