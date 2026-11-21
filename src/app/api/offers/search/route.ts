@@ -906,8 +906,10 @@ export async function GET(request: Request) {
         // finished-product category. A verified baked dessert can be listed
         // under dairy because it contains cheese: keep the parser's product-form
         // classification rather than overwriting it with that shelf.
+        // A finished baked dessert remains bakery regardless of which Lidl
+        // merchandising shelf or older category carried the imported record.
+        // Product-form classification must not depend on the shelf being dairy.
         const productFormCategory =
-          departmentCategory === "Maitotuotteet" &&
           /(?:juustokakku|kakku|torttu|leivos)/.test(productName)
             ? "Leipomo" : "";
         const category = productFormCategory || departmentCategory ||
