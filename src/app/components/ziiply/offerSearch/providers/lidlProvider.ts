@@ -154,6 +154,11 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
       .filter((value) => value != null)
       .map((value) => String(value))
       .join(" ");
+    const isExplicitlyLoose = /\\birto\\b|\\bloose\\b/i.test(lidlPricingText) ||
+      /\\birto\\b|\\bloose\\b/i.test(title);
+    const isExplicitlyPerKg = /(?:€|eur)\\s*\\/\\s*kg\\b/i.test(lidlPricingText) ||
+      /\\b(?:hinta\\s*\\/\\s*kg|kilohinta|per\\s*kg)\\b/i.test(lidlPricingText) ||
+      /\\bkg\\b/i.test(String(box?.priceSymbol || ""));
     // Weight-based pricing requires evidence in the actual source price/unit
     // fields. A guessed category must never change price semantics.
     const isWeightedProduct = isExplicitlyLoose || isExplicitlyPerKg;
