@@ -26,38 +26,9 @@ await p.route('**/api/**', async route => {
   if (mode === 'categories' && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
     const response = await route.fetch({timeout:110000});
     const data = await response.json();
-    // The CI runner has no publication database. For the rendering check only,
-    // replay the real cake row captured from this PR's Vercel preview if absent.
-    // All other offers, including the meatballs, still use the local branch API.
-    if (data.ok && !data.results.some(row => /pistaasi.*juustokakku/i.test(row.name || row.title || row.productName))) {
-      const capturedCake = {
-        "id": "lidl-fi-grid-11332375-2026-11-18",
-        "name": "Confiserie Firenze Pistaasijuustokakku",
-        "title": "Confiserie Firenze Pistaasijuustokakku",
-        "productName": "Confiserie Firenze Pistaasijuustokakku",
-        "brandName": "Confiserie Firenze",
-        "chain": "Lidl",
-        "source": "lidl-fi-public",
-        "sourceUrl": "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
-        "rawText": "Confiserie Firenze Confiserie Firenze Pistaasijuustokakku 450 g | 17,76 €/kg Maitotuotteet",
-        "imageUrl": "https://www.lidl.fi/assets/gcpce6b374b525d43b8990137567c377bc2.png",
-        "price": 7.99,
-        "offerPrice": 7.99,
-        "priceText": "7,99 €",
-        "category": "Leipomo",
-        "categoryPath": "Leipomo",
-        "mainCategory": "Leipomo",
-        "neonDisplayCategory": "Leipomo",
-        "validFrom": "2026-11-18",
-        "validUntil": "2026-11-25",
-        "hasConcretePrice": true,
-        "packageSize": "450 g",
-        "storeKey": "FI0218",
-        "storeName": "Lidl Hyvinkää"
-      };
-      data.results.push(capturedCake);
-      console.log('REPLAY UI',tag,capturedCake.id,'captured from preview commit 122f912');
-    }
+    // Audit only actual API results. Never inject category-correct rows into a live test.
+    assert.ok(Array.isArray(data.results), 'Lidl API results must be an array');
+    console.log('LIVE CATEGORY SOURCE',tag,JSON.stringify({count:data.results.length,audit:data.lidlSourceAudit}));
     await route.fulfill({response,json:data});
     return;
   }
@@ -144,7 +115,9 @@ if (mode === 'categories') {
     for (const tab of new Set(rows.map(row => row.campaignType === 'campaign' ? 'Kampanjat' : 'Tarjoukset'))) {
       const tabButton = p.getByRole('button',{name:tab,exact:true}).filter({visible:true});
       if (await tabButton.count()) await tabButton.first().click();
-      await p.getByRole('button',{name:category === 'Leipomo' ? /leiv[aä]t.*leivonnaiset/i : /liha.*makkara/i}).filter({visible:true}).first().click({timeout:30000});
+      const categoryButton = p.getByRole('button',{name:category === 'Leipomo' ? /leiv[aä]t.*leivonnaiset|leipomo/i : /liha.*makkara/i}).filter({visible:true}).first();
+      assert.ok(await categoryButton.count(), `Category UI button missing: ${category} (${tag})`);
+      await categoryButton.click({timeout:30000});
       await p.getByText(product).filter({visible:true}).first().waitFor({timeout:20000});
       console.log('PASS UI',tag,product.toString(),category,tab);
     }
