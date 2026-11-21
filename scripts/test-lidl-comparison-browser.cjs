@@ -117,7 +117,7 @@ if (mode === 'categories') {
     try {
       const url = new URL(raw);
       if (['lidl.fi','www.lidl.fi'].includes(url.hostname))
-        department = decodeURIComponent(url.pathname).toLowerCase().match(/^\\/h\\/([^/]+)\\//)?.[1] || '';
+        department = decodeURIComponent(url.pathname).toLowerCase().split('/').filter(Boolean).slice(0,2).join('/') .startsWith('h/') ? decodeURIComponent(url.pathname).toLowerCase().split('/')[2] || '' : '';
     } catch {}
     if (!department) continue;
     const expected = departmentExpectations.find(([pattern]) => pattern.test(department))?.[1];
