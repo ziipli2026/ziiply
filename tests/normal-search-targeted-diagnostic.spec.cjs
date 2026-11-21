@@ -32,10 +32,26 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   const replayCaptures=[];
   const replayPaths=/^\/api\/(?:k-products|s-products|neon-first-search|lidl\/products|tokmanni\/products|ean-bank)(?:\/|$)/;
   const parallel=process.env.NORMAL_SEARCH_PARALLEL==='1';
-  if(parallel && (replayEnabled || queries.length!==1))throw new Error('Parallel comparison requires one live query');
-  let readyCount=0;
-  let releaseStart;
-  const startTogether=new Promise(resolve=>{releaseStart=resolve;});
+  if(parallel && replayEnabled)throw new Error('Parallel comparison requires live responses');
+  const searchStarts=new Map();
+  async function waitForBothDevices(query){
+    const first=searchStarts.get(query);
+    if(first){
+      searchStarts.delete(query);
+      first();
+      return;
+    }
+    let timer;
+    try{
+      await new Promise((resolve,reject)=>{
+        searchStarts.set(query,resolve);
+        timer=setTimeout(()=>reject(new Error('Other device did not reach search: '+query)),45000);
+      });
+    }finally{
+      clearTimeout(timer);
+      searchStarts.delete(query);
+    }
+  }
   async function runDevice(device){
     const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
@@ -303,10 +319,7 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         console.log('[normal-parity] stage input-fill',device,query);
         await input.fill(query,{timeout:12000});
         console.log('[normal-parity] stage input-filled',device,query);
-        if(parallel){
-          if(++readyCount===2)releaseStart();
-          await startTogether;
-        }
+        if(parallel)await waitForBothDevices(query);
         if(device==='desktop')await input.press('Enter',{timeout:12000});
         else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click({timeout:12000});
         console.log('[normal-parity] stage submitted',device,query);
