@@ -382,7 +382,7 @@ jobs:
                     }), desktop);
                     if (chain === 'LIDL') assert.equal(results.length, 0, 'Lidl research has no checkout price');
                     if (chain === 'SPAR' || chain === 'TOKMANNI' || extra) {
-                      await search.getByText('Tokmanni / SPAR verkkovalikoima', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
+                      assert.ok(results.some(row => row.price > 0), 'SPAR/Tokmanni must expose priced search results');
                     }
                     const resultKey = JSON.stringify([chain, extra, liveTerm]);
                     const visible = {results, research, requests: searchRequests.filter(value => /\/api\/(s-products|k-products|neon-first-search|lidl\/products|tokmanni\/products)\?/.test(value))};
