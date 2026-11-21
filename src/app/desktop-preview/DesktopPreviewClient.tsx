@@ -991,7 +991,7 @@ export default function DesktopPreviewPage() {
     // The selected store is authoritative: never search S products for a K store (or vice versa).
     const kind=storeKind(store);
     if(kind==="spar"){
-      const queries=[...new Set([...alternativeQueries,name,...getKSearchTerms(name)].filter(Boolean))].slice(0,6);
+      const queries=[...new Set([normalizeEan(ean),...alternativeQueries,name,...getKSearchTerms(name)].filter(Boolean))].slice(0,6);
       const responses=await Promise.all(queries.map(async search=>{
         try{
           const params=new URLSearchParams({search,intent:name});
@@ -1200,8 +1200,9 @@ export default function DesktopPreviewPage() {
   function desktopPickCompareCandidate(candidates:any[],name:string,ean:string,isS:boolean){
     const sourceEan=normalizeEan(ean);
     if(sourceEan){
+      // Tokmanni only returns an EAN after corroborating an exact barcode lookup.
       const exact=candidates.filter((p:any)=>normalizeEan(String(p?.ean||p?.product?.ean||""))===sourceEan
-        &&(isSameRetailPackage(name,String(p.name||""))||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null))&&isComparisonAttributeCompatible(name,String(p.name||""))&&(desktopReliableComparePrice(p)||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null)));
+        &&(isSameRetailPackage(name,String(p.name||""))||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null))&&(p.chain==="TOKMANNI"||isComparisonAttributeCompatible(name,String(p.name||"")))&&(desktopReliableComparePrice(p)||(/^2\d{12}$/.test(sourceEan)&&desktopVerifiedKgPriceCents(p)!==null)));
       if(exact.length)return exact.reduce((a:any,b:any)=>Number(a.price)<=Number(b.price)?a:b);
     }
     // Unlike the original cart price lookup, the comparison may use a verified

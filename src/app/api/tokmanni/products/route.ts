@@ -93,9 +93,25 @@ function mapProduct(block: string, index: number) {
 const KLEVU_SEARCH_URL = "https://eucs11.ksearchnet.com/cloud-search/n-search/search";
 const KLEVU_TICKET = "klevu-15488592134928913";
 
-function mapKlevuProduct(item: any, index: number) {
-  // A Klevu SKU is not necessarily a retail barcode: never publish it as EAN.
-  const ean = "";
+function tokmanniExactEan(item: any, search: string) {
+  if (!/^\d{13}$/.test(search) || clean(item?.sku) !== search) return "";
+  const checksum = [...search].reduce((sum, digit, index) =>
+    sum + Number(digit) * (index % 2 === 0 ? 1 : 3), 0);
+  if (checksum % 10 !== 0) return "";
+
+  // For a barcode lookup, require the same identifier in the result's
+  // Tokmanni product URL as well as its SKU. Internal IDs alone are ambiguous.
+  try {
+    const productUrl = new URL(clean(item?.url));
+    return productUrl.hostname === "www.tokmanni.fi" &&
+      productUrl.pathname.endsWith(`-${search}`) ? search : "";
+  } catch {
+    return "";
+  }
+}
+
+function mapKlevuProduct(item: any, index: number, search: string) {
+  const ean = tokmanniExactEan(item, search);
   const name = clean(item?.name);
   // Klevu's price is the undiscounted reference when salePrice differs.
   // Live source samples show oldPrice/basePrice can both equal the sale price.
@@ -148,7 +164,7 @@ async function fetchKlevuProducts(search: string) {
   if (!response.ok) throw new Error(`Klevu HTTP ${response.status}`);
   const data = await response.json();
   return (Array.isArray(data?.result) ? data.result : [])
-    .map(mapKlevuProduct)
+    .map((item: any, index: number) => mapKlevuProduct(item, index, search))
     .filter((item: any): item is NonNullable<ReturnType<typeof mapKlevuProduct>> => Boolean(item));
 }
 
