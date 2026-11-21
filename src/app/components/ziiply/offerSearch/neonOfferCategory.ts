@@ -206,7 +206,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
         for (const offer of offers) {
           const ean = getEan(offer);
           const name = getName(offer);
-          const category = safe.get(normalizeName(name)) || inferExistingCategoryFromName(name);
+          const category = safe.get(normalizeName(name));
           if (!ean || !category || !existingCategoryPaths.has(category) || seen.has(ean) || eanRows.some(row => String(row.ean) === ean)) continue;
           updates.push({ean, category});
           seen.add(ean);
