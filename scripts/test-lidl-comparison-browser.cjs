@@ -172,7 +172,7 @@ if (mode === 'categories') {
       assert.ok(row.validFrom?.slice(0,10) <= today && row.validUntil?.slice(0,10) >= today, titleOf(row));
       for (const fields of [row, row.__sourceOfferSearchResult].filter(Boolean)) {
         for (const key of ['category','categoryPath','mainCategory','neonDisplayCategory']) {
-          assert.equal(fields[key], category, `${titleOf(row)} ${key}`);
+          assert.equal(fields[key], category, `${titleOf(row)} ${key}; actual=${JSON.stringify(fields[key])}; source=${row.sourceUrl}; sourceCategory=${JSON.stringify(row.__sourceOfferSearchResult?.category)}; name=${JSON.stringify(row.name)}`);
         }
       }
       console.log('PASS category payload',tag,JSON.stringify({title:titleOf(row),category,source:row.sourceUrl,tab:row.campaignType}));
