@@ -35,7 +35,7 @@ export default function ZiiplyDesktopCompareCard({
 }: Props) {
   const [expanded, setExpanded] = useState<string[]>([]);
   if (!open) return null;
-  const complete = stores.filter(s => !s.missingItems && (s.itemCount || 0) > 0 && Number.isFinite(s.totalPrice));
+  const complete = stores.filter(s => s.chain !== "LIDL" && s.id !== "lidl" && !s.missingItems && (s.itemCount || 0) > 0 && Number.isFinite(s.totalPrice));
   const bestPrice = complete.length ? Math.min(...complete.map(s => Number(s.totalPrice))) : null;
   const toggle = (id: string) => setExpanded(current => current.includes(id) ? current.filter(x => x !== id) : [...current, id]);
   const back = onBack || onBackToCart || onClose;
@@ -56,6 +56,13 @@ export default function ZiiplyDesktopCompareCard({
           <div className={`mt-5 grid min-h-0 grid-cols-1 items-start gap-4 overflow-y-auto lg:grid-cols-2 ${expanded.length ? "flex-1 content-start" : "content-start"}`}>
             {stores.length === 0 && <p className="col-span-full p-8 text-center font-bold">{loading ? "Vertailutuloksia haetaan…" : "Vertailutuloksia ei ole saatavilla."}</p>}
             {stores.map((store,index) => {
+              if (store.chain === "LIDL" || store.id === "lidl") {
+                return (
+                  <p key={store.id} className="order-3 px-2 py-1 text-sm font-bold leading-snug text-[#6b5839]">
+                    Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
+                  </p>
+                );
+              }
               const missing = Number(store.missingItems || 0);
               const found = Number(store.itemCount || 0);
               const isComplete = missing === 0 && found > 0 && Number.isFinite(store.totalPrice);
@@ -64,9 +71,9 @@ export default function ZiiplyDesktopCompareCard({
               const isOpen = expanded.includes(store.id);
               const rows = (store.matches || []) as MatchRow[];
               return (
-                <article key={store.id} className={`${store.chain === "S" ? "order-1" : store.chain === "K" ? "order-2" : store.chain === "LIDL" ? "order-3" : store.chain === "SPAR" ? "order-4" : "order-5"} flex h-fit min-w-0 self-start flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
+                <article key={store.id} className={`${store.chain === "S" ? "order-1" : store.chain === "K" ? "order-2" : store.chain === "SPAR" ? "order-4" : "order-5"} flex h-fit min-w-0 self-start flex-col overflow-hidden rounded-[24px] border-[3px] shadow-[0_5px_10px_rgba(75,53,25,.14)] ${isBest ? "border-[#086a38] bg-[#e8f0d0]/90" : "border-[#a18a60] bg-[#fff9e8]/90"}`}>
                   <div className="flex shrink-0 items-center gap-3 border-b border-[#c9ad76]/70 px-4 py-3">
-                    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : store.chain === "K" ? "border-[#85161c] bg-[#cf2028]" : store.chain === "LIDL" ? "border-[#153c8a] bg-[#235ac2]" : "border-[#8b4321] bg-[#bc7032]"}`}>{store.chain || "•"}</div>
+                    <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-[3px] text-xl font-black text-white ${store.chain === "S" ? "border-[#07572e] bg-[#07883c]" : store.chain === "K" ? "border-[#85161c] bg-[#cf2028]" : "border-[#8b4321] bg-[#bc7032]"}`}>{store.chain || "•"}</div>
                     <div className="min-w-0 flex-1">
                       <h3 className="text-[clamp(14px,1.2vw,20px)] font-black leading-tight text-[#29271e]">{store.name}</h3>
                       <p className="text-[10px] font-extrabold uppercase text-[#7c725d]">#{index+1} · {found} tuotetta löytynyt · {missing ? `${missing} puuttuu` : "Täysi kori"}</p>
