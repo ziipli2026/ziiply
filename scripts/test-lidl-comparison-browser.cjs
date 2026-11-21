@@ -48,8 +48,9 @@ if (desktop) await p.locator('[data-desktop-layout]').waitFor({timeout:35000});
 if (mode === 'normal') {
   const searches=['maito','kahvi','jauheliha'];
   if(desktop) await p.getByRole('button',{name:'Avaa Justiina'}).filter({visible:true}).first().click({timeout:20000});
+  else { await p.getByRole('button',{name:'Hae',exact:true}).filter({visible:true}).last().click({timeout:20000}); await p.locator('textarea').filter({visible:true}).first().waitFor({timeout:20000}); }
   for(const word of searches){
-    const field=desktop?p.getByRole('textbox',{name:'Hae tuotteita'}).filter({visible:true}).first():p.locator('textarea[placeholder="maito, kahvi"],textarea[placeholder="Kirjoita yksi tuote"]').filter({visible:true}).first();
+    const field=desktop?p.getByRole('textbox',{name:'Hae tuotteita'}).filter({visible:true}).first():p.locator('textarea').filter({visible:true}).first();
     await field.fill(word);
     const before=req.length;
     await p.getByRole('button',{name:desktop?'Hae kirjoitetut tuotteet':'Justiina',exact:true}).filter({visible:true}).first().click({timeout:15000});
