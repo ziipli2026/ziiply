@@ -189,7 +189,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
       try {
         const candidates = await sql`SELECT ean, name, brand, quantity, category
           FROM ziiply_ean_products
-          WHERE lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) = ANY(${identityNames.map(name => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\\s+/g, " ").trim())}::text[])
+          WHERE lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) = ANY(${identityNames.map(name => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\s+/g, " ").trim())}::text[])
             AND category IS NOT NULL AND trim(category) <> ''`;
         const catalog = candidates.map(row => ({
           ean: String(row.ean), name: String(row.name),
@@ -221,7 +221,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
       const ean = getEan(offer);
       const localIdentity = identityMatches.get(offer);
       const localCategory = localIdentity?.category ?? null;
-      const exactPath = byEan.get(ean) || localCategory || byName.get(getName(offer).toLocaleLowerCase("fi"));
+      const exactPath = byEan.get(ean) || localCategory || (ean ? byName.get(getName(offer).toLocaleLowerCase("fi")) : null);
       const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : exactPath ? "exact-name" : null;
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
       if (!display) return offer;
