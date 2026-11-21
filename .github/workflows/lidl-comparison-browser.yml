@@ -22,6 +22,24 @@ jobs:
       - run: npm ci
       - run: npm install --prefix /tmp/lidl-browser --no-save --package-lock=false playwright@1.56.1
       - run: npm run build
+      - name: Verify Ziiply catalog database before browser test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          node - <<'NODE'
+          const { neon } = require('@neondatabase/serverless');
+          (async () => {
+            if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL secret missing: Ziiply catalog tests cannot run');
+            const sql = neon(process.env.DATABASE_URL);
+            const rows = await sql`SELECT to_regclass('public.ziiply_ean_products')::text AS catalog`;
+            if (rows[0]?.catalog !== 'ziiply_ean_products') {
+              throw new Error('DATABASE_URL points to a database without Ziiply EAN catalog; configure the Ziiply Neon project, not the other app database');
+            }
+            const count = await sql`SELECT count(*)::int AS n FROM public.ziiply_ean_products`;
+            if (!count[0]?.n) throw new Error('Ziiply EAN catalog is empty: cannot validate shared categorization');
+            console.log('Ziiply EAN catalog verified; rows:', count[0].n);
+          })().catch(e => { console.error(e.message); process.exitCode = 1; });
+          NODE
       - name: Browser test against active leaflet publication
         env:
           # Secrets are never printed. If absent, the test still runs and
