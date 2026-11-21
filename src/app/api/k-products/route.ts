@@ -363,7 +363,10 @@ function readNormalKSearch(storeId: number, search: string) {
   const databaseUrl = process.env.K_SEARCH_CACHE_DATABASE_URL;
   const fallback = () => getCachedKSearch(storeId, search, window);
   const pending = (databaseUrl
-    ? readSharedKSearch(databaseUrl, JSON.stringify([process.env.VERCEL_URL, key]), storeId, search).catch(fallback)
+    ? readSharedKSearch(databaseUrl, JSON.stringify([process.env.VERCEL_URL, key]), storeId, search).catch(() => {
+        console.warn("Shared K search unavailable; using fallback");
+        return fallback();
+      })
     : fallback())
     .catch(error => {
       if (error instanceof UncacheableKSearch) return error.payload;
