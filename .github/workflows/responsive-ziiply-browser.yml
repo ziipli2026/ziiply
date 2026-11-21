@@ -314,6 +314,28 @@ jobs:
                   } else {
                     await input.press('Enter');
                   }
+                  if (chain === 'LIDL' && !many) {
+                    // Lidl has no verified regular prices: normal Justiina search must
+                    // display the informational dialog, not a product result.
+                    const notice = search.getByRole('alertdialog', {
+                      name: 'Lidlin normaalihinnat eivät ole saatavilla'
+                    }).filter({ visible: true }).first();
+                    await notice.waitFor({ timeout: 20000 });
+                    await search.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/)
+                      .filter({ visible: true }).first().waitFor({ timeout: 10000 });
+                    assert.equal(await search.locator('[data-testid="normal-search-result"]:visible').count(), 0,
+                      'Lidl regular-price search must not render product cards');
+                    const regularRequests = searchRequests.filter(value => {
+                      const path = new URL(value).pathname;
+                      return ['/api/lidl/products', '/api/s-products', '/api/k-products',
+                        '/api/neon-first-search'].includes(path);
+                    });
+                    assert.equal(regularRequests.length, 0,
+                      'Lidl-only normal search must not request regular-price products');
+                    console.log('PASS Lidl normal search notice', name, desktop ? 'desktop' : 'mobile');
+                    await searchContext.close();
+                    continue;
+                  }
                   if (liveTerm) {
                     const prices = desktop
                       ? search.getByRole('button', {name:/\d[,.]\d{2}.*Lisää koriin/})
