@@ -399,6 +399,16 @@ jobs:
                     await searchContext.close();
                     continue;
                   }
+                  // Lidl provides offers, not verified normal-price products. Do not
+                  // expect mocked milk catalogue results in its normal search.
+                  if (chain === 'LIDL' && !many) {
+                    const notice = search.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/i).filter({visible:true});
+                    await notice.first().waitFor({timeout:15000});
+                    assert.equal(await search.getByText('Kotimaista kevytmaito 1 l',{exact:true}).filter({visible:true}).count(),0);
+                    console.log(name,'LIDL normal-price unavailable notice passed');
+                    await searchContext.close();
+                    continue;
+                  }
                   const cheap = search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).first();
                   const expensive = search.getByText('Valio täysmaito 1 l', { exact: true }).filter({ visible: true }).first();
                   try {
