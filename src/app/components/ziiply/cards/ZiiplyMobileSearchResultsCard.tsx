@@ -240,7 +240,14 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             )}
 
-            {products.map((product, index) => {
+            {products.filter((product, index, all) => {
+              const ean = String(product.ean ?? product.product?.ean ?? "").replace(/\D/g, "");
+              // The same EAN can arrive from multiple selected stores. Keep the
+              // first (already price-ranked) product, but retain distinct items
+              // without a valid barcode rather than collapsing them together.
+              if (!/^(?:\d{8}|\d{12,14})$/.test(ean)) return true;
+              return all.findIndex(item => String(item.ean ?? item.product?.ean ?? "").replace(/\D/g, "") === ean) === index;
+            }).map((product, index) => {
                 const image = getImage(product);
                 const name = getName(product);
                 const rawPrice = pickRawPrice(product);
@@ -255,7 +262,7 @@ export default function ZiiplyMobileSearchResultsCard({
 
                 return (
                   <article data-testid="normal-search-result" data-ean={String(product.ean ?? product.product?.ean ?? "")}
-                    key={String(product.id ?? product.ean ?? index)}
+                    key={`${String(product.ean ?? product.product?.ean ?? product.id ?? "item")}-${index}`}
                     aria-busy={loading} className={`relative flex items-start ${compact?"gap-2 rounded-[0.85rem] px-2 py-2":"gap-3 rounded-[1.15rem] px-2.5 py-2.5"} overflow-hidden border-[3px] border-[#8c6934] bg-[#fffdf8] shadow-[0_3px_0_rgba(91,72,44,0.12)] ${loading?"opacity-55":""}`}
                   >
                     <div className={`flex shrink-0 flex-col items-center gap-1.5 ${compact?"w-[4.6rem]":"w-[5.8rem]"}`}>
