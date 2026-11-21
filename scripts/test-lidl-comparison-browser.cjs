@@ -18,7 +18,7 @@ await p.addInitScript(({mode})=>{
 await p.route('**/api/**',async r=>{await r.fulfill({json:{ok:true,products:[],results:[],items:[]}})});
 try{
 await p.goto('http://127.0.0.1:3179/',{timeout:90000,waitUntil:'domcontentloaded'});
-await (desktop?p.locator('[data-desktop-layout]'):p.getByRole('region',{name:'Ziiplyn avustajat'})).waitFor({timeout:35000});
+if (desktop) await p.locator('[data-desktop-layout]').waitFor({timeout:35000});
 if (!desktop) await p.getByRole('button',{name:'Jatka',exact:true}).filter({visible:true}).first().click({timeout:20000});
 let cmp=p.getByRole('button',{name:/^Halpuusvertailu$/}).filter({visible:true});
 if(!await cmp.count()){let cart=p.getByRole('button',{name:/^Kori\s*\d*$/}).filter({visible:true});await cart.last().click({timeout:10000});}
