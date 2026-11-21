@@ -916,7 +916,7 @@ export async function GET(request: Request) {
         // Reject non-food merchandise before applying any grocery category.
         // "Jäätelökärry" is a toy, not ice cream; source department and
         // legacy Neon enrichment must not reintroduce it as a frozen food.
-        const nonFoodMerchandise = /(?:\\b(?:lupilu|lelu|lelut|leikkikalu|leikkisetti|leikkikeitti[oö]|puinen|puulelu|j[aä][aä]tel[oö]k[aä]rry|makeiskoju|parkside|silvercrest|esmara|livarno)\\b|j[aä][aä]tel[oö]k[aä]rry|makeiskoju)/.test(productName);
+        const nonFoodMerchandise = /(?:^|\\s)(?:lupilu|lelu\\w*|leikkikalu\\w*|leikkisetti\\w*|leikkikeitti[oö]\\w*|puinen|puulelu\\w*|parkside|silvercrest|esmara|livarno)(?:\\s|$)|j[aä][aä]tel[oö]k[aä]rry|makeiskoju/.test(productName);
         if (nonFoodMerchandise) return { ...offer, category: "Muut", categoryPath: "Muut", mainCategory: "Muut" };
         const preparedSalad = /(?:salaattiateria|ateriasalaatti|salaattiannos|valmissalaatti|ruokaisa salaatti|valkokaalisalaatti)/.test(productName);
         const freshSalad = /(?:salaattisekoitus|salaattipussi|salaattiker[aä]|salaatinlehti|ja[aä]vuorisalaatti|romainesalaatti|lehtisalaatti|ker[aä]salaatti|j[aä][aä]salaatti|salaatti)/.test(productName);
