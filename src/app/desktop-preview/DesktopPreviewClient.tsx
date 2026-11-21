@@ -1249,6 +1249,13 @@ export default function DesktopPreviewPage() {
     desktopDebug(`Valitut kaupat (${selected.length}): ${selected.map(x=>`${x.name} [id=${x.id}, externalId=${x.externalId}, type=${storeKind(x)}]`).join(" | ")||"EI YHTÄÄN"}`);
     desktopDebug(`Vertailutapa=${storeCompareScope}, ketjun sisäinen=${withinChain||"-"}, paikat=${JSON.stringify(withinStoreSlots[withinChain||"S"]?.map(x=>x?.name||null))}`);
     if(betweenMode==="one" && storeCompareScope!=="within_chain"){
+      if (selected.length === 1 && storeKind(selected[0]) === "lidl") {
+        const store = selected[0];
+        setDesktopCompareLoading(false);
+        setDesktopCompareResults({ [String(store.id)]: { store, rows: [], total: 0, missing: 0 } });
+        setDesktopCompareNotice(true);
+        return;
+      }
       setDesktopCartPricesChecked(false);
       setDesktopCompareNotice(false);
       setJustiinaResultsOpen(false);
