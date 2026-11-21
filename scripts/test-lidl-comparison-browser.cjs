@@ -116,9 +116,10 @@ if (mode === 'categories') {
     let department = '';
     try {
       const url = new URL(raw);
-      if (['lidl.fi','www.lidl.fi'].includes(url.hostname))
+      if (['lidl.fi','www.lidl.fi'].includes(url.hostname)) {
         const segments = decodeURIComponent(url.pathname).toLowerCase().split('/').filter(Boolean);
         department = segments[0] === 'h' && segments.length >= 3 ? segments[1] : '';
+      }
     } catch {}
     if (!department) continue;
     const expected = departmentExpectations.find(([pattern]) => pattern.test(department))?.[1];
