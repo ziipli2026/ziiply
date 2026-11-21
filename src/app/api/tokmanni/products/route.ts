@@ -171,6 +171,29 @@ async function fetchHtmlFallbackProducts(search: string) {
     .filter((item): item is NonNullable<ReturnType<typeof mapProduct>> => Boolean(item));
 }
 
+async function confirmComparisonEan(item: { productUrl?: string; ean: string }, ean: string) {
+  try {
+    const url = new URL(item.productUrl || "", TOKMANNI_SEARCH_URL);
+    if (url.origin !== new URL(TOKMANNI_SEARCH_URL).origin || !url.pathname.endsWith("-" + ean)) return item;
+    const response = await fetch(url, {
+      redirect: "error",
+      cache: "no-store",
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!response.ok) return item;
+    const productNumber = textOf(await response.text()).match(/\bTuotenro\s*:?\s*(\d{8,14})\b/i)?.[1];
+    return productNumber === ean ? { ...item, ean } : item;
+  } catch {
+    return item;
+  }
+}
+
+function validComparisonEan(ean: string) {
+  if (!/^(?:\d{8}|\d{12,14})$/.test(ean)) return false;
+  const sum = [...ean].reverse().reduce((total, digit, index) => total + Number(digit) * (index % 2 ? 3 : 1), 0);
+  return sum % 10 === 0;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const search = String(searchParams.get("search") || "").trim();
@@ -216,5 +239,11 @@ export async function GET(request: Request) {
   ));
 
   const categorizedItems = applyApprovedSparCategories(filterApprovedSparGroceryItems(filterApprovedSparMilkCategory(filterSparMilkQuery(filterSparHumanFoodIntent(items, intent), intent), intent, SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX);
+  const exactComparison = searchParams.get("verifyEan") === "1" && validComparisonEan(search);
+  if (exactComparison) {
+    const candidates = categorizedItems.filter(item => String(item.productUrl || "").split(/[?#]/, 1)[0].endsWith("-" + search));
+    const verified = candidates.length === 1 ? await confirmComparisonEan(candidates[0], search) : null;
+    return NextResponse.json({ source, status: 200, items: verified?.ean === search ? [verified] : [] });
+  }
   return NextResponse.json({ source, status: 200, items: categorizedItems, klevuError: klevuError || undefined });
 }

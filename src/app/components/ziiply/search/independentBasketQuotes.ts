@@ -28,6 +28,7 @@ export async function fetchSparBasketQuotes(name: string, barcode: string, alter
   const queries = [...new Set([ean, name, ...alternatives].filter(Boolean))].slice(0, 6);
   const batches = await Promise.allSettled(queries.map(async search => {
     const params = new URLSearchParams({ search, intent: name });
+    if (ean && search === ean) params.set("verifyEan", "1");
     const response = await fetch("/api/tokmanni/products?" + params, { cache: "no-store", signal: AbortSignal.timeout(6500) });
     if (!response.ok) throw new Error("SPAR–Tokmanni basket price lookup failed");
     const body = await response.json();
