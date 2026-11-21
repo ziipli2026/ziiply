@@ -925,7 +925,10 @@ export async function GET(request: Request) {
         // Fish cuts must not inherit the frozen-food category from a mixed
         // Lidl landing page. Explicit freezing in the product name still wins.
         const fishProduct = /(?:lohifilee|kirjolohifilee|lohi filee|kirjolohi|kalafilee|seiti|ahvenfilee|kuhafilee|tonnikala)/.test(productName);
-        const productFormCategory = preparedSalad
+        // A prepared dish is not fresh produce even when its name contains
+        // a vegetable. This precedence must hold after Neon enrichment.
+        const preparedDish = /(?:perunapaistos|perunalaatikko|kiusaus|lasagne|valmisateria|valmisruoka|pizza|pitsa|risotto)/.test(productName);
+        const productFormCategory = preparedSalad || preparedDish
           ? "Valmisruoka"
           : explicitFrozen ? "Pakasteet"
           : fishProduct ? "Kala"
