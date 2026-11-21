@@ -5,6 +5,22 @@ on:
       - feature/arrival-state-diagnostics-20261101
       - integrate/gps-arrival-main-20261103
       - main
+    paths:
+      - '.github/workflows/ziiply-gps-arrival-regression.yml'
+      - 'src/app/components/location/**'
+      - 'src/app/components/ziiply/location/**'
+      - 'src/app/components/ziiply/mobile/ZiiplyMobileLocationBar.tsx'
+      - 'src/app/components/ziiply/mobile/gostaWatchLocation.ts'
+      - 'src/app/components/ziiply/cards/ZiiplyMobileScannerCard.tsx'
+      - 'src/app/components/ziiply/cards/scannerCore.ts'
+      - 'src/app/components/ziiply/desktop/justiina/ZiiplyDesktopScannerCard.tsx'
+      - 'src/app/components/ziiply/scannerCore.ts'
+      - 'src/app/components/ziiply/offerSearch/ziiplyLocationResolverCore.ts'
+      - 'src/app/api/store-search/**'
+      - 'scripts/test-ziiply-arrival-sequence.cjs'
+      - 'scripts/test-ziiply-arrival-scenarios.cjs'
+      - 'scripts/test-gps-arrival-notice.mjs'
+      - 'scripts/test-gps-arrival-integration.cjs'
   workflow_dispatch:
 jobs:
   gps-arrival-simulation:
