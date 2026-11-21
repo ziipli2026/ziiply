@@ -909,8 +909,10 @@ export async function GET(request: Request) {
         // A finished baked dessert remains bakery regardless of which Lidl
         // merchandising shelf or older category carried the imported record.
         // Product-form classification must not depend on the shelf being dairy.
-        const productFormCategory =
-          /(?:juustokakku|kakku|torttu|leivos)/.test(productName)
+        const isUnbakedDough = /(?:taikina|taikinalevy|taikinalevyt)/.test(productName);
+        const productFormCategory = isUnbakedDough
+          ? "Pakasteet"
+          : /(?:juustokakku|kakku|torttu|leivos)/.test(productName)
             ? "Leipomo" : "";
         const category = productFormCategory || departmentCategory ||
           (offer.neonCategoryMatch === "ean" ? firstString(offer.neonDisplayCategory) : "") ||
