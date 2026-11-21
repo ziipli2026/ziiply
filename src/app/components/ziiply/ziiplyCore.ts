@@ -1987,7 +1987,7 @@ export function productGroupGate(sourceName: string, targetName: string) {
   // name, not from the store's category (which can differ between chains).
   // This is shared by S, K and Tokmanni/SPAR basket comparison.
   const sourceCompound = String(sourceName).normalize("NFKC").toLocaleLowerCase("fi-FI")
-    .match(/\\b([a-zåäö]{4,})-([a-zåäö]{4,})(?:sekoitus|sekoite|mix|pakaste)\\b/u);
+    .match(/\b([a-zåäö]{4,})-([a-zåäö]{4,})(?:sekoitus|sekoite|mix|pakaste)\b/u);
   if (sourceCompound) {
     const candidateWords = normalize(targetName);
     const sourceParts = [sourceCompound[1], sourceCompound[2]].map(part => normalize(part));
