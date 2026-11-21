@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/normal-search-100-query-audit.yml'
       - 'tests/normal-search-targeted-diagnostic.spec.cjs'
+      - 'src/app/components/ziiply/search/normalSearchCatalog.ts'
       - 'src/app/api/k-products/route.ts'
   workflow_dispatch:
 permissions:
