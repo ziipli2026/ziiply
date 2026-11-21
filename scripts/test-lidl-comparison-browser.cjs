@@ -18,13 +18,13 @@ await p.route('**/api/**',async r=>{await r.fulfill({json:{ok:true,products:[],r
 try{
 await p.goto('http://127.0.0.1:3179/',{timeout:90000,waitUntil:'domcontentloaded'});
 await (desktop?p.locator('[data-desktop-layout]'):p.getByRole('region',{name:'Ziiplyn avustajat'})).waitFor({timeout:35000});
-for(const label of [/^Jatka$/, /^Säilytä kori$/]){let b=p.getByRole('button',{name:label}).filter({visible:true});if(await b.count())await b.first().click();}
+for(const label of [/^Jatka$/, /^Säilytä tavarat$/]){let b=p.getByRole('button',{name:label}).filter({visible:true});if(await b.count())await b.first().click();}
 let cmp=p.getByRole('button',{name:/^Halpuusvertailu$/}).filter({visible:true});
-if(!await cmp.count()){let cart=p.getByRole('button',{name:desktop?/^Vertailu$/:/^Kori(?: |$)/}).filter({visible:true});await cart.last().click({timeout:10000});}
+if(!await cmp.count()){let cart=p.getByRole('button',{name:/^Kori(?: |$)/}).filter({visible:true});await cart.last().click({timeout:10000});}
 cmp=p.getByRole('button',{name:/^Halpuusvertailu$/}).filter({visible:true});
-if(await cmp.count())await cmp.first().click();
+await cmp.first().click({timeout:15000});
 const note=p.getByText('Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.',{exact:true});
-if(lidlMode()) {await note.waitFor({timeout:20000});assert.equal(await note.count(),1);} else {await p.waitForTimeout(1500);assert.equal(await note.count(),0);}
+if(lidlMode()) {await note.waitFor({timeout:20000});assert.equal(await note.count(),1);} else {await p.getByText('Prisma Hyvinkää',{exact:true}).filter({visible:true}).first().waitFor({timeout:20000});assert.equal(await note.count(),0);}
 assert.equal(await p.getByRole('button',{name:/Avaa Lidl/}).count(),0);
 if(mode==='one')assert.equal(req.filter(x=>x.includes('/api/lidl/products')).length,0);
 console.log('PASS',tag);
