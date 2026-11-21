@@ -399,7 +399,12 @@ jobs:
                     }), desktop);
                     if (chain === 'LIDL') assert.equal(results.length, 0, 'Lidl research has no checkout price');
                     if (chain === 'SPAR' || chain === 'TOKMANNI' || extra) {
-                      await search.getByText('Tokmanni / SPAR verkkovalikoima', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
+                      // Retailer provenance is rendered differently on mobile:
+                      // store quotes show "Tokmanni / SPAR verkkovalikoima · <price>",
+                      // and standalone cards show "Tokmanni / SPAR verkkohinta".
+                      // Check the actual visible retailer label, not an exact text node.
+                      const retailerLabel = search.getByText(/Tokmanni\s*\/\s*SPAR\s*(?:verkkovalikoima|verkkohinta)/i).filter({visible:true});
+                      await retailerLabel.first().waitFor({timeout:10000});
                     }
                     const resultKey = JSON.stringify([chain, extra, liveTerm]);
                     const visible = {results, research, requests: searchRequests.filter(value => /\/api\/(s-products|k-products|neon-first-search|lidl\/products|tokmanni\/products)\?/.test(value))};
