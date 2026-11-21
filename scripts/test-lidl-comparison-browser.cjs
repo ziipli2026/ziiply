@@ -95,6 +95,27 @@ if (mode === 'categories') {
   assert.equal(data.ok, true);
   const today = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Helsinki'}).format(new Date());
   const titleOf = row => String(row.productName || row.title || row.name);
+  // Compare against the actual production Lidl response to diagnose missing
+  // publications without inserting or mocking any products into the test.
+  try {
+    const productionUrl = new URL(response.url());
+    productionUrl.host = 'ziiply.vercel.app';
+    productionUrl.protocol = 'https:';
+    const productionResponse = await fetch(productionUrl, {signal:AbortSignal.timeout(35000)});
+    if (productionResponse.ok) {
+      const production = await productionResponse.json();
+      const localNames = new Set(data.results.map(row => titleOf(row).trim().toLocaleLowerCase('fi')));
+      const missing = (production.results || []).filter(row => !localNames.has(titleOf(row).trim().toLocaleLowerCase('fi')));
+      console.log('LIDL PRODUCTION COVERAGE',tag,JSON.stringify({
+        productionCount:(production.results || []).length,localCount:data.results.length,
+        missingFromLocal:missing.map(row => titleOf(row)).slice(0,35),
+        productionHasPistachioCake:(production.results || []).some(row => /pistaasi.*juustokakku/i.test(titleOf(row))),
+        productionAudit:production.lidlSourceAudit || null,
+      }));
+    } else console.log('LIDL PRODUCTION COVERAGE unavailable',tag,productionResponse.status);
+  } catch (error) {
+    console.log('LIDL PRODUCTION COVERAGE unavailable',tag,String(error));
+  }
   // Generic source-category audit across all real offers, independent of the
   // named regression products. This catches new misclassifications in either UI.
   const departmentExpectations = [
