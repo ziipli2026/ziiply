@@ -274,21 +274,26 @@ class UncacheableKSearch extends Error {
   }
 }
 
-const getCachedKSearch = unstable_cache(async (storeId: number, search: string) => {
+const K_SEARCH_WINDOW_MS = 30_000;
+
+const getCachedKSearch = unstable_cache(async (storeId: number, search: string, _window: number) => {
   const payload = await fetchKSearch(storeId, search);
   if (!payload.items.length || payload.pagination.events.some(event =>
     event.status !== "ok" && event.status !== "empty"
   )) throw new UncacheableKSearch(payload);
   return payload;
-}, ["k-normal-search-snapshot-v1"], { revalidate: 30 });
+}, ["k-normal-search-snapshot-v2"], { revalidate: 120 });
 
 const inFlightKSearches = new Map<string, Promise<KSearchPayload>>();
 
 function readNormalKSearch(storeId: number, search: string) {
-  const key = JSON.stringify([storeId, search]);
+  // A new window uses a new cache key, so it waits for a fresh response.
+  // Keep entries fresh in the Data Cache throughout their usable window.
+  const window = Math.floor(Date.now() / K_SEARCH_WINDOW_MS);
+  const key = JSON.stringify([storeId, search, window]);
   const existing = inFlightKSearches.get(key);
   if (existing) return existing;
-  const pending = getCachedKSearch(storeId, search)
+  const pending = getCachedKSearch(storeId, search, window)
     .catch(error => {
       if (error instanceof UncacheableKSearch) return error.payload;
       throw error;
