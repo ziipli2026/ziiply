@@ -139,7 +139,12 @@ if (mode === 'categories') {
   // parser/browser regression that should work for any future publication.
   for (const row of data.results) {
     assert.ok(titleOf(row).trim(), 'Offer without product name');
-    assert.ok(Number(row.offerPrice ?? row.price) > 0, 'Offer without positive price');
+    assert.ok(Number(row.offerPrice ?? row.price) > 0,
+      'Offer without positive price: '+JSON.stringify({
+        title:titleOf(row),source:row.source,id:row.id,
+        price:row.price,offerPrice:row.offerPrice,priceText:row.priceText,
+        sourceUrl:row.sourceUrl,campaignType:row.campaignType,
+      }));
     if (row.validFrom && row.validUntil) {
       assert.ok(row.validFrom.slice(0,10) <= today && row.validUntil.slice(0,10) >= today,
         'Expired or future offer: '+titleOf(row));
