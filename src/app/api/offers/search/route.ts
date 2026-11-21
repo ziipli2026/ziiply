@@ -910,8 +910,11 @@ export async function GET(request: Request) {
         const verifiedCategory = offer.neonCategoryMatch === "ean"
           ? firstString(offer.neonDisplayCategory, offer.neonCategoryPath)
           : "";
-        const category = verifiedCategory || sourceCategory || departmentCategory;
-        if (!category) return offer;
+        // A merchandising shelf is never sufficient evidence for a product
+        // category. Preserve only product-level taxonomy, and exclude unknowns
+        // from the grocery view rather than mislabel them as frozen or produce.
+        const category = verifiedCategory || (sourceCategory !== "Muut" ? sourceCategory : "");
+        if (!category) return { ...offer, category: "Muut" };
         const source = offer.__sourceOfferSearchResult;
         return {
           ...offer, category, categoryPath: category, mainCategory: category,
