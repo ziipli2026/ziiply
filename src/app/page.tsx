@@ -14320,9 +14320,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const attach = async (key: "lidl" | "tokmanni", quotes: ReturnType<typeof fetchLidlBasketQuotes>) => {
           const products: Product[] = (await quotes).map((quote, index) => ({ ...quote, id: index }));
           const exact = ean ? products.find(product => product.ean === ean) : undefined;
-          const product = exact || (key === "tokmanni" ? pickBestSProduct(
-            products.filter(candidate => isComparisonAttributeCompatible(name, candidate.name)), name
-          ) : undefined);
+          const normalizedName = name.normalize("NFC").toLocaleLowerCase("fi");
+          const rollCount = normalizedName.match(/\b(\d+)\s*(?:rl|rullaa)\b/)?.[1];
+          const compatible = key === "tokmanni" ? products.filter(candidate =>
+            isComparisonAttributeCompatible(name, candidate.name) &&
+            (!rollCount || candidate.name.toLocaleLowerCase("fi").match(/\b(\d+)\s*(?:rl|rullaa)\b/)?.[1] === rollCount)
+          ) : [];
+          const exactNames = compatible.filter(candidate => candidate.name.normalize("NFC").trim().toLocaleLowerCase("fi") === normalizedName);
+          const product = exact || (exactNames.length === 1 ? exactNames[0] : pickBestSProduct(compatible, name));
           if (!product || !product.price || product.price < 0.05) return;
           independentResult[key][item.id] = {
             product: { ...product, storeName: key === "lidl" ? selectedLidlStoreV750?.name : "Tokmanni / SPAR verkkovalikoima" },
