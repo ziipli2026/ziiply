@@ -9,7 +9,7 @@ await p.addInitScript(({mode})=>{
  const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S'},k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'},l={id:'FI0218',name:'Lidl Hyvinkää',chain:'LIDL'};
  const many=mode!=='one' && mode!=='normal',lidl=mode!=='control',betweenMode=many?'many':'one';
  const item={id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',quantity:1,price:1.79,chain:'S',source:'search',product:{id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',price:179}};
- if (mode !== 'offers' && mode !== 'normal') {
+ if (mode !== 'offers' && mode !== 'offers-stale' && mode !== 'normal') {
  localStorage.setItem('ziiply-cart-v1',JSON.stringify({items:[item],savedAt:Date.now()}));
  sessionStorage.setItem('ziiply-active-panel-v812','cart');
  sessionStorage.setItem('ziiply-desktop-current-cart-v1',JSON.stringify([item]));
