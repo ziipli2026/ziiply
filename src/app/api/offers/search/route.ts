@@ -869,7 +869,7 @@ export async function GET(request: Request) {
       // product names or legacy Neon categories. Only first-party /h/ category
       // paths are authoritative; product and campaign URLs are not categories.
       const lidlDepartmentCategory = (offer: UnknownRecord): string => {
-        const raw = firstString(offer.sourceUrl, offer.productUrl);
+        const raw = firstString(offer.sourceUrl, offer.productUrl, asRecord(offer.__sourceOfferSearchResult)?.sourceUrl, asRecord(offer.__sourceOfferSearchResult)?.productUrl);
         let pathname = "";
         try {
           const url = new URL(raw);
