@@ -2617,6 +2617,17 @@ export default function DesktopPreviewPage() {
     report("stores",{stores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)}))});
     if(!diagnostic)traceNormal("selected_stores",{stores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)}))});
     if(!diagnostic)setJustiinaDebug({query,selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),sStore:s?.name||null,kStore:k?.name||null,status:"Haku käynnissä"});
+    // A single selected Lidl has no verified normal-price search. Stop before any provider request.
+    if (betweenMode === "one" && selected.length === 1 && storeKind(selected[0]) === "lidl") {
+      report("lidl_normal_search_blocked", {query, mode:"one"});
+      if (!diagnostic) {
+        setJustiinaResults([]);
+        setJustiinaResultsOpen(false);
+        setJustiinaLoading(false);
+        setJustiinaMessage("Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.");
+      }
+      return false;
+    }
     const independent = selected.filter(store => ["lidl", "spar"].includes(storeKind(store)));
     if(!s&&!k&&!independent.length){report("validation_error",{error:"Valitse ensin kauppa."});if(!diagnostic)setJustiinaMessage("Valitse ensin kauppa.");return false;}
     if(!diagnostic){
