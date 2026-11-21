@@ -902,42 +902,15 @@ export async function GET(request: Request) {
         // Source audit: classify by product form only if it is actually a bakery
         // product, not simply because the imported shelf label says bakery.
         const productName = normalizeText(firstString(offer.name, offer.title, offer.productName));
-        // Lidl's /h/ department is a merchandising shelf, not always the
-        // finished-product category. A verified baked dessert can be listed
-        // under dairy because it contains cheese: keep the parser's product-form
-        // classification rather than overwriting it with that shelf.
-        // A finished baked dessert remains bakery regardless of which Lidl
-        // merchandising shelf or older category carried the imported record.
-        // Product-form classification must not depend on the shelf being dairy.
-        // A Lidl landing-page department is a merchandising location, not
-        // proof of a product's physical form. In particular, fresh lettuce
-        // must not become a ready meal, and an unfrozen dough must not become
-        // a frozen product just because its name contains "taikina".
-        // Reject non-food merchandise before applying any grocery category.
-        // "Jäätelökärry" is a toy, not ice cream; source department and
-        // legacy Neon enrichment must not reintroduce it as a frozen food.
-        const nonFoodMerchandise = /(?:^|\\s)(?:lupilu|lelu\\w*|leikkikalu\\w*|leikkisetti\\w*|leikkikeitti[oö]\\w*|puinen|puulelu\\w*|parkside|silvercrest|esmara|livarno)(?:\\s|$)|j[aä][aä]tel[oö]k[aä]rry|makeiskoju/.test(productName);
-        if (nonFoodMerchandise) return { ...offer, category: "Muut", categoryPath: "Muut", mainCategory: "Muut" };
-        const preparedSalad = /(?:salaattiateria|ateriasalaatti|salaattiannos|valmissalaatti|ruokaisa salaatti|valkokaalisalaatti)/.test(productName);
-        const freshSalad = /(?:salaattisekoitus|salaattipussi|salaattiker[aä]|salaatinlehti|ja[aä]vuorisalaatti|romainesalaatti|lehtisalaatti|ker[aä]salaatti|j[aä][aä]salaatti|salaatti)/.test(productName);
-        const explicitFrozen = /(?:pakaste|pakastettu|pakastetaikina|j[aä][aä]tel[oö])/.test(productName);
-        const finishedBakery = /(?:juustokakku|kakku|torttu|leivos)/.test(productName) && !/taikina/.test(productName);
-        // Fish cuts must not inherit the frozen-food category from a mixed
-        // Lidl landing page. Explicit freezing in the product name still wins.
-        const fishProduct = /(?:lohifilee|kirjolohifilee|lohi filee|kirjolohi|kalafilee|seiti|ahvenfilee|kuhafilee|tonnikala)/.test(productName);
-        // A prepared dish is not fresh produce even when its name contains
-        // a vegetable. This precedence must hold after Neon enrichment.
-        const preparedDish = /(?:perunapaistos|perunalaatikko|kiusaus|lasagne|valmisateria|valmisruoka|pizza|pitsa|risotto)/.test(productName);
-        const productFormCategory = preparedSalad || preparedDish
-          ? "Valmisruoka"
-          : explicitFrozen ? "Pakasteet"
-          : fishProduct ? "Kala"
-          : freshSalad ? "Hevi"
-          : finishedBakery ? "Leipomo"
+        // Category resolution must use provenance, not a list of example
+        // product names. EAN-verified taxonomy wins; the provider's own
+        // classification is next. Lidl's /h/ page is a merchandising shelf,
+        // so it is only a fallback when no product category exists.
+        // Never promote an unverified shelf assignment to a verified product.
+        const verifiedCategory = offer.neonCategoryMatch === "ean"
+          ? firstString(offer.neonDisplayCategory, offer.neonCategoryPath)
           : "";
-        const category = productFormCategory ||
-          (offer.neonCategoryMatch === "ean" ? firstString(offer.neonDisplayCategory) : "") ||
-          departmentCategory || sourceCategory;
+        const category = verifiedCategory || sourceCategory || departmentCategory;
         if (!category) return offer;
         const source = offer.__sourceOfferSearchResult;
         return {
