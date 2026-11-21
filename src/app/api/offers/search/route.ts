@@ -914,7 +914,7 @@ export async function GET(request: Request) {
         // must not become a ready meal, and an unfrozen dough must not become
         // a frozen product just because its name contains "taikina".
         const preparedSalad = /(?:salaattiateria|ateriasalaatti|salaattiannos|valmissalaatti|ruokaisa salaatti|valkokaalisalaatti)/.test(productName);
-        const freshSalad = /(?:^|\\s)(?:jaavuori|ker[aä]|lehti|j[aä][aä]vuori|romaine|j[aä][aä]salaatti|salaatti)(?:\\s|$)/.test(productName) || /(?:salaattisekoitus|salaattipussi|salaattiker[aä]|salaatinlehti)/.test(productName);
+        const freshSalad = /(?:salaattisekoitus|salaattipussi|salaattiker[aä]|salaatinlehti|ja[aä]vuorisalaatti|romainesalaatti|lehtisalaatti|ker[aä]salaatti|j[aä][aä]salaatti|salaatti)/.test(productName);
         const explicitFrozen = /(?:pakaste|pakastettu|pakastetaikina|j[aä][aä]tel[oö])/.test(productName);
         const finishedBakery = /(?:juustokakku|kakku|torttu|leivos)/.test(productName) && !/taikina/.test(productName);
         const productFormCategory = preparedSalad
@@ -925,7 +925,7 @@ export async function GET(request: Request) {
           : "";
         const category = productFormCategory ||
           (offer.neonCategoryMatch === "ean" ? firstString(offer.neonDisplayCategory) : "") ||
-          sourceCategory || departmentCategory;
+          departmentCategory || sourceCategory;
         if (!category) return offer;
         const source = offer.__sourceOfferSearchResult;
         return {
