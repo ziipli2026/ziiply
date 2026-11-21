@@ -877,13 +877,18 @@ export async function GET(request: Request) {
         else if (/uuniperuna/.test(title)) category = "Hevi";
         else if (/torttutaikina|piparitaikina/.test(title)) category = "Pakasteet";
         else if (/lohifilee|kalafilee/.test(title) && !/pakast/.test(title)) category = "Kala";
-        if (!category) return offer;
+        // Synchronize every Lidl result, not just titles matched by a fallback
+        // rule. The mobile card can otherwise display a stale nested category
+        // after the shared Neon enrichment has updated the top-level result.
+        const effectiveCategory = category || firstString(offer.category);
+        if (!effectiveCategory) return offer;
         const source = offer.__sourceOfferSearchResult;
         return {
-          ...offer, category, categoryPath: category, mainCategory: category,
-          neonDisplayCategory: category,
+          ...offer, category: effectiveCategory, categoryPath: effectiveCategory,
+          mainCategory: effectiveCategory, neonDisplayCategory: effectiveCategory,
           __sourceOfferSearchResult: source && typeof source === "object" && !Array.isArray(source)
-            ? { ...(source as UnknownRecord), category, categoryPath: category, mainCategory: category, neonDisplayCategory: category }
+            ? { ...(source as UnknownRecord), category: effectiveCategory, categoryPath: effectiveCategory,
+                mainCategory: effectiveCategory, neonDisplayCategory: effectiveCategory }
             : source,
         };
       });
