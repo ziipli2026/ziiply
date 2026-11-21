@@ -149,7 +149,8 @@ if (mode === 'categories') {
     // A Lidl merchandising shelf can differ from the finished food type:
     // baked cakes belong to bakery even when shelved under dairy.
     const bakedDessert = /(?:juustokakku|kakku|torttu|leivos)/i.test(titleOf(row));
-    const expected = shelfCategory === 'Maitotuotteet' && bakedDessert ? 'Leipomo' : shelfCategory;
+    const unbakedDough = /taikina/i.test(titleOf(row));
+    const expected = unbakedDough ? 'Pakasteet' : bakedDessert ? 'Leipomo' : shelfCategory;
     if (!expected) continue;
     auditedDepartments++;
     assert.equal(row.category, expected, `Lidl department ${department}: ${titleOf(row)}`);
