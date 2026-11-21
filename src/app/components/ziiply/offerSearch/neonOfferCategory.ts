@@ -79,66 +79,6 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (/mausteet-ja-maustaminen|kastikkeet/.test(parent)) return "Kuivatuotteet";
   return null; // Unknown detailed categories must not be guessed.
 }
-// Only return detailed paths that are already present in the Neon product registry.
-// Ambiguous products intentionally remain uncategorized for review.
-function inferExistingCategoryFromName(name: string): string | null {
-  const text = name.toLocaleLowerCase("fi").normalize("NFKC").split(" ").filter(Boolean).join(" ").trim();
-  const rules: Array<{ terms: string[]; category: string }> = [
-    { terms: ["hammastahna", "toothpaste"], category: "kosmetiikka-terveys-ja-hygienia/suunhoito/hammastahnat" },
-    { terms: ["suihkusaippua", "suihkugeeli", "shower gel", "shower cream"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/suihkusaippuat" },
-    { terms: ["eyeliner", "maskara", "meikkipuikko", "meikkivoide", "huulipuna"], category: "kosmetiikka-terveys-ja-hygienia/meikit/kasvomeikit" },
-    { terms: ["hiuskiinne", "hairspray", "rakennesuihke", "dry texture spray", "lämpösuoja", "heat protection", "volyymivaahto", "root boost mousse"], category: "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet" },
-    { terms: ["aitokanerva", "ruukkukanerva", "ruukkukasvi"], category: "koti-ja-vapaa-aika/kukat-ja-kasvit/ruukkukasvit" },
-    { terms: ["leikkokukka", "kukkakimppu", "kimppu"], category: "koti-ja-vapaa-aika/kukat-ja-kasvit/leikkokukat-ja-kimput" },
-    { terms: ["muikku", "kirjolohifilee", "savusiika", "tuore kala", "lohifilee", "kalafilee"], category: "kala-ja-merenelavat/kala/tuore-kala" },
-    { terms: ["mehujuoma", "kerta-annosmehu"], category: "juomat/mehut/kerta-annosmehut" },
-    { terms: ["mausteseos", "spice mix"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
-    { terms: ["käsiastianpesuaine", "kasiastianpesuaine", "astianpesuaine"], category: "kodinhoito-ja-taloustarvikkeet/astianpesu/kasiastianpesuaineet" },
-    { terms: ["makeissekoitus", "makesissekoitus"], category: "karkit-suklaat-ja-keksit/karkkipussit/hedelma-ja-makeissekoituspussit" },
-    { terms: ["taco sauce", "tacokastike"], category: "mausteet-ja-maustaminen/majoneesit-maustekastikkeet-ja-tahnat/majoneesit-maustekastikkeet-ja-tahnat" },
-    { terms: ["spice mix"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
-    { terms: ["nacho chips"], category: "texmex-ja-maailman-makuja/maissilastut-ja-nachot/maustamattomat-lastut" },
-    { terms: ["granola"], category: "kuivat-elintarvikkeet-ja-leivonta/murot-ja-myslit/myslit" },
-    { terms: ["minuuttipihvi maustamaton"], category: "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat" },
-    { terms: ["taco shells", "tacokuoret", "mini taco tubs"], category: "texmex-ja-maailman-maut/texmex/texmex-lisukkeet" },
-    { terms: ["tex mex salsa dip", "dip nacho cheese", "dip tex mex", "dippi jalapeñoilla", "chipotle chili mayo", "creamy garlic mayo", "lime & jalapeño mayo", "salsa dip medium", "green jalapeño"], category: "texmex-ja-maailman-maut/texmex/texmex-kastikkeet" },
-    { terms: ["jasmiiniriisi"], category: "pastat-riisit-ja-nuudelit/riisit/riisit" },
-    { terms: ["haarukkavatkain", "paistinlasta"], category: "koti-ja-vapaa-aika/keittio-ja-ruokailu/keittiovalineet" },
-    { terms: ["scanpot alusvati", "scanpot saviruukku"], category: "koti-ja-vapaa-aika/kukat-ja-kasvit/ruukut-ja-istutusastiat" },
-    { terms: ["snö of sweden"], category: "koti-ja-vapaa-aika/asusteet-ja-korut/korut" },
-    { terms: ["lanka nalle raita"], category: "koti-ja-vapaa-aika/kasityot/neulelangat" },
-    { terms: ["kookosöljy", "rypsiöljy"], category: "oljyt-etikat-ja-salaattikastikkeet/oljyt/erikoisoljyt" },
-    { terms: ["maalaispossun maustettu uunifilee", "iberico"], category: "liha-ja-kasviproteiinit/porsas/fileet-kyljykset-ja-pihvit" },
-    { terms: ["mannafrutti"], category: "maito-juusto-munat-ja-rasvat/maitotuotteet/vanukkaat-ja-välipalat" },
-    { terms: ["mentos discovery"], category: "karkit-suklaat-ja-keksit/karkkipussit/pastillit-ja-purukumit" },
-    { terms: ["shield & shape", "rakennesuihke", "hiuskiinne", "hairspray", "dry texture spray"], category: "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet" },
-    { terms: ["antiseptinen suihke", "q10 ubikinoni", "dekspantenoli nenäsuihke"], category: "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/muut-terveysvalmisteet" },
-    { terms: ["pyykinpesuneste"], category: "kodinhoito-ja-taloustarvikkeet/pyykinpesu/pyykinpesunesteet" },
-    { terms: ["inkontinenssiside", "inkontinenssisuoja"], category: "kosmetiikka-terveys-ja-hygienia/intiimihygienia/inkontinenssisuojat" },
-    { terms: ["vartaloseerumi"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/vartaloseerumit" },
-    { terms: ["deodorantti"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/deodorantit" },
-    { terms: ["hammastikku"], category: "kosmetiikka-terveys-ja-hygienia/suunhoito/hammastikut" },
-    { terms: ["shampoo", "kuivashampoo"], category: "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/shampoot" },
-    { terms: ["body lotion mousse", "vartalovoide"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/vartalovoiteet" },
-    { terms: ["off! pehmeä tehosuihke"], category: "koti-ja-vapaa-aika/piha-ja-puutarha/hyonteiskarkotteet" },
-    { terms: ["dentastix"], category: "lemmikit/koirat/koiranherkut" },
-    { terms: ["oneblade 360"], category: "kosmetiikka-terveys-ja-hygienia/ihokarvojen-poisto/partakoneiden-vaihtoterat" },
-    { terms: ["actimel jogurttijuoma"], category: "maito-juusto-munat-ja-rasvat/jogurtit/terveysvaikutteiset-jogurtit" },
-    { terms: ["fazer aito kasvipohjainen gurtti"], category: "maito-juusto-munat-ja-rasvat/jogurtit/maidottomat-jogurtit" },
-    { terms: ["naudan jauheliha"], category: "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha" },
-    { terms: ["mehu-kivennäisvesijuoma", "mehuvichy"], category: "juomat/kivennais--ja-lahdevedet/maustetut-kivennaisvedet" },
-    { terms: ["poppamies rub one for all"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
-    { terms: ["primacat classic lohta kastikkeessa"], category: "lemmikit/kissat/kissan-markaruoka" },
-    { terms: ["pirkka puolukkahillo", "maribel hillo"], category: "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot" },
-    { terms: ["snellman maatiaispossun nopea ja murea fileepihvi"], category: "liha-ja-kasviproteiinit/porsas/fileet-kyljykset-ja-pihvit" },
-    { terms: ["talouspaperi"], category: "kodinhoito-ja-taloustarvikkeet/kodin-paperit/talouspaperit" },
-  ];
-  for (const rule of rules) {
-    if (rule.terms.some(term => text.includes(term))) return rule.category;
-  }
-  return null;
-}
-
 export async function enrichOfferCategoriesFromNeon<T extends Record<string, any>>(offers: T[]): Promise<T[]> {
   const url = process.env.DATABASE_URL;
   if (!url || !offers.length) return offers;
