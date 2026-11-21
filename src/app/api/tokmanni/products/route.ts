@@ -199,7 +199,10 @@ export async function GET(request: Request) {
   const search = String(searchParams.get("search") || "").trim();
   // Preserve the user intent when the client expands the provider query into aliases.
   const intent = String(searchParams.get("intent") || search).trim();
-  if (!search) return NextResponse.json({ source: "tokmanni-klevu", items: [] });
+  const exactComparison = searchParams.get("verifyEan") === "1";
+  if (!search || (exactComparison && !validComparisonEan(search))) {
+    return NextResponse.json({ source: "tokmanni-klevu", items: [] });
+  }
 
   let items: any[] = [];
   let source = "tokmanni-klevu";
@@ -239,7 +242,6 @@ export async function GET(request: Request) {
   ));
 
   const categorizedItems = applyApprovedSparCategories(filterApprovedSparGroceryItems(filterApprovedSparMilkCategory(filterSparMilkQuery(filterSparHumanFoodIntent(items, intent), intent), intent, SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX), SPAR_APPROVED_INDEX);
-  const exactComparison = searchParams.get("verifyEan") === "1" && validComparisonEan(search);
   if (exactComparison) {
     const candidates = categorizedItems.filter(item => String(item.productUrl || "").split(/[?#]/, 1)[0].endsWith("-" + search));
     const verified = candidates.length === 1 ? await confirmComparisonEan(candidates[0], search) : null;
