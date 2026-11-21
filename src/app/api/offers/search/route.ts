@@ -899,13 +899,17 @@ export async function GET(request: Request) {
       const results = neonEnriched.map((offer): UnknownRecord => {
         const departmentCategory = lidlDepartmentCategory(offer);
         const sourceCategory = firstString(offer.category);
+        // Source audit: classify by product form only if it is actually a bakery
+        // product, not simply because the imported shelf label says bakery.
+        const productName = normalizeText(firstString(offer.name, offer.title, offer.productName));
         // Lidl's /h/ department is a merchandising shelf, not always the
         // finished-product category. A verified baked dessert can be listed
         // under dairy because it contains cheese: keep the parser's product-form
         // classification rather than overwriting it with that shelf.
         const productFormCategory =
-          sourceCategory === "Leipomo" && departmentCategory === "Maitotuotteet"
-            ? sourceCategory : "";
+          departmentCategory === "Maitotuotteet" &&
+          /(?:juustokakku|kakku|torttu|leivos)/.test(productName)
+            ? "Leipomo" : "";
         const category = productFormCategory || departmentCategory ||
           (offer.neonCategoryMatch === "ean" ? firstString(offer.neonDisplayCategory) : "") ||
           sourceCategory;
