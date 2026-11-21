@@ -12253,7 +12253,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
-    const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
+    // Gösta must never inherit a previous normal-search term implicitly.\n    const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : [];
 
     // V160: Göstan oma override (esim. kategoriat "Kahvi", "Liha") ei saa
     // kirjoittaa normaaliin Hae-kortin inputtiin. Muuten taustapäivitys voi
@@ -12579,7 +12579,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         if (!currentStoreV786 || (!sameIdV786 && !sameNameV786)) {
           if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
-            void searchOffers(hasExplicitOverride ? cleanedOverride : undefined);
+            void searchOffers(hasExplicitOverride ? cleanedOverride : "");
           }
           return;
         }
@@ -19788,7 +19788,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setCartModalOpen(false);
     setShopsPanelOpen(false);
     setCartSavePanelOpen(false);
-    void searchOffers();
+    void searchOffers(terms.join(", "));
   }
 
   function getMatchEan(match: Match) {
