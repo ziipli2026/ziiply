@@ -19127,9 +19127,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
   }
 
+  const singleLidlComparison = storeCompareScope === "between_chains" &&
+    betweenChainSelectionModeV749 === "one" && selectedChains.lidl;
+
   function openComparisonView() {
     if (cart.length === 0) {
       showCartToast("Lisää ensin tuote koriin.");
+      return;
+    }
+
+    if (singleLidlComparison) {
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setComparisonLoading(false);
+      setActiveResult("compare");
       return;
     }
 
@@ -25080,7 +25093,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
           <ZiiplyMobileCompareCard
             open
-            stores={(displayedChainResultsV821.length > 0
+            stores={singleLidlComparison
+              ? [{ id: "lidl", name: "Lidl", chain: "LIDL" as const }]
+              : (displayedChainResultsV821.length > 0
               ? displayedChainResultsV821
                   .filter((result) => result.key !== "lidl" || selectedChains.lidl)
                   .map((result) => ({
