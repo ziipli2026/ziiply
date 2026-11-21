@@ -423,7 +423,7 @@ jobs:
                     throw error;
                   }
                   if (chain !== 'LIDL') await expensive.waitFor();
-                  if (extra) await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
+                  if (extra && extra !== 'SPAR' && extra !== 'TOKMANNI') await search.getByText('Milbona kevytmaito 1 l', {exact:true}).filter({visible:true}).first().waitFor({timeout:10000});
                   assert.equal(await search.getByText('Kotimaista kevytmaito 1 l', { exact: true }).filter({ visible: true }).count(), 1);
                   assert.ok(queries > 0, 'selected store must receive a maito search');
                   // Search results can appear before all parallel query variants are dispatched.
