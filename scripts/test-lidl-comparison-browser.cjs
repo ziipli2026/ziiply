@@ -34,10 +34,12 @@ await p.route('**/api/**', async route => {
   }
   if ((mode === 'offers' || mode === 'offers-stale') && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
     try {
-      const response = await fetch(new URL(url.pathname + url.search, 'https://ziiply.vercel.app'), {signal:AbortSignal.timeout(35000)});
+      // Exercise this branch's actual Lidl API, not the separately deployed
+      // production endpoint (which is unreachable from some CI containers).
+      const response = await route.fetch({timeout:110000});
       const data = await response.json();
-      lidlResponses.push({status:response.status, key:url.searchParams.get('lidlStoreKey'), data});
-      await route.fulfill({status:response.status,json:data});
+      lidlResponses.push({status:response.status(), key:url.searchParams.get('lidlStoreKey'), data});
+      await route.fulfill({response,json:data});
     } catch (error) {
       console.error(tag, 'live Lidl provider', error.message);
       await route.fulfill({status:502,json:{ok:false,results:[]}});
