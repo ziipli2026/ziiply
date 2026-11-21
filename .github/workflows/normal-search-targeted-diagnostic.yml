@@ -55,7 +55,7 @@ jobs:
       - name: Compare one live query and log provider response versions
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          ZIIPLY_LIVE_URL: https://ziiply-1cylefpw6-ziipli2026s-projects.vercel.app
+          ZIIPLY_LIVE_URL: https://ziiply-f2050du3p-ziipli2026s-projects.vercel.app
           NORMAL_SEARCH_SINGLE_QUERY: ${{ matrix.query }}
         run: |
           test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || exit 1
