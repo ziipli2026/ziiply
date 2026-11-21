@@ -5186,6 +5186,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const comparisonItemRequestsRef = useRef<Map<string, Promise<{ s: Match | null; k: Match | null; failed: boolean }>>>(new Map());
   const comparisonWarmResultsRefV809 = useRef<Map<string, { savedAt: number; result: { s: Match | null; k: Match | null; failed: boolean } }>>(new Map());
   const comparisonUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [tokmanniComparison, setTokmanniComparison] = useState<{
+    key: string; matches: Record<string, Match>;
+  } | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
   const [kMatches, setKMatches] = useState<Record<string, Match>>({});
   const [expandedAlternatives, setExpandedAlternatives] = useState<
@@ -9871,6 +9874,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }).filter((match) => Number.isFinite(match.price) && match.price > 0);
     const visibleSListV804 = normalizeVisibleMatchesV804(sList);
     const visibleKListV804 = normalizeVisibleMatchesV804(kList);
+    const tokmanniList = tokmanniComparison?.key === getComparisonCacheKey(comparableCart)
+      ? normalizeVisibleMatchesV804(Object.values(tokmanniComparison.matches))
+      : [];
     const sTotal = visibleSListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
     const kTotal = visibleKListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
 
@@ -9954,15 +9960,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {
               key: "tokmanni",
               chain: "Tokmanni / Spar",
-              storeName: "Tokmanni / Spar alueella",
-              detail: "Hintadata lisätään myöhemmin",
-              totalPrice: 0,
-              foundItems: 0,
-              missingItems: comparableCart.length,
+              storeName: selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "Tokmanni / SPAR",
+              detail: "Tokmanni / SPAR verkkovalikoima",
+              totalPrice: tokmanniList.reduce((sum, match) => sum + match.price * match.quantity, 0),
+              foundItems: tokmanniList.length,
+              missingItems: comparableCart.length - tokmanniList.length,
               offerCount: 0,
               icon: "🟡",
-              matches: [],
-              comingSoon: true,
+              matches: tokmanniList,
             },
           ];
 
@@ -10000,6 +10005,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     comparableCart,
     sMatches,
     kMatches,
+    tokmanniComparison,
+    selectedTokmanniStoreV756,
+    selectedEurosparStoreV751,
     activeStores,
     activeArea,
     storeCompareScope,
@@ -13701,7 +13709,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 19,
+      schema: 20,
       items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source, (item as CartItem & {recipeIngredient?:RecipeIngredient}).recipeIngredient]),
       stores:
         storeCompareScope === "within_chain"
@@ -13710,7 +13718,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             : withinChain === "K"
               ? [activeArea.kStoreId, activeArea.kLocalStoreId, activeArea.kStoreName, activeArea.kLocalStoreName]
               : []
-          : [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName],
+          : [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, selectedChains.s, selectedChains.k, selectedChains.tokmanni, selectedTokmanniStoreV756?.id, selectedEurosparStoreV751?.id],
       storeMode, storeCompareScope, withinChain,
     });
   }
@@ -13720,7 +13728,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ids: items.map(item => [item.id, item.quantity, item.ean, item.product?.ean, item.name, item.source]),
       stores: storeCompareScope === "within_chain"
         ? [withinChain, activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.kStoreId, activeArea.kLocalStoreId]
-        : [activeStores.sStoreId, activeStores.kStoreId],
+        : [activeStores.sStoreId, activeStores.kStoreId, selectedChains.s, selectedChains.k, selectedChains.tokmanni, selectedTokmanniStoreV756?.id, selectedEurosparStoreV751?.id],
       storeCompareScope, withinChain, storeMode,
     });
   }
@@ -14300,7 +14308,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       comparisonRawCountsV801.current = { s: 0, k: 0, sCalls: 0, kCalls: 0, errors: 0 };
       setComparisonDiagnosticV800(`Rajapintahaku käynnissä · ${comparisonCartV738.length} tuoteriviä`);
-      const itemMatches = await Promise.all(comparisonCartV738.map((item) => getComparisonItemMatches(item)));
+      const [itemMatches, tokmanniMatches] = await Promise.all([
+        Promise.all(comparisonCartV738.map((item) => getComparisonItemMatches(item))),
+        storeCompareScope === "between_chains" && selectedChains.tokmanni &&
+          (selectedTokmanniStoreV756 || selectedEurosparStoreV751)
+          ? Promise.all(comparisonCartV738.map(async (item): Promise<Match | null> => {
+              const ean = normalizeEan(item.ean || item.product?.ean);
+              const name = item.name || item.product?.name || "";
+              if (!ean && !name) return null;
+              try {
+                const candidates = await fetchTokmanniProductsV761(ean || name, name || ean);
+                const product = ean
+                  ? candidates.find((candidate) => normalizeEan(candidate.ean) === ean && getProductPrice(candidate) > 0)
+                  : pickBestSProduct(candidates.filter((candidate) =>
+                      getProductPrice(candidate) > 0 && isComparisonAttributeCompatible(name, candidate.name)), name);
+                if (!product || getProductPrice(product) <= 0) return null;
+                return { product, price: getProductPrice(product) / 100, quantity: item.quantity,
+                  matchType: ean ? "ean" : "name", cartItemId: item.id };
+              } catch {
+                return null;
+              }
+            }))
+          : Promise.resolve([]),
+      ]);
       let failed = false;
       comparisonCartV738.forEach((item, index) => {
         const match = itemMatches[index];
@@ -14311,7 +14341,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (comparisonCacheKeyRef.current === cacheKey) {
         setComparisonDiagnosticV800(`API: S ${comparisonRawCountsV801.current.s} tuotetta / ${comparisonRawCountsV801.current.sCalls} kutsua · K ${comparisonRawCountsV801.current.k} tuotetta / ${comparisonRawCountsV801.current.kCalls} kutsua · virheitä ${comparisonRawCountsV801.current.errors} · vastineet/kori S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length}${failed ? " · matcher-virhe" : ""}`);
-        const noComparisonMatchesV810 = comparisonCartV738.length > 0 &&
+        const pricedTokmanniMatches = tokmanniMatches.filter((match): match is Match => match !== null);
+        setTokmanniComparison({ key: cacheKey,
+          matches: Object.fromEntries(pricedTokmanniMatches.map((match) => [match.cartItemId, match])) });
+        const noComparisonMatchesV810 = pricedTokmanniMatches.length === 0 && comparisonCartV738.length > 0 &&
           !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length;
         // A transient empty provider response is not proof that priced basket
         // products have no counterpart. Never announce or cache it as success.
@@ -19230,7 +19263,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Never open two empty comparison baskets without starting a request.
     const selectedComparisonStoresReady =
       storeCompareScope === "between_chains"
-        ? Boolean(activeStores.sStoreId && activeStores.kStoreId)
+        ? [
+            selectedChains.s && activeStores.sStoreId,
+            selectedChains.k && activeStores.kStoreId,
+            selectedChains.tokmanni && (selectedTokmanniStoreV756 || selectedEurosparStoreV751),
+            selectedChains.lidl && selectedLidlStoreV750,
+          ].filter(Boolean).length >= 2
         : storesReadyForSearch;
     if (selectedComparisonStoresReady) {
       // Opening an already completed comparison is navigation, not a new search.
@@ -19282,7 +19320,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setCartModalOpen(false);
     setEanModalOpen(false);
     setComparisonLoading(false);
-    if ([...Object.values(sMatches), ...Object.values(kMatches)].some(match => Number(match.price) > 0)) {
+    if (chainResults.some((result) => result.foundItems > 0)) {
       setActiveResult("compare");
       return;
     }
