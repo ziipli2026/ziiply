@@ -121,7 +121,7 @@ if (mode === 'categories') {
   // Generic source-category audit across all real offers, independent of the
   // named regression products. This catches new misclassifications in either UI.
   const departmentExpectations = [
-    [/liha|makkar|leikkele|broileri|kana/, 'Liha & makkarat'],
+    [/(?:^|-)lihat(?:-|$)|makkar|leikkele|broileri|(?:^|-)kana(?:-|$)/, 'Liha & makkarat'],
     [/leipa|leivonn|paistopiste|kakku/, 'Leipomo'],
     [/kala|merenelav/, 'Kala'],
     [/hedelma|vihannes|hevi/, 'Hevi'],
