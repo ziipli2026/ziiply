@@ -909,14 +909,23 @@ export async function GET(request: Request) {
         // A finished baked dessert remains bakery regardless of which Lidl
         // merchandising shelf or older category carried the imported record.
         // Product-form classification must not depend on the shelf being dairy.
-        const isUnbakedDough = /(?:taikina|taikinalevy|taikinalevyt)/.test(productName);
-        const productFormCategory = isUnbakedDough
-          ? "Pakasteet"
-          : /(?:juustokakku|kakku|torttu|leivos)/.test(productName)
-            ? "Leipomo" : "";
-        const category = productFormCategory || departmentCategory ||
+        // A Lidl landing-page department is a merchandising location, not
+        // proof of a product's physical form. In particular, fresh lettuce
+        // must not become a ready meal, and an unfrozen dough must not become
+        // a frozen product just because its name contains "taikina".
+        const preparedSalad = /(?:salaattiateria|ateriasalaatti|salaattiannos|valmissalaatti|ruokaisa salaatti|valkokaalisalaatti)/.test(productName);
+        const freshSalad = /(?:^|\\s)(?:jaavuori|ker[aä]|lehti|j[aä][aä]vuori|romaine|j[aä][aä]salaatti|salaatti)(?:\\s|$)/.test(productName) || /(?:salaattisekoitus|salaattipussi|salaattiker[aä]|salaatinlehti)/.test(productName);
+        const explicitFrozen = /(?:pakaste|pakastettu|pakastetaikina|j[aä][aä]tel[oö])/.test(productName);
+        const finishedBakery = /(?:juustokakku|kakku|torttu|leivos)/.test(productName) && !/taikina/.test(productName);
+        const productFormCategory = preparedSalad
+          ? "Valmisruoka"
+          : freshSalad ? "Hevi"
+          : explicitFrozen ? "Pakasteet"
+          : finishedBakery ? "Leipomo"
+          : "";
+        const category = productFormCategory ||
           (offer.neonCategoryMatch === "ean" ? firstString(offer.neonDisplayCategory) : "") ||
-          sourceCategory;
+          sourceCategory || departmentCategory;
         if (!category) return offer;
         const source = offer.__sourceOfferSearchResult;
         return {
