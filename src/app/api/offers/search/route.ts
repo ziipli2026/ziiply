@@ -862,7 +862,29 @@ export async function GET(request: Request) {
       // while real groceries must be classified into a concrete grocery category.
       const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
         .filter((offer) => normalizeText(offer.category) !== "muut");
-      const results = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
+      const neonEnriched = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
+      // Final category authority for Lidl: the actual product form takes precedence
+      // over stale staged-publication categories and over broad Neon name matches.
+      // Apply after enrichment, and keep the nested card source in sync on both UIs.
+      const results = neonEnriched.map((offer): UnknownRecord => {
+        const title = normalizeText(firstString(offer.name, offer.title, offer.productName));
+        let category = "";
+        if (/lihapyor|lihapull|lihapihv/.test(title)) category = "Liha & makkarat";
+        else if (/juustokakku|tahtitorttu|leivos|croissant|pulla|munkki/.test(title)) category = "Leipomo";
+        else if (/glogi|mehu|limonadi|smoothie|energiajuoma/.test(title)) category = "Juomat";
+        else if (/uuniperuna/.test(title)) category = "Hevi";
+        else if (/torttutaikina|piparitaikina/.test(title)) category = "Pakasteet";
+        else if (/lohifilee|kalafilee/.test(title) && !/pakast/.test(title)) category = "Kala";
+        if (!category) return offer;
+        const source = offer.__sourceOfferSearchResult;
+        return {
+          ...offer, category, categoryPath: category, mainCategory: category,
+          neonDisplayCategory: category,
+          __sourceOfferSearchResult: source && typeof source === "object" && !Array.isArray(source)
+            ? { ...(source as UnknownRecord), category, categoryPath: category, mainCategory: category, neonDisplayCategory: category }
+            : source,
+        };
+      });
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
