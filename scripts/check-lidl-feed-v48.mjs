@@ -46,8 +46,7 @@ for(const [i,r] of rows.entries()){
  if(!offsetTimestamp||!validCalendar||!validClock||!Number.isFinite(Date.parse(observed)))errors.push(`record ${i}: observation timestamp must be valid ISO 8601 with timezone`);
 }
  if(r.checkoutPriceVerified===true&&(!String(r.priceSource??"").trim()||!String(r.storeId??"").trim()))errors.push(`record ${i}: empty verification provenance`);
- if(r.checkoutPriceVerified===true&&r.priceSource!=="authorized-store-feed"&&r.priceSource!=="verified-store-receipt")errors.push(`record ${i}: checkout verification requires an approved evidence source`);
- if(r.checkoutPriceVerified===true&&r.priceSource==="verified-store-receipt"&&(!String(r.evidenceReference??"").trim()||typeof r.evidenceReference!=="string"))errors.push(`record ${i}: receipt verification requires a nonempty evidence reference`);
+ if(r.checkoutPriceVerified===true&&r.priceSource!=="authorized-store-feed")errors.push(`record ${i}: checkout verification requires an approved evidence source`);
  if(r.checkoutPriceVerified===true&&r.priceSource==="authorized-store-feed"&&(!String(r.evidenceReference??"").trim()||typeof r.evidenceReference!=="string"))errors.push(`record ${i}: authorized feed verification requires a nonempty evidence reference`);
 }
 const validRows=rows.filter(r=>r!==null&&typeof r==="object"&&!Array.isArray(r));

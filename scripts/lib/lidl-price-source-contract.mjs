@@ -7,7 +7,7 @@ export function classifyLidlPriceEvidence(row, expectedStore, now = new Date()) 
   if (!expectedStore || row.storeId !== expectedStore) return rejected("store-mismatch");
   if (row.priceSource === "lidl-fi-public-observation") return rejected("public-observation-not-checkout-verified");
   if (row.priceSource === "lidl-scan-go-user-observation") return rejected("scan-go-observation-not-checkout-verified");
-  if (!["authorized-store-feed", "verified-store-receipt"].includes(row.priceSource) ||
+  if (row.priceSource !== "authorized-store-feed" ||
       row.checkoutPriceVerified !== true || typeof row.evidenceReference !== "string" ||
       !row.evidenceReference.trim()) return rejected("unverified-source");
   const timestamp = value => typeof value === "string" &&
@@ -17,14 +17,8 @@ export function classifyLidlPriceEvidence(row, expectedStore, now = new Date()) 
   const current = now instanceof Date ? now.getTime() : NaN;
   if (![observed, current].every(Number.isFinite)) return rejected("missing-freshness");
   if (observed > current) return rejected("stale-or-future");
-  if (row.priceSource === "verified-store-receipt") {
-    // A receipt proves the checkout price at observedAt, not a future validity period.
-    const receiptFreshUntil = observed + 24 * 60 * 60 * 1000;
-    if (current > receiptFreshUntil) return rejected("stale-or-future");
-  } else {
-    const until = timestamp(row.validThrough);
-    if (!Number.isFinite(until)) return rejected("missing-freshness");
-    if (until < current || until < observed) return rejected("stale-or-future");
-  }
+  const until = timestamp(row.validThrough);
+  if (!Number.isFinite(until)) return rejected("missing-freshness");
+  if (until < current || until < observed) return rejected("stale-or-future");
   return { regularPriceEur: price, comparable: true, reason: "verified" };
 }
