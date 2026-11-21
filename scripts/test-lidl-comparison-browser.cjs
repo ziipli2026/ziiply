@@ -1,7 +1,7 @@
 const {chromium,devices}=require('playwright');
 const assert=require('node:assert/strict');
 (async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{
-await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers','normal',...(desktop?[]:['offers-stale'])].map(async mode=>{
+await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers','categories','normal',...(desktop?[]:['offers-stale'])].map(async mode=>{
 let ctx=await b.newContext(desktop?{viewport:{width:1440,height:1000}}:devices['iPhone 13']);
 const tag=(desktop?'desktop':'mobiili')+' '+mode;
 let p=await ctx.newPage(); const req=[];p.on('request',r=>req.push(r.url()));p.on('pageerror',e=>console.log(tag,'pageerror',e.message));
@@ -9,7 +9,7 @@ await p.addInitScript(({mode})=>{
  const s={id:'634976534',name:'Prisma Hyvinkää',chain:'S'},k={id:'C130',name:'K-Citymarket Hyvinkää',chain:'K'},l={id:'FI0218',name:'Lidl Hyvinkää',chain:'LIDL'};
  const many=mode!=='one' && mode!=='normal',lidl=mode!=='control',betweenMode=many?'many':'one';
  const item={id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',quantity:1,price:1.79,chain:'S',source:'search',product:{id:'milk',name:'Valio kevytmaito 1 l',ean:'6408430106443',price:179}};
- if (mode !== 'offers' && mode !== 'offers-stale' && mode !== 'normal') {
+ if (mode !== 'offers' && mode !== 'categories' && mode !== 'offers-stale' && mode !== 'normal') {
  localStorage.setItem('ziiply-cart-v1',JSON.stringify({items:[item],savedAt:Date.now()}));
  sessionStorage.setItem('ziiply-active-panel-v812','cart');
  sessionStorage.setItem('ziiply-desktop-current-cart-v1',JSON.stringify([item]));
@@ -20,6 +20,10 @@ await p.addInitScript(({mode})=>{
 const lidlResponses = [];
 await p.route('**/api/**', async route => {
   const url = new URL(route.request().url());
+  if (mode === 'categories' && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
+    await route.continue();
+    return;
+  }
   if ((mode === 'offers' || mode === 'offers-stale') && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
     try {
       const response = await fetch(new URL(url.pathname + url.search, 'https://ziiply.vercel.app'), {signal:AbortSignal.timeout(35000)});
@@ -67,6 +71,49 @@ if (mode === 'normal') {
     console.log('PASS',tag,word,'no product requests, no cards, notice shown');
   }
   await ctx.close();return;
+}
+if (mode === 'categories') {
+  await p.getByRole('button',{name:desktop?'Avaa Gösta':/Gösta: Tarjoushaku/}).filter({visible:true}).first().click({timeout:25000});
+  const responsePromise = p.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.origin === 'http://127.0.0.1:3179' &&
+      url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl' &&
+      url.searchParams.get('lidlStoreKey') === 'FI0218';
+  }, {timeout:120000});
+  await p.getByRole('button',{name:desktop?'Lidl':'Hae Lidlin tarjoukset',exact:true}).filter({visible:true}).first().click({timeout:25000});
+  const response = await responsePromise;
+  assert.equal(response.status(), 200);
+  const data = await response.json();
+  assert.equal(data.ok, true);
+  const today = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Helsinki'}).format(new Date());
+  const titleOf = row => String(row.productName || row.title || row.name);
+  const cases = [
+    {product:/lihap(?:yö|yo)ryk/i, brand:/kivikyl/i, category:'Liha & makkarat'},
+    {product:/pistaasi.*juustokakku/i, category:'Leipomo'},
+  ];
+  for (const {product,brand,category} of cases) {
+    const rows = data.results.filter(row => product.test(titleOf(row)) &&
+      (!brand || brand.test([row.brandName,row.brand,row.name,row.title,row.productName].join(' '))));
+    assert.ok(rows.length, `Missing live offer ${product} (source counts ${JSON.stringify(data.lidlSourceAudit)})`);
+    for (const row of rows) {
+      assert.ok(row.validFrom?.slice(0,10) <= today && row.validUntil?.slice(0,10) >= today, titleOf(row));
+      for (const fields of [row, row.__sourceOfferSearchResult].filter(Boolean)) {
+        for (const key of ['category','categoryPath','mainCategory','neonDisplayCategory']) {
+          assert.equal(fields[key], category, `${titleOf(row)} ${key}`);
+        }
+      }
+      console.log('PASS API',tag,JSON.stringify({title:titleOf(row),category,source:row.sourceUrl,tab:row.campaignType}));
+    }
+    for (const tab of new Set(rows.map(row => row.campaignType === 'campaign' ? 'Kampanjat' : 'Tarjoukset'))) {
+      const tabButton = p.getByRole('button',{name:tab,exact:true}).filter({visible:true});
+      if (await tabButton.count()) await tabButton.first().click();
+      await p.getByRole('button',{name:new RegExp(category.replace(' & ', '.*'),'i')}).filter({visible:true}).first().click({timeout:30000});
+      await p.getByText(product).filter({visible:true}).first().waitFor({timeout:20000});
+      console.log('PASS UI',tag,product.toString(),category,tab);
+    }
+  }
+  await ctx.close();
+  return;
 }
 if (mode === 'offers' || mode === 'offers-stale') {
   if (mode === 'offers-stale') {
