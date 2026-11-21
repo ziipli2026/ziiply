@@ -1,6 +1,6 @@
 import { desktopSearchQueries, desktopSearchDecision, withDesktopCatalogEvidence, searchWords } from "./desktopNormalRelevance";
 import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./normalSearchCatalog";
-import { finalizeNormalSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
+import { comparePricedSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
 
 export type NormalSearchStore = { chain: "S" | "K" | "LIDL" | "TOKMANNI" | "SPAR"; id: string | number; name: string; city?: string; address?: string; type?: "local" | "hyper" };
 type Observer = (stage: string, data: Record<string, unknown>) => void;
@@ -37,13 +37,22 @@ function shapeStoreRow(x: any, store: NormalSearchStore, source: string | undefi
 }
 
 function rankStoreRows(query: string, rows: any[]) {
-  return finalizeNormalSearchResults(
-    query,
-    rows,
-    product => product.__price ?? Number.POSITIVE_INFINITY,
-    product => product.ean || product.barcode || product.product?.ean,
-    product => `${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`,
-  );
+  // Relevance is already checked upstream; the legacy second ranking gate
+  // incorrectly removed valid paprika, salaatti and appelsiini products.
+  const seen = new Set<string>();
+  return rows
+    .filter(product => Number.isFinite(product.__price) && product.__price > 0
+      && desktopSearchDecision(query, product).accepted)
+    .sort((a, b) => comparePricedSearchResults(a, b, product => product.__price))
+    .filter(product => {
+      const ean = normalizeEan(product.ean || product.barcode || product.product?.ean);
+      const key = /^(?:\d{8}|\d{12,14})$/.test(ean)
+        ? `ean:${ean}`
+        : `fallback:${String(product.name || "").toLocaleLowerCase("fi")}:${String(product.__store || "")}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 export async function searchNormalStores(query: string, stores: NormalSearchStore[], options: {
