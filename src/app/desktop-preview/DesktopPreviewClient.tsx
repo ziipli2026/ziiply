@@ -2622,7 +2622,7 @@ export default function DesktopPreviewPage() {
       report("lidl_normal_search_blocked", {query, mode:"one"});
       if (!diagnostic) {
         setJustiinaResults([]);
-        setJustiinaResultsOpen(false);
+        setJustiinaResultsOpen(true);
         setJustiinaLoading(false);
         setJustiinaMessage("Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.");
       }
