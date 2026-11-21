@@ -5017,6 +5017,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [voiceDebugRowsV507, setVoiceDebugRowsV507] = useState<string[]>([]);
   const voiceDebugSeqRefV507 = useRef(0);
   const [searchNotFoundNoticeV471, setSearchNotFoundNoticeV471] = useState("");
+  const [lidlNormalNoticeOpenV783, setLidlNormalNoticeOpenV783] = useState(false);
   const searchNotFoundNoticeTimerRefV471 = useRef<number | null>(null);
   const recognitionRef = useRef<any>(null);
   const voiceOpenSearchPanelAfterResultRef = useRef(false);
@@ -6818,6 +6819,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!storesReadyForSearch) return;
+    // Lidl-only mode has no normal-price search: do not prefetch unrelated S/K products.
+    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" &&
+        selectedChains.lidl && !selectedChains.s && !selectedChains.k && !selectedChains.tokmanni) return;
     if (stableBootWarmupDoneRefV505.current) return;
 
     const sStore = String(activeStores?.sStoreId || "").trim();
@@ -6844,7 +6848,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // mutta aja se vasta startupin kriittisen vaiheen jälkeen.
     const timer = window.setTimeout(warmup, 3000);
     return () => window.clearTimeout(timer);
-  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId]);
+  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId, storeCompareScope, betweenChainSelectionModeV749, selectedChains.lidl, selectedChains.s, selectedChains.k, selectedChains.tokmanni]);
 
   const localStoreDebugV229 = useMemo(() => {
     try {
@@ -19676,7 +19680,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setNormalResultsStableV441([]);
     setMobileResultsReadyQueryV537("");
     setNormalSearchAttempted(false);
-    setSearchNotFoundNoticeV471("Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.");
+    setSearchNotFoundNoticeV471("");
+    setLidlNormalNoticeOpenV783(true);
     return true;
   }
 
@@ -24306,6 +24311,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
             />}
 
+            {lidlNormalNoticeOpenV783 && (
+              <div className="fixed inset-0 z-[10020] flex items-center justify-center bg-[#122d25]/55 px-5 py-8" role="presentation">
+                <div role="alertdialog" aria-modal="true" aria-label="Lidlin normaalihinnat eivät ole saatavilla" className="w-full max-w-[420px] rounded-[28px] border-[4px] border-[#b99b57] bg-[#fff5d7] p-6 text-center shadow-[0_18px_50px_rgba(0,0,0,0.38)]">
+                  <h2 className="mb-4 text-xl font-black text-[#174c35]">Lidlin normaalihinnat</h2>
+                  <p className="text-base font-bold leading-relaxed text-[#57482f]">Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.</p>
+                  <p className="mt-3 text-sm font-semibold text-[#57482f]">Göstan Lidl-tarjouksia voit hakea normaalisti.</p>
+                  <button type="button" onClick={() => setLidlNormalNoticeOpenV783(false)} className="mt-6 min-h-12 w-full rounded-2xl bg-[#176341] px-5 py-3 text-base font-black text-white">Selvä, sulje ilmoitus</button>
+                </div>
+              </div>
+            )}
             {!mobileRecipeSearchActive && (voiceNoticeTextV516 || voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
                 className={`pointer-events-none fixed z-[9998] -translate-x-1/2 rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 text-center font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] ${!voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? "top-[calc(env(safe-area-inset-top)+25rem)] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] whitespace-normal break-words px-3 py-2 text-[0.78rem] leading-[1.35]" : "top-[calc(env(safe-area-inset-top)+20.02rem)] inline-block min-h-[1.28rem] w-auto max-w-[72vw] whitespace-nowrap px-2.5 py-[0.10rem] text-[0.72rem] leading-[1.0]"}`}

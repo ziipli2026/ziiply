@@ -55,6 +55,12 @@ if (mode === 'normal') {
     const before=req.length;
     await p.getByRole('button',{name:desktop?'Hae kirjoitetut tuotteet':'Justiina',exact:true}).filter({visible:true}).first().click({timeout:15000});
     await p.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/).filter({visible:true}).first().waitFor({timeout:15000});
+    const noticeCard=p.getByRole('alertdialog',{name:'Lidlin normaalihinnat eivät ole saatavilla'}).filter({visible:true}).first();
+    await noticeCard.waitFor({timeout:15000});
+    await p.waitForTimeout(4000);
+    assert.equal(await noticeCard.isVisible(),true,'Lidl notice must remain visible until dismissed');
+    await noticeCard.getByRole('button',{name:'Selvä, sulje ilmoitus'}).click();
+    await noticeCard.waitFor({state:'hidden',timeout:10000});
     const calls=req.slice(before).filter(u=>new URL(u).pathname.startsWith("/api/") && /products|search|ean-bank/i.test(new URL(u).pathname) && !new URL(u).pathname.includes("/offers/"));
     assert.equal(calls.length,0,'Normal search must not request product APIs: '+calls.join(','));
     assert.equal(await p.locator('[data-testid="normal-search-result"]:visible').count(),0,'No product cards');
