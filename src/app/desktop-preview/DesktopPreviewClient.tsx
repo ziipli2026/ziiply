@@ -1,4 +1,5 @@
 "use client";
+import { fetchLidlBasketQuotes, fetchSparBasketQuotes } from "../components/ziiply/search/independentBasketQuotes";
 import { formatSearchResultComparisonPrice } from "../components/ziiply/search/searchResultComparisonPrice";
 import ProductEnergy from "../components/ziiply/cards/ProductEnergy";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonProductType, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "../components/ziiply/comparisonBrand";
@@ -990,25 +991,14 @@ export default function DesktopPreviewPage() {
   async function desktopFindCompareCandidates(name:string,ean:string,store:any,isS:boolean,alternativeQueries: string[] = []){
     // The selected store is authoritative: never search S products for a K store (or vice versa).
     const kind=storeKind(store);
-    if(kind==="spar"){
-      const queries=[...new Set([...alternativeQueries,name,...getKSearchTerms(name)].filter(Boolean))].slice(0,6);
-      const responses=await Promise.all(queries.map(async search=>{
-        try{
-          const params=new URLSearchParams({search,intent:name});
-          const response=await fetch("/api/tokmanni/products?"+params.toString(),{cache:"no-store"});
-          if(!response.ok)return [];
-          const data=await response.json();
-          return (Array.isArray(data?.items)?data.items:[]).map((p:any)=>({
-            ...p,name:String(p.name||p.title||""),ean:String(p.ean||""),
-            price:Math.round(Number(p.price??p.storeItems?.[0]?.price??0)*100),
-            image:String(p.pictureUrl||p.imageUrl||"")
-          })).filter((p:any)=>p.name&&Number.isFinite(p.price)&&p.price>0);
-        }catch{return []}
-      }));
-      return responses.flat();
+    if(kind==="spar"||kind==="lidl"){
+      try {
+        const candidates=kind==="lidl"
+          ? await fetchLidlBasketQuotes(name,ean,String(store.storeKey||store.externalId||store.id||""))
+          : await fetchSparBasketQuotes(name,ean,[...alternativeQueries,...getKSearchTerms(name)]);
+        return candidates.map(product=>({...product,price:Math.round(product.price*100),image:product.pictureUrl||""}));
+      }catch{return []}
     }
-    // Lidl normal-price search is not yet verified; never substitute another chain's prices.
-    if(kind==="lidl")return [];
     if(!["sHyper","sLocal","kHyper","kLocal"].includes(kind))return [];
     isS=kind==="sHyper"||kind==="sLocal";
     const normalizedEan=normalizeEan(ean);
