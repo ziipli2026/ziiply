@@ -182,7 +182,7 @@ if (mode === 'categories') {
       const tabButton = p.getByRole('button',{name:tab,exact:true}).filter({visible:true});
       if (await tabButton.count()) await tabButton.first().click();
       const categoryButton = p.getByRole('button',{name:category === 'Leipomo' ? /leiv[aä]t.*leivonnaiset|leipomo/i : /liha.*makkara/i}).filter({visible:true}).first();
-      assert.ok(await categoryButton.count(), `Category UI button missing: ${category} (${tag})`);
+      assert.ok(await categoryButton.count(), `Category UI button missing: ${category} (${tag}); visibleButtons=${JSON.stringify((await p.getByRole('button').filter({visible:true}).allTextContents()).slice(-80))}; apiCategory=${JSON.stringify(rows.map(r=>r.category))}`);
       await categoryButton.click({timeout:30000});
       await p.getByText(product).filter({visible:true}).first().waitFor({timeout:20000});
       console.log('PASS UI',tag,product.toString(),category,tab);
