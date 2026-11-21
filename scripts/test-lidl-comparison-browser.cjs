@@ -102,7 +102,7 @@ if (mode === 'categories') {
   for (const {product,brand,category} of cases) {
     const rows = data.results.filter(row => product.test(titleOf(row)) &&
       (!brand || brand.test([row.brandName,row.brand,row.name,row.title,row.productName].join(' '))));
-    assert.ok(rows.length, `Missing live offer ${product} (source counts ${JSON.stringify(data.lidlSourceAudit)})`);
+    assert.ok(rows.length, `Missing actual Lidl offer ${product}; staged publication: ${data.lidlSourceAudit?.stagedPublicationError || 'available or empty'}; source audit: ${JSON.stringify(data.lidlSourceAudit)}. A source outage is not a category-pass.`);
     for (const row of rows) {
       assert.ok(row.validFrom?.slice(0,10) <= today && row.validUntil?.slice(0,10) >= today, titleOf(row));
       for (const fields of [row, row.__sourceOfferSearchResult].filter(Boolean)) {
