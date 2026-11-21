@@ -47,12 +47,12 @@ await p.goto('http://127.0.0.1:3179/',{timeout:90000,waitUntil:'domcontentloaded
 if (desktop) await p.locator('[data-desktop-layout]').waitFor({timeout:35000});
 if (mode === 'normal') {
   const searches=['maito','kahvi','jauheliha'];
-  await p.getByRole('button',{name:desktop?'Avaa Justiina':/Justiina/}).filter({visible:true}).first().click({timeout:20000});
+  if(desktop) await p.getByRole('button',{name:'Avaa Justiina'}).filter({visible:true}).first().click({timeout:20000});
   for(const word of searches){
-    const field=p.getByRole('textbox',{name:/Hae tuotteita|Etsi tuotteita|Kirjoita/i}).filter({visible:true}).first();
+    const field=desktop?p.getByRole('textbox',{name:'Hae tuotteita'}).filter({visible:true}).first():p.locator('textarea[placeholder="maito, kahvi"],textarea[placeholder="Kirjoita yksi tuote"]').filter({visible:true}).first();
     await field.fill(word);
     const before=req.length;
-    await p.getByRole('button',{name:/Hae kirjoitetut tuotteet|^Hae$/}).filter({visible:true}).first().click({timeout:15000});
+    await p.getByRole('button',{name:desktop?'Hae kirjoitetut tuotteet':'Justiina',exact:true}).filter({visible:true}).first().click({timeout:15000});
     await p.getByText(/Lidl ei ole mukana normaalihintojen tuotehaussa/).filter({visible:true}).first().waitFor({timeout:15000});
     const calls=req.slice(before).filter(u=>new URL(u).pathname.startsWith("/api/") && /products|search|ean-bank/i.test(new URL(u).pathname) && !new URL(u).pathname.includes("/offers/"));
     assert.equal(calls.length,0,'Normal search must not request product APIs: '+calls.join(','));
