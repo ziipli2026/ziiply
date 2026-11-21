@@ -291,9 +291,10 @@ const getCachedKSearch = unstable_cache(async (storeId: number, search: string, 
 }, ["k-normal-search-snapshot-v2"], { revalidate: 120 });
 
 async function readSharedKSearch(databaseUrl: string, key: string, storeId: number, search: string) {
-  const sql = neon(databaseUrl);
+  const sql = (strings: TemplateStringsArray, ...values: unknown[]) =>
+    neon(databaseUrl, { fetchOptions: { signal: AbortSignal.timeout(2000) } })(strings, ...values);
   const owner = randomUUID();
-  const deadline = Date.now() + 30_000;
+  const deadline = Date.now() + 10_000;
 
   while (Date.now() < deadline) {
     const [snapshot] = await sql`
@@ -316,17 +317,17 @@ async function readSharedKSearch(databaseUrl: string, key: string, storeId: numb
         try {
           const payload = await fetchKSearch(storeId, search);
           if (!isCompleteKSearch(payload)) return payload;
-          const published = await sql`
+          await sql`
             UPDATE ziiply_k_search_snapshots SET payload = ${JSON.stringify(payload)}::jsonb
             WHERE cache_key = ${key} AND owner = ${owner}
             RETURNING owner
-          `;
-          if (published.length) return payload;
+          `.catch(() => undefined);
+          return payload;
         } finally {
           await sql`
             DELETE FROM ziiply_k_search_snapshots
             WHERE cache_key = ${key} AND owner = ${owner} AND payload IS NULL
-          `;
+          `.catch(() => undefined);
           after(async () => {
             try {
               await sql`
@@ -357,9 +358,10 @@ function readNormalKSearch(storeId: number, search: string) {
   const existing = inFlightKSearches.get(key);
   if (existing) return existing;
   const databaseUrl = process.env.K_SEARCH_CACHE_DATABASE_URL;
+  const fallback = () => getCachedKSearch(storeId, search, window);
   const pending = (databaseUrl
-    ? readSharedKSearch(databaseUrl, JSON.stringify([process.env.VERCEL_URL, key]), storeId, search)
-    : getCachedKSearch(storeId, search, window))
+    ? readSharedKSearch(databaseUrl, JSON.stringify([process.env.VERCEL_URL, key]), storeId, search).catch(fallback)
+    : fallback())
     .catch(error => {
       if (error instanceof UncacheableKSearch) return error.payload;
       throw error;
