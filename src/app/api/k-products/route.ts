@@ -1,3 +1,5 @@
+import { neon } from "@neondatabase/serverless";
+import { randomUUID } from "node:crypto";
 import { appendRuoanhintaPages } from "@/lib/ruoanhintaPagination";
 import { unstable_cache } from "next/cache";
 import { after } from "next/server";
@@ -276,13 +278,74 @@ class UncacheableKSearch extends Error {
 
 const K_SEARCH_WINDOW_MS = 30_000;
 
+function isCompleteKSearch(payload: KSearchPayload) {
+  return payload.items.length > 0 && payload.pagination.events.every(event =>
+    event.status === "ok" || event.status === "empty"
+  );
+}
+
 const getCachedKSearch = unstable_cache(async (storeId: number, search: string, _window: number) => {
   const payload = await fetchKSearch(storeId, search);
-  if (!payload.items.length || payload.pagination.events.some(event =>
-    event.status !== "ok" && event.status !== "empty"
-  )) throw new UncacheableKSearch(payload);
+  if (!isCompleteKSearch(payload)) throw new UncacheableKSearch(payload);
   return payload;
 }, ["k-normal-search-snapshot-v2"], { revalidate: 120 });
+
+async function readSharedKSearch(databaseUrl: string, key: string, storeId: number, search: string) {
+  const sql = neon(databaseUrl);
+  const owner = randomUUID();
+  const deadline = Date.now() + 30_000;
+
+  while (Date.now() < deadline) {
+    const [snapshot] = await sql`
+      SELECT payload, lease_until <= now() AS lease_expired
+      FROM ziiply_k_search_snapshots WHERE cache_key = ${key}
+    `;
+    if (snapshot?.payload) return snapshot.payload as KSearchPayload;
+
+    if (!snapshot || snapshot.lease_expired) {
+      const claimed = await sql`
+        INSERT INTO ziiply_k_search_snapshots (cache_key, owner, lease_until, expires_at)
+        VALUES (${key}, ${owner}, now() + interval '35 seconds', now() + interval '5 minutes')
+        ON CONFLICT (cache_key) DO UPDATE
+        SET owner = EXCLUDED.owner, lease_until = EXCLUDED.lease_until, expires_at = EXCLUDED.expires_at
+        WHERE ziiply_k_search_snapshots.payload IS NULL
+          AND ziiply_k_search_snapshots.lease_until <= now()
+        RETURNING owner
+      `;
+      if (claimed.length) {
+        try {
+          const payload = await fetchKSearch(storeId, search);
+          if (!isCompleteKSearch(payload)) return payload;
+          const published = await sql`
+            UPDATE ziiply_k_search_snapshots SET payload = ${JSON.stringify(payload)}::jsonb
+            WHERE cache_key = ${key} AND owner = ${owner}
+            RETURNING owner
+          `;
+          if (published.length) return payload;
+        } finally {
+          await sql`
+            DELETE FROM ziiply_k_search_snapshots
+            WHERE cache_key = ${key} AND owner = ${owner} AND payload IS NULL
+          `;
+          after(async () => {
+            try {
+              await sql`
+                DELETE FROM ziiply_k_search_snapshots
+                WHERE cache_key IN (
+                  SELECT cache_key FROM ziiply_k_search_snapshots
+                  WHERE expires_at < now() ORDER BY expires_at LIMIT 100
+                )
+              `;
+            } catch (error) { console.warn("K snapshot cleanup failed", error); }
+          });
+        }
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+
+  throw new Error("Timed out waiting for the shared K search");
+}
 
 const inFlightKSearches = new Map<string, Promise<KSearchPayload>>();
 
@@ -293,7 +356,10 @@ function readNormalKSearch(storeId: number, search: string) {
   const key = JSON.stringify([storeId, search, window]);
   const existing = inFlightKSearches.get(key);
   if (existing) return existing;
-  const pending = getCachedKSearch(storeId, search, window)
+  const databaseUrl = process.env.K_SEARCH_CACHE_DATABASE_URL;
+  const pending = (databaseUrl
+    ? readSharedKSearch(databaseUrl, JSON.stringify([process.env.VERCEL_URL, key]), storeId, search)
+    : getCachedKSearch(storeId, search, window))
     .catch(error => {
       if (error instanceof UncacheableKSearch) return error.payload;
       throw error;
