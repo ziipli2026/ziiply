@@ -13388,10 +13388,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       // Recipe selection retains its chain-specific identity.
       const normalCandidates = recipeIngredient
-        ? Array.from(new Map(all.map(item => [
-            `${(item as Product & MobileRecipeProduct).__recipeChain || ""}:${item.id}`,
-            item,
-          ] as const)).values())
+        ? Array.from(new Map(all.map(item => {
+            const { __recipeChain, __recipeStoreName } = item as Product & MobileRecipeProduct;
+            const ean = normalizeEan(item.ean);
+            const identity = isUsableEan(ean) ? `ean:${ean}` : `id:${item.id}`;
+            return [JSON.stringify([__recipeChain, __recipeStoreName, identity]), item] as const;
+          })).values())
         : all;
 
       // K-Ruoka's product search is anchored to the user's literal query. Our

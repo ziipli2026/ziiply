@@ -197,6 +197,7 @@ export function recipeProductSearchTerm(input: string): string | null {
  if(/^(?:peruna|perunan|perunaa|perunat|perunoita|perunoiden|perunoissa|perunoista|perunoihin)$/.test(potatoCore))return "peruna";
  if(recipeCategory(name))return normalizeRecipeCategoryQuery(name);
  if(!/sipulikeittoaine|salaattisekoit|keittojuure|juuressekoitus|juureskuutio|juuressuikale/.test(name)&&/(?:laatikko|keitto|piirakka|pannukakku|korvapuusti|salaatti|kanapasta|tonnikalapasta|linssicurry)/.test(name))return name;
+ if(/^(?:säilöttyjen )?punajuur(?:ten|ien) (?:etikka|mauste)?lie(?:mi|ntä)$/.test(name))return null;
  if(!name||/^(?:vesi|vettä|veden|pastan keitinvet|keitinvet)/.test(name))return null;
  return kinds.find(x=>x.pattern.test(name))?.term||name;
 }
