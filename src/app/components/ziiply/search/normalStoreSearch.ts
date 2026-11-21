@@ -3,6 +3,8 @@ import { fetchNormalSearchCatalog, selectNormalSearchCatalog } from "./normalSea
 import { comparePricedSearchResults, normalizeEan, readSearchProducts } from "../ziiplyCore";
 
 export type NormalSearchStore = { chain: "S" | "K" | "LIDL" | "TOKMANNI" | "SPAR"; id: string | number; name: string; city?: string; address?: string; type?: "local" | "hyper" };
+const isTokmanniStore = (store: NormalSearchStore) => store.chain === "SPAR" || store.chain === "TOKMANNI";
+
 type Observer = (stage: string, data: Record<string, unknown>) => void;
 
 function storeUrl(store: NormalSearchStore, intent: string) {
@@ -11,7 +13,7 @@ function storeUrl(store: NormalSearchStore, intent: string) {
     if (store.address) params.set("address", store.address);
     return `/api/lidl/products?${params}`;
   }
-  if (store.chain === "SPAR" || store.chain === "TOKMANNI") {
+  if (isTokmanniStore(store)) {
     return `/api/tokmanni/products?${new URLSearchParams({ intent })}`;
   }
   const params = new URLSearchParams({ store: String(store.id) });
@@ -110,13 +112,40 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   }
   // Start catalog lookup concurrently with the existing selected-store providers.
   // The catalog never supplies a store price or modifies recipe/offer engines.
-  const neonPromise = stores.some(store => store.chain === "S" || store.chain === "K") ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
-  const calls = stores.map(store => fetchSearchData(storeUrl(store, query), undefined, store).then(data => ({chain:store.chain,store,data})));
-  const settledPromise=Promise.allSettled(calls);
+  const neonPromise = stores.some(store => store.chain !== "LIDL")
+    ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
+  const catalogPromise = neonPromise.then(rows => selectNormalSearchCatalog(query, rows).slice(0, 50));
+  const calls = stores.map(async store => {
+    const url = storeUrl(store, query);
+    const nameSearch = fetchSearchData(url, undefined, store);
+    if (!isTokmanniStore(store)) return { chain: store.chain, store, data: await nameSearch };
+
+    const exactSearch = catalogPromise.then(async catalog => {
+      // Bound the extra requests for broad searches. The catalog's source
+      // records provenance, so EAN candidates can come from any chain.
+      const eans = [...new Set(catalog.map(row => normalizeEan(row.ean)))]
+        .filter(ean => /^\d{13}$/.test(ean) && ean !== query.trim())
+        .slice(0, 4);
+      const results = await Promise.allSettled(eans.map(async ean => {
+        const response = await fetchSearchData(url, [ean]);
+        return (readSearchProducts(response) as any[]).filter(item =>
+          normalizeEan(item.ean) === ean && readStorePrice(item) > 0);
+      }));
+      return results.flatMap(result => result.status === "fulfilled" ? result.value : []);
+    });
+    const [named, exact] = await Promise.allSettled([nameSearch, exactSearch]);
+    if (signal?.aborted) throw signal.reason;
+    const exactRows = exact.status === "fulfilled" ? exact.value : [];
+    if (named.status === "rejected" && !exactRows.length) throw named.reason;
+    const data = named.status === "fulfilled" ? named.value : null;
+    const exactUrls = new Set(exactRows.map(item => item.productUrl).filter(Boolean));
+    const namedRows = (readSearchProducts(data) as any[]).filter(item => !exactUrls.has(item.productUrl));
+    return { chain: store.chain, store, data: { ...data, products: [...exactRows, ...namedRows] } };
+  });
+  const settledPromise = Promise.allSettled(calls);
   const neonRaw = await neonPromise;
   trace("neon_response",{count:neonRaw.length,products:neonRaw.slice(0,100)});
-  const neonRows = selectNormalSearchCatalog(query, neonRaw)
-    .slice(0,50)
+  const neonRows = (await catalogPromise)
     .map((x:any)=>({...x,__chain:"Neon",__store:"Tuoteluettelo",__price:null,__priceSource:"neon-catalog-unpriced"}));
   // The final result still waits for all selected stores and catalog enrichment.
   const settled=await settledPromise;
