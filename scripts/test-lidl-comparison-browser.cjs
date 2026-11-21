@@ -143,7 +143,11 @@ if (mode === 'categories') {
       }
     } catch {}
     if (!department) continue;
-    const expected = departmentExpectations.find(([pattern]) => pattern.test(department))?.[1];
+    const shelfCategory = departmentExpectations.find(([pattern]) => pattern.test(department))?.[1];
+    // A Lidl merchandising shelf can differ from the finished food type:
+    // baked cakes belong to bakery even when shelved under dairy.
+    const bakedDessert = /(?:juustokakku|kakku|torttu|leivos)/i.test(titleOf(row));
+    const expected = shelfCategory === 'Maitotuotteet' && bakedDessert ? 'Leipomo' : shelfCategory;
     if (!expected) continue;
     auditedDepartments++;
     assert.equal(row.category, expected, `Lidl department ${department}: ${titleOf(row)}`);
