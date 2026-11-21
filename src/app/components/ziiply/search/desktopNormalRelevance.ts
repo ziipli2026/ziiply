@@ -220,6 +220,7 @@ function desktopSearchNameDecision(query: string, product: Row) {
       const typeCategory=(type==='spice' && /\/mausteet\//.test(String(product.category))) || ['pet','nonfood','processed_meat'].includes(type) || (type==='prepared' && /^valmisruoka\//.test(String(product.category))) ? categoryText : mixedRequestedDepartment ? '' : categoryLeafText;
       if(!pattern.test(identityText+' '+(explicitIdentity?'':typeCategory)) || requestedTypes.has(type))continue;
       if(type==='prepared' && requestedTypes.has('pasta') && /tuorepasta/.test(identityText) && !/bolognese|carbonara|kastike/.test(identityText))continue;
+      if(type==='nuts' && requestedTypes.has('sweets') && /suklaalevy|maitosuklaa/.test(identityText))continue;
       if(type==='oil' && requestedTypes.has('spread'))continue;
       if(type==='drink' && q.terms.some(t=>['cola','pepsi','coke','limsa','vesi','tee'].includes(t)))continue;
       // Category "mehu" is unrelated to a fresh orange search, just as a
