@@ -144,3 +144,16 @@ for (const [title,wanted] of [
  ["Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET 120–200 g","Maitotuotteet"],
  ["Hampurilaisateria 300 g","Valmisruoka"],
 ]) test("Burger product-form precedence: "+title,()=>assert.equal(context.classify(title),wanted));
+
+test("Local Tjek rows with stale allowed category use actual product form",async()=>{
+ const {filterCitymarketAdditionalGroceryOffers}=await import("../src/app/components/ziiply/offerSearch/providers/kCitymarketDailyGroceryGate.js");
+ const rows=[
+  {title:"Vaasan THE BRGR NAUGHTY BURGER",category:"Valmisruoka",price:2.39},
+  {title:"Kuusamon Juusto NAUGHTY BURGER JUUSTOVIIPALEET",category:"Valmisruoka",price:2.99},
+  {title:"Hampurilaisateria 300 g",category:"Valmisruoka",price:3.99},
+  {title:"Naughty HOT DOG MAKKARAT",category:"Liha & makkarat",price:2.49}
+ ];
+ const actual=filterCitymarketAdditionalGroceryOffers(rows,context.classify);
+ assert.deepEqual(actual.map(x=>x.category),["Leipomo","Maitotuotteet","Valmisruoka","Liha & makkarat"]);
+ assert.deepEqual(actual.map(x=>x.price),rows.map(x=>x.price));
+});
