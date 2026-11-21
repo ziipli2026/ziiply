@@ -897,9 +897,18 @@ export async function GET(request: Request) {
       // All API category fields and the nested mobile-card source must agree.
       // Verified Neon EAN matches win when no authoritative Lidl department exists.
       const results = neonEnriched.map((offer): UnknownRecord => {
-        const category = lidlDepartmentCategory(offer) ||
+        const departmentCategory = lidlDepartmentCategory(offer);
+        const sourceCategory = firstString(offer.category);
+        // Lidl's /h/ department is a merchandising shelf, not always the
+        // finished-product category. A verified baked dessert can be listed
+        // under dairy because it contains cheese: keep the parser's product-form
+        // classification rather than overwriting it with that shelf.
+        const productFormCategory =
+          sourceCategory === "Leipomo" && departmentCategory === "Maitotuotteet"
+            ? sourceCategory : "";
+        const category = productFormCategory || departmentCategory ||
           (offer.neonCategoryMatch === "ean" ? firstString(offer.neonDisplayCategory) : "") ||
-          firstString(offer.category);
+          sourceCategory;
         if (!category) return offer;
         const source = offer.__sourceOfferSearchResult;
         return {
