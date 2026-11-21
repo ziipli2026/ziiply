@@ -175,22 +175,12 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     }));
   }
   const rows:any[]=[];
-  const research = new Map<string, any>();
   const productDecisions:any[]=[];
   for(const batch of batches){
     const items=readSearchProducts(batch.data) as any[];
     for(const x of items){
-      if (batch.chain === "LIDL") {
-        if (x.source === "lidl.fi-public-research" && x.priceVerified === false &&
-            x.name && desktopSearchDecision(query, x).accepted) {
-          const key = String(x.id ?? x.name);
-          if (!research.has(key)) research.set(key, {
-            ...x, ean: "", price: null, storeItems: [], __price: null,
-            __chain: "LIDL", __store: "Lidlin julkinen tuoteluettelo",
-          });
-        }
-        continue;
-      }
+      // Lidl has no verified normal-price feed: never expose research-only products as purchasable search results.
+      if (batch.chain === "LIDL") continue;
       const {product: baseProduct, rawPrice, priceIsEuros, euro}=shapeStoreRow(x,batch.store,batch.data?.source);
       const product=withEvidence(baseProduct);
       const normalRejected=!desktopSearchDecision(query,product).accepted;
@@ -200,7 +190,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     }
   }
   const rankedRows = rankStoreRows(query, rows);
-  const sortedRows = [...rankedRows, ...research.values()].slice(0, 100);
+  const sortedRows = rankedRows.slice(0, 100);
 
   return {sortedRows, rankedRows, failures, batches, rows, productDecisions};
 }
