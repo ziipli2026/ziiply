@@ -179,6 +179,12 @@ if (mode === 'categories') {
       console.log('PASS category payload',tag,JSON.stringify({title:titleOf(row),category,source:row.sourceUrl,tab:row.campaignType}));
     }
     for (const tab of new Set(rows.map(row => row.campaignType === 'campaign' ? 'Kampanjat' : 'Tarjoukset'))) {
+      // Desktop hides category tiles while a category is selected. Return to
+      // the category grid before checking the next product's category.
+      if (desktop) {
+        const backToCategories = p.getByRole('button',{name:'Palaa tarjoushaussa'}).filter({visible:true});
+        if (await backToCategories.count()) await backToCategories.first().click({timeout:15000});
+      }
       const tabButton = p.getByRole('button',{name:tab,exact:true}).filter({visible:true});
       if (await tabButton.count()) await tabButton.first().click();
       const categoryButton = p.getByRole('button',{name:category === 'Leipomo' ? /leiv[aä]t.*leivonnaiset|leipomo/i : /liha.*makkara/i}).filter({visible:true}).first();
