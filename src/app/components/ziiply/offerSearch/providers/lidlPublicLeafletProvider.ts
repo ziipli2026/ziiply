@@ -53,6 +53,7 @@ const SEEDS = [
   "/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
   "/h/kuivatuotteet/h10096095",
   "/h/valmisateriat/h10097147",
+  "/h/pakasteet-pakastetut-elintarvikkeet/h10071049",
   "/h/paistopiste-leipaet-ja-leivonnaiset/h10096086",
 ];
 
@@ -172,7 +173,12 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     const fullName = name;
     const discountText = String(product.price?.discount?.discountText || "");
     const limitedBatch = /erä/i.test(discountText);
-    const quantity = discountBundleQuantity(discountText) || Number(fullName.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
+    const defaultRegion = Object.values(product.regionsV2 ?? {}).find((region: any) => region?.isDefault === true) as AnyRecord | undefined;
+    const regionalPrice = defaultRegion ? product.regionsPrices?.[defaultRegion.regionPriceId]?.currentPrice : undefined;
+    const regionalQuantity = money(regionalPrice?.price) === price
+      ? discountBundleQuantity(regionalPrice?.discount?.discountText)
+      : 0;
+    const quantity = discountBundleQuantity(discountText) || regionalQuantity || Number(fullName.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
     const weighted = quantity < 2 && /(?:€|eur)\s*\/\s*kg/i.test([packagingText, baseText].join(" ")) && !packageText;
     const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
     const imageUrl = (() => {
