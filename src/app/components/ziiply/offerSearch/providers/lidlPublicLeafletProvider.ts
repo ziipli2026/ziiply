@@ -114,7 +114,7 @@ function lidlProductCategory(name: string): string | null {
   if (/\b(?:uuniperuna\w*|peruna\w*|sipuli\w*|omena\w*|avokado\w*|granaattiomena\w*|meloni\w*|salaatti\w*|paprika\w*)\b/.test(s)) return "Hevi";
   if (/\b(?:jaatelo\w*|pakaste\w*|pakastettu\w*|torttutaikina\w*|piparitaikina\w*)\b/.test(s)) return "Pakasteet";
   if (/\b(?:pikkuleipa\w*|keksi\w*|nougat\w*|konvehti\w*|karamelli\w*|suklaa\w*|makeis\w*|karkki\w*|tikkari\w*|piparkakku\w*)\b/.test(s)) return "Makeiset & keksit";
-  if (/\b(?:tahtitorttu\w*|croissant\w*|sampyla\w*|patonki\w*|pull\w*|leivos\w*|panettone\w*|pandoro\w*)\b/.test(s)) return "Leipomo";
+  if (/(?:tahtitorttu|croissant|sampyla|patonki|pullava|voisilmapulla|leivos|panettone|pandoro)/.test(s)) return "Leipomo";
   if (/\b(?:juusto\w*|jogurtti\w*|rahka\w*|maito\w*|kerma\w*|moussejalkiruoka\w*)\b/.test(s)) return "Maitotuotteet";
   if (/\b(?:aurinkokuivattu\w*|sailyke\w*|pastakastike\w*|pesto|oliivioljy\w*|marmeladi\w*|pistaasikreemi\w*)\b/.test(s)) return "Kuivatuotteet";
   return null;
