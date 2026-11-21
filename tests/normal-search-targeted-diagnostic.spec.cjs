@@ -31,7 +31,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
   const replayResponses=new Map();
   const replayCaptures=[];
   const replayPaths=/^\/api\/(?:k-products|s-products|neon-first-search|lidl\/products|tokmanni\/products|ean-bank)(?:\/|$)/;
-  for(const device of ['mobile','desktop']){
+  const parallel=process.env.NORMAL_SEARCH_PARALLEL==='1';
+  if(parallel && (replayEnabled || queries.length!==1))throw new Error('Parallel comparison requires one live query');
+  let readyCount=0;
+  let releaseStart;
+  const startTogether=new Promise(resolve=>{releaseStart=resolve;});
+  async function runDevice(device){
     const mobileWidth=Number(process.env.NORMAL_SEARCH_MOBILE_WIDTH||390);
     const context=await browser.newContext(device==='mobile'?{...devices['iPhone 13'],viewport:{width:mobileWidth,height:mobileWidth>=700?1024:844},serviceWorkers:'block',extraHTTPHeaders:auth}:{viewport:{width:1440,height:900},serviceWorkers:'block',extraHTTPHeaders:auth});
     const page=await context.newPage();
@@ -91,14 +96,14 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         }
         // Compare the actual provider EAN sets and pagination completeness, not
         // just raw response hashes (which can change with metadata/order).
-        if(['mustikka','muro','juusto','vadelma','suklaa','mansikka','makkara','kala'].includes(requestQuery)
+        if(['mustikka','muro','juusto','vadelma','limonadi','suklaa','mansikka','makkara','kala'].includes(requestQuery)
           && ['/api/k-products','/api/s-products','/api/neon-first-search'].includes(u.pathname)){
           const queryAtResponse=requestQuery;
           const check=r.json().then(data=>{
             const rows=Array.isArray(data)?data:(Array.isArray(data?.items)?data.items:(Array.isArray(data?.products)?data.products:(Array.isArray(data?.results)?data.results:[])));
             const eans=[...new Set(rows.map(p=>String(p?.ean||p?.barcode||p?.gtin||p?.product?.ean||'').replace(/\D/g,'')).filter(x=>/^(?:\d{8}|\d{12,14})$/.test(x)))].sort();
             const item={device,query:queryAtResponse,path:u.pathname,requestSearch:u.searchParams.get('search')||u.searchParams.get('q'),status:r.status(),rowCount:rows.length,eanCount:eans.length,eans,pagination:data?.pagination||null};
-            if (['mustikka','muro','juusto'].includes(queryAtResponse)) {
+            if (['mustikka','muro','juusto','vadelma','limonadi'].includes(queryAtResponse)) {
               console.log('[normal-parity] SEARCH SOURCE VERSION', JSON.stringify({
                 device, query:queryAtResponse, path:u.pathname, requestUrl:u.pathname+u.search,
                 generatedAt:data?.generatedAt||null, vercelId:r.headers()['x-vercel-id']||null,
@@ -298,6 +303,10 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         console.log('[normal-parity] stage input-fill',device,query);
         await input.fill(query,{timeout:12000});
         console.log('[normal-parity] stage input-filled',device,query);
+        if(parallel){
+          if(++readyCount===2)releaseStart();
+          await startTogether;
+        }
         if(device==='desktop')await input.press('Enter',{timeout:12000});
         else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click({timeout:12000});
         console.log('[normal-parity] stage submitted',device,query);
@@ -427,6 +436,8 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
       await context.close();
     }
   }
+  if(parallel)await Promise.all(['mobile','desktop'].map(runDevice));
+  else for(const device of ['mobile','desktop'])await runDevice(device);
   for(const query of queries){
     const mobile=evidence.layouts.mobile.results.find(x=>x.query===query).eans;
     const desktop=evidence.layouts.desktop.results.find(x=>x.query===query).eans;
