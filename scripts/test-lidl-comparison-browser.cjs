@@ -1,7 +1,10 @@
 const {chromium,devices}=require('playwright');
 const assert=require('node:assert/strict');
+// The live category audit names products from the 18–22 November leaflet.
+const todayFi = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Helsinki'}).format(new Date());
+const liveCategoryModes = todayFi >= '2026-11-18' && todayFi <= '2026-11-22' ? ['categories'] : [];
 (async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{
-await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers','categories','normal',...(desktop?[]:['offers-stale'])].map(async mode=>{
+await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers',...liveCategoryModes,'normal',...(desktop?[]:['offers-stale'])].map(async mode=>{
 let ctx=await b.newContext(desktop?{viewport:{width:1440,height:1000}}:devices['iPhone 13']);
 const tag=(desktop?'desktop':'mobiili')+' '+mode;
 let p=await ctx.newPage(); const req=[];p.on('request',r=>req.push(r.url()));p.on('pageerror',e=>console.log(tag,'pageerror',e.message));
@@ -141,7 +144,7 @@ if (mode === 'categories') {
     for (const tab of new Set(rows.map(row => row.campaignType === 'campaign' ? 'Kampanjat' : 'Tarjoukset'))) {
       const tabButton = p.getByRole('button',{name:tab,exact:true}).filter({visible:true});
       if (await tabButton.count()) await tabButton.first().click();
-      await p.getByRole('button',{name:new RegExp(category.replace(' & ', '.*'),'i')}).filter({visible:true}).first().click({timeout:30000});
+      await p.getByRole('button',{name:category === 'Leipomo' ? /leiv[aä]t.*leivonnaiset/i : /liha.*makkara/i}).filter({visible:true}).first().click({timeout:30000});
       await p.getByText(product).filter({visible:true}).first().waitFor({timeout:20000});
       console.log('PASS UI',tag,product.toString(),category,tab);
     }
