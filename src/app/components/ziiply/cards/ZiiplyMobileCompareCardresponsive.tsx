@@ -488,8 +488,8 @@ export default function ZiiplyMobileCompareCardresponsive({
                                   ? ""
                                   : resultPending ? ""
                                   : hasNoCounterpart
-                                    ? "Vastinetta ei löytynyt"
-                                    : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
+                                    ? (store.chain === "SPAR" ? "Hinta puuttuu" : "Vastinetta ei löytynyt")
+                                    : `${store.itemCount ?? comparedCount ?? 0} tuotetta${store.chain === "SPAR" ? " · verkkohinta" : ""}`}
                               </span>
                             ) : null}
                             {store.distanceKm != null ? (
