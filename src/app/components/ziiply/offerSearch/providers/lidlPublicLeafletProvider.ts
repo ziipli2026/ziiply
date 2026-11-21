@@ -96,42 +96,52 @@ const GROCERY_CATEGORIES = new Set([
   "Lastenruoat", "Lemmikit", "Kodinhoito",
 ]);
 
-/** Product form takes precedence over ingredients and broad campaign headings. */
+/** Classify the actual product before considering the Lidl landing-page department.
+ * Lidl sometimes displays food under an unrelated /h/ page; that page is not
+ * evidence that a potato is frozen or a glögi is meat.
+ */
 function lidlProductCategory(name: string): string | null {
-  const s = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  // Pet products must precede both clothing and fish/food substrings.
-  if (/koira|kissa|lemmik|elainten|turkinhoito/.test(s)) return 'Lemmikit';
-  if (/jaatelo|pakaste|pakastettu/.test(s)) return 'Pakasteet';
-  if (/pikkuleip|keksi|nougat|konvehti|karamelli|suklaa|makeis|karkki|tikkari/.test(s)) return 'Makeiset & keksit';
-  if (/pasteija|juustokierre|juustotanko|korvapuusti|croissant|sampyla|patonki|karjalanpiirakka|ruisleipa|rieska|leivonnainen|leivos/.test(s)) return 'Leipomo';
-  if (/aurinkokuivattu|kuivattu tomaatti|sailyke|pastakastike|pesto\b|oliivioljy|marmeladi|pistaasikreemi/.test(s)) return 'Kuivatuotteet';
-  if (/kaurajuoma|riisijuoma|soijajuoma|kookosjuoma|mantelijuoma/.test(s)) return 'Juomat';
+  const s = normalize(name);
+  // Exclude non-grocery merchandise before food words (toy ice-cream carts).
+  if (/\b(?:lelu\w*|lelut|jaatelokarry|makeiskoju|puinen|joulukaktus\w*|kukk\w*|kasvi\w*|parkside|silvercrest|esmara|livarno|vaatte\w*|tyokalu\w*|kodinkone\w*)\b/.test(s)) return "Muut";
+  if (/\b(?:koira\w*|kissa\w*|lemmik\w*|elainten\w*)\b/.test(s)) return "Lemmikit";
+  if (/\b(?:pyykinpesu\w*|astianpesu\w*|pesuaine\w*|talouspaperi\w*|wc paperi\w*)\b/.test(s)) return "Kodinhoito";
+  if (/\b(?:glögi\w*|glogi\w*|limonadi\w*|energiajuoma\w*|smoothie\w*|mehu\w*|juoma\w*|olut\w*)\b/.test(s)) return "Juomat";
+  if (/\b(?:kahvi\w*|espresso\w*|tee)\b/.test(s)) return "Kahvi & tee";
+  if (/\b(?:lihapyor\w*|lihapyory\w*|kana\w*|broiler\w*|kinkku\w*|pekoni\w*|salami\w*|jauheliha\w*|naudan\w*|pors\w*|bresaola\w*|prosciutto\w*)\b/.test(s)) return "Liha & makkarat";
+  if (/\b(?:lohi\w*|kala\w*|tonnikala\w*|ahven\w*)\b/.test(s)) return "Kala";
+  if (/\b(?:pizza\w*|pitsa\w*|perunapaistos\w*|lasagne\w*|valmisateria\w*)\b/.test(s)) return "Valmisruoka";
+  if (/\b(?:uuniperuna\w*|peruna\w*|sipuli\w*|omena\w*|avokado\w*|granaattiomena\w*|meloni\w*|salaatti\w*|paprika\w*)\b/.test(s)) return "Hevi";
+  if (/\b(?:jaatelo\w*|pakaste\w*|pakastettu\w*|torttutaikina\w*|piparitaikina\w*)\b/.test(s)) return "Pakasteet";
+  if (/\b(?:pikkuleipa\w*|keksi\w*|nougat\w*|konvehti\w*|karamelli\w*|suklaa\w*|makeis\w*|karkki\w*|tikkari\w*|piparkakku\w*)\b/.test(s)) return "Makeiset & keksit";
+  if (/(?:tahtitorttu|croissant|sampyla|patonki|pullava|voisilmapulla|leivos|panettone|pandoro)/.test(s)) return "Leipomo";
+  if (/\b(?:juusto\w*|jogurtti\w*|rahka\w*|maito\w*|kerma\w*|moussejalkiruoka\w*)\b/.test(s)) return "Maitotuotteet";
+  if (/\b(?:aurinkokuivattu\w*|sailyke\w*|pastakastike\w*|pesto|oliivioljy\w*|marmeladi\w*|pistaasikreemi\w*)\b/.test(s)) return "Kuivatuotteet";
   return null;
 }
 
 function categoryFor(name: string, sourceUrl: string) {
   const productCategory = lidlProductCategory(name);
   if (productCategory) return productCategory;
-  const s = normalize(name + " " + sourceUrl);
-  // Explicit non-food exclusions run first so words such as "liha" in a tool
-  // name can never leak a general-merchandise campaign into Gösta.
-  if (/vaate|asuste|lupilu|esmara|silvercrest|parkside|livarno|tyokalu|kodinkone|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu|rakennussarja|kosmeti|shampoo|deodorant|hammastahna/.test(s)) return "Muut";
-  if (/pyykin|astianpesu|pesuaine|puhdistus|talouspaperi|wc paperi|wc-paperi|vessapaperi|siivous/.test(s)) return "Kodinhoito";
-  if (/vihanne|hedelm|tomaatti|peruna|kaali|porkkana|sipuli|kurkku|omena|banaani|selleri|punajuuri|paprika|salaatti|retiisi/.test(s)) return "Hevi";
-  if (/paistopiste|leip|croissant|pull|sampyl|rieska|patonki|karjalanpiirakka/.test(s)) return "Leipomo";
-  if (/juusto|maito|jogur|rahka|kerma|voi\b|kananmuna|viili|piima/.test(s)) return "Maitotuotteet";
-  if (/liha|kana|broiler|nauta|sika|pors|makkara|nakki|pekoni|kinkku|jauheliha|lihapulla|nugget/.test(s)) return "Liha & makkarat";
-  if (/kala|lohi|katkarapu|tonnikala|silakka|seiti/.test(s)) return "Kala";
-  if (/pakaste|jaatelo|jäätelö/.test(s)) return "Pakasteet";
-  if (/valmisateria|pizza|keitto|ateria|nyytti|pata|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
-  if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
-  if (/juoma|mehu|vesi|limu|cola|vichy|energiajuoma/.test(s)) return "Juomat";
-  if (/kark|makeis|suklaa|keksi|sips|chips|lakrit|salmiak|purukumi/.test(s)) return "Makeiset & keksit";
-  if (/lastenruo|vauvanruo|aidinmaidonkorvike/.test(s)) return "Lastenruoat";
-  if (/koira|kissa|lemmik/.test(s)) return "Lemmikit";
-  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|säilyke|kastike|oljy|öljy|mauste|sokeri|suola|nuudeli|makaroni|spagetti|pahkina|pähkinä/.test(s)) return "Kuivatuotteet";
-  // Unknown is deliberately "Muut", never Kuivatuotteet. New products must earn
-  // a grocery category before they can become visible in the grocery leaflet.
+  const s = normalize(name);
+  // Whole words/product tokens only: never match 'liha' inside 'alkoholijuomat',
+  // 'pulla' inside 'lihapulla' or 'voi' inside 'voisilmapulla'.
+  if (/\b(?:vaate\w*|asuste\w*|lupilu|esmara|silvercrest|parkside|livarno|tyokalu\w*|kodinkone\w*|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu\w*|rakennussarja|kosmeti\w*|shampoo|deodorant|hammastahna)\b/.test(s)) return "Muut";
+  if (/\b(?:pyykin\w*|astianpesu\w*|pesuaine\w*|puhdistus\w*|talouspaperi\w*|siivous\w*)\b/.test(s)) return "Kodinhoito";
+  if (/\b(?:vihanne\w*|hedelm\w*|tomaatti\w*|peruna\w*|kaali\w*|porkkana\w*|sipuli\w*|kurkku\w*|omena\w*|banaani\w*|selleri\w*|punajuuri\w*|paprika\w*|salaatti\w*)\b/.test(s)) return "Hevi";
+  if (/\b(?:leipa\w*|croissant\w*|pulla\w*|sampyla\w*|rieska\w*|patonki\w*)\b/.test(s)) return "Leipomo";
+  if (/\b(?:juusto\w*|maito\w*|jogurtti\w*|rahka\w*|kerma\w*|kananmuna\w*|viili\w*|piima\w*)\b/.test(s)) return "Maitotuotteet";
+  if (/\b(?:liha\w*|kana\w*|broiler\w*|nauta\w*|sika|pors\w*|makkara\w*|nakki\w*|pekoni\w*|kinkku\w*|jauheliha\w*|lihapulla\w*|nugget\w*)\b/.test(s)) return "Liha & makkarat";
+  if (/\b(?:kala\w*|lohi\w*|katkarapu\w*|tonnikala\w*|silakka\w*|seiti)\b/.test(s)) return "Kala";
+  if (/\b(?:pakaste\w*|jaatelo\w*)\b/.test(s)) return "Pakasteet";
+  if (/\b(?:valmisateria\w*|pizza\w*|keitto\w*|ateria\w*|lasagne\w*|wokki|risotto)\b/.test(s)) return "Valmisruoka";
+  if (/\b(?:kahvi\w*|espresso\w*|cappuccino\w*|tee)\b/.test(s)) return "Kahvi & tee";
+  if (/\b(?:juoma\w*|mehu\w*|vesi|limu\w*|cola|vichy|energiajuoma\w*|glogi\w*)\b/.test(s)) return "Juomat";
+  if (/\b(?:kark\w*|makeis\w*|suklaa\w*|keksi\w*|sips\w*|chips|lakrit\w*|salmiak\w*)\b/.test(s)) return "Makeiset & keksit";
+  if (/\b(?:lastenruo\w*|vauvanruo\w*|aidinmaidonkorvike\w*)\b/.test(s)) return "Lastenruoat";
+  if (/\b(?:pasta\w*|riisi\w*|jauho\w*|hiutale\w*|muro\w*|mysli\w*|sailyke\w*|kastike\w*|oljy\w*|mauste\w*|sokeri\w*|suola\w*|nuudeli\w*|makaroni\w*|spagetti\w*|pahkina\w*)\b/.test(s)) return "Kuivatuotteet";
+  // Unknown products must not be assigned a grocery category based only on
+  // the URL of a mixed campaign/category page.
   return "Muut";
 }
 
@@ -191,7 +201,7 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
       }
       return "";
     })();
-    const category = categoryFor([brandName, fullName, product.keyfacts?.wonCategoryPrimary].filter(Boolean).join(" "), sourceUrl);
+    const category = categoryFor([brandName, fullName].filter(Boolean).join(" "), sourceUrl);
     output.push({
       id: `lidl-fi-grid-${product.productId || product.itemId || normalize(fullName)}-${validFrom}`,
       source: "lidl-fi-public", chain: "Lidl", title: fullName, name: fullName, productName: fullName, brandName,
@@ -372,7 +382,7 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
     if (!name || price == null || price <= 0) continue;
     const validFrom = isoDate(offer.validFrom || offer.startDate || product.validFrom || product.startDate) || fallbackDate;
     const validUntil = isoDate(offer.validUntil || offer.endDate || product.validUntil || product.endDate) || fallbackDate;
-    const category = categoryFor([brandName, name, product.description, product.category].filter(Boolean).join(" "), sourceUrl);
+    const category = categoryFor([brandName, name].filter(Boolean).join(" "), sourceUrl);
     if (!GROCERY_CATEGORIES.has(category)) continue;
     const imageUrl = (() => {
       const candidate = product.image || product.imageUrl || product.pictureUrl || offer.image || offer.imageUrl;

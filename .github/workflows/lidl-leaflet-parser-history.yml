@@ -2,7 +2,7 @@ name: Lidl leaflet parser history
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, fix/lidl-national-offer-categories]
     paths:
       - ".github/workflows/lidl-leaflet-parser-history.yml"
       - "scripts/lidl/**"
@@ -63,6 +63,9 @@ jobs:
           valmisateriat|https://www.lidl.fi/h/valmisateriat/h10097147
           paistopiste|https://www.lidl.fi/h/paistopiste-leivaet-ja-leivonnaiset/h10096086
           URLS
+      - name: Verify national Lidl grocery categories
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/lidl/verify-parser-history.mjs categories
       - name: Verify every archived Lidl parser edition
         if: steps.clock.outputs.run == 'true'
         run: node scripts/lidl/verify-parser-history.mjs verify
