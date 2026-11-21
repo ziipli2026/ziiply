@@ -317,10 +317,12 @@ test('Normal product search: scoped EAN parity, no cart or Monta assertions',asy
         const apiResponseStart=apiResponses.length;
         const browserErrorStart=errors.length;
         console.log('[normal-parity] stage input-fill',device,query);
+        if(parallel)await waitForBothDevices(query);
         await input.fill(query,{timeout:12000});
         console.log('[normal-parity] stage input-filled',device,query);
-        if(parallel)await waitForBothDevices(query);
-        if(device==='desktop')await input.press('Enter',{timeout:12000});
+        if(device==='desktop'){
+          await page.getByRole('button',{name:'Hae kirjoitetut tuotteet',exact:true}).filter({visible:true}).click({timeout:12000});
+        }
         else await page.getByRole('button',{name:'Justiina',exact:true}).filter({visible:true}).click({timeout:12000});
         console.log('[normal-parity] stage submitted',device,query);
         const cards=page.locator('[data-testid="normal-search-result"][data-ean]');
