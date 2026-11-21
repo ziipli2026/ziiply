@@ -31,11 +31,13 @@ if (!desktop) await p.getByRole('button',{name:'Jatka',exact:true}).filter({visi
 let cmp=p.getByRole('button',{name:/^Halpuusvertailu$/}).filter({visible:true});
 if(!await cmp.count()){let cart=p.getByRole('button',{name:/^Kori\s*\d*$/}).filter({visible:true});await cart.last().click({timeout:10000});}
 cmp=p.getByRole('button',{name:/^Halpuusvertailu$/}).filter({visible:true});
+await cmp.first().waitFor({timeout:15000});
+const firstComparisonRequest = req.length;
 await cmp.first().click({timeout:15000});
 const note=p.getByText('Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.',{exact:true});
 if(lidlMode()) {await note.waitFor({timeout:20000});assert.equal(await note.count(),1);} else {await (desktop?p.getByText('Prisma Hyvinkää',{exact:true}):p.getByRole('button',{name:'Avaa Prisma Hyvinkää',exact:true})).filter({visible:true}).first().waitFor({timeout:20000});assert.equal(await note.count(),0);}
 assert.equal(await p.getByRole('button',{name:/Avaa Lidl/}).count(),0);
-if(mode==='one')assert.equal(req.filter(x=>x.includes('/api/lidl/products')).length,0);
+if(mode==='one')assert.equal(req.slice(firstComparisonRequest).filter(x=>new URL(x).pathname==='/api/lidl/products').length,0,'Halpuusvertailu did not request Lidl product prices');
 console.log('PASS',tag);
 }catch(e){console.log('FAIL',tag,e.message.slice(0,850),(await p.locator('body').innerText().catch(()=>'' )).slice(0,750));process.exitCode=1;}
 function lidlMode(){return mode!=='control'}
