@@ -323,15 +323,13 @@ export default function ZiiplyMobileCompareCardresponsive({
   if (!open) return null;
 
   const chainOrder: Record<string, number> = { S: 0, K: 1, LIDL: 2, SPAR: 3 };
-  const visibleStores = stores
-    .filter((store) => store.chain !== "LIDL" && store.id !== "lidl")
-    .map(normalizeComparisonStorePrices).sort(
+  const visibleStores = stores.map(normalizeComparisonStorePrices).sort(
     (a, b) => (chainOrder[a.chain || ""] ?? 4) - (chainOrder[b.chain || ""] ?? 4),
   );
   // V780: kun valitut kaupat tunnetaan, näytä heti oikeat lopullisen muotoiset kortit.
   // Lataus täydentää niihin vain hinnat/määrät ym.; vanhaa erillistä skeleton-korttia käytetään vain jos kauppoja ei vielä tunneta.
-  const showSkeleton = loading && visibleStores.length === 0;
-  const cheapest = getCheapestStore(visibleStores);
+  const showSkeleton = visibleStores.length === 0;
+  const cheapest = getCheapestStore(visibleStores.filter((store) => store.chain !== "LIDL" && store.id !== "lidl"));
   const handleBack = detailsStoreId ? () => setDetailsStoreId(null) : onBack || onBackToCart;
   const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
   // Missing counterpart is a result state, not the default while restored
@@ -365,9 +363,6 @@ export default function ZiiplyMobileCompareCardresponsive({
           </div>
           <div className="absolute left-[6%] right-[6%] top-[22%] bottom-[7%] flex min-h-0 flex-col gap-1.5">
 
-            <p className="shrink-0 rounded-lg bg-[#fff4d8]/90 px-2 py-1 text-xs font-bold leading-snug text-[#51452f]">
-              Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
-            </p>
             {showSkeleton ? (
               <>
                 <StoreLoadingCard index={0} />
@@ -386,13 +381,20 @@ export default function ZiiplyMobileCompareCardresponsive({
                     Ei vertailua
                   </h3>
                   <p className="mx-auto mt-3 max-w-[18rem] text-[0.82rem] font-extrabold leading-snug text-[#6b6048]">
-                    Vertailutuloksia ei ole saatavilla.
+                    Lisää tuotteita koriin, niin vertailu voidaan laskea.
                   </p>
                 </div>
               </div>
             ) : (
               visibleStores.map((store, index) => {
                 if (detailsStoreId && detailsStoreId !== store.id) return null;
+                if (store.chain === "LIDL" || store.id === "lidl") {
+                  return (
+                    <p key={store.id} className="shrink-0 px-2 py-1 text-xs font-bold leading-snug text-[#51452f]">
+                      Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
+                    </p>
+                  );
+                }
                 const hasPricedMatches = (store.matches || []).some((match: any) => Number(match?.price) > 0);
                 const resultPending = !loading && !hasPricedMatches && !hasResolvedComparisonData;
                 const hasNoCounterpart =
