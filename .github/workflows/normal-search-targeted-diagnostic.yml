@@ -52,7 +52,7 @@ jobs:
       - run: npm ci
       - run: npm install --no-save --no-package-lock @playwright/test
       - run: npx playwright install chromium
-      - name: Compare one live query on mobile and desktop
+      - name: Compare one live query and log provider response versions
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           ZIIPLY_LIVE_URL: https://ziiply-1cylefpw6-ziipli2026s-projects.vercel.app
