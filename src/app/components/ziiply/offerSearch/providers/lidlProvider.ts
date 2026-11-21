@@ -154,30 +154,9 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
       .filter((value) => value != null)
       .map((value) => String(value))
       .join(" ");
-    const hasPackWeightInTitle = /\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/i.test(title);
-    const isExplicitlyLoose =
-      /\birto\b|\bloose\b/i.test(lidlPricingText) ||
-      /\birto\b|\bloose\b/i.test(title);
-    const isExplicitlyPerKg =
-      /(?:€|eur)\s*\/\s*kg\b/i.test(lidlPricingText) ||
-      /\b(?:hinta\s*\/\s*kg|kilohinta|per\s*kg)\b/i.test(lidlPricingText) ||
-      /\bkg\b/i.test(String(box?.priceSymbol || ""));
-    const isExplicitlyUnitPriced =
-      /(?:€|eur)\s*\/\s*kpl\b/i.test(lidlPricingText) ||
-      /\b(?:kpl|kappale|pkt|paketti|rasia|pussi|nippu|ruukku)\b/i.test(lidlPricingText);
-    // Lidl's Scan & Go rule is: produce without a unit price is weighed,
-    // while packaged/unit-priced produce is entered by its product/shelf
-    // barcode. Prefer explicit source evidence; only use the Hevi fallback
-    // when the source gives no packaging/unit marker at all.
-    const isWeightedProduct =
-      isExplicitlyLoose ||
-      isExplicitlyPerKg ||
-      (
-        category === "Hevi" &&
-        !hasPackWeightInTitle &&
-        !isExplicitlyUnitPriced &&
-        !/\b(?:monipakkaus|monipak|pakattu|valmiiksi pakattu)\b/i.test(lidlPricingText)
-      );
+    // Weight-based pricing requires evidence in the actual source price/unit
+    // fields. A guessed category must never change price semantics.
+    const isWeightedProduct = isExplicitlyLoose || isExplicitlyPerKg;
 
     return {
       id: `lidl-${key}-${String(row?.id || index)}`,
