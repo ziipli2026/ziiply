@@ -865,30 +865,48 @@ export async function GET(request: Request) {
       const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
         .filter((offer) => normalizeText(offer.category) !== "muut");
       const neonEnriched = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
-      // Final category authority for Lidl: the actual product form takes precedence
-      // over stale staged-publication categories and over broad Neon name matches.
-      // Apply after enrichment, and keep the nested card source in sync on both UIs.
+      // Prefer the official Lidl department over ambiguous ingredient words in
+      // product names or legacy Neon categories. Only first-party /h/ category
+      // paths are authoritative; product and campaign URLs are not categories.
+      const lidlDepartmentCategory = (offer: UnknownRecord): string => {
+        const raw = firstString(offer.sourceUrl, offer.productUrl);
+        let pathname = "";
+        try {
+          const url = new URL(raw);
+          if (url.hostname !== "www.lidl.fi" && url.hostname !== "lidl.fi") return "";
+          pathname = decodeURIComponent(url.pathname).toLocaleLowerCase("fi");
+        } catch { return ""; }
+        const match = pathname.match(/^\/h\/([^/]+)\//);
+        if (!match) return "";
+        const department = match[1].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const groups: Array<[RegExp, string]> = [
+          [/liha|makkar|leikkele|broileri|kana/, "Liha & makkarat"],
+          [/leipa|leivonn|paistopiste|kakku/, "Leipomo"],
+          [/kala|merenelav/, "Kala"],
+          [/hedelma|vihannes|hevi/, "Hevi"],
+          [/maito|juusto|jogurtti|kananmun/, "Maitotuotteet"],
+          [/juoma|mehu|vesi/, "Juomat"],
+          [/pakaste|jaatelo/, "Pakasteet"],
+          [/valmisruo/, "Valmisruoka"],
+          [/kuivatuot|sailyke|pasta|riisi|mauste/, "Kuivatuotteet"],
+          [/makeis|keksi|suklaa/, "Makeiset & keksit"],
+        ];
+        return groups.find(([pattern]) => pattern.test(department))?.[1] || "";
+      };
+      // All API category fields and the nested mobile-card source must agree.
+      // Verified Neon EAN matches win when no authoritative Lidl department exists.
       const results = neonEnriched.map((offer): UnknownRecord => {
-        const title = normalizeText(firstString(offer.name, offer.title, offer.productName));
-        let category = "";
-        if (/lihapyor|lihapull|lihapihv/.test(title)) category = "Liha & makkarat";
-        else if (/juustokakku|tahtitorttu|leivos|croissant|pulla|munkki/.test(title)) category = "Leipomo";
-        else if (/glogi|mehu|limonadi|smoothie|energiajuoma/.test(title)) category = "Juomat";
-        else if (/uuniperuna/.test(title)) category = "Hevi";
-        else if (/torttutaikina|piparitaikina/.test(title)) category = "Pakasteet";
-        else if (/lohifilee|kalafilee/.test(title) && !/pakast/.test(title)) category = "Kala";
-        // Synchronize every Lidl result, not just titles matched by a fallback
-        // rule. The mobile card can otherwise display a stale nested category
-        // after the shared Neon enrichment has updated the top-level result.
-        const effectiveCategory = category || firstString(offer.category);
-        if (!effectiveCategory) return offer;
+        const category = lidlDepartmentCategory(offer) ||
+          (offer.neonCategoryMatch === "ean" ? firstString(offer.neonDisplayCategory) : "") ||
+          firstString(offer.category);
+        if (!category) return offer;
         const source = offer.__sourceOfferSearchResult;
         return {
-          ...offer, category: effectiveCategory, categoryPath: effectiveCategory,
-          mainCategory: effectiveCategory, neonDisplayCategory: effectiveCategory,
+          ...offer, category, categoryPath: category, mainCategory: category,
+          neonDisplayCategory: category,
           __sourceOfferSearchResult: source && typeof source === "object" && !Array.isArray(source)
-            ? { ...(source as UnknownRecord), category: effectiveCategory, categoryPath: effectiveCategory,
-                mainCategory: effectiveCategory, neonDisplayCategory: effectiveCategory }
+            ? { ...(source as UnknownRecord), category, categoryPath: category,
+                mainCategory: category, neonDisplayCategory: category }
             : source,
         };
       });
