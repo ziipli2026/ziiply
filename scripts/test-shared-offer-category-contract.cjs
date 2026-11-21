@@ -55,3 +55,6 @@ assert.equal(resolve({title:'Esimerkki salaatti 200 g',brand:'Esimerkki',quantit
 assert.ok(!/byEan\.get\(ean\) \|\| localCategory \|\| byName\.get\(/.test(source),'EAN-less offers must not fall back to unverified name-only categories');
 assert.ok(!source.includes('replace(/\\\\s+/g'),'Catalog lookup must normalize real whitespace, not literal backslash-s');
 console.log('PASS shared catalog identity: ambiguous title, brand, quantity, duplicate, and safe fallback');
+
+assert.ok(!source.includes('byName.get('),'Category assignment must never use an unverified title-only catalog match');
+console.log('PASS no unverified title-only category assignment across providers');
