@@ -17,6 +17,14 @@ await p.addInitScript(({mode})=>{
 }, {mode});
 await p.route('**/api/**',async r=>{await r.fulfill({json:{ok:true,products:[],results:[],items:[]}})});
 try{
+if (!desktop) {
+  await p.route('**/__browser_fixture__', route => route.fulfill({contentType:'text/html',body:'<!doctype html><title>Browser test setup</title>'}));
+  await p.goto('http://127.0.0.1:3179/__browser_fixture__');
+  await p.evaluate(async () => {
+    const cache = await caches.open('ziiply-boot-marker-v778');
+    await cache.put('/__ziiply_boot_marker_v778__', new Response('1'));
+  });
+}
 await p.goto('http://127.0.0.1:3179/',{timeout:90000,waitUntil:'domcontentloaded'});
 if (desktop) await p.locator('[data-desktop-layout]').waitFor({timeout:35000});
 if (!desktop) await p.getByRole('button',{name:'Jatka',exact:true}).filter({visible:true}).first().click({timeout:20000});
