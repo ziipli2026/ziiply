@@ -404,7 +404,15 @@ jobs:
                       // and standalone cards show "Tokmanni / SPAR verkkohinta".
                       // Check the actual visible retailer label, not an exact text node.
                       const retailerLabel = search.getByText(/Tokmanni\s*\/\s*SPAR\s*(?:verkkovalikoima|verkkohinta)/i).filter({visible:true});
-                      await retailerLabel.first().waitFor({timeout:10000});
+                      await retailerLabel.first().waitFor({timeout:10000}).catch(async error => {
+                        console.log('SPAR/Tokmanni retailer label missing', JSON.stringify({
+                          viewport: name, chain, extra, liveTerm,
+                          resultCount: results.length,
+                          visibleCardText: (await search.locator('article:visible').allInnerTexts()).slice(0, 5),
+                          providerRequests: searchRequests.filter(value => /tokmanni\/products/.test(value)).slice(-5)
+                        }));
+                        throw error;
+                      });
                     }
                     const resultKey = JSON.stringify([chain, extra, liveTerm]);
                     const visible = {results, research, requests: searchRequests.filter(value => /\/api\/(s-products|k-products|neon-first-search|lidl\/products|tokmanni\/products)\?/.test(value))};
