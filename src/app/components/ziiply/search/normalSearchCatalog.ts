@@ -20,5 +20,18 @@ export async function fetchNormalSearchCatalog(query: string, signal?: AbortSign
 }
 
 export function selectNormalSearchCatalog(query: string, products: CatalogProduct[]): CatalogProduct[] {
-  return products.filter(product => product?.name && product.ean && desktopSearchDecision(query, product).accepted);
+  // Upstream Neon rows can arrive in a different order for the same query.
+  // Rank by the shared relevance score before any caller limits the catalog,
+  // then use a stable identity as a tie-breaker (never response position).
+  return products
+    .filter(product => product?.name && product.ean && desktopSearchDecision(query, product).accepted)
+    .sort((a, b) => {
+      const scoreDiff = desktopSearchDecision(query, b).score - desktopSearchDecision(query, a).score;
+      if (scoreDiff) return scoreDiff;
+      const eanA = String(a.ean ?? "").replace(/\\D/g, "");
+      const eanB = String(b.ean ?? "").replace(/\\D/g, "");
+      const eanDiff = eanA.localeCompare(eanB);
+      if (eanDiff) return eanDiff;
+      return String(a.name ?? "").localeCompare(String(b.name ?? ""), "fi-FI");
+    });
 }
