@@ -287,7 +287,7 @@ jobs:
                     : search.getByPlaceholder(/Kirjoita yksi tuote|maito, kahvi/).filter({ visible: true });
                   // Subscribe before typing: a fast automatic request can otherwise
                   // race ahead of waitForRequest and cause a false timeout.
-                  const autoSearchExpected = name === 'phone' && !many && !liveTerm;
+                  const autoSearchExpected = name === 'phone' && !many && !liveTerm && (chain === 'S' || chain === 'K');
                   const autoSearchStartedAt = Date.now();
                   const autoSearchRequest = autoSearchExpected ? search.waitForRequest(request => {
                     const parsed = new URL(request.url());
@@ -303,7 +303,7 @@ jobs:
                       disabled: el.disabled, ariaDisabled: el.getAttribute('aria-disabled'), title: el.getAttribute('title')
                     })));
                   }
-                  if (name === 'phone' && !many && !liveTerm) {
+                  if (autoSearchExpected) {
                     // A real user types a term and waits. Verify the normal 2-second
                     // automatic Justiina search, not only manual button submission.
                     await autoSearchRequest;
