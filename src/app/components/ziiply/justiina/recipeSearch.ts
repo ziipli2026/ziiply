@@ -105,6 +105,11 @@ const kinds: Kind[] = [
  {term:"sipuli",pattern:/\bsipul/,product:/\bsipuli\b|keltasipuli/,exclude:/jauhe|rouhe|suola|mauste|kastike|keitto/,group:"Kasvikset"},
  {term:"vihreä paprika",pattern:/vihreä.*paprik/,product:/vihreä paprika|paprika vihreä/,group:"Kasvikset"},
  {term:"paprika",pattern:/^paprikaa?$/,product:/\bpaprika\b/,exclude:/jauhe|mauste|sipsi|kastike/,group:"Kasvikset"},
+ {term:"omena",pattern:/^(?:(?:tuore|tuoretta) )?(?:omena|omenaa|omenat|omenoita)$/,product:/(?<!\p{L})(?:omena|omenat|omenoita)(?!\p{L})/u,exclude:/mehu|viili|jogurt|sose|välipala|riisi|kuivatt|pakaste|hillo|piirakka|etikka|salaatti|siideri|suklaa/,group:"Hedelmät"},
+ {term:"suolakurkku",pattern:/^suola[- ]?kur(?:kk(?:u|ua|uja)|k(?:un|ut))$/,product:/suola[- ]?kurk|suolatt\p{L}* kurk/iu,exclude:/salaat|kastike|jogur|sips|lastu|chips|leipä|relish/,group:"Säilykkeet"},
+ {term:"punajuuri säilyke",pattern:/^(?:(?:säilöt\p{L}*|etikkaan säilöt\p{L}*) punajuur(?:i|ia|et)|etikka[- ]?punajuur(?:i|ia|et)|punajuur(?:i|ia|et) (?:säilyke|säilöttynä|etikkaliemessä))$/u,product:/punajuur/,exclude:/salaat|mehu|keitto|sose|pihvi|lastu|sips|levite|jauhe|rosolli|sekoitus/,group:"Säilykkeet"},
+ {term:"majoneesi",pattern:/^majonees(?:i|ia|in)$/,product:/majonees|mayonnaise/,exclude:/salaat|tonnikal|valmisruo|täytet|voileip|sips|lastu|chips|dippikastike/,group:"Kastikkeet"},
+ {term:"smetana",pattern:/^smetanaa?$/,product:/smetana/,exclude:/kastike|keitto|salaat|sips|lastu|chips|levite|ateria/,group:"Maitotuotteet"},
  {term:"kurkku",pattern:/kurkk/,product:/\bkurkku\b/,exclude:/suola|mauste|etikka|säilyke|kastike/,group:"Kasvikset"},
  {term:"tomaatti",pattern:/^tomaat/,product:/\btomaatti\b|kirsikkatomaatti/,exclude:/murska|pyree|sose|keitto|kastike|kuivattu|kuorittu/,group:"Kasvikset"},
  {term:"peruna",pattern:/^(?:jauhoisia )?perun/,product:/\bperuna\b|perunoita/,exclude:/muusi|lastu|sipsi|ranskan|keitto|salaatti|laatikko/,group:"Kasvikset"},
@@ -259,6 +264,13 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
  if(kind&&["Pastat","Riisit","Jauhot","Pähkinät"].includes(kind.group)&&/valmisruo|ateria|pata-ainek|mausteseos|lasten|lapset|lemmik/.test(category))return "basic_pantry_ingredient_required";
  if(kind&&["Pastat","Riisit","Jauhot","Pähkinät"].includes(kind.group)&&/maito|juusto|jogur|leivat|makeis|jaatelo|juomat|lihat/.test(category))return "basic_pantry_ingredient_required";
  if(kind?.group==="Pähkinät"&&/cheddar|gouda|brie|camembert|cheese|emmental|sinihome/.test(name))return "nut_ingredient_required";
+ if((term==="suolakurkku"||term==="punajuuri säilyke")&&(/s[aä]il[öo]nt[aä]aine|s[aä]il[öo]te(?!tt)/.test(name)||/s[aä]il[öo]nt[aä]aine|s[aä]il[öo]nt[aä]tarvik/.test(category)))return "preserving_agent_is_not_preserved_food";
+ if(term==="punajuuri säilyke"){
+   const preserved=/säilött|etikka[- ]?punajuur|etikkaliem|mausteliem/.test(name)
+     || /(?:^|\/)vihanness[aä]ilykkeet(?:\/|$)/.test(category);
+   const hasDrainedWeight=/\d\s*(?:kg|g)?\s*\/\s*\d+(?:[,.]\d+)?\s*(?:kg|g)\b/.test(name);
+   if(!preserved&&!hasDrainedWeight)return "preserved_beetroot_required";
+ }
  if(kind&&term!=="peruna"&&(!kind.product.test(name)||kind.exclude?.test(name)))return "ingredient_product_type_mismatch";
  if(!categoryIntent&&!kind&&!term.split(" ").every(word=>name.includes(word)))return "unknown_ingredient_literal_match_missing";
  if(term==="sokeri"){
@@ -267,7 +279,7 @@ export function recipeProductRejectionReason(input: string, product: { name?: st
    if(category.includes("/")&&!/(?:^|\/)(?:sokerit|sokeri|sugars)(?:\/|$)/.test(category))return "sugar_category_required";
    if(/(?:sokeriton|sokerittom|sokerimassa|sokerikuorr|sokeriströss|sokerikorist|sokeriherne|sokeriliem|sokeriruoko|sokeritouk|vähemmän soker|lisättyä soker|purukumi|salmiakki|lautanen|\bkulho\b|pyydys)/.test(name))return "actual_sugar_product_required";
  }
- const produceTerms=["porkkana","sitruuna","peruna","varhaisperuna","sipuli","punasipuli","valkosipuli","inkivääri","purjo","kevätsipuli","fenkoli","bataatti","pinaatti","herne","tomaatti","kirsikkatomaatti","kurkku","paprika","vihreä paprika","parsakaali"];
+ const produceTerms=["omena","porkkana","sitruuna","peruna","varhaisperuna","sipuli","punasipuli","valkosipuli","inkivääri","purjo","kevätsipuli","fenkoli","bataatti","pinaatti","herne","tomaatti","kirsikkatomaatti","kurkku","paprika","vihreä paprika","parsakaali"];
  if(produceTerms.includes(term)&&(/^(?:juomat|makeiset|leivat|valmisruoka|liha|maito|lapset)/.test(category)||/juusto|levite|tahna|tonnikala|broiler|filee|jogur|pasta|gnocchi|leipä|kierre|hyytelö|patukka|vichy|kivennäisvesi|limonadi|mehu|shot|shotti|tee|hauduke|makeinen|pastilli|suklaa|karkki|keksi|sips|lastu|pyörykk|pihvi|muusi|keitto|laatikko|jäätelö|jäätel|sorbet|grilliperuna|peruna-sipulisekoit|peruna-juuressekoit/.test(name)))return "whole_ingredient_required";
  if(["tuorejuusto","sulatejuusto","juustoraaste"].includes(term)&&/sips|keitto|kakku|makeinen|keksi/.test(name))return "cheese_ingredient_required";
  if(produceTerms.includes(term)&&category.includes("/")&&!/^(?:hedelmat-ja-vihannekset|pakasteet\/(?:vihannes|peruna|marja))/.test(category)&&!(term==="inkivääri"&&/^mausteet-ja-maustaminen/.test(category)))return "produce_category_required";
