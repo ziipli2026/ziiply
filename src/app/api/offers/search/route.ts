@@ -881,7 +881,7 @@ export async function GET(request: Request) {
         if (!match) return "";
         const department = match[1].normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const groups: Array<[RegExp, string]> = [
-          [/liha|makkar|leikkele|broileri|kana/, "Liha & makkarat"],
+          [/(?:^|-)lihat(?:-|$)|makkar|leikkele|broileri|(?:^|-)kana(?:-|$)/, "Liha & makkarat"],
           [/leipa|leivonn|paistopiste|kakku/, "Leipomo"],
           [/kala|merenelav/, "Kala"],
           [/hedelma|vihannes|hevi/, "Hevi"],
