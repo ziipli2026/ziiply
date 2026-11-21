@@ -917,10 +917,14 @@ export async function GET(request: Request) {
         const freshSalad = /(?:salaattisekoitus|salaattipussi|salaattiker[aä]|salaatinlehti|ja[aä]vuorisalaatti|romainesalaatti|lehtisalaatti|ker[aä]salaatti|j[aä][aä]salaatti|salaatti)/.test(productName);
         const explicitFrozen = /(?:pakaste|pakastettu|pakastetaikina|j[aä][aä]tel[oö])/.test(productName);
         const finishedBakery = /(?:juustokakku|kakku|torttu|leivos)/.test(productName) && !/taikina/.test(productName);
+        // Fish cuts must not inherit the frozen-food category from a mixed
+        // Lidl landing page. Explicit freezing in the product name still wins.
+        const fishProduct = /(?:lohifilee|kirjolohifilee|lohi filee|kirjolohi|kalafilee|seiti|ahvenfilee|kuhafilee|tonnikala)/.test(productName);
         const productFormCategory = preparedSalad
           ? "Valmisruoka"
-          : freshSalad ? "Hevi"
           : explicitFrozen ? "Pakasteet"
+          : fishProduct ? "Kala"
+          : freshSalad ? "Hevi"
           : finishedBakery ? "Leipomo"
           : "";
         const category = productFormCategory ||
