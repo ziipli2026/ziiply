@@ -115,6 +115,8 @@ function lidlProductCategory(name: string): string | null {
   if (/\b(?:jaatelo\w*|pakaste\w*|pakastettu\w*|torttutaikina\w*|piparitaikina\w*)\b/.test(s)) return "Pakasteet";
   if (/\b(?:pikkuleipa\w*|keksi\w*|nougat\w*|konvehti\w*|karamelli\w*|suklaa\w*|makeis\w*|karkki\w*|tikkari\w*|piparkakku\w*)\b/.test(s)) return "Makeiset & keksit";
   if (/(?:tahtitorttu|croissant|sampyla|patonki|pullava|voisilmapulla|leivos|panettone|pandoro|juustokakku|kakku\w*|torttu\w*)/.test(s)) return "Leipomo";
+  // Finished baked desserts outrank dairy ingredients regardless of prefix (pistaasi-juustokakku).
+  if (/\b\w*(?:juustokakku|kakku|torttu|leivos)\w*\b/.test(s)) return "Leipomo";
   if (/\b(?:juusto\w*|jogurtti\w*|rahka\w*|maito\w*|kerma\w*|moussejalkiruoka\w*)\b/.test(s)) return "Maitotuotteet";
   if (/\b(?:aurinkokuivattu\w*|sailyke\w*|pastakastike\w*|pesto|oliivioljy\w*|marmeladi\w*|pistaasikreemi\w*)\b/.test(s)) return "Kuivatuotteet";
   return null;
