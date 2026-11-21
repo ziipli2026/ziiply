@@ -25082,6 +25082,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             open
             stores={(displayedChainResultsV821.length > 0
               ? displayedChainResultsV821
+                  .filter((result) => result.key !== "lidl" || selectedChains.lidl)
                   .map((result) => ({
                     id: result.key,
                     name: result.storeName || result.chain,
