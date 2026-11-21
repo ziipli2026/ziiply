@@ -1689,8 +1689,8 @@ import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileA
 import ZiiplyRecipeSearchDebug, { appendRecipeDebug } from "./components/ziiply/mobile/ZiiplyRecipeSearchDebug";
 import { recipeProductCompatible, recipeRetailPackageCount, type RecipeIngredient } from "./components/ziiply/justiina/recipeCore";
 import { recipeCoverageQueries } from "./components/ziiply/justiina/recipeSearchCoverage";
-import { recipeProductRejectionReason } from "./components/ziiply/justiina/recipeSearch";
-import { rankMobileRecipeProducts, mobileRecipeSelectionAllowed, mobileRecipePackageQuantity, mobileRecipePriceInCents, type MobileRecipeContext, type MobileRecipeProduct } from "./components/ziiply/justiina/mobileRecipeSearch";
+import { recipeProductRejectionReason, prioritizeRecipeFishProducts } from "./components/ziiply/justiina/recipeSearch";
+import { mobileRecipeSelectionAllowed, mobileRecipePackageQuantity, mobileRecipePriceInCents, type MobileRecipeContext, type MobileRecipeProduct } from "./components/ziiply/justiina/mobileRecipeSearch";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
 import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
@@ -13342,9 +13342,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
           const finalItems = (betweenSingleLidl
             ? groupMatchedItems.filter((product) => Boolean(product.name?.trim()) && (product as Product & { source?: string }).source === "lidl.fi-public-research")
-            : recipeIngredient
-              ? rankMobileRecipeProducts(groupMatchedItems, recipeIngredient, getProductPrice)
-              : rankProductResultsByRelevanceAndPrice(searchQuery, groupMatchedItems, getProductPrice))
+            : rankProductResultsByRelevanceAndPrice(searchQuery, groupMatchedItems, (product: Product) => getProductPrice(product)))
             .slice(0, 40)
             .map((product) => {
               const withMeta = {
@@ -13415,7 +13413,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         : normalItemsForSelectionUnfiltered.filter((product) => !isBadNormalResult(product, originalNormalQuery));
 
       traceSearch("merged-provider-results", { products: traceProducts(normalItemsForSelection) });
-      const normalUnique = usesSharedStoreQueries || recipeIngredient ? [] : filterPetProductsFromFoodSearchV443(
+      const normalUnique = usesSharedStoreQueries ? [] : filterPetProductsFromFoodSearchV443(
         normalItemsForSelection,
         focusedSearchTerms[0] || useTerms[0] || "",
       )
@@ -13477,7 +13475,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
 
       const unique = usesSharedStoreQueries ? all : recipeIngredient
-        ? rankMobileRecipeProducts(normalCandidates, recipeIngredient, getProductPrice)
+        ? prioritizeRecipeFishProducts(recipeIngredient.name, rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0], normalUnique.filter(recipeAllows), getProductPrice), recipeIngredient)
         : finalizeNormalSearchResults(
             focusedSearchTerms[0] || useTerms[0] || "",
             normalUnique,
