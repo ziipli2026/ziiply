@@ -47,6 +47,8 @@ const alternatives: Record<string, string[]> = {
   sokeri:['sokeri','taloussokeri'],
   ketsuppi:['ketsuppi','ketchup'], ketsuppia:['ketsuppi','ketchup'],
   zero:['zero','sokeriton','max'], sokeriton:['sokeriton','zero','max'],
+  // Frozen vegetables are sold under specific vegetable and mix names.
+  pakastevihannes:['pakastevihannes','pakastekasvikset','pakastevihannekset','pakasteherneet','pakasteparsakaali','pakastekukkakaali','wokvihannekset'],
   pepsi:['pepsi'],
   cola:['cola','pepsi','coke'], limsa:['virvoitusjuoma','limonadi','cola','pepsi','fanta','sprite','jaffa'],
   kananfilee:['kananfilee','kanafilee','broilerin filee','broilerinfilee'],
@@ -320,6 +322,13 @@ export function desktopSearchDecision(query: string, product: Row) {
     return {accepted:false,score:-10000,reason:'egg_substitute_not_eggs'};
   if(requestedTerms.includes('cola') && /juomatiiviste|sodastream|siirappi/.test(originalIdentity))
     return {accepted:false,score:-10000,reason:'cola_concentrate_original_identity'};
+  // A bare fresh-produce search must not match a drink, flavour or meal
+  // only because it contains the requested fruit or vegetable ingredient.
+  if(requestedTerms.length===1 && ['appelsiini','banaani','tomaatti','kurkku'].includes(requestedTerms[0])) {
+    const incompatible=/lonkero|juoma|drink|tee(?: |$)|rooibos|yrttitee|hauduke|mehu|smoothie|proteiinijuoma|ruokakerma|kaururuoka|kastike|keitto|marinoitu|mauste|keksi|kakku|jogurtti|rahka|vanukas|suklaa|aromi|maku/;
+    if(incompatible.test(originalIdentity))
+      return {accepted:false,score:-10000,reason:'fresh_produce_not_ingredient_flavour'};
+  }
   // Protect primary product identity from ingredient matches in prepared meals.
   // Aliases may clarify a genuine product but cannot turn a muffin, salad or
   // ready meal into the ingredient sought by the shopper.
@@ -328,6 +337,17 @@ export function desktopSearchDecision(query: string, product: Row) {
   if(requestedTerms.some(term=>ingredientQueries.has(term)) &&
      /muffin|sandwich|ciabatta|salaatti|keitto|lasagne|piirakka|pasta|ateria|kastikkeella|perunoilla|paneroitu|twist/.test(originalName))
     return {accepted:false,score:-10000,reason:'prepared_food_not_requested_ingredient'};
+  // A generic frozen-vegetable search must require a frozen vegetable identity,
+  // not a prepared meal merely containing vegetables.
+  if(requestedTerms.length===1 && requestedTerms[0]==='pakastevihannes') {
+    const identity=searchWords(product.name || product.title).join(' ');
+    const category=searchWords(product.category).join(' ');
+    const frozen=/(?:pakaste|jaadytetty|jaadytetyt|frozen)/.test(identity+' '+category);
+    const vegetable=/(?:vihannes|vihannek|kasvis|kasvik|herne|parsakaal|kukkakaal|porkkan|papu|wok)/.test(identity);
+    const excluded=/(?:ateria|keitto|pizza|pitsa|lasagne|kastike|pihvi|pyorykka|nugetti|ranskanperun|perunalastu|mauste|sekoitusmauste|koira|kissa|lemmik)/.test(identity);
+    if(!frozen || !vegetable || excluded)return {accepted:false,score:-10000,reason:'not_frozen_vegetable'};
+    return {accepted:true,score:100,reason:'frozen_vegetable_identity'};
+  }
   const primary=desktopSearchNameDecision(query,product);
   if(primary.accepted || /^\d{8,14}$/.test(query.trim()) || !Array.isArray(product.aliases))return primary;
   // A catalog identity can be phrased differently from the primary name (for
