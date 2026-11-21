@@ -913,6 +913,11 @@ export async function GET(request: Request) {
         // proof of a product's physical form. In particular, fresh lettuce
         // must not become a ready meal, and an unfrozen dough must not become
         // a frozen product just because its name contains "taikina".
+        // Reject non-food merchandise before applying any grocery category.
+        // "Jäätelökärry" is a toy, not ice cream; source department and
+        // legacy Neon enrichment must not reintroduce it as a frozen food.
+        const nonFoodMerchandise = /(?:\\b(?:lupilu|lelu|lelut|leikkikalu|leikkisetti|leikkikeitti[oö]|puinen|puulelu|j[aä][aä]tel[oö]k[aä]rry|makeiskoju|parkside|silvercrest|esmara|livarno)\\b|j[aä][aä]tel[oö]k[aä]rry|makeiskoju)/.test(productName);
+        if (nonFoodMerchandise) return { ...offer, category: "Muut", categoryPath: "Muut", mainCategory: "Muut" };
         const preparedSalad = /(?:salaattiateria|ateriasalaatti|salaattiannos|valmissalaatti|ruokaisa salaatti|valkokaalisalaatti)/.test(productName);
         const freshSalad = /(?:salaattisekoitus|salaattipussi|salaattiker[aä]|salaatinlehti|ja[aä]vuorisalaatti|romainesalaatti|lehtisalaatti|ker[aä]salaatti|j[aä][aä]salaatti|salaatti)/.test(productName);
         const explicitFrozen = /(?:pakaste|pakastettu|pakastetaikina|j[aä][aä]tel[oö])/.test(productName);
