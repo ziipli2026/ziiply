@@ -83,6 +83,41 @@ jobs:
             'standalone rice must remain a valid grocery product');
           console.log('PASS cross-chain compound grocery counterpart identity');
           NODE
+      - name: Cross-chain compound counterpart functional verification
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('fs');
+          const path = require('path');
+          const locate = (dir) => {
+            for (const entry of fs.readdirSync(dir, {withFileTypes:true})) {
+              const file = path.join(dir,entry.name);
+              if (entry.isDirectory()) {const found=locate(file);if(found)return found;}
+              else if(entry.name==='ziiplyCore.js')return file;
+            }
+          };
+          const core = require(path.resolve(locate('.tmp-search-regression')));
+          const cases = [
+            ['K-Menu riisi-vihannessekoitus 450 g','S','Coop riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','K','Pirkka riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','SPAR','SPAR riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','SPAR','Tokmanni makeisrasia 450 g',false],
+            ['K-Menu riisi-vihannessekoitus 450 g','S','Prisma kasvispakaste 450 g',false],
+            ['K-Menu riisi-vihannessekoitus 450 g','K','Pirkka riisi 450 g',false],
+            ['Pirkka herne-maissisekoitus 200 g','S','Coop herne-maissisekoitus 200 g',true],
+            ['Pirkka herne-maissisekoitus 200 g','SPAR','Tokmanni maissipakaste 200 g',false],
+            ['Riisi','S','Coop pitkäjyväinen riisi 1 kg',true],
+            ['Riisi','SPAR','Tokmanni karkkirasia 1 kg',false],
+          ];
+          for(const [source,chain,candidate,expected] of cases){
+            const group=core.productGroupGate(source,candidate);
+            const attribute=core.isComparisonAttributeCompatible(source,candidate);
+            const actual=group&&attribute;
+            assert.equal(actual,expected,JSON.stringify({source,chain,candidate,group,attribute}));
+            console.log('PASS',chain,source,'=>',candidate,actual);
+          }
+          console.log('PASS cross-chain compound counterpart verification');
+          NODE
       - name: Audit real basket comparison callsites on mobile and desktop
         shell: bash
         run: |
