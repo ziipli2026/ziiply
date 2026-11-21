@@ -179,20 +179,17 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
         console.error("[offers] Neon category code mapping unavailable", error);
       }
     }
-    // Local Tjek publication offers have no EAN. Resolve only uniquely matched
-    // catalog identities, without guessing from partial titles or category labels.
-    // Keep this opt-in limited to the selected-store Tjek source.
-    const localTjekOffers = offers.filter(offer =>
-      String(offer.provider ?? "") === "kcitymarket-local" &&
-      String(offer.source ?? "") === "K-Citymarket kauppakohtainen julkaisu" &&
-      !getEan(offer));
-    const localNames = [...new Set(localTjekOffers.map(getName).filter(name => name.length >= 6 && name.length <= 300))];
-    const localMatches = new Map<T, CatalogIdentity>();
-    if (localNames.length) {
+    // Resolve EAN-less offers from every provider with the same strict catalog
+    // identity rules. Never guess from a category shelf, partial name or URL.
+    const withoutEan = offers.filter(offer => !getEan(offer));
+    const identityNames = [...new Set(withoutEan.map(getName)
+      .filter(name => name.length >= 6 && name.length <= 300))];
+    const identityMatches = new Map<T, CatalogIdentity>();
+    if (identityNames.length) {
       try {
         const candidates = await sql`SELECT ean, name, brand, quantity, category
           FROM ziiply_ean_products
-          WHERE lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) = ANY(${localNames.map(name => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\\s+/g, " ").trim())}::text[])
+          WHERE lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) = ANY(${identityNames.map(name => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\\s+/g, " ").trim())}::text[])
             AND category IS NOT NULL AND trim(category) <> ''`;
         const catalog = candidates.map(row => ({
           ean: String(row.ean), name: String(row.name),
@@ -200,12 +197,15 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
           quantity: row.quantity == null ? null : String(row.quantity),
           category: String(row.category),
         }));
-        for (const offer of localTjekOffers) {
-          const identity = resolveUniqueCatalogIdentity(offer, catalog);
-          if (identity) localMatches.set(offer, identity);
+        for (const offer of withoutEan) {
+          const identity = resolveUniqueCatalogIdentity({
+            title: getName(offer), brand: String(offer.brand ?? offer.brandName ?? ""),
+            quantity: String(offer.quantity ?? ""), packageSize: String(offer.packageSize ?? ""),
+          }, catalog);
+          if (identity) identityMatches.set(offer, identity);
         }
       } catch (error) {
-        console.error("[offers] Local Tjek catalog identity lookup failed; keeping fallback categories", error);
+        console.error("[offers] Shared catalog identity lookup failed; preserving provider data", error);
       }
     }
     const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
@@ -219,7 +219,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
     }
     return offers.map(offer => {
       const ean = getEan(offer);
-      const localIdentity = localMatches.get(offer);
+      const localIdentity = identityMatches.get(offer);
       const localCategory = localIdentity?.category ?? null;
       const exactPath = byEan.get(ean) || localCategory || byName.get(getName(offer).toLocaleLowerCase("fi"));
       const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : exactPath ? "exact-name" : null;
