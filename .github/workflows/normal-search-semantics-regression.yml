@@ -50,6 +50,28 @@ jobs:
             --esModuleInterop \
             --skipLibCheck \
             --outDir .tmp-search-regression/search
+      - name: Verify cross-chain compound grocery counterpart identity
+        run: |
+          node scripts/test-compound-comparison-gate.cjs
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const source = 'K-Menu riisi-vihannessekoitus 450 g';
+          for (const wrong of ['Tokmanni karkkirasia 450 g', 'Prisma kasvispakaste 450 g', 'Riisi 450 g']) {
+            assert.equal(core.productGroupGate(source, wrong), false, wrong);
+            assert.equal(core.isComparisonAttributeCompatible(source, wrong), false, wrong);
+          }
+          for (const correct of ['Riisi-vihannessekoitus 450 g', 'Riisi vihannes sekoitus 450 g']) {
+            assert.equal(core.productGroupGate(source, correct), true, correct);
+            assert.equal(core.isComparisonAttributeCompatible(source, correct), true, correct);
+          }
+          const candidates = [
+            {name:'Tokmanni karkkirasia 450 g',price:0.49},
+            {name:'Riisi-vihannessekoitus 450 g',price:2.39},
+          ];
+          assert.equal(core.pickCheapestCompatibleComparisonProduct(source,candidates)?.name,candidates[1].name);
+          console.log('PASS cross-chain compound grocery counterpart identity');
+          NODE
       - name: Verify Lidl store identity persistence and offer context
         shell: bash
         run: |
