@@ -194,7 +194,7 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       const limitedBatch = /\bera\b|erä/.test(rawWindow);
       const packageSize = [product.size, product.weight, product.description, name].map(value => String(value ?? "").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "").find(Boolean) || "";
       const comparisonPriceText = [offer.description, product.description].map(value => String(value ?? "").match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "").find(Boolean) || "";
-      const quantity = (products.length === 1 && /\/p\//i.test(sourceUrl) ? visibleBundleQuantity(pageText, price) : 0) || Number(name.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
+      const quantity = products.length === 1 && /\/p\//i.test(sourceUrl) ? visibleBundleQuantity(pageText, price) : 0;
       const weighted = quantity < 2 && /(?:€|eur)\s*\/\s*kg|hinta\s*\/\s*kg|\birto\b/i.test([product.description, offer.description, rawWindow].join(" "));
       const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
       const imageCandidate = Array.isArray(product.image) ? product.image[0] : product.image;
@@ -207,6 +207,8 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       const original = money(offer?.priceSpecification?.referencePrice ?? offer?.highPrice);
       const key = normalize([brandName, name, validFrom, validUntil, price].join(" ")).replace(/\s+/g, "-");
       const category = sourceCategory(name, sourceUrl);
+      const ean = [product.gtin13, product.gtin14, product.gtin12, product.gtin8, product.gtin, product.ean, product.barcode]
+        .map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value)) || "";
       output.push({
         id: `lidl-fi-${key}`, source: "lidl-fi-public", chain: "Lidl",
         title: name, name, productName: name, brandName,
@@ -219,7 +221,7 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
         imageUrl, image: imageUrl, pictureUrl: imageUrl,
         category, categoryPath: category, mainCategory: category,
         rawText: [brandName, name, product.description, offer.description, category].filter(Boolean).join(" "),
-        sourceUrl, hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
+        sourceUrl, hasConcretePrice: true, isWeightedProduct: weighted, ean,
       });
     }
   }
