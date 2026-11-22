@@ -218,12 +218,9 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
       const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : null;
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
       if (!display) return offer;
-      // The same catalog category is used by every provider, including
-      // records with no provider-side taxonomy. Keep a specific provider
-      // category only when the catalog match is not EAN-verified.
-      const existing = String(offer.category ?? "").trim();
-      const category = matchType === "ean" || !existing || existing === "Muut"
-        ? display : existing;
+      // A verified EAN or unique catalog identity is authoritative for every
+      // provider. Never retain a conflicting provider shelf category.
+      const category = display;
       const source = offer.__sourceOfferSearchResult;
       return {
         ...offer, category, categoryPath: category, mainCategory: category,
