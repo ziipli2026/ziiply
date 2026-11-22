@@ -5,7 +5,7 @@ const offerSnapshots = new Map();
 // Ziiply catalog. Test live offers in both UIs without modifying any database.
 // Run against the test-branch API only when an explicit, working Ziiply catalog
 // connection is available; never silently call a broken backend.
-const offersOrigin = process.env.LIDL_OFFERS_TEST_ORIGIN || 'https://ziiply.vercel.app';
+const offersOrigin = process.env.LIDL_OFFERS_TEST_ORIGIN || 'http://127.0.0.1:3179';
 (async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{
 await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers'].map(async mode=>{
 let ctx=await b.newContext(desktop?{viewport:{width:1440,height:1000}}:devices['iPhone 13']);
@@ -62,9 +62,8 @@ if (mode === 'offers') {
   const offers = response.data.results.filter(row => row.hasConcretePrice && Number(row.offerPrice) > 0 &&
     row.validFrom?.slice(0,10) <= today && row.validUntil?.slice(0,10) >= today &&
     /liha.*makkara/i.test(row.category || '') && row.campaignType !== 'campaign');
-  // Live offer feed in a test-branch browser. Only call the local backend when
-  // LIDL_OFFERS_TEST_ORIGIN explicitly points to a configured test backend.
-  // This browser check does not by itself validate test-branch DB enrichment.
+  // Browser and provider must use the same test-branch server by default.
+  // LIDL_OFFERS_TEST_ORIGIN remains an explicit override for diagnostics.
   // Report the full live provider category distribution, not just the selected
   // meat tab. This exposes uncategorized and inconsistent source records.
   const categoryCounts = {};
@@ -75,8 +74,7 @@ if (mode === 'offers') {
     if (!category || category === 'Muut') uncategorized.push(String(row.productName || row.title || row.name));
   }
   console.log('AUDIT_OFFERS_SOURCE',tag,JSON.stringify({api:offersOrigin,total:response.data.results.length,categoryCounts,uncategorized:uncategorized.slice(0,40)}));
-  // The original browser check only required one visible meat offer. Fail if
-  // the live category feed silently loses classifications in any section.
+  // Validate the selected build's provider feed, never the production API.
   const sharedTaxonomy = require('node:fs').readFileSync('src/app/components/ziiply/offerSearch/neonOfferCategory.ts','utf8');
   const labelsMatch = sharedTaxonomy.match(/const labels = new Set\((\[[^\]]+\])\)/);
   assert.ok(labelsMatch,'Shared offer taxonomy labels must be available to the browser test');
