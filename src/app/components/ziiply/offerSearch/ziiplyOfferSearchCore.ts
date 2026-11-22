@@ -413,6 +413,9 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     if (sharedCategory) return sharedCategory;
     const providerCategory = String(sourceItem?.category || "").trim();
     if (providerCategory && providerCategory !== "Muut") return providerCategory;
+    // An unresolved Lidl product must not inherit an unrelated stale
+    // cached category or be silently placed into the "Muut" bucket.
+    return "";
   }
 
   const verifiedCategory = getVerifiedOfferCategory(sourceItem) || getVerifiedOfferCategory(item);
