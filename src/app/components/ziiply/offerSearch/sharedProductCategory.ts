@@ -12,8 +12,8 @@ export function classifySharedProductCategory(value: unknown): string | null {
   if (/(?:^|\s)(?:halloween|naamiais|koiran|kissan)(?:\s|\p{L})*(?:asu|puku)(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   // Frozen product form takes precedence over pizza, vegetables or meat.
   // This is a product-form rule, not a Lidl-specific exception.
-  if (/(?:^|\\s)(?:pakaste|pakastettu|pakastetut)\\p{L}*(?=\\s|$)/u.test(s) ||
-      /(?:^|\\s)pakaste\\p{L}*(?:pizza|vihannes|marja|peruna|pulla)(?=\\s|$)/u.test(s)) return "Pakasteet";
+  if (/(?:^|\s)(?:pakaste|pakastettu|pakastetut)\p{L}*(?=\s|$)/u.test(s) ||
+      /(?:^|\s)pakaste\p{L}*(?:pizza|vihannes|marja|peruna|pulla)(?=\s|$)/u.test(s)) return "Pakasteet";
   // Compound words: the final product form outranks an ingredient prefix.
   // These rules apply identically to every chain.
   if (/(?:^|\s)\p{L}*(?:maitojuoma|kaakaojuoma|suklaajuoma)\p{L}*(?=\s|$)/u.test(s)) return "Juomat";
