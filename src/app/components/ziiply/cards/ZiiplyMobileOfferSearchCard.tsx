@@ -1633,20 +1633,6 @@ export default function ZiiplyMobileOfferSearchCard({
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">EUROSPAR</span>
                   </button>
                 ) : null}
-                {showTokmanniChain ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedOfferChainV39("TOKMANNI");
-                      onSelectOfferChain?.("TOKMANNI");
-                    }}
-                    aria-label="Hae Tokmannin tarjoukset"
-                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
-                  >
-                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center rounded-full bg-[#e30613] text-[1.05rem] font-black text-white">TOK</span>
-                    <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Tokmanni</span>
-                  </button>
-                ) : null}
                 {showLidlChain ? (
                   <button
                     type="button"
@@ -1659,6 +1645,20 @@ export default function ZiiplyMobileOfferSearchCard({
                   >
                     <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/lidl.png" alt="Lidl" className="block h-full w-full object-contain object-center" draggable={false} /></span>
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Lidl</span>
+                  </button>
+                ) : null}
+                {showTokmanniChain ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedOfferChainV39("TOKMANNI");
+                      onSelectOfferChain?.("TOKMANNI");
+                    }}
+                    aria-label="Hae Tokmannin tarjoukset"
+                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                  >
+                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center rounded-full bg-[#e30613] text-[1.05rem] font-black text-white">TOK</span>
+                    <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Tokmanni</span>
                   </button>
                 ) : null}
               </div>
