@@ -36,7 +36,7 @@ export type LidlPublicOffer = {
   sourceUrl: string;
   hasConcretePrice: true;
   isWeightedProduct: boolean;
-  ean: "";
+  ean: string;
 };
 
 const BASE = "https://www.lidl.fi";
