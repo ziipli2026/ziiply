@@ -9,16 +9,17 @@ export function resolveLidlGroceryCategories<T extends Record<string, any>>(offe
     const verified = offer.neonCategoryMatch === "ean" && Boolean(offer.neonDisplayCategory);
     const inferred = classifySharedProductCategory(title);
     const category = inferred || (verified ? String(offer.neonDisplayCategory) : "");
+    const displayCategory = category && isEverydayOfferCategory(category) ? category : "";
     const source = offer.__sourceOfferSearchResult;
     return {
       ...offer,
-      category: category && isEverydayOfferCategory(category) ? category : "",
-      categoryPath: category && isEverydayOfferCategory(category) ? category : "",
-      mainCategory: category && isEverydayOfferCategory(category) ? category : "",
+      category: displayCategory,
+      categoryPath: displayCategory,
+      mainCategory: displayCategory,
       categoryResolution: inferred ? "shared-product-form" : verified ? "verified-ean" : "unresolved",
       groceryEligible: category ? isEverydayOfferCategory(category) : null,
       ...(source && typeof source === "object" && !Array.isArray(source)
-        ? { __sourceOfferSearchResult: { ...source, category: category && isEverydayOfferCategory(category) ? category : "" } }
+        ? { __sourceOfferSearchResult: { ...source, category: displayCategory, categoryPath: displayCategory, mainCategory: displayCategory } }
         : {}),
     } as T;
   }).filter(offer => offer.groceryEligible !== false);
