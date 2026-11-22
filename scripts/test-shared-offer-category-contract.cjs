@@ -154,3 +154,10 @@ assert.equal(parsedGrid[0].ean,'6400000000001','Lidl grid GTIN must survive pars
 assert.equal(parsedGrid[0].priceBasis,'unit','Lidl grid package count alone is not multi-buy');
 assert.equal(parsedGrid[0].multiBuyQuantity,undefined);
 console.log('PASS Lidl grid parser: GTIN and package count are handled correctly');
+
+
+const campaignSource = fs.readFileSync('src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts','utf8');
+const campaignBlock = campaignSource.slice(campaignSource.indexOf('function parseCampaignProductCards('),campaignSource.indexOf('function productLinks('));
+assert.ok(campaignBlock.includes('const ean = [product.gtin13'),'Lidl campaign cards must extract published GTIN');
+assert.ok(campaignBlock.includes('hasConcretePrice: true, ean,'),'Lidl campaign cards must return extracted GTIN');
+console.log('PASS Lidl campaign parser preserves published GTIN');
