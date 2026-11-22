@@ -21,6 +21,18 @@ export function classifySharedProductCategory(value: unknown): string | null {
     if (/(?:^|\s)\p{L}*jogurtti\p{L}*(?=\s|$)/u.test(s) || /margariini/u.test(s)) return "Maitotuotteet";
     return "Liha & makkarat";
   }
+  // Product type may be the final component of a Finnish compound or a
+  // inflected form; do not require a word boundary before that final type.
+  const compoundForms: Array<[RegExp, string]> = [
+    [/(?:^|\s)\p{L}*(?:jauheliha|fileesuikale|sisäfilee|koipipala|kylkipala|hunajasiipi|liekkisiipi|wienerleike|kinkku|salami|prosciutto|bresaola|carpaccio)\p{L}*(?=\s|$)/u, "Liha & makkarat"],
+    [/(?:^|\s)\p{L}*(?:jogurtti|margariini|tuorejuusto|kerma|rahka)\p{L}*(?=\s|$)/u, "Maitotuotteet"],
+    [/(?:^|\s)\p{L}*(?:jäätelö|pakastetaikina)\p{L}*(?=\s|$)/u, "Pakasteet"],
+    [/(?:^|\s)\p{L}*(?:joulukeksi|pistaasikeksi|florentiini|vaahtotikkari|joulumakeinen)\p{L}*(?=\s|$)/u, "Makeiset & keksit"],
+    [/(?:^|\s)\p{L}*(?:torttutaikina|piparitaikina|tähtitorttu|panini|ahvenkukko)\p{L}*(?=\s|$)/u, "Leipomo"],
+    [/(?:^|\s)\p{L}*(?:lähdevesi|kivennäisvesi|mehujuoma)\p{L}*(?=\s|$)/u, "Juomat"],
+    [/(?:^|\s)\p{L}*(?:avokado|granaattiomena|uuniperuna)\p{L}*(?=\s|$)/u, "Hevi"],
+  ];
+  for (const [pattern, category] of compoundForms) if (pattern.test(s)) return category;
   // Recognition by the main product type also handles adjective and brand
   // prefixes in the actual weekly offer feed; never use an ingredient alone.
   if (/(?:^|\s)(?:mineraali|vitamiini|omega[-\s]?\d+|vitanallet|ravintolisä)\p{L}*(?=\s|$)/u.test(s)) return "Vitamiinit & ravinteet";
