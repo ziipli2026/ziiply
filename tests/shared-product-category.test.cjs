@@ -67,4 +67,9 @@ for (const [title, category] of [
   ["Lupilu Magneettinen rakennussarja", "Koti & vapaa-aika"],
   ["Lupilu Leikkiruokasetti", "Koti & vapaa-aika"],
   ["Lupilu Puiset rakennuspalikat", "Koti & vapaa-aika"],
+  ["Lupilu Puinen jäätelökärry tai makeiskoju", "Koti & vapaa-aika"],
+  ["Puinen jäätelökärry", "Koti & vapaa-aika"],
+  ["Lasten makeiskoju", "Koti & vapaa-aika"],
+  ["Deluxe Pistaasijäätelö", "Pakasteet"],
+  ["FAVORINA Joulumakeiset", "Makeiset & keksit"],
 ]) test(title, () => assert.equal(classify(title), category));

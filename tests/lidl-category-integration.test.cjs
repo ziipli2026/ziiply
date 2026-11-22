@@ -35,11 +35,11 @@ try {
 }
 test("Lidl parser offers are categorized without Neon, nested data matches", () => {
   const offers = [
-    { title: "Kivikylän lihapyörykät", source: "lidl-fi-public", __sourceOfferSearchResult: { title: "Kivikylän lihapyörykät", category: "Maitotuotteet" } },
-    { title: "Pistaasijuustokakku", source: "lidl-fi-public", category: "Maitotuotteet" },
-    { title: "Parsakaali", source: "lidl-fi-public" },
-    { title: "Paistinpannu", source: "lidl-fi-public" },
-    { title: "Tuntematon elintarvike", source: "lidl-fi-public" },
+    { title: "Kivikylän lihapyörykät", source: "lidl-fi-public", price: 1.99, __sourceOfferSearchResult: { title: "Kivikylän lihapyörykät", category: "Maitotuotteet" } },
+    { title: "Pistaasijuustokakku", source: "lidl-fi-public", price: 1.99, category: "Maitotuotteet" },
+    { title: "Parsakaali", source: "lidl-fi-public", price: 1.99 },
+    { title: "Paistinpannu", source: "lidl-fi-public", price: 1.99 },
+    { title: "Tuntematon elintarvike", source: "lidl-fi-public", price: 1.99 },
   ];
   const actual = resolveLidlGroceryCategories(offers);
   assert.equal(actual.length, 4);
@@ -50,7 +50,7 @@ test("Lidl parser offers are categorized without Neon, nested data matches", () 
   assert.equal(actual[3].categoryResolution, "unresolved");
 });
 test("Verified Neon EAN can supply a category when title is not identifiable", () => {
-  const [item] = resolveLidlGroceryCategories([{ title: "Tuote X", neonCategoryMatch: "ean", neonDisplayCategory: "Juomat" }]);
+  const [item] = resolveLidlGroceryCategories([{ title: "Tuote X", neonCategoryMatch: "ean", neonDisplayCategory: "Juomat", price: 1.99 }]);
   assert.equal(item.category, "Juomat");
   assert.equal(item.categoryResolution, "verified-ean");
 });
