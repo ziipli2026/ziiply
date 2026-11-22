@@ -101,3 +101,32 @@ vm.runInNewContext(compiled, {
   assert.equal(result[2].category,'Maitotuotteet','Unmatched product retains source category, without inventing a match');
   console.log('PASS actual shared enrichment: verified EAN, EAN-less identity, unknown product');
 })().catch(error => {console.error(error);process.exitCode=1;});
+
+
+const lidlParserSource = fs.readFileSync('src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts','utf8');
+const lidlParserExports = {};
+vm.runInNewContext(ts.transpileModule(lidlParserSource, {
+  compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}
+}).outputText, {
+  exports:lidlParserExports,
+  require(name) {
+    if(name==='../publicationLifecycle') return {
+      finnishPublicationDate:()=> '2026-11-22',
+      publicationState:()=> 'current'
+    };
+    throw Error('Unexpected Lidl parser import '+name);
+  },
+}, {filename:'lidlPublicLeafletProvider.js'});
+const jsonLd = product => '<script type="application/ld+json">'+JSON.stringify({
+  '@type':'Product',name:'Esimerkki kananmunat 6 kpl',gtin13:'6400000000001',
+  offers:{price:2.49,validFrom:'2026-11-20',validThrough:'2026-11-30'},
+  ...product
+})+'</script>';
+const parsedLidl = lidlParserExports.parseLidlPublicCategoryHtml(
+  jsonLd({}), 'https://www.lidl.fi/p/esimerkki/p123456','2026-11-22');
+assert.equal(parsedLidl.length,1,'Published Lidl JSON-LD product must parse');
+assert.equal(parsedLidl[0].ean,'6400000000001','Published GTIN must survive parser');
+assert.equal(parsedLidl[0].priceBasis,'unit','Package count alone is not a multi-buy promotion');
+assert.equal(parsedLidl[0].multiBuyQuantity,undefined);
+assert.equal(parsedLidl[0].category,'','Parser must not invent its own product category');
+console.log('PASS Lidl public parser: published GTIN, package quantity, no invented category');
