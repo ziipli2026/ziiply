@@ -56,7 +56,9 @@ if (mode === 'offers') {
   const offers = response.data.results.filter(row => row.hasConcretePrice && Number(row.offerPrice) > 0 &&
     row.validFrom?.slice(0,10) <= today && row.validUntil?.slice(0,10) >= today &&
     /liha.*makkara/i.test(row.category || '') && row.campaignType !== 'campaign');
-  // PRODUCTION API baseline only (the route above proxies to ziiply.vercel.app).\n  // Do not claim this validates test-branch category enrichment.\n  // Report the full live provider category distribution, not just the selected
+  // PRODUCTION API baseline only (the route above proxies to ziiply.vercel.app).
+  // Do not claim this validates test-branch category enrichment.
+  // Report the full live provider category distribution, not just the selected
   // meat tab. This exposes uncategorized and inconsistent source records.
   const categoryCounts = {};
   const uncategorized = [];
