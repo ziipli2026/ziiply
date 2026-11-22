@@ -18,6 +18,10 @@ for (const [title, category] of [
   ["Rahkapulla", "Leipomo"],
   ["Parsakaali", "Hevi"],
   ["Paistinpannu 28 cm", "Koti & vapaa-aika"],
-  ["Suklaamaitojuoma", null],
+  ["Suklaamaitojuoma", "Juomat"],
   ["Tuntematon merkkituote 400 g", null],
+  ["Maitosuklaa", "Makeiset & keksit"],
+  ["Juustopizza", "Valmisruoka"],
+  ["Perunalaatikko", "Valmisruoka"],
+  ["Savustettu kirjolohi", "Kala"],
 ]) test(title, () => assert.equal(classify(title), category));
