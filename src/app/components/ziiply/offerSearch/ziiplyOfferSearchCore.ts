@@ -1,4 +1,5 @@
 import { classifyTokmanniOfferCategory } from "./tokmanniOfferCategory";
+import { classifySharedProductCategory } from "./sharedProductCategory";
 import { citymarketFailureNotice, type CitymarketAvailabilityNotice } from "./citymarketAvailability";
 import { fetchZiiplyRecoverableOfferSearch } from "../ziiplyRecoverableOfferFetch";
 // ============================================================================
@@ -486,24 +487,12 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     source.startsWith("lidl-") ||
     /(?:^| )lidl(?: |$)/.test(lidlIdentity);
   if (isLidl) {
-    // Lidl final UI guard: product form outranks a stale/provider ingredient
-    // category. This runs in the exact resolver used by category counts and
-    // opened category views, so cached/staged source rows cannot put e.g.
-    // rahkapulla back into Maitotuotteet.
-    const productTitle = normalizeGostaCoreText(
-      sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
-      anyItem?.title || anyItem?.name || anyItem?.productName || "",
-    );
-    if (/halloween[- ]?asu|koiran[- ]?asu|kissan[- ]?asu|lemmikin[- ]?asu/.test(productTitle)) return "Muut";
-    if (/lihapulla/.test(productTitle)) return "Liha & makkarat";
-    if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(productTitle)) return "Juomat";
-    if (/maustekur|hapankurk|hapankaali|ajvar|paprikapyree/.test(productTitle)) return "Kuivatuotteet";
-    if (/valkokaalisalaatti/.test(productTitle)) return "Valmisruoka";
-    if (/keitto|lihapata|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(productTitle)) return "Valmisruoka";
-    if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(productTitle)) return "Leipomo";
-
+    const title = String(sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
+      anyItem?.title || anyItem?.name || anyItem?.productName || "");
+    const sharedCategory = classifySharedProductCategory(title);
+    if (sharedCategory) return sharedCategory;
     const providerCategory = String(sourceItem?.category || "").trim();
-    if (providerCategory) return providerCategory;
+    if (providerCategory && providerCategory !== "Muut") return providerCategory;
   }
 
   if (isKCitymarket) {
