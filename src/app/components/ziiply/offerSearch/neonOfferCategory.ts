@@ -48,6 +48,13 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (!parts.length) return null;
   const leaf = parts[parts.length - 1];
   const parent = parts[0];
+  // Product taxonomy parents for non-food goods are authoritative: a pet
+  // fish-flavoured snack, a coffee-machine cleaner or freezer bags must not
+  // become human food because a child label contains a food keyword.
+  if (/lemmik/.test(parent)) return "Lemmikit";
+  if (/hygienia|kosmetiikka|kauneus/.test(parent)) return "Hygienia & kosmetiikka";
+  if (/kodinhoito|siivous/.test(parent)) return "Kodinhoito";
+  if (/koti|kayttotavarat|vapaa-aika/.test(parent)) return "Koti & vapaa-aika";
   // Specific child group wins over a broad parent (coffee/juice, fish/ready meals).
   if (/kahvi|suodatinpuss|teejuom|(?:^|\/)(?:teet|tee)(?:\/|$)/.test(parts.slice(1).join("/"))) return "Kahvi & tee";
   if (/mehu|smoothie|virvoitus|cola|limonadi|energiajuom|kivennaisves|vesipull|oluet|siider/.test(leaf)) return "Juomat";
