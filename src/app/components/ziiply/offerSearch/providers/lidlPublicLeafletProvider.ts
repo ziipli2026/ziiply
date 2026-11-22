@@ -273,7 +273,9 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
     const validFrom = isoDate(offer.validFrom || offer.startDate || product.validFrom || product.startDate) || fallbackDate;
     const validUntil = isoDate(offer.validUntil || offer.endDate || product.validUntil || product.endDate) || fallbackDate;
     const category = sourceCategory([brandName, name].filter(Boolean).join(" "), sourceUrl);
-    
+    const ean = [product.gtin13, product.gtin14, product.gtin12, product.gtin8, product.gtin, product.ean, product.barcode]
+      .map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value)) || "";
+
     const imageUrl = (() => {
       const candidate = product.image || product.imageUrl || product.pictureUrl || offer.image || offer.imageUrl;
       const value = Array.isArray(candidate) ? candidate[0] : candidate;
@@ -293,7 +295,7 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
       priceBasis: "unit", isWeightedProduct: false, requiresLidlPlus: false, eligibility: "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
-      rawText: [brandName, name, product.description, category].filter(Boolean).join(" "), sourceUrl, hasConcretePrice: true, ean: "",
+      rawText: [brandName, name, product.description, category].filter(Boolean).join(" "), sourceUrl, hasConcretePrice: true, ean,
     });
   }
   return output;
