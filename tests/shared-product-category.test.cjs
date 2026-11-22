@@ -1,22 +1,20 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
-const source = fs.readFileSync("src/app/components/ziiply/offerSearch/sharedProductCategory.ts", "utf8");
-const ruleLines = source.split("\n").filter(line => line.trim().startsWith("[/"));
-const rules = ruleLines.map(line => {
-  const match = line.match(/^\s*\[(\/.*\/u),\s*"([^"]+)"\],?\s*$/);
-  assert.ok(match, "Unparseable shared taxonomy rule: " + line);
-  return [Function("return " + match[1])(), match[2]];
-});
-const compoundRules = source.split("\n").filter(line => line.trim().startsWith("if (/(?:")).map(line => {
-  const match = line.match(/if \((\/.*\/u)\.test\(s\)\) return "([^"]+)";/);
-  assert.ok(match, "Unparseable compound rule: " + line);
-  return [Function("return " + match[1])(), match[2]];
-});
-function classify(title) {
-  const s = title.normalize("NFKC").toLocaleLowerCase("fi-FI").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-  return [...compoundRules, ...rules].find(([re]) => re.test(s))?.[1] ?? null;
-}
+const ts = require("typescript");
+const Module = require("node:module");
+const path = require("node:path");
+const file = path.resolve("src/app/components/ziiply/offerSearch/sharedProductCategory.ts");
+const source = fs.readFileSync(file, "utf8");
+const compiled = ts.transpileModule(source, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  fileName: file,
+}).outputText;
+const mod = new Module(file, module);
+mod.filename = file;
+mod.paths = module.paths;
+mod._compile(compiled, file);
+const classify = mod.exports.classifySharedProductCategory;
 for (const [title, category] of [
   ["Kivikylän lihapyörykät 350 g", "Liha & makkarat"],
   ["Pistaasijuustokakku", "Leipomo"],
