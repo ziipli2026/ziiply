@@ -33,9 +33,9 @@ export function classifySharedProductCategory(value: unknown): string | null {
     [/(?:^|\s)(?:suklaa|karkki|makeinen|keksi|lakritsi|salmiakki|konvehti|piparkakku)\p{L}*(?=\s|$)/u, "Makeiset & keksit"],
     [/(?:^|\s)(?:mehu|smoothie|limonadi|virvoitusjuoma|energiajuoma|kivennäisvesi|nektari)\p{L}*(?=\s|$)/u, "Juomat"],
     [/(?:^|\s)(?:kahvi|espresso|teepussi|teejuoma)\p{L}*(?=\s|$)/u, "Kahvi & tee"],
-    [/(?:^|\s)(?:jogurtti|rahka|maito|juusto|kerma|piimä|viili|raejuusto|voi|margariini|kananmunat)\p{L}*(?=\s|$)/u, "Maitotuotteet"],
+    [/(?:^|\s)(?:jogurtti|rahka|maito|juusto|tuorejuusto|kerma|piimä|viili|raejuusto|voi|margariini|kananmunat)\p{L}*(?=\s|$)/u, "Maitotuotteet"],
     [/(?:^|\s)(?:pasta|spagetti|riisi|jauho|kaurahiutale|mysli|muro|säilyke|mauste|ketsuppi|öljy|kastike|nuudeli)\p{L}*(?=\s|$)/u, "Kuivatuotteet"],
-    [/(?:^|\s)(?:omena|banaani|tomaatti|kurkku|paprika|peruna|sipuli|porkkana|parsakaali|salaatti|mandariini|klementiini|luumu|kiivi|appelsiini|vesimeloni)\p{L}*(?=\s|$)/u, "Hevi"],
+    [/(?:^|\s)(?:omena|banaani|tomaatti|kurkku|paprika|peruna|sipuli|porkkana|parsakaali|salaatti|mandariini|klementiini|luumu|kiivi|appelsiini|minivesimeloni|vesimeloni)\p{L}*(?=\s|$)/u, "Hevi"],
   ];
   for (const [pattern, category] of rules) if (pattern.test(s)) return category;
   return null;
