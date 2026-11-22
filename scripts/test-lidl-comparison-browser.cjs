@@ -79,6 +79,9 @@ if (mode === 'offers') {
   const labelsMatch = sharedTaxonomy.match(/const labels = new Set\((\[[^\]]+\])\)/);
   assert.ok(labelsMatch,'Shared offer taxonomy labels must be available to the browser test');
   const allowedCategories = new Set(JSON.parse(labelsMatch[1]).filter(label => label !== 'Muut'));
+  // Unknown titles are retained by the resolver, but the user-facing grocery
+  // feed must not pass silently with missing categories. Audit separately from
+  // non-food exclusions to make the failure actionable.
   const unexpectedCategories = Object.keys(categoryCounts).filter(category => !allowedCategories.has(category));
   assert.deepEqual(unexpectedCategories,[],'Lidl offers contain unknown or unclassified category labels');
   assert.equal(uncategorized.length,0,'Lidl offers must not have missing/Muut categories');
