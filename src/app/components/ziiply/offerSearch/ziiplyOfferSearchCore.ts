@@ -394,16 +394,17 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
   // Resolve Lidl through the chain-independent product taxonomy BEFORE any
   // cached/provider category can override product identity.
+  const lidlSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
   const lidlIdentity = normalizeGostaCoreText(
     [sourceItem?.source, anyItem?.source, sourceItem?.chain, anyItem?.chain, sourceItem?.storeType, anyItem?.storeType, sourceItem?.storeLabel, anyItem?.storeLabel]
       .filter(Boolean)
       .join(" "),
   );
   const isLidl =
-    source === "lidl plus" ||
-    source === "lidl-plus" ||
-    source.startsWith("lidl ") ||
-    source.startsWith("lidl-") ||
+    lidlSource === "lidl plus" ||
+    lidlSource === "lidl-plus" ||
+    lidlSource.startsWith("lidl ") ||
+    lidlSource.startsWith("lidl-") ||
     /(?:^| )lidl(?: |$)/.test(lidlIdentity);
   if (isLidl) {
     const title = String(sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
