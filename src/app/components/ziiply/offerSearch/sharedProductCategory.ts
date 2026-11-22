@@ -21,6 +21,8 @@ export function classifySharedProductCategory(value: unknown): string | null {
     if (/(?:^|\s)\p{L}*jogurtti\p{L}*(?=\s|$)/u.test(s) || /margariini/u.test(s)) return "Maitotuotteet";
     return "Liha & makkarat";
   }
+  // A bakery product containing dairy must stay in the bakery category.
+  if (/(?:^|\s)\p{L}*(?:rahkapulla|juustokakku|rahkapiirakka)(?=\s|$)/u.test(s)) return "Leipomo";
   // Product type may be the final component of a Finnish compound or a
   // inflected form; do not require a word boundary before that final type.
   const compoundForms: Array<[RegExp, string]> = [
