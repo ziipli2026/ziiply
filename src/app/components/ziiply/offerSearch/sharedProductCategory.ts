@@ -15,6 +15,12 @@ export function classifySharedProductCategory(value: unknown): string | null {
   // This is a product-form rule, not a Lidl-specific exception.
   if (/(?:^|\s)(?:pakaste|pakastettu|pakastetut)\p{L}*(?=\s|$)/u.test(s) ||
       /(?:^|\s)pakaste\p{L}*(?:pizza|vihannes|marja|peruna|pulla)(?=\s|$)/u.test(s)) return "Pakasteet";
+  // Compound grocery names in Finnish frequently prepend the meat, milk or
+  // fruit qualifier. A concrete ending is stronger than the preceding words.
+  if (/(?:^|\s)\p{L}*(?:jauheliha|jogurtti|sisäfilee|kananfilee|kaurarypsiöljymargariini)\p{L}*(?=\s|$)/u.test(s)) {
+    if (/(?:^|\s)\p{L}*jogurtti\p{L}*(?=\s|$)/u.test(s) || /margariini/u.test(s)) return "Maitotuotteet";
+    return "Liha & makkarat";
+  }
   // Recognition by the main product type also handles adjective and brand
   // prefixes in the actual weekly offer feed; never use an ingredient alone.
   if (/(?:^|\s)(?:mineraali|vitamiini|omega[-\s]?\d+|vitanallet|ravintolisä)\p{L}*(?=\s|$)/u.test(s)) return "Vitamiinit & ravinteet";
