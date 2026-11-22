@@ -1,23 +1,25 @@
-import { classifyTokmanniOfferCategory } from "./tokmanniOfferCategory";
+import { classifySharedProductCategory, isEverydayOfferCategory } from "./sharedProductCategory";
 
-// Shared product-type fallback: never use Lidl landing URLs as taxonomy evidence.
-// Unresolved offers are omitted from grocery offers, not relabeled "Muut".
+// Chain-neutral product taxonomy: Neon is optional, not a prerequisite.
+// Keep unresolved offers in the result set for diagnostics and later enrichment;
+// do not fabricate a "Muut" category or silently delete valid grocery offers.
 export function resolveLidlGroceryCategories<T extends Record<string, any>>(offers: T[]): T[] {
-  const nonGrocery = new Set(["Koti & vapaa-aika", "Lemmikit"]);
-  return offers.flatMap(offer => {
+  return offers.map(offer => {
     const title = String(offer.title || offer.name || offer.productName || "").trim();
-    const verified = offer.neonCategoryMatch === "ean" && String(offer.neonDisplayCategory || "") !== "";
-    const inferred = classifyTokmanniOfferCategory(title);
-    const category = verified ? String(offer.neonDisplayCategory) : inferred !== "Muut" ? inferred : "";
-    if (!category || category === "Muut" || nonGrocery.has(category)) return [];
+    const verified = offer.neonCategoryMatch === "ean" && Boolean(offer.neonDisplayCategory);
+    const inferred = classifySharedProductCategory(title);
+    const category = inferred || (verified ? String(offer.neonDisplayCategory) : "");
     const source = offer.__sourceOfferSearchResult;
-    return [{
+    return {
       ...offer,
-      category, categoryPath: category, mainCategory: category,
-      categoryResolution: verified ? "verified-ean" : "product-type",
+      category: category && isEverydayOfferCategory(category) ? category : "",
+      categoryPath: category && isEverydayOfferCategory(category) ? category : "",
+      mainCategory: category && isEverydayOfferCategory(category) ? category : "",
+      categoryResolution: inferred ? "shared-product-form" : verified ? "verified-ean" : "unresolved",
+      groceryEligible: category ? isEverydayOfferCategory(category) : null,
       ...(source && typeof source === "object" && !Array.isArray(source)
-        ? { __sourceOfferSearchResult: { ...source, category, categoryPath: category, mainCategory: category } }
+        ? { __sourceOfferSearchResult: { ...source, category: category && isEverydayOfferCategory(category) ? category : "" } }
         : {}),
-    } as T];
-  });
+    } as T;
+  }).filter(offer => offer.groceryEligible !== false);
 }
