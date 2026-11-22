@@ -13,7 +13,7 @@ export function classifySharedProductCategory(value: unknown): string | null {
   if (/(?:^|\s)(?:halloween|naamiais|koiran|kissan)(?:\s|\p{L})*(?:asu|puku)(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   // Explicit non-grocery product forms must be excluded before food terms.
   // Brand alone is not evidence: classify the actual item, not Parkside/Esmara.
-  if (/(?:^|\s)\p{L}*(?:pölynimuri|rikkaimuri|poranterä|kuljetusvaunu|taloustikkaat|kiinnityskoukku|hiomapaperi|hiomakone|työvalo|punosvyö|kiintolenkkiavain|ruuvipuristin|asennustyökalu|kulmapuristin|lämpöpuhallin|haarotuspistorasia|haaroituspistorasia|hiustenmuotoilija|neulepaita|pyjama|farkut|tekoturkisliivi|tohveli|bokserit|pitkähihainen)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
+  if (/(?:^|\s)\p{L}*(?:pölynimuri|rikkaimuri|poranterä|kuljetusvaunu|taloustikkaat|kiinnityskoukku|kiinnityskouku|hiomapaperi|hiomakone|työvalo|punosvyö|kiintolenkkiavain|ruuvipuristin|asennustyökalu|kulmapuristin|lämpöpuhallin|haarotuspistorasia|haaroituspistorasia|hiustenmuotoilija|neulepaita|pyjama|farkut|tekoturkisliivi|tohveli|bokserit|pitkähihainen)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   if (/(?:^|\s)\p{L}*(?:joulukaktus|joulutähti|amaryllis|hyasintti|lasiruukku|istutus)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   // Distinct food forms: do not treat the generic Christmas or winter prefix
   // as evidence, and never classify by a brand name.
