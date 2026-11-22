@@ -48,6 +48,13 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (!parts.length) return null;
   const leaf = parts[parts.length - 1];
   const parent = parts[0];
+  // Product taxonomy parents for non-food goods are authoritative: a pet
+  // fish-flavoured snack, a coffee-machine cleaner or freezer bags must not
+  // become human food because a child label contains a food keyword.
+  if (/lemmik/.test(parent)) return "Lemmikit";
+  if (/hygienia|kosmetiikka|kauneus/.test(parent)) return "Hygienia & kosmetiikka";
+  if (/kodinhoito|siivous/.test(parent)) return "Kodinhoito";
+  if (/koti|kayttotavarat|vapaa-aika/.test(parent)) return "Koti & vapaa-aika";
   // Specific child group wins over a broad parent (coffee/juice, fish/ready meals).
   if (/kahvi|suodatinpuss|teejuom|(?:^|\/)(?:teet|tee)(?:\/|$)/.test(parts.slice(1).join("/"))) return "Kahvi & tee";
   if (/mehu|smoothie|virvoitus|cola|limonadi|energiajuom|kivennaisves|vesipull|oluet|siider/.test(leaf)) return "Juomat";
@@ -60,8 +67,9 @@ export function neonOfferDisplayCategory(category: string): string | null {
   // Confectionery subgroups take precedence over the broad naposteltavat parent.
   if (/^makeiset-ja-naposteltavat\//.test(path) &&
       /^(suklaat|karkkipussit|purukumit|muut-makeiset|pastillit)$/.test(parts[1] || "")) return "Makeiset & keksit";
-  if (/sips|snacks|naposteltav|popcorn|nacho/.test(path)) return "Kuivatuotteet";
+  // Frozen products stay in Pakasteet even when their subgroup contains snack terms.
   if (/jaatelo|pakaste/.test(path)) return "Pakasteet";
+  if (/sips|snacks|naposteltav|popcorn|nacho/.test(path)) return "Kuivatuotteet";
   if (/juomat\/kahvi/.test(path)) return "Kahvi & tee";
   if (/juomat/.test(parent)) return "Juomat";
   if (/kala|merenelav/.test(parent)) return "Kala";
@@ -79,66 +87,6 @@ export function neonOfferDisplayCategory(category: string): string | null {
   if (/mausteet-ja-maustaminen|kastikkeet/.test(parent)) return "Kuivatuotteet";
   return null; // Unknown detailed categories must not be guessed.
 }
-// Only return detailed paths that are already present in the Neon product registry.
-// Ambiguous products intentionally remain uncategorized for review.
-function inferExistingCategoryFromName(name: string): string | null {
-  const text = name.toLocaleLowerCase("fi").normalize("NFKC").split(" ").filter(Boolean).join(" ").trim();
-  const rules: Array<{ terms: string[]; category: string }> = [
-    { terms: ["hammastahna", "toothpaste"], category: "kosmetiikka-terveys-ja-hygienia/suunhoito/hammastahnat" },
-    { terms: ["suihkusaippua", "suihkugeeli", "shower gel", "shower cream"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/suihkusaippuat" },
-    { terms: ["eyeliner", "maskara", "meikkipuikko", "meikkivoide", "huulipuna"], category: "kosmetiikka-terveys-ja-hygienia/meikit/kasvomeikit" },
-    { terms: ["hiuskiinne", "hairspray", "rakennesuihke", "dry texture spray", "lämpösuoja", "heat protection", "volyymivaahto", "root boost mousse"], category: "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet" },
-    { terms: ["aitokanerva", "ruukkukanerva", "ruukkukasvi"], category: "koti-ja-vapaa-aika/kukat-ja-kasvit/ruukkukasvit" },
-    { terms: ["leikkokukka", "kukkakimppu", "kimppu"], category: "koti-ja-vapaa-aika/kukat-ja-kasvit/leikkokukat-ja-kimput" },
-    { terms: ["muikku", "kirjolohifilee", "savusiika", "tuore kala", "lohifilee", "kalafilee"], category: "kala-ja-merenelavat/kala/tuore-kala" },
-    { terms: ["mehujuoma", "kerta-annosmehu"], category: "juomat/mehut/kerta-annosmehut" },
-    { terms: ["mausteseos", "spice mix"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
-    { terms: ["käsiastianpesuaine", "kasiastianpesuaine", "astianpesuaine"], category: "kodinhoito-ja-taloustarvikkeet/astianpesu/kasiastianpesuaineet" },
-    { terms: ["makeissekoitus", "makesissekoitus"], category: "karkit-suklaat-ja-keksit/karkkipussit/hedelma-ja-makeissekoituspussit" },
-    { terms: ["taco sauce", "tacokastike"], category: "mausteet-ja-maustaminen/majoneesit-maustekastikkeet-ja-tahnat/majoneesit-maustekastikkeet-ja-tahnat" },
-    { terms: ["spice mix"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
-    { terms: ["nacho chips"], category: "texmex-ja-maailman-makuja/maissilastut-ja-nachot/maustamattomat-lastut" },
-    { terms: ["granola"], category: "kuivat-elintarvikkeet-ja-leivonta/murot-ja-myslit/myslit" },
-    { terms: ["minuuttipihvi maustamaton"], category: "liha-ja-kasviproteiinit/broileri-kana-ja-kalkkuna/fileet-pihvit-ja-rullat" },
-    { terms: ["taco shells", "tacokuoret", "mini taco tubs"], category: "texmex-ja-maailman-maut/texmex/texmex-lisukkeet" },
-    { terms: ["tex mex salsa dip", "dip nacho cheese", "dip tex mex", "dippi jalapeñoilla", "chipotle chili mayo", "creamy garlic mayo", "lime & jalapeño mayo", "salsa dip medium", "green jalapeño"], category: "texmex-ja-maailman-maut/texmex/texmex-kastikkeet" },
-    { terms: ["jasmiiniriisi"], category: "pastat-riisit-ja-nuudelit/riisit/riisit" },
-    { terms: ["haarukkavatkain", "paistinlasta"], category: "koti-ja-vapaa-aika/keittio-ja-ruokailu/keittiovalineet" },
-    { terms: ["scanpot alusvati", "scanpot saviruukku"], category: "koti-ja-vapaa-aika/kukat-ja-kasvit/ruukut-ja-istutusastiat" },
-    { terms: ["snö of sweden"], category: "koti-ja-vapaa-aika/asusteet-ja-korut/korut" },
-    { terms: ["lanka nalle raita"], category: "koti-ja-vapaa-aika/kasityot/neulelangat" },
-    { terms: ["kookosöljy", "rypsiöljy"], category: "oljyt-etikat-ja-salaattikastikkeet/oljyt/erikoisoljyt" },
-    { terms: ["maalaispossun maustettu uunifilee", "iberico"], category: "liha-ja-kasviproteiinit/porsas/fileet-kyljykset-ja-pihvit" },
-    { terms: ["mannafrutti"], category: "maito-juusto-munat-ja-rasvat/maitotuotteet/vanukkaat-ja-välipalat" },
-    { terms: ["mentos discovery"], category: "karkit-suklaat-ja-keksit/karkkipussit/pastillit-ja-purukumit" },
-    { terms: ["shield & shape", "rakennesuihke", "hiuskiinne", "hairspray", "dry texture spray"], category: "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hiusten-muotoilutuotteet" },
-    { terms: ["antiseptinen suihke", "q10 ubikinoni", "dekspantenoli nenäsuihke"], category: "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/muut-terveysvalmisteet" },
-    { terms: ["pyykinpesuneste"], category: "kodinhoito-ja-taloustarvikkeet/pyykinpesu/pyykinpesunesteet" },
-    { terms: ["inkontinenssiside", "inkontinenssisuoja"], category: "kosmetiikka-terveys-ja-hygienia/intiimihygienia/inkontinenssisuojat" },
-    { terms: ["vartaloseerumi"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/vartaloseerumit" },
-    { terms: ["deodorantti"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/deodorantit" },
-    { terms: ["hammastikku"], category: "kosmetiikka-terveys-ja-hygienia/suunhoito/hammastikut" },
-    { terms: ["shampoo", "kuivashampoo"], category: "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/shampoot" },
-    { terms: ["body lotion mousse", "vartalovoide"], category: "kosmetiikka-terveys-ja-hygienia/vartalonhoito/vartalovoiteet" },
-    { terms: ["off! pehmeä tehosuihke"], category: "koti-ja-vapaa-aika/piha-ja-puutarha/hyonteiskarkotteet" },
-    { terms: ["dentastix"], category: "lemmikit/koirat/koiranherkut" },
-    { terms: ["oneblade 360"], category: "kosmetiikka-terveys-ja-hygienia/ihokarvojen-poisto/partakoneiden-vaihtoterat" },
-    { terms: ["actimel jogurttijuoma"], category: "maito-juusto-munat-ja-rasvat/jogurtit/terveysvaikutteiset-jogurtit" },
-    { terms: ["fazer aito kasvipohjainen gurtti"], category: "maito-juusto-munat-ja-rasvat/jogurtit/maidottomat-jogurtit" },
-    { terms: ["naudan jauheliha"], category: "liha-ja-kasviproteiinit/jauheliha/naudan-jauheliha" },
-    { terms: ["mehu-kivennäisvesijuoma", "mehuvichy"], category: "juomat/kivennais--ja-lahdevedet/maustetut-kivennaisvedet" },
-    { terms: ["poppamies rub one for all"], category: "mausteet-ja-maustaminen/mausteet/pussit" },
-    { terms: ["primacat classic lohta kastikkeessa"], category: "lemmikit/kissat/kissan-markaruoka" },
-    { terms: ["pirkka puolukkahillo", "maribel hillo"], category: "kuivat-elintarvikkeet-ja-leivonta/hillot-marmeladit-levitteet-ja-jalkiruoka-ainekset/hillot" },
-    { terms: ["snellman maatiaispossun nopea ja murea fileepihvi"], category: "liha-ja-kasviproteiinit/porsas/fileet-kyljykset-ja-pihvit" },
-    { terms: ["talouspaperi"], category: "kodinhoito-ja-taloustarvikkeet/kodin-paperit/talouspaperit" },
-  ];
-  for (const rule of rules) {
-    if (rule.terms.some(term => text.includes(term))) return rule.category;
-  }
-  return null;
-}
-
 export async function enrichOfferCategoriesFromNeon<T extends Record<string, any>>(offers: T[]): Promise<T[]> {
   const url = process.env.DATABASE_URL;
   if (!url || !offers.length) return offers;
@@ -206,7 +154,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
         for (const offer of offers) {
           const ean = getEan(offer);
           const name = getName(offer);
-          const category = safe.get(normalizeName(name)) || inferExistingCategoryFromName(name);
+          const category = safe.get(normalizeName(name));
           if (!ean || !category || !existingCategoryPaths.has(category) || seen.has(ean) || eanRows.some(row => String(row.ean) === ean)) continue;
           updates.push({ean, category});
           seen.add(ean);
@@ -239,20 +187,17 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
         console.error("[offers] Neon category code mapping unavailable", error);
       }
     }
-    // Local Tjek publication offers have no EAN. Resolve only uniquely matched
-    // catalog identities, without guessing from partial titles or category labels.
-    // Keep this opt-in limited to the selected-store Tjek source.
-    const localTjekOffers = offers.filter(offer =>
-      String(offer.provider ?? "") === "kcitymarket-local" &&
-      String(offer.source ?? "") === "K-Citymarket kauppakohtainen julkaisu" &&
-      !getEan(offer));
-    const localNames = [...new Set(localTjekOffers.map(getName).filter(name => name.length >= 6 && name.length <= 300))];
-    const localMatches = new Map<T, CatalogIdentity>();
-    if (localNames.length) {
+    // Resolve EAN-less offers from every provider with the same strict catalog
+    // identity rules. Never guess from a category shelf, partial name or URL.
+    const withoutEan = offers.filter(offer => !getEan(offer));
+    const identityNames = [...new Set(withoutEan.map(getName)
+      .filter(name => name.length >= 6 && name.length <= 300))];
+    const identityMatches = new Map<T, CatalogIdentity>();
+    if (identityNames.length) {
       try {
         const candidates = await sql`SELECT ean, name, brand, quantity, category
           FROM ziiply_ean_products
-          WHERE lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) = ANY(${localNames.map(name => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\\s+/g, " ").trim())}::text[])
+          WHERE lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) = ANY(${identityNames.map(name => name.toLocaleLowerCase("fi").normalize("NFKC").replace(/\s+/g, " ").trim())}::text[])
             AND category IS NOT NULL AND trim(category) <> ''`;
         const catalog = candidates.map(row => ({
           ean: String(row.ean), name: String(row.name),
@@ -260,31 +205,37 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
           quantity: row.quantity == null ? null : String(row.quantity),
           category: String(row.category),
         }));
-        for (const offer of localTjekOffers) {
-          const identity = resolveUniqueCatalogIdentity(offer, catalog);
-          if (identity) localMatches.set(offer, identity);
+        for (const offer of withoutEan) {
+          const identity = resolveUniqueCatalogIdentity({
+            title: getName(offer), brand: String(offer.brand ?? offer.brandName ?? ""),
+            quantity: String(offer.quantity ?? ""), packageSize: String(offer.packageSize ?? ""),
+          }, catalog);
+          if (identity) identityMatches.set(offer, identity);
         }
       } catch (error) {
-        console.error("[offers] Local Tjek catalog identity lookup failed; keeping fallback categories", error);
+        console.error("[offers] Shared catalog identity lookup failed; preserving provider data", error);
       }
     }
     const byEan = new Map(eanRows.map(row => [String(row.ean), String(row.category)]));
-    const byName = new Map<string, string | null>();
-    for (const row of nameRows) {
-      const key = String(row.name).trim().toLocaleLowerCase("fi");
-      const category = String(row.category);
-      const previous = byName.get(key);
-      if (previous !== undefined && previous !== category) byName.set(key, null);
-      else if (previous === undefined) byName.set(key, category);
-    }
     return offers.map(offer => {
       const ean = getEan(offer);
-      const localIdentity = localMatches.get(offer);
+      const localIdentity = identityMatches.get(offer);
       const localCategory = localIdentity?.category ?? null;
-      const exactPath = byEan.get(ean) || localCategory || byName.get(getName(offer).toLocaleLowerCase("fi"));
-      const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : exactPath ? "exact-name" : null;
+      const exactPath = byEan.get(ean) || localCategory || null;
+      const matchType = byEan.has(ean) ? "ean" : localIdentity ? "catalog-identity" : null;
       const display = exactPath ? neonOfferDisplayCategory(exactPath) : null;
-      return display ? {...offer, neonCategoryPath: exactPath, neonDisplayCategory: display, neonCategoryMatch: matchType} : offer;
+      if (!display) return offer;
+      // A verified EAN or unique catalog identity is authoritative for every
+      // provider. Never retain a conflicting provider shelf category.
+      const category = display;
+      const source = offer.__sourceOfferSearchResult;
+      return {
+        ...offer, category, categoryPath: category, mainCategory: category,
+        neonCategoryPath: exactPath, neonDisplayCategory: display, neonCategoryMatch: matchType,
+        ...(source && typeof source === "object" && !Array.isArray(source)
+          ? {__sourceOfferSearchResult: {...source, category, categoryPath: category, mainCategory: category}}
+          : {}),
+      };
     });
   } catch (error) {
     console.error("[offers] Neon category lookup failed; preserving provider categories", error);
