@@ -66,6 +66,7 @@ import { NextResponse, after } from "next/server";
 import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
 import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
+import { resolveLidlGroceryCategories } from "../../../components/ziiply/offerSearch/lidlIndependentCategory";
 import { category as classifyCitymarketTitle, fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { filterCitymarketAdditionalGroceryOffers } from "../../../components/ziiply/offerSearch/providers/kCitymarketDailyGroceryGate.js";
 import { fetchKCitymarketSelectedStoreOffers, fetchKCitymarketUnpricedDiscounts, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
@@ -786,14 +787,13 @@ export async function GET(request: Request) {
         ...lidlCampaigns,
       ]);
 
-      // Match the S/K/Tokmanni path: providers supply product records,
-      // and the shared Neon enrichment resolves catalog categories.
-      // Do not run a Lidl-specific category classifier or rewrite taxonomy
-      // based on titles, landing-page URLs, or product-name exceptions.
+      // Lidl provides offer records; a chain-independent product-type resolver
+      // assigns categories even when the Neon catalog has no Lidl EAN match.
+      // Do not infer categories from Lidl landing-page URLs.
       const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(masterCombined, todayFi);
-      const results = await enrichOfferCategoriesFromNeon(
+      const results = resolveLidlGroceryCategories(await enrichOfferCategoriesFromNeon(
         currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)),
-      );
+      ));
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,

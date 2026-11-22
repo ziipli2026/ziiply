@@ -1,4 +1,5 @@
 import { classifyTokmanniOfferCategory } from "./tokmanniOfferCategory";
+import { classifySharedProductCategory } from "./sharedProductCategory";
 import { citymarketFailureNotice, type CitymarketAvailabilityNotice } from "./citymarketAvailability";
 import { fetchZiiplyRecoverableOfferSearch } from "../ziiplyRecoverableOfferFetch";
 // ============================================================================
@@ -391,6 +392,32 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // branch. Otherwise a stale top-level category such as "Muut" wins before
   // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  // Resolve Lidl through the chain-independent product taxonomy BEFORE any
+  // cached/provider category can override product identity.
+  const lidlSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
+  const lidlIdentity = normalizeGostaCoreText(
+    [sourceItem?.source, anyItem?.source, sourceItem?.chain, anyItem?.chain, sourceItem?.storeType, anyItem?.storeType, sourceItem?.storeLabel, anyItem?.storeLabel]
+      .filter(Boolean)
+      .join(" "),
+  );
+  const isLidl =
+    lidlSource === "lidl plus" ||
+    lidlSource === "lidl-plus" ||
+    lidlSource.startsWith("lidl ") ||
+    lidlSource.startsWith("lidl-") ||
+    /(?:^| )lidl(?: |$)/.test(lidlIdentity);
+  if (isLidl) {
+    const title = String(sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
+      anyItem?.title || anyItem?.name || anyItem?.productName || "");
+    const sharedCategory = classifySharedProductCategory(title);
+    if (sharedCategory) return sharedCategory;
+    const providerCategory = String(sourceItem?.category || "").trim();
+    if (providerCategory && providerCategory !== "Muut") return providerCategory;
+    // An unresolved Lidl product must not inherit an unrelated stale
+    // cached category or be silently placed into the "Muut" bucket.
+    return "";
+  }
+
   const verifiedCategory = getVerifiedOfferCategory(sourceItem) || getVerifiedOfferCategory(item);
   if (verifiedCategory) return verifiedCategory;
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
@@ -474,37 +501,6 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // V184: Lidl provider also emits Ziiply's canonical category. Preserve the
   // provider category; generic title classification can otherwise turn e.g.
   // Siskonmakkara / Pulled pork from "Liha & makkarat" into "Muut".
-  const lidlIdentity = normalizeGostaCoreText(
-    [sourceItem?.source, anyItem?.source, sourceItem?.chain, anyItem?.chain, sourceItem?.storeType, anyItem?.storeType, sourceItem?.storeLabel, anyItem?.storeLabel]
-      .filter(Boolean)
-      .join(" "),
-  );
-  const isLidl =
-    source === "lidl plus" ||
-    source === "lidl-plus" ||
-    source.startsWith("lidl ") ||
-    source.startsWith("lidl-") ||
-    /(?:^| )lidl(?: |$)/.test(lidlIdentity);
-  if (isLidl) {
-    // Lidl final UI guard: product form outranks a stale/provider ingredient
-    // category. This runs in the exact resolver used by category counts and
-    // opened category views, so cached/staged source rows cannot put e.g.
-    // rahkapulla back into Maitotuotteet.
-    const productTitle = normalizeGostaCoreText(
-      sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
-      anyItem?.title || anyItem?.name || anyItem?.productName || "",
-    );
-    if (/halloween[- ]?asu|koiran[- ]?asu|kissan[- ]?asu|lemmikin[- ]?asu/.test(productTitle)) return "Muut";
-    if (/lihapulla/.test(productTitle)) return "Liha & makkarat";
-    if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(productTitle)) return "Juomat";
-    if (/maustekur|hapankurk|hapankaali|ajvar|paprikapyree/.test(productTitle)) return "Kuivatuotteet";
-    if (/valkokaalisalaatti/.test(productTitle)) return "Valmisruoka";
-    if (/keitto|lihapata|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(productTitle)) return "Valmisruoka";
-    if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(productTitle)) return "Leipomo";
-
-    const providerCategory = String(sourceItem?.category || "").trim();
-    if (providerCategory) return providerCategory;
-  }
 
   if (isKCitymarket) {
     const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "").split(" ").filter((part) => part !== "ja").join(" ");
