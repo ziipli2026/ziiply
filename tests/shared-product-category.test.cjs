@@ -25,6 +25,8 @@ for (const [title, category] of [
   ["Tuntematon merkkituote 400 g", null],
   ["Maitosuklaa", "Makeiset & keksit"],
   ["Juustopizza", "Valmisruoka"],
+  ["Pakastepizza", "Pakasteet"],
+  ["Pakasteparsakaali", "Pakasteet"],
   ["Perunalaatikko", "Valmisruoka"],
   ["Säilytyslaatikko 12 l", "Koti & vapaa-aika"],
   ["Muovilaatikko 5 l", "Koti & vapaa-aika"],
