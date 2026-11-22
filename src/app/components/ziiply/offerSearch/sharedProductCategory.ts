@@ -26,16 +26,16 @@ export function classifySharedProductCategory(value: unknown): string | null {
   // Clothing and children's toy product forms, independently of retailer brand.
   // Check before grocery tokens such as "ruoka" in "leikkiruokasetti".
   if (/(?:^|\s)\p{L}*(?:poolopaita|kauluspaita|aluspaita|pehmolelu|motoriikkalelu|nukke|nukenvaunu|roolileikkisetti|taikataulu|rakennussarja|leikkiruokasetti|rakennuspalikka|rakennuspali)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
-  // Classify the finished product, not a preceding ingredient (ham, potato,
-  // orange or cream). Apply to all chains before meat/dairy/produce rules.
-  if (/(?:^|\\s)\\p{L}*(?:limonadi|täysmehu)(?=\\s|$)/u.test(s)) return "Juomat";
-  if (/(?:^|\\s)\\p{L}*(?:pizza|perunapaistos)(?=\\s|$)/u.test(s)) return "Valmisruoka";
-  if (/(?:^|\\s)\\p{L}*panini(?=\\s|$)/u.test(s)) return "Leipomo";
-  if (/(?:^|\\s)\\p{L}*moussejälkiruoka(?=\\s|$)/u.test(s)) return "Maitotuotteet";
   // Frozen product form takes precedence over pizza, vegetables or meat.
   // This is a product-form rule, not a Lidl-specific exception.
   if (/(?:^|\s)(?:pakaste|pakastettu|pakastetut)\p{L}*(?=\s|$)/u.test(s) ||
       /(?:^|\s)pakaste\p{L}*(?:pizza|vihannes|marja|peruna|pulla)(?=\s|$)/u.test(s)) return "Pakasteet";
+  // Finished product form outranks incidental ingredient words.
+  // Frozen product forms remain higher priority.
+  if (/(?:^|\s)\p{L}*(?:limonadi|täysmehu)(?=\s|$)/u.test(s)) return "Juomat";
+  if (/(?:^|\s)\p{L}*(?:pizza|perunapaistos)(?=\s|$)/u.test(s)) return "Valmisruoka";
+  if (/(?:^|\s)\p{L}*panini(?=\s|$)/u.test(s)) return "Leipomo";
+  if (/(?:^|\s)\p{L}*moussejälkiruoka(?=\s|$)/u.test(s)) return "Maitotuotteet";
   // Compound grocery names in Finnish frequently prepend the meat, milk or
   // fruit qualifier. A concrete ending is stronger than the preceding words.
   if (/(?:^|\s)\p{L}*(?:jauheliha|jogurtti|sisäfilee|kananfilee|kaurarypsiöljymargariini)\p{L}*(?=\s|$)/u.test(s)) {
