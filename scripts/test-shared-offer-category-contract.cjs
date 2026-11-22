@@ -130,3 +130,11 @@ assert.equal(parsedLidl[0].priceBasis,'unit','Package count alone is not a multi
 assert.equal(parsedLidl[0].multiBuyQuantity,undefined);
 assert.equal(parsedLidl[0].category,'','Parser must not invent its own product category');
 console.log('PASS Lidl public parser: published GTIN, package quantity, no invented category');
+
+
+// Both public parser aggregation paths must retain a published barcode when
+// another duplicate row supplies a better image or other complementary data.
+const publicSource = fs.readFileSync('src/app/components/ziiply/offerSearch/providers/lidlPublicLeafletProvider.ts','utf8');
+assert.ok(publicSource.includes('ean: preferred.ean || other.ean || ""'),
+  'Duplicate Lidl product records must retain published EAN from either source');
+console.log('PASS Lidl public duplicate merge retains published EAN');
