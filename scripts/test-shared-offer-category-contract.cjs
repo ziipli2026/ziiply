@@ -64,3 +64,40 @@ console.log('PASS no unverified title-only category assignment across providers'
 
 assert.ok(source.includes('const category = display;'),'Verified catalog category must override a conflicting provider category');
 console.log('PASS verified shared catalog categories override provider shelf labels');
+
+
+// Execute the actual asynchronous enrichment function with an isolated, read-only
+// catalog fixture. This checks the returned offer, not merely source-code text.
+const sqlFixture = (parts, ...values) => {
+  const query = parts.join('?');
+  if (query.includes('SELECT ean, category FROM ziiply_ean_products'))
+    return Promise.resolve([{ean:'6400000000001',category:'Hedelmät ja vihannekset/Salaatit'}]);
+  if (query.includes('SELECT name, category FROM ziiply_ean_products')) return Promise.resolve([]);
+  if (query.includes('SELECT ean FROM ziiply_ean_products')) return Promise.resolve([{ean:'6400000000001'}]);
+  if (query.includes('SELECT ean, name, brand, quantity, category'))
+    return Promise.resolve([{ean:'6400000000002',name:'Esimerkki lihapyörykkä 400 g',brand:'Esimerkki',quantity:'400 g',category:'Liha ja lihavalmisteet/Lihapyörykät'}]);
+  throw Error('Unexpected fixture SQL: '+query);
+};
+const integrationExports = {};
+vm.runInNewContext(compiled, {
+  exports:integrationExports,
+  process:{env:{DATABASE_URL:'fixture-only'}},
+  console,
+  require(name) {
+    if(name==='@neondatabase/serverless') return {neon:()=>sqlFixture};
+    if(name==='./catalogIdentityResolver') return resolverExports;
+    throw Error('Unexpected import '+name);
+  },
+}, {filename:'neonOfferCategory-integration.js'});
+(async () => {
+  const input = [
+    {ean:'6400000000001',title:'Esimerkki salaatti 200 g',category:'Maitotuotteet'},
+    {title:'Esimerkki lihapyörykkä 400 g',brand:'Esimerkki',quantity:'400 g',category:'Maitotuotteet'},
+    {title:'Täysin tuntematon tuote',category:'Maitotuotteet'},
+  ];
+  const result = await integrationExports.enrichOfferCategoriesFromNeon(input);
+  assert.equal(result[0].category,'Hevi','EAN-verified category overrides wrong provider category');
+  assert.equal(result[1].category,'Liha & makkarat','Unique EAN-less catalog identity overrides wrong provider category');
+  assert.equal(result[2].category,'Maitotuotteet','Unmatched product retains source category, without inventing a match');
+  console.log('PASS actual shared enrichment: verified EAN, EAN-less identity, unknown product');
+})().catch(error => {console.error(error);process.exitCode=1;});
