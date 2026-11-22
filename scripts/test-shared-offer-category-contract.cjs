@@ -138,3 +138,19 @@ const publicSource = fs.readFileSync('src/app/components/ziiply/offerSearch/prov
 assert.ok(publicSource.includes('ean: preferred.ean || other.ean || ""'),
   'Duplicate Lidl product records must retain published EAN from either source');
 console.log('PASS Lidl public duplicate merge retains published EAN');
+
+
+const gridPayload = {
+  fullTitle:'Esimerkki kananmunat 6 kpl',
+  gtin:'6400000000001',
+  price:{price:2.49},
+  storeStartDate:1795132800,
+  storeEndDate:1795996800
+};
+const gridHtml = '<div data-grid-data="'+JSON.stringify(gridPayload).replace(/"/g,'&quot;')+'"></div>';
+const parsedGrid = lidlParserExports.parseLidlGridDataOffers(gridHtml,'https://www.lidl.fi/h/test/h123456','2026-11-22');
+assert.equal(parsedGrid.length,1,'Lidl grid fixture must parse');
+assert.equal(parsedGrid[0].ean,'6400000000001','Lidl grid GTIN must survive parser');
+assert.equal(parsedGrid[0].priceBasis,'unit','Lidl grid package count alone is not multi-buy');
+assert.equal(parsedGrid[0].multiBuyQuantity,undefined);
+console.log('PASS Lidl grid parser: GTIN and package count are handled correctly');
