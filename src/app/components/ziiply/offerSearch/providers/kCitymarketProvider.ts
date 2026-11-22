@@ -641,13 +641,14 @@ function repairReviewed48AVRows(rows:any[], leafletUrl:string) {
       return [common];
     }
     const [,pattern,value,quantity,unit,newTitle]=correction;
-    const key=page+":"+pattern.source+(page===20?":"+title:"");
+    const hasDeposit=page===20 && /^(?:KUKKO ALKOHOLITTOMAT OLUET|BOOSTER ENERGIAJUOMAT|VIRVOITUSJUOMAT)/.test(title);
+    const key=page+":"+pattern.source+(hasDeposit?":"+title:"");
     if(seen.has(key)) return [];
     seen.add(key);
     return [{...common,title:newTitle??title,
       spatialResolved:{value,quantity,unit,source,sanity:"pass"},
-      percentageOffer:null,normal:null,unitPrice:page===20?{min:2.58,max:2.58,raw:"2,58/l"}:null,
-      reviewedDeposit:page===20?0.15:undefined,nearby:[page===2?"Mobiilietu":"Plussa-etu"]}];
+      percentageOffer:null,normal:null,unitPrice:hasDeposit?{min:2.58,max:2.58,raw:"2,58/l"}:null,
+      reviewedDeposit:hasDeposit?0.15:undefined,nearby:[page===2?"Mobiilietu":"Plussa-etu"]}];
   });
   const missing: [number, string, number, number|null, string][] = [
     [13,"NESTESAIPPUAT 250 ml",1,null,"KPL"],
@@ -867,8 +868,9 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       ...(row.reviewedDeposit!=null?{depositAmount:row.reviewedDeposit}:{}),
       ...(reviewed46LV?.depositAmount!=null?{depositAmount:reviewed46LV.depositAmount}:{}),
       ...(verified45LV?.depositAmount!=null?{depositAmount:verified45LV.depositAmount}:{}),
-      unit:verified45LV?.reviewedCard?verified45LV.unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
+      unit:resolved?.source==="publisher-pdf-reviewed-48av"?resolved.unit:verified45LV?.reviewedCard?verified45LV.unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       ...(!verified45LV?.reviewedCard?citymarketTransactionMetadata(row):{}),
+      ...(resolved?.source==="publisher-pdf-reviewed-48av" && !(offerQuantity && offerQuantity>1) ? {priceBasis:"package-total" as const} : {}),
       ...(resolved?.source?.startsWith("owned-printed") && (resolved?.unit === "setti" || resolved?.packageCount > 1) ? {
         priceBasis: resolved.packageCount > 1 ? "package-total" : "set-total",
         priceText: price.toFixed(2).replace(".", ",") + " € / " + (resolved.packageCount > 1 ? "pkt (" + resolved.packageCount + " kpl)" : "setti"),
