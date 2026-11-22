@@ -356,6 +356,7 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
       const other = preferred === row ? old : row;
       byKey.set(key, {
         ...preferred,
+        ean: preferred.ean || other.ean || "",
         packageSize: preferred.packageSize || other.packageSize || "",
         packageText: preferred.packageText || other.packageText || "",
         comparisonPriceText: preferred.comparisonPriceText || other.comparisonPriceText || "",
@@ -427,6 +428,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     if (!preferred.multiBuyQuantity && other.multiBuyQuantity && preferred.price === other.price) {
       byKey.set(key, {
         ...preferred,
+        ean: preferred.ean || other.ean || "",
         priceBasis: other.priceBasis,
         priceText: other.priceText,
         multiBuyQuantity: other.multiBuyQuantity,
@@ -434,7 +436,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
         isWeightedProduct: false,
       });
     } else {
-      byKey.set(key, preferred);
+      byKey.set(key, {...preferred, ean: preferred.ean || other.ean || ""});
     }
   }
   return {
