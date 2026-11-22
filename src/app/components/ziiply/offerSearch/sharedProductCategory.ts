@@ -4,6 +4,12 @@
 export function classifySharedProductCategory(value: unknown): string | null {
   const s = String(value ?? "").normalize("NFKC").toLocaleLowerCase("fi-FI").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   if (!s) return null;
+  // Product audience and non-food purpose outrank incidental food words.
+  if (/(?:^|\s)(?:koiran|kissan|lemmikin|koirille|kissoille|lemmikeille)(?=\s|$)/u.test(s)) {
+    if (/(?:^|\s)(?:asu|puku|lelu|talutin|panta|peti|ruoka|herkku|öljy|ravinne|vitamiini)(?=\s|$)/u.test(s) ||
+        /(?:koiran|kissan|lemmikin)(?:ruoka|herkku|lelu|asu|puku|panta|peti)/u.test(s)) return "Lemmikit";
+  }
+  if (/(?:^|\s)(?:halloween|naamiais|koiran|kissan)(?:\s|\p{L})*(?:asu|puku)(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   // Compound words: the final product form outranks an ingredient prefix.
   // These rules apply identically to every chain.
   if (/(?:^|\s)\p{L}*(?:maitojuoma|kaakaojuoma|suklaajuoma)\p{L}*(?=\s|$)/u.test(s)) return "Juomat";
