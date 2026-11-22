@@ -28,7 +28,7 @@ export function resolveLidlGroceryCategories<T extends Record<string, any>>(offe
     // from Lidl Plus are not prices, even if the category is valid.
     const rawPrice = offer.offerPrice ?? offer.price;
     const price = typeof rawPrice === "number" ? rawPrice :
-      typeof rawPrice === "string" && /^\\d+(?:[.,]\\d+)?$/.test(rawPrice.trim())
+      typeof rawPrice === "string" && /^\d+(?:[.,]\d+)?$/.test(rawPrice.trim())
         ? Number(rawPrice.trim().replace(",", ".")) : NaN;
     return offer.groceryEligible !== false && Number.isFinite(price) && price > 0;
   });
