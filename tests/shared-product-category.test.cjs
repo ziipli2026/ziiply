@@ -39,4 +39,10 @@ for (const [title, category] of [
   ["Siivousetikka", "Kodinhoito"],
   ["Minivesimeloni", "Hevi"],
   ["Neulemekko", "Koti & vapaa-aika"],
+  ["Nauta-viljapossujauheliha", "Liha & makkarat"],
+  ["Perinteinen hedelmäjogurtti", "Maitotuotteet"],
+  ["Kanan sisäfilee", "Liha & makkarat"],
+  ["Deluxe Prosciutto Crudo", "Liha & makkarat"],
+  ["Saskia Vadelmanmakuinen lähdevesi 12-pack", "Juomat"],
+  ["JOENSUUN HERKKULEIPOMO Ahvenkukko", "Leipomo"],
 ]) test(title, () => assert.equal(classify(title), category));
