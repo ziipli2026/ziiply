@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:offer-categories": "node --test tests/shared-product-category.test.cjs",
     "test:citymarket": "node --test tests/citymarket-45av-continuation.test.cjs",
     "test:gps": "node scripts/test-ziiply-arrival-sequence.cjs && node scripts/test-ziiply-arrival-scenarios.cjs && node scripts/test-gps-arrival-notice.mjs && node scripts/test-gps-arrival-integration.cjs",
     "prebuild": "npm run test:gps && npm run test:desktop-gps",
