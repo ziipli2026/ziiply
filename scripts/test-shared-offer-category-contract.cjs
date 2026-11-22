@@ -37,6 +37,13 @@ const examples = [
   ['Kodinhoito/Kahvinkeittimen puhdistusaineet', 'Kodinhoito'],
   ['Kodinhoito/Pakastuspussit', 'Kodinhoito'],
   ['Koti ja vapaa-aika/Pakastusrasiat', 'Koti & vapaa-aika'],
+  // Regression categories are shared across S, K and Lidl, never product-name overrides.
+  ['Liha ja lihavalmisteet/Lihapyörykät', 'Liha & makkarat'],
+  ['Leivät ja leivonnaiset/Juustokakut', 'Leipomo'],
+  ['Pakasteet/Pakastepizzat', 'Pakasteet'],
+  ['Pakasteet/Pakastevihannekset', 'Pakasteet'],
+  ['Hedelmät ja vihannekset/Salaattisekoitukset', 'Hevi'],
+  ['Maitotuotteet/Jogurtit', 'Maitotuotteet'],
   ['Muut', null],
   ['CAUNKNOWNCATEGORY', null],
   ['Tuntematon/Alaryhmä', null],
