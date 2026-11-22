@@ -1,5 +1,6 @@
 const {chromium,devices}=require('playwright');
 const assert=require('node:assert/strict');
+const offerSnapshots = new Map();
 (async()=>{const b=await chromium.launch({args:['--no-sandbox']});try{
 await Promise.all([false,true].flatMap(desktop=>['one','many','control','offers'].map(async mode=>{
 let ctx=await b.newContext(desktop?{viewport:{width:1440,height:1000}}:devices['iPhone 13']);
