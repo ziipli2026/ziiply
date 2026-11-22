@@ -5,6 +5,7 @@ export function classifySharedProductCategory(value: unknown): string | null {
   const s = String(value ?? "").normalize("NFKC").toLocaleLowerCase("fi-FI").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   if (!s) return null;
   // Product audience and non-food purpose outrank incidental food words.
+  if (/(?:^|\s)(?:airfryer|höyrysilitysrauta|silitysrauta|neulemekko|nilkkurit|jeggingsit|pesukoneen|päällyshylly|mohairsekoiteneule)(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   if (/(?:^|\s)(?:koiran|kissan|lemmikin|koirille|kissoille|lemmikeille)(?=\s|$)/u.test(s)) {
     if (/(?:^|\s)\p{L}*(?:asu|puku|lelu|talutin|panta|peti|ruoka|herkku|öljy|ravinne|vitamiini)(?=\s|$)/u.test(s) ||
         /(?:koiran|kissan|lemmikin)(?:ruoka|herkku|lelu|asu|puku|panta|peti)/u.test(s)) return "Lemmikit";
