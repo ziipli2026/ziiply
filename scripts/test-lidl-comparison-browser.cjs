@@ -55,7 +55,7 @@ if (mode === 'offers') {
   const offers = response.data.results.filter(row => row.hasConcretePrice && Number(row.offerPrice) > 0 &&
     row.validFrom?.slice(0,10) <= today && row.validUntil?.slice(0,10) >= today &&
     /liha.*makkara/i.test(row.category || '') && row.campaignType !== 'campaign');
-  // Report the full live provider category distribution, not just the selected
+  // PRODUCTION API baseline only (the route above proxies to ziiply.vercel.app).\n  // Do not claim this validates test-branch category enrichment.\n  // Report the full live provider category distribution, not just the selected
   // meat tab. This exposes uncategorized and inconsistent source records.
   const categoryCounts = {};
   const uncategorized = [];
@@ -64,7 +64,7 @@ if (mode === 'offers') {
     categoryCounts[category || '(missing)'] = (categoryCounts[category || '(missing)'] || 0) + 1;
     if (!category || category === 'Muut') uncategorized.push(String(row.productName || row.title || row.name));
   }
-  console.log('AUDIT',tag,JSON.stringify({total:response.data.results.length,categoryCounts,uncategorized:uncategorized.slice(0,40)}));
+  console.log('AUDIT_PRODUCTION_BASELINE',tag,JSON.stringify({api:'https://ziiply.vercel.app',total:response.data.results.length,categoryCounts,uncategorized:uncategorized.slice(0,40)}));
   const shown = [];
   for (const row of offers) {
     const title = String(row.productName || row.title || row.name);
