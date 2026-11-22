@@ -99,4 +99,6 @@ console.log('PASS',tag);
 function lidlMode(){return mode!=='control'}
 await ctx.close();
 })));
+assert.deepEqual(offerSnapshots.get('desktop'),offerSnapshots.get('mobiili'),'Desktop and mobile must receive identical Lidl product categories and prices');
+console.log('PASS Lidl mobile-desktop full category and price parity');
 }finally{await b.close()}})().catch(e=>{console.error(e);process.exitCode=1});
