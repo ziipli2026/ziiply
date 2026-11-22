@@ -23,7 +23,7 @@ export function classifySharedProductCategory(value: unknown): string | null {
   if (/(?:^|\s)\p{L}*(?:lumiukko|lumiukot)\p{L}*(?=\s|$)/u.test(s) && /kreemi|täyte/u.test(s)) return "Makeiset & keksit";
   // Clothing and children's toy product forms, independently of retailer brand.
   // Check before grocery tokens such as "ruoka" in "leikkiruokasetti".
-  if (/(?:^|\s)\p{L}*(?:poolopaita|kauluspaita|aluspaita|pehmolelu|motoriikkalelu|nukke|nukenvaunu|roolileikkisetti|taikataulu|rakennussarja|leikkiruokasetti|rakennuspalikka)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
+  if (/(?:^|\s)\p{L}*(?:poolopaita|kauluspaita|aluspaita|pehmolelu|motoriikkalelu|nukke|nukenvaunu|roolileikkisetti|taikataulu|rakennussarja|leikkiruokasetti|rakennuspalikka|rakennuspali)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   // Frozen product form takes precedence over pizza, vegetables or meat.
   // This is a product-form rule, not a Lidl-specific exception.
   if (/(?:^|\s)(?:pakaste|pakastettu|pakastetut)\p{L}*(?=\s|$)/u.test(s) ||
