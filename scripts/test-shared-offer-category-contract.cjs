@@ -61,3 +61,6 @@ console.log('PASS shared catalog identity: ambiguous title, brand, quantity, dup
 
 assert.ok(!source.includes('byName.get('),'Category assignment must never use an unverified title-only catalog match');
 console.log('PASS no unverified title-only category assignment across providers');
+
+assert.ok(source.includes('const category = display;'),'Verified catalog category must override a conflicting provider category');
+console.log('PASS verified shared catalog categories override provider shelf labels');
