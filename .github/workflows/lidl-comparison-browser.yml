@@ -30,6 +30,7 @@ jobs:
           # reports the publication-source gap rather than silently passing.
           OFFER_PUBLICATION_DATABASE_URL: ${{ secrets.OFFER_PUBLICATION_DATABASE_URL }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OFFER_CATEGORY_READ_ONLY: "1"
         run: |
           npm run start -- -H 127.0.0.1 -p 3179 &
           for attempt in $(seq 1 45); do
@@ -37,3 +38,4 @@ jobs:
             sleep 2
           done
           NODE_PATH=/tmp/lidl-browser/node_modules node scripts/test-lidl-comparison-browser.cjs
+          node scripts/audit-lidl-local-categories.cjs
