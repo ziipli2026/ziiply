@@ -71,6 +71,7 @@ if (mode === 'offers') {
   const unexpectedCategories = Object.keys(categoryCounts).filter(category => !allowedCategories.has(category));
   assert.deepEqual(unexpectedCategories,[],'Lidl offers contain unknown or unclassified category labels');
   assert.equal(uncategorized.length,0,'Lidl offers must not have missing/Muut categories');
+  offerSnapshots.set(desktop?'desktop':'mobiili', response.data.results.map(row=>({id:String(row.id||''),title:String(row.productName||row.title||row.name||''),category:String(row.category||''),price:Number(row.offerPrice)})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
   const shown = [];
   for (const row of offers) {
     const title = String(row.productName || row.title || row.name);
