@@ -52,6 +52,7 @@ jobs:
       - name: Run advance parser during the publication window
         env:
           KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
@@ -59,6 +60,7 @@ jobs:
           # images alone must never block preflight. Continue cache refresh.
           status=$(curl --silent --show-error --output preflight.json --write-out '%{http_code}' --max-time 210 \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
+            -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
             https://ziiply.vercel.app/api/cron/kcitymarket-preflight)
           cat preflight.json
           if [ "$status" != "200" ] && [ "$status" != "503" ]; then
@@ -76,11 +78,13 @@ jobs:
         if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
         env:
           KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
           status=$(curl --silent --show-error --output cache.json --write-out '%{http_code}' --max-time 150 \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
+            -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
             https://ziiply.vercel.app/api/cron/kcitymarket-cache)
           cat cache.json
           if [ "$status" != "200" ] && [ "$status" != "503" ]; then
@@ -106,7 +110,7 @@ jobs:
           fi
           jq -e '.quality != null and .parsed != null' preflight.json >/dev/null
           jq -r '"Upcoming Citymarket: " + .period + " — " + (.quality.missing_images|tostring) + " missing images, " + (.quality.missing_categories|tostring) + " missing categories"' preflight.json
-          if ! jq -e '.quality.missing_categories == 0 and .quality.missing_prices == 0 and .quality.unverified_prices == 0 and (.quality.suspicious_names // 0) == 0' preflight.json >/dev/null; then
+          if ! jq -e '.pending == true and (.blockingReasons | length) == 0' preflight.json >/dev/null; then
             echo "::error::Upcoming Citymarket edition is incomplete; automated repair must continue"
             exit 1
           fi
