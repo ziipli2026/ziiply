@@ -5,21 +5,21 @@ export function classifySharedProductCategory(value: unknown): string | null {
   const s = String(value ?? "").normalize("NFKC").toLocaleLowerCase("fi-FI").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   if (!s) return null;
   const rules: Array<[RegExp, string]> = [
-    [/\b(?:kirja|kirjat|paistinpannu|kattila|lelu|vaate|takki|housut|kenkä|valaisin|lamppu|työkalu|kalenteri|grilli|muki|lakana|pyyhe|sisustustyyny)\w*\b/u, "Koti & vapaa-aika"],
-    [/\b(?:koiranruoka|kissanruoka|koiranherkku|kissanherkku|lemmikinruoka)\w*\b/u, "Lemmikit"],
-    [/\b(?:wc paperi|talouspaperi|astianpesu|pyykinpesu|pesuaine|siivousliina|puhdistusaine)\w*\b/u, "Kodinhoito"],
-    [/\b(?:shampoo|saippua|hammastahna|hammasharja|deodorantti|kasvovoide|kosteusvoide|suihkugeeli|vaippa)\w*\b/u, "Hygienia & kosmetiikka"],
-    [/\b(?:juustokakku|täytekakku|kakku|leivos|pulla|rahkapulla|croissant|munkki|piirakka|sämpylä|leipä|patonki|rieska|näkkileipä|karjalanpiirakka)\w*\b/u, "Leipomo"],
-    [/\b(?:lihapull|lihapöyry|lihapyor|jauheliha|makkara|nakki|pekoni|kinkku|broileri|kanasuikale|porsaan|naudan)\w*\b/u, "Liha & makkarat"],
-    [/\b(?:lohi|kirjolohi|tonnikala|silakka|seiti|katkarapu|kalafile|kalapuikko)\w*\b/u, "Kala"],
-    [/\b(?:pizza|lasagne|valmisateria|valmisruoka|keitto|salaattiateria|risotto|lihapata|wokki)\w*\b/u, "Valmisruoka"],
-    [/\b(?:jäätelö|pakaste|pakastettu|pakastevihannes|pakastemarj)\w*\b/u, "Pakasteet"],
-    [/\b(?:suklaa|karkki|makeinen|keksi|lakritsi|salmiakki|konvehti|piparkakku)\w*\b/u, "Makeiset & keksit"],
-    [/\b(?:mehu|smoothie|limonadi|virvoitusjuoma|energiajuoma|kivennäisvesi|nektari)\w*\b/u, "Juomat"],
-    [/\b(?:kahvi|espresso|teepussi|teejuoma)\w*\b/u, "Kahvi & tee"],
-    [/\b(?:jogurtti|rahka|maito|juusto|kerma|piimä|viili|raejuusto|voi|margariini)\w*\b/u, "Maitotuotteet"],
-    [/\b(?:pasta|spagetti|riisi|jauho|kaurahiutale|mysli|muro|säilyke|mauste|ketsuppi|öljy|kastike|nuudeli)\w*\b/u, "Kuivatuotteet"],
-    [/\b(?:omena|banaani|tomaatti|kurkku|paprika|peruna|sipuli|porkkana|parsakaali|salaatti|mandariini)\w*\b/u, "Hevi"],
+    [/(?:^|\\s)(?:kirja|kirjat|paistinpannu|kattila|lelu|vaate|takki|housut|kenkä|valaisin|lamppu|työkalu|kalenteri|grilli|muki|lakana|pyyhe|sisustustyyny)\\p{L}*(?=\\s|$)/u, "Koti & vapaa-aika"],
+    [/(?:^|\\s)(?:koiranruoka|kissanruoka|koiranherkku|kissanherkku|lemmikinruoka)\\p{L}*(?=\\s|$)/u, "Lemmikit"],
+    [/(?:^|\\s)(?:wc paperi|talouspaperi|astianpesu|pyykinpesu|pesuaine|siivousliina|puhdistusaine)\\p{L}*(?=\\s|$)/u, "Kodinhoito"],
+    [/(?:^|\\s)(?:shampoo|saippua|hammastahna|hammasharja|deodorantti|kasvovoide|kosteusvoide|suihkugeeli|vaippa)\\p{L}*(?=\\s|$)/u, "Hygienia & kosmetiikka"],
+    [/(?:^|\\s)(?:juustokakku|täytekakku|kakku|leivos|pulla|rahkapulla|croissant|munkki|piirakka|sämpylä|leipä|patonki|rieska|näkkileipä|karjalanpiirakka)\\p{L}*(?=\\s|$)/u, "Leipomo"],
+    [/(?:^|\\s)(?:lihapull|lihapöyry|lihapyor|jauheliha|makkara|nakki|pekoni|kinkku|broileri|kanasuikale|porsaan|naudan)\\p{L}*(?=\\s|$)/u, "Liha & makkarat"],
+    [/(?:^|\\s)(?:lohi|kirjolohi|tonnikala|silakka|seiti|katkarapu|kalafile|kalapuikko)\\p{L}*(?=\\s|$)/u, "Kala"],
+    [/(?:^|\\s)(?:pizza|lasagne|valmisateria|valmisruoka|keitto|salaattiateria|risotto|lihapata|wokki)\\p{L}*(?=\\s|$)/u, "Valmisruoka"],
+    [/(?:^|\\s)(?:jäätelö|pakaste|pakastettu|pakastevihannes|pakastemarj)\\p{L}*(?=\\s|$)/u, "Pakasteet"],
+    [/(?:^|\\s)(?:suklaa|karkki|makeinen|keksi|lakritsi|salmiakki|konvehti|piparkakku)\\p{L}*(?=\\s|$)/u, "Makeiset & keksit"],
+    [/(?:^|\\s)(?:mehu|smoothie|limonadi|virvoitusjuoma|energiajuoma|kivennäisvesi|nektari)\\p{L}*(?=\\s|$)/u, "Juomat"],
+    [/(?:^|\\s)(?:kahvi|espresso|teepussi|teejuoma)\\p{L}*(?=\\s|$)/u, "Kahvi & tee"],
+    [/(?:^|\\s)(?:jogurtti|rahka|maito|juusto|kerma|piimä|viili|raejuusto|voi|margariini)\\p{L}*(?=\\s|$)/u, "Maitotuotteet"],
+    [/(?:^|\\s)(?:pasta|spagetti|riisi|jauho|kaurahiutale|mysli|muro|säilyke|mauste|ketsuppi|öljy|kastike|nuudeli)\\p{L}*(?=\\s|$)/u, "Kuivatuotteet"],
+    [/(?:^|\\s)(?:omena|banaani|tomaatti|kurkku|paprika|peruna|sipuli|porkkana|parsakaali|salaatti|mandariini)\\p{L}*(?=\\s|$)/u, "Hevi"],
   ];
   for (const [pattern, category] of rules) if (pattern.test(s)) return category;
   return null;
