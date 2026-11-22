@@ -787,10 +787,9 @@ export async function GET(request: Request) {
         ...lidlCampaigns,
       ]);
 
-      // Match the S/K/Tokmanni path: providers supply product records,
-      // and the shared Neon enrichment resolves catalog categories.
-      // Do not run a Lidl-specific category classifier or rewrite taxonomy
-      // based on titles, landing-page URLs, or product-name exceptions.
+      // Lidl provides offer records; a chain-independent product-type resolver
+      // assigns categories even when the Neon catalog has no Lidl EAN match.
+      // Do not infer categories from Lidl landing-page URLs.
       const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(masterCombined, todayFi);
       const results = resolveLidlGroceryCategories(await enrichOfferCategoriesFromNeon(
         currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)),
