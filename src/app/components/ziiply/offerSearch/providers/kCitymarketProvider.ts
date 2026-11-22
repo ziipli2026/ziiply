@@ -598,7 +598,7 @@ function repairReviewed48AVRows(rows:any[], leafletUrl:string) {
     [1,/^KANAN JAUHELIHA/,5,2,"RS","Atria KANAN JAUHELIHA 400 g tai NAUTA-VILJAPOSSU JAUHELIHA 250 g"],
     [1,/^MAUSTETUT JOGURTIT/,1,3,"PRK","Valiojogurtti MAUSTETUT JOGURTIT 200 g"],
     [13,/^NESTESAIPPUAT/,1,null,"KPL","NESTESAIPPUAT 250 ml"],
-    [13,/^ROLL-ON/,5.50,2,"KPL"],
+    [13,/^ROLL-ON/,5.50,2,"KPL","ROLL-ON 50 ml ja SUIHKUSAIPPUAT 300 ml"],
     [14,/^2?PYYKINPESUNESTEET/,10,3,"KPL","PYYKINPESUNESTEET 880 ml, TÄYTTÖPAKKAUKSET 920 ml ja PESUJAUHEET 700–725 g"],
     [14,/^WC-SPRAYT/,2,null,"KPL"],
     [15,/^KUORRUTETUT DONITSIT/,2,null,"RS","NAM KUORRUTETUT DONITSIT 4–6 kpl/120–170 g tai SOKERIDONITSIT 6–10 kpl/150–220 g"],
@@ -992,7 +992,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-printed-transactions-v172"],
+  ["ziiply-kcitymarket-printed-transactions-v173"],
   // Retry discovery of upcoming editions after a late publisher release. A permanent
   // cache otherwise freezes the first incomplete parse until another deployment.
   {revalidate:300},
