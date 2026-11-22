@@ -23,7 +23,7 @@ await p.route('**/api/**', async route => {
   const url = new URL(route.request().url());
   if (mode === 'offers' && url.pathname === '/api/offers/search' && url.searchParams.get('provider') === 'lidl') {
     try {
-      const response = await fetch(new URL(url.pathname + url.search, 'https://ziiply.vercel.app'), {signal:AbortSignal.timeout(35000)});
+      const response = await fetch(new URL(url.pathname + url.search, 'http://127.0.0.1:3179'), {signal:AbortSignal.timeout(35000)});
       const data = await response.json();
       lidlResponses.push({status:response.status, key:url.searchParams.get('lidlStoreKey'), data});
       await route.fulfill({status:response.status,json:data});
@@ -56,8 +56,8 @@ if (mode === 'offers') {
   const offers = response.data.results.filter(row => row.hasConcretePrice && Number(row.offerPrice) > 0 &&
     row.validFrom?.slice(0,10) <= today && row.validUntil?.slice(0,10) >= today &&
     /liha.*makkara/i.test(row.category || '') && row.campaignType !== 'campaign');
-  // PRODUCTION API baseline only (the route above proxies to ziiply.vercel.app).
-  // Do not claim this validates test-branch category enrichment.
+  // Test-branch backend: this route calls the local built API, not production.
+  // This verifies actual test-branch enrichment using its configured read-only sources.
   // Report the full live provider category distribution, not just the selected
   // meat tab. This exposes uncategorized and inconsistent source records.
   const categoryCounts = {};
@@ -67,7 +67,7 @@ if (mode === 'offers') {
     categoryCounts[category || '(missing)'] = (categoryCounts[category || '(missing)'] || 0) + 1;
     if (!category || category === 'Muut') uncategorized.push(String(row.productName || row.title || row.name));
   }
-  console.log('AUDIT_PRODUCTION_BASELINE',tag,JSON.stringify({api:'https://ziiply.vercel.app',total:response.data.results.length,categoryCounts,uncategorized:uncategorized.slice(0,40)}));
+  console.log('AUDIT_TEST_BRANCH_BACKEND',tag,JSON.stringify({api:'http://127.0.0.1:3179',total:response.data.results.length,categoryCounts,uncategorized:uncategorized.slice(0,40)}));
   // The original browser check only required one visible meat offer. Fail if
   // the live category feed silently loses classifications in any section.
   const sharedTaxonomy = require('node:fs').readFileSync('src/app/components/ziiply/offerSearch/neonOfferCategory.ts','utf8');
