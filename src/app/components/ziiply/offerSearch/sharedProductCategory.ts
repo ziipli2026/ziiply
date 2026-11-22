@@ -6,7 +6,7 @@ export function classifySharedProductCategory(value: unknown): string | null {
   if (!s) return null;
   // Product audience and non-food purpose outrank incidental food words.
   if (/(?:^|\s)(?:koiran|kissan|lemmikin|koirille|kissoille|lemmikeille)(?=\s|$)/u.test(s)) {
-    if (/(?:^|\s)(?:asu|puku|lelu|talutin|panta|peti|ruoka|herkku|öljy|ravinne|vitamiini)(?=\s|$)/u.test(s) ||
+    if (/(?:^|\s)\p{L}*(?:asu|puku|lelu|talutin|panta|peti|ruoka|herkku|öljy|ravinne|vitamiini)(?=\s|$)/u.test(s) ||
         /(?:koiran|kissan|lemmikin)(?:ruoka|herkku|lelu|asu|puku|panta|peti)/u.test(s)) return "Lemmikit";
   }
   if (/(?:^|\s)(?:halloween|naamiais|koiran|kissan)(?:\s|\p{L})*(?:asu|puku)(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
