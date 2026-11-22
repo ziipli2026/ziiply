@@ -11,15 +11,16 @@ export function resolveLidlGroceryCategories<T extends Record<string, any>>(offe
     const category = inferred || (verified ? String(offer.neonDisplayCategory) : "");
     const displayCategory = category && isEverydayOfferCategory(category) ? category : "";
     const source = offer.__sourceOfferSearchResult;
+    const resolution = inferred ? "shared-product-form" : verified ? "verified-ean" : "unresolved";
     return {
       ...offer,
       category: displayCategory,
       categoryPath: displayCategory,
       mainCategory: displayCategory,
-      categoryResolution: inferred ? "shared-product-form" : verified ? "verified-ean" : "unresolved",
+      categoryResolution: resolution,
       groceryEligible: category ? isEverydayOfferCategory(category) : null,
       ...(source && typeof source === "object" && !Array.isArray(source)
-        ? { __sourceOfferSearchResult: { ...source, category: displayCategory, categoryPath: displayCategory, mainCategory: displayCategory } }
+        ? { __sourceOfferSearchResult: { ...source, category: displayCategory, categoryPath: displayCategory, mainCategory: displayCategory, categoryResolution: resolution } }
         : {}),
     } as T;
   }).filter(offer => offer.groceryEligible !== false);
