@@ -14,11 +14,15 @@ const assert = require('node:assert/strict');
     categoryCounts[category || '(missing)'] = (categoryCounts[category || '(missing)'] || 0) + 1;
     if(!category || category === 'Muut') missing.push({name:row.title || row.name,ean:row.ean || ''});
   }
+  const catalogConfigured = Boolean(process.env.DATABASE_URL); // Never print credentials.
   console.log('AUDIT_TEST_BRANCH',JSON.stringify({
+    catalogConfigured,
     source:'local test-branch API, read-only catalog',total:data.results.length,
     categoryCounts,missingCount:missing.length,missing:missing.slice(0,80),
     sourceAudit:data.lidlSourceAudit || null
   }));
   assert.ok(data.results.length > 0,'Test branch must return real Lidl offers');
+  assert.ok(catalogConfigured,'DATABASE_URL is not configured for the test-branch audit; category verification cannot pass');
+  assert.ok(missing.length < data.results.length,'All Lidl products lack categories: do not mark the category audit successful');
   console.log('PASS read-only test-branch Lidl offer audit');
 })().catch(error => {console.error('FAIL test-branch Lidl audit',error);process.exitCode=1;});
