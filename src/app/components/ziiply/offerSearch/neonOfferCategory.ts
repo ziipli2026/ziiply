@@ -60,8 +60,9 @@ export function neonOfferDisplayCategory(category: string): string | null {
   // Confectionery subgroups take precedence over the broad naposteltavat parent.
   if (/^makeiset-ja-naposteltavat\//.test(path) &&
       /^(suklaat|karkkipussit|purukumit|muut-makeiset|pastillit)$/.test(parts[1] || "")) return "Makeiset & keksit";
-  if (/sips|snacks|naposteltav|popcorn|nacho/.test(path)) return "Kuivatuotteet";
+  // Frozen products stay in Pakasteet even when their subgroup contains snack terms.
   if (/jaatelo|pakaste/.test(path)) return "Pakasteet";
+  if (/sips|snacks|naposteltav|popcorn|nacho/.test(path)) return "Kuivatuotteet";
   if (/juomat\/kahvi/.test(path)) return "Kahvi & tee";
   if (/juomat/.test(parent)) return "Juomat";
   if (/kala|merenelav/.test(parent)) return "Kala";
