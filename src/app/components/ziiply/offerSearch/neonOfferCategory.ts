@@ -89,7 +89,6 @@ export function neonOfferDisplayCategory(category: string): string | null {
 }
 export async function enrichOfferCategoriesFromNeon<T extends Record<string, any>>(offers: T[]): Promise<T[]> {
   const url = process.env.DATABASE_URL;
-  const readOnly = process.env.OFFER_CATEGORY_READ_ONLY === "1";
   if (!url || !offers.length) return offers;
   const getEan = (o: T) => [o.ean, o.gtin, o.eanCode, o.barcode].map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value)) || "";
   const getName = (o: T) => String(o.title || o.name || "").trim();
@@ -117,7 +116,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
       const image = clean(offer.imageUrl || offer.image_url, 2000);
       missing.set(ean, {name, brand:clean(offer.brand,150), quantity:clean(offer.quantity || offer.packageSize,100), image:image && /^https:\/\//i.test(image) ? image : null});
     }
-    if (missing.size && !readOnly) {
+    if (missing.size) {
       try {
         const payload = JSON.stringify([...missing].map(([ean, item]) => ({ean, ...item})));
         await sql`INSERT INTO ziiply_ean_products (ean, name, brand, quantity, image_url, source)
@@ -136,7 +135,7 @@ export async function enrichOfferCategoriesFromNeon<T extends Record<string, any
       const ean = getEan(offer);
       return ean && !eanRows.some(row => String(row.ean) === ean);
     }).map(offer => normalizeName(getName(offer))).filter(name => name.length >= 6 && name.length <= 300))];
-    if (unresolvedNames.length && !readOnly) {
+    if (unresolvedNames.length) {
       try {
         const candidates = await sql`SELECT lower(regexp_replace(trim(name), '[[:space:]]+', ' ', 'g')) AS normalized_name,
           min(category) AS category, count(DISTINCT category) AS category_count
