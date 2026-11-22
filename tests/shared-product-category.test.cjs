@@ -33,4 +33,10 @@ for (const [title, category] of [
   ["Savustettu kirjolohi", "Kala"],
   ["Kirjolohiöljy koirille", "Lemmikit"],
   ["Koiran asu", "Lemmikit"],
+  ["Klementiini 1 kg", "Hevi"],
+  ["Tuorejuusto", "Maitotuotteet"],
+  ["Ultimate Plus -konetiskitabletti", "Kodinhoito"],
+  ["Siivousetikka", "Kodinhoito"],
+  ["Minivesimeloni", "Hevi"],
+  ["Neulemekko", "Koti & vapaa-aika"],
 ]) test(title, () => assert.equal(classify(title), category));
