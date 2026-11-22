@@ -16,6 +16,9 @@ export type LidlPublicOffer = {
   originalPrice: number | null;
   normalPrice: number | null;
   priceBasis: "unit" | "per-kg" | "multi-buy-total";
+  packageSize?: string;
+  packageText?: string;
+  comparisonPriceText?: string;
   multiBuyQuantity?: number;
   multiBuyTotalPrice?: number;
   requiresLidlPlus: boolean;
@@ -33,7 +36,7 @@ export type LidlPublicOffer = {
   sourceUrl: string;
   hasConcretePrice: true;
   isWeightedProduct: boolean;
-  ean: "";
+  ean: string;
 };
 
 const BASE = "https://www.lidl.fi";
@@ -46,9 +49,11 @@ const SEEDS = [
   "/c/w5-siivotut-hinnat/",
   "/h/hedelmaet-ja-vihannekset/h10071012",
   "/h/lihat-ja-makkarat/h10071016",
+  "/h/lihat/h10095752",
   "/h/juustot-maitotuotteet-ja-kananmunat/h10095761",
   "/h/kuivatuotteet/h10096095",
   "/h/valmisateriat/h10097147",
+  "/h/pakasteet-pakastetut-elintarvikkeet/h10071049",
   "/h/paistopiste-leipaet-ja-leivonnaiset/h10096086",
 ];
 
@@ -76,50 +81,20 @@ const money = (value: unknown) => {
   return Number.isFinite(n) && n > 0 ? n : null;
 };
 
-const GROCERY_CATEGORIES = new Set([
-  "Hevi", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Pakasteet",
-  "Valmisruoka", "Juomat", "Kahvi & tee", "Kuivatuotteet", "Makeiset & keksit",
-  "Lastenruoat", "Lemmikit", "Kodinhoito",
-]);
-
-/** Product form takes precedence over ingredients and broad campaign headings. */
-function lidlProductCategory(name: string): string | null {
-  const s = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  // Pet products must precede both clothing and fish/food substrings.
-  if (/koira|kissa|lemmik|elainten|turkinhoito/.test(s)) return 'Lemmikit';
-  if (/jaatelo|pakaste|pakastettu/.test(s)) return 'Pakasteet';
-  if (/pikkuleip|keksi|nougat|konvehti|karamelli|suklaa|makeis|karkki|tikkari/.test(s)) return 'Makeiset & keksit';
-  if (/pasteija|juustokierre|juustotanko|korvapuusti|croissant|sampyla|patonki|karjalanpiirakka|ruisleipa|rieska|leivonnainen|leivos/.test(s)) return 'Leipomo';
-  if (/aurinkokuivattu|kuivattu tomaatti|sailyke|pastakastike|pesto\b|oliivioljy|marmeladi|pistaasikreemi/.test(s)) return 'Kuivatuotteet';
-  if (/kaurajuoma|riisijuoma|soijajuoma|kookosjuoma|mantelijuoma/.test(s)) return 'Juomat';
-  return null;
+function discountBundleQuantity(label: unknown) {
+  return Number(String(label ?? "").match(/^\s*([1-9]\d*)\s*kpl\s*[−-]\s*\d+(?:[,.]\d+)?\s*%\s*$/i)?.[1] || 0);
 }
 
-function categoryFor(name: string, sourceUrl: string) {
-  const productCategory = lidlProductCategory(name);
-  if (productCategory) return productCategory;
-  const s = normalize(name + " " + sourceUrl);
-  // Explicit non-food exclusions run first so words such as "liha" in a tool
-  // name can never leak a general-merchandise campaign into Gösta.
-  if (/vaate|asuste|lupilu|esmara|silvercrest|parkside|livarno|tyokalu|kodinkone|airfryer|rasvakeitin|raastin|imuri|puhallin|pumppu|ruuvinvaannin|vasara|lelu|rakennussarja|kosmeti|shampoo|deodorant|hammastahna/.test(s)) return "Muut";
-  if (/pyykin|astianpesu|pesuaine|puhdistus|talouspaperi|wc paperi|wc-paperi|vessapaperi|siivous/.test(s)) return "Kodinhoito";
-  if (/vihanne|hedelm|tomaatti|peruna|kaali|porkkana|sipuli|kurkku|omena|banaani|selleri|punajuuri|paprika|salaatti|retiisi/.test(s)) return "Hevi";
-  if (/paistopiste|leip|croissant|pull|sampyl|rieska|patonki|karjalanpiirakka/.test(s)) return "Leipomo";
-  if (/juusto|maito|jogur|rahka|kerma|voi\b|kananmuna|viili|piima/.test(s)) return "Maitotuotteet";
-  if (/liha|kana|broiler|nauta|sika|pors|makkara|nakki|pekoni|kinkku|jauheliha|lihapulla|nugget/.test(s)) return "Liha & makkarat";
-  if (/kala|lohi|katkarapu|tonnikala|silakka|seiti/.test(s)) return "Kala";
-  if (/pakaste|jaatelo|jäätelö/.test(s)) return "Pakasteet";
-  if (/valmisateria|pizza|keitto|ateria|nyytti|pata|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
-  if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
-  if (/juoma|mehu|vesi|limu|cola|vichy|energiajuoma/.test(s)) return "Juomat";
-  if (/kark|makeis|suklaa|keksi|sips|chips|lakrit|salmiak|purukumi/.test(s)) return "Makeiset & keksit";
-  if (/lastenruo|vauvanruo|aidinmaidonkorvike/.test(s)) return "Lastenruoat";
-  if (/koira|kissa|lemmik/.test(s)) return "Lemmikit";
-  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|säilyke|kastike|oljy|öljy|mauste|sokeri|suola|nuudeli|makaroni|spagetti|pahkina|pähkinä/.test(s)) return "Kuivatuotteet";
-  // Unknown is deliberately "Muut", never Kuivatuotteet. New products must earn
-  // a grocery category before they can become visible in the grocery leaflet.
-  return "Muut";
+function visibleBundleQuantity(text: string, price: number) {
+  const match = text.match(/\b([1-9]\d*\s*kpl\s*[−-]\s*\d+(?:[,.]\d+)?\s*%)\s*(\d+[,.]\d{2})\s*€/i);
+  return match && money(match[2]) === price ? discountBundleQuantity(match[1]) : 0;
 }
+
+// Category resolution is shared across chains in neonOfferCategory.ts.
+// Source collection must not infer product taxonomy from titles or URLs.
+// Unknown is not the same as the genuine "Muut" merchandise category.
+// Leave taxonomy empty until the shared catalog resolver supplies evidence.
+const sourceCategory = (_name: string, _url: string) => "";
 
 function visitProducts(value: unknown, output: AnyRecord[]) {
   if (!value || typeof value !== "object") return;
@@ -146,13 +121,26 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
     const validUntil = untilTs ? new Date(untilTs * 1000).toISOString().slice(0,10) : "";
     if (!name || price == null || !validFrom || !validUntil) continue;
     if (publicationState({ validFrom, validUntil }, date) === "invalid") continue;
+    const packagingText = String(product.price?.packaging?.text || "");
     const baseText = String(product.price?.basePrice?.text || "");
-    const packageText = baseText.match(/^([^|]+)\|/)?.[1]?.trim() || "";
-    const fullName = packageText && !normalize(name).includes(normalize(packageText)) ? `${name} ${packageText}` : name;
+    const packageText = [product.packageSize, product.packSize, product.keyfacts?.packageSize,
+      product.keyfacts?.quantity, packagingText.split("|")[0], name, baseText.split("|")[0]]
+      .map(value => String(value ?? "").trim())
+      .filter(text => !/(?:€|eur)\s*\/|\b(?:kg|l)\s*=\s*\d/i.test(text))
+      .map(text => text.match(/\b(?:(?:n\.|noin)\s*)?(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0])
+      .find(Boolean) || "";
+    const comparisonPriceText = [packagingText, baseText].join(" ")
+      .match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "";
+    const fullName = name;
     const discountText = String(product.price?.discount?.discountText || "");
     const limitedBatch = /erä/i.test(discountText);
-    const quantity = Number(fullName.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
-    const weighted = /(?:€|eur)\s*\/\s*kg/i.test(baseText) && !packageText;
+    const defaultRegion = Object.values(product.regionsV2 ?? {}).find((region: any) => region?.isDefault === true) as AnyRecord | undefined;
+    const regionalPrice = defaultRegion ? product.regionsPrices?.[defaultRegion.regionPriceId]?.currentPrice : undefined;
+    const regionalQuantity = money(regionalPrice?.price) === price
+      ? discountBundleQuantity(regionalPrice?.discount?.discountText)
+      : 0;
+    const quantity = discountBundleQuantity(discountText) || regionalQuantity;
+    const weighted = quantity < 2 && /(?:€|eur)\s*\/\s*kg/i.test([packagingText, baseText].join(" ")) && !packageText;
     const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
     const imageUrl = (() => {
       const candidate = product.image ?? product.imageUrl ?? product.pictureUrl ?? product.keyfacts?.image;
@@ -164,17 +152,19 @@ export function parseLidlGridDataOffers(html: string, sourceUrl: string, date = 
       }
       return "";
     })();
-    const category = categoryFor([brandName, fullName, product.keyfacts?.wonCategoryPrimary].filter(Boolean).join(" "), sourceUrl);
+    const category = sourceCategory([brandName, fullName].filter(Boolean).join(" "), sourceUrl);
+    const ean = [product.gtin13, product.gtin14, product.gtin12, product.gtin8, product.gtin, product.ean, product.barcode]
+      .map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value)) || "";
     output.push({
       id: `lidl-fi-grid-${product.productId || product.itemId || normalize(fullName)}-${validFrom}`,
       source: "lidl-fi-public", chain: "Lidl", title: fullName, name: fullName, productName: fullName, brandName,
       price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €${quantity >= 2 ? ` / ${quantity} kpl` : ""}`, originalPrice: money(product.price?.oldPrice), normalPrice: money(product.price?.oldPrice),
-      priceBasis, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
+      priceBasis, packageSize: packageText, packageText, comparisonPriceText, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
       requiresLidlPlus: false, eligibility: limitedBatch ? "limited-batch" : "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
-      rawText: [brandName, fullName, baseText, discountText, category].filter(Boolean).join(" "), sourceUrl,
-      hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
+      rawText: [brandName, fullName, packagingText, baseText, discountText, category].filter(Boolean).join(" "), sourceUrl,
+      hasConcretePrice: true, isWeightedProduct: weighted, ean,
     });
   }
   return output;
@@ -204,8 +194,10 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       const rawWindow = textIndex >= 0 ? normalize(pageText).slice(Math.max(0, textIndex - 100), textIndex + needle.length + 500) : normalize([product.description, offer.description].filter(Boolean).join(" "));
       const requiresLidlPlus = /lidl plus|lidlplus/.test(rawWindow);
       const limitedBatch = /\bera\b|erä/.test(rawWindow);
-      const quantity = Number(name.match(/\b(\d+)\s*kpl\b/i)?.[1] || 0);
-      const weighted = /(?:€|eur)\s*\/\s*kg|hinta\s*\/\s*kg|\birto\b/i.test([product.description, offer.description, rawWindow].join(" "));
+      const packageSize = [product.size, product.weight, product.description, name].map(value => String(value ?? "").match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l|kpl)\b/i)?.[0] || "").find(Boolean) || "";
+      const comparisonPriceText = [offer.description, product.description].map(value => String(value ?? "").match(/\d+(?:[,.]\d+)?\s*(?:€|eur)\s*\/\s*(?:kg|l|100\s*g|100\s*ml)\b/i)?.[0] || "").find(Boolean) || "";
+      const quantity = products.length === 1 && /\/p\//i.test(sourceUrl) ? visibleBundleQuantity(pageText, price) : 0;
+      const weighted = quantity < 2 && /(?:€|eur)\s*\/\s*kg|hinta\s*\/\s*kg|\birto\b/i.test([product.description, offer.description, rawWindow].join(" "));
       const priceBasis: LidlPublicOffer["priceBasis"] = weighted ? "per-kg" : quantity >= 2 ? "multi-buy-total" : "unit";
       const imageCandidate = Array.isArray(product.image) ? product.image[0] : product.image;
       const imageObjectUrl = imageCandidate && typeof imageCandidate === "object"
@@ -216,19 +208,22 @@ export function parseLidlPublicCategoryHtml(html: string, sourceUrl: string, dat
       const imageUrl = typeof imageValue === "string" && /^https:\/\//.test(imageValue) ? imageValue : "";
       const original = money(offer?.priceSpecification?.referencePrice ?? offer?.highPrice);
       const key = normalize([brandName, name, validFrom, validUntil, price].join(" ")).replace(/\s+/g, "-");
-      const category = categoryFor(name, sourceUrl);
+      const category = sourceCategory(name, sourceUrl);
+      const ean = [product.gtin13, product.gtin14, product.gtin12, product.gtin8, product.gtin, product.ean, product.barcode]
+        .map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value)) || "";
       output.push({
         id: `lidl-fi-${key}`, source: "lidl-fi-public", chain: "Lidl",
         title: name, name, productName: name, brandName,
         price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €${quantity >= 2 ? ` / ${quantity} kpl` : ""}`,
         originalPrice: original, normalPrice: original,
+        packageSize, packageText: packageSize, comparisonPriceText,
         priceBasis, ...(quantity >= 2 ? { multiBuyQuantity: quantity, multiBuyTotalPrice: price } : {}),
         requiresLidlPlus, eligibility: requiresLidlPlus ? "lidl-plus" : limitedBatch ? "limited-batch" : "open",
         validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
         imageUrl, image: imageUrl, pictureUrl: imageUrl,
         category, categoryPath: category, mainCategory: category,
         rawText: [brandName, name, product.description, offer.description, category].filter(Boolean).join(" "),
-        sourceUrl, hasConcretePrice: true, isWeightedProduct: weighted, ean: "",
+        sourceUrl, hasConcretePrice: true, isWeightedProduct: weighted, ean,
       });
     }
   }
@@ -266,69 +261,6 @@ function campaignProductJson(html: string) {
   return candidates;
 }
 
-function parseCampaignVisibleProducts(html: string, sourceUrl: string, fallbackDate: string): LidlPublicOffer[] {
-  const text = decode(html
-    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, "\n"))
-    .replace(/\u00a0/g, " ")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{2,}/g, "\n");
-
-  const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
-  const output: LidlPublicOffer[] = [];
-  const datePattern = /Myymälässä\s+(\d{1,2})\.(\d{1,2})\.\s*(?:-|–|—)\s*(\d{1,2})\.(\d{1,2})\./i;
-  const pricePattern = /^(\d{1,3})[,.](\d{2})\s*€?$/;
-
-  for (let i = 0; i < lines.length; i++) {
-    const validity = lines[i].match(datePattern);
-    if (!validity) continue;
-    const year = Number(fallbackDate.slice(0, 4));
-    const startMonth = Number(validity[2]);
-    const endMonth = Number(validity[4]);
-    const validFrom = `${year}-${String(startMonth).padStart(2, "0")}-${String(validity[1]).padStart(2, "0")}`;
-    const endYear = endMonth < startMonth ? year + 1 : year;
-    const validUntil = `${endYear}-${String(endMonth).padStart(2, "0")}-${String(validity[3]).padStart(2, "0")}`;
-    const window = lines.slice(Math.max(0, i - 12), i);
-    let priceIndex = -1;
-    let priceMatch: RegExpMatchArray | null = null;
-    for (let j = window.length - 1; j >= 0; j--) {
-      const match = window[j].match(pricePattern);
-      if (match) { priceIndex = j; priceMatch = match; break; }
-    }
-    if (priceIndex < 1 || !priceMatch) continue;
-    const price = Number(`${priceMatch[1]}.${priceMatch[2]}`);
-    if (!Number.isFinite(price) || price <= 0) continue;
-
-    const ignored = /^(alkaen|erilaisia|uutuus|lidl plus|\-\d+€|\d+\s*kpl\s*(?:jopa\s*)?-?\d+%|\d+\s*(?:g|kg|ml|l|kpl|cm)|\d+[,.]\d+\s*€\/kg)/i;
-    let name = "";
-    for (let j = priceIndex - 1; j >= 0; j--) {
-      const candidate = window[j].replace(/\s*\^\{\}\s*$/, "").trim();
-      if (!candidate || ignored.test(candidate) || pricePattern.test(candidate)) continue;
-      if (candidate.length >= 3 && candidate.length <= 120) { name = candidate; break; }
-    }
-    if (!name) continue;
-    const category = categoryFor(name, sourceUrl);
-    if (!GROCERY_CATEGORIES.has(category)) continue;
-    if (publicationState({ validFrom, validUntil }, fallbackDate) !== "current") continue;
-
-    const key = normalize([name, price, validFrom, validUntil].join(" ")).replace(/\s+/g, "-");
-    output.push({
-      id: `lidl-fi-campaign-visible-${key}`, source: "lidl-fi-public", chain: "Lidl",
-      title: name, name, productName: name, brandName: "",
-      price, offerPrice: price, priceText: `${price.toFixed(2).replace(".", ",")} €`,
-      originalPrice: null, normalPrice: null, priceBasis: "unit",
-      requiresLidlPlus: false, eligibility: "open",
-      validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
-      imageUrl: "", image: "", pictureUrl: "",
-      category, categoryPath: category, mainCategory: category,
-      rawText: [name, category].join(" "), sourceUrl, hasConcretePrice: true,
-      isWeightedProduct: false, ean: "",
-    });
-  }
-  return output;
-}
-
 function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate: string): LidlPublicOffer[] {
   const output: LidlPublicOffer[] = [];
   for (const raw of campaignProductJson(html)) {
@@ -340,8 +272,10 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
     if (!name || price == null || price <= 0) continue;
     const validFrom = isoDate(offer.validFrom || offer.startDate || product.validFrom || product.startDate) || fallbackDate;
     const validUntil = isoDate(offer.validUntil || offer.endDate || product.validUntil || product.endDate) || fallbackDate;
-    const category = categoryFor([brandName, name, product.description, product.category].filter(Boolean).join(" "), sourceUrl);
-    if (!GROCERY_CATEGORIES.has(category)) continue;
+    const category = sourceCategory([brandName, name].filter(Boolean).join(" "), sourceUrl);
+    const ean = [product.gtin13, product.gtin14, product.gtin12, product.gtin8, product.gtin, product.ean, product.barcode]
+      .map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value)) || "";
+
     const imageUrl = (() => {
       const candidate = product.image || product.imageUrl || product.pictureUrl || offer.image || offer.imageUrl;
       const value = Array.isArray(candidate) ? candidate[0] : candidate;
@@ -361,7 +295,7 @@ function parseCampaignProductCards(html: string, sourceUrl: string, fallbackDate
       priceBasis: "unit", isWeightedProduct: false, requiresLidlPlus: false, eligibility: "open",
       validFrom, validUntil, validityText: `Voimassa ${validFrom}–${validUntil}`,
       imageUrl, image: imageUrl, pictureUrl: imageUrl, category, categoryPath: category, mainCategory: category,
-      rawText: [brandName, name, product.description, category].filter(Boolean).join(" "), sourceUrl, hasConcretePrice: true, ean: "",
+      rawText: [brandName, name, product.description, category].filter(Boolean).join(" "), sourceUrl, hasConcretePrice: true, ean,
     });
   }
   return output;
@@ -410,8 +344,7 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
     if (result.status === "rejected") { failedPages++; continue; }
     parsed.push(...[
       ...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date),
-      ...parseCampaignVisibleProducts(result.value.html, result.value.url, date),
-    ].filter(row => GROCERY_CATEGORIES.has(row.category)));
+    ]);
   }
 
   const byKey = new Map<string, LidlPublicOffer>();
@@ -419,7 +352,20 @@ export async function fetchLidlPublicCampaignOffers(options: { date?: string } =
     if (publicationState({ validFrom: row.validFrom, validUntil: row.validUntil }, date) !== "current") continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
-    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+    if (!old) byKey.set(key, row);
+    else {
+      // Preserve complementary details when the same offer is discovered on
+      // category and product pages; neither source is always complete.
+      const preferred = row.imageUrl && !old.imageUrl ? row : old;
+      const other = preferred === row ? old : row;
+      byKey.set(key, {
+        ...preferred,
+        ean: preferred.ean || other.ean || "",
+        packageSize: preferred.packageSize || other.packageSize || "",
+        packageText: preferred.packageText || other.packageText || "",
+        comparisonPriceText: preferred.comparisonPriceText || other.comparisonPriceText || "",
+      });
+    }
   }
 
   return {
@@ -453,13 +399,12 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   for (const result of pages) {
     if (result.status === "rejected") { failedPages++; continue; }
     for (const link of productLinks(result.value.html)) productPaths.add(link);
-    parsed.push(...parseLidlGridDataOffers(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
-    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
+    parsed.push(...parseLidlGridDataOffers(result.value.html, result.value.url, date));
+    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date));
     // Campaign landing pages also embed their own product-card payloads. Parse
     // those directly instead of requiring every card to expose a /p/ link.
     if (/\/c\//i.test(result.value.url)) {
       parsed.push(...parseCampaignProductCards(result.value.html, result.value.url, date));
-      parsed.push(...parseCampaignVisibleProducts(result.value.html, result.value.url, date));
     }
   }
 
@@ -469,7 +414,7 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
   let failedProductPages = 0;
   for (const result of productPages) {
     if (result.status === "rejected") { failedProductPages++; continue; }
-    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date).filter(row => GROCERY_CATEGORIES.has(row.category)));
+    parsed.push(...parseLidlPublicCategoryHtml(result.value.html, result.value.url, date));
   }
 
   const byKey = new Map<string, LidlPublicOffer>();
@@ -478,7 +423,25 @@ export async function fetchLidlPublicLeafletOffers(options: { date?: string; inc
     if (state === "expired" || state === "invalid" || (!options.includeUpcoming && state !== "current")) continue;
     const key = normalize([row.brandName, row.name, row.validFrom, row.validUntil].join(" "));
     const old = byKey.get(key);
-    if (!old || (row.imageUrl && !old.imageUrl)) byKey.set(key, row);
+    if (!old) {
+      byKey.set(key, row);
+      continue;
+    }
+    const preferred = row.imageUrl && !old.imageUrl ? row : old;
+    const other = preferred === row ? old : row;
+    if (!preferred.multiBuyQuantity && other.multiBuyQuantity && preferred.price === other.price) {
+      byKey.set(key, {
+        ...preferred,
+        ean: preferred.ean || other.ean || "",
+        priceBasis: other.priceBasis,
+        priceText: other.priceText,
+        multiBuyQuantity: other.multiBuyQuantity,
+        multiBuyTotalPrice: other.multiBuyTotalPrice,
+        isWeightedProduct: false,
+      });
+    } else {
+      byKey.set(key, {...preferred, ean: preferred.ean || other.ean || ""});
+    }
   }
   return {
     offers: [...byKey.values()],

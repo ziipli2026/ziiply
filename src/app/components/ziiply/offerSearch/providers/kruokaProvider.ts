@@ -194,6 +194,17 @@ async function resolveKLocalPublicationIds(
     const rows = (front as UnknownRecord).publications;
     return Array.isArray(rows) ? rows.filter((p): p is UnknownRecord => !!p && typeof p === "object") : [];
   });
+  if (storeId === "986cCCi") {
+    console.info("[Ziiply Wiljami fronts metadata]", JSON.stringify({
+      fronts: fronts.map(front => front && typeof front === "object" ? { keys: Object.keys(front as UnknownRecord), id: (front as UnknownRecord).id, label: (front as UnknownRecord).label } : null),
+      publications: publications.map(publication => ({
+        id: publication.id, label: publication.label, title: publication.title, view: publication.view, thumb: publication.thumb,
+        keys: Object.keys(publication), validFrom: publication.validFrom, validUntil: publication.validUntil,
+        businessIds: publication.businessIds, localBusinessIds: publication.localBusinessIds,
+        type: publication.type, category: publication.category,
+      })),
+    }));
+  }
   const active = publications.filter(publication => {
     const from = Date.parse(String(publication.validFrom ?? ""));
     const until = Date.parse(String(publication.validUntil ?? ""));
@@ -259,8 +270,20 @@ async function fetchKSupermarketRegionalOffers(publicationId: string, slug: stri
       if (page > 1 && (response.status === 400 || response.status === 404)) break;
       throw new Error(`K-Supermarket regional publication ${publicationId} page ${page} HTTP ${response.status}`);
     }
+    if (publicationId === "bUGl9JyG" && page === 1) {
+      try {
+        const comparison = await fetch(`${TJEK_PUBLICATION_VIEWER_ORIGIN}/api/paged-publications/r_-FTxaX/1`, { headers: { Accept: "application/json" }, cache: "no-store" });
+        const comparisonPayload = comparison.ok ? await comparison.json() as UnknownRecord : null;
+        console.info("[Ziiply K comparison viewer]", JSON.stringify({
+          publicationId: "r_-FTxaX", status: comparison.status,
+          keys: comparisonPayload ? Object.keys(comparisonPayload) : [],
+          hotspots: Array.isArray(comparisonPayload?.hotspots) ? comparisonPayload.hotspots.length : null,
+          decorations: Array.isArray(comparisonPayload?.decorations) ? comparisonPayload.decorations.length : null,
+        }));
+      } catch (error) { console.info("[Ziiply K comparison viewer error]", String(error)); }
+    }
     const payload = await response.json() as UnknownRecord;
-    if (publicationId === "bUGl9JyG" && page <= 2) {
+    if (publicationId === "bUGl9JyG" || publicationId === "r_-FTxaX") {
       console.info("[Ziiply K viewer diagnostic]", JSON.stringify({
         publicationId, page, keys: Object.keys(payload),
         hotspotCount: Array.isArray(payload.hotspots) ? payload.hotspots.length : null,
@@ -392,7 +415,7 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
 
   // Produce-filled harvest buckets/bags are HEVI despite Tjek's "Muut".
   // Do not classify an ordinary empty bucket as fresh produce.
-  if (/\\bsadonkorjuu\\s*(?:amp[a-z]*ri\\w*|kassi\\w*)\\b/.test(productTitle)) return "Hevi";
+  if (/\bsadonkorjuu\s*(?:amp[a-z]*ri\w*|kassi\w*)\b/.test(productTitle)) return "Hevi";
   if (/\b(oreo|taytekeksi\w*|suklaakeksi\w*|voileipakeksi\w*)\b/.test(productTitle)) return "Makeiset & keksit";
   if (/\b(harkis\w*|harkapapumurska\w*|nyhtokaura\w*|kasviproteiinimurska\w*)\b/.test(productTitle)) return "Valmisruoka";
   if (/\b(burgeri\w*|hampurilais\w*|mikroburgeri\w*|valmisateria\w*)\b/.test(productTitle)) return "Valmisruoka";
@@ -428,6 +451,22 @@ export function mapTjekCategoryV54(offer: UnknownRecord): string {
   // Match the product title only, never unrelated brochure descriptions.
   if (/\b(?:kassler\w*|uunilenk\w*|lenkkimakkara\w*|siskonmakkara\w*|grillimakkara\w*)\b/.test(productTitle)) return "Liha & makkarat";
   if (/\b(?:tortellon\w*|tortellin\w*|raviol\w*|gnocch\w*)\b/.test(productTitle)) return "Kuivatuotteet";
+
+  // Product identity precedes source department: the same Tjek leaflet can
+  // misleadingly tag pizza and prepared meals as dairy.
+  if (/\bpizz\w*\b/.test(productTitle)) return /\b(?:pakaste\w*|grandiosa)\b/.test(productTitle) ? "Pakasteet" : "Valmisruoka";
+  if (/\b(?:margariin\w*|levite\w*)\b/.test(productTitle)) return "Maitotuotteet";
+  if (/\b(?:lihapyor\w*|lihapull\w*|jauhelihapihv\w*)\b/.test(productTitle) && /\b(?:tamminen|valmis\w*)\b/.test(productTitle)) return "Valmisruoka";
+  // Prepared pasta dishes and casseroles are ready meals, regardless of
+  // misleading leaflet department or dairy ingredients in descriptions.
+  if (/\b(?:pastat?|pastaruoa\w*|pastalaatik\w*|makaronilaatik\w*|laatikot|laatikoita)\b/.test(productTitle) && /\b(?:wotkin|wotkin'?s|valmis|ateria|laatik|pasta)\w*/.test(productTitle)) return "Valmisruoka";
+  if (/\bwotkin'?s?\b/.test(productTitle) && /\b(?:pasta\w*|laatik\w*)\b/.test(productTitle)) return "Valmisruoka";
+
+  // Ready-to-eat meat dishes must not be classified as dairy just because
+  // the leaflet description lists cream, cheese or other ingredients.
+  // Prefer the actual product name over long source descriptions.
+  if (/\b(?:lihapull\w*|jauhelihapihv\w*|lihamurek\w*|karjalanpaist\w*|stroganoff\w*|kebab\w*|pyttipann\w*|kanaviillok\w*|broilerikiusau\w*|lihaperunasoselaatik\w*)\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(?:lihapull\w*|jauhelihapihv\w*|lihamurek\w*|kassler\w*|porsaan\w*|naudan\w*|broileri\w*|grillimakkar\w*|lenkkimakkar\w*)\b/.test(productTitle)) return "Liha & makkarat";
 
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";

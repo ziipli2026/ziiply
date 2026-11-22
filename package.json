@@ -6,17 +6,23 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:offer-categories": "node --test tests/shared-product-category.test.cjs tests/lidl-category-integration.test.cjs",
+    "test:citymarket": "node --test tests/citymarket-45av-continuation.test.cjs",
+    "test:gps": "node scripts/test-ziiply-arrival-sequence.cjs && node scripts/test-ziiply-arrival-scenarios.cjs && node scripts/test-gps-arrival-notice.mjs && node scripts/test-gps-arrival-integration.cjs",
+    "prebuild": "npm run test:gps && npm run test:desktop-gps",
+    "test:desktop-gps": "node scripts/test-desktop-gps-store-selection.cjs",
+    "audit:posthog": "node scripts/audit-posthog-beta.cjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "@vercel/analytics": "^2.0.1",
     "next": "15.5.9",
+    "nodemailer": "^7.0.13",
     "posthog-js": "^1.374.2",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "sharp": "^0.34.5",
-    "nodemailer": "^7.0.10"
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

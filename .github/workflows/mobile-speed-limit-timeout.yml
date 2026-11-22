@@ -1,0 +1,24 @@
+name: Mobile speed limit timeout fix
+on:
+  push:
+    branches: [fix/mobile-speed-limit-timeout-20261102]
+permissions:
+  contents: write
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: python3 scripts/patch-mobile-speed-limit-timeout.py
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - name: Commit tested UI change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/page.tsx
+          git diff --cached --quiet || (git commit -m "Allow mobile limit lookup to finish all provider fallbacks" && git push)

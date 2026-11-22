@@ -4,11 +4,19 @@ name: Normal search semantics regression
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/ci-five-regressions-20261116]
     paths:
       - "src/app/components/ziiply/ziiplyCore.ts"
       - "src/app/components/ziiply/search/**"
       - "src/app/page.tsx"
+      - "src/app/api/lidl/store-search/route.ts"
+      - ".github/workflows/normal-search-semantics-regression.yml"
+  pull_request:
+    paths:
+      - "src/app/components/ziiply/ziiplyCore.ts"
+      - "src/app/components/ziiply/search/**"
+      - "src/app/page.tsx"
+      - "src/app/api/lidl/store-search/route.ts"
       - ".github/workflows/normal-search-semantics-regression.yml"
   workflow_dispatch:
 
@@ -32,6 +40,9 @@ jobs:
             --esModuleInterop \
             --skipLibCheck \
             --outDir .tmp-search-regression
+          CORE_JS="$(find .tmp-search-regression -type f -name ziiplyCore.js -print -quit)"
+          test -n "$CORE_JS" || { echo "Compiled ziiplyCore.js missing"; exit 1; }
+          if [ "$CORE_JS" != .tmp-search-regression/ziiplyCore.js ]; then ln -s "$(realpath --relative-to=.tmp-search-regression "$CORE_JS")" .tmp-search-regression/ziiplyCore.js; fi
           npx tsc src/app/components/ziiply/search/searchIntentAI.ts src/app/components/ziiply/search/searchIntentMemory.ts \
             --target ES2021 \
             --module commonjs \
@@ -39,6 +50,205 @@ jobs:
             --esModuleInterop \
             --skipLibCheck \
             --outDir .tmp-search-regression/search
+      - name: Verify cross-chain compound grocery counterpart identity
+        run: |
+          node scripts/test-compound-comparison-gate.cjs
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const source = 'K-Menu riisi-vihannessekoitus 450 g';
+          for (const wrong of ['Tokmanni karkkirasia 450 g', 'Prisma kasvispakaste 450 g', 'Riisi 450 g']) {
+            assert.equal(core.productGroupGate(source, wrong), false, wrong);
+            assert.equal(core.isComparisonAttributeCompatible(source, wrong), false, wrong);
+          }
+          for (const correct of ['Riisi-vihannessekoitus 450 g', 'Riisi vihannes sekoitus 450 g']) {
+            assert.equal(core.productGroupGate(source, correct), true, correct);
+            assert.equal(core.isComparisonAttributeCompatible(source, correct), true, correct);
+          }
+          const candidates = [
+            {name:'Tokmanni karkkirasia 450 g',price:0.49},
+            {name:'Riisi-vihannessekoitus 450 g',price:2.39},
+          ];
+          assert.equal(core.pickCheapestCompatibleComparisonProduct(source,candidates)?.name,candidates[1].name);
+          // The guard must apply to product families, not a specific rice item or retailer.
+          const otherCompounds = [
+            ['Herne-maissisekoitus 400 g', 'Herne-maissisekoitus 400 g', 'Herne 400 g'],
+            ['Porkkana-perunasekoitus 500 g', 'Porkkana-perunasekoitus 500 g', 'Peruna 500 g'],
+          ];
+          for (const [requested, valid, invalid] of otherCompounds) {
+            assert.equal(core.isComparisonAttributeCompatible(requested, valid), true, requested + ' valid');
+            assert.equal(core.isComparisonAttributeCompatible(requested, invalid), false, requested + ' invalid');
+          }
+          assert.equal(core.isComparisonAttributeCompatible('Riisi 1 kg', 'Riisi 1 kg'), true,
+            'standalone rice must remain a valid grocery product');
+          console.log('PASS cross-chain compound grocery counterpart identity');
+          NODE
+      - name: Cross-chain compound counterpart functional verification
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('fs');
+          const path = require('path');
+          const locate = (dir) => {
+            for (const entry of fs.readdirSync(dir, {withFileTypes:true})) {
+              const file = path.join(dir,entry.name);
+              if (entry.isDirectory()) {const found=locate(file);if(found)return found;}
+              else if(entry.name==='ziiplyCore.js')return file;
+            }
+          };
+          const core = require(path.resolve(locate('.tmp-search-regression')));
+          const cases = [
+            ['K-Menu riisi-vihannessekoitus 450 g','S','Coop riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','K','Pirkka riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','SPAR','SPAR riisi-vihannessekoitus 450 g',true],
+            ['K-Menu riisi-vihannessekoitus 450 g','SPAR','Tokmanni makeisrasia 450 g',false],
+            ['K-Menu riisi-vihannessekoitus 450 g','S','Prisma kasvispakaste 450 g',false],
+            ['K-Menu riisi-vihannessekoitus 450 g','K','Pirkka riisi 450 g',false],
+            ['Pirkka herne-maissisekoitus 200 g','S','Coop herne-maissisekoitus 200 g',true],
+            ['Pirkka herne-maissisekoitus 200 g','SPAR','Tokmanni maissipakaste 200 g',false],
+            ['Riisi 1 kg','S','Coop pitkäjyväinen riisi 1 kg',true],
+            ['Riisi 1 kg','SPAR','Tokmanni karkkirasia 1 kg',false],
+          ];
+          for(const [source,chain,candidate,expected] of cases){
+            const group=core.productGroupGate(source,candidate);
+            const attribute=core.isComparisonAttributeCompatible(source,candidate);
+            const actual=group&&attribute;
+            assert.equal(actual,expected,JSON.stringify({source,chain,candidate,group,attribute}));
+            console.log('PASS',chain,source,'=>',candidate,actual);
+          }
+          console.log('PASS cross-chain compound counterpart verification');
+          NODE
+      - name: Audit real basket comparison callsites on mobile and desktop
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const page = fs.readFileSync('src/app/page.tsx', 'utf8');
+          const lines = page.split(/\r?\n/);
+          const terms = /isComparisonAttributeCompatible|pickCheapestCompatibleComparisonProduct|productGroupGate|scoreNameMatch|pickBestSProduct|pickBestKProduct|onCompareCart|Halpuusvertailu|ZiiplyDesktopCompareCard|ZiiplyMobileCompareCard/;
+          console.log('PAGE_LINES', lines.length);
+          for (let i=0; i<lines.length; i++) {
+            if (terms.test(lines[i])) console.log(String(i+1).padStart(6), lines[i].trim().slice(0,260));
+          }
+          if (lines.length < 1000) throw Error('App page missing or unexpectedly short');
+          // Audit the cart's primary candidate selection, not alternative cards.
+          const comparisonStart = page.indexOf('V768: tästä alkaa käyttäjän nimenomaisesti käynnistämä Halpuusvertailu');
+          if (comparisonStart < 0) throw Error('Comparison entrypoint missing');
+          const scope = page.slice(comparisonStart, comparisonStart + 90000);
+          const gate = 'productGroupGate(sourceName, product.name)';
+          const attr = 'isComparisonAttributeCompatible(sourceName, product.name)';
+          console.log('BASKET_GUARD_LOCATIONS', JSON.stringify({ gate: scope.indexOf(gate), attr: scope.indexOf(attr), examples: scope.split('\n').filter(x => x.includes('productGroupGate') || x.includes('isComparisonAttributeCompatible')).slice(0,25) }));
+          if (!scope.includes(gate) || !scope.includes(attr)) throw Error('Candidate guard missing in comparison section');
+          console.log('PASS basket guard verification');
+          NODE
+      - name: Verify Lidl store identity persistence and offer context
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const route=fs.readFileSync('src/app/api/lidl/store-search/route.ts','utf8');
+          const page=fs.readFileSync('src/app/page.tsx','utf8');
+          const checks=[
+            ['store-search exposes storeKey', /storeKey:\s*id/.test(route)],
+            ['Lidl selection persisted', /selectedChains,[\s\S]{0,120}selectedLidlStoreV750/.test(page)],
+            ['Lidl selection restored', /parsedStoreSelection\.selectedLidlStoreV750[\s\S]{0,260}setSelectedLidlStoreV750/.test(page)],
+            ['manual Lidl picker locks identity', /setIndependentManualStoreV791\("LIDL",\s*sourceStore\)[\s\S]{0,120}setSelectedLidlStoreV750\(sourceStore\)/.test(page)],
+            ['offer context prefers storeKey', /lidlStoreKey:[\s\S]{0,180}storeKey\s*\|\|\s*selectedLidlStoreV750\.id/.test(page)],
+          ];
+          for(const [name,ok] of checks) console.log(ok?'PASS':'FAIL',name);
+          if(checks.some(x=>!x[1])) process.exit(1);
+          // Guard the identity contract independently of Lidl network availability.
+          const selected={id:'lidl-fixture-store',storeKey:'lidl-fixture-store',name:'Lidl fixture'};
+          const restored=JSON.parse(JSON.stringify({selectedLidlStoreV750:selected})).selectedLidlStoreV750;
+          if(restored.id!=='lidl-fixture-store'||restored.storeKey!=='lidl-fixture-store') throw new Error('Lidl fixture store identity lost on persistence');
+          const context={lidlStoreKey:restored.storeKey||restored.id};
+          if(context.lidlStoreKey!=='lidl-fixture-store') throw new Error('Lidl fixture offer context lost storeKey');
+          console.log('PASS deterministic Lidl fixture lidl-fixture-store persistence and offer context');
+          NODE
+      - name: Full milk mobile search functional test
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const names = [
+            'Valio täysmaito suomalaiselta maitotilalta 1l',
+            'Pirkka suomalainen täysmaito 1l',
+            'Kotimaista täysmaito 1l',
+            'Valio kevytmaito 1l',
+            'Arla rasvaton maito 1l',
+            'Pirkka rasvaton maito 1l',
+            'Valio laktoositon täysmaito 1l',
+            'Valio täysmaito 1,5l',
+            'Valio luomu täysmaito 1l',
+          ];
+          const products = names.map((name, i) => ({
+            id: i + 1, name, price: 1.2 + i / 10,
+            storeItems: [{price: 1.2 + i / 10}]
+          }));
+          for (const query of ['täysmaito', 'täysmaito 1l']) {
+            const actual = core.rankNormalSearchResults(query, products).map(p => p.name);
+            const priceSorted = core.rankProductResultsByRelevanceAndPrice(query, products, p => p.price).map(p => p.name);
+            // Ranking may apply stricter package-size filters than the general relevance stage.
+            // Assert the complete expected price-ranked set independently, not merely a subset.
+            const expectedPriceNames = names.filter(name => name.includes('täysmaito') && (!query.includes('1l') || !name.includes('1,5l')));
+            assert.deepEqual(priceSorted.slice().sort(), expectedPriceNames.slice().sort(), 'Price ranking must retain every eligible full-milk product and reject all others for '+query);
+            assert.deepEqual(priceSorted, [...priceSorted].sort((a,b) => products[names.indexOf(a)].price - products[names.indexOf(b)].price), 'Price ranking must be cheapest-first for '+query);
+            const expected = names.filter(name => name.includes('täysmaito'));
+            assert.deepEqual(actual.slice().sort(), expected.slice().sort(), 'Only full-milk products for '+query);
+            for (const name of names.filter(name => !name.includes('täysmaito'))) {
+              assert.equal(core.isBadNormalResult(products[names.indexOf(name)], query), true, 'Must reject: '+name);
+            }
+            console.log('PASS '+query+': '+actual.length+' full-milk results, no skimmed or low-fat');
+          }
+          assert.equal(core.rankNormalSearchResults('rasvaton maito 1l', products).some(p => p.name.includes('täysmaito')), false);
+          NODE
+      - name: Cross-category brand and product-name regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const samples = [
+            {name:'Maitokolmio Ranch-kastike original 200g',price:1.79},
+            {name:'Maitokolmio viili 200g',price:0.60},
+            {name:'Valio kevytmaito 1l',price:1.59},
+            {name:'Pirkka rasvaton maito 1l',price:1.49},
+            {name:'Kahvila suklaakeksi 150g',price:0.89},
+            {name:'Juhla Mokka kahvi 500g',price:5.99},
+          ];
+          const rank = (query) => core.rankProductResultsByRelevanceAndPrice(query,samples,p=>p.price);
+          const milk = rank('maito');
+          assert(milk.some(p=>p.name.includes('kevytmaito')), 'real milk must remain');
+          assert(milk.some(p=>p.name.includes('rasvaton maito')), 'skimmed milk must remain');
+          assert(!milk.some(p=>p.name.includes('Ranch-kastike') || p.name.includes('viili')), 'brand-name milk false positives');
+          const coffee = rank('kahvi');
+          assert(coffee.some(p=>p.name.includes('Mokka')), 'real coffee must remain');
+          assert(!coffee.some(p=>p.name.includes('suklaakeksi')), 'coffee-like brand must not match');
+          for(const result of [milk,coffee]) assert(result.every((p,i)=>!i||result[i-1].price<=p.price),'price order');
+          // Butter is not butter-flavoured crisps, spreads or ready food.
+          const butterSamples = [
+            {name:'Valio voi 200 g normaalisuolainen',price:2.59},
+            {name:'Kotimaista normaalisuolainen voi 200 g',price:2.19},
+            {name:'Flora & voi 500g',price:1.79},
+            {name:'Estrella Ruskistettu Voi & Chili sipsipussi 275g',price:1.99},
+            {name:'Gårdschips Ruskistettu voi & punasipuli 150g',price:1.75},
+          ];
+          const butter = core.rankProductResultsByRelevanceAndPrice('voi',butterSamples,p=>p.price);
+          assert.deepEqual(butter.map(p=>p.name),[
+            'Kotimaista normaalisuolainen voi 200 g',
+            'Valio voi 200 g normaalisuolainen',
+          ],'butter-only and cheapest-first');
+
+          const colaSamples = [
+            {name:'Coca-Cola Zero 0,33 l tölkki',price:1.45},
+            {name:'Puls Pre-Workout Shot Cola Kick 60ml',price:0.99},
+          ];
+          const cola = core.rankProductResultsByRelevanceAndPrice('cola',colaSamples,p=>p.price);
+          assert(cola.some(p=>p.name.startsWith('Coca-Cola')),'real cola retained');
+          assert(!cola.some(p=>/workout|shot/i.test(p.name)),'cola-flavoured sports shots excluded');
+          console.log('PASS cross-category brand-name and product-name regression');
+          NODE
       - name: Verify normal-search semantics
         shell: bash
         run: |
@@ -420,7 +630,8 @@ jobs:
             ['S own brand rejects Pirkka', allow('Valio rasvaton maito 1l', 'Pirkka rasvaton maito 1l', 'own_brands', 's'), false],
             ['K own brand accepts Pirkka', allow('Valio rasvaton maito 1l', 'Pirkka rasvaton maito 1l', 'own_brands', 'k'), true],
             ['K own brand rejects Kotimaista', allow('Valio rasvaton maito 1l', 'Kotimaista rasvaton maito 1l', 'own_brands', 'k'), false],
-            ['same brand accepts explicit unknown brand', allow('Maitokolmio kevytmaito 1l', 'Maitokolmio rasvaton maito 1l', 'keep_brands', 's', 'Maitokolmio', 'Maitokolmio'), true],
+            ['same brand rejects different milk type despite same brand', allow('Maitokolmio kevytmaito 1l', 'Maitokolmio rasvaton maito 1l', 'keep_brands', 's', 'Maitokolmio', 'Maitokolmio'), false],
+            ['same brand accepts explicit unknown brand for compatible milk', allow('Maitokolmio kevytmaito 1l', 'Maitokolmio kevytmaito 1l', 'keep_brands', 's', 'Maitokolmio', 'Maitokolmio'), true],
             ['same brand rejects different explicit brand', allow('Maitokolmio kevytmaito 1l', 'Valio kevytmaito 1l', 'keep_brands', 's', 'Maitokolmio', 'Valio'), false],
             ['same brand fails closed without identifiable source brand', allow('Tuntematon kevytmaito 1l', 'Valio kevytmaito 1l', 'keep_brands', 's'), false],
             ['cheapest remains permissive', allow('Valio rasvaton maito 1l', 'Pirkka rasvaton maito 1l', 'cheapest', 'k'), true],
@@ -547,14 +758,12 @@ jobs:
           ];
 
           const ranked = core.rankNormalSearchResults('piimä', products);
-          const positions = new Map(ranked.map((product, index) => [product.id, index]));
           const drinkIds = [1, 2, 3];
           const breadIds = [4, 5];
-          const lastDrink = Math.max(...drinkIds.map(id => positions.get(id)));
-          const firstBread = Math.min(...breadIds.map(id => positions.get(id)));
-
-          if (!(lastDrink < firstBread)) {
-            console.error('FAIL piimä ranking:', ranked.map(product => product.name));
+          if (ranked.length !== drinkIds.length ||
+              !ranked.every(product => drinkIds.includes(product.id)) ||
+              ranked.some(product => breadIds.includes(product.id))) {
+            console.error('FAIL piimä product group filter:', ranked.map(product => product.name));
             process.exit(1);
           }
 
@@ -566,8 +775,84 @@ jobs:
             process.exit(1);
           }
 
-          console.log('PASS piimä ranking: all buttermilk drinks precede piimä breads');
+          console.log('PASS piimä ranking: only buttermilk drinks, no piimä breads');
           console.log('SAFE_SUMMARY functional piimä regression passed');
+          NODE
+
+      - name: Functional cheapest-first normal search including cached cola candidates
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const products = [
+            {id:1,name:'Coca-Cola Zero Vanilja virvoitusjuoma 0,33l 6-pack',price:499},
+            {id:2,name:'Coca-Cola Zero Sugar virvoitusjuoma muovipullo 1,5 L',price:295},
+            {id:3,name:'Xtra sokeriton cola virvoitusjuoma 1,5l',price:119},
+            {id:4,name:'Coop Cola Sokeriton virvoitusjuoma 0,5 l kmp',price:115},
+            {id:5,name:'Pirulo Cool limonadijää Cola 100g/99ml',price:95},
+            {id:6,name:'Mocktail Piña Colada 0,0% 0,33l',price:159},
+            {id:7,name:'Puls Pre-Workout Shot Cola Kick 60ml',price:189},
+            {id:8,name:'Coop Piña colada mocktail 750ml',price:299},
+            {id:9,name:'Cola ilman hintaa',price:0},
+          ];
+          // Both fresh and cached normal-search paths call this shared ranker.
+          for (const candidateOrder of [products, products.slice().reverse()]) {
+            const result = core.rankProductResultsByRelevanceAndPrice('cola', candidateOrder, p => p.price);
+            assert.deepEqual(result.map(p => p.price), [115,119,295,499]);
+            assert.deepEqual(result.map(p => p.id), [4,3,2,1]);
+          }
+          console.log('SAFE_SUMMARY normal search cheapest-first cola and wrong-group regression passed');
+          NODE
+
+      - name: Functional oil and lemonade product-group filtering
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const oil = [
+            {id:1,name:'Coop tonnikala paloina oliiviöljyssä MSC 135/104 g',price:172},
+            {id:2,name:'Risella jasmiini valmisriisi 200g valkosipuli & oliiviöljy',price:179},
+            {id:3,name:'Coop oliiviöljyä ja merisuolaa sisältävät krutongit 100 g',price:194},
+            {id:4,name:'Coop extra virgin oliiviöljy 500ml',price:599},
+            {id:5,name:'Borges oliiviöljy 1l',price:899},
+          ];
+          const lemonade = [
+            {id:11,name:'Pirulo Cool Orange limonadijää 100g/99ml',price:75},
+            {id:12,name:'Lipsi limonadijäätelö 72g vadelma',price:95},
+            {id:13,name:'Coop sitruunalimonadi virvoitusjuoma 1,5l',price:139},
+            {id:14,name:'Hartwall Jaffa appelsiini virvoitusjuoma 1,5l',price:249},
+          ];
+          for (const input of [oil, oil.slice().reverse()]) {
+            const ranked = core.rankProductResultsByRelevanceAndPrice('oliiviöljy',input,p=>p.price);
+            assert.deepEqual(ranked.map(p=>p.id),[4,5]);
+          }
+          for (const input of [lemonade, lemonade.slice().reverse()]) {
+            const ranked = core.rankProductResultsByRelevanceAndPrice('limonadi',input,p=>p.price);
+            assert.deepEqual(ranked.map(p=>p.id),[13,14]);
+          }
+          console.log('SAFE_SUMMARY oil and lemonade product-group filtering passed');
+          NODE
+
+      - name: Regression for formerly empty grocery searches
+        shell: bash
+        run: |
+          node <<'NODE'
+          const assert=require('node:assert/strict');
+          const core=require('./.tmp-search-regression/ziiplyCore.js');
+          const cases=[
+            ['voi','Valio voi normaalisuolainen 500g'],
+            ['raejuusto','Valio raejuusto 200g'],
+            ['silakka','Kotimainen silakkafilee 400g'],
+            ['sokeri','Dansukker taloussokeri 1kg'],
+            ['etikka','Rajamäen väkiviinaetikka 0,5l']
+          ];
+          for(const [term,name] of cases){
+            const actual=core.rankProductResultsByRelevanceAndPrice(term,[{id:1,name,price:199}],p=>p.price);
+            assert.equal(actual.length,1,term+' rejected '+name);
+          }
+          console.log('SAFE_SUMMARY five formerly empty grocery gates passed');
           NODE
 
       - name: Functional maito ranking regression
@@ -588,17 +873,27 @@ jobs:
 
           for (const query of ['maito', 'maitoa']) {
             const ranked = core.rankNormalSearchResults(query, products);
-            const positions = new Map(ranked.map((product, index) => [product.id, index]));
+            const ids = ranked.map(product => product.id);
             const milkIds = [11, 12, 13];
             const wrongIds = [14, 15, 16, 17];
-            const lastMilk = Math.max(...milkIds.map(id => positions.get(id)));
-            const firstWrong = Math.min(...wrongIds.map(id => positions.get(id)));
 
-            if (!(lastMilk < firstWrong)) {
-              console.error('FAIL milk ranking for', query, ranked.map(product => product.name));
+            // Hard filtering is stricter than the previous "bad products last"
+            // behavior. Confirm all real milks remain and invalid foods are gone.
+            const missingMilk = milkIds.filter(id => !ids.includes(id));
+            const leakedWrong = wrongIds.filter(id => ids.includes(id));
+            if (missingMilk.length || leakedWrong.length) {
+              console.error('FAIL milk filtering for', query,
+                { missingMilk, leakedWrong, results: ranked.map(p => p.name) });
               process.exit(1);
             }
-            console.log('PASS milk ranking:', query, 'keeps true milk before incidental/wrong products');
+            for (const id of wrongIds) {
+              const product = products.find(p => p.id === id);
+              if (!core.isBadNormalResult(product, query)) {
+                console.error('FAIL milk gate accepted invalid product', query, product.name);
+                process.exit(1);
+              }
+            }
+            console.log('PASS milk filtering:', query, 'keeps true milks and rejects wrong products');
           }
 
           console.log('SAFE_SUMMARY functional maito regression passed');

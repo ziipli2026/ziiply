@@ -1,4 +1,5 @@
 "use client";
+import ProductEnergy from "./ProductEnergy";
 
 // ZiiplyMobileSearchResultsCard v14-loytoluettelo
 // - Pitkälle / loputtomalle listalle optimoitu matala tuoterivi.
@@ -9,6 +10,7 @@
 // - Lista on oma scrollialue.
 
 import { productMoneyEuros } from "../productMoney";
+import { formatSearchResultComparisonPrice } from "../search/searchResultComparisonPrice";
 import React, { useState, useEffect } from "react";
 
 export type ZiiplyMobileSearchResultProduct = {
@@ -21,6 +23,7 @@ export type ZiiplyMobileSearchResultProduct = {
   chain?: string;
   store?: string;
   storeName?: string;
+  __storeQuotes?: { store: string; price: number }[];
   price?: number | string | null;
   image?: string;
   imageUrl?: string;
@@ -40,11 +43,14 @@ export type ZiiplyMobileSearchResultProduct = {
 export type ZiiplyMobileSearchResultsCardProps = {
   open?: boolean;
   loading?: boolean;
+  completing?: boolean;
   title?: string;
   emptyText?:string;
   products?: ZiiplyMobileSearchResultProduct[];
   onClose?: () => void;
   onSkip?: () => void;
+  onDownloadDebug?: () => void;
+  compact?: boolean;
   onAddProduct?: (product: ZiiplyMobileSearchResultProduct) => void;
 };
 
@@ -147,125 +153,38 @@ function formatMainPrice(value: unknown, product: ZiiplyMobileSearchResultProduc
   );
 }
 
-function normalizeComparisonValue(value: unknown, product: ZiiplyMobileSearchResultProduct) {
-  const raw = String(value ?? "").trim();
-  if (!raw) return null;
-  if (raw.includes("€") || raw.includes("/")) return raw;
-  return productMoneyEuros(value, product.comparisonPriceAmountUnit ?? product.priceAmountUnit ?? product.product?.comparisonPriceAmountUnit ?? product.product?.priceAmountUnit ?? "cent");
-}
-
-function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {
-  const raw = [
-    product.comparisonUnit,
-    product.priceUnit,
-    product.unit,
-    product.packageSize,
-    product.name,
-    product.title,
-    product.product?.comparisonUnit,
-    product.product?.priceUnit,
-    product.product?.unit,
-    product.product?.packageSize,
-    product.product?.name,
-    product.product?.title,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  if (/\b(l|ltr|litra|litran|ml|cl)\b/.test(raw)) return "€/l";
-  if (/\b(kpl|pkt|pari|rll|rs|ps|tlk)\b/.test(raw)) return "€/kpl";
-  return "€/kg";
-}
-
-function parsePackageAmount(product: ZiiplyMobileSearchResultProduct) {
-  const raw = [
-    product.packageSize,
-    product.unit,
-    product.name,
-    product.title,
-    product.product?.packageSize,
-    product.product?.unit,
-    product.product?.name,
-    product.product?.title,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase()
-    .replace(",", ".");
-
-  const kg = raw.match(/(\d+(?:\.\d+)?)\s*kg\b/);
-  if (kg) return { amount: Number(kg[1]), unit: "kg" as const };
-
-  const g = raw.match(/(\d+(?:\.\d+)?)\s*g\b/);
-  if (g) return { amount: Number(g[1]) / 1000, unit: "kg" as const };
-
-  const l = raw.match(/(\d+(?:\.\d+)?)\s*(?:l|ltr|litra)\b/);
-  if (l) return { amount: Number(l[1]), unit: "l" as const };
-
-  const ml = raw.match(/(\d+(?:\.\d+)?)\s*ml\b/);
-  if (ml) return { amount: Number(ml[1]) / 1000, unit: "l" as const };
-
-  return null;
-}
-
-function formatComparisonPrice(product: ZiiplyMobileSearchResultProduct, rawPrice: unknown) {
-  const candidates = [
-    product.comparisonPrice,
-    product.unitPrice,
-    product.pricePerUnit,
-    product.comparisonPriceText,
-    product.product?.comparisonPrice,
-    product.product?.unitPrice,
-    product.product?.pricePerUnit,
-    product.product?.comparisonPriceText,
-  ];
-
-  for (const candidate of candidates) {
-    const value = normalizeComparisonValue(candidate, product);
-    if (value == null) continue;
-
-    if (typeof value === "string") return value;
-
-    return `${value.toLocaleString("fi-FI", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })} ${inferComparisonUnit(product)}`;
-  }
-
-  const euros = priceToEuros(rawPrice, product);
-  const packageAmount = parsePackageAmount(product);
-
-  if (euros != null && packageAmount?.amount && packageAmount.amount > 0) {
-    const unitPrice = euros / packageAmount.amount;
-    const unit = packageAmount.unit === "l" ? "€/l" : "€/kg";
-
-    return `${unitPrice.toLocaleString("fi-FI", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })} ${unit}`;
-  }
-
-  return "";
-}
-
 export default function ZiiplyMobileSearchResultsCard({
   open = false,
   loading = false,
+  completing = false,
   title = "Löydökset",
   emptyText="Ei löydöksiä luettelossa vielä.",
   products = [],
   onClose,
   onSkip,
+  onDownloadDebug,
+  compact = false,
   onAddProduct,
 }: ZiiplyMobileSearchResultsCardProps) {
   const [expandedProduct, setExpandedProduct] = useState<ZiiplyMobileSearchResultProduct | null>(null);
   useEffect(()=>{if(loading)setExpandedProduct(null);},[loading]);
+  // Lidl's public research catalog has no verified normal prices. Do not render
+  // these observations as products or offer an add-to-cart action.
+  const isUnpricedLidlResearch = (product: ZiiplyMobileSearchResultProduct) =>
+    product.source === "lidl.fi-public-research" ||
+    ((product.priceVerified === false || product.product?.priceVerified === false) &&
+      String(product.chain ?? product.__chain ?? product.product?.chain ?? "").toUpperCase() === "LIDL");
+  const hasUnpricedLidlResearch = products.some(isUnpricedLidlResearch);
+  const visibleProducts = products.filter(product => !isUnpricedLidlResearch(product));
   if (!open) return null;
 
+  const expandedComparison = expandedProduct
+    ? formatSearchResultComparisonPrice(expandedProduct, priceToEuros(pickRawPrice(expandedProduct), expandedProduct))
+    : "";
+
   return (
-    <div className="pointer-events-none fixed inset-0 z-[95] flex items-stretch justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-[3px] sm:hidden">
-      <section className="pointer-events-auto relative flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[2rem] border-[5px] border-[#6d5128] bg-[#fff6db] shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]">
+    <div className="pointer-events-none fixed inset-0 z-[95] flex items-stretch justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-[3px]">
+      <section data-testid="mobile-normal-search-results" data-search-loading={loading || completing ? "true" : "false"} className={`pointer-events-auto relative flex h-full w-full ${compact ? "max-w-[25rem] rounded-[1.35rem]" : "max-w-[28rem] rounded-[2rem]"} flex-col overflow-hidden border-[5px] border-[#6d5128] bg-[#fff6db] shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]`}>
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.055]"
           style={{
@@ -283,8 +202,8 @@ export default function ZiiplyMobileSearchResultsCard({
                 className="relative h-5 text-[0.78rem] font-black uppercase tracking-[0.42em] text-[#7d6b45]"
                 style={{ fontFamily: copper }}
               >
-                <span className={loading ? "invisible" : ""}>LÖYTÖLUETTELO</span>
-                <span role="status" aria-live="polite" className="absolute inset-0 truncate text-sm normal-case tracking-normal">{loading ? "Haetaan tuotteita…" : ""}</span>
+                <span className={loading || completing ? "invisible" : ""}>LÖYTÖLUETTELO</span>
+                <span role="status" aria-live="polite" className="absolute inset-0 truncate text-sm normal-case tracking-normal">{loading ? "Haetaan tuotteita…" : completing ? "Haetaan lisää tuotteita…" : ""}</span>
               </div>
 
               <div className="mt-1">
@@ -321,7 +240,7 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             )}
 
-            {!loading && products.length === 0 && (
+            {!loading && visibleProducts.length === 0 && !hasUnpricedLidlResearch && (
               <div className="rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
                 {onSkip ? <>
                   <p><strong className="text-[#123d32]">{title || "Aines"}</strong>: sopivaa tuotetta ei löytynyt valitun kaupan hakutiedoista.</p>
@@ -330,7 +249,17 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             )}
 
-            {products.map((product, index) => {
+            {hasUnpricedLidlResearch && !loading && !onSkip && (
+              <div role="status" className="rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-4 py-5 text-center text-sm font-bold text-[#123d32]">Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.</div>
+            )}
+            {visibleProducts.filter((product, index, all) => {
+              const ean = String(product.ean ?? product.product?.ean ?? "").replace(/\D/g, "");
+              // The same EAN can arrive from multiple selected stores. Keep the
+              // first (already price-ranked) product, but retain distinct items
+              // without a valid barcode rather than collapsing them together.
+              if (!/^(?:\d{8}|\d{12,14})$/.test(ean)) return true;
+              return all.findIndex(item => String(item.ean ?? item.product?.ean ?? "").replace(/\D/g, "") === ean) === index;
+            }).map((product, index) => {
                 const image = getImage(product);
                 const name = getName(product);
                 const rawPrice = pickRawPrice(product);
@@ -341,15 +270,15 @@ export default function ZiiplyMobileSearchResultsCard({
                   ? `${observedEuros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
                   : "";
                 const price = researchOnly ? "" : formatMainPrice(rawPrice, product);
-                const comparison = researchOnly ? "" : formatComparisonPrice(product, rawPrice);
+                const comparison = researchOnly ? "" : formatSearchResultComparisonPrice(product, priceToEuros(rawPrice, product));
 
                 return (
-                  <article
-                    key={String(product.id ?? product.ean ?? index)}
-                    aria-busy={loading} className={`relative flex items-start gap-3 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2.5 shadow-[0_3px_0_rgba(91,72,44,0.12)] ${loading?"opacity-55":""}`}
+                  <article data-testid="normal-search-result" data-ean={String(product.ean ?? product.product?.ean ?? "")}
+                    key={`${String(product.ean ?? product.product?.ean ?? product.id ?? "item")}-${index}`}
+                    aria-busy={loading} className={`relative flex items-start ${compact?"gap-2 rounded-[0.85rem] px-2 py-2":"gap-3 rounded-[1.15rem] px-2.5 py-2.5"} overflow-hidden border-[3px] border-[#8c6934] bg-[#fffdf8] shadow-[0_3px_0_rgba(91,72,44,0.12)] ${loading?"opacity-55":""}`}
                   >
-                    <div className="flex w-[5.8rem] shrink-0 flex-col items-center gap-1.5">
-                      <button type="button" disabled={loading} onClick={() => setExpandedProduct(product)} aria-label={`Näytä tuotteen ${name} suurempi kuva ja tiedot`} className="flex h-[5.15rem] w-[5.15rem] items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]">
+                    <div className={`flex shrink-0 flex-col items-center gap-1.5 ${compact?"w-[4.6rem]":"w-[5.8rem]"}`}>
+                      <button type="button" disabled={loading} onClick={() => setExpandedProduct(product)} aria-label={`Näytä tuotteen ${name} suurempi kuva ja tiedot`} className={`flex ${compact?"h-[4.1rem] w-[4.1rem]":"h-[5.15rem] w-[5.15rem]"} items-center justify-center overflow-hidden rounded-[0.65rem] border border-[#e6dcc3] bg-[#faf5e9]`}>
                         {image ? (
                           <img src={image} alt="" className="h-full w-full object-contain" loading="lazy" />
                         ) : (
@@ -368,11 +297,20 @@ export default function ZiiplyMobileSearchResultsCard({
                       </button>
                     </div>
                     <div className="min-w-0 flex-1 pt-0.5">
-                      <div className="break-words text-[0.86rem] font-black leading-tight text-[#123d32]" style={{ fontFamily: cooper }}>{name}</div>
+                      <div className={`${compact?"text-[0.78rem]":"text-[0.86rem]"} break-words font-black leading-tight text-[#123d32]`} style={{ fontFamily: cooper }}>{name}</div>
                       {(product.ean || product.product?.ean) && (
                         <div className="mt-1 break-all text-[0.61rem] font-bold text-[#8a7a55]">
                           EAN {String(product.ean || product.product?.ean)}
                         </div>
+                      )}
+                      <ProductEnergy ean={product.ean || product.product?.ean} nutrition={product.nutrition ?? product.product?.nutrition} quantity={product.packageSize ?? product.product?.packageSize ?? product.product?.quantity} />
+                      {product.__storeQuotes?.map(quote => (
+                        <div key={quote.store} className="mt-1 text-[0.68rem] font-bold text-[#78633a]">
+                          {quote.store} · {quote.price.toFixed(2).replace(".", ",")} €
+                        </div>
+                      ))}
+                      {!product.__storeQuotes?.length && product.storeName === "Tokmanni / SPAR verkkovalikoima" && (
+                        <div className="mt-1 text-[0.65rem] font-bold text-[#78633a]">Tokmanni / SPAR verkkohinta</div>
                       )}
                       {researchOnly && (
                         <div className="mt-1 text-[0.65rem] font-bold leading-tight text-[#78633a]">
@@ -407,7 +345,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="break-words font-black leading-tight text-[#123d32]">{getName(expandedProduct)}</div>
-                  {formatComparisonPrice(expandedProduct, pickRawPrice(expandedProduct)) && <div className="mt-2 text-sm text-[#78633a]">{formatComparisonPrice(expandedProduct, pickRawPrice(expandedProduct))}</div>}
+                  {expandedComparison && <div className="mt-2 text-sm text-[#78633a]">{expandedComparison}</div>}
                   {(expandedProduct.ean || expandedProduct.product?.ean) && <div className="mt-2 break-all text-xs text-[#78633a]">EAN {String(expandedProduct.ean || expandedProduct.product?.ean)}</div>}
                 </div>
               </div>

@@ -15,12 +15,18 @@ const forbiddenMatches=[
   ['perunalastut 200g','Oikia Tavis Timo perunalastut 250g'],
   ['roskapussi 30l','Sanka-Bioska biojätekassi 30l 15kpl'],
   ['porsaan ulkofile 500g','Pirkka suomalainen porsaan ulkofilee n.1,2kg'],
+  ['linssit 400g','Coop leikatut vihreät pavut 400/225 g'],
+  ['tomaattipyree 200g','Coop paseerattu tomaatti 200 g'],
+  ['oliiviöljy 500ml','Gaea auringonkukkaöljyn ja oliiviöljyn seos paistamiseen 500ml'],
 ];
 const requiredMatches=[
   ['ruisjauho 1kg','Coop ruisjauho 1 kg'],
   ['naudan jauheliha 400g','Snellman Kunnon naudan jauheliha 10% 400g'],
   ['appelsiini 1kg','Coop Appelsiini Valencia Late'],
   ['päärynä 1kg','Päärynä Conference'],
+  ['linssit 400g','Coop punaiset linssit 400g'],
+  ['tomaattipyree 200g','Pirkka tomaattipyree 200g'],
+  ['oliiviöljy 500ml','Borges extra virgin oliiviöljy 500ml'],
 ];
 for(const [query,name] of forbiddenMatches){
  assert.equal(core.isComparisonAttributeCompatible(query,name),false,
@@ -178,7 +184,8 @@ const terms=[
 ];
 const shard=Number(process.env.SHARD||0),shards=4;
 if(!Number.isInteger(shard)||shard<0||shard>=shards)throw Error('Invalid shard');
-const requests=terms.map((term,i)=>({term,i})).filter(x=>x.i%shards===shard);
+const maxTerms=Number(process.env.MAX_TERMS||terms.length);
+const requests=terms.slice(0,maxTerms).map((term,i)=>({term,i})).filter(x=>x.i%shards===shard);
 const base='https://ziiply.vercel.app';
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function fetchProducts(chain,term){
@@ -261,6 +268,8 @@ async function run(){
  fs.mkdirSync('relevance-reports',{recursive:true});
  fs.writeFileSync('relevance-reports/shard-'+shard+'.json',JSON.stringify({summary,rows},null,2));
  console.log('AUDIT_SUMMARY',JSON.stringify(summary));
- if(summary.errors)process.exitCode=1;
+ // Known false positives are enforced above. Missing exact-size products remain
+ // diagnostic: they are not necessarily failures of normal product search.
+ if(summary.errors||summary.invalidUnit)process.exitCode=1;
 }
 run().catch(e=>{console.error(e);process.exitCode=1});

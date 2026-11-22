@@ -22,50 +22,6 @@ function normalizeText(value: unknown) {
     .trim();
 }
 
-/** Product form takes precedence over ingredients and broad campaign headings. */
-function lidlProductCategory(name: string): string | null {
-  const s = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  // Pet products must precede both clothing and fish/food substrings.
-  if (/koira|kissa|lemmik|elainten|turkinhoito/.test(s)) return 'Lemmikit';
-  if (/jaatelo|pakaste|pakastettu/.test(s)) return 'Pakasteet';
-  if (/pikkuleip|keksi|nougat|konvehti|karamelli|suklaa|makeis|karkki|tikkari/.test(s)) return 'Makeiset & keksit';
-  if (/pasteija|juustokierre|juustotanko|korvapuusti|croissant|sampyla|patonki|karjalanpiirakka|ruisleipa|rieska|leivonnainen|leivos/.test(s)) return 'Leipomo';
-  if (/aurinkokuivattu|kuivattu tomaatti|sailyke|pastakastike|pesto\b|oliivioljy|marmeladi|pistaasikreemi/.test(s)) return 'Kuivatuotteet';
-  if (/kaurajuoma|riisijuoma|soijajuoma|kookosjuoma|mantelijuoma/.test(s)) return 'Juomat';
-  return null;
-}
-
-function classifyLidlOffer(name: string, brand = "") {
-  const productCategory = lidlProductCategory(name);
-  if (productCategory) return productCategory;
-  const s = normalizeText(`${name} ${brand}`);
-  // Non-food first: prevent lihashuoltovasara and öljypumppu matching grocery substrings.
-  if (/vaatte|asuste|esmara|tyokalu|tyokal|akkukayttoinen|imuri|puhallin|pumppu|ruuvinvaannin|raikka|vasara|urheiluhame|pesuri|magneettiastia|auton puhdistusliina/.test(s)) return "Koti & vapaa-aika";
-  if (/talouspaperi|wc[ -]?paperi|paperipyyhe|huuhteluaine|pesuaine|pyykin|astianpesu|puhdistuskivi|puhdistusaine/.test(s)) return "Kodinhoito";
-  if (/varsiselleri|selleri|punajuuri/.test(s)) return "Hevi";
-  if (/korvapuusti|ruispala|blini|kreikkalainen juustotanko/.test(s)) return "Leipomo";
-  if (/pahkina/.test(s)) return "Kuivatuotteet";
-  if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
-  if (/maito|jogur|jugur|rahka|juusto|kerma|voi\b|piima|viili/.test(s)) return "Maitotuotteet";
-  if (/burger|kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|lihapulla|\bliha\b|pulled pork/.test(s)) return "Liha & makkarat";
-  if (/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
-  if (/leipa|sampyl|pull|croissant|paton|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
-  if (/limu|juoma|mehu|vesi|vichy|energiajuoma|cola/.test(s)) return "Juomat";
-  if (/sitruuna|retiisi|granaattiomena|omena|banaani|tomaatti|kurkku|salaatti|paprika|peruna|sipuli|porkkana|bataatti|mandariini|appelsiini|mango|marja|hedelm|vihann|kasvis|kaali/.test(s)) return "Hevi";
-  if (/pakaste|jaatel|pakastettu/.test(s)) return "Pakasteet";
-  if (/pikanuudeli|nuudelikeitto/.test(s)) return "Kuivatuotteet";
-  if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
-  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|kastike|\boljy\b|mauste|sokeri|suola|puuro|nuudeli|makaroni|spagetti|sushi-inkivaari|nori|merileva|wasabi|seesaminsiemen/.test(s)) return "Kuivatuotteet";
-  if (/kark|makeis|suklaa|keksi|lakrit|salmiak|purukumi|patukka|sips|chips/.test(s)) return "Makeiset & keksit";
-  if (/lastenruo|vauva|aidinmaidonkorvike/.test(s)) return "Lastenruoat";
-  if (/vitami|ravinne|magnesium|sinkki/.test(s)) return "Vitamiinit & ravinteet";
-  if (/koira|kissa|lemmik/.test(s)) return "Lemmikit";
-  if (/hammastahna|hammasharja|shampoo|saippua|deodorant|kosmeti|ihonhoito/.test(s)) return "Hygienia & kosmetiikka";
-  if (/pesuaine|pyykin|astianpesu|puhdistus/.test(s)) return "Kodinhoito";
-  if (/vaate|asuste|esmara|tyokalu|kodin|vapaa-aika|ilmanpuhdistin|rakennussarja|turvalaita|nukanpoistaja|pyykkikori|pyykkipoika/.test(s)) return "Koti & vapaa-aika";
-  return "Muut";
-}
-
 function formatPrice(value: unknown) {
   return typeof value === "number" && Number.isFinite(value)
     ? `${value.toFixed(2).replace(".", ",")} €`
@@ -133,7 +89,7 @@ export function mergeLidlStructuredAndLeaflet(
       eligibility: row.eligibility,
       requiresLidlPlus: row.eligibility === "lidl-plus",
       ...(row.multiBuyQuantity ? { multiBuyQuantity: row.multiBuyQuantity, multiBuyTotalPrice: row.price } : {}),
-      category: classifyLidlOffer(row.name),
+      category: "",
       rawText: row.name,
       // No inferred barcode, stock or checkout verification.
       ean: "",
@@ -178,7 +134,7 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
     const title = String(row?.title || "Lidl tarjous").trim();
     const brandName = String(row?.brand || "").trim();
     const discountText = String(box?.discountMessage || box?.largePartString || "").trim();
-    const category = classifyLidlOffer(title, brandName);
+    const category = "";
     const priceText = formatPrice(numericPrice);
     const unitPriceText = String(row?.pricePerUnit || "").trim();
     const lidlPricingText = [
@@ -198,30 +154,14 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
       .filter((value) => value != null)
       .map((value) => String(value))
       .join(" ");
-    const hasPackWeightInTitle = /\b\d+(?:[.,]\d+)?\s*(?:g|kg|ml|l)\b/i.test(title);
-    const isExplicitlyLoose =
-      /\birto\b|\bloose\b/i.test(lidlPricingText) ||
+    const isExplicitlyLoose = /\birto\b|\bloose\b/i.test(lidlPricingText) ||
       /\birto\b|\bloose\b/i.test(title);
-    const isExplicitlyPerKg =
-      /(?:€|eur)\s*\/\s*kg\b/i.test(lidlPricingText) ||
-      /\b(?:hinta\s*\/\s*kg|kilohinta|per\s*kg)\b/i.test(lidlPricingText) ||
+    const isExplicitlyPerKg = /(?:€|eur)\s*[/]\s*kg\b/i.test(lidlPricingText) ||
+      /\b(?:hinta\s*[/]\s*kg|kilohinta|per\s*kg)\b/i.test(lidlPricingText) ||
       /\bkg\b/i.test(String(box?.priceSymbol || ""));
-    const isExplicitlyUnitPriced =
-      /(?:€|eur)\s*\/\s*kpl\b/i.test(lidlPricingText) ||
-      /\b(?:kpl|kappale|pkt|paketti|rasia|pussi|nippu|ruukku)\b/i.test(lidlPricingText);
-    // Lidl's Scan & Go rule is: produce without a unit price is weighed,
-    // while packaged/unit-priced produce is entered by its product/shelf
-    // barcode. Prefer explicit source evidence; only use the Hevi fallback
-    // when the source gives no packaging/unit marker at all.
-    const isWeightedProduct =
-      isExplicitlyLoose ||
-      isExplicitlyPerKg ||
-      (
-        category === "Hevi" &&
-        !hasPackWeightInTitle &&
-        !isExplicitlyUnitPriced &&
-        !/\b(?:monipakkaus|monipak|pakattu|valmiiksi pakattu)\b/i.test(lidlPricingText)
-      );
+    // Weight-based pricing requires evidence in the actual source price/unit
+    // fields. A guessed category must never change price semantics.
+    const isWeightedProduct = isExplicitlyLoose || isExplicitlyPerKg;
 
     return {
       id: `lidl-${key}-${String(row?.id || index)}`,
@@ -307,9 +247,10 @@ async function fetchLidlStructuredUncached(storeKey: string, storeName: string) 
     };
   });
 
-  // Gösta is a grocery offer search, not the Lidl general-merchandise catalogue.
-  // Match the S/K daily-grocery scope; do not reclassify non-food as "Muut".
-  const groceryOffers = offers.filter((offer) => offer.category !== "Koti & vapaa-aika");
+  // Only actual priced offers are searchable. Keep unpriced source rows out
+  // without guessing a price or using a chain-specific product classifier.
+  const groceryOffers = offers.filter((offer) =>
+    typeof offer.price === "number" && Number.isFinite(offer.price) && offer.price > 0);
 
   await observeEanProductsBestEffort(
     groceryOffers.map((offer) => ({

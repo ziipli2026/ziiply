@@ -66,7 +66,7 @@ const storeHits=storeNames.filter(x=>seoText.toLocaleLowerCase("fi").includes(x.
 const priceTokens=[...seoText.matchAll(/\b\d{1,3}[,.]\d{2}\b/g)].map(m=>m[0]);
 const normalizeOfferName=s=>String(s??"").toLocaleLowerCase("fi-FI").replace(/[^a-z0-9åäö]+/gi," ").trim();
 const previousImagesByName=new Map((Array.isArray(oldFeed?.offers)?oldFeed.offers:[]).filter(x=>x?.imageUrl).map(x=>[normalizeOfferName(x.name),x.imageUrl]));
-if(issue&&String(oldFeed?.issue??"")===issue){
+if(issue&&String(oldFeed?.issue??"")===issue && validity?.from===oldFeed?.validity?.from && validity?.to===oldFeed?.validity?.to){
   for(const offer of parsedOffers){
     const preserved=previousImagesByName.get(normalizeOfferName(offer.name));
     if(preserved) offer.imageUrl=preserved;
@@ -77,12 +77,14 @@ const uniqueNames=new Set(parsedOffers.map(x=>x.name));
 const validityCurrentOrFuture=Boolean(validity?.to && validity.to>=today);
 const previousIssue=String(oldFeed?.issue??"");
 const previousOfferCount=Array.isArray(oldFeed?.offers)?oldFeed.offers.length:0;
-const sameIssue=Boolean(issue&&previousIssue&&issue===previousIssue);
+// Tokmanni and EUROSPAR are separate publications. Issue numbers are not unique.
+// Only compare EUROSPAR editions when both their issue and validity period match.
+const sameIssue=Boolean(issue && previousIssue && issue===previousIssue
+  && validity?.from===oldFeed?.validity?.from
+  && validity?.to===oldFeed?.validity?.to);
 const minimumOfferCount=sameIssue
   ? previousOfferCount
-  : previousOfferCount>0
-    ? Math.max(5,Math.ceil(previousOfferCount*0.85))
-    : 5;
+  : 5;
 const coverageHealthy=parsedOffers.length>=minimumOfferCount;
 
 // Images are only safe to publish when they are attached to the matching offer.
@@ -120,6 +122,7 @@ const candidate={
     previousIssue,
     previousOfferCount,
     sameIssue,
+    samePublication:sameIssue,
     minimumOfferCount,
     parsedOfferCount:parsedOffers.length,
     coverageHealthy,

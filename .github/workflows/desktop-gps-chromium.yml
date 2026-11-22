@@ -1,0 +1,77 @@
+name: Desktop GPS Chromium preview regression
+on:
+  push:
+    branches: [fix/desktop-gps-distance-visibility]
+    paths:
+      - '.github/workflows/desktop-gps-chromium.yml'
+      - 'src/app/desktop-preview/**'
+      - 'scripts/test-desktop-gps-store-selection.cjs'
+      - 'scripts/test-desktop-gps-chromium.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 12
+    env:
+      PREVIEW_URL: https://ziiply-a5q38mcao-ziipli2026s-projects.vercel.app/desktop-preview
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --prefix "$RUNNER_TEMP/ziiply-browser" --no-save --package-lock=false playwright@1.56.1
+      - name: Verify bypass secret is available without exposing its value
+        run: test -n "$VERCEL_AUTOMATION_BYPASS_SECRET"
+      - name: Chromium GPS ON/OFF/ON and reload on protected preview
+        env:
+          NODE_PATH: ${{ runner.temp }}/ziiply-browser/node_modules
+        run: |
+          node <<'NODE'
+          const {chromium}=require('playwright');
+          const assert=require('node:assert/strict');
+          (async()=>{
+            const browser=await chromium.launch();
+            const context=await browser.newContext({
+              viewport:{width:1440,height:900},
+              geolocation:{latitude:60.63,longitude:24.86},
+              permissions:['geolocation'],
+              extraHTTPHeaders:{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET}
+            });
+            try{
+              const page=await context.newPage();
+              const errors=[];
+              page.on('pageerror',e=>errors.push(e.message));
+              const response=await page.goto(process.env.PREVIEW_URL,{waitUntil:'domcontentloaded',timeout:60000});
+              assert.equal(response.status(),200,'protected preview must be accessible with secret');
+              const gps=page.getByRole('button',{name:'GPS',exact:true});
+              await gps.waitFor({timeout:30000});
+              await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true',{timeout:30000});
+              console.log('PASS automatic GPS ON');
+              await gps.click();
+              await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='false');
+              console.log('PASS GPS OFF');
+              const snapshot=await page.evaluate(()=>localStorage.getItem('ziiply-desktop-store-choices-v1'));
+              await page.waitForTimeout(700);
+              assert.equal(await gps.getAttribute('aria-pressed'),'false');
+              assert.equal(await page.evaluate(()=>localStorage.getItem('ziiply-desktop-store-choices-v1')),snapshot,'GPS OFF must not mutate store choices after settling');
+              console.log('PASS GPS OFF store choices stable');
+              await gps.click();
+              await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true');
+              console.log('PASS GPS ON again');
+              await page.reload({waitUntil:'domcontentloaded'});
+              await page.waitForFunction(()=>document.querySelector('button[aria-label="GPS"]')?.getAttribute('aria-pressed')==='true',{timeout:30000});
+              console.log('PASS reload starts GPS automatically');
+              assert.deepEqual(errors,[],'no uncaught page errors');
+              console.log('PASS Chromium GPS preview regression');
+            }finally{await browser.close()}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
+      - name: Chromium location, distances and manual stores
+        env:
+          NODE_PATH: ${{ runner.temp }}/ziiply-browser/node_modules
+        run: node scripts/test-desktop-gps-chromium.cjs

@@ -1,4 +1,4 @@
-import { attachFineliSaltEstimate } from "./fineli-salt-estimate.mjs";
+import { attachFineliSaltEstimate, shouldSuppressLocalOffNutrition } from "./fineli-salt-estimate.mjs";
 import { neon } from "@neondatabase/serverless";
 import { NextRequest, NextResponse } from "next/server";
 import verifiedLidlEanProducts from "../../../../data/lidl/verified-ean-links.json";
@@ -55,6 +55,17 @@ async function ensureSchema(sql: ReturnType<typeof db>) {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+  // Older EAN catalogs predate optional product columns. CREATE TABLE IF NOT
+  // EXISTS does not add missing columns to an existing Neon table.
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS brand TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS quantity TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS image_url TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS category TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS source TEXT`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS aliases TEXT[] NOT NULL DEFAULT '{}'`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`;
+  await sql`ALTER TABLE ziiply_ean_products ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`;
 }
 
 export async function GET(request: NextRequest) {
@@ -73,7 +84,7 @@ export async function GET(request: NextRequest) {
         WHERE ean = ${ean}
         LIMIT 1
       `;
-      if (rows[0]) {
+      {
         // Prefer verified EAN-specific Open Food Facts data. Fineli is only a
         // generic-food fallback for an unbranded, exact-name, unique match.
         // Never write inferred nutrition into the EAN or OFF master tables.
@@ -117,7 +128,10 @@ export async function GET(request: NextRequest) {
           `;
           const specific = matched.find((item) => item.source === "open-food-facts");
           const selected = specific ?? matched.find((item) => item.source === "fineli-generic");
-          if (selected) {
+          // Retailer-local EANs can collide with unrelated OFF product identities.
+          const unsafeLocalOff = selected?.source === "open-food-facts" &&
+            shouldSuppressLocalOffNutrition(ean, rows[0]?.name, selected.data?.product_name);
+          if (selected && !unsafeLocalOff) {
             const safeNutrition: Record<string, unknown> = { ...selected.data, source: selected.source };
             // Do not expose physically impossible OFF values to the scanner.
             // Keep other valid nutrients; never change the stored source record.
@@ -167,7 +181,7 @@ export async function GET(request: NextRequest) {
           // EAN scanning must remain available even if nutrition tables are unavailable.
           console.warn("EAN nutrition lookup unavailable", error instanceof Error ? error.message : String(error));
         }
-        return NextResponse.json({ ok: true, product: { ...rows[0], nutrition } });
+        if (rows[0] || nutrition) return NextResponse.json({ ok: true, product: { ...(rows[0] ?? { ean, name: "" }), nutrition } });
       }
 
       const verifiedLidl = VERIFIED_LIDL_EAN_BY_CODE.get(ean);
@@ -207,7 +221,7 @@ export async function GET(request: NextRequest) {
 
         if (response.ok) {
           const html = await response.text();
-          const escapedEan = ean.replace(/[.*+?^$()|[\]\\]/g, "\\      return NextResponse.json({ ok: true, product: rows[0] ?? null });");
+          const escapedEan = ean.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
           const linkRe = new RegExp(
             `<a\\b[^>]*class=["'][^"']*product-item-link[^"']*["'][^>]*href=["']([^"']*-${escapedEan}(?:[/?#][^"']*)?)["'][^>]*>([\\s\\S]*?)<\\/a>`,
             "i",

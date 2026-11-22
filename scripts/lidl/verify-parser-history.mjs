@@ -69,6 +69,33 @@ async function loadProductionParser() {
   return { parse: module.parseLidlPublicCategoryHtml, parseGrid: module.parseLidlGridDataOffers, tempDir };
 }
 
+// National Lidl category regression: the selected store must not affect these
+// product classifications. Use the same parser that production imports.
+if (mode === "categories") {
+  const { parseGrid, tempDir } = await loadProductionParser();
+  const cases = [
+    ["Kotimainen uuniperuna", "https://www.lidl.fi/h/pakasteet-pakastetut-elintarvikkeet/h10071049", "Hevi"],
+    ["Uuniomenatähtitorttu", "https://www.lidl.fi/h/hedelmaet-ja-vihannekset/h10071012", "Leipomo"],
+    ["Deluxe Kirsikanmakuinen glögi", "https://www.lidl.fi/h/lihat/h10095752", "Juomat"],
+    ["KIVIKYLÄN Lihapyörykkä sinihomejuustotäytteellä", "https://www.lidl.fi/h/juustot-maitotuotteet-ja-kananmunat/h10095761", "Liha & makkarat"],
+    ["Joulukaktusduo", "https://www.lidl.fi/h/juomat/h10071022", "Muut"],
+    ["Lupilu Puinen jäätelökärry tai makeiskoju", "https://www.lidl.fi/h/pakasteet-pakastetut-elintarvikkeet/h10071049", "Muut"],
+    ["HÄTÄLÄ Lohifilee", "https://www.lidl.fi/h/pakasteet-pakastetut-elintarvikkeet/h10071049", "Kala"],
+  ];
+  let failed = 0;
+  for (const [name, url, expected] of cases) {
+    const product = { productId: name, fullTitle: name, price: { price: 2.99 }, storeStartDate: 1794960000, storeEndDate: 1795305600 };
+    const html = '<div data-grid-data="' + JSON.stringify(product).replaceAll('"', '&quot;') + '"></div>';
+    const actual = parseGrid(html, url, "2026-11-21")[0]?.category;
+    if (actual !== expected) { console.error("FAIL", name, expected, actual); failed++; }
+    else console.log("PASS", name, actual);
+  }
+  await fs.rm(tempDir, { recursive: true, force: true });
+  if (failed) process.exitCode = 1;
+  else console.log("PASS national Lidl category regression", cases.length);
+  process.exit();
+}
+
 const manifests = (await files(root)).filter(name => name.endsWith(".expected.json"));
 if (mode === "verify") {
   const manifests = (await files(root)).filter(name => name.endsWith(".expected.json"));

@@ -1,0 +1,99 @@
+#!/usr/bin/env node
+// Static regression guard for beta analytics; never sends events or accesses credentials.
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const provider = fs.readFileSync(path.join(root, 'src/app/components/PostHogProvider.tsx'), 'utf8');
+const core = fs.readFileSync(path.join(root, 'src/app/components/ziiply/ziiplyCore.ts'), 'utf8');
+const page = fs.readFileSync(path.join(root, 'src/app/page.tsx'), 'utf8');
+const searchTelemetry = fs.readFileSync(path.join(root, 'src/app/components/ziiply/search/searchTelemetry.ts'), 'utf8');
+const requirements = [
+  ['progressive result selection captured before search completion', /const pending = latestStartedSearchId \? active\.get\(latestStartedSearchId\)/.test(searchTelemetry) && /selectedBeforeCompletion\.add\(pending\.id\)/.test(searchTelemetry)],
+  ['progressive selection survives completion', /selected: alreadySelected/.test(searchTelemetry)],
+  ['cancelled search clears pending selection', /selectedBeforeCompletion\.delete\(session\.id\)/.test(searchTelemetry)],
+  ['autocapture disabled', /autocapture:\s*false\b/.test(provider)],
+  ['bot filter bypass restricted to explicit preview CI', /opt_out_useragent_filter:\s*!isProduction\s*&&\s*testParam\s*===\s*'1'/.test(provider)],
+  ['automatic pageviews disabled', /capture_pageview:\s*false\b/.test(provider)],
+  ['session replay disabled pending privacy review', /disable_session_recording:\s*true\b/.test(provider)],
+  ['PostHog URL and sensitive-key scrubber present', /before_send\s*:/.test(provider) && /bannedKey/.test(provider)],
+  ['internal test marker present', /ziiply_internal_test/.test(provider)],
+  ['server-proxied search marks internal tests', /ziiply_internal_test:\s*\(\(\) =>/.test(searchTelemetry) && /ziiply_internal_test_user/.test(searchTelemetry)],
+  ['server accepts only explicit true test flag', /ziiply_internal_test:\s*body\.ziiply_internal_test === true/.test(fs.readFileSync(path.join(root, 'src/app/api/analytics/search/route.ts'), 'utf8'))],
+  ['browser and server share anonymous SDK identity', /posthog\.get_distinct_id\(\)/.test(searchTelemetry) && /posthog_distinct_id: browserPosthogDistinctId\(\)/.test(searchTelemetry)],
+  ['server validates SDK identity and reports join status', /sdkDistinctId/.test(fs.readFileSync(path.join(root, 'src/app/api/analytics/search/route.ts'), 'utf8')) && /ziiply_identity_joined/.test(fs.readFileSync(path.join(root, 'src/app/api/analytics/search/route.ts'), 'utf8'))],
+  ['identity audit separates implementation from runtime verification', (() => {
+    const audit = fs.readFileSync(path.join(root, 'scripts/audit-beta-journeys.cjs'), 'utf8');
+    return /identityJoinImplementationPresent/.test(audit) &&
+      /runtimeIdentityJoinVerifiedByThisAudit:\s*false/.test(audit) &&
+      /posthogDashboardGroupingVerified:\s*false/.test(audit);
+  })()],
+  ['environment marker present', /ziiply_environment/.test(provider)],
+  ['shared tracking wrapper present', /function\s+trackZiiplyEvent\s*\(/.test(core)],
+  ['search event present', /trackZiiplyEvent\s*\(\s*["']search_used["']/.test(page)],
+  ['search start event present', /trackZiiplyEvent\s*\(\s*["']search_started["']/.test(page)],
+  ['search priced outcome present', /trackSearchOutcome\(pricedCountV441\s*>\s*0\s*\?\s*["']search_priced_results_shown["']/.test(page)],
+  ['search empty outcome present', /["']search_no_priced_results["']/.test(page)],
+  ['search failure outcome present', /trackSearchOutcome\(["']search_failed["']\)/.test(page)],
+  ['search outcome contains no raw query', /const trackSearchOutcome\s*=\s*\([^]*?trackZiiplyEvent\(eventName,\s*\{([^]*?)\}\);/.test(page) && !/\b(?:query|ean|productName|product_name)\s*:/.test((page.match(/const trackSearchOutcome\s*=\s*\([^]*?trackZiiplyEvent\(eventName,\s*\{([^]*?)\}\);/) || [,''])[1])],
+  ['cart event present', /trackZiiplyEvent\s*\(\s*["']product_added_to_cart["']/.test(page)],
+  ['offer search event present', /trackZiiplyEvent\s*\(\s*["']gosta_offer_search_clicked["']/.test(page)],
+];
+let failed = 0;
+for (const [name, passed] of requirements) {
+  console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);
+  if (!passed) failed++;
+}
+if (failed) {
+  console.error(`${failed} analytics regression checks failed`);
+  process.exitCode = 1;
+}
+
+/*
+ * Exercise the real before_send callback with synthetic data. This is a source
+ * extraction test: it does not initialize PostHog or make network requests.
+ */
+const callbackStart = provider.indexOf('before_send: (event) => {');
+if (callbackStart < 0) {
+  console.error('FAIL before_send callback not found');
+  process.exitCode = 1;
+} else {
+  // The provider callback ends immediately before the PostHog init options.
+  // Use its stable closing delimiter rather than parsing TS/JS with a homemade lexer.
+  const callbackEndMarker = '\n        },\n      }\n    )';
+  const closing = provider.indexOf(callbackEndMarker, callbackStart);
+  const end = closing < 0 ? -1 : closing + '\n        }'.length - 1;
+  if (end < 0) {
+    console.error('FAIL before_send callback cannot be extracted');
+    process.exitCode = 1;
+  } else {
+    const projectTokenMatch = provider.match(/const PROJECT_TOKEN = '([^']+)'/);
+    const configuredProjectToken = projectTokenMatch?.[1] || '';
+    const callback = new Function('environment', 'isInternalTest', 'PROJECT_TOKEN',
+      'return (' + provider.slice(callbackStart + 'before_send: '.length, end + 1) + ')'
+    )('preview', true, configuredProjectToken);
+    const event = callback({ event: 'search_used', properties: {
+      email: 'secret@example.test', access_token: 'private', token: 'user-supplied-secret',
+      latitude: 60.1, longitude: 24.9, search: 'sensitive query',
+      ean: '1234567890123', product_name: 'sensitive',
+      $current_url: 'https://example.test/?token=private',
+      $referrer: 'https://example.test/?secret=private',
+      search_kind: 'normal', search_type: 'normal', search_id: 'synthetic-id',
+      result_count: 3,
+      metadata: { email: 'nested@example.test', token: 'nested-secret' },
+      items: [{ ean: '1234567890123' }],
+    }});
+    const props = event.properties;
+    const sensitive = ['email', 'access_token', 'latitude', 'longitude',
+      'search', 'ean', 'product_name', '$current_url', '$referrer'];
+    const passed = sensitive.every(key => !(key in props)) &&
+      !('metadata' in props) && !('items' in props) &&
+      props.search_kind === 'normal' && props.search_type === 'normal' && props.result_count === 3 &&
+      props.ziiply_environment === 'preview' &&
+      props.ziiply_internal_test === true &&
+      props.token === configuredProjectToken &&
+      configuredProjectToken.startsWith('phc_') &&
+      props.ziiply_analytics_schema === 1;
+    console.log(`${passed ? 'PASS' : 'FAIL'} before_send strips sensitive and nested synthetic properties`);
+    if (!passed) process.exitCode = 1;
+  }
+}

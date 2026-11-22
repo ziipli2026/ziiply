@@ -1,0 +1,25 @@
+name: Fuel GPS auto 30m tests
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release/fuel-gps-30m-clean-20261102
+    paths:
+      - src/lib/fuelPhoto.ts
+      - tests/fuel-auto-station-30m.test.cjs
+      - .github/workflows/fuel-gps-auto-30m.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/fuel-gps-30m-clean-20261102
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node tests/fuel-auto-station-30m.test.cjs
+      - run: node tests/fuel-photo-station-distance.test.cjs
+      - run: node tests/fuel-photo-integration-wiring.test.cjs

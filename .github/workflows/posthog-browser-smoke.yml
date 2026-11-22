@@ -1,0 +1,29 @@
+name: PostHog deployed browser smoke
+on:
+  push:
+    branches:
+      - test/posthog-beta-audit-20261116
+    paths:
+      - 'scripts/smoke-posthog-browser.cjs'
+      - '.github/workflows/posthog-browser-smoke.yml'
+  workflow_dispatch:
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --ignore-scripts playwright
+          npx playwright install --with-deps chromium
+      - name: Smoke test Ziiply app preview in mobile Chromium
+        env:
+          ZIIPLY_SMOKE_URL: https://ziiply-git-test-posthog-beta-audit-a22236-ziipli2026s-projects.vercel.app/
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/smoke-posthog-browser.cjs

@@ -1,0 +1,111 @@
+name: Progressive desktop search browser test
+on:
+  push:
+    branches: [test/progressive-desktop-search]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/progressive" --no-save --package-lock=false playwright@1.56.1
+      - name: Verify initial results, completion, closing and cart
+        run: |
+          npm run dev -- -H 127.0.0.1 -p 3100 >/tmp/progressive-next.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS --max-time 30 http://127.0.0.1:3100/ >/dev/null; then break; fi
+            sleep 1
+          done
+          NODE_PATH="$RUNNER_TEMP/progressive/node_modules" node <<'NODE'
+          const {chromium,devices}=require('playwright');
+          const assert=require('node:assert/strict');
+          const url='http://127.0.0.1:3100/';
+          const first={id:1,name:'Kotimaista rasvaton maito 1 l',ean:'6415712506032',price:85,priceAmountUnit:'cent'};
+          const second={id:2,name:'Pirkka suomalainen kevytmaito 1 l',ean:'6410405082657',price:99,priceAmountUnit:'cent'};
+          (async()=>{
+            const browser=await chromium.launch();
+            try{
+              for(const action of ['final','close','cart']){
+                const ctx=await browser.newContext({viewport:{width:1440,height:900}});
+                await ctx.addInitScript(()=>{
+                  const s={id:'292',name:'Prisma Hyvinkää',chain:'S'};
+                  const k={id:'3221',name:'K-Citymarket Hyvinkää',chain:'K'};
+                  localStorage.setItem('ziiply-desktop-store-choices-v1',JSON.stringify({
+                    storeMode:'hyper',storeModeChosen:true,selectedChain:'S',betweenMode:'many',
+                    storeCompareScope:'between_chains',allStoreSelections:{hyper:{292:s,3221:k},local:{}}
+                  }));
+                  localStorage.setItem('ziiply-store-selection-v536',JSON.stringify({
+                    version:1,savedAt:Date.now(),activeArea:{label:'Hyvinkää',sStoreId:s.id,sStoreName:s.name,kStoreId:k.id,kStoreName:k.name},
+                    storeMode:'hyper',storeModeChosenV299:true,storeCompareScope:'between_chains',betweenChainSelectionModeV749:'many',
+                    withinChain:null,selectedChains:{s:true,k:true,lidl:false,tokmanni:false},usingOwnLocation:false
+                  }));
+                });
+                const page=await ctx.newPage();
+                let release;
+                const gate=new Promise(resolve=>{release=resolve});
+                let kRequests=0;
+                await page.route('**/api/neon-first-search?*',route=>route.fulfill({json:{products:[]}}));
+                await page.route('**/api/ean-bank?*',route=>route.fulfill({json:{}}));
+                await page.route('**/api/s-products?*',route=>route.fulfill({json:{products:[first],source:'ruoanhinta-s'}}));
+                await page.route('**/api/k-products?*',async route=>{
+                  kRequests++;
+                  await gate;
+                  await route.fulfill({json:{products:[second],source:'ruoanhinta-k'}});
+                });
+                try{
+                  await page.goto(url);
+                  const home=page.locator('[data-desktop-layout]');
+                  await home.waitFor({timeout:25000});
+                  await page.reload();
+                  await home.waitFor({timeout:25000});
+                  await page.getByRole('button',{name:'Avaa Justiina',exact:true}).click();
+                  const input=page.getByRole('textbox',{name:'Hae tuotteita'});
+                  await input.fill('maito 1l');
+                  await input.press('Enter');
+                  const initial=page.getByText('Haetaan lisää tuotteita…',{exact:false});
+                  const close=page.getByRole('button',{name:'Sulje tuotevalinta',exact:true}).first();
+                  const firstCard=page.getByText(first.name,{exact:true});
+                  const secondCard=page.getByText(second.name,{exact:true});
+                  await initial.waitFor({timeout:10000});
+                  await firstCard.waitFor();
+                  assert.ok(kRequests>0);
+                  assert.equal(await secondCard.count(),0);
+                  if(action==='close') await close.click();
+                  if(action==='cart'){
+                    await page.getByRole('button',{name:/Lisää koriin/}).first().click();
+                    await page.waitForFunction(ean=>{
+                      const cart=JSON.parse(sessionStorage.getItem('ziiply-desktop-current-cart-v1')||'[]');
+                      return cart.some(x=>String(x.ean??x.product?.ean)===ean);
+                    },first.ean);
+                  }
+                  if(action==='close') await close.waitFor({state:'hidden'});
+                  release();
+                  if(action!=='close'){
+                    await secondCard.waitFor();
+                    await initial.waitFor({state:'hidden'});
+                    assert.ok(await firstCard.isVisible());
+                  }else{
+                    await page.waitForResponse(response=>response.url().includes('/api/k-products?'));
+                    await page.getByRole('button',{name:'Avaa Justiina',exact:true}).waitFor();
+                    assert.equal(await close.isVisible(),false);
+                  }
+                  console.log('PASS progressive desktop',action);
+                }finally{release();await ctx.close();}
+              }
+            }finally{await browser.close();}
+          })().catch(error=>{console.error(error);process.exitCode=1;});
+          NODE
+      - if: failure()
+        run: tail -100 /tmp/progressive-next.log

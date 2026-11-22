@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ZiiplyMobileScannerCard from "../cards/ZiiplyMobileScannerCard";
 import posthog from "posthog-js";
+import { useRouter } from "next/navigation";
 import {arvoNutrientValues, saveArvoMeal} from "./arvoStatistics";
 
 /**
@@ -12,6 +13,7 @@ import {arvoNutrientValues, saveArvoMeal} from "./arvoStatistics";
  */
 export type ArvoCartProduct = { ean: string; name: string; grams: number; nutrition: Record<string, unknown> | null };
 export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { onClose?: () => void; onAddToCart?: (product: ArvoCartProduct) => void | Promise<void> } = {}) {
+  const router = useRouter();
   const [open, setOpen] = useState(true);
   const [ean, setEan] = useState("");
   const [productName, setProductName] = useState("");
@@ -65,7 +67,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
         const Reader = (window as any).Html5Qrcode;
         if (!Reader) throw new Error("scanner-unavailable");
         scanner = new Reader(regionId, {verbose:false});
-        await scanner.start({facingMode:"environment"}, {fps:12, qrbox: {width:270,height:155}, aspectRatio:1.7778}, onDecoded, () => undefined);
+        await scanner.start({facingMode:"environment"}, {fps:12, qrbox: (viewfinderWidth: number, viewfinderHeight: number) => ({width:Math.floor(viewfinderWidth * 0.88),height:Math.floor(viewfinderHeight * 0.42)}), aspectRatio:1.7778}, onDecoded, () => undefined);
         if (disposed) { await scanner.stop().catch(() => undefined); return; }
         const video = document.querySelector("#" + regionId + " video") as HTMLVideoElement | null;
         cameraRef.current = video?.srcObject as MediaStream | null;
@@ -79,7 +81,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
       disposed = true;
       cameraRef.current = null;
       if (scanner) {
-        void Promise.resolve(scanner.stop()).catch(() => undefined).then(() => scanner.clear()).catch(() => undefined);
+        void Promise.resolve().then(() => scanner.stop()).catch(() => undefined).then(() => scanner.clear()).catch(() => undefined);
       }
     };
   }, [open]);
@@ -111,6 +113,19 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     return Number.isFinite(number) && number >= 0 ? (number * grams / 100).toLocaleString("fi-FI",{maximumFractionDigits:1}) : "—";
   };
   const [grams, setGrams] = useState(100);
+  const estimatedSalt = nutrition?.estimatedSalt && typeof nutrition.estimatedSalt === "object"
+    ? nutrition.estimatedSalt as Record<string, unknown> : null;
+  const estimatedSaltValue = estimatedSalt?.estimated === true && estimatedSalt?.source === "fineli-generic"
+    && typeof estimatedSalt?.value === "number" && Number.isFinite(estimatedSalt.value)
+    && estimatedSalt.value >= 0 && estimatedSalt.value <= 100
+    ? estimatedSalt.value : null;
+  const reportedSalt = nutrition?.salt_100g;
+  const reportedSaltNumber = typeof reportedSalt === "number" ? reportedSalt
+    : typeof reportedSalt === "string" && reportedSalt.trim() !== "" ? Number(reportedSalt) : NaN;
+  const reportedSaltValue = Number.isFinite(reportedSaltNumber) && reportedSaltNumber >= 0 && reportedSaltNumber <= 100
+    ? reportedSaltNumber : null;
+  const saltForAmount = (value: number) => (value * grams / 100).toLocaleString("fi-FI", {maximumFractionDigits: 4});
+
   const addToCart = async () => {
     if (!onAddToCart || !ean || !productName || cartSaving || cartSaved) return;
     setCartSaving(true);
@@ -137,17 +152,17 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
     setOpen(false);
     setTab("scan");
     if (onClose) { onClose(); return; }
-    if (typeof window !== "undefined") {
-      const referrer = document.referrer;
-      if (referrer && new URL(referrer).origin === window.location.origin && window.history.length > 1) window.history.back();
-      else window.location.assign("/");
-    }
+    setStatus("");
+    const referrer = document.referrer ? new URL(document.referrer) : null;
+    const fromDesktop = referrer?.origin === window.location.origin && referrer.pathname === "/desktop-preview";
+    router.replace(fromDesktop ? "/desktop-preview" : "/");
   };
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#f8f5ed] text-[#173b2b]">
       <ZiiplyMobileScannerCard
         regionId="arvo-nutrition-scanner-camera"
         fullscreen
+        scanGuide={tab === "scan"}
         hideHeaderTitle
         headerTitle={<div className="flex items-center justify-center gap-2"><img src="/assistants/arvo.png" alt="Arvo" className="h-[72px] w-[72px] shrink-0 rounded-full object-cover"/><div className="min-w-0 text-left leading-tight text-[#163d32]"><div className="text-[clamp(15px,4vw,21px)] font-black uppercase tracking-wide" style={{fontFamily: 'Georgia, "Times New Roman", serif'}}>Skanneri</div><div className="text-[clamp(10px,2.6vw,13px)] font-bold">Arvon ravintoskanneri</div></div></div>}
         footerLeft={<div className="grid grid-cols-2 gap-1"><button type="button" onClick={saveMeal} disabled={!ean || !nutrition || !productName || grams <= 0 || mealSaved} title={mealSaved ? "Tallennettu aterialle" : "Tallenna tuote aterialle"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🍽️</span><span>{mealSaved ? "Tallennettu" : "Aterialle"}</span></button><button type="button" onClick={() => void addToCart()} disabled={!onAddToCart || !ean || !productName || cartSaving || cartSaved} title={!onAddToCart ? "Odottaa Ziiplyn ostoskorin kytkentää" : cartSaved ? "Lisätty ostoskoriin" : "Lisää ostoskoriin"} className="flex h-[64px] flex-col items-center justify-center rounded-xl border-[2px] border-[#8d6e3d] bg-[#f8ecd0] text-[11px] font-black text-[#28492f] disabled:opacity-50"><span className="text-xl">🛒</span><span>{cartSaved ? "Lisätty" : "Ostoskoriin"}</span></button></div>}
@@ -176,6 +191,17 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
               <input id="arvo-grams" type="range" min="0" max="500" step="5" value={Math.min(grams,500)} onChange={e=>setGrams(Number(e.target.value))} className="mt-1 w-full accent-[#24573e]"/>
               <div className="mt-2 grid grid-cols-4 gap-1">
                 {([["kcal",["kcal_100g","energy-kcal_100g","ENERC"]],["Prot.",["proteins_100g","protein_100g","PROCNT"]],["HH",["carbohydrates_100g","CHOCDF"]],["Rasva",["fat_100g","FAT"]]] as [string,string[]][]).map(([label,keys])=><div key={label} className="rounded-lg bg-white px-1 py-2 text-center"><div className="text-[10px] font-bold">{label}</div><div className="text-base font-black">{nutrient(keys)}</div></div>)}
+              </div>
+              <div className="mt-2 rounded-lg border border-[#d7c69d] bg-white p-2 text-xs">
+                <div className="font-bold">Suola · {grams} g annos</div>
+                {reportedSaltValue !== null ? (
+                  <div>{saltForAmount(reportedSaltValue)} g <span className="text-[#536456]">· ilmoitettu ravintoarvo</span></div>
+                ) : estimatedSaltValue !== null ? (
+                  <div>
+                    <div className="font-bold">{saltForAmount(estimatedSaltValue)} g <span className="text-[#83652f]">· Fineli – arvio</span></div>
+                    <p className="mt-1 text-[11px] text-[#695e48]">Arvio vastaavan elintarvikkeen koostumuksesta, ei valmistajan ilmoittama tuotearvo.</p>
+                  </div>
+                ) : <div className="text-[#536456]">Ei suolatietoa</div>}
               </div>
               <div className="mt-2">
                 <a href="/arvo-tilastot" className="mb-2 block rounded-xl border-2 border-[#24573e] bg-white p-2 text-center text-sm font-bold">📊 Katso ravintotilastot</a>

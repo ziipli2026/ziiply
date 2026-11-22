@@ -1,0 +1,18 @@
+name: Inspect raw Tjek offer fields
+on:
+  pull_request:
+    paths:
+      - 'scripts/inspect-tjek-offer-fields.mjs'
+      - '.github/workflows/inspect-tjek-offer-fields.yml'
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read public Tjek offer field names only
+        run: node scripts/inspect-tjek-offer-fields.mjs

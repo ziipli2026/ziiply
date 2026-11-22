@@ -21,6 +21,8 @@ for (const [name, registration, sequence, setter] of [
   vm.runInContext(`${registryCode}
     const ${sequence} = { current: 1 };
     const requestSeqV551 = 1, normalSearchRequestIdV441 = 1;
+    const searchTelemetryV441 = {};
+    const cancelSearchTelemetry = () => {};
     const ${setter} = value => { state.loading = value; };
     ${operationCode}
     if (recoverZiiplyStalledRequests(Date.now() + 29_000) !== 0) throw Error('fresh cancelled');

@@ -694,9 +694,12 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
+import { comparisonAlternativeQueries, comparisonBrand, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "./components/ziiply/comparisonBrand";
 import { registerZiiplyRecoverableRequest } from "./components/ziiplyRequestRecovery";
+import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordSearchProductAddedToCart, recordSearchResultsDismissed } from "./components/ziiply/search/searchTelemetry";
 import ZiiplyArrivalNotice, { useZiiplyArrivalNotice } from "./components/ziiply/location/ZiiplyArrivalNotice";
-import { evaluateZiiplyArrival, initialZiiplyArrivalState, ZIIPLY_PARKED_SAMPLE_MS } from "./components/ziiply/location/ziiplyArrivalSequence";
+import { evaluateZiiplyArrival, initialZiiplyArrivalState, confirmZiiplyStorePresence, ZIIPLY_PARKED_SAMPLE_MS, ZIIPLY_STORE_RADIUS_METERS } from "./components/ziiply/location/ziiplyArrivalSequence";
+import { recordArrivalDiagnostic, getArrivalDiagnostics, clearArrivalDiagnostics } from "./components/ziiply/location/ziiplyArrivalDiagnostics";
 import { scannerStickerPrice } from "../lib/scannerStickerPrice";
 import ZiiplyMobileFuelMenu from "./components/ziiply/mobile/ZiiplyMobileFuelMenu";
 import ZiiplyMobileFuelView from "./components/ziiply/mobile/ZiiplyMobileFuelView";
@@ -1503,7 +1506,8 @@ import DesktopFuelPhotoReport from "./components/ziiply/desktop/DesktopFuelPhoto
 // V397_FUNCTIONAL_ROLLBACK: palautettu P394:n oma toimiva mobiili-Kori/Vertailu/Hae-renderöinti.
 // V401_REMOVE_OLD_MOBILE_SHOPS_RENDER: vanha Kaupat-paneelin JSX poistettu ja ohjattu ZiiplyMobileShopsView-komponenttiin.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
 import { createPortal } from "react-dom";
 import type {
   Offer,
@@ -1568,6 +1572,7 @@ import {
   normalizeLooseProductMatch,
   getMetricSizeKey,
   getNormalSearchQueries,
+  readSearchProducts,
   isAliasSearch,
   formatEuro,
   formatComparisonPrice,
@@ -1638,6 +1643,8 @@ import {
   scoreNormalSResult,
   rankNormalSearchResults,
   rankProductResultsByRelevanceAndPrice,
+  comparePricedSearchResults,
+  finalizeNormalSearchResults,
   isNonFoodOffer,
   isBadNormalResult,
   findArea,
@@ -1711,9 +1718,11 @@ import {
   type ZiiplyKruokaDebugV174,
 } from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import {
-  explainNormalSearch as explainZiiplyNormalSearch,
   learnNormalSearchChoice as learnZiiplyNormalSearchChoice,
 } from "./components/ziiply/search/searchEngine";
+import { searchNormalStores, type NormalSearchStore } from "./components/ziiply/search/normalStoreSearch";
+import { desktopSearchQuery } from "./components/ziiply/search/desktopNormalRelevance";
+import { autocorrectNormalSearchTerm } from "./components/ziiply/desktop/justiina/mobileVoiceList";
 import { getLearnedStructureBoost } from "./components/ziiply/search/searchIntentMemory";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
@@ -2159,6 +2168,7 @@ function topbarPanelClassV717(kind: "weather" | "electricity" | "fuel" | "calend
 
 function KauppiasMobileTopBar({
   hidden = false,
+  showSpeedIndicator = false,
   areaLabel = "Hyvinkää",
   gpsCoords = null,
   weatherEnabled = false,
@@ -2169,6 +2179,7 @@ function KauppiasMobileTopBar({
   fuelModeActive = false,
 }: {
   hidden?: boolean;
+  showSpeedIndicator?: boolean;
   areaLabel?: string;
   gpsCoords?: { latitude: number; longitude: number } | null;
   weatherEnabled?: boolean;
@@ -2182,6 +2193,170 @@ function KauppiasMobileTopBar({
   // Sääkenttä saa tehdä avauksessa yhden GPS-haun. Onnistunut koordinaatti
   // palautetaan page.tsx:lle, joka käyttää sitä paikkakuntaan ja kauppahakuun.
   // Oma page-boot-GPS pysyy silti pois päältä.
+  const [mobileDrivingSpeed, setMobileDrivingSpeed] = useState<number | null>(null);
+  const [mobileSpeedLimit, setMobileSpeedLimit] = useState<number | null>(null);
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    let active = true;
+    let lastFixAt = 0;
+    let lastAcceptedSpeed: number | null = null;
+    let driving = false;
+    let belowThresholdSince: number | null = null;
+    let candidateHigh: { speed: number; at: number } | null = null;
+    let lastLimitQueryAt = 0;
+    let limitGeneration = 0;
+    const queryLimit = (position: GeolocationPosition) => {
+    const now = Date.now();
+    const { latitude, longitude, accuracy, heading } = position.coords;
+    if (accuracy > 100 || now - lastLimitQueryAt < 12000) {
+      recordArrivalDiagnostic("speed-limit-query-skipped", { reason: accuracy > 100 ? "gps-accuracy" : "throttled", accuracyM: Math.round(accuracy), waitMs: Math.max(0, 12000 - (now - lastLimitQueryAt)) });
+      const target = document.getElementById("mobile-speed-limit-debug");
+      if (target && accuracy > 100) { const h = document.getElementById("mobile-speed-limit-debug-history"); if (h) h.textContent += "\nGPS liian epätarkka ±" + Math.round(accuracy) + " m"; }
+      return;
+    }
+    lastLimitQueryAt = now;
+    const generation = ++limitGeneration;
+    const controller = new AbortController();
+    const startedAt = Date.now();
+    recordArrivalDiagnostic("speed-limit-query-start", { generation, accuracyM: Math.round(accuracy), heading: heading === null ? null : Math.round(heading), latitude, longitude });
+    const debugLine = (message: string) => {
+      let target = document.getElementById("mobile-speed-limit-debug");
+      if (!target) {
+        const panel = document.createElement("details");
+        panel.id = "mobile-speed-limit-debug";
+        panel.style.cssText = "position:fixed;z-index:2147483647;bottom:90px;left:8px;right:8px;max-height:42vh;overflow:auto;background:#111;color:#baffbd;border:2px solid white;border-radius:10px;padding:8px;font:12px/1.4 monospace";
+        const summary = document.createElement("summary");
+        summary.textContent = "GPS / RAJOITUS DEBUG – avaa loki";
+        panel.appendChild(summary);
+        const copy = document.createElement("button");
+        copy.textContent = "Kopioi loki";
+        copy.type = "button";
+        copy.style.cssText = "margin:8px;padding:6px;background:#fff;color:#111;border-radius:5px";
+        copy.onclick = () => {
+          const data = document.getElementById("mobile-speed-limit-debug-history")?.textContent ?? "";
+          void navigator.clipboard.writeText(data).then(() => { copy.textContent = "Kopioitu"; }).catch(() => { copy.textContent = "Kopiointi epäonnistui"; });
+        };
+        panel.appendChild(copy);
+        const history = document.createElement("pre");
+        history.id = "mobile-speed-limit-debug-history";
+        history.style.cssText = "white-space:pre-wrap;overflow-wrap:anywhere;margin:4px";
+        panel.appendChild(history);
+        document.body.appendChild(panel);
+        target = panel;
+      }
+      const history = document.getElementById("mobile-speed-limit-debug-history");
+      if (history) {
+        const lines = (history.textContent ?? "").split("\n").filter(Boolean);
+        lines.push(new Date().toLocaleTimeString("fi-FI") + " " + message);
+        history.textContent = lines.slice(-80).join("\n");
+      }
+    };
+    debugLine("GPS ±" + Math.round(accuracy) + " m | haku alkaa");
+    const timeout = window.setTimeout(() => { recordArrivalDiagnostic("speed-limit-query-timeout", { generation, elapsedMs: Date.now() - startedAt }); debugLine("AIKAKATKAISU 39 s"); controller.abort(); }, 39000);
+    const params = new URLSearchParams({
+      lat: String(latitude),
+      lon: String(longitude),
+      accuracy: String(accuracy),
+    });
+    if (heading !== null && Number.isFinite(heading)) params.set("heading", String(heading));
+    params.set("debug", "1");
+    void fetch("/api/mobile-speed-limit?" + params.toString(), {
+      signal: controller.signal,
+      cache: "no-store",
+    }).then(async response => {
+      const data = await response.json() as {
+        limit: number | null; reason?: string;
+        diagnostics?: { accuracy: number; radius: number; providers: Array<{provider:string;ms:number;status:number|null;outcome:string;candidates?:number}> };
+      };
+      recordArrivalDiagnostic("speed-limit-query-response", { generation, httpStatus: response.status, elapsedMs: Date.now() - startedAt, limit: data.limit, reason: data.reason ?? null, radiusM: data.diagnostics?.radius ?? null, providerCount: data.diagnostics?.providers?.length ?? 0 });
+      data.diagnostics?.providers?.forEach((provider, index) => recordArrivalDiagnostic("speed-limit-provider", { generation, index, provider: provider.provider, httpStatus: provider.status, elapsedMs: provider.ms, outcome: provider.outcome, candidates: provider.candidates ?? null }));
+      const providerLines = data.diagnostics?.providers.map(p =>
+        p.provider + " | HTTP " + (p.status ?? "—") + " | " + p.outcome + " | " + p.ms + "ms | roads " + (p.candidates ?? "—")
+      ).join("\n") ?? "Palvelimen diagnostiikka puuttuu";
+      debugLine("GPS ±" + (data.diagnostics?.accuracy ?? Math.round(accuracy)) + "m | " +
+        (data.reason ?? "tuntematon") + "\n" + providerLines);
+      if (!response.ok) throw new Error("HTTP " + response.status + " " + (data.reason ?? ""));
+      return data;
+    }).then(data => {
+      if (!active || generation !== limitGeneration) { recordArrivalDiagnostic("speed-limit-response-ignored", { generation, currentGeneration: limitGeneration, active }); return; }
+      const limit = typeof data.limit === "number" && Number.isFinite(data.limit) ? data.limit : null;
+      debugLine(limit === null ? "EI RAJOITUSTA | " + (data.reason ?? "tuntematon") : "RAJOITUS " + limit + " km/h | " + (data.reason ?? "matched"));
+      recordArrivalDiagnostic("speed-limit-display-update", { generation, limit, reason: data.reason ?? null });
+      setMobileSpeedLimit(limit);
+     }).catch((error: unknown) => {
+      if (!(error instanceof Error && error.message.startsWith("HTTP "))) debugLine("VERKKOVIRHE " + (error instanceof Error ? error.name + ": " + error.message : String(error)));
+      recordArrivalDiagnostic("speed-limit-query-error", { generation, elapsedMs: Date.now() - startedAt, error: error instanceof Error ? error.name + ": " + error.message : String(error), applied: active && generation === limitGeneration });
+      if (active && generation === limitGeneration) { recordArrivalDiagnostic("speed-limit-display-update", { generation, limit: null, reason: "query-error" }); setMobileSpeedLimit(null); }
+    }).finally(() => window.clearTimeout(timeout));
+  };
+  const reset = () => {
+      driving = false;
+      belowThresholdSince = null;
+      candidateHigh = null;
+      lastAcceptedSpeed = null;
+      setMobileDrivingSpeed(null);
+      recordArrivalDiagnostic("speed-limit-display-reset", { reason: "speed-reset", previousGeneration: limitGeneration });
+      setMobileSpeedLimit(null);
+      // Keep an in-flight lookup valid across a brief dip below 20 km/h.
+      // A new lookup supersedes it using its own generation; unmount sets active=false.
+    };
+    const applyFix = (position: GeolocationPosition) => {
+      const now = Date.now();
+      const { speed, accuracy } = position.coords;
+      const timestamp = position.timestamp;
+      if (!active || !Number.isFinite(timestamp) || timestamp <= lastFixAt ||
+          timestamp > now + 1000 || now - timestamp > 5000 ||
+          typeof speed !== "number" || !Number.isFinite(speed) || speed < 0 ||
+          !Number.isFinite(accuracy) || accuracy <= 0 || accuracy > 35) return;
+      const kmh = speed * 3.6;
+      if (kmh > 180) return;
+      // A sudden high reading after being stationary must be confirmed by
+      // another independent GPS fix; reject implausible acceleration spikes.
+      if (lastAcceptedSpeed !== null && Math.abs(kmh - lastAcceptedSpeed) > 35) {
+        if (!candidateHigh || now - candidateHigh.at > 6000 ||
+            Math.abs(kmh - candidateHigh.speed) > 12) {
+          candidateHigh = { speed: kmh, at: now };
+          return;
+        }
+      }
+      if (!driving && kmh > 20) {
+        if (!candidateHigh || now - candidateHigh.at > 6000 ||
+            Math.abs(kmh - candidateHigh.speed) > 12) {
+          candidateHigh = { speed: kmh, at: now };
+          return;
+        }
+        driving = true;
+      }
+      candidateHigh = null;
+      lastFixAt = timestamp;
+      lastAcceptedSpeed = kmh;
+      if (!driving) return;
+      recordArrivalDiagnostic("speed-display-sample", { speedKmh: Math.round(kmh), accuracyM: Math.round(accuracy), speedLimitQueryEligible: kmh >= 20 });
+      queryLimit(position);
+      // Hide immediately on the first valid GPS fix below 20 km/h.
+      // Do not render 0 or low speeds during the former 30-second grace period.
+      if (kmh < 20) { reset(); return; }
+      belowThresholdSince = null;
+      setMobileDrivingSpeed(Math.round(kmh));
+    };
+    const watchId = navigator.geolocation.watchPosition(
+      applyFix,
+      error => { recordArrivalDiagnostic("speed-display-gps-error", { code: error.code, message: error.message }); },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 },
+    );
+    const timer = window.setInterval(() => {
+      if (!driving) return;
+      const now = Date.now();
+      // A lost GPS stream must not leave a stale speed sign visible forever.
+      if ((belowThresholdSince !== null && now - belowThresholdSince >= 30000) ||
+          (lastFixAt > 0 && now - lastFixAt >= 30000)) reset();
+    }, 1000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, []);
   const [weatherValue, setWeatherValue] = useState("—°");
   const [weatherText, setWeatherText] = useState(areaLabel);
   const [weatherGpsFallbackCoordsV104, setWeatherGpsFallbackCoordsV104] = useState<{
@@ -2191,6 +2366,9 @@ function KauppiasMobileTopBar({
   const [electricityChartOpen, setElectricityChartOpen] = useState(false);
   const [electricityChartRows, setElectricityChartRows] = useState<Array<{time:number;price:number}>>([]);
   const [electricityChartStatus, setElectricityChartStatus] = useState("Haetaan hintoja…");
+  const [electricitySelectedIndex, setElectricitySelectedIndex] = useState<number | null>(null);
+  const [electricityOffersOpen, setElectricityOffersOpen] = useState(false);
+  const [mobileElectricityOfferTypes, setMobileElectricityOfferTypes] = useState<string[]>([]);
   const [electricityValue, setElectricityValue] = useState("…");
   const [electricityText, setElectricityText] = useState("haetaan");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
@@ -2849,7 +3027,7 @@ function KauppiasMobileTopBar({
   if (hidden) return null;
 
   return (
-    <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[300] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
+    <><div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[300] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px]">
       <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
         <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,0.96fr)_minmax(0,1.20fr)_minmax(0,1.12fr)_minmax(0,0.96fr)] gap-[clamp(2px,1.4vw,6px)]">
           {panels.map((panel) => {
@@ -2943,6 +3121,18 @@ function KauppiasMobileTopBar({
         </div>
       </div>
     </div>
+      {/* Compact mobile speed sign — fixed 0 preview, space reserved for three digits. */}
+      {showSpeedIndicator && !hidden && !mobileFuelMenuOpen && !mobileFuelReportOpen && !electricityChartOpen && mobileDrivingSpeed !== null && <div aria-label="Ajonopeus" className="pointer-events-none fixed left-1/2 top-[calc(max(env(safe-area-inset-top),0px)+84px)] z-[299] -translate-x-1/2">
+        <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[0.9rem] border-[3px] border-[#073d32] bg-[#fff5d9] text-[#173b31] shadow-[0_8px_20px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
+          <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+          <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+          <span className="absolute left-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+          <span className="absolute right-[4px] bottom-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+          <div className="absolute inset-x-0 top-[4px] flex items-center justify-center whitespace-nowrap text-center text-[30px] font-black leading-none tracking-[-0.07em] tabular-nums" style={{ color: mobileSpeedLimit === null ? "#173b31" : mobileDrivingSpeed > mobileSpeedLimit + 2 ? "#cf202a" : "#138441" }}>{mobileDrivingSpeed}</div>
+          {mobileSpeedLimit !== null && <div aria-label={`Nopeusrajoitus ${mobileSpeedLimit}`} className="absolute bottom-[3px] left-1/2 flex h-[34px] min-w-[34px] -translate-x-1/2 items-center justify-center rounded-full border-[3px] border-[#d92d26] bg-white px-[3px] text-[13px] font-black leading-none text-black shadow-sm tabular-nums">{mobileSpeedLimit}</div>}
+          
+        </div>
+      </div>}
       {mobileFuelMenuOpen && (
         <ZiiplyMobileFuelMenu
           onClose={() => setMobileFuelMenuOpen(false)}
@@ -2951,23 +3141,78 @@ function KauppiasMobileTopBar({
         />
       )}
       {mobileFuelReportOpen && <DesktopFuelPhotoReport onClose={() => setMobileFuelReportOpen(false)} />}
+      {electricityOffersOpen && (
+        <div className="fixed inset-0 z-[260] flex items-start justify-center bg-black/50 px-3 pt-[calc(env(safe-area-inset-top)+80px)] pb-[calc(env(safe-area-inset-bottom)+24px)]" role="dialog" aria-modal="true" aria-label="Sähkötarjoukset">
+          <section className="flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-3 shadow-2xl">
+            <div className="flex shrink-0 items-start justify-between gap-2">
+              <div><h2 className="text-xl font-black text-[#164b38]">⚡ Sähkötarjoukset</h2><p className="text-[11px] font-bold text-[#6d604c]">Hintapoiminta 11.10.2026 · tarkista myyjältä</p></div>
+              <button type="button" onClick={() => setElectricityOffersOpen(false)} aria-label="Sulje sähkötarjoukset" className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold">×</button>
+            </div>
+            <p className="mt-2 shrink-0 text-xs text-[#6d604c]">Sähköenergian myyntisopimukset. Siirto ja sähkövero eivät sisälly. Tarjoukset voivat muuttua.</p>
+            <div className="mt-3 flex shrink-0 flex-wrap gap-1.5" role="group" aria-label="Rajaa sähkösopimuksia">
+              {([{id:"all",label:"Kaikki"},{id:"Pörssi",label:"Spot – varttihinta"},{id:"Kuukausikeskiarvo",label:"Spot – kk-keskihinta"},{id:"Kiinteä",label:"Kiinteähintainen"},{id:"Kulutusvaikutus",label:"Kulutusvaikutus"},{id:"Kampanja",label:"Kampanjatarjoukset"}] as const).map(option => {
+                const selected = option.id === "all" ? mobileElectricityOfferTypes.length === 0 : mobileElectricityOfferTypes.includes(option.id);
+                return <button key={option.id} type="button" aria-pressed={selected} onClick={() => setMobileElectricityOfferTypes(current => option.id === "all" ? [] : current.includes(option.id) ? current.filter(v => v !== option.id) : [...current, option.id])} className={`rounded-full border px-2.5 py-1.5 text-xs font-bold ${selected ? "border-[#174c35] bg-[#174c35] text-white" : "border-[#caa15d] bg-white text-[#174c35]"}`}>{option.label}</button>;
+              })}
+            </div>
+            <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pb-2">
+              {([{seller:"Helen",name:"Perussähkö 24 kk",type:"Kiinteä",price:"10,45 snt/kWh",fee:"1,79 €/kk tarjous (norm. 5,99 €)",detail:"24 kk · tarjousperusmaksun kesto tarkistettava",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Helen",name:"Välkkysähkö 24 kk",type:"Kulutusvaikutus",price:"9,98 snt/kWh ± vaikutus",fee:"1,79 €/kk tarjous (norm. 5,99 €)",detail:"24 kk · lopullinen hinta riippuu kulutuksesta",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Helen",name:"Pörssisähkö",type:"Pörssi",price:"Spot + 0,49 snt/kWh",fee:"0 €/kk ensimmäiset 6 kk (norm. 4,96 €)",detail:"Toistaiseksi voimassa",url:"https://www.helen.fi/sahko/sahkosopimus/sahkotarjous"},
+                      {seller:"Oomi",name:"Aktiivinen",type:"Pörssi",price:"Spot + 0,60 snt/kWh",fee:"0 €/kk ensimmäiset 5 kk, sitten 4,96 €",detail:"Toistaiseksi voimassa",url:"https://oomi.fi/sahko/sahkosopimukset/"},
+                      {seller:"Oomi",name:"Jousto 24 kk",type:"Kulutusvaikutus",price:"9,09 snt/kWh ± vaikutus",fee:"0 €/kk ensimmäiset 5 kk, sitten 5,90 €",detail:"24 kk · kulutusvaikutus muuttaa hintaa",url:"https://oomi.fi/sahko/sahkosopimukset/"},
+                      {seller:"Oomi",name:"Kiinteä 12 kk",type:"Kiinteä",price:"11,19 snt/kWh",fee:"5,90 €/kk",detail:"12 kk · lähdesivun poiminta",url:"https://oomi.fi/sahko/sahkosopimukset/"},
+                      {seller:"Fortum",name:"Tarkka",type:"Pörssi",price:"Spot + 0,59 snt/kWh",fee:"5,99 €/kk",detail:"Toistaiseksi voimassa · myyjän verkkosivu",url:"https://www.fortum.com/fi/sahkoa/sahkoa-kotiin"},
+                      {seller:"Fortum",name:"Duo 12 kk",type:"Kulutusvaikutus",price:"10,99 snt/kWh ± vaikutus",fee:"5,99 €/kk",detail:"12 kk · myyjän verkkosivu",url:"https://www.fortum.com/fi/sahkoa/sahkoa-kotiin/duo-sahkosopimus"},
+                      {seller:"Fortum",name:"Duo 24 kk",type:"Kulutusvaikutus",price:"9,69 snt/kWh ± vaikutus",fee:"5,99 €/kk",detail:"24 kk · myyjän verkkosivu",url:"https://www.fortum.com/fi/sahkoa/sahkoa-kotiin/duo-sahkosopimus"},
+                      {seller:"Vattenfall",name:"Optimi Pörssisähkö",type:"Pörssi",price:"Spot + 0,50 snt/kWh",fee:"5,95 €/kk",detail:"Toistaiseksi voimassa · myyjän verkkosivu",url:"https://www.vattenfall.fi/sahkosopimukset/porssisahko/"},
+                      {seller:"Vattenfall",name:"Helppo Pörssisähkö",type:"Pörssi",price:"Spot + 0 snt/kWh (350 kWh/kk asti)",fee:"Tarkista myyjältä",detail:"Yli 350 kWh/kk: ylimenevältä osalta marginaali 0,50 snt/kWh",url:"https://www.vattenfall.fi/sahkosopimukset/porssisahko/"}
+              ] as const).filter(offer => mobileElectricityOfferTypes.length === 0 || mobileElectricityOfferTypes.some(type => type === "Kampanja" ? offer.fee.includes("tarjous") || offer.fee.includes("ensimmäiset") : type === "Kuukausikeskiarvo" ? false : offer.type === type)).map(offer =>
+                <a key={offer.seller + offer.name} href={offer.url} target="_blank" rel="noopener noreferrer" className="block rounded-xl border border-[#caa15d] bg-[#fffdf1] p-3 text-[#174c35]">
+                  <div className="flex items-start justify-between gap-2"><strong className="text-sm">{offer.seller} · {offer.name}</strong><span className="shrink-0 text-[10px] font-bold">{offer.type} ↗</span></div>
+                  <div className="mt-1 text-lg font-black">{offer.price}</div>
+                  <div className="text-xs font-bold">Perusmaksu: {offer.fee}</div>
+                  <div className="mt-1 text-[11px] text-[#6d604c]">{offer.detail}</div>
+                  <div className="mt-1 text-[11px] font-bold underline">Alkuperäinen tarjous ja ehdot ↗</div>
+                </a>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
       {electricityChartOpen && (
-        <div className="fixed inset-0 z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-[calc(env(safe-area-inset-top)+108px)] pb-[calc(env(safe-area-inset-bottom)+96px)] sm:hidden" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
+        <div className="fixed inset-0 z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-[calc(env(safe-area-inset-top)+108px)] pb-[calc(env(safe-area-inset-bottom)+96px)]" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
           <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-3">
               <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
               <button type="button" onClick={() => setElectricityChartOpen(false)} className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
             </div>
+            <button type="button" onClick={() => setElectricityOffersOpen(true)} className="mb-3 w-full rounded-xl border-2 border-[#174c35] bg-[#174c35] px-4 py-3 text-sm font-black text-[#fff9e7]">Näytä sähkötarjoukset</button>
             {electricityChartStatus ? <div className="h-[260px]" aria-live="off" /> : (
               <>
-                <div className="flex h-[210px] animate-[fadeIn_350ms_ease-out] items-end gap-[2px] border-b-2 border-[#b99961]">
-                  {electricityChartRows.map((item,index) => {
-                    const min = Math.min(0,...electricityChartRows.map(row=>row.price));
-                    const max = Math.max(10,...electricityChartRows.map(row=>row.price));
-                    const height = Math.max(3,(item.price-min+0.4)/(max-min+0.4)*100);
-                    return <div key={item.time+index} className="min-w-0 flex-1 rounded-t-[3px]" style={{height:height+"%",backgroundColor:item.price>=10?"#b84c32":item.price>=6?"#dba32b":"#77a544"}} title={new Date(item.time).toLocaleString("fi-FI",{hour:"2-digit",minute:"2-digit"})+": "+item.price.toFixed(2)+" snt/kWh"}/>;
-                  })}
-                </div>
+                {(() => {
+                  const min = Math.min(0, ...electricityChartRows.map(row => row.price));
+                  const max = Math.max(10, ...electricityChartRows.map(row => row.price));
+                  const range = Math.max(1, max - min);
+                  const selected = electricitySelectedIndex === null ? null : electricityChartRows[electricitySelectedIndex] ?? null;
+                  return <>
+                    <div className="relative h-[210px] animate-[fadeIn_350ms_ease-out] border-b-2 border-[#b99961]">
+                      <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#805a36]" style={{ bottom: ((10 - min) / range * 100) + "%" }}>
+                        <span className="absolute -top-5 left-0 bg-[#fff8e6] px-1 text-[11px] font-bold text-[#805a36]">10 snt/kWh</span>
+                      </div>
+                      <div className="flex h-full items-end gap-[2px]">
+                        {electricityChartRows.map((item, index) => {
+                          const height = Math.max(2, (item.price - min) / range * 100);
+                          const label = new Date(item.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) + ": " + item.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh";
+                          return <button type="button" key={item.time + index} aria-label={label} aria-pressed={electricitySelectedIndex === index} onClick={() => setElectricitySelectedIndex(index)} className="min-w-0 flex-1 rounded-t-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#164b38]" style={{ height: height + "%", minHeight: 3, backgroundColor: item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544", outline: electricitySelectedIndex === index ? "2px solid #164b38" : undefined }} />;
+                        })}
+                      </div>
+                    </div>
+                    <div className="mt-2 min-h-[28px] text-center text-[13px] font-bold text-[#164b38]" aria-live="polite">
+                      {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Kosketa pylvästä nähdäksesi ajan ja hinnan"}
+                    </div>
+                  </>;
+                })()}
                 <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
                   <span>{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit"})}</span>
                   <span>snt/kWh</span>
@@ -3037,7 +3282,30 @@ function getGostaCartPriceV758(offer: any): { total: number; unit: number } {
   return { total, unit };
 }
 
+const DesktopView = dynamic(() => import("./desktop-preview/DesktopPreviewClient"), { ssr: false });
+const desktopViewport = "(min-width: 1024px) and (hover: hover) and (pointer: fine)";
+
+function subscribeToDesktopViewport(onChange: () => void) {
+  const media = window.matchMedia(desktopViewport);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function getDesktopViewport() {
+  return window.matchMedia(desktopViewport).matches;
+}
+
+function getServerViewport() {
+  return null;
+}
+
 export default function Page() {
+  const desktop = useSyncExternalStore(subscribeToDesktopViewport, getDesktopViewport, getServerViewport);
+  if (desktop === null) return null;
+  return desktop ? <DesktopView /> : <MobilePage />;
+}
+
+function MobilePage() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
     (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
     (TopbarResponsiveCardModule as any).ZiiplyTopBar ||
@@ -3152,6 +3420,7 @@ export default function Page() {
     latitude: number;
     longitude: number;
   } | null>(null);
+  const showStoreGpsDistances = Boolean(usingOwnLocation && gpsCoordsV320);
   const [gpsBootReadyV473, setGpsBootReadyV473] = useState(false);
   const [storeDistanceFallbacksV320, setStoreDistanceFallbacksV320] = useState<
     Record<string, number>
@@ -4169,9 +4438,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         if (key !== targetKey) return cartItem;
 
         const currentQuantity = Number(cartItem.quantity ?? cartItem.amount ?? 1);
+        const step = Math.max(1, Number(cartItem.ziiplyOfferBundleQuantity) || 1);
         const nextQuantity = Math.max(
-          1,
-          (Number.isFinite(currentQuantity) ? currentQuantity : 1) + delta,
+          step,
+          (Number.isFinite(currentQuantity) ? currentQuantity : step) + delta * step,
         );
 
         return {
@@ -4293,6 +4563,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const NORMAL_SEARCH_CACHE_MAX_ITEMS_V441 = 24;
   const [normalSearchAttempted, setNormalSearchAttempted] = useState(false);
   const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
+  const mobileSearchTraceRef = useRef<any>({ events: [], status: "not-started" });
+  const traceSearch = (stage: string, data: Record<string, unknown> = {}) => {
+    const trace = mobileSearchTraceRef.current;
+    trace.events.push({ at: new Date().toISOString(), stage, ...data });
+    if (trace.events.length > 120) trace.events.shift();
+  };
+  const traceProducts = (items: Product[]) => items.map((p: Product) => ({
+    id: p.id, ean: p.ean, name: p.name, category: p.category,
+    price: getProductPrice(p), source: (p as any).source,
+    store: (p as any).storeName || (p as any).store,
+    originalSearchTerm: (p as any).originalSearchTerm,
+    usedSearchQuery: (p as any).usedSearchQuery,
+  }));
+  const downloadMobileSearchTrace = () => {
+    const trace = mobileSearchTraceRef.current;
+    const payload = { schema: "ziiply-mobile-search-pipeline-v2", exportedAt: new Date().toISOString(),
+      appUrl: window.location.origin + window.location.pathname, userAgent: navigator.userAgent,
+      ...trace, displayedProducts: traceProducts(normalResultsLatestRefV441.current) };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const a = document.createElement("a"); a.href = url;
+    a.download = "ziiply-haku-pipeline-" + new Date().toISOString().replace(/[:.]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
   const [loadingNormal, setLoadingNormal] = useState(false);
   const [singleProductCompareResults, setSingleProductCompareResults] =
     useState<SingleProductCompareResult[]>([]);
@@ -4533,6 +4827,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [storesReadyForSearch, searchReadySignatureV320]);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
+  const [previewNormalResults, setPreviewNormalResults] = useState<Product[]>([]);
+  const dismissedNormalPreview = useRef<number | null>(null);
   const [mobileResultsReadyQueryV537, setMobileResultsReadyQueryV537] = useState("");
   const mobileResultsReadyQueryRefV509 = useRef("");
   const voiceResultWaitResolverRefV509 = useRef<null | (() => void)>(null);
@@ -4721,6 +5017,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [voiceDebugRowsV507, setVoiceDebugRowsV507] = useState<string[]>([]);
   const voiceDebugSeqRefV507 = useRef(0);
   const [searchNotFoundNoticeV471, setSearchNotFoundNoticeV471] = useState("");
+  const [lidlNormalNoticeOpenV783, setLidlNormalNoticeOpenV783] = useState(false);
   const searchNotFoundNoticeTimerRefV471 = useRef<number | null>(null);
   const recognitionRef = useRef<any>(null);
   const voiceOpenSearchPanelAfterResultRef = useRef(false);
@@ -4786,9 +5083,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scannerLocationStatusV855, setScannerLocationStatusV855] = useState<{name:string;verified:boolean;checking?:boolean}|null>(null);
   const scannerLocationSessionV856 = useRef(0);
   const arrivalNotice = useZiiplyArrivalNotice(usingOwnLocation);
+  const [arrivalDebugVisible,setArrivalDebugVisible]=useState(false);
   const [arrivalOfferChain, setArrivalOfferChain] = useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
   const liveArrivalStateRefV864 = useRef(initialZiiplyArrivalState());
   const liveArrivalLastFixAtRefV864 = useRef(0);
+  const liveArrivalPositionRefV864 = useRef<GeolocationPosition | null>(null);
   const liveArrivalHandlerRefV864 = useRef<(position: GeolocationPosition | null) => void>(() => {});
   const liveArrivalDecisionRefV864 = useRef<ReturnType<typeof evaluateZiiplyArrival> | null>(null);
   const scannerDiscountRefV860 = useRef<{ean:string;percent:number;at:number}|null>(null);
@@ -4888,6 +5187,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const comparisonItemRequestsRef = useRef<Map<string, Promise<{ s: Match | null; k: Match | null; failed: boolean }>>>(new Map());
   const comparisonWarmResultsRefV809 = useRef<Map<string, { savedAt: number; result: { s: Match | null; k: Match | null; failed: boolean } }>>(new Map());
   const comparisonUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [tokmanniComparison, setTokmanniComparison] = useState<{
+    key: string; matches: Record<string, Match>;
+  } | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
   const [kMatches, setKMatches] = useState<Record<string, Match>>({});
   const [expandedAlternatives, setExpandedAlternatives] = useState<
@@ -5050,6 +5352,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   const scannerDecodeFailureAtV861 = useRef(0);
   function pushScannerDebugV493(message: string) {
+    if (process.env.NODE_ENV !== "development") return;
     const line = `${new Date().toLocaleTimeString("fi-FI")} ${message}`;
     setScannerDebugLinesV493((previous) => [...previous, line].slice(-100));
   }
@@ -6516,6 +6819,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!storesReadyForSearch) return;
+    // Lidl-only mode has no normal-price search: do not prefetch unrelated S/K products.
+    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" &&
+        selectedChains.lidl && !selectedChains.s && !selectedChains.k && !selectedChains.tokmanni) return;
     if (stableBootWarmupDoneRefV505.current) return;
 
     const sStore = String(activeStores?.sStoreId || "").trim();
@@ -6542,7 +6848,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // mutta aja se vasta startupin kriittisen vaiheen jälkeen.
     const timer = window.setTimeout(warmup, 3000);
     return () => window.clearTimeout(timer);
-  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId]);
+  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId, storeCompareScope, betweenChainSelectionModeV749, selectedChains.lidl, selectedChains.s, selectedChains.k, selectedChains.tokmanni]);
 
   const localStoreDebugV229 = useMemo(() => {
     try {
@@ -6920,13 +7226,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const data = await response.json();
 
-    const rawItems = Array.isArray(data?.products)
-      ? data.products
-      : Array.isArray(data?.items)
-        ? data.items
-        : Array.isArray(data)
-          ? data
-          : [];
+    const rawItems = readSearchProducts(data);
 
     if(recipeStoreName!==undefined)appendRecipeDebug("recipe-api-response",{query:search,storeId,source:data?.source,status:response.status,recipeFallback:data?.recipeFallback,products:rawItems});
     return rawItems
@@ -6958,13 +7258,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const data = await response.json();
 
-    const rawItems = Array.isArray(data?.products)
-      ? data.products
-      : Array.isArray(data?.items)
-        ? data.items
-        : Array.isArray(data)
-          ? data
-          : [];
+    const rawItems = readSearchProducts(data);
 
     return rawItems
       .map((item: any) => normalizeSProduct(item))
@@ -7148,9 +7442,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function fetchKProducts(
     search: string,
     storeId: string | number,
+    recipeIngredient?:RecipeIngredient,
   ): Promise<KProduct[]> {
     const response = await fetch(
-      `/api/k-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
+      `/api/k-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}${recipeIngredient?`&recipeIngredient=${encodeURIComponent(recipeIngredient.name)}`:""}`,
       { cache: "no-store" },
     );
     const data = await response.json();
@@ -7320,6 +7615,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       id: item.id,
       name: fixText(item.name),
       price: item.price,
+      priceAmountUnit: item.priceAmountUnit,
+      ziiplyEstimatedWeightKg: item.ziiplyEstimatedWeightKg,
+      validityText: item.validityText,
+      discountText: item.discountText,
+      validFrom: item.validFrom,
+      validUntil: item.validUntil,
       image: item.image,
       chain: item.chain,
       storeName: item.storeName,
@@ -7435,6 +7736,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           // Older saved baskets may carry an estimated or €/kg price for an
           // unweighed item. Restore those items as pending, never payable.
           const safeRestoredItems = restoredItems.map((item: any) => {
+            // Repair the previously saved Citymarket row whose €/kg was stored as a package price.
+            if (String(item?.id).startsWith("gosta-watch-") && item.source === "offer" &&
+                /^K-Citymarket/i.test(String(item.storeName)) && Number(item.price) === 29.95 &&
+                /^savustettu kirjolohifilee n\. 700 g$/i.test(String(item.name))) {
+              return {
+                ...item, price: 0, quantity: 1, priceAmountUnit: "eur", ziiplyEstimatedWeightKg: 0.7,
+                ziiplyPricePendingWeight: true, ziiplyWeightOffer: true,
+                product: {
+                  ...item.product, name: item.name, price: 0, ziiplyPricePendingWeight: true,
+                  ziiplyWeightLabel: true, ziiplyWeightOffer: true, comparisonPrice: 29.95, comparisonPriceUnit: "kg",
+                },
+              };
+            }
             const pending = Boolean(item?.ziiplyPricePendingWeight || item?.product?.ziiplyPricePendingWeight);
             if (!pending) return item;
             const finalValue = item?.ziiplyWeightFinalPrice ?? item?.product?.ziiplyWeightFinalPrice;
@@ -8078,9 +8392,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return true;
   }
 
-  async function runVoiceSearchFromSpeechV453(rawValue?: string, force = false, recipeTerms?: string[]) {
-    const cleaned = getVoiceSearchCandidateV456(rawValue);
-    const recipeDebugActive = typeof window !== "undefined" && Boolean(sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1"));
+  async function runVoiceSearchFromSpeechV453(rawValue?: string, force = false, recipeTerms?: string[], onlineRecipeItems?: RecipeIngredient[]) {
+    const cleaned = recipeTerms?.length ? recipeTerms.join(", ") : getVoiceSearchCandidateV456(rawValue);
+    let recipeDebugActive = false;
+    try { recipeDebugActive = typeof window !== "undefined" && Boolean(sessionStorage.getItem("ziiply-mobile-recipe-search-debug-v1")); } catch {}
     if (recipeDebugActive) appendRecipeDebug("search-start", { rawValue, cleaned, force });
     pushVoiceDebugV507(`runVoice START force=${force ? "1" : "0"} raw=${String(rawValue || "").slice(0, 140)} cleaned=${cleaned}`);
     if (!cleaned) {
@@ -8101,8 +8416,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const runId=++mobileRecipeRunRef.current;
-    let recipeItems:RecipeIngredient[]=[];
-    if(recipeTerms?.length){
+    let recipeItems:RecipeIngredient[]=onlineRecipeItems ?? [];
+    if(recipeTerms?.length && !onlineRecipeItems){
       try { recipeItems=JSON.parse(sessionStorage.getItem("ziiply-justiina-active-ingredients-v1")||"null")?.items||[]; } catch {}
       if(recipeItems.length!==recipeTerms.length){appendRecipeDebug("recipe-handoff-error",{terms:recipeTerms,items:recipeItems});return;}
     }
@@ -8125,7 +8440,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceSilenceTimeoutRef.current = null;
     }
 
-    const parsedVoiceTerms = parseTerms(cleaned)
+    const parsedVoiceTerms = recipeTerms?.length ? [] : parseTerms(cleaned)
       .map((term) => fixText(String(term || "")).trim())
       .filter(Boolean);
 
@@ -8145,6 +8460,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setIsListening(false);
     setVoiceProcessing(true);
     setSearchPanelOpen(true);
+    if (onlineRecipeItems?.length) setActiveAssistant(null);
     setActiveResult("none");
     setSearchCompareMode("cart");
     setInput(voiceTerms.join(", "));
@@ -8180,7 +8496,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
-      scrollToNormalResults();
+      if(recipeItems.length && runId===mobileRecipeRunRef.current){
+        // Every recipe ingredient has been accepted or skipped: finish in the basket.
+        setMobileResultsReadyQueryV537("");
+        setSearchPanelOpen(false);
+        setCartModalOpen(true);
+      } else {
+        scrollToNormalResults();
+      }
     } catch (error: any) {
       if (recipeDebugActive) appendRecipeDebug("search-error", { message: String(error?.message || error), stack: String(error?.stack || "") });
       pushVoiceDebugV507(`runVoice CATCH ${String(error?.message || error).slice(0, 160)}`);
@@ -9555,6 +9878,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }).filter((match) => Number.isFinite(match.price) && match.price > 0);
     const visibleSListV804 = normalizeVisibleMatchesV804(sList);
     const visibleKListV804 = normalizeVisibleMatchesV804(kList);
+    const tokmanniList = tokmanniComparison?.key === getComparisonCacheKey(comparableCart)
+      ? normalizeVisibleMatchesV804(Object.values(tokmanniComparison.matches))
+      : [];
     const sTotal = visibleSListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
     const kTotal = visibleKListV804.reduce((sum, match) => sum + match.price * match.quantity, 0);
 
@@ -9638,15 +9964,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {
               key: "tokmanni",
               chain: "Tokmanni / Spar",
-              storeName: "Tokmanni / Spar alueella",
-              detail: "Hintadata lisätään myöhemmin",
-              totalPrice: 0,
-              foundItems: 0,
-              missingItems: comparableCart.length,
+              storeName: selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "Tokmanni / SPAR",
+              detail: "Tokmanni / SPAR verkkovalikoima",
+              totalPrice: tokmanniList.reduce((sum, match) => sum + match.price * match.quantity, 0),
+              foundItems: tokmanniList.length,
+              missingItems: comparableCart.length - tokmanniList.length,
               offerCount: 0,
               icon: "🟡",
-              matches: [],
-              comingSoon: true,
+              matches: tokmanniList,
             },
           ];
 
@@ -9684,6 +10009,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     comparableCart,
     sMatches,
     kMatches,
+    tokmanniComparison,
+    selectedTokmanniStoreV756,
+    selectedEurosparStoreV751,
     activeStores,
     activeArea,
     storeCompareScope,
@@ -10216,6 +10544,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Never auto-select S/K; chain ticks are an explicit user choice.
     clearSearchAndComparisonState();
   }
+
+  // GPS confirmation must update the canonical store state, including a cross-chain change.
+  // Do not simulate clicks on visible cards: those may be hidden or belong to another chain.
+  useEffect(() => {
+    const onGpsStoreSwitch = (event: Event) => {
+      const detail=(event as CustomEvent<{id:string;name:string}>).detail;
+      if(!detail?.name)return;
+      const norm=(value:string)=>value.toLocaleLowerCase("fi-FI").replace(/\\s+/g," ").trim();
+      const matching=foundStores.find(store=>norm(store.name)===norm(detail.name)) ||
+        foundStores.find(store=>norm(store.name).includes(norm(detail.name))||norm(detail.name).includes(norm(store.name)));
+      if(!matching){recordArrivalDiagnostic("arrival-store-switch-failed",{reason:"store-not-in-directory",store:detail.name});return;}
+      const chain=getZiiplyResolverStoreChainV32(matching);
+      if(chain!=="S"&&chain!=="K"){recordArrivalDiagnostic("arrival-store-switch-failed",{reason:"unsupported-chain",store:detail.name});return;}
+      const mode:StoreMode=isLocalStoreForModeV295(matching)?"local":"hyper";
+      const store={...matching,type:chain,chain};
+      setStoreCompareScope("between_chains");
+      setWithinChain(null);
+      setBetweenChainSelectionModeV749("one");
+      setStoreModeChosenV299(true);
+      selectedStoreModeRefV302.current=mode;
+      setStoreMode(mode);
+      setSelectedChains({s:chain==="S",k:chain==="K",lidl:false,tokmanni:false});
+      selectStoreForCurrentMode(store,mode);
+      recordArrivalDiagnostic("arrival-store-switch-applied",{store:store.name,chain,mode});
+    };
+    window.addEventListener("ziiply-arrival-store-switch-confirmed",onGpsStoreSwitch);
+    return ()=>window.removeEventListener("ziiply-arrival-store-switch-confirmed",onGpsStoreSwitch);
+  },[foundStores,storeMode,storeCompareScope,locationInput,activeArea,gpsCoordsV320,usingOwnLocation,storeModeChosenV299]);
 
   function selectStoreForCurrentMode(
     store: StoreSearchItem,
@@ -11897,7 +12253,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
-    const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
+    // Gösta must never inherit a previous normal-search term implicitly.
+    const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : [];
 
     // V160: Göstan oma override (esim. kategoriat "Kahvi", "Liha") ei saa
     // kirjoittaa normaaliin Hae-kortin inputtiin. Muuten taustapäivitys voi
@@ -12185,7 +12542,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const tokmanniLandingV826 =
         gostaSelectedOfferChainRefV547.current === "TOKMANNI" && !hasExplicitOverride;
       const gostaOfferSearchOptionsV171 = {
-        query: tokmanniLandingV826 ? "" : hasExplicitOverride ? cleanedOverride : input.trim(),
+        query: hasExplicitOverride ? cleanedOverride : "",
         terms: tokmanniLandingV826 ? [] : useTerms,
         context: gostaOfferSearchContextV172,
       } as any;
@@ -12223,7 +12580,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         if (!currentStoreV786 || (!sameIdV786 && !sameNameV786)) {
           if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
-            void searchOffers(hasExplicitOverride ? cleanedOverride : undefined);
+            void searchOffers(hasExplicitOverride ? cleanedOverride : "");
           }
           return;
         }
@@ -12368,28 +12725,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       void searchOffers(nextValue);
     }
   }
-
-  function autocorrectNormalSearchTerm(term: string) {
-    const original = String(term || "").trim();
-    if (!original) return original;
-
-    // Autocorrect is only for text searches. Do not touch EAN/barcode searches.
-    if (/^\d{6,14}$/.test(original.replace(/\D/g, ""))) {
-      return original;
-    }
-
-    try {
-      const intent = explainZiiplyNormalSearch(original) as any;
-      const corrected = String(intent?.correctedQuery || intent?.canonicalQuery || original)
-        .replace(/\s+/g, " ")
-        .trim();
-
-      return corrected || original;
-    } catch {
-      return original;
-    }
-  }
-
 
   function isExplicitPetSearchV443(query: string) {
     const q = normalize(query);
@@ -12538,6 +12873,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false, recipeContext?:MobileRecipeContext) {
+    if (blockLidlOnlyNormalSearchV782()) return;
     const recipeIngredient=recipeContext?.ingredient;
     if(!recipeContext&&mobileRecipeContextRef.current){
       mobileRecipeRunRef.current++;
@@ -12548,6 +12884,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceSearchRunningRefV453.current=false;
       setVoiceProcessing(false);
     }
+    const isPickledRecipeIngredient = recipeIngredient?.searchTerm === "suolakurkku" ||
+      recipeIngredient?.searchTerm === "punajuuri säilyke";
     const recipeAllows=(product:Product)=>!recipeIngredient||recipeProductCompatible(recipeIngredient.name,product,recipeIngredient);
     // Keep the current list mounted while the next ingredient loads. Its buttons are disabled until the response is ready.
     const forceVoiceJustiinaCartSearch = voiceForceJustiinaCartSearchRefV461.current;
@@ -12575,16 +12913,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? [getSingleSearchTerm(input)].filter(Boolean)
         : terms;
 
+    const usesSharedStoreQueries = !forceEan && !recipeIngredient &&
+      (storeCompareScope === "within_chain"
+        ? withinChain === "S" || withinChain === "K"
+        : selectedChains.s || selectedChains.k ||
+          (selectedChains.lidl && Boolean(selectedLidlStoreV750)) ||
+          (selectedChains.tokmanni && Boolean(selectedTokmanniStoreV756 || selectedEurosparStoreV751)));
     const useTerms = forceEan || recipeIngredient
       ? rawUseTerms
-      : rawUseTerms.map(autocorrectNormalSearchTerm);
+      : rawUseTerms.map(term => {
+          const corrected = autocorrectNormalSearchTerm(term);
+          return usesSharedStoreQueries ? desktopSearchQuery(corrected) : corrected;
+        });
     if (useTerms.length === 0) {
       setActiveNormalSearchTerm("");
       setNormalSearchAttempted(false);
       return;
     }
 
-    if (!hasActiveStores) {
+    const selectedStoreCount = [
+      selectedChains.s && activeStores.sStoreId,
+      selectedChains.k && activeStores.kStoreId,
+      selectedChains.lidl && selectedLidlStoreV750?.id,
+      selectedChains.tokmanni && (selectedEurosparStoreV751?.id || selectedTokmanniStoreV756?.id),
+    ].filter(Boolean).length;
+    const hasSearchStores = usesSharedStoreQueries && storeCompareScope === "between_chains"
+      ? selectedStoreCount >= (betweenChainSelectionModeV749 === "many" ? 2 : 1)
+      : hasActiveStores;
+    if (!hasSearchStores) {
       setLocationMessage(
         "Hae ensin alue tai käytä omaa sijaintia, jotta kaupat voidaan valita.",
       );
@@ -12621,6 +12977,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setSearchPanelOpen(true);
       return;
     }
+
+    const analyticsSearchStartedAt = Date.now();
+    const analyticsSearchType = forceEan ? "ean" : recipeIngredient ? "recipe" : "normal";
+    const trackSearchOutcome = (eventName: "search_priced_results_shown" | "search_no_priced_results" | "search_failed", pricedCount = 0) => {
+      trackZiiplyEvent(eventName, {
+        search_type: analyticsSearchType,
+        priced_count: pricedCount,
+        time_to_first_price_ms: Date.now() - analyticsSearchStartedAt,
+        source: "normal_search",
+      });
+    };
+    trackZiiplyEvent("search_started", { search_type: analyticsSearchType, source: "normal_search" });
 
     trackZiiplyEvent("search_used", {
       query: useTerms.join(", "),
@@ -12662,16 +13030,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V441 Freeze Screen:
     // Älä tyhjennä tuloksia haun alussa. Pidetään viimeisin vakaa näkymä ruudulla,
     // näytetään mahdollinen cache heti ja päivitetään vasta kun uusi data on valmis.
+    mobileSearchTraceRef.current = { status: "searching", startedAt: new Date().toISOString(),
+      originalTerms: focusedSearchTerms, forceEan, events: [] };
     const normalSearchCacheKeyV441 = buildNormalSearchCacheKeyV441(focusedSearchTerms, forceEan);
+    traceSearch("search-start", { cacheKey: normalSearchCacheKeyV441 });
     const cachedNormalSearchV441 = recipeIngredient ? undefined : normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
 
     if (cachedNormalSearchV441 && cachedNormalSearchV441.results.length > 0) {
       // Revalidate cached results against the current product-group gate.
       const cachedTerm = focusedSearchTerms[0] || useTerms[0] || "";
-      const cachedValidated = cachedNormalSearchV441.results.filter((product: Product) =>
-        productGroupGate(cachedTerm, product.name),
+      const cachedValidated = usesSharedStoreQueries ? cachedNormalSearchV441.results : finalizeNormalSearchResults(
+        cachedTerm,
+        cachedNormalSearchV441.results,
+        getProductPrice,
       );
+      traceSearch("cache-read", { raw: traceProducts(cachedNormalSearchV441.results),
+        accepted: traceProducts(cachedValidated),
+        rejected: traceProducts(cachedNormalSearchV441.results.filter((p: Product) => !cachedValidated.includes(p))) });
       if (cachedValidated.length > 0) {
+      const telemetry = beginSearchTelemetry(forceEan ? "ean" : "normal");
+      const pricedCount = cachedValidated.filter((product: Product) => getProductPrice(product) > 0).length;
+
+      finishSearchTelemetry(telemetry, pricedCount > 0 ? "priced_results" : "no_priced_results", pricedCount);
+      trackSearchOutcome(pricedCount > 0 ? "search_priced_results_shown" : "search_no_priced_results", pricedCount);
+      mobileSearchTraceRef.current.status = "cache-hit";
       setNormalResultsStableV441(cachedValidated);
       setSearchDebug(cachedNormalSearchV441.debug || []);
       setMobileResultsReadyQueryV537(cachedNormalSearchV441.readyQuery || focusedSearchTerms[0] || useTerms[0] || "");
@@ -12687,11 +13069,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
+    setPreviewNormalResults([]);
+    const searchTelemetryV441 = beginSearchTelemetry(forceEan ? "ean" : "normal");
     const unregisterProductRecovery = registerZiiplyRecoverableRequest('justiina-visible-search', {
       kind: 'product-search', startedAt: Date.now(),
       abort: () => {
         if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
         ++activeNormalSearchRequestRefV441.current;
+        cancelSearchTelemetry(searchTelemetryV441);
         setLoadingNormal(false);
       },
     });
@@ -12719,12 +13104,70 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const all: Product[] = [];
 
       for (const term of focusedSearchTerms) {
-        // Normaali haku on S-first: haetaan S-tuote ensin /api/s-products-routesta.
-        // Monen tuotteen haussa näytetään vain seuraavan jonossa olevan tuotteen kandidaatit.
-        // Näin "maito, kahvi, cola" käyttää samaa relevance-logiikkaa kuin yksittäinen haku:
-        // valitse maito -> valitse kahvi -> valitse cola.
-        // K-vastine haetaan vasta ostoskori-/vertailuvaiheessa.
-        const coverageQueries=recipeCoverageQueries(term,recipeIngredient);
+        // Normal search collects selected-store prices without chain preference.
+        // Multi-item selection remains sequential (maito -> kahvi -> cola).
+        // The Neon catalog is metadata only; no catalog-only price is displayed.
+        if (usesSharedStoreQueries) {
+          const withinS = storeCompareScope === "within_chain" && withinChain === "S";
+          const withinK = storeCompareScope === "within_chain" && withinChain === "K";
+          const stores: NormalSearchStore[] = [];
+          if (withinS || withinK) {
+            const chain = withinS ? "S" : "K";
+            const area = activeArea;
+            const hyperId = withinS ? area.sStoreId : area.kStoreId;
+            const localId = withinS ? area.sLocalStoreId : area.kLocalStoreId;
+            if (hyperId) stores.push({chain, id:hyperId, name:(withinS ? area.sStoreName : area.kStoreName) || "", type:"hyper"});
+            if (localId) stores.push({chain, id:localId, name:(withinS ? area.sLocalStoreName : area.kLocalStoreName) || "", type:"local"});
+          } else {
+            if (selectedChains.s && activeStores.sStoreId) stores.push({
+              chain:"S", id:activeStores.sStoreId, name:activeStores.sStoreName || "", type:storeMode,
+            });
+            if (selectedChains.k && activeStores.kStoreId) stores.push({
+              chain:"K", id:activeStores.kStoreId, name:activeStores.kStoreName || "", type:storeMode,
+            });
+          }
+          if (storeCompareScope === "between_chains") {
+            if (selectedChains.lidl && selectedLidlStoreV750) {
+              const store = selectedLidlStoreV750;
+              stores.push({chain:"LIDL", id:store.id, name:store.name || "Lidl", city:store.city, address:store.address});
+            }
+            const sparStore = selectedEurosparStoreV751 || selectedTokmanniStoreV756;
+            if (selectedChains.tokmanni && sparStore) {
+              stores.push({chain:sparStore === selectedEurosparStoreV751 ? "SPAR" : "TOKMANNI", id:sparStore.id, name:sparStore.name || "SPAR"});
+            }
+          }
+          const shapeResult = (row: any): Product | null => {
+            const shaped = normalizeSProduct({
+              ...row, ean: row.ean || row.barcode || row.product?.ean,
+              price: row.__price, priceAmountUnit: "eur",
+              comparisonPriceAmountUnit: row.comparisonPriceAmountUnit ?? row.priceAmountUnit ??
+                (row.__chain === "S" && row.__priceSource === "s-kaupat-normal-v220" ? "eur" : "cent"),
+            });
+            return shaped ? {
+              ...row, ...shaped, originalSearchTerm: term, usedSearchQuery: term,
+              storeName: row.__store, __recipeChain: row.__chain, __recipeStoreName: row.__store,
+              ...(row.priceVerified === false ? {price: undefined, storeItems: []} : {}),
+            } : null;
+          };
+          const {sortedRows} = await searchNormalStores(term, stores, {
+            trace: traceSearch,
+            onInitialRows: (isMainSearch || effectiveSearchCompareMode === "single") &&
+              focusedSearchTerms.length === 1 && useTerms.length === 1
+              ? rows => {
+                  if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current ||
+                      dismissedNormalPreview.current === normalSearchRequestIdV441) return;
+                  const preview = rows.map(shapeResult).filter((row): row is Product => row !== null);
+                  if (!preview.length) return;
+                  setPreviewNormalResults(preview);
+                  traceSearch("display-initial", { products: traceProducts(preview) });
+                }
+              : undefined,
+          });
+          if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+          all.push(...sortedRows.map(shapeResult).filter((row): row is Product => row !== null));
+          continue;
+        }
+        const coverageQueries=recipeCoverageQueries(term,recipeIngredient,[...new Set(getNormalSearchQueries(term))].slice(0,6));
         const generatedSearchQueries = (coverageQueries.length?coverageQueries:getNormalSearchQueries(term))
           .map((query) => fixText(String(query || "")).trim())
           .filter(Boolean);
@@ -12770,6 +13213,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           continue;
         }
 
+        traceSearch("expanded-queries", { term, searchQueries });
         for (const searchQuery of searchQueries) {
           if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
           const withinChainS = storeCompareScope === "within_chain" && withinChain === "S";
@@ -12802,7 +13246,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const useS=withinChainS||(!withinChainK&&!betweenSingleK&&selectedChains.s);
             const useK=withinChainK||betweenSingleK||(storeCompareScope==="between_chains"&&betweenChainSelectionModeV749==="many"&&selectedChains.k);
             if(useS&&sId)requests.push(fetchSProducts(searchQuery,sId,sName||"",recipeIngredient).then(items=>items.map(product=>({...product,__recipeChain:"S",__recipeStoreName:sName}))));
-            if(useK&&kId)requests.push(fetchKProducts(searchQuery,kId).then(items=>items.map(item=>({...convertKProductToProduct(item),category:(item as KProduct & {category?:string}).category,__recipeChain:"K",__recipeStoreName:kName}))));
+            if(useK&&kId)requests.push(fetchKProducts(searchQuery,kId,recipeIngredient).then(items=>items.map(item=>({...convertKProductToProduct(item),category:(item as KProduct & {category?:string}).category,__recipeChain:"K",__recipeStoreName:kName}))));
             const responses=await Promise.allSettled(requests);
             rawItems=responses.flatMap(response=>response.status==="fulfilled"?response.value:[]);
             appendRecipeDebug("recipe-selected-store-responses",{query:searchQuery,sStore:useS?sName:null,kStore:useK?kName:null,failures:responses.filter(response=>response.status==="rejected").map(response=>String(response.reason)),products:rawItems});
@@ -12829,46 +13273,43 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 }));
             }
           } else {
-            const sPrimaryStoreId = withinChainS
-              ? activeArea.sStoreId
-              : activeStores.sStoreId;
-            usedStoreName = withinChainS
-              ? activeArea.sStoreName || "S-tavaratalo"
-              : activeStores.sStoreName;
-
-            if (sPrimaryStoreId) {
-              try {
-                rawItems = await fetchSProducts(searchQuery, sPrimaryStoreId);
-              } catch (error) {
-                console.error("S-first text search failed; trying selected K fallback", error);
-                rawItems = [];
-              }
-            }
-
-            // If S is not selected/available, ordinary text search must still use K.
-            // In multi-chain mode the old S-first path could return zero for every term.
-            if (!withinChainS && rawItems.length === 0 && activeStores.kStoreId && (selectedChains.k || (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "many"))) {
-              try {
-                const kItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
-                rawItems = kItems.filter((item) => Number(item.price) > 0).map((item) => ({
+            // Ordinary multi-chain search: S and K are equal providers, never fallbacks.
+            // One-chain mode is handled by the explicit branches above.
+            const requests: Array<Promise<Product[]>> = [];
+            const sPrimaryStoreId = withinChainS ? activeArea.sStoreId : activeStores.sStoreId;
+            const kPrimaryStoreId = activeStores.kStoreId;
+            const useS = (withinChainS || (storeCompareScope === "between_chains" && selectedChains.s)) && Boolean(sPrimaryStoreId);
+            const useK = !withinChainS && storeCompareScope === "between_chains" &&
+              selectedChains.k && Boolean(kPrimaryStoreId);
+            if (useS) requests.push(
+              fetchSProducts(searchQuery, sPrimaryStoreId!).then(items =>
+                items.map(product => ({ ...product, __recipeChain: "S", __recipeStoreName: withinChainS ? activeArea.sStoreName : activeStores.sStoreName }))
+              ),
+            );
+            if (useK) requests.push(
+              fetchKProducts(searchQuery, kPrimaryStoreId).then(items =>
+                items.filter(item => Number(item.price) > 0).map(item => ({
                   ...convertKProductToProduct(item),
-                  ...(recipeIngredient?{category:(item as KProduct & {category?:string}).category}:{}),
                   ean: item.ean,
-                }));
-                if (rawItems.length > 0) {
-                  usedStoreName = activeStores.kStoreName || "K-tavaratalo";
-                  fallbackStoreName = usedStoreName;
-                }
-              } catch (error) {
-                console.error("Selected K text-search fallback failed", error);
-              }
-            }
-
-            if (!withinChainS && rawItems.length === 0 && selectedChains.s && shouldUseLocalFallback("S")) {
-              if (activeArea.sStoreId)
+                  ...(recipeIngredient ? { category: (item as KProduct & { category?: string }).category } : {}),
+                  __recipeChain: "K",
+                  __recipeStoreName: activeStores.kStoreName,
+                }))
+              ),
+            );
+            const responses = await Promise.allSettled(requests);
+            rawItems = responses.flatMap(response => response.status === "fulfilled" ? response.value : []);
+            const failures = responses.filter(response => response.status === "rejected");
+            if (failures.length) traceSearch("provider-errors", { term, searchQuery, failures: failures.map(response => String(response.reason)) });
+            usedStoreName = useS && useK ? "S / K" : useK ? activeStores.kStoreName : activeStores.sStoreName;
+            // An S-store fallback is only appropriate when no selected store returned products.
+            if (rawItems.length === 0 && useS && shouldUseLocalFallback("S") && activeArea.sStoreId && activeArea.sStoreId !== sPrimaryStoreId) {
+              try {
                 rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
-              fallbackStoreName = activeArea.sStoreName || "S-tavaratalo";
-              usedStoreName = activeArea.sStoreName || "S-tavaratalo";
+                fallbackStoreName = activeArea.sStoreName || "S-tavaratalo";
+              } catch (error) {
+                traceSearch("provider-fallback-error", { term, searchQuery, error: String(error) });
+              }
             }
           }
 
@@ -12877,6 +13318,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const pricedItems = betweenSingleLidl
             ? rawItems.filter((product: Product) => Boolean(product.name?.trim()))
             : rawItems.filter((product: Product) => getProductPrice(product) > 0);
+          traceSearch("provider-raw-and-priced", { term, searchQuery, selectedStore: usedStoreName,
+            raw: traceProducts(rawItems), priced: traceProducts(pricedItems),
+            rejectedByPrice: traceProducts(rawItems.filter((p: Product) => !pricedItems.includes(p))) });
           const eggLockedSearch =
             detectSearchIntent(term).category === "egg" ||
             isEggSearchTerm(term) ||
@@ -12892,12 +13336,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           // Fail-open pidetään vain yleisissä hauissa. Kananmunahaussa se aiheutti sen,
           // että "kananmunaton pasta" palasi tuloksiin, jos kaikki aidot osumat putosivat.
-          const safeItemsBeforePetFilter = recipeIngredient ? normalFiltered : eggLockedSearch
+          // Strict milk queries must not restore rejected products on zero matches.
+          const strictMilkTypeQuery = /(?:täysmaito|taysmaito|kevytmaito|rasvaton\s*maito)/i.test(searchQuery);
+          const safeItemsBeforePetFilter = recipeIngredient || eggLockedSearch || strictMilkTypeQuery
             ? normalFiltered
-            : normalFiltered.length > 0
-              ? normalFiltered
-              : pricedItems;
+            : normalFiltered.length > 0 ? normalFiltered : pricedItems;
 
+          traceSearch("relevance-filter", { term, searchQuery,
+            accepted: traceProducts(normalFiltered),
+            rejected: traceProducts(pricedItems.filter((p: Product) => !normalFiltered.includes(p))),
+            fallbackRestoredRaw: safeItemsBeforePetFilter === pricedItems });
           const safeItems = filterPetProductsFromFoodSearchV443(
             safeItemsBeforePetFilter,
             term,
@@ -12911,7 +13359,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
           const finalItems = (betweenSingleLidl
             ? groupMatchedItems.filter((product) => Boolean(product.name?.trim()) && (product as Product & { source?: string }).source === "lidl.fi-public-research")
-            : rankProductResultsByRelevanceAndPrice(searchQuery, groupMatchedItems, (product: Product) => getProductPrice(product)))
+            : isPickledRecipeIngredient
+              ? groupMatchedItems.sort((a, b) => comparePricedSearchResults(a, b, getProductPrice))
+              : rankProductResultsByRelevanceAndPrice(searchQuery, groupMatchedItems, getProductPrice))
             .slice(0, 40)
             .map((product) => {
               const withMeta = {
@@ -12929,6 +13379,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return withMeta;
             });
 
+          traceSearch("final-provider-results", { term, searchQuery,
+            groupMatched: traceProducts(groupMatchedItems), final: traceProducts(finalItems) });
           debugEntries.push({
             term,
             query: searchQuery,
@@ -12948,9 +13400,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
-      const dedupedNormalItems = Array.from(
-        new Map(all.map((item) => [recipeIngredient?`${(item as Product & MobileRecipeProduct).__recipeChain||""}:${item.id}`:item.id, item])).values(),
-      );
+      // Recipe selection retains its chain-specific identity.
+      const normalCandidates = recipeIngredient
+        ? Array.from(new Map(all.map(item => {
+            const { __recipeChain, __recipeStoreName } = item as Product & MobileRecipeProduct;
+            const ean = normalizeEan(item.ean);
+            const identity = isUsableEan(ean) ? `ean:${ean}` : `id:${item.id}`;
+            return [JSON.stringify([__recipeChain, __recipeStoreName, identity]), item] as const;
+          })).values())
+        : all;
 
       // K-Ruoka's product search is anchored to the user's literal query. Our
       // generated fallback queries may be broader; when literal K matches exist,
@@ -12962,17 +13420,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ((storeCompareScope === "within_chain" && withinChain === "K") ||
           (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && selectedChains.k && !selectedChains.s)) &&
         literalNormalQuery
-          ? dedupedNormalItems.filter((item) => {
+          ? normalCandidates.filter((item) => {
               const normalizedName = normalize(item.name);
               if (!normalizedName.includes(literalNormalQuery)) return false;
               if (literalNormalQuery === "huiluntuhti" && normalizedName.includes("makkarapihvi")) return false;
               return true;
             })
           : [];
-      const normalItemsForSelection =
-        !recipeIngredient && literalKMatches.length > 0 ? literalKMatches : dedupedNormalItems;
+      const normalItemsForSelectionUnfiltered =
+        !recipeIngredient && literalKMatches.length > 0 ? literalKMatches : normalCandidates;
+      const originalNormalQuery = focusedSearchTerms[0] || useTerms[0] || "";
+      const normalItemsForSelection = recipeIngredient ? normalItemsForSelectionUnfiltered
+        : normalItemsForSelectionUnfiltered.filter((product) => !isBadNormalResult(product, originalNormalQuery));
 
-      const normalUnique = filterPetProductsFromFoodSearchV443(
+      traceSearch("merged-provider-results", { products: traceProducts(normalItemsForSelection) });
+      const normalUnique = usesSharedStoreQueries ? [] : filterPetProductsFromFoodSearchV443(
         normalItemsForSelection,
         focusedSearchTerms[0] || useTerms[0] || "",
       )
@@ -13033,7 +13495,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         });
 
-      const unique=recipeIngredient?prioritizeRecipeFishProducts(recipeIngredient.name,rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0],normalUnique.filter(recipeAllows),getProductPrice),recipeIngredient):normalUnique;
+      const unique = usesSharedStoreQueries ? all : recipeIngredient
+        ? prioritizeRecipeFishProducts(recipeIngredient.name, isPickledRecipeIngredient
+          ? normalUnique.filter(recipeAllows).sort((a, b) => comparePricedSearchResults(a, b, getProductPrice))
+          : rankProductResultsByRelevanceAndPrice(focusedSearchTerms[0], normalUnique.filter(recipeAllows), getProductPrice), recipeIngredient)
+        : finalizeNormalSearchResults(
+            focusedSearchTerms[0] || useTerms[0] || "",
+            normalUnique,
+            getProductPrice,
+          );
       if(recipeContext&&recipeContext.runId!==mobileRecipeRunRef.current)return;
       if(recipeIngredient)appendRecipeDebug("recipe-ranked-results",{ingredient:recipeIngredient,products:unique});
 
@@ -13057,8 +13527,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const readyQueryV441 = unique.length > 0 ? focusedSearchTerms[0] || useTerms[0] || "" : "";
       setSearchDebug(debugEntries);
       if(recipeIngredient)setActiveNormalSearchTerm(focusedSearchTerms[0]||"");
+      traceSearch("display-final", { products: traceProducts(unique), debugEntries });
+      mobileSearchTraceRef.current.status = "completed";
       setNormalResultsStableV441(unique);
-      setMobileResultsReadyQueryV537(readyQueryV441);
+      setMobileResultsReadyQueryV537(dismissedNormalPreview.current === normalSearchRequestIdV441 ? "" : readyQueryV441);
+      const pricedCountV441 = unique.filter((product: Product) => getProductPrice(product) > 0).length;
+
+      finishSearchTelemetry(searchTelemetryV441, pricedCountV441 > 0 ? "priced_results" : "no_priced_results", pricedCountV441);
+      trackSearchOutcome(pricedCountV441 > 0 ? "search_priced_results_shown" : "search_no_priced_results", pricedCountV441);
 
       // Never persist an empty response: transient upstream failures must be retryable.
       if (!recipeIngredient && unique.length > 0) rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
@@ -13124,6 +13600,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setGpsErrorMessage("GPS ei löydy");
       }
       if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+      finishSearchTelemetry(searchTelemetryV441, "error");
+      trackSearchOutcome("search_failed");
       setSearchDebug(debugEntries);
       // V441: virheessä ei tyhjennetä viimeistä vakaata tulosnäkymää.
       if (isMainSearch) {
@@ -13131,7 +13609,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     } finally {
       unregisterProductRecovery();
+      cancelSearchTelemetry(searchTelemetryV441);
       if (normalSearchRequestIdV441 === activeNormalSearchRequestRefV441.current) {
+        setPreviewNormalResults([]);
         setLoadingNormal(false);
       }
     }
@@ -13235,7 +13715,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 19,
+      schema: 20,
       items: nextCart.map((item) => [item.id, item.name, item.product?.name, item.ean, item.product?.ean, item.quantity, item.chain, item.storeName, item.source, (item as CartItem & {recipeIngredient?:RecipeIngredient}).recipeIngredient]),
       stores:
         storeCompareScope === "within_chain"
@@ -13244,7 +13724,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             : withinChain === "K"
               ? [activeArea.kStoreId, activeArea.kLocalStoreId, activeArea.kStoreName, activeArea.kLocalStoreName]
               : []
-          : [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName],
+          : [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, selectedChains.s, selectedChains.k, selectedChains.tokmanni, selectedTokmanniStoreV756?.id, selectedEurosparStoreV751?.id],
       storeMode, storeCompareScope, withinChain,
     });
   }
@@ -13254,7 +13734,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ids: items.map(item => [item.id, item.quantity, item.ean, item.product?.ean, item.name, item.source]),
       stores: storeCompareScope === "within_chain"
         ? [withinChain, activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.kStoreId, activeArea.kLocalStoreId]
-        : [activeStores.sStoreId, activeStores.kStoreId],
+        : [activeStores.sStoreId, activeStores.kStoreId, selectedChains.s, selectedChains.k, selectedChains.tokmanni, selectedTokmanniStoreV756?.id, selectedEurosparStoreV751?.id],
       storeCompareScope, withinChain, storeMode,
     });
   }
@@ -13834,7 +14314,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       comparisonRawCountsV801.current = { s: 0, k: 0, sCalls: 0, kCalls: 0, errors: 0 };
       setComparisonDiagnosticV800(`Rajapintahaku käynnissä · ${comparisonCartV738.length} tuoteriviä`);
-      const itemMatches = await Promise.all(comparisonCartV738.map((item) => getComparisonItemMatches(item)));
+      const [itemMatches, tokmanniMatches] = await Promise.all([
+        Promise.all(comparisonCartV738.map((item) => getComparisonItemMatches(item))),
+        storeCompareScope === "between_chains" && selectedChains.tokmanni &&
+          (selectedTokmanniStoreV756 || selectedEurosparStoreV751)
+          ? Promise.all(comparisonCartV738.map(async (item): Promise<Match | null> => {
+              const ean = normalizeEan(item.ean || item.product?.ean);
+              const name = item.name || item.product?.name || "";
+              if (!ean && !name) return null;
+              try {
+                const candidates = await fetchTokmanniProductsV761(ean || name, name || ean);
+                const product = ean
+                  ? candidates.find((candidate) => normalizeEan(candidate.ean) === ean && getProductPrice(candidate) > 0)
+                  : pickBestSProduct(candidates.filter((candidate) =>
+                      getProductPrice(candidate) > 0 && isComparisonAttributeCompatible(name, candidate.name)), name);
+                if (!product || getProductPrice(product) <= 0) return null;
+                return { product, price: getProductPrice(product) / 100, quantity: item.quantity,
+                  matchType: ean ? "ean" : "name", cartItemId: item.id };
+              } catch {
+                return null;
+              }
+            }))
+          : Promise.resolve([]),
+      ]);
       let failed = false;
       comparisonCartV738.forEach((item, index) => {
         const match = itemMatches[index];
@@ -13845,7 +14347,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (comparisonCacheKeyRef.current === cacheKey) {
         setComparisonDiagnosticV800(`API: S ${comparisonRawCountsV801.current.s} tuotetta / ${comparisonRawCountsV801.current.sCalls} kutsua · K ${comparisonRawCountsV801.current.k} tuotetta / ${comparisonRawCountsV801.current.kCalls} kutsua · virheitä ${comparisonRawCountsV801.current.errors} · vastineet/kori S ${Object.keys(nextSMatches).length} / K ${Object.keys(nextKMatches).length}${failed ? " · matcher-virhe" : ""}`);
-        const noComparisonMatchesV810 = comparisonCartV738.length > 0 &&
+        const pricedTokmanniMatches = tokmanniMatches.filter((match): match is Match => match !== null);
+        setTokmanniComparison({ key: cacheKey,
+          matches: Object.fromEntries(pricedTokmanniMatches.map((match) => [match.cartItemId, match])) });
+        const noComparisonMatchesV810 = pricedTokmanniMatches.length === 0 && comparisonCartV738.length > 0 &&
           !Object.keys(nextSMatches).length && !Object.keys(nextKMatches).length;
         // A transient empty provider response is not proof that priced basket
         // products have no counterpart. Never announce or cache it as success.
@@ -14100,7 +14605,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   // V819: etänä koottu kori on vahva ennakkotieto keräyskaupasta.
-  // GPS vahvistaa tätä hypoteesia, mutta 50 m turvaraja ja viereisten kauppojen
+  // GPS vahvistaa tätä hypoteesia, mutta 30 m turvaraja ja viereisten kauppojen
   // ristiriita ratkaisevat, voidaanko keräilysessio avata ilman kysymystä.
   function resolveScannerStorePromptV828(inStore: boolean) {
     if (scannerStorePromptTimerRefV828.current) {
@@ -14153,6 +14658,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       selectedChains.lidl ? String(selectedLidlStoreV750?.name || "").trim() : "",
       selectedChains.tokmanni ? String(selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "").trim() : "",
     ].filter((name) => name && !name.startsWith("Valitse ensin"));
+    const sharedVisit=liveArrivalDecisionRefV864.current;
+    if (usingOwnLocation && sharedVisit?.status === "in-store" && sharedVisit.isSelectedStore &&
+        Date.now() - liveArrivalLastFixAtRefV864.current <= 30000 &&
+        currentSelectedScannerNamesV832.some(name => normalize(name) === sharedVisit.store?.id)) {
+      scannerStoreCheckDoneRefV791.current=true;
+      scannerInStoreRefV828.current=true;
+      scannerConfirmedStoreNameRefV828.current=sharedVisit.store?.name||"";
+      return true;
+    }
     if (scannerStoreCheckDoneRefV791.current) {
       const confirmedName = normalize(scannerConfirmedStoreNameRefV828.current);
       const stillMatchesCurrentStore = !confirmedName || currentSelectedScannerNamesV832.some((name) => normalize(name) === confirmedName);
@@ -14186,7 +14700,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const selectedName = selectedNames.length === 1 ? selectedNames[0] : "";
     // V860: an explicitly selected shop wins over stale basket history.
     const intendedName = selectedName || selectedNames[0] || cartTarget?.name || "";
-    setScannerLocationStatusV855(intendedName?{name:intendedName,verified:false,checking:true}:null);
 
     if (!intendedName) {
       // No store can be named reliably. Scanner remains useful, but not as collection.
@@ -14208,28 +14721,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       scannerStoreCheckDoneRefV791.current = false;
       scannerInStoreRefV828.current = false;
       scannerConfirmedStoreNameRefV828.current = "";
-      setScannerLocationStatusV855({name:intendedName,verified:false,checking:false});
       return false;
     };
     if (!usingOwnLocation || !intendedStore || typeof navigator === "undefined" || !navigator.geolocation) {
       return scannerNotInStoreV858();
     }
-    const freshScannerPositionV854 = await new Promise<GeolocationPosition | null>((resolve) => {
-      let settled = false;
-      const finish = (position: GeolocationPosition | null) => {
-        if (settled) return;
-        settled = true;
-        window.clearTimeout(deadline);
-        resolve(position);
-      };
-      const deadline = window.setTimeout(() => finish(null), 4500);
-      navigator.geolocation.getCurrentPosition(
-        (position) => finish(position),
-        () => finish(null),
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 4000 },
-      );
-    });
-    liveArrivalHandlerRefV864.current(freshScannerPositionV854);
+    // Reuse main GPS watcher; scanner does not request GPS separately.
+    const freshScannerPositionV854 = liveArrivalPositionRefV864.current;
     const liveDecisionV864 = liveArrivalDecisionRefV864.current;
     if (liveDecisionV864?.status === "in-store" && liveDecisionV864.isSelectedStore &&
         Date.now() - liveArrivalLastFixAtRefV864.current <= 10000) return true;
@@ -14252,13 +14750,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const freshIntendedDistanceV854 = freshStoreDistanceV854(intendedStore);
     const freshNearbyStoresV854 = allStores.filter((store) => {
       const distance = freshStoreDistanceV854(store);
-      return distance != null && distance <= 0.05;
+      return distance != null && distance <= ZIIPLY_STORE_RADIUS_METERS / 1000;
     });
     const freshCompetitorV854 = freshNearbyStoresV854.some((store) =>
       normalize(String(store.name || "")) !== normalize(intendedName),
     );
     if (freshIntendedDistanceV854 != null &&
-        freshIntendedDistanceV854 <= 0.05 &&
+        freshIntendedDistanceV854 <= ZIIPLY_STORE_RADIUS_METERS / 1000 &&
         !freshCompetitorV854 &&
         freshScannerPositionV854.coords.accuracy <= 35 &&
         liveDecisionV864?.status === "in-store" && liveDecisionV864.isSelectedStore) {
@@ -14968,13 +15466,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       scannerStoreCheckDoneRefV791.current = false;
       scannerInStoreRefV828.current = false;
-      if (eanScannerOpen) setScannerLocationStatusV855(current => current ? {...current, verified:false, checking:true} : null);
+      if (eanScannerOpen) setScannerLocationStatusV855(null);
       return;
     }
+    // Reuse the existing GPS sample; do not start a second geolocation watcher.
+    window.dispatchEvent(new CustomEvent("ziiply:gps-speed-kmh", {
+      detail: typeof position.coords.speed === "number" && Number.isFinite(position.coords.speed) && position.coords.speed >= 0
+        ? position.coords.speed * 3.6 : null,
+    }));
     if (position.timestamp <= liveArrivalLastFixAtRefV864.current) return;
     if (position.timestamp - liveArrivalLastFixAtRefV864.current > 30000 && !liveArrivalDecisionRefV864.current?.state.arrivalStoreId)
       liveArrivalStateRefV864.current = initialZiiplyArrivalState();
     liveArrivalLastFixAtRefV864.current = position.timestamp;
+    liveArrivalPositionRefV864.current = position;
     const names = [
       selectedChains.s ? String(activeStores.sStoreName || "").trim() : "",
       selectedChains.k ? String(activeStores.kStoreName || "").trim() : "",
@@ -14998,6 +15502,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, [...unique.values()], names.map(name => normalize(name)));
     liveArrivalStateRefV864.current = decision.state;
     liveArrivalDecisionRefV864.current = decision;
+    recordArrivalDiagnostic("gps-sample",{latitude:position.coords.latitude,longitude:position.coords.longitude,accuracy:position.coords.accuracy,speedKmh:position.coords.speed == null?null:position.coords.speed*3.6,store:decision.store?.name??null,status:decision.status,selected:decision.isSelectedStore});
     arrivalNotice.update(decision, position.timestamp);
     // Publish fixes before the expensive store search's 60/120-second throttle.
     const coords = {latitude:position.coords.latitude,longitude:position.coords.longitude};
@@ -15008,10 +15513,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     scannerStoreCheckDoneRefV791.current = verified;
     scannerInStoreRefV828.current = verified;
     scannerConfirmedStoreNameRefV828.current = verified ? (decision.store?.name || names.find(name => normalize(name) === decision.state.arrivalStoreId) || "") : "";
-    setScannerLocationStatusV855({
-      name:decision.store?.name || names[0] || "",
-      verified, checking:decision.status === "checking" || decision.status === "near-store" || decision.status === "uncertain",
-    });
+    const nearbyStore = decision.status === "near-store" && decision.isSelectedStore;
+    setScannerLocationStatusV855(decision.store && (verified || nearbyStore)
+      ? { name: decision.store.name, verified, checking: nearbyStore }
+      : null);
   };
 
   function checkScannerLocationOnOpenV856() {
@@ -15040,12 +15545,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanModalClosing(false);
     setEanModalOpen(true);
     const existingVisit = liveArrivalDecisionRefV864.current;
-    const confirmedName = existingVisit?.status === "in-store" && existingVisit.isSelectedStore && Date.now() - liveArrivalLastFixAtRefV864.current <= 30000 ? existingVisit.store?.name : null;
+    const confirmedName = usingOwnLocation && existingVisit?.status === "in-store" && existingVisit.isSelectedStore && Date.now() - liveArrivalLastFixAtRefV864.current <= 30000 ? existingVisit.store?.name : null;
     scannerStoreCheckDoneRefV791.current = !!confirmedName;
     scannerInStoreRefV828.current = !!confirmedName;
     scannerConfirmedStoreNameRefV828.current = confirmedName || "";
     setScannerLocationStatusV855(confirmedName ? {name:confirmedName,verified:true,checking:false} : null);
-    if (!confirmedName) checkScannerLocationOnOpenV856();
+    // Shared GPS watcher supplies the next sample; no duplicate permission prompt.
     // Mobiilin SCAN-nappi avaa aina uuden ZiiplyMobileScannerCard-näkymän heti.
     // Kamera käynnistetään perässä, mutta renderi ei saa jäädä riippumaan
     // startEanCameraScannerin asynkronisesta onnistumisesta.
@@ -17931,7 +18436,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         })()}:item);
         cartRefV124.current=next;setCart(next);persistCartImmediately(next);
         appendRecipeDebug("recipe-cart-quantity-added",{product:product.name,quantity});
-        showCartToast("✓ Lisätty ostoskoriin");return true;
+        showCartToast("✓ Lisätty ostoskoriin");
+        recordSearchProductAddedToCart();
+        return true;
       }
       const nextInputForDuplicate = remainingTerms.join(",");
       setInput(nextInputForDuplicate);
@@ -18045,6 +18552,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     cartRefV124.current = nextCart;
     setCart(nextCart);
     persistCartImmediately(nextCart);
+    recordSearchProductAddedToCart();
     showCartToast("✓ Lisätty ostoskoriin");
 
     const nextInput = remainingTerms.join(",");
@@ -18658,9 +19166,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
   }
 
+  const singleLidlComparison = storeCompareScope === "between_chains" &&
+    betweenChainSelectionModeV749 === "one" && selectedChains.lidl;
+
   function openComparisonView() {
     if (cart.length === 0) {
       showCartToast("Lisää ensin tuote koriin.");
+      return;
+    }
+
+    if (singleLidlComparison) {
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setComparisonLoading(false);
+      setActiveResult("compare");
       return;
     }
 
@@ -18748,7 +19269,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Never open two empty comparison baskets without starting a request.
     const selectedComparisonStoresReady =
       storeCompareScope === "between_chains"
-        ? Boolean(activeStores.sStoreId && activeStores.kStoreId)
+        ? [
+            selectedChains.s && activeStores.sStoreId,
+            selectedChains.k && activeStores.kStoreId,
+            selectedChains.tokmanni && (selectedTokmanniStoreV756 || selectedEurosparStoreV751),
+            selectedChains.lidl && selectedLidlStoreV750,
+          ].filter(Boolean).length >= 2
         : storesReadyForSearch;
     if (selectedComparisonStoresReady) {
       // Opening an already completed comparison is navigation, not a new search.
@@ -18800,7 +19326,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setCartModalOpen(false);
     setEanModalOpen(false);
     setComparisonLoading(false);
-    if ([...Object.values(sMatches), ...Object.values(kMatches)].some(match => Number(match.price) > 0)) {
+    if (chainResults.some((result) => result.foundItems > 0)) {
       setActiveResult("compare");
       return;
     }
@@ -19146,7 +19672,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  function blockLidlOnlyNormalSearchV782() {
+    if (storeCompareScope !== "between_chains" ||
+        betweenChainSelectionModeV749 !== "one" ||
+        !selectedChains.lidl || selectedChains.s || selectedChains.k || selectedChains.tokmanni) return false;
+    activeNormalSearchRequestRefV441.current += 1;
+    setLoadingNormal(false);
+    setNormalResultsStableV441([]);
+    setMobileResultsReadyQueryV537("");
+    setNormalSearchAttempted(false);
+    setSearchNotFoundNoticeV471("");
+    setLidlNormalNoticeOpenV783(true);
+    return true;
+  }
+
   function handleMainNormalSearch() {
+    if (blockLidlOnlyNormalSearchV782()) return;
     // V160: Göstan ollessa auki normaalin Hae-haun triggerit estetään.
     if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) return;
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
@@ -19248,7 +19789,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setCartModalOpen(false);
     setShopsPanelOpen(false);
     setCartSavePanelOpen(false);
-    void searchOffers();
+    void searchOffers(terms.join(", "));
   }
 
   function getMatchEan(match: Match) {
@@ -19799,19 +20340,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const sourceName = sourceCartItem?.name || sourceCartItem?.product?.name || match.product.name;
     // Same-brand alternatives refer to the product currently displayed in this store,
     // not the original basket product from another chain.
-    const comparisonBrand = matchQualityMode === "keep_brands"
-      ? (match.product.brandName || getPrimaryBrand(match.product.name))
-      : (sourceCartItem?.product?.brandName || getPrimaryBrand(sourceName));
+    const selectedBrand = comparisonBrand(match.product.name, match.product.brandName);
+    const sourceBrand = comparisonBrand(sourceName, sourceCartItem?.product?.brandName);
+    const searchName = matchQualityMode === "keep_brands" ? match.product.name : sourceName;
+    const searchBrand = matchQualityMode === "keep_brands" ? selectedBrand : sourceBrand;
+    const alternativeTerms = (chain: "s" | "k") => [...new Set([
+      ...comparisonAlternativeQueries(searchName, searchBrand, chain, matchQualityMode),
+      ...getAlternativeSearchTerms(searchName, chain),
+    ])].slice(0, 8);
+    const modeAllows = (product: { name: string; brandName?: string | null }, chain: "s" | "k") => {
+      if (matchQualityMode === "own_brands") return isComparisonOwnBrand(chain, product.name, product.brandName);
+      if (matchQualityMode === "keep_brands") {
+        return sameComparisonBrand(selectedBrand, comparisonBrand(product.name, product.brandName));
+      }
+      return isAllowedByQualityMode(sourceName, product.name, matchQualityMode, chain, sourceBrand, product.brandName || undefined);
+    };
+    const score = (product: { name: string }) => scoreNameMatch(sourceName, product.name)
+      + (matchQualityMode === "own_brands" || matchQualityMode === "keep_brands" ? 0
+        : scoreQualityMode(sourceName, product.name, matchQualityMode));
     let alternatives: Product[] = [];
 
     if (chainKey === "s") {
-      const sTerms = getAlternativeSearchTerms(sourceName, "s");
-      const allSItems: Product[] = [];
-
-      for (const term of sTerms.slice(0, 5)) {
-        const items = await fetchSProducts(term, activeStores.sStoreId);
-        allSItems.push(...items);
-      }
+      const sTerms = alternativeTerms("s");
+      const allSItems = (await Promise.all(
+        sTerms.map(term => fetchSProducts(term, activeStores.sStoreId)),
+      )).flat();
 
       const uniqueSItems = Array.from(
         new Map(allSItems.map((item) => [item.id, item])).values(),
@@ -19829,33 +20382,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )
         .filter((product) => productGroupGate(sourceName, product.name))
         .filter((product) => isCheapestAttributeCompatible(sourceName, product.name))
-        .filter((product) =>
-          isAllowedByQualityMode(
-            sourceName,
-            product.name,
-            matchQualityMode,
-            "s",
-            comparisonBrand,
-            product.brandName,
-          ),
-        )
-        .filter(
-          (product) =>
-            scoreNameMatch(sourceName, product.name) +
-              scoreQualityMode(
-                sourceName,
-              product.name,
-                matchQualityMode,
-              ) >
-            -100,
-        )
+        .filter((product) => comparisonTypeCompatible(sourceName, product.name))
+        .filter((product) => isComparisonAttributeCompatible(sourceName, product.name))
+        .filter((product) => modeAllows(product, "s"))
+        .filter((product) => score(product) > -100)
         .sort((a, b) => {
-          const aScore =
-            scoreNameMatch(sourceName, a.name) +
-            scoreQualityMode(sourceName, a.name, matchQualityMode);
-          const bScore =
-            scoreNameMatch(sourceName, b.name) +
-            scoreQualityMode(sourceName, b.name, matchQualityMode);
+          const aScore = score(a);
+          const bScore = score(b);
 
           if (
             matchQualityMode !== "cheapest" &&
@@ -19870,9 +20403,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     if (chainKey === "k") {
-      const kTerms = getAlternativeSearchTerms(sourceName, "k");
-      const allKItems: KProduct[] = [];
-
+      const kTerms = alternativeTerms("k");
       // Vaihtoehdot pitää hakea juuri sen vertailukortin kaupasta.
       // Ketjun sisällä activeStores.kStoreId voi osoittaa toiseen K-kauppaan
       // (esim. Citymarket), vaikka match kuuluu K-Supermarket Jokelaan.
@@ -19892,10 +20423,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         : undefined;
       const alternativeKStoreId = matchKStore?.id || activeStores.kStoreId;
 
-      for (const term of kTerms.slice(0, 4)) {
-        const items = await fetchKProducts(term, alternativeKStoreId);
-        allKItems.push(...items);
-      }
+      const allKItems = (await Promise.all(
+        kTerms.map(term => fetchKProducts(term, alternativeKStoreId)),
+      )).flat();
 
       const uniqueKItems = Array.from(
         new Map(allKItems.map((item) => [item.id, item])).values(),
@@ -19916,34 +20446,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )
         .filter((product) => productGroupGate(sourceName, product.name))
         .filter((product) => isCheapestAttributeCompatible(sourceName, product.name))
-        .filter((product) =>
-          isAllowedByQualityMode(
-            sourceName,
-            product.name,
-            matchQualityMode,
-            "k",
-            comparisonBrand,
-            product.brandName,
-          ),
-        )
-        .filter(
-          (product) =>
-            scoreNameMatch(sourceName, product.name) +
-              scoreQualityMode(
-                sourceName,
-              product.name,
-                matchQualityMode,
-              ) >
-            -100,
-        )
+        .filter((product) => comparisonTypeCompatible(sourceName, product.name))
+        .filter((product) => isComparisonAttributeCompatible(sourceName, product.name))
+        .filter((product) => modeAllows(product, "k"))
+        .filter((product) => score(product) > -100)
         .map(convertKProductToProduct)
         .sort((a, b) => {
-          const aScore =
-            scoreNameMatch(sourceName, a.name) +
-            scoreQualityMode(sourceName, a.name, matchQualityMode);
-          const bScore =
-            scoreNameMatch(sourceName, b.name) +
-            scoreQualityMode(sourceName, b.name, matchQualityMode);
+          const aScore = score(a);
+          const bScore = score(b);
 
           if (
             matchQualityMode !== "cheapest" &&
@@ -20382,6 +20892,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   useEffect(() => {
+    const search = locationInput.trim();
+    // Keep the current store and picker options when location is switched off.
+    if (!gpsCoordsV320 && !search) return;
+
     let cancelled = false;
     const params = new URLSearchParams();
     if (gpsCoordsV320) {
@@ -20396,8 +20910,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const gpsMunicipality =
         gpsAliases.find((value) => foundCities.has(normalize(value))) || "";
       if (gpsMunicipality) params.set("search", gpsMunicipality);
-    } else if (locationInput.trim()) {
-      params.set("search", locationInput.trim());
+    } else {
+      params.set("search", search);
     }
 
     fetch(`/api/eurospar-stores?${params.toString()}`, { cache: "no-store" })
@@ -20495,10 +21009,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [foundStores, gpsCoordsV320, usingOwnLocation]);
 
   useEffect(() => {
-    if (lidlStoreOptionsV750.length === 0) {
-      setSelectedLidlStoreV750(null);
-      return;
-    }
+    if (lidlStoreOptionsV750.length === 0) return;
 
     // GPS follows the same visible-card rule as S/K/SPAR: the Lidl card
     // always reflects the nearest Lidl for the current own-location result.
@@ -21260,6 +21771,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function getStoreDistanceLabelV320(store?: StoreSearchItem | null) {
+    if (!showStoreGpsDistances) return "";
+
     const directLabel = getStoreDistanceLabelWithoutFallbackV320(store);
     if (directLabel) return directLabel;
 
@@ -21584,6 +22097,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         top={storePickerViewportStyle.top}
         width={storePickerViewportStyle.width}
         onClose={() => setOpenStorePicker(null)}
+        showDistances={showStoreGpsDistances}
         getDistanceLabel={(store) => {
           const sourceIndex = Number((store as any).__sourceIndex);
           const sourceStore = Number.isFinite(sourceIndex) ? options[sourceIndex] : (store as StoreSearchItem);
@@ -22026,7 +22540,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           store.key === "lidl" ? getStoreDistanceLabelV320(selectedLidlStoreV750) : "";
         const showLidlDistanceForCard = Boolean(lidlDistanceForCard && !isComingSoon);
         const eurosparDistanceForCard =
-          store.key === "tokmanni" ? getStoreDistanceLabelV320(selectedTokmanniStoreV756 || selectedEurosparStoreV751) : "";
+          store.key === "tokmanni"
+            ? getStoreDistanceLabelV320(selectedTokmanniStoreV756 || selectedEurosparStoreV751)
+            : "";
         const showEurosparDistanceForCard = Boolean(eurosparDistanceForCard && !isComingSoon);
 
         return (
@@ -22197,6 +22713,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         top={storePickerViewportStyle.top}
                         width={storePickerViewportStyle.width}
                         onClose={() => setOpenStorePicker(null)}
+                        showDistances={showStoreGpsDistances}
                         getDistanceLabel={(option) => {
                           const sourceIndex = Number((option as any).__sourceIndex);
                           const sourceStore = Number.isFinite(sourceIndex) ? lidlStoreOptionsV750[sourceIndex] : (option as StoreSearchItem);
@@ -22243,6 +22760,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         top={storePickerViewportStyle.top}
                         width={storePickerViewportStyle.width}
                         onClose={() => setOpenStorePicker(null)}
+                        showDistances={showStoreGpsDistances}
                         getDistanceLabel={(option) => String(option.distance || "")}
                         getStoreKey={(option, index) => `spar-${String(option.chain || option.type || "store").toLowerCase()}-${option.id || index}-${normalize(option.name || "")}`}
                         onSelectStore={(option) => {
@@ -22441,7 +22959,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   return (
     <>
       {mobileLandscapeBlockedV441 && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf] sm:hidden">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf]">
           <div className="max-w-[24rem] rounded-[1.6rem] border-[3px] border-[#d8bd75] bg-[#173f2f] px-6 py-7 shadow-[0_8px_0_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.12)]">
             <div className="mb-3 text-[2.4rem]">↻</div>
             <div className="text-[1.25rem] font-black leading-tight" style={{ fontFamily: '"Cooper Black", Georgia, serif' }}>
@@ -23136,7 +23654,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       </section>
 
       <main
-        className={`ziiply-mobile-landscape-force min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
+        className={`min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
         <style>{`
         html,
@@ -23147,49 +23665,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         #__next {
           background: #EAF4F1 !important;
           min-height: 100dvh;
-        }
-
-        @media (orientation: landscape) and (hover: none) and (pointer: coarse) {
-          .ziiply-legacy-desktop-hero,
-          .ziiply-desktop-only-legacy {
-            display: none !important;
-          }
-        }
-
-        /* V440: iPhone/Android landscape must remain mobile UI.
-           Tailwind sm/md breakpoints are width-based, so mobile landscape can
-           accidentally open desktop debug/legacy views. Coarse pointer wins. */
-        @media (hover: none) and (pointer: coarse) {
-          .ziiply-mobile-landscape-force .ziiply-desktop-only-legacy,
-          .ziiply-mobile-landscape-force .ziiply-desktop-debug-board,
-          .ziiply-mobile-landscape-force .ziiply-legacy-desktop-hero {
-            display: none !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:grid,
-          .ziiply-mobile-landscape-force .sm\:block,
-          .ziiply-mobile-landscape-force .md\:block,
-          .ziiply-mobile-landscape-force .lg\:block {
-            display: none !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:hidden {
-            display: block !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:mx-auto {
-            margin-left: 0 !important;
-            margin-right: 0 !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:max-w-\[1180px\] {
-            max-width: none !important;
-          }
-
-          .ziiply-mobile-landscape-force .sm\:px-4 {
-            padding-left: 0 !important;
-            padding-right: 0 !important;
-          }
         }
 
         @media (min-width: 640px) {
@@ -23312,6 +23787,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
 <KauppiasMobileTopBar
             hidden={searchFullscreenOpenV621}
+            showSpeedIndicator={!showLaunchScreen && !searchFullscreenOpenV621 && !shopsPanelOpen && !searchPanelOpen && !notebookOpen && !cartModalOpen && !eanModalOpen && !cartSavePanelOpen && !mobileComparePickingOpenV733 && !mobileFuelMode && !mobileFuelCompareOpen && !mapStoresOverlayOpenV433 && !mapRouteOverlayOpenV428 && !initialStoreNavPrompt && !arvoNutritionScannerOpen && activeAssistant === null && activeResult === "none"}
             areaLabel={gpsCoordsV320 || locationInput.trim() ? activeArea.label : "Paikannetaan..."}
             gpsCoords={gpsCoordsV320}
             fuelModeActive={mobileFuelMode}
@@ -23332,30 +23808,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             pulling the mobile home artwork upward after idle/reload/viewport restore. */}
         <div
           aria-hidden="true"
-          className="block h-[104px] shrink-0 select-none sm:hidden"
+          className="block h-[104px] shrink-0 select-none"
         />
 <div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
-          <section
-            className="hidden ziiply-legacy-desktop-hero ziiply-desktop-only-legacy"
-          >
-            <div className="mx-auto max-w-6xl">
-              <div className="overflow-hidden rounded-[1.25rem] bg-[#fff8df]/95 px-4 py-2 shadow-sm ring-1 ring-slate-100 sm:rounded-[1.5rem] sm:px-5 sm:py-2">
-                <img
-                  src="/ziiply.png"
-                  alt="Ziiply"
-                  className="mx-auto max-h-[90px] w-auto object-contain py-1 sm:max-h-[108px] sm:py-1"
-                />
-                <div className="mx-auto mt-1 max-w-3xl text-center">
-                  <p className="text-base font-black leading-tight tracking-[-0.04em] text-slate-950">
-                    Viilaa ruokakorisi huokeammaks
-                  </p>
-                  <p className="mt-1 text-sm font-semibold leading-snug text-[#8a7349]">
-                    Gösta ja Justiina auttavat arjen valinnoissa.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
 
           {!showLaunchScreen &&
             !searchPanelOpen &&
@@ -23382,7 +23837,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 </div>
 
                 {arvoNutritionScannerOpen && (
-                  <div className="fixed inset-0 z-[2147483600] sm:hidden">
+                  <div className="fixed inset-0 z-[2147483600]">
                     <ArvoNutritionScannerPreview
                       onClose={() => setArvoNutritionScannerOpen(false)}
                       onAddToCart={addArvoNutritionProductToCart}
@@ -23393,11 +23848,78 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
                   onClose={() => setActiveAssistant(null)}
-                  onSearchIngredients={(terms) => { setActiveAssistant(null); void runVoiceSearchFromSpeechV453(terms.join(", "), true, terms); }}
+                  onSearchIngredients={(terms, items) => {
+                    if (!items) setActiveAssistant(null);
+                    void runVoiceSearchFromSpeechV453(terms.join(", "), true, terms, items);
+                  }}
                   selectedChains={selectedChains}
                   onChangeChain={(chain, enabled) => setSelectedChains(current => ({...current, [chain]: enabled}))}
                   locationLabel={activeArea.label || locationInput}
                   onOpenStoreSettings={() => { setActiveAssistant(null); setShopsPanelOpen(true); }}
+                  onAddWatchOfferToCart={(offer) => {
+                    const name = String(offer.name || "").trim();
+                    const price = Number(offer.price);
+                    if (!name || !Number.isFinite(price) || price <= 0) return false;
+                    const current = cartRefV124.current;
+                    const storeName = String(offer.storeName || "").trim();
+                    const ean = offer.ean;
+                    const bundleQuantity = offer.bundleQuantity;
+                    const identity = name.toLocaleLowerCase("fi") + "|" + storeName.toLocaleLowerCase("fi");
+                    const existingIndex = current.findIndex(item =>
+                      (item.ean || item.product?.ean || "") === (ean || "") &&
+                      (item.ziiplyOfferBundleQuantity || 1) === bundleQuantity &&
+                      String(item.name || "").toLocaleLowerCase("fi") + "|" +
+                      String(item.storeName || "").toLocaleLowerCase("fi") === identity
+                    );
+                    if (existingIndex < 0 && current.length >= MAX_ITEMS) {
+                      showCartToast("Ostoskori on täynnä");
+                      return false;
+                    }
+                    const chain = /^(?:lidl|l\b)/i.test(offer.chain || storeName) ? "LIDL"
+                      : /^(?:s-market|prisma|sale|s\b)/i.test(offer.chain || storeName) ? "S"
+                      : /^(?:k-|k\b)/i.test(offer.chain || storeName) ? "K"
+                      : /^(?:tokmanni|spar)/i.test(offer.chain || storeName) ? "TOKMANNI"
+                      : undefined;
+                    const weighted = offer.ziiplyPricePendingWeight === true;
+                    const existing = current[existingIndex];
+                    if (weighted && (existing?.product as any)?.ziiplyPricePendingWeight) {
+                      showCartToast("Punnittava tuote on jo ostoskorissa");
+                      return false;
+                    }
+                    const item: CartItem = {
+                      id: existing?.id || "gosta-watch-" + Date.now() + "-" + current.length,
+                      name,
+                      price: weighted ? 0 : price / bundleQuantity,
+                      ean,
+                      validityText: offer.validityText || existing?.validityText,
+                      discountText: offer.discountText || existing?.discountText,
+                      validFrom: offer.validFrom || existing?.validFrom,
+                      validUntil: offer.validUntil || existing?.validUntil,
+                      ziiplyOfferBundleQuantity: bundleQuantity > 1 ? bundleQuantity : undefined,
+                      priceAmountUnit: "eur",
+                      image: offer.imageUrl || undefined,
+                      storeName,
+                      chain: chain as CartItem["chain"],
+                      quantity: weighted ? 1 : Number(existing?.quantity || 0) + bundleQuantity,
+                      source: "offer",
+                      ...(weighted ? {
+                        ziiplyEstimatedWeightKg: offer.estimatedWeightKg,
+                        product: {
+                          name, ean, price: 0, ziiplyWeightLabel: true, ziiplyWeightOffer: true,
+                          ziiplyPricePendingWeight: true, comparisonPrice: price, comparisonPriceUnit: "kg",
+                        } as unknown as Product,
+                      } : {}),
+                    };
+                    const next = existingIndex >= 0
+                      ? current.map((row, index) => index === existingIndex ? item : row)
+                      : [...current, item];
+                    cartRefV124.current = next;
+                    setCart(next);
+                    persistCartImmediately(next);
+                    showCartToast("✓ Lisätty ostoskoriin");
+                    return true;
+                  }}
+
 
                 />
               </>
@@ -23677,284 +24199,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </div>
           )}
 
-          {/* v358_DESKTOP_DEBUG_ALL_FLOWS:
-            Desktop-only debug board. Mobile CSS/classes below 640px are not touched.
-            Purpose: keep the existing mobile app flow intact, but expose the main states and actions
-            side-by-side on desktop so debugging does not require opening one mobile bottom-sheet at a time. */}
-          {!showLaunchScreen && (
-            <section className="hidden ziiply-desktop-debug-board ziiply-desktop-only-legacy sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-4 rounded-[2rem] bg-[#fff8df]/95 p-4 shadow-sm ring-1 ring-slate-100">
-              <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-wide text-[#b7aa8d]">
-                      Debug
-                    </p>
-                    <h2 className="text-lg font-black tracking-[-0.03em] text-slate-950">
-                      Haku
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-800 ring-1 ring-green-200">
-                    {searchCompareMode === "single"
-                      ? "Yksi tuote"
-                      : "Koko kori"}
-                  </span>
-                </div>
-
-                <textarea
-                  value={input}
-                  onChange={(event) =>
-                    setSearchInputForMode(event.target.value)
-                  }
-                  placeholder={
-                    searchCompareMode === "single"
-                      ? "Kirjoita yksi tuote"
-                      : "maito, kahvi, jauheliha"
-                  }
-                  className="h-28 w-full resize-none rounded-[1.15rem] border border-slate-300 bg-[#fff8df] px-3 py-3 text-[15px] font-semibold text-slate-950 outline-none focus:border-green-600 focus:ring-4 focus:ring-green-100"
-                />
-
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSearchCompareMode("cart")}
-                    className={`rounded-[1rem] px-3 py-2 text-sm font-black ring-1 transition ${searchCompareMode === "cart" ? "bg-green-700 text-white ring-green-800" : "bg-[#fff8df] text-slate-700 ring-slate-200"}`}
-                  >
-                    Koko kori
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchCompareMode("single");
-                      setInput((currentInput) =>
-                        getSingleSearchTerm(currentInput),
-                      );
-                    }}
-                    className={`rounded-[1rem] px-3 py-2 text-sm font-black ring-1 transition ${searchCompareMode === "single" ? "bg-green-700 text-white ring-green-800" : "bg-[#fff8df] text-slate-700 ring-slate-200"}`}
-                  >
-                    Yksi tuote
-                  </button>
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={handleMainNormalSearch}
-                    disabled={
-                      !hasSearchInput ||
-                      loadingNormal ||
-                      singleProductCompareLoading
-                    }
-                    className="rounded-[1rem] bg-slate-900 px-3 py-3 text-sm font-black text-white transition disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-[#b7aa8d]"
-                  >
-                    {loadingNormal || singleProductCompareLoading
-                      ? "Haetaan..."
-                      : "Hae"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={openEanModal}
-                    className="rounded-[1rem] bg-green-700 px-3 py-3 text-sm font-black text-white"
-                  >
-                    EAN / Skannaa
-                  </button>
-                </div>
-
-                <div className="mt-3 max-h-64 overflow-auto rounded-[1.15rem] bg-[#fff8df] p-2 ring-1 ring-slate-200">
-                  <p className="mb-2 px-1 text-xs font-black uppercase tracking-wide text-[#b7aa8d]">
-                    Hakutulokset
-                  </p>
-                  {visibleNormalResults.length === 0 &&
-                  singleProductCompareResults.length === 0 ? (
-                    <p className="px-1 py-6 text-center text-sm font-bold text-[#b7aa8d]">
-                      Ei hakutuloksia vielä.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {visibleNormalResults.slice(0, 6).map((product) => (
-                        <div
-                          key={`desktop-normal-${product.id}-${product.ean || product.name}`}
-                          className="flex items-center gap-2 rounded-xl bg-slate-50 p-2"
-                        >
-                          {product.pictureUrl && (
-                            <img
-                              src={product.pictureUrl}
-                              alt=""
-                              className="h-10 w-10 shrink-0 rounded-lg object-contain bg-[#fff8df]"
-                            />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-black text-[#17322a]">
-                              {fixText(product.name)}
-                            </p>
-                            <p className="text-xs font-bold text-green-700">
-                              {formatEuro(getProductPrice(product))}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => addProductToCart(product)}
-                            className="rounded-xl bg-green-600 px-3 py-2 text-xs font-black text-white"
-                          >
-                            Lisää
-                          </button>
-                        </div>
-                      ))}
-                      {singleProductCompareResults.slice(0, 4).map((result) => (
-                        <div
-                          key={`desktop-single-${result.key}-${result.storeName}-${result.productName}`}
-                          className="rounded-xl bg-slate-50 p-2"
-                        >
-                          <p className="truncate text-sm font-black text-[#17322a]">
-                            {fixText(result.productName)}
-                          </p>
-                          <p className="text-xs font-bold text-[#8a7349]">
-                            {result.storeName} · {formatEuro(result.price)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-wide text-[#b7aa8d]">
-                      Debug
-                    </p>
-                    <h2 className="text-lg font-black tracking-[-0.03em] text-slate-950">
-                      Kori
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-black text-white">
-                    {cart.length} tuotetta
-                  </span>
-                </div>
-                <div className="max-h-[27rem] overflow-auto rounded-[1.15rem] bg-[#fff8df] p-2 ring-1 ring-slate-200">
-                  {cart.length === 0 ? (
-                    <p className="px-1 py-10 text-center text-sm font-bold text-[#b7aa8d]">
-                      Kori on tyhjä.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {cart.map((item, cartIndex) => (
-                    <div
-                      key={item.id}
-                      className="relative min-w-0 overflow-hidden rounded-[1.65rem] border-[3px] border-[#c2a05e] bg-gradient-to-b from-[#fff8e8] via-[#f6e8c5] to-[#ead19a] p-3 text-[#20301f] shadow-[0_5px_0_rgba(80,58,25,0.22),inset_0_0_0_2px_rgba(255,255,255,0.55)]"
-                    >
-                      <div className="pointer-events-none absolute inset-0 opacity-[0.13] [background-image:radial-gradient(#b59c67_1px,transparent_1px)] [background-size:13px_13px]" />
-                      <div className="relative grid min-w-0 grid-cols-[42px_82px_minmax(0,1fr)_auto] items-center gap-3">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[#b99d62] bg-[#fff7df] text-lg font-black text-[#7a6842] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.65)]">
-                          {cartIndex + 1}
-                        </span>
-
-                        <span className="flex h-[74px] w-[82px] shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] border-2 border-[#d6bf8f] bg-[#fff8df] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.7)]">
-                          {item.image ? (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="h-full w-full object-contain p-1"
-                            />
-                          ) : (
-                            <span className="text-2xl">🛒</span>
-                          )}
-                        </span>
-
-                        <div className="min-w-0 overflow-hidden">
-                          <p className="line-clamp-2 break-words text-[17px] font-black leading-[1.05] text-[#20301f]">
-                            {item.name}
-                          </p>
-                          <p className="mt-1 truncate text-[12px] font-bold text-[#6f6b59]">
-                            {item.storeName
-                              ? `${item.storeName} · ${item.chain}`
-                              : "Muistilistarivi"}
-                          </p>
-                          <p className="mt-1 text-[13px] font-black text-[#6f6b59]">
-                            {item.quantity} kpl
-                          </p>
-                        </div>
-
-                        <div className="shrink-0 text-right">
-                          <p className="whitespace-nowrap text-[18px] font-black text-[#20301f]">
-                            {Number(item.price || 0) > 0 ? formatEuro(Number(item.price || 0) * item.quantity) : "—"}
-                          </p>
-                          {Number(item.price || 0) > 0 ? (
-                            <p className="mt-1 whitespace-nowrap text-[11px] font-bold text-[#6f6b59]">
-                              {formatEuro(Number(item.price || 0))} / kpl
-                            </p>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="relative mt-3 grid grid-cols-[1fr_auto] items-center gap-3">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <button
-                            type="button"
-                            disabled
-                            className="min-w-0 rounded-full border-2 border-[#d6bf8f] bg-[#fff4cf] px-3 py-2 text-[11px] font-black leading-none text-[#8a3f16] opacity-75 shadow-[0_2px_0_rgba(91,72,44,0.14)]"
-                            title="Tuotekohtainen hinnanhuojennushaku rakennetaan myöhemmin"
-                            aria-label="Hinnanhuojennukset tulossa"
-                          >
-                            🔥 Hinnanhuojennukset
-                          </button>
-                          {item.price
-                            ? renderPriceHistoryBadge(
-                                getPriceHistoryKeyFromCartItem(item),
-                                item.price,
-                              )
-                            : null}
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-2">
-                          <div className="flex items-center rounded-full border-2 border-[#d6bf8f] bg-[#fff7df] p-1 shadow-[0_2px_0_rgba(91,72,44,0.14)]">
-                            <button
-                              type="button"
-                              onClick={() => changeQuantity(item.id, -1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f7ecd0] text-xl font-black text-[#8a7a52] transition active:scale-[0.94]"
-                              aria-label={
-                                item.quantity <= 1
-                                  ? `Poista ${item.name} ostoskorista`
-                                  : `Vähennä tuotteen ${item.name} määrää`
-                              }
-                              title={item.quantity <= 1 ? "Poista korista" : "Vähennä määrää"}
-                            >
-                              −
-                            </button>
-                            <span
-                              className="min-w-[30px] px-1 text-center text-base font-black text-[#20301f]"
-                              aria-label={`Määrä ${item.quantity}`}
-                            >
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => changeQuantity(item.id, 1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#07a445] text-xl font-black text-white shadow-sm transition active:scale-[0.94]"
-                              aria-label={`Lisää tuotteen ${item.name} määrää`}
-                              title="Lisää määrää"
-                            >
-                              +
-                            </button>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => removeCartItem(item.id)}
-                            className="flex h-10 min-w-[68px] shrink-0 items-center justify-center rounded-full border-2 border-[#8a3f16] bg-[#a4471c] px-3 text-[13px] font-black leading-none text-[#fff7df] shadow-[0_2px_0_rgba(91,72,44,0.22)] transition active:scale-[0.98]"
-                            aria-label={`Poista ${item.name} ostoskorista`}
-                          >
-                            Pois
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}                </div>
-              )}
-            </div>
-          </div>
-        </section>
-        )}
         </div>
 
         {restoredCartPromptV320.open &&
@@ -24007,7 +24251,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <>
             {/* Opaque Hae backdrop: the transparent search-card frame must not reveal
                 the home/three-logo screen during Compare -> Hae navigation. */}
-            <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[71] bg-[#f1dfad] sm:hidden" />
+            <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[71] bg-[#f1dfad]" />
             {!mobileRecipeSearchActive && <ZiiplyMobileSearchCard
               open={true}
               title="HAKU"
@@ -24030,6 +24274,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               products={normalResults}
               emptyText="Kirjoita tuotteet hakukenttään."
               onClose={() => {
+                recordSearchResultsDismissed();
                 setSearchPanelOpen(false);
                 setNormalResults([]);
                 setMobileResultsReadyQueryV537("");
@@ -24067,9 +24312,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
             />}
 
+            {lidlNormalNoticeOpenV783 && (
+              <div className="fixed inset-0 z-[10020] flex items-center justify-center bg-[#122d25]/55 px-5 py-8" role="presentation">
+                <div role="alertdialog" aria-modal="true" aria-label="Lidlin normaalihinnat eivät ole saatavilla" className="w-full max-w-[420px] rounded-[28px] border-[4px] border-[#b99b57] bg-[#fff5d7] p-6 text-center shadow-[0_18px_50px_rgba(0,0,0,0.38)]">
+                  <h2 className="mb-4 text-xl font-black text-[#174c35]">Lidlin normaalihinnat</h2>
+                  <p className="text-base font-bold leading-relaxed text-[#57482f]">Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.</p>
+                  <p className="mt-3 text-sm font-semibold text-[#57482f]">Göstan Lidl-tarjouksia voit hakea normaalisti.</p>
+                  <button type="button" onClick={() => setLidlNormalNoticeOpenV783(false)} className="mt-6 min-h-12 w-full rounded-2xl bg-[#176341] px-5 py-3 text-base font-black text-white">Selvä, sulje ilmoitus</button>
+                </div>
+              </div>
+            )}
             {!mobileRecipeSearchActive && (voiceNoticeTextV516 || voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className={`pointer-events-none fixed z-[9998] -translate-x-1/2 rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 text-center font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden ${!voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? "top-[calc(env(safe-area-inset-top)+25rem)] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] whitespace-normal break-words px-3 py-2 text-[0.78rem] leading-[1.35]" : "top-[calc(env(safe-area-inset-top)+20.02rem)] inline-block min-h-[1.28rem] w-auto max-w-[72vw] whitespace-nowrap px-2.5 py-[0.10rem] text-[0.72rem] leading-[1.0]"}`}
+                className={`pointer-events-none fixed z-[9998] -translate-x-1/2 rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 text-center font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] ${!voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? "top-[calc(env(safe-area-inset-top)+25rem)] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] whitespace-normal break-words px-3 py-2 text-[0.78rem] leading-[1.35]" : "top-[calc(env(safe-area-inset-top)+20.02rem)] inline-block min-h-[1.28rem] w-auto max-w-[72vw] whitespace-nowrap px-2.5 py-[0.10rem] text-[0.72rem] leading-[1.0]"}`}
                 style={{
                   fontFamily: '"Cooper Black", Georgia, serif',
                   // V517: keskitetään Äänitä-napin vaakakeskilinjaan.
@@ -24086,18 +24341,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {/* V512: voice debug panel removed from visible UI. */}
 
             <ZiiplyMobileSearchResultsCard
+              compact={mobileRecipeSearchActive}
               open={
-                searchPanelOpen && (mobileRecipeSearchActive || (
+                searchPanelOpen && (mobileRecipeSearchActive || (loadingNormal && previewNormalResults.length > 0) || (
                 !loadingNormal && normalResults.length > 0 && mobileResultsReadyQueryV537.length > 0))
               }
               emptyText={mobileRecipeSearchActive?"Tälle ainekselle ei löytynyt sopivaa tuotetta valitun kaupan hakutiedoista. Voit ohittaa aineksen.":undefined}
               loading={mobileRecipeSearchActive && loadingNormal}
               title={mobileRecipeSearchActive ? activeNormalSearchTerm || "Reseptin tuotteet" : activeNormalSearchTerm || "Tuotteet"}
-              products={normalResults}
+              products={loadingNormal && !mobileRecipeSearchActive ? previewNormalResults : normalResults}
+              completing={!mobileRecipeSearchActive && loadingNormal && previewNormalResults.length > 0}
+              onDownloadDebug={downloadMobileSearchTrace}
               onSkip={mobileRecipeSearchActive?()=>{
                 resolveVoiceResultWaitV509("recipe ingredient skipped");
               }:undefined}
               onClose={() => {
+                recordSearchResultsDismissed();
+                if (loadingNormal && !mobileRecipeSearchActive) {
+                  dismissedNormalPreview.current = activeNormalSearchRequestRefV441.current;
+                  setPreviewNormalResults([]);
+                }
                 if(mobileRecipeSearchActive){
                   mobileRecipeRunRef.current++;activeNormalSearchRequestRefV441.current++;
                   mobileRecipeContextRef.current=null;setMobileRecipeSearchActive(false);
@@ -24120,6 +24383,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 // onnistunut lista Löytöluetteloa varten; seuraava valmistunut
                 // normaali haku korvaa sen searchNormalPrices-polussa.
                 if(!addProductToCart(product as Product))return;
+                if (loadingNormal && !mobileRecipeSearchActive) {
+                  dismissedNormalPreview.current = activeNormalSearchRequestRefV441.current;
+                  setPreviewNormalResults([]);
+                }
                 resolveVoiceResultWaitV509("results-add");
                 if(!mobileRecipeSearchActive)setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
@@ -24215,7 +24482,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     </div>
                   )}
 
-                  <div className="fixed inset-0 z-[160] h-[100dvh] w-screen overflow-hidden bg-[#fff5d9] sm:hidden">
+                  <div className="fixed inset-0 z-[160] h-[100dvh] w-screen overflow-hidden bg-[#fff5d9]">
                     <button
                       type="button"
                       onClick={closeEanModal}
@@ -24247,29 +24514,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     }}
                   />
 
-                  <div className="relative z-[100] mx-auto w-full max-w-lg px-2 pb-2">
-                    <div className="pointer-events-auto mx-auto max-w-lg rounded-xl border border-amber-400 bg-slate-950/95 text-white shadow-2xl">
-                      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-                        <button type="button" className="text-xs font-black text-amber-300" onClick={() => setScannerDebugOpenV851((open) => !open)}>
-                          EAN DEBUG {scannerDebugOpenV851 ? "▼" : "▲"} ({scannerDebugLinesV493.length})
-                        </button>
-                        <div className="flex flex-wrap gap-2">
-                          <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => void copyScannerDebugV852()}>Kopioi teksti</button>
-                          <button type="button" className="rounded bg-emerald-700 px-2 py-1 text-[11px] font-bold" onClick={downloadScannerDebugV852}>Lataa TXT</button>
-                          <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => setScannerDebugLinesV493([])}>Tyhjennä</button>
+                  {process.env.NODE_ENV === "development" && (
+                    <div className="relative z-[100] mx-auto w-full max-w-lg px-2 pb-2">
+                      <div className="pointer-events-auto mx-auto max-w-lg rounded-xl border border-amber-400 bg-slate-950/95 text-white shadow-2xl">
+                        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                          <button type="button" className="text-xs font-black text-amber-300" onClick={() => setScannerDebugOpenV851((open) => !open)}>
+                            EAN DEBUG {scannerDebugOpenV851 ? "▼" : "▲"} ({scannerDebugLinesV493.length})
+                          </button>
+                          <div className="flex flex-wrap gap-2">
+                            <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => void copyScannerDebugV852()}>Kopioi teksti</button>
+                            <button type="button" className="rounded bg-emerald-700 px-2 py-1 text-[11px] font-bold" onClick={downloadScannerDebugV852}>Lataa TXT</button>
+                            <button type="button" className="rounded bg-slate-700 px-2 py-1 text-[11px] font-bold" onClick={() => setScannerDebugLinesV493([])}>Tyhjennä</button>
+                          </div>
                         </div>
+                        {scannerDebugExportStatusV852 && <div role="status" className="px-3 pb-1 text-[11px] text-amber-200">{scannerDebugExportStatusV852}</div>}
+                        {scannerDebugOpenV851 && <textarea readOnly aria-label="Kopioitava skannerin debug-teksti" value={scannerDebugReportV852()} onFocus={(event) => event.currentTarget.select()} className="mx-2 mb-2 block h-20 w-[calc(100%-1rem)] resize-y rounded bg-white p-2 font-mono text-[11px] text-slate-900" />}
+                        {scannerDebugOpenV851 && <div className="max-h-[35dvh] overflow-y-auto border-t border-slate-700 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all">
+                          <div>EAN: {eanInput || "-"} | Kaupassa: {String(scannerInStoreRefV828.current)}</div>
+                          <div>S: {activeStores.sStoreName || "-"} ({activeStores.sStoreId || "-"})</div>
+                          <div>K: {activeStores.kStoreName || "-"} ({activeStores.kStoreId || "-"})</div>
+                          <div>Tila: {eanScannerMessage || eanMessage || "-"}</div>
+                          {scannerDebugLinesV493.map((line, index) => <div key={index}>{line}</div>)}
+                        </div>}
                       </div>
-                      {scannerDebugExportStatusV852 && <div role="status" className="px-3 pb-1 text-[11px] text-amber-200">{scannerDebugExportStatusV852}</div>}
-                      {scannerDebugOpenV851 && <textarea readOnly aria-label="Kopioitava skannerin debug-teksti" value={scannerDebugReportV852()} onFocus={(event) => event.currentTarget.select()} className="mx-2 mb-2 block h-20 w-[calc(100%-1rem)] resize-y rounded bg-white p-2 font-mono text-[11px] text-slate-900" />}
-                      {scannerDebugOpenV851 && <div className="max-h-[35dvh] overflow-y-auto border-t border-slate-700 px-3 py-2 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-all">
-                        <div>EAN: {eanInput || "-"} | Kaupassa: {String(scannerInStoreRefV828.current)}</div>
-                        <div>S: {activeStores.sStoreName || "-"} ({activeStores.sStoreId || "-"})</div>
-                        <div>K: {activeStores.kStoreName || "-"} ({activeStores.kStoreId || "-"})</div>
-                        <div>Tila: {eanScannerMessage || eanMessage || "-"}</div>
-                        {scannerDebugLinesV493.map((line, index) => <div key={index}>{line}</div>)}
-                      </div>}
                     </div>
-                  </div>
+                  )}
 
                   <ZiiplyMobileScannerCard
                   onCaptureDiscountSticker={() => void scanRedStickerStillV863()}
@@ -24355,7 +24624,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 {eanLoading && (
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none fixed left-4 right-4 z-[181] rounded-[2rem] bg-slate-700/45 backdrop-blur-[1px] sm:hidden"
+                    className="pointer-events-none fixed left-4 right-4 z-[181] rounded-[2rem] bg-slate-700/45 backdrop-blur-[1px]"
                     style={{
                       top: "calc(env(safe-area-inset-top) + 5.35rem)",
                       height: "min(54dvh, 430px)",
@@ -24369,7 +24638,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {eanResults.length > 1 &&
                 !desktopKeyboardScannerOpen &&
                 (eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
-                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:hidden">
+                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)]">
                     <ZiiplyMobileProductPickCard
                       title="Valitse lisättävä tuote"
                       subtitle="Sama EAN löytyi useammasta kaupasta"
@@ -24449,7 +24718,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           !eanModalOpen &&
           activeResult !== "compare" &&
           !(loadingNormal || normalResults.length > 0) && (
-            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl sm:hidden">
+            <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] font-black uppercase tracking-wide text-green-300">
@@ -24630,7 +24899,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const itemEanV814 = normalizeEan(item.ean || item.product?.ean || "");
               // V814: EAN-tuotetta ei koskaan kuitata käsin kerätyksi tai takaisin.
               // Fyysisen EAN-tuotteen keräilykuittaus syntyy vain oikeasta skannauksesta.
-              if (isUsableEan(itemEanV814)) {
+              if (item.source === "offer" || isUsableEan(itemEanV814)) {
                 showCartToast("EAN-tuote kuitataan kerätyksi vain skannaamalla viivakoodi.");
                 return;
               }
@@ -24893,9 +25162,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
           <ZiiplyMobileCompareCard
             open
-            stores={(displayedChainResultsV821.length > 0
+            stores={singleLidlComparison
+              ? [{ id: "lidl", name: "Lidl", chain: "LIDL" as const }]
+              : (displayedChainResultsV821.length > 0
               ? displayedChainResultsV821
-                  .filter((result) => !result.comingSoon)
+                  .filter((result) => result.key !== "lidl" || selectedChains.lidl)
                   .map((result) => ({
                     id: result.key,
                     name: result.storeName || result.chain,
@@ -24905,7 +25176,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         ? "S" as const
                         : result.key === "k"
                           ? "K" as const
-                          : undefined,
+                          : result.key === "lidl"
+                            ? "LIDL" as const
+                            : result.key === "tokmanni"
+                              ? "SPAR" as const
+                              : undefined,
                     // Core prices are euros; mobile comparison presentation accepts cents.
                     totalPrice: Math.round((result.totalPrice || 0) * 100),
                     itemCount: result.foundItems,
@@ -24929,6 +25204,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               : [
                   ...(selectedChains.s ? [{ id: "s", name: activeStores.sStoreName || "S-ryhmä", chain: "S" as const }] : []),
                   ...(selectedChains.k ? [{ id: "k", name: activeStores.kStoreName || "K-ryhmä", chain: "K" as const }] : []),
+                  ...(selectedChains.lidl ? [{ id: "lidl", name: "Lidl", chain: "LIDL" as const, missingItems: comparableCart.length }] : []),
+                  ...(selectedChains.tokmanni ? [{ id: "tokmanni", name: "Tokmanni / SPAR", chain: "SPAR" as const, missingItems: comparableCart.length }] : []),
                 ])}
             items={comparableCart}
             title="Vertailu"
@@ -24979,7 +25256,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   )
                   .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
 
-                if (safeMode === "cheapest" && replacement) {
+                if (safeMode === "cheapest" && replacement && safeMatch.price > 0
+                  && getProductPrice(replacement) < safeMatch.price) {
                   replaceMatchProduct(
                     chainKey as ChainResult["key"],
                     safeMatch,
@@ -25050,7 +25328,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   )
                   .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
 
-                if (replacement) {
+                if (replacement && safeMatch.price > 0 && getProductPrice(replacement) < safeMatch.price) {
                   replaceMatchProduct(
                     chainKey as ChainResult["key"],
                     safeMatch,
@@ -25070,7 +25348,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {!eanModalOpen && comparisonLoading && storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && (
-          <div className="pointer-events-none fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2 sm:hidden">
+          <div className="pointer-events-none fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2">
             <div className="rounded-2xl bg-emerald-600 px-3 py-2.5 text-center text-[0.78rem] leading-[1.35] font-bold text-white shadow-2xl">
               {(() => {
                 const selectedKey = (["s", "k", "lidl", "tokmanni"] as const).find(
@@ -25093,7 +25371,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeCompareScope === "between_chains" &&
           betweenChainSelectionModeV749 === "one"
         ) && (
-          <div className={`fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2 sm:hidden ${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "pointer-events-auto" : "pointer-events-none"}`}>
+          <div className={`fixed left-1/2 top-[16.81rem] z-[10020] w-max max-w-[calc(100vw-1.5rem)] -translate-x-1/2 ${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "pointer-events-auto" : "pointer-events-none"}`}>
             <div className={`${lastCartToast.startsWith("Useamman tuotteen vertailu:") ? "" : "animate-[ziiplyFade_2.6s_ease-in-out]"} rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl`}>
               <div>{lastCartToast}</div>
               {lastCartToast.startsWith("Useamman tuotteen vertailu:") && (
@@ -25105,7 +25383,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {/* V531_HAE_READY_MICRO_BADGE_RENDER */}
           {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-[39%] z-[10001] animate-[ziiplyMicroReady_2.15s_ease-out_forwards] sm:hidden">
+            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-[39%] z-[10001] animate-[ziiplyMicroReady_2.15s_ease-out_forwards]">
               <div className="relative rounded-[0.58rem] border-[2px] border-[#0b5b31] bg-[linear-gradient(180deg,#0c9143_0%,#087237_100%)] px-2.5 py-[3px] text-[9px] font-black italic leading-none text-[#fff1c8] shadow-[0_3px_0_#064a26,0_8px_18px_rgba(8,75,42,0.24),inset_0_0_0_1px_rgba(255,255,255,0.20)]">
                 <span className="absolute -left-[5px] -top-[6px] text-[10px] leading-none text-[#f8c94b] drop-shadow-[0_1px_0_#6c4a10]">✦</span>
                 {haeReadyBadgeTextV502}
@@ -25300,7 +25578,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
 
         {mapStoresOverlayOpenV433 && (
-          <div className="fixed inset-0 z-[120] flex min-h-0 flex-col bg-[#062f29]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm sm:hidden">
+          <div className="fixed inset-0 z-[120] flex min-h-0 flex-col bg-[#062f29]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm">
             <div className="mx-auto flex h-full min-h-0 w-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border-[3px] border-[#c9a85c] bg-[#fff8dc] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
               <div className="flex items-center justify-between border-b border-[#d6bd76] bg-[#073d32] px-4 py-3 text-white">
                 <div className="flex items-center gap-3">
@@ -25391,10 +25669,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
+        {arrivalDebugVisible && <div style={{position:"fixed",bottom:80,right:12,zIndex:2147483647,background:"#fff",color:"#111",padding:12,borderRadius:12}}><button type="button" onClick={()=>{const blob=new Blob([JSON.stringify({events:getArrivalDiagnostics()},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="ziiply-gps-debug.json";a.click();URL.revokeObjectURL(url);}}>Lataa GPS-loki</button><button type="button" onClick={()=>clearArrivalDiagnostics()}>Tyhjennä</button><button type="button" onClick={()=>setArrivalDebugVisible(false)}>Sulje</button></div>}
+        {/* GPS debug -painike piilotettu mobiilista; diagnostiikka ja lokien käsittely säilytetty. */}
         <ZiiplyArrivalNotice
           notice={arrivalNotice.notice}
           onDismiss={arrivalNotice.dismiss}
           onSkip={arrivalNotice.skip}
+          onConfirm={() => {
+            const decision=liveArrivalDecisionRefV864.current;
+            if(!decision?.store)return;
+            liveArrivalStateRefV864.current=confirmZiiplyStorePresence(liveArrivalStateRefV864.current,decision.store.id);
+            liveArrivalDecisionRefV864.current={...decision,state:liveArrivalStateRefV864.current,status:"in-store",radar:"green"};
+            scannerInStoreRefV828.current=decision.isSelectedStore;
+            scannerStoreCheckDoneRefV791.current=decision.isSelectedStore;
+            scannerConfirmedStoreNameRefV828.current=decision.isSelectedStore?decision.store.name:"";
+            recordArrivalDiagnostic("arrival-explicit-confirm",{store:decision.store.name,selected:decision.isSelectedStore});
+          }}
           onList={() => {
             arrivalNotice.dismiss();
             setArrivalNotebookPage("lists");

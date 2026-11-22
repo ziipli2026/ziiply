@@ -1,0 +1,4702 @@
+{
+  "metadata": {
+    "retrieved": "2026-11-13",
+    "source": "Vercel protected preview API via authenticated connector",
+    "queries": [
+      "maito",
+      "kahvi",
+      "kirjolohi"
+    ],
+    "stores": {
+      "s": 292,
+      "k": 3221
+    }
+  },
+  "items": {
+    "maito_s": [
+      {
+        "id": 2641,
+        "name": "Arla 1% maito 1l",
+        "ean": "6413300102017",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 129,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 129
+          }
+        ]
+      },
+      {
+        "id": 2526,
+        "name": "Valio Plus™ rasvaton maito 1l",
+        "ean": "6408430000289",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 209,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 209
+          }
+        ]
+      },
+      {
+        "id": 2626,
+        "name": "Valio Luomu™ rasvaton maito 1l",
+        "ean": "6408430000173",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 105,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 105
+          }
+        ]
+      },
+      {
+        "id": 2455,
+        "name": "Arla Rasvaton maito Suomi 1,5 L",
+        "ean": "6413300101713",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 145,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 145
+          }
+        ]
+      },
+      {
+        "id": 2765,
+        "name": "Valio Luomu rasvaton maito 1,75l",
+        "ean": "6408430000654",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 184,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 184
+          }
+        ]
+      },
+      {
+        "id": 2648,
+        "name": "Arla Cafe Maito 1L laktoositon UHT",
+        "ean": "6413300015515",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 205,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 205
+          }
+        ]
+      },
+      {
+        "id": 1868410,
+        "name": "Arla Cafe maito 0,5l UHT laktoositon",
+        "ean": "6413300026627",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 155,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 155
+          }
+        ]
+      },
+      {
+        "id": 2450,
+        "name": "Valio vapaan lehmän rasvaton maito 1l",
+        "ean": "6408430000104",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 125,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 125
+          }
+        ]
+      },
+      {
+        "id": 2846,
+        "name": "Valio rasvaton maito 1l laktoositon UHT",
+        "ean": "6408430011650",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 205,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 205
+          }
+        ]
+      },
+      {
+        "id": 2650,
+        "name": "Valio Luomu D-vitaminoitu rasvaton maito 1l",
+        "ean": "6408430000616",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 105,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 105
+          }
+        ]
+      },
+      {
+        "id": 2461,
+        "name": "Juustoportti Vapaan lehmän rasvaton maito 1l",
+        "ean": "6408653125608",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 159,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 159
+          }
+        ]
+      },
+      {
+        "id": 3017,
+        "name": "Kotimaista iskukuumennettu vähälaktoosinen rasvaton maito 1L",
+        "ean": "6414893385245",
+        "category": "maito-munat-ja-rasvat/maidot-ja-piimat/laktoosittomat-ja-vahalaktoosiset-maidot",
+        "price": 185,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 185
+          }
+        ]
+      },
+      {
+        "id": 2523,
+        "name": "Valio Keittiön Kiehu maitojuoma 1l",
+        "ean": "6408430000586",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 235,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 235
+          }
+        ]
+      },
+      {
+        "id": 2522,
+        "name": "Valio Eila laktoositon maitojuoma 3% 1l",
+        "ean": "6408430000296",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 215,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 215
+          }
+        ]
+      },
+      {
+        "id": 1831557,
+        "name": "Maitokolmio kuohukerma 2dl",
+        "ean": "6417777011407",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+        "price": 145,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 145
+          }
+        ]
+      },
+      {
+        "id": 2512,
+        "name": "Ehrmann maitorahka 0,2% 250g",
+        "ean": "4002971466102",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 88,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 88
+          }
+        ]
+      },
+      {
+        "id": 2466,
+        "name": "Valio pehmeä maitorahka 250 g",
+        "ean": "6408430042081",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 95,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 95
+          }
+        ]
+      },
+      {
+        "id": 2559,
+        "name": "Maitokolmio FIT pehmeä rahka 200 g",
+        "ean": "6417777042258",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 69,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 69
+          }
+        ]
+      },
+      {
+        "id": 1817791,
+        "name": "Maitokolmio kuohukerma 5dl laktoositon",
+        "ean": "6417777011445",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+        "price": 385,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 385
+          }
+        ]
+      },
+      {
+        "id": 1831556,
+        "name": "Maitokolmio ruokakerma 5dl laktoositon",
+        "ean": "6417777011605",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+        "price": 149,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 149
+          }
+        ]
+      },
+      {
+        "id": 2434,
+        "name": "Kotimaista rasvaton maito 1l",
+        "ean": "6415712506032",
+        "category": "CAAAMAAAAAAAA",
+        "price": 85,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 85
+          }
+        ]
+      },
+      {
+        "id": 85832,
+        "name": "Dovgan kondensoitu maito 397g karamel",
+        "ean": "4032549003378",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 299,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 299
+          }
+        ]
+      },
+      {
+        "id": 85828,
+        "name": "Dovgan Kondensoitu maito makeutettu 397g",
+        "ean": "4032549001770",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 279,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 279
+          }
+        ]
+      },
+      {
+        "id": 5842,
+        "name": "Törsleffs kondensoitu maito sokeroitu 397g",
+        "ean": "7315200015406",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 279,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 279
+          }
+        ]
+      },
+      {
+        "id": 1943726,
+        "name": "Kotimaista rasvaton maito 1 l laktoositon UHT",
+        "ean": "6438574709670",
+        "category": "CAAAMACAGAAAA",
+        "price": 195,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 195
+          }
+        ]
+      },
+      {
+        "id": 6024,
+        "name": "Törsleffs kondensoitu maito karamellisoitu 397g",
+        "ean": "7315200015413",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 279,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 279
+          }
+        ]
+      },
+      {
+        "id": 34524,
+        "name": "Dovgan Kondensoitu maito makeutettu 480g / 370ml",
+        "ean": "4032549035874",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 385,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 385
+          }
+        ]
+      },
+      {
+        "id": 1849221,
+        "name": "Dogan Kondensoitu maito 300g, sokeroimaton HALAL",
+        "ean": "4032549037670",
+        "category": "CAABGBAAOAAAK",
+        "price": 259,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 259
+          }
+        ]
+      },
+      {
+        "id": 1837541,
+        "name": "Dovgan Kondensoitu maito kaakaolla, makeutettu 300 g / 232 ml",
+        "ean": "4032549043008",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 299,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 299
+          }
+        ]
+      },
+      {
+        "id": 1819383,
+        "name": "Dovgan Laktoositon Kondensoitu maito, makeutettu 370 g / 283 ml",
+        "ean": "4032549045200",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 269,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 269
+          }
+        ]
+      },
+      {
+        "id": 67319,
+        "name": "Lindt Napolitaines lajitelma sveitsiläiset suklaapalat maito valko tumma 250g",
+        "ean": "0000076104121",
+        "category": "makeiset-ja-naposteltavat/suklaat/konvehtirasiat",
+        "price": 1295,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1295
+          }
+        ]
+      },
+      {
+        "id": 1848054,
+        "name": "Lindt LINDOR Joulu Maito valko hasselpähkinä tumma 45% suklaakuula pehmeällä täytteellä 337g",
+        "ean": "8003340097305",
+        "category": "CAABGAQAQAAAA",
+        "price": 1295,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1295
+          }
+        ]
+      },
+      {
+        "id": 1831015,
+        "name": "Maitokolmio PROFIT proteiinivanukas 150g maitosuklaanmakuinen laktoositon",
+        "ean": "6417777051137",
+        "category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
+        "price": 99,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 99
+          }
+        ]
+      },
+      {
+        "id": 1831017,
+        "name": "Maitokolmio Profit maitosuklaanmakuinen protein milkshake 300ml laktoositon",
+        "ean": "6417777053070",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 185,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 185
+          }
+        ]
+      },
+      {
+        "id": 1868274,
+        "name": "Jacky Makupala maitosuklaavanukas 120g",
+        "ean": "0000064031767",
+        "category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
+        "price": 65,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 65
+          }
+        ]
+      },
+      {
+        "id": 7997,
+        "name": "Xtra pikacappuccino maito-kahvijauhe 250 g",
+        "ean": "7340011476856",
+        "category": "CAABIAAAGAGAA",
+        "price": 235,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 235
+          }
+        ]
+      },
+      {
+        "id": 13791,
+        "name": "Lacto Seven 100kpl maitohappobakteeri-inuliinivalmiste 40g Vitabalans",
+        "ean": "6410530033258",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 1879,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1879
+          }
+        ]
+      },
+      {
+        "id": 1851773,
+        "name": "Gefilus vadelma maitohappobakteeri-C-vitamiinivalmiste purutabletti 90tabl ravintolisä",
+        "ean": "6409941308734",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 2595,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2595
+          }
+        ]
+      },
+      {
+        "id": 1852850,
+        "name": "Gefilus Forte mansikka maitohappobakteeri-D3-C-vitamiinivalmiste purutabletti 30tabl ravintolisä",
+        "ean": "6409941308758",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 1117,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1117
+          }
+        ]
+      },
+      {
+        "id": 1824835,
+        "name": "Gefilus mansikka-mustikka C+Sinkki maitohappobakteeri-vitamiinivalmiste purutabletti 30tabl ravintol",
+        "ean": "6409941308505",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 1295,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1295
+          }
+        ]
+      },
+      {
+        "id": 1840046,
+        "name": "Coop maitokaakaolevite 400 g",
+        "ean": "7340191174733",
+        "category": "CAABGBCASAOAC",
+        "price": 265,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 265
+          }
+        ]
+      },
+      {
+        "id": 1859840,
+        "name": "Coop maitokaakaojuoma 1 l UHT",
+        "ean": "7340011472261",
+        "category": "CAAAMAAAKACAA",
+        "price": 239,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 239
+          }
+        ]
+      },
+      {
+        "id": 1968435,
+        "name": "Ehrmann maitorahka 0,1 % 450 g",
+        "ean": "4002971196009",
+        "category": "CAAAMAIASAAAA",
+        "price": 169,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 169
+          }
+        ]
+      },
+      {
+        "id": 1945433,
+        "name": "Paindelice maitoleipä 8kpl/280g",
+        "ean": "3760187810461",
+        "category": "leivat-keksit-ja-leivonnaiset/leivat/vaaleat-leivat",
+        "price": 299,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 299
+          }
+        ]
+      },
+      {
+        "id": 1859845,
+        "name": "Kotimaista maitokaakaojuoma 250 ml",
+        "ean": "6438574389735",
+        "category": "CAABAAGAQAAAA",
+        "price": 129,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 129
+          }
+        ]
+      },
+      {
+        "id": 1854000,
+        "name": "Boris maitohappobakteerijuoma 1l luomu",
+        "ean": "6429811623002",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 769,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 769
+          }
+        ]
+      },
+      {
+        "id": 1853999,
+        "name": "Boris maitohappobakteerijuoma 5l Luomu",
+        "ean": "6429811623026",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 2869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2869
+          }
+        ]
+      },
+      {
+        "id": 9495,
+        "name": "Classic Maitosuklaa-Mansikka puikko 85g",
+        "ean": "6430064406618",
+        "category": "pakasteet/jaatelot/jaatelopuikot-ja--patukat",
+        "price": 215,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 215
+          }
+        ]
+      },
+      {
+        "id": 1834379,
+        "name": "Coop myslipatukka maitosuklaa-suolakinuski 6 kpl 138 g",
+        "ean": "7340191153004",
+        "category": "CAABGAIAMAAAA",
+        "price": 178,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 178
+          }
+        ]
+      },
+      {
+        "id": 13804,
+        "name": "Leader Promour proteiinipatukka 45g maitosuklaa-minttu",
+        "ean": "6430080441303",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+        "price": 224,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 224
+          }
+        ]
+      },
+      {
+        "id": 13819,
+        "name": "Leader Promour proteiinipatukka 45g maitosuklaa-vadelma",
+        "ean": "6430080441211",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+        "price": 225,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 225
+          }
+        ]
+      },
+      {
+        "id": 1845545,
+        "name": "Gavottes Crêpe Dentelle maitosuklaa-hasselpähkinäkeksi 90 g",
+        "ean": "3535800015109",
+        "category": "CAABGAIABAAAA",
+        "price": 328,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 328
+          }
+        ]
+      },
+      {
+        "id": 1800574,
+        "name": "Kinder Maxi maitosuklaata maitoisalla täytteellä 378g (18kpl)",
+        "ean": "4008400221823",
+        "category": "CAABGAQAIACAG",
+        "price": 595,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 595
+          }
+        ]
+      },
+      {
+        "id": 9702,
+        "name": "Kinder Maxi maitosuklaata maitoisalla täytteellä 210g (10kpl)",
+        "ean": "4008400221021",
+        "category": "CAABGAQAIACAG",
+        "price": 359,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 359
+          }
+        ]
+      },
+      {
+        "id": 9660,
+        "name": "Xtra maitosuklaa 100 g",
+        "ean": "7340191100749",
+        "category": "CAABGAQAIAAAA",
+        "price": 129,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 129
+          }
+        ]
+      },
+      {
+        "id": 1929673,
+        "name": "KANELI-MAITOSUKLAAPULLA",
+        "ean": "2007538700004",
+        "category": "CAAAWAMAKAAAA",
+        "price": 219,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 219
+          }
+        ]
+      },
+      {
+        "id": 3119,
+        "name": "Dukat Maitosuklaavaahto 100g",
+        "ean": "5709281008525",
+        "category": "CAAAQAIAGAAAA",
+        "price": 89,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 89
+          }
+        ]
+      },
+      {
+        "id": 9787,
+        "name": "Panda suklaa 145g maitosuklaa",
+        "ean": "6412500002127",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 229,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 229
+          }
+        ]
+      },
+      {
+        "id": 1827165,
+        "name": "Coop maitosuklaavoikeksi 125 g",
+        "ean": "7340191164901",
+        "category": "CAABGAIASACAA",
+        "price": 145,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 145
+          }
+        ]
+      },
+      {
+        "id": 1834394,
+        "name": "Filipinos keksi 120g maitosuklaa",
+        "ean": "8436048965513",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+        "price": 179,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 179
+          }
+        ]
+      },
+      {
+        "id": 1847517,
+        "name": "Lindt Teddy maitosuklaakuvio 40g",
+        "ean": "4000539775765",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaamunat-ja-kuviot",
+        "price": 295,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 295
+          }
+        ]
+      },
+      {
+        "id": 1845023,
+        "name": "Panda Nougat maitosuklaalevy 145g",
+        "ean": "6412500038720",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 269,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 269
+          }
+        ]
+      },
+      {
+        "id": 9650,
+        "name": "Karl Fazer maitosuklaapatukka 39g",
+        "ean": "6411401019012",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 115,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 115
+          }
+        ]
+      },
+      {
+        "id": 1841200,
+        "name": "Elit Dubai maitosuklaapatukka 30g",
+        "ean": "8698701040863",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 199,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 199
+          }
+        ]
+      },
+      {
+        "id": 1790824,
+        "name": "Nidar Smash! maitosuklaalevy 150g",
+        "ean": "6412500029674",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 299,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 299
+          }
+        ]
+      },
+      {
+        "id": 1844907,
+        "name": "Karl Fazer vaalea maitosuklaa 180g",
+        "ean": "6416453095045",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 385,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 385
+          }
+        ]
+      },
+      {
+        "id": 9886,
+        "name": "Royal suklaapatukka 45g Maitosuklaa",
+        "ean": "6420256015957",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 135,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 135
+          }
+        ]
+      },
+      {
+        "id": 9892,
+        "name": "Brunberg laktoositon maitosuklaa 30g",
+        "ean": "6436000172616",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 129,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 129
+          }
+        ]
+      },
+      {
+        "id": 1821578,
+        "name": "Coop kaurakeksi maitosuklaalla 300 g",
+        "ean": "7340191137042",
+        "category": "CAABGAIAEAAAA",
+        "price": 185,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 185
+          }
+        ]
+      },
+      {
+        "id": 1945416,
+        "name": "Artiach 110g Cubes maitosuklaavohveli",
+        "ean": "8436848968240",
+        "category": "CAABGAIAIACAA",
+        "price": 239,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 239
+          }
+        ]
+      },
+      {
+        "id": 1033,
+        "name": "Kantolan Pallopipari 150g maitosuklaa",
+        "ean": "6410381070020",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/piparkakut",
+        "price": 289,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 289
+          }
+        ]
+      },
+      {
+        "id": 9958,
+        "name": "Karl Fazer Dumle maitosuklaalevy 180g",
+        "ean": "6416453014381",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 385,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 385
+          }
+        ]
+      },
+      {
+        "id": 1837984,
+        "name": "Karl Fazer maitosuklaakonvehteja 250g",
+        "ean": "6416453053113",
+        "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+        "price": 585,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 585
+          }
+        ]
+      },
+      {
+        "id": 1847524,
+        "name": "Toblerone Maitosuklaa suklaalevy 340g",
+        "ean": "7622202299476",
+        "category": "makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset",
+        "price": 649,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 649
+          }
+        ]
+      },
+      {
+        "id": 9535,
+        "name": "Ketomo Food jäätelö 473ml maitosuklaa",
+        "ean": "6429810654021",
+        "category": "pakasteet/jaatelot/erikoisruokavaliojaatelot",
+        "price": 799,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 799
+          }
+        ]
+      },
+      {
+        "id": 10053,
+        "name": "Panda Suomi maitosuklaakonvehteja 250g",
+        "ean": "6412500005401",
+        "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+        "price": 545,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 545
+          }
+        ]
+      },
+      {
+        "id": 77155,
+        "name": "Coop maitosuklaarouhe leivontaan 100 g",
+        "ean": "7340191147249",
+        "category": "CAABGBAAOAGAK",
+        "price": 199,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 199
+          }
+        ]
+      },
+      {
+        "id": 1845020,
+        "name": "Karl Fazer Sininen maitosuklaalevy 180g",
+        "ean": "6416453095014",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 375,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 375
+          }
+        ]
+      },
+      {
+        "id": 1848053,
+        "name": "Crest maitosuklaatikkari halloween 20 g",
+        "ean": "8724900520490",
+        "category": "karkit-suklaat-ja-keksit/sesonki-ja-lahjamakeiset/sesonkikarkit",
+        "price": 145,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 145
+          }
+        ]
+      },
+      {
+        "id": 16277,
+        "name": "Sertilife maitohappobakteeri 140g",
+        "ean": "6430076911025",
+        "category": "lemmikit/koiranruoat/koiran-vitamiinit-ja-muu-koiranruoka",
+        "price": 689,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 689
+          }
+        ]
+      }
+    ],
+    "maito_k": [
+      {
+        "id": "1788245",
+        "name": "Koivulan Tilan maito 1l",
+        "ean": "6405344000046",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 339,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "45761",
+        "name": "Arla rasvaton maito 1l luomu",
+        "ean": "6413300015058",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 115,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2526",
+        "name": "Valio Plus™ rasvaton maito 1l",
+        "ean": "6408430000289",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 199,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2626",
+        "name": "Valio Luomu™ rasvaton maito 1l",
+        "ean": "6408430000173",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 119,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2648",
+        "name": "Arla Cafe Maito 1L laktoositon UHT",
+        "ean": "6413300015515",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 199,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78859",
+        "name": "Pirkka suomalainen rasvaton maito 1l",
+        "ean": "6410405082626",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 95,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1868410",
+        "name": "Arla Cafe maito 0,5l UHT laktoositon",
+        "ean": "6413300026627",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 159,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2450",
+        "name": "Valio vapaan lehmän rasvaton maito 1l",
+        "ean": "6408430000104",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 129,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2846",
+        "name": "Valio rasvaton maito 1l laktoositon UHT",
+        "ean": "6408430011650",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 239,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "22153",
+        "name": "Valio vapaan lehmän rasvaton maito 1,75l",
+        "ean": "6408430000531",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 199,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78870",
+        "name": "Pirkka Luomu suomalainen rasvaton maito 1l",
+        "ean": "6410405113177",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 119,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2461",
+        "name": "Juustoportti Vapaan lehmän rasvaton maito 1l",
+        "ean": "6408653125608",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 169,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2523",
+        "name": "Valio Keittiön Kiehu maitojuoma 1l",
+        "ean": "6408430000586",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/maidot",
+        "price": 229,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78923",
+        "name": "Pirkka maitojuoma 3% 1l laktoositon UHT",
+        "ean": "6410405317759",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 199,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2522",
+        "name": "Valio Eila laktoositon maitojuoma 3% 1l",
+        "ean": "6408430000296",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 215,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1831557",
+        "name": "Maitokolmio kuohukerma 2dl",
+        "ean": "6417777011407",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+        "price": 175,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2512",
+        "name": "Ehrmann maitorahka 0,2% 250g",
+        "ean": "4002971466102",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 99,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "28234",
+        "name": "Maitokolmio rasvaton piimä 1l",
+        "ean": "6417777001705",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/piimat",
+        "price": 164,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2466",
+        "name": "Valio pehmeä maitorahka 250 g",
+        "ean": "6408430042081",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 95,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78938",
+        "name": "Pirkka laktoositon maitorahka 250g",
+        "ean": "6410405150097",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 139,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2559",
+        "name": "Maitokolmio FIT pehmeä rahka 200 g",
+        "ean": "6417777042258",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 69,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1801885",
+        "name": "Maitomaa VAPAA laktoositon voi 500 g",
+        "ean": "6430042024971",
+        "category": "maito-juusto-munat-ja-rasvat/rasvat/voit",
+        "price": 599,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "28230",
+        "name": "Maitokolmio asidofilus-bifidopiimä 1l",
+        "ean": "6417777001712",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/piimat",
+        "price": 135,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1817791",
+        "name": "Maitokolmio kuohukerma 5dl laktoositon",
+        "ean": "6417777011445",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+        "price": 389,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1831556",
+        "name": "Maitokolmio ruokakerma 5dl laktoositon",
+        "ean": "6417777011605",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/kermat",
+        "price": 159,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1868415",
+        "name": "Maitokolmio Ranch-kastike original 200g",
+        "ean": "6417777072118",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/ranskankermat",
+        "price": 169,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "27878",
+        "name": "Valio pehmeä maitorahka 200g laktoositon",
+        "ean": "6408430407965",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 95,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78935",
+        "name": "Pirkka laktoositon mieto maitorahka 250g",
+        "ean": "6410405150073",
+        "category": "maito-juusto-munat-ja-rasvat/maitotuotteet/rahkat",
+        "price": 79,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "105516",
+        "name": "Pirkka pullotutti (maito) 3+kk 2kpl",
+        "ean": "6410405132598",
+        "category": "lapset/vaipat-ja-lastenhoito/lastenhoitotarvikkeet",
+        "price": 200,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "85832",
+        "name": "Dovgan kondensoitu maito 397g karamel",
+        "ean": "4032549003378",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 299,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "85828",
+        "name": "Dovgan Kondensoitu maito makeutettu 397g",
+        "ean": "4032549001770",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 279,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "5842",
+        "name": "Törsleffs kondensoitu maito sokeroitu 397g",
+        "ean": "7315200015406",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 275,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "79504",
+        "name": "Markomilk makeutettu kondensoitu maito 397 g",
+        "ean": "4770209043431",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 379,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "219358",
+        "name": "Euro-East kondensoitu maito sokeroimaton 410g",
+        "ean": "6430044383748",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 299,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "6024",
+        "name": "Törsleffs kondensoitu maito karamellisoitu 397g",
+        "ean": "7315200015413",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 275,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1838788",
+        "name": "Dovgan Kondensoitu maito makeutettu 300 g / 231 ml",
+        "ean": "4032549042469",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 295,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1832687",
+        "name": "Dolci Preziosi Bluey maito- ja valkosuklaayllätysmuna 20g",
+        "ean": "0000080976837",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaamunat-ja-kuviot",
+        "price": 149,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1828989",
+        "name": "Dovgan kondensoitu maito makeutettu 950g/732ml laktoositon",
+        "ean": "4032549046832",
+        "category": "texmex-ja-maailman-maut/maailman-maut/slaavilainen-ruoka",
+        "price": 799,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1837541",
+        "name": "Dovgan Kondensoitu maito kaakaolla, makeutettu 300 g / 232 ml",
+        "ean": "4032549043008",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 295,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1819383",
+        "name": "Dovgan Laktoositon Kondensoitu maito, makeutettu 370 g / 283 ml",
+        "ean": "4032549045200",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/aromit-ja-muu-leivonta",
+        "price": 279,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1831015",
+        "name": "Maitokolmio PROFIT proteiinivanukas 150g maitosuklaanmakuinen laktoositon",
+        "ean": "6417777051137",
+        "category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
+        "price": 129,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1831017",
+        "name": "Maitokolmio Profit maitosuklaanmakuinen protein milkshake 300ml laktoositon",
+        "ean": "6417777053070",
+        "category": "maito-juusto-munat-ja-rasvat/maidot-ja-piimat/erikoismaidot",
+        "price": 195,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1868274",
+        "name": "Jacky Makupala maitosuklaavanukas 120g",
+        "ean": "0000064031767",
+        "category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/vanukkaat",
+        "price": 69,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "3269",
+        "name": "Valio rasvaton maitojauhe instant 400 g",
+        "ean": "6408430840625",
+        "category": "maito-juusto-munat-ja-rasvat/maito--kerma--ja-kasvirasvajauheet/maito--ja-kasvirasvajauheet",
+        "price": 695,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "13791",
+        "name": "Lacto Seven 100kpl maitohappobakteeri-inuliinivalmiste 40g Vitabalans",
+        "ean": "6410530033258",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 1999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "25323",
+        "name": "Gefilus Maitohappobakteeri-C-vitamiinivalmiste appelsiini 30 tabl. 13g",
+        "ean": "6409941306839",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 1469,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1851773",
+        "name": "Gefilus vadelma maitohappobakteeri-C-vitamiinivalmiste purutabletti 90tabl ravintolisä",
+        "ean": "6409941308734",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 2829,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1852850",
+        "name": "Gefilus Forte mansikka maitohappobakteeri-D3-C-vitamiinivalmiste purutabletti 30tabl ravintolisä",
+        "ean": "6409941308758",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 1669,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1824835",
+        "name": "Gefilus mansikka-mustikka C+Sinkki maitohappobakteeri-vitamiinivalmiste purutabletti 30tabl ravintol",
+        "ean": "6409941308505",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 1469,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "36413",
+        "name": "Maitokolmio puikulakermaperunat 800g",
+        "ean": "6417777070039",
+        "category": "valmisruoka/laatikot-pastat-ja-lasagnet/peruna--ja-kasvilisakkeet",
+        "price": 379,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1853999",
+        "name": "Boris maitohappobakteerijuoma 5l Luomu",
+        "ean": "6429811623026",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/vatsa",
+        "price": 3099,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "15301",
+        "name": "Ainu MAM teat3 vesi-maitotutti 2kpl 4+kk",
+        "ean": "9001616382079",
+        "category": "lapset/vaipat-ja-lastenhoito/lastenhoitotarvikkeet",
+        "price": 539,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "83729",
+        "name": "Pirkka maitosuklaa-kaurakeksi 300g",
+        "ean": "6410405196088",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+        "price": 249,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9495",
+        "name": "Classic Maitosuklaa-Mansikka puikko 85g",
+        "ean": "6430064406618",
+        "category": "pakasteet/jaatelot/jaatelopuikot-ja--patukat",
+        "price": 235,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "13804",
+        "name": "Leader Promour proteiinipatukka 45g maitosuklaa-minttu",
+        "ean": "6430080441303",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+        "price": 208,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "13819",
+        "name": "Leader Promour proteiinipatukka 45g maitosuklaa-vadelma",
+        "ean": "6430080441211",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+        "price": 208,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "13782",
+        "name": "Leader Promour proteiinipatukka 45g maitosuklaa-hasselpähkinä",
+        "ean": "6430080441242",
+        "category": "kosmetiikka-terveys-ja-hygienia/terveysvalmisteet/urheiluvalmisteet",
+        "price": 208,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1840135",
+        "name": "Pirkka maitosuklaahippu 100g",
+        "ean": "6410405344694",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontasuklaat",
+        "price": 399,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9787",
+        "name": "Panda suklaa 145g maitosuklaa",
+        "ean": "6412500002127",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 228,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1952241",
+        "name": "Baci Maitosuklaakonvehdit 125g",
+        "ean": "8000300444759",
+        "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+        "price": 769,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1926665",
+        "name": "Ryhmä Hau Maitosuklaarakeet 50g",
+        "ean": "4850022433500",
+        "category": "makeiset-ja-naposteltavat/karkkipussit/karkkipussit",
+        "price": 315,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1790896",
+        "name": "M&M's Peanut maitosuklaarae 150g",
+        "ean": "5000159454346",
+        "category": "makeiset-ja-naposteltavat/karkkipussit/karkkipussit",
+        "price": 359,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1790406",
+        "name": "M&M's Chocolate maitosuklaa 150g",
+        "ean": "5000159471725",
+        "category": "makeiset-ja-naposteltavat/karkkipussit/karkkipussit",
+        "price": 359,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1847440",
+        "name": "Pirkka leivonta maitosuklaa 200g",
+        "ean": "6410405347992",
+        "category": "kuivat-elintarvikkeet-ja-leivonta/leivonta/leivontasuklaat",
+        "price": 319,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1834394",
+        "name": "Filipinos keksi 120g maitosuklaa",
+        "ean": "8436048965513",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+        "price": 209,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1847517",
+        "name": "Lindt Teddy maitosuklaakuvio 40g",
+        "ean": "4000539775765",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaamunat-ja-kuviot",
+        "price": 299,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1790824",
+        "name": "Nidar Smash! maitosuklaalevy 150g",
+        "ean": "6412500029674",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 315,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1845023",
+        "name": "Panda Nougat maitosuklaalevy 145g",
+        "ean": "6412500038720",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 268,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9650",
+        "name": "Karl Fazer maitosuklaapatukka 39g",
+        "ean": "6411401019012",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 109,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1844907",
+        "name": "Karl Fazer vaalea maitosuklaa 180g",
+        "ean": "6416453095045",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 429,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1867126",
+        "name": "K-Menu maitosuklaakerroskeksi 125g",
+        "ean": "6410405364142",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+        "price": 159,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1952242",
+        "name": "Baci Maitosuklaakonvehtirasia 150g",
+        "ean": "8000300444650",
+        "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+        "price": 1469,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1828079",
+        "name": "Pirkka myslipatukka 50g maitosuklaa",
+        "ean": "6410405338662",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/valipalakeksit-ja--patukat",
+        "price": 59,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1796050",
+        "name": "Kinder pääsiäispupu maitosuklaa 55g",
+        "ean": "0000080052944",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaamunat-ja-kuviot",
+        "price": 279,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9514",
+        "name": "Jymy Maitosuklaa kermajäätelö 900ml",
+        "ean": "6430056221120",
+        "category": "pakasteet/jaatelot/jaatelopaketit",
+        "price": 489,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1847991",
+        "name": "Baci Milk maitosuklaakonvehdit 125g",
+        "ean": "8000300389043",
+        "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+        "price": 100,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9886",
+        "name": "Royal suklaapatukka 45g Maitosuklaa",
+        "ean": "6420256015957",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 155,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "83770",
+        "name": "McVitie's Digestive Maitosuklaa 300g",
+        "ean": "5000396030372",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+        "price": 365,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1951696",
+        "name": "Baci Bijou Maitosuklaakonvehdit 175g",
+        "ean": "8000300444568",
+        "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+        "price": 889,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1952959",
+        "name": "Pirkka maissikakakku 68g maitosuklaa",
+        "ean": "6410405372451",
+        "category": "leivat-keksit-ja-leivonnaiset/riisikakut/maustetut-riisikakut",
+        "price": 119,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9892",
+        "name": "Brunberg laktoositon maitosuklaa 30g",
+        "ean": "6436000172616",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 148,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1956884",
+        "name": "Pipariset valko- ja maitosuklaa 120g",
+        "ean": "6430024441635",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/piparkakut",
+        "price": 289,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1847524",
+        "name": "Toblerone Maitosuklaa suklaalevy 340g",
+        "ean": "7622202299476",
+        "category": "makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset",
+        "price": 719,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1033",
+        "name": "Kantolan Pallopipari 150g maitosuklaa",
+        "ean": "6410381070020",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/piparkakut",
+        "price": 335,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1795137",
+        "name": "Pirkka Mireille maitosuklaakeksi 150g",
+        "ean": "6410405321442",
+        "category": "leivat-keksit-ja-leivonnaiset/keksit-ja-pikkuleivat/keksit",
+        "price": 258,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9958",
+        "name": "Karl Fazer Dumle maitosuklaalevy 180g",
+        "ean": "6416453014381",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 429,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1951532",
+        "name": "Lindt Joulupukki maitosuklaakuvio 40g",
+        "ean": "4000539770500",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaamunat-ja-kuviot",
+        "price": 285,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1842240",
+        "name": "Karl Fazer Vaalea maitosuklaalevy 95g",
+        "ean": "6416453056176",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 299,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1261424",
+        "name": "Karkkipussi maitosuklaamunapussi 380g",
+        "ean": "3173286390213",
+        "category": "makeiset-ja-naposteltavat/muut-makeiset/kausimakeiset",
+        "price": 699,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "34635",
+        "name": "Lindt Joulupukki maitosuklaakuvio 70g",
+        "ean": "4000539765667",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaamunat-ja-kuviot",
+        "price": 399,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9535",
+        "name": "Ketomo Food jäätelö 473ml maitosuklaa",
+        "ean": "6429810654021",
+        "category": "pakasteet/jaatelot/erikoisruokavaliojaatelot",
+        "price": 829,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1837984",
+        "name": "Karl Fazer maitosuklaakonvehteja 250g",
+        "ean": "6416453053113",
+        "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+        "price": 589,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "94826",
+        "name": "Toblerone Maitosuklaa suklaapatukka 50g",
+        "ean": "0000076145513",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 179,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "139842",
+        "name": "Tony's Chocolonely Milk maitosuklaa 50g",
+        "ean": "8717677337514",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 199,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1849976",
+        "name": "Baci Milk maitosuklaakonvehtirasia 150g",
+        "ean": "8000300388817",
+        "category": "makeiset-ja-naposteltavat/suklaat/kaareelliset-konvehtirasiat",
+        "price": 500,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1845020",
+        "name": "Karl Fazer Sininen maitosuklaalevy 180g",
+        "ean": "6416453095014",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 375,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1845482",
+        "name": "Mr Beast Feastables maitosuklaalevy 60g",
+        "ean": "1230000168922",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 349,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1833481",
+        "name": "Pukin Parhaat maitosuklaakonvehteja 170g",
+        "ean": "8002429082010",
+        "category": "makeiset-ja-naposteltavat/suklaat/konvehtirasiat",
+        "price": 439,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "9905",
+        "name": "Toblerone Maitosuklaa suklaapatukka 100g",
+        "ean": "7614500010013",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaapatukat",
+        "price": 269,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "23193",
+        "name": "Nick's maitosuklaalevy Caramel Crunch 75g",
+        "ean": "7350104402235",
+        "category": "makeiset-ja-naposteltavat/suklaat/suklaalevyt",
+        "price": 415,
+        "priceAmountUnit": "cent"
+      }
+    ],
+    "kahvi_s": [
+      {
+        "id": 7331,
+        "name": "Brazil kahvi 500g suodatinjauhettu",
+        "ean": "6411300000616",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 859,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 859
+          }
+        ]
+      },
+      {
+        "id": 1859378,
+        "name": "Paulig Café Tokyo suodatinjauhettu kahvi 500g",
+        "ean": "6411305151252",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1009,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1009
+          }
+        ]
+      },
+      {
+        "id": 1818654,
+        "name": "Paulig Café Napoli suodatinjauhettu kahvi 475g",
+        "ean": "6411300182381",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1009,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1009
+          }
+        ]
+      },
+      {
+        "id": 95361,
+        "name": "Kaffa Roastery Aina 250g suodatinjauhettu kahvi",
+        "ean": "6430062767964",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 749,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 749
+          }
+        ]
+      },
+      {
+        "id": 7702,
+        "name": "Paulig Cafe New York 500g suodatinjauhettu kahvi",
+        "ean": "6411300167753",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1009,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1009
+          }
+        ]
+      },
+      {
+        "id": 7933,
+        "name": "Paulig Cafe Parisien 400g suodatinjauhettu kahvi",
+        "ean": "6411300159970",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1009,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1009
+          }
+        ]
+      },
+      {
+        "id": 7897,
+        "name": "Paulig Café Reykjavik 475g suodatinjauhettu kahvi",
+        "ean": "6411300175147",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1009,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1009
+          }
+        ]
+      },
+      {
+        "id": 8057,
+        "name": "Paulig Café Barcelona 425g suodatinjauhettu kahvi",
+        "ean": "6411300170555",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1009,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1009
+          }
+        ]
+      },
+      {
+        "id": 7778,
+        "name": "Presidentti Tumma Paahto kahvi 500g suodatinjauhettu",
+        "ean": "6411300140329",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 949,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 949
+          }
+        ]
+      },
+      {
+        "id": 95370,
+        "name": "Kaffa Roastery Aina Tumma 250g suodatinjauhettu kahvi",
+        "ean": "6430062767988",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 749,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 749
+          }
+        ]
+      },
+      {
+        "id": 8179,
+        "name": "Paulig Café Los Angel kofeiiniton 260g suodatinjauhettu kahvi",
+        "ean": "6411300181445",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 629,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 629
+          }
+        ]
+      },
+      {
+        "id": 8738,
+        "name": "Presidentti kahvi 1kg papu",
+        "ean": "6411300122196",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
+        "price": 2049,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2049
+          }
+        ]
+      },
+      {
+        "id": 8065,
+        "name": "Paulig Mundo kahvi 500g sj",
+        "ean": "6411300164448",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1019,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1019
+          }
+        ]
+      },
+      {
+        "id": 7926,
+        "name": "Löfbergs Jubileum kahvi 500 g",
+        "ean": "7310050001302",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8154,
+        "name": "Brazil kahvi 450g tummapaahto",
+        "ean": "6411300166954",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 859,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 859
+          }
+        ]
+      },
+      {
+        "id": 7497,
+        "name": "Löfbergs Kharisma kahvi 500 g",
+        "ean": "7310050001692",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 7696,
+        "name": "Löfbergs Magnifika kahvi 500 g",
+        "ean": "7310050001753",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 7970,
+        "name": "Löfbergs Crescendo kahvi 500 g",
+        "ean": "7310050001265",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8275,
+        "name": "Lavazza 250g Crema e Gusto kahvi",
+        "ean": "8000070038868",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+        "price": 619,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 619
+          }
+        ]
+      },
+      {
+        "id": 8580,
+        "name": "Lavazza kahvi 250g Qualita Rossa",
+        "ean": "8000070035980",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+        "price": 569,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 569
+          }
+        ]
+      },
+      {
+        "id": 7344,
+        "name": "Löfbergs Medium Roast 500 g kahvi",
+        "ean": "7310050001531",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8074,
+        "name": "Arvid Nordquist kahvi 500g Gran Dia",
+        "ean": "7310760012315",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 829,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 829
+          }
+        ]
+      },
+      {
+        "id": 8110,
+        "name": "Arvid Norquist kahvi 500g Festivita",
+        "ean": "7310760012308",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 829,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 829
+          }
+        ]
+      },
+      {
+        "id": 8100,
+        "name": "Presidentti kahvi 500g gold label sj",
+        "ean": "6411300161003",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 949,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 949
+          }
+        ]
+      },
+      {
+        "id": 27911,
+        "name": "Lavazza kahvi 250g Espresso Classico",
+        "ean": "8000070012837",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+        "price": 719,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 719
+          }
+        ]
+      },
+      {
+        "id": 8105,
+        "name": "Presidentti kahvi 500g pannujauhettu",
+        "ean": "6411300000845",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 949,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 949
+          }
+        ]
+      },
+      {
+        "id": 7442,
+        "name": "Juhla Mokka kahvi 500g pannujauhettu",
+        "ean": "6411300000487",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8136,
+        "name": "Presidentti kahvi 450g black label sj",
+        "ean": "6411300163038",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 949,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 949
+          }
+        ]
+      },
+      {
+        "id": 7364,
+        "name": "Löfbergs Fair Medium Roast kahvi 450g",
+        "ean": "7310050001777",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8056,
+        "name": "Arvid Nordquis Franskrost kahvi 500 g",
+        "ean": "7310760012902",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 829,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 829
+          }
+        ]
+      },
+      {
+        "id": 8119,
+        "name": "Arvid selection kahvi 450g solid luomu",
+        "ean": "7310760012506",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 7313,
+        "name": "Presidentti kahvi 500g suodatinjauhatus",
+        "ean": "6411300000852",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 949,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 949
+          }
+        ]
+      },
+      {
+        "id": 8611,
+        "name": "Presidentti Tumma Paahto kahvi 1kg papu",
+        "ean": "6411300158676",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-tumma",
+        "price": 2049,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2049
+          }
+        ]
+      },
+      {
+        "id": 7236,
+        "name": "Juhla Mokka kahvi 500g suodatinjauhatus",
+        "ean": "6411300000494",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 849,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 849
+          }
+        ]
+      },
+      {
+        "id": 7749,
+        "name": "Paulig Juhla Mokka Lempeä kahvi sj 425g",
+        "ean": "6411300179886",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8099,
+        "name": "Presidentti Ruby 500g hienojauhettu kahvi",
+        "ean": "6411300176724",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 949,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 949
+          }
+        ]
+      },
+      {
+        "id": 7448,
+        "name": "Paulig Juhla Mokka Samettinen kahvi sj 475g",
+        "ean": "6411300179817",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 1951105,
+        "name": "Lavazza Espresso Barista Intenso 500g kahvi",
+        "ean": "8000070050983",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-espresso",
+        "price": 1685,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1685
+          }
+        ]
+      },
+      {
+        "id": 8073,
+        "name": "Paulig Cafe Sydney 500g hienojauhettu kahvi",
+        "ean": "6411300172450",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 1009,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1009
+          }
+        ]
+      },
+      {
+        "id": 1853607,
+        "name": "Barbera Red Vintage Box jauhettu kahvi 500g",
+        "ean": "8007597003232",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1405,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1405
+          }
+        ]
+      },
+      {
+        "id": 8211,
+        "name": "Segafredo Dolce kahvi 450g suodatinjauhatus",
+        "ean": "6420101886213",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 859,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 859
+          }
+        ]
+      },
+      {
+        "id": 1832677,
+        "name": "Juhla Mokka suodatinjauhatus kahvi 500g Sävy",
+        "ean": "6411300183210",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8090,
+        "name": "Löfbergs Kharisma kahvi 250g suodatinjauhatus",
+        "ean": "7310050012469",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 499,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 499
+          }
+        ]
+      },
+      {
+        "id": 8166,
+        "name": "Clipper instant kahvi 100g luomu Reilu kauppa",
+        "ean": "5021991245497",
+        "category": "juomat/kahvi-ja-suodatinpussit/pikakahvit",
+        "price": 959,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 959
+          }
+        ]
+      },
+      {
+        "id": 1856852,
+        "name": "Lavazza Espresso Barista Gran Crema 500g kahvi",
+        "ean": "8000070067417",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-espresso",
+        "price": 1569,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1569
+          }
+        ]
+      },
+      {
+        "id": 8072,
+        "name": "Presidentti Sapphire kahvi suodatinjauhatus 450g",
+        "ean": "6411300180738",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 949,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 949
+          }
+        ]
+      },
+      {
+        "id": 1832678,
+        "name": "Juhla Mokka suodatinjauhatus kahvi 500g Sarastus",
+        "ean": "6411300183043",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8769,
+        "name": "Presidentti Tumma Paahto kahvi 500g pannujauhatus",
+        "ean": "6411300162512",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 949,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 949
+          }
+        ]
+      },
+      {
+        "id": 7829,
+        "name": "Arvid Selection kahvi 450g Reko Reilu Kauppa luomu",
+        "ean": "7310760012445",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 849,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 849
+          }
+        ]
+      },
+      {
+        "id": 7240,
+        "name": "Juhla Mokka Tumma Paahto kahvi 500g suodatinjauhatus",
+        "ean": "6411300164653",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 8185,
+        "name": "Paulig Mundo Kolumbia & Honduras Luomu kahvi sj 450g",
+        "ean": "6411300179619",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1019,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1019
+          }
+        ]
+      },
+      {
+        "id": 7349,
+        "name": "Löfbergs NGCL kahvi 450 g Organic Medium Roast luomu",
+        "ean": "7310050001791",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 7355,
+        "name": "Arvid Nordquist kahvi 500g Delicada suodatinjauhatus",
+        "ean": "7310760012636",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 729,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 729
+          }
+        ]
+      },
+      {
+        "id": 1798686,
+        "name": "Paulig Mundo Mexico kahvi 500g suodatinjauhatus luomu",
+        "ean": "6411300181926",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1019,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1019
+          }
+        ]
+      },
+      {
+        "id": 8135,
+        "name": "Löfbergs Fair Dark Roast kahvi 450 g Reilu Kauppa luomu",
+        "ean": "7310050001784",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 29804,
+        "name": "Löfbergs Next Generation Coffee Lovers kahvi 450 g luomu",
+        "ean": "7310050001197",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 7350,
+        "name": "Juhla Mokka Luomu kahvi suodatinjauhatus 400g Reilun kaupan",
+        "ean": "6411300169863",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 869,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 869
+          }
+        ]
+      },
+      {
+        "id": 1798685,
+        "name": "Paulig Mundo Rwanda-Nicaragua kahvi 500g suodatinjauhatus luomu",
+        "ean": "6411300181940",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1019,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1019
+          }
+        ]
+      },
+      {
+        "id": 2836,
+        "name": "Arla jogurtti 1kg kahvi",
+        "ean": "6413300019704",
+        "category": "maito-juusto-munat-ja-rasvat/jogurtit/suurpakkausjogurtit",
+        "price": 199,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 199
+          }
+        ]
+      },
+      {
+        "id": 1846288,
+        "name": "Jaloviina Kahvi 5% 0,33l",
+        "ean": "6412703016983",
+        "category": "juomat/juomasekoitukset/juomasekoitukset-max-55",
+        "price": 299,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 299
+          }
+        ]
+      },
+      {
+        "id": 1861181,
+        "name": "Moomin kahvi suodatinjauhatus 150g",
+        "ean": "6430044605673",
+        "category": "CAABIAAAAAAAA",
+        "price": 659,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 659
+          }
+        ]
+      },
+      {
+        "id": 3171,
+        "name": "Juustoportti AB-jogurtti kahvi 150g",
+        "ean": "6408652225057",
+        "category": "maito-juusto-munat-ja-rasvat/jogurtit/terveysvaikutteiset-jogurtit",
+        "price": 105,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 105
+          }
+        ]
+      },
+      {
+        "id": 1796440,
+        "name": "Arla Protein rahka 200g kahvi laktoositon",
+        "ean": "6413300025972",
+        "category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/maustetut-rahkat",
+        "price": 95,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 95
+          }
+        ]
+      },
+      {
+        "id": 1838454,
+        "name": "Coop kahvi vaalea paahto pannujauhatus 500 g",
+        "ean": "7340191173552",
+        "category": "CAABIAAACAAAA",
+        "price": 675,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 675
+          }
+        ]
+      },
+      {
+        "id": 1838451,
+        "name": "Coop kahvi tumma paahto suodatinjauhatus 450 g",
+        "ean": "7340191173569",
+        "category": "CAABIAAAAACAA",
+        "price": 679,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 679
+          }
+        ]
+      },
+      {
+        "id": 1838452,
+        "name": "Coop kahvi vaalea paahto suodatinjauhatus 500 g",
+        "ean": "7340191173545",
+        "category": "CAABIAAAAAAAA",
+        "price": 499,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 499
+          }
+        ]
+      },
+      {
+        "id": 1796217,
+        "name": "Arla Kalinka jogurtti 150g kahvi vähälaktoosinen",
+        "ean": "6413300025965",
+        "category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
+        "price": 57,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 57
+          }
+        ]
+      },
+      {
+        "id": 1955976,
+        "name": "Barbera Red Vintage Box Jauhettu kahvi 2 x 250 g",
+        "ean": "8007597001412",
+        "category": "CAABIAAAAACAA",
+        "price": 1405,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1405
+          }
+        ]
+      },
+      {
+        "id": 1859749,
+        "name": "Olympus Aito kreikkalainen jogurtti 0% rasvaa 150g kahvi",
+        "ean": "5202178086366",
+        "category": "CAAAQAAAKACAA",
+        "price": 115,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 115
+          }
+        ]
+      },
+      {
+        "id": 1939058,
+        "name": "Isey Skyr Air kahvi-suklaa laktoositon 125g",
+        "ean": "5690845003851",
+        "category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/maustetut-rahkat",
+        "price": 135,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 135
+          }
+        ]
+      },
+      {
+        "id": 16514,
+        "name": "House kahvimitta",
+        "ean": "6412988641108",
+        "category": "CACAGAGAAAYAG",
+        "price": 490,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 490
+          }
+        ]
+      },
+      {
+        "id": 16378,
+        "name": "Spen kahvitikku 50kpl",
+        "ean": "6426600196006",
+        "category": "CAABYACAEACAA",
+        "price": 75,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 75
+          }
+        ]
+      },
+      {
+        "id": 25637,
+        "name": "Aino kahvinkeitinharja",
+        "ean": "6416096202282",
+        "category": "kodinhoito-ja-taloustarvikkeet/astianpesu/astiaharjat",
+        "price": 259,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 259
+          }
+        ]
+      },
+      {
+        "id": 16580,
+        "name": "Xtra kahvilusikka 6 kpl",
+        "ean": "6415160261286",
+        "category": "CACAGACAAACAA",
+        "price": 550,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 550
+          }
+        ]
+      },
+      {
+        "id": 1858098,
+        "name": "House kahvipurkki Laivat",
+        "ean": "6438574405640",
+        "category": "keittio-ja-kattaus/ruoan-sailytysastiat-ja-valineet/muut-sailontatarvikkeet",
+        "price": 695,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 695
+          }
+        ]
+      },
+      {
+        "id": 19777,
+        "name": "Trube kahvikierrepitko 350g",
+        "ean": "6407790900628",
+        "category": "leivat-keksit-ja-leivonnaiset/leivonnaiset/pullat-ja-kakut",
+        "price": 355,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 355
+          }
+        ]
+      },
+      {
+        "id": 17154,
+        "name": "Nordiska Plast kahvisuppilo",
+        "ean": "7318140005780",
+        "category": "CACAGAGAABCAA",
+        "price": 390,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 390
+          }
+        ]
+      },
+      {
+        "id": 1791000,
+        "name": "House kahvilusikka Leo 4 kpl",
+        "ean": "6438460895883",
+        "category": "CACAGACAAACAA",
+        "price": 590,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 590
+          }
+        ]
+      },
+      {
+        "id": 1846223,
+        "name": "House kahvilusikkaIlmo 4 kpl",
+        "ean": "6438574288762",
+        "category": "CACAGACAAACAA",
+        "price": 590,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 590
+          }
+        ]
+      },
+      {
+        "id": 2653,
+        "name": "Arla Kahvijogurtti 200 g",
+        "ean": "6413300000306",
+        "category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
+        "price": 67,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 67
+          }
+        ]
+      }
+    ],
+    "kahvi_k": [
+      {
+        "id": "7331",
+        "name": "Brazil kahvi 500g suodatinjauhettu",
+        "ean": "6411300000616",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 919,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7588",
+        "name": "Paulig Oiva suodatinjauhettu kahvi 475g",
+        "ean": "6411300181629",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 915,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1859378",
+        "name": "Paulig Café Tokyo suodatinjauhettu kahvi 500g",
+        "ean": "6411305151252",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 895,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1818654",
+        "name": "Paulig Café Napoli suodatinjauhettu kahvi 475g",
+        "ean": "6411300182381",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 895,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "95361",
+        "name": "Kaffa Roastery Aina 250g suodatinjauhettu kahvi",
+        "ean": "6430062767964",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 819,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7933",
+        "name": "Paulig Cafe Parisien 400g suodatinjauhettu kahvi",
+        "ean": "6411300159970",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 895,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "66975",
+        "name": "Johan & Nyström 500g Fika suodatinjauhettu kahvi",
+        "ean": "7350045060457",
+        "category": "kahvit-teet-ja-mehut/kahvit-ja-suodatinpaperit/tummapaahtoiset-suodatinjauhatuskahvit",
+        "price": 1495,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7702",
+        "name": "Paulig Cafe New York 500g suodatinjauhettu kahvi",
+        "ean": "6411300167753",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 895,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8057",
+        "name": "Paulig Café Barcelona 425g suodatinjauhettu kahvi",
+        "ean": "6411300170555",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 895,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7897",
+        "name": "Paulig Café Reykjavik 475g suodatinjauhettu kahvi",
+        "ean": "6411300175147",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 895,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7778",
+        "name": "Presidentti Tumma Paahto kahvi 500g suodatinjauhettu",
+        "ean": "6411300140329",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "95370",
+        "name": "Kaffa Roastery Aina Tumma 250g suodatinjauhettu kahvi",
+        "ean": "6430062767988",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 819,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8179",
+        "name": "Paulig Café Los Angel kofeiiniton 260g suodatinjauhettu kahvi",
+        "ean": "6411300181445",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 645,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1788574",
+        "name": "Kaffa Roastery Dekaffa 250g kofeiiniton suodatinjauhettu kahvi",
+        "ean": "6430062766240",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1159,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "67545",
+        "name": "Lehmus Roastery Muukko-kahvi keskipaahto  220g suodatinjauhettu",
+        "ean": "6430063730028",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1069,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8738",
+        "name": "Presidentti kahvi 1kg papu",
+        "ean": "6411300122196",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
+        "price": 2099,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8065",
+        "name": "Paulig Mundo kahvi 500g sj",
+        "ean": "6411300164448",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1089,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "86509",
+        "name": "Presidentti kahvi 450g papu",
+        "ean": "6411300167791",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-vaalea",
+        "price": 995,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7497",
+        "name": "Löfbergs Kharisma kahvi 500 g",
+        "ean": "7310050001692",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 889,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7926",
+        "name": "Löfbergs Jubileum kahvi 500 g",
+        "ean": "7310050001302",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 889,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8154",
+        "name": "Brazil kahvi 450g tummapaahto",
+        "ean": "6411300166954",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 919,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1819269",
+        "name": "Löfbergs kahvi 500g Prezzo YM",
+        "ean": "7310050001586",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 889,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7696",
+        "name": "Löfbergs Magnifika kahvi 500 g",
+        "ean": "7310050001753",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 889,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8289",
+        "name": "Paulig Choco Coffee 200g kahvi",
+        "ean": "6411300171514",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 655,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7970",
+        "name": "Löfbergs Crescendo kahvi 500 g",
+        "ean": "7310050001265",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 889,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "95374",
+        "name": "Segafredo Dolce kahvi 425g papu",
+        "ean": "6420101886220",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-tumma",
+        "price": 955,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8082",
+        "name": "Arvid Nordquist kahvi 500g Svea",
+        "ean": "7310760012919",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 865,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8275",
+        "name": "Lavazza 250g Crema e Gusto kahvi",
+        "ean": "8000070038868",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+        "price": 645,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8580",
+        "name": "Lavazza kahvi 250g Qualita Rossa",
+        "ean": "8000070035980",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+        "price": 719,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "40135",
+        "name": "Paulig Vanilla Coffee 200g kahvi",
+        "ean": "6411300171521",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 655,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "104379",
+        "name": "Löfbergs Cold Brew kahvi 1l luomu",
+        "ean": "7310050006994",
+        "category": "juomat/kahvi-ja-suodatinpussit/valmiit-kahvijuomat",
+        "price": 632,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7344",
+        "name": "Löfbergs Medium Roast 500 g kahvi",
+        "ean": "7310050001531",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 889,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "129712",
+        "name": "Arvid Nordquist 500g Sommar kahvi",
+        "ean": "7310760012629",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 839,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "34571",
+        "name": "Arvid Nordquist kahvi 500g Wanyama",
+        "ean": "7310760012391",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 865,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "86481",
+        "name": "K-Menu vaaleapaahtoinen kahvi 500g",
+        "ean": "6410405147738",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 259,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "49881",
+        "name": "Arvid Nordquist Mellan kahvi 500 g",
+        "ean": "7310760012896",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 865,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8110",
+        "name": "Arvid Norquist kahvi 500g Festivita",
+        "ean": "7310760012308",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 865,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8074",
+        "name": "Arvid Nordquist kahvi 500g Gran Dia",
+        "ean": "7310760012315",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 865,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7442",
+        "name": "Juhla Mokka kahvi 500g pannujauhettu",
+        "ean": "6411300000487",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 849,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8105",
+        "name": "Presidentti kahvi 500g pannujauhettu",
+        "ean": "6411300000845",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8100",
+        "name": "Presidentti kahvi 500g gold label sj",
+        "ean": "6411300161003",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "27911",
+        "name": "Lavazza kahvi 250g Espresso Classico",
+        "ean": "8000070012837",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+        "price": 695,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8056",
+        "name": "Arvid Nordquis Franskrost kahvi 500 g",
+        "ean": "7310760012902",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 865,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8136",
+        "name": "Presidentti kahvi 450g black label sj",
+        "ean": "6411300163038",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7364",
+        "name": "Löfbergs Fair Medium Roast kahvi 450g",
+        "ean": "7310050001777",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 965,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7236",
+        "name": "Juhla Mokka kahvi 500g suodatinjauhatus",
+        "ean": "6411300000494",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 849,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7313",
+        "name": "Presidentti kahvi 500g suodatinjauhatus",
+        "ean": "6411300000852",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7749",
+        "name": "Paulig Juhla Mokka Lempeä kahvi sj 425g",
+        "ean": "6411300179886",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 849,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8611",
+        "name": "Presidentti Tumma Paahto kahvi 1kg papu",
+        "ean": "6411300158676",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-tumma",
+        "price": 2099,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "86487",
+        "name": "Pirkka Costa Rica kahvi 450g keskipaahto",
+        "ean": "6410405201485",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 659,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8099",
+        "name": "Presidentti Ruby 500g hienojauhettu kahvi",
+        "ean": "6411300176724",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1806229",
+        "name": "Arvid Nordquist Festivita kahvi 500g papu",
+        "ean": "7310760041087",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "86485",
+        "name": "Pirkka Costa Rica kahvi 450g tumma paahto",
+        "ean": "6410405263780",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 659,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1819533",
+        "name": "Italcaffe Colombia kahvi 250g espressopapu",
+        "ean": "8002640001081",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-espresso",
+        "price": 891,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "86479",
+        "name": "Pirkka Costa Rica kahvi 500g vaalea paahto",
+        "ean": "6410405181190",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 659,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "254495",
+        "name": "Segafredo Casa espresso 250g jauhettu kahvi",
+        "ean": "8003410247722",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+        "price": 735,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8109",
+        "name": "Löfbergs Nordic kahvi 450g suodatinjauhatus",
+        "ean": "7310050001890",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 919,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1819534",
+        "name": "Italcaffe Guatemala kahvi 250g espressopapu",
+        "ean": "8002640001104",
+        "category": "juomat/kahvi-ja-suodatinpussit/papukahvi-espresso",
+        "price": 891,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7448",
+        "name": "Paulig Juhla Mokka Samettinen kahvi sj 475g",
+        "ean": "6411300179817",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 849,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8211",
+        "name": "Segafredo Dolce kahvi 450g suodatinjauhatus",
+        "ean": "6420101886213",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 985,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8073",
+        "name": "Paulig Cafe Sydney 500g hienojauhettu kahvi",
+        "ean": "6411300172450",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 895,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1832677",
+        "name": "Juhla Mokka suodatinjauhatus kahvi 500g Sävy",
+        "ean": "6411300183210",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 849,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1863487",
+        "name": "Lucaffe Breakfast Coffee 500g jauhettu kahvi",
+        "ean": "8021103704352",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 1539,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8090",
+        "name": "Löfbergs Kharisma kahvi 250g suodatinjauhatus",
+        "ean": "7310050012469",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 585,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8166",
+        "name": "Clipper instant kahvi 100g luomu Reilu kauppa",
+        "ean": "5021991245497",
+        "category": "juomat/kahvi-ja-suodatinpussit/pikakahvit",
+        "price": 969,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "52636",
+        "name": "Lehmus Roastery Kettu kahvi 220g keskipaahto sj",
+        "ean": "6430063730059",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 951,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8072",
+        "name": "Presidentti Sapphire kahvi suodatinjauhatus 450g",
+        "ean": "6411300180738",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1832678",
+        "name": "Juhla Mokka suodatinjauhatus kahvi 500g Sarastus",
+        "ean": "6411300183043",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 849,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "66981",
+        "name": "Arvid Selection kahvi 450g Eco Reilu Kauppa luomu",
+        "ean": "7310760012438",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8769",
+        "name": "Presidentti Tumma Paahto kahvi 500g pannujauhatus",
+        "ean": "6411300162512",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "65496",
+        "name": "Segafredo Intermezzo jauhettu espresso kahvi 250g",
+        "ean": "8003410344315",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-espresso",
+        "price": 635,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "86500",
+        "name": "Pirkka Costa Rica kahvi 450g tummempi tumma paahto",
+        "ean": "6410405201508",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 659,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "86507",
+        "name": "Pirkka Costa Rica kahvi 400g erittäin tumma paahto",
+        "ean": "6410405201522",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 659,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "41848",
+        "name": "Lehmus Roastery Kettu kahvi 220g kaneli kardemumma",
+        "ean": "6430063730721",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7829",
+        "name": "Arvid Selection kahvi 450g Reko Reilu Kauppa luomu",
+        "ean": "7310760012445",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8185",
+        "name": "Paulig Mundo Kolumbia & Honduras Luomu kahvi sj 450g",
+        "ean": "6411300179619",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1089,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7240",
+        "name": "Juhla Mokka Tumma Paahto kahvi 500g suodatinjauhatus",
+        "ean": "6411300164653",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 849,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7349",
+        "name": "Löfbergs NGCL kahvi 450 g Organic Medium Roast luomu",
+        "ean": "7310050001791",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 919,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7355",
+        "name": "Arvid Nordquist kahvi 500g Delicada suodatinjauhatus",
+        "ean": "7310760012636",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 865,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "55122",
+        "name": "Mokkamestarit Choko Chili kahvi 200g suodatinjauhatus",
+        "ean": "6430019661581",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 965,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1800541",
+        "name": "Segafredo Decaf kahvi 425g suodatinjauhatus kofeiiniton",
+        "ean": "6420101886657",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 1016,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "8135",
+        "name": "Löfbergs Fair Dark Roast kahvi 450 g Reilu Kauppa luomu",
+        "ean": "7310050001784",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 965,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "66991",
+        "name": "Kaffa Roastery kahvi 250g lempeä voima suodatinjauhatus",
+        "ean": "6430040250259",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 1029,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "29804",
+        "name": "Löfbergs Next Generation Coffee Lovers kahvi 450 g luomu",
+        "ean": "7310050001197",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 919,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "66944",
+        "name": "Mokkamestarit Hawaijin Pähkinä kahvi 200g suodatinjauhatus",
+        "ean": "6430019661376",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 959,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "7350",
+        "name": "Juhla Mokka Luomu kahvi suodatinjauhatus 400g Reilun kaupan",
+        "ean": "6411300169863",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 849,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "20579",
+        "name": "Mokkamestarit Wanhanajan Vanilja kahvi 200g suodatinjauhatus",
+        "ean": "6430019661130",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-vaalea",
+        "price": 965,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1798685",
+        "name": "Paulig Mundo Rwanda-Nicaragua kahvi 500g suodatinjauhatus luomu",
+        "ean": "6411300181940",
+        "category": "juomat/kahvi-ja-suodatinpussit/jauhettu-kahvi-tumma",
+        "price": 999,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2836",
+        "name": "Arla jogurtti 1kg kahvi",
+        "ean": "6413300019704",
+        "category": "maito-juusto-munat-ja-rasvat/jogurtit/suurpakkausjogurtit",
+        "price": 235,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1846288",
+        "name": "Jaloviina Kahvi 5% 0,33l",
+        "ean": "6412703016983",
+        "category": "juomat/juomasekoitukset/juomasekoitukset-max-55",
+        "price": 349,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "86920",
+        "name": "Mad-Croc energiajuoma kahvi 0,25l",
+        "ean": "5060088500248",
+        "category": "juomat/energia--ja-urheilujuomat/energiajuomat",
+        "price": 215,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "3171",
+        "name": "Juustoportti AB-jogurtti kahvi 150g",
+        "ean": "6408652225057",
+        "category": "maito-juusto-munat-ja-rasvat/jogurtit/terveysvaikutteiset-jogurtit",
+        "price": 109,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1796440",
+        "name": "Arla Protein rahka 200g kahvi laktoositon",
+        "ean": "6413300025972",
+        "category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/maustetut-rahkat",
+        "price": 95,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "11395",
+        "name": "XZ shampoo 250ml kahvi korjaava ja vahvistava",
+        "ean": "6414505168013",
+        "category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/shampoot",
+        "price": 150,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "11726",
+        "name": "XZ hoitoaine 200ml kahvi korjaava ja vahvistava",
+        "ean": "6414505168044",
+        "category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hoitoaineet",
+        "price": 150,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1796217",
+        "name": "Arla Kalinka jogurtti 150g kahvi vähälaktoosinen",
+        "ean": "6413300025965",
+        "category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
+        "price": 66,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "20800",
+        "name": "XZ tuoksusuihke 150ml kahvi korjaava ja vahvistava",
+        "ean": "6414505168075",
+        "category": "kosmetiikka-terveys-ja-hygienia/hiukset-ja-hiustenhoito/hoitoaineet",
+        "price": 200,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1845406",
+        "name": "Isey Skyr kahvi-suklaa 170g Limited Edition",
+        "ean": "5690845003615",
+        "category": "maito-juusto-munat-ja-rasvat/rahkat-vanukkaat-ja-valipalat/maustetut-rahkat",
+        "price": 159,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "25637",
+        "name": "Aino kahvinkeitinharja",
+        "ean": "6416096202282",
+        "category": "kodinhoito-ja-taloustarvikkeet/astianpesu/astiaharjat",
+        "price": 329,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2653",
+        "name": "Arla Kahvijogurtti 200 g",
+        "ean": "6413300000306",
+        "category": "maito-juusto-munat-ja-rasvat/jogurtit/annosjogurtit",
+        "price": 69,
+        "priceAmountUnit": "cent"
+      }
+    ],
+    "kirjolohi_s": [
+      {
+        "id": 1953531,
+        "name": "Hätälä Kirjolohi kokonainen pakaste vac n1kg",
+        "ean": "2387982000005",
+        "category": "CAAAIAAAMAAAA",
+        "price": 990,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 990
+          }
+        ]
+      },
+      {
+        "id": 1857210,
+        "name": "Saarioinen PROTSKU kirjolohi ja pinaattimuusi 350g",
+        "ean": "6412000036325",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+        "price": 619,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 619
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "name": "Kalaneuvos Kirjolohi tuore kokonainen palvelu n. 2 kg",
+        "ean": "2003604300000",
+        "category": "CAAAIACAMAAAA",
+        "price": 1390,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1390
+          }
+        ]
+      },
+      {
+        "id": 1867664,
+        "name": "Anton&Anton kirjolohi & paahdetut perunat sitruunakastikkeella 340g",
+        "ean": "6430055950687",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+        "price": 599,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 599
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "name": "KIRJOLOHIFILEE 1KG RUODOTON",
+        "ean": "2006547800002",
+        "category": "CAAAIACAAAEAA",
+        "price": 2890,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2890
+          }
+        ]
+      },
+      {
+        "id": 3754,
+        "name": "Kotimaista Kirjolohikeitto 300g",
+        "ean": "6415712903459",
+        "category": "CAAAGAAAGAAAA",
+        "price": 249,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 249
+          }
+        ]
+      },
+      {
+        "id": 3755,
+        "name": "Saarioinen kirjolohikeitto 300g",
+        "ean": "6412000031849",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+        "price": 259,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 259
+          }
+        ]
+      },
+      {
+        "id": 1857281,
+        "name": "Kotimaista Kirjolohipihvi 200 g",
+        "ean": "6438574556458",
+        "category": "CAAAKAAAIAGAA",
+        "price": 398,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 398
+          }
+        ]
+      },
+      {
+        "id": 3825,
+        "name": "Kotimaista Kirjolohikiusaus 300g",
+        "ean": "6414893502536",
+        "category": "CAAAGAAAGAEAA",
+        "price": 229,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 229
+          }
+        ]
+      },
+      {
+        "id": 2278,
+        "name": "Hyvä Apaja kirjolohipyörykät 300g",
+        "ean": "6406600109541",
+        "category": "kala-ja-merenelavat/muut-kalatuotteet/kalajalosteet",
+        "price": 249,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 249
+          }
+        ]
+      },
+      {
+        "id": 3778,
+        "name": "Kokkikartano kirjolohikiusaus 700g",
+        "ean": "6405304002073",
+        "category": "valmisruoka/laatikot-pastat-ja-lasagnet/laatikot-ja-kiusaukset",
+        "price": 665,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 665
+          }
+        ]
+      },
+      {
+        "id": 1829212,
+        "name": "Kotimaista Kirjolohifilee pala 200 g",
+        "ean": "6438574284559",
+        "category": "CAAAIAAACACAA",
+        "price": 398,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 398
+          }
+        ]
+      },
+      {
+        "id": 22146,
+        "name": "Lapin graavi kirjolohifileesiivu 100g",
+        "ean": "6405885999786",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/graavikirjolohi",
+        "price": 569,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 569
+          }
+        ]
+      },
+      {
+        "id": 84121,
+        "name": "Saimaan Tuore kirjolohifilee 150g ASC",
+        "ean": "6405877100008",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 379,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 379
+          }
+        ]
+      },
+      {
+        "id": 20016,
+        "name": "Lapin kylmäsavu kirjolohifileesiivu 100g",
+        "ean": "6405885999809",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 569,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 569
+          }
+        ]
+      },
+      {
+        "id": 1946974,
+        "name": "Kalaneuvos kirjolohileikkele paprika 120g",
+        "ean": "6408520003213",
+        "category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/lihahyytelot-ja-muut-leivanpaalliset",
+        "price": 379,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 379
+          }
+        ]
+      },
+      {
+        "id": 16163,
+        "name": "Lohikunta Kirjolohiöljy Lemmikeille 500ML",
+        "ean": "6408429505009",
+        "category": "CAABOACAKAGAC",
+        "price": 1889,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1889
+          }
+        ]
+      },
+      {
+        "id": 71764,
+        "name": "Myrskylän Savustettu kirjolohipala n.400g",
+        "ean": "2357774500006",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/muut-savu--ja-graavikalat",
+        "price": 1590,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1590
+          }
+        ]
+      },
+      {
+        "id": 1818089,
+        "name": "Atria kirjolohipihvit tillikastikkeella 350g",
+        "ean": "6407800020353",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+        "price": 409,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 409
+          }
+        ]
+      },
+      {
+        "id": 1946975,
+        "name": "Kalaneuvos kirjolohileikkele lämminsavu 120g",
+        "ean": "6408520003190",
+        "category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/lihahyytelot-ja-muut-leivanpaalliset",
+        "price": 379,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 379
+          }
+        ]
+      },
+      {
+        "id": 1827903,
+        "name": "Kotimaista savustettu kirjolohifilee n. 700 g",
+        "ean": "2396010400007",
+        "category": "CAAAKAAAGAGAA",
+        "price": 2290,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2290
+          }
+        ]
+      },
+      {
+        "id": 1806962,
+        "name": "Kotimaista kirjolohisuikale 250 g maustamaton",
+        "ean": "6438574109203",
+        "category": "CAAAIAAAEACAA",
+        "price": 449,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 449
+          }
+        ]
+      },
+      {
+        "id": 1846569,
+        "name": "Kalaneuvos kirjolohipekoni 100g vakuumipakattu",
+        "ean": "6408520002988",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 398,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 398
+          }
+        ]
+      },
+      {
+        "id": 1801682,
+        "name": "Saimaan Tuore ASC Kirjolohifilee 340g, pakaste.",
+        "ean": "6405877000797",
+        "category": "CAAAIAAAAAEAA",
+        "price": 790,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 790
+          }
+        ]
+      },
+      {
+        "id": 1829223,
+        "name": "Xtra graavisuolattu kirjolohifileeviipale 100 g",
+        "ean": "6438574272778",
+        "category": "CAAAKAAAAACAA",
+        "price": 349,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 349
+          }
+        ]
+      },
+      {
+        "id": 1850206,
+        "name": "Kotimaista Kirjolohifilee 300-400g vak, pakaste",
+        "ean": "2396012500002",
+        "category": "CAAAIAAAAAEAA",
+        "price": 1290,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1290
+          }
+        ]
+      },
+      {
+        "id": 1850205,
+        "name": "Kotimaista Ruodoton kirjolohifilee pakaste n800g",
+        "ean": "2396012400005",
+        "category": "CAAAIAAAAAEAA",
+        "price": 1490,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1490
+          }
+        ]
+      },
+      {
+        "id": 1850203,
+        "name": "Kotimaista Kirjolohiannospalat pakaste 4 x 120 g",
+        "ean": "6438574526741",
+        "category": "CAAAIAAAAAEAA",
+        "price": 890,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 890
+          }
+        ]
+      },
+      {
+        "id": 3824,
+        "name": "Saarioinen mainio kermainen kirjolohikeitto 400g",
+        "ean": "6412000037612",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+        "price": 439,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 439
+          }
+        ]
+      },
+      {
+        "id": 2270,
+        "name": "Kalaneuvos Tuore kirjolohifilee, pala B 500 g vak",
+        "ean": "6408520009260",
+        "category": "CAAAIAAAAAEAA",
+        "price": 845,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 845
+          }
+        ]
+      },
+      {
+        "id": 1829215,
+        "name": "Kotimaista savustettu kirjolohifileepala n. 250 g",
+        "ean": "2396010300000",
+        "category": "CAAAKAAAGAGAA",
+        "price": 2490,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2490
+          }
+        ]
+      },
+      {
+        "id": 1806965,
+        "name": "Kotimaista kirjolohisuikale 250 g hunajamarinoitu",
+        "ean": "6438574109227",
+        "category": "CAAAIAAAEACAA",
+        "price": 449,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 449
+          }
+        ]
+      },
+      {
+        "id": 2280,
+        "name": "Saimaan Tuore kirjolohifilee perhepakkaus 450g ASC",
+        "ean": "6405877700000",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 845,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 845
+          }
+        ]
+      },
+      {
+        "id": 1806963,
+        "name": "Kotimaista kirjolohifilee n. 700 g (n. 600 - 1000 g)",
+        "ean": "2396007900008",
+        "category": "CAAAIAAAAAEAA",
+        "price": 1890,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1890
+          }
+        ]
+      },
+      {
+        "id": 1853459,
+        "name": "Hätälä Kirjolohifilee B-leikkuu ruodoton pakaste n1kg",
+        "ean": "2387917200005",
+        "category": "CAAAIAAAAAEAA",
+        "price": 1290,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1290
+          }
+        ]
+      },
+      {
+        "id": 2309,
+        "name": "Saimaan Tuore leppäsavustettu kirjolohifilee 200g ASC",
+        "ean": "6405877000100",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 749,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 749
+          }
+        ]
+      },
+      {
+        "id": 1829217,
+        "name": "Kotimaista graavisuolattu kirjolohifilee viipaloitu 150 g",
+        "ean": "6438574272761",
+        "category": "CAAAKAAAAACAA",
+        "price": 469,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 469
+          }
+        ]
+      },
+      {
+        "id": 160311,
+        "name": "Lerøy savustettu kirjolohifilee n700g rdtn vakuumipakattu",
+        "ean": "2361745200000",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 2490,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2490
+          }
+        ]
+      },
+      {
+        "id": 1829219,
+        "name": "Kotimaista kylmäsavustettu kirjolohifilee viipaloitu 150 g",
+        "ean": "6438574272785",
+        "category": "CAAAKAAACACAA",
+        "price": 469,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 469
+          }
+        ]
+      },
+      {
+        "id": 1792513,
+        "name": "Kalaneuvos savustettu kirjolohifileepala 150g vakuumipakattu",
+        "ean": "6408520001974",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 499,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 499
+          }
+        ]
+      },
+      {
+        "id": 2336,
+        "name": "Lapin kylmäsavustettu kirjolohifileesiivu 100g pintapaahdettu",
+        "ean": "6430075940446",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 599,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 599
+          }
+        ]
+      },
+      {
+        "id": 2303,
+        "name": "Kalaneuvos savustettu kirjolohifilee pala n250g vakuumipakattu",
+        "ean": "2385235100007",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 2890,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 2890
+          }
+        ]
+      },
+      {
+        "id": 1829220,
+        "name": "Xtra savustettu ruodoton kirjolohifileepala vakuumi n. 100-500g",
+        "ean": "2396010100006",
+        "category": "CAAAKAAAGAGAA",
+        "price": 1929,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 1929
+          }
+        ]
+      },
+      {
+        "id": 21234,
+        "name": "Kala-Lappi Lapin Loimu aidolla tulella loimutettu kypsä kirjolohifilee",
+        "ean": "2002413400000",
+        "category": "CAAAKACAGAGAA",
+        "price": 3490,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 3490
+          }
+        ]
+      },
+      {
+        "id": 21215,
+        "name": "Kala-Lappi Lapin TuliSavu, aidon tulen loimussa savupesässä kypsennetty kirjolohifilee",
+        "ean": "2002413600004",
+        "category": "CAAAKACAGAGAA",
+        "price": 3490,
+        "priceAmountUnit": "cent",
+        "storeItems": [
+          {
+            "price": 3490
+          }
+        ]
+      }
+    ],
+    "kirjolohi_k": [
+      {
+        "id": "30861",
+        "name": "Chef Lundén Vaasan Kirjolohi-kurkku Ruispala 155g",
+        "ean": "4740376102996",
+        "category": "valmisruoka/valmisruoat-ja--keitot/kolmioleivat-ja-paniinit",
+        "price": 314,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78550",
+        "name": "Kirjolohi Suomi kg",
+        "ean": "2000409600007",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 1195,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "93593",
+        "name": "Pirkka suomalainen kirjolohi öljyssä 150g/115g",
+        "ean": "6410405279866",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/kala--ja-ayriaissailykkeet",
+        "price": 489,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1845024",
+        "name": "Pirkka suomalainen savustettu kirjolohi öljyssä 150g/110g",
+        "ean": "6410405353146",
+        "category": "sailykkeet-keitot-ja-ateria-ainekset/sailykkeet/kala--ja-ayriaissailykkeet",
+        "price": 489,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1867664",
+        "name": "Anton&Anton kirjolohi & paahdetut perunat sitruunakastikkeella 340g",
+        "ean": "6430055950687",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+        "price": 619,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "377093",
+        "name": "Kirjolohifilee",
+        "ean": "2000436800005",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 2995,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1858607",
+        "name": "Pirkka kirjolohikeitto 300g",
+        "ean": "6410405358554",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+        "price": 259,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "84241",
+        "name": "Pirkka kirjolohikiusaus 300 g",
+        "ean": "6410402025602",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+        "price": 239,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1869380",
+        "name": "Hyvä Apaja kirjolohiherkku 200g",
+        "ean": "6406600109886",
+        "category": "valmisruoka/lisakesalaatit-ja-tuorepasta/kalamajoneesisalaatit",
+        "price": 299,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "3755",
+        "name": "Saarioinen kirjolohikeitto 300g",
+        "ean": "6412000031849",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+        "price": 285,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2278",
+        "name": "Hyvä Apaja kirjolohipyörykät 300g",
+        "ean": "6406600109541",
+        "category": "kala-ja-merenelavat/muut-kalatuotteet/kalajalosteet",
+        "price": 329,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "3778",
+        "name": "Kokkikartano kirjolohikiusaus 700g",
+        "ean": "6405304002073",
+        "category": "valmisruoka/laatikot-pastat-ja-lasagnet/laatikot-ja-kiusaukset",
+        "price": 665,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "84121",
+        "name": "Saimaan Tuore kirjolohifilee 150g ASC",
+        "ean": "6405877100008",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 395,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "22146",
+        "name": "Lapin graavi kirjolohifileesiivu 100g",
+        "ean": "6405885999786",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/graavikirjolohi",
+        "price": 599,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1809816",
+        "name": "Saimaan Tuore kirjolohifilee 340g ASC",
+        "ean": "6405877000889",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 925,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "20016",
+        "name": "Lapin kylmäsavu kirjolohifileesiivu 100g",
+        "ean": "6405885999809",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 599,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1930712",
+        "name": "OLO Creative Kitchen kirjolohikeitto 320g",
+        "ean": "6407800029639",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+        "price": 499,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1946974",
+        "name": "Kalaneuvos kirjolohileikkele paprika 120g",
+        "ean": "6408520003213",
+        "category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/lihahyytelot-ja-muut-leivanpaalliset",
+        "price": 399,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "101075",
+        "name": "Jokisen Eväät kirjolohikuutio 250g pakaste",
+        "ean": "6407218000763",
+        "category": "kala-ja-merenelavat/muut-kalatuotteet/kalapakasteet",
+        "price": 889,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1858479",
+        "name": "Kalaonni kirjolohisuikale 250g maustamaton",
+        "ean": "6430071602621",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 665,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1946975",
+        "name": "Kalaneuvos kirjolohileikkele lämminsavu 120g",
+        "ean": "6408520003190",
+        "category": "liha-ja-kasviproteiinit/kinkut-ja-leikkeleet/lihahyytelot-ja-muut-leivanpaalliset",
+        "price": 399,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1818089",
+        "name": "Atria kirjolohipihvit tillikastikkeella 350g",
+        "ean": "6407800020353",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+        "price": 429,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2337",
+        "name": "Lapin kylmäsavu kirjolohifileesiivu lime 100g",
+        "ean": "6430075940217",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 599,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1832890",
+        "name": "Lerøy graavi kirjolohifilee viipaloitu 200g ASC",
+        "ean": "6406170037633",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/graavikirjolohi",
+        "price": 899,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1966961",
+        "name": "Lerøy lämminsavustettu kirjolohifileepala 450 g",
+        "ean": "6406170031914",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 1539,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "3824",
+        "name": "Saarioinen mainio kermainen kirjolohikeitto 400g",
+        "ean": "6412000037612",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikrokeitot",
+        "price": 469,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1857169",
+        "name": "Kalaonni Arkinen graavi kirjolohifilee 100g siivu",
+        "ean": "6430071602553",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/graavikirjolohi",
+        "price": 425,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2326",
+        "name": "Kalaonni Cajun loimutettu kirjolohifileepala 170g",
+        "ean": "6430071600009",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/muut-savu--ja-graavikalat",
+        "price": 742,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "22140",
+        "name": "Hätälä kirjolohifilee C-leikattu n1kg vakuumipakattu",
+        "ean": "2387966000007",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 2995,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2333",
+        "name": "Lappi graavi kirjolohifileesiivu 100g pintapaahdettu",
+        "ean": "6430075940460",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/graavikirjolohi",
+        "price": 695,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78557",
+        "name": "Kalaonni blanko kirjolohipala grilliin ja uuniin 300g",
+        "ean": "6430071600795",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 719,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1858500",
+        "name": "K-Menu kylmäsavustettu kirjolohifilee viipaloitu 100g",
+        "ean": "6410405363909",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 329,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1858762",
+        "name": "Pirkka suomalainen savustettu kirjolohifileepala 300g",
+        "ean": "6410405362469",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 895,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2331",
+        "name": "Kalaonni Vanhan Liiton lämminsavu kirjolohipala 200 g",
+        "ean": "6430071600153",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 779,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1806966",
+        "name": "Kalaonni Hitmix kirjolohipala grilliin ja uuniin 300 g",
+        "ean": "6430071601914",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 746,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "92014",
+        "name": "OLO Creative Kitchen kirjolohipihvi rapukastikkeessa 320g",
+        "ean": "6407800009686",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+        "price": 659,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1806879",
+        "name": "Kokkikartano kirjolohifilepala ja paahdetut perunat 360 g",
+        "ean": "6419744005464",
+        "category": "valmisruoka/valmisruoat-ja--keitot/mikroateriat",
+        "price": 635,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1858505",
+        "name": "Kalaonni Arkinen kylmäsavustettu kirjolohifilee 100g siivu",
+        "ean": "6430071602546",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 425,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1792513",
+        "name": "Kalaneuvos savustettu kirjolohifileepala 150g vakuumipakattu",
+        "ean": "6408520001974",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 565,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2336",
+        "name": "Lapin kylmäsavustettu kirjolohifileesiivu 100g pintapaahdettu",
+        "ean": "6430075940446",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 695,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1829221",
+        "name": "Kalaneuvos rakkaudella kylmäsavustettu kirjolohifileesiivu 100g",
+        "ean": "6408520002698",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 499,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1858501",
+        "name": "Pirkka suomalainen kylmäsavustettu kirjolohifilee 150g viipaloitu",
+        "ean": "6410405362407",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 499,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1858757",
+        "name": "Pirkka suomalainen kylmäsavustettu kirjolohifilee 400g viipaloitu",
+        "ean": "6410405362445",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 1379,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1789580",
+        "name": "Kalaonni Paholaisen loimutettu kirjolohifileepala paholainen 170g",
+        "ean": "6430071600030",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/muut-savu--ja-graavikalat",
+        "price": 742,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1847463",
+        "name": "Kalaneuvos tuore kirjolohifileepala C-leikattu 300g vakuumipakattu",
+        "ean": "6408520003091",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 769,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "2306",
+        "name": "Kalaonni kevätsipuli-sitruuna kirjolohipala grilliin ja uuniin 300g",
+        "ean": "6430071601358",
+        "category": "kala-ja-merenelavat/tuorekala/kirjolohi",
+        "price": 829,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1855126",
+        "name": "Kalaneuvos kirjolohifileepala C-leikattu 500g pakaste vakuumipakattu",
+        "ean": "6408520003268",
+        "category": "kala-ja-merenelavat/muut-kalatuotteet/kalapakasteet",
+        "price": 995,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1819192",
+        "name": "Eriksson Premium Seafood kylmäsavustettu kirjolohifilee 500g vakuumipakattu",
+        "ean": "6410405336224",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 1599,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "1819191",
+        "name": "Eriksson Premium Seafood lämminsavustettu kirjolohifilee 500g vakuumipakattu",
+        "ean": "6410405336248",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/lamminsavukirjolohi",
+        "price": 1599,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78575",
+        "name": "Eriksson Premium Seafood graavattu kirjolohifilee 150g viipaloitu suomalainen",
+        "ean": "6410405295408",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/graavikirjolohi",
+        "price": 599,
+        "priceAmountUnit": "cent"
+      },
+      {
+        "id": "78572",
+        "name": "Eriksson Premium Seafood kirjolohifilee kylmäsavustettu 150g viipaloitu suomalainen",
+        "ean": "6410405295439",
+        "category": "kala-ja-merenelavat/savu--ja-graavikala/kylmasavukirjolohi",
+        "price": 599,
+        "priceAmountUnit": "cent"
+      }
+    ]
+  }
+}

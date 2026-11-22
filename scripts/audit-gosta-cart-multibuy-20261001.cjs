@@ -2,17 +2,17 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
+const ts = require("typescript");
 const page = fs.readFileSync("src/app/page.tsx", "utf8");
 const helperStart = page.indexOf("function getGostaCartBundleTextV870(");
 const start = page.indexOf("function getGostaCartPriceV758(");
-const end = page.indexOf("\nexport default function Page()", start);
+// Stop before viewport/layout code: it is unrelated to cart pricing and contains TS annotations.
+const end = page.indexOf("\nconst DesktopView =", start);
 assert(start >= 0 && end > start, "cart price helper must be present");
 assert(helperStart >= 0 && helperStart < start, "bundle text helper must be present");
-const code = page.slice(helperStart, end)
-  .replace("offer: any): string", "offer)")
-  .replace("offer: any): number", "offer)")
-  .replace("offer: any): { total: number; unit: number }", "offer)")
-  .replace("value: unknown): number | null", "value)");
+const code = ts.transpileModule(page.slice(helperStart, end), {
+  compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.None },
+}).outputText;
 const price = vm.runInNewContext(code + "\ngetGostaCartPriceV758;", {});
 const cases = [
   ["K two-pack numeric source", { chain:"K", offerPrice:"7,00 € / 2 kpl", __sourceOfferSearchResult:{price:7,debug:{offerQuantity:2}} }, 7, 3.5],
@@ -44,7 +44,9 @@ assert.equal((page.match(/getGostaCartPriceV758\(offer\);/g)||[]).length,2,"sing
 console.log("PASS single and bulk add share the same price helper");
 const bundleStart = page.indexOf("function getGostaCartBundleQuantityV869(");
 assert(bundleStart >= 0 && bundleStart < start, "bundle quantity helper must be present");
-const bundleCode = page.slice(helperStart, start).replaceAll("offer: any): string", "offer)").replace("offer: any): number", "offer)");
+const bundleCode = ts.transpileModule(page.slice(helperStart, start), {
+  compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.None },
+}).outputText;
 const bundleQuantity = vm.runInNewContext(bundleCode + "\ngetGostaCartBundleQuantityV869;", {});
 for (const [name, offer, expected] of [
   ["Prisma four-pack", {offerPrice:"4 kpl = 2 €"}, 4],

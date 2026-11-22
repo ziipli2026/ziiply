@@ -206,6 +206,7 @@
 // ============================================================================
 
 "use client";
+import ProductEnergy from "./ProductEnergy";
 
 // ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V35_CATEGORY_LABELS_DEBUG
@@ -495,6 +496,43 @@ function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
   return root ? `root:${sourceIdentity}:${root}` : "";
 }
 
+// Merge duplicate K-local offers from overlapping Tjek publications only when
+// product identity, price and validity agree. Preserve distinct variants.
+function sameKLocalPromotionV1(a: ZiiplyMobileOfferSearchItem, b: ZiiplyMobileOfferSearchItem): boolean {
+  const x: any = (a as any).__sourceOfferSearchResult || a;
+  const y: any = (b as any).__sourceOfferSearchResult || b;
+  if (x.source !== "etarjouslehdet" || y.source !== "etarjouslehdet") return false;
+  if (String(x.storeId || x.storeName || "") !== String(y.storeId || y.storeName || "")) return false;
+  if (String(x.validUntil || "") !== String(y.validUntil || "") ||
+      String(x.validFrom || "") !== String(y.validFrom || "")) return false;
+  if (String(x.campaignType || "") !== String(y.campaignType || "")) return false;
+  const price = (v: any) => Number(String(v.bundleTotalPrice ?? v.price ?? v.offerPrice ?? "").replace(",", "."));
+  const px = price(x), py = price(y);
+  if (!Number.isFinite(px) || !Number.isFinite(py) || px !== py) return false;
+  const name = (v: any) => normalizeOfferCardKeyV13(v.title || v.name || v.productName || "")
+    .replace(/\b(?:kanan|kananpojan)\b/g, "kana")
+    .replace(/\b(?:fileesuikaleet|fileesuikale)\b/g, "fileesuikale")
+    .replace(/\b(?:jauhelihat|jauheliha)\b/g, "jauheliha")
+    .replace(/\b(?:nakit|nakki)\b/g, "nakki")
+    .replace(/\b(?:pizzat|pizza)\b/g, "pizza")
+    .replace(/\s+/g, " ").trim();
+  const nx = name(x), ny = name(y);
+  if (!nx || !ny) return false;
+  const packs = (v: string) => [...v.matchAll(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|l|kpl)\b/g)].map(m => m[0].replace(/\s+/g, "")).sort();
+  const ax = packs(nx), ay = packs(ny);
+  if (ax.length && ay.length && ax.join("|") !== ay.join("|")) return false;
+  const strip = (v: string) => v.replace(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|ml|l|kpl)\b/g, " ").replace(/\s+/g, " ").trim();
+  const tx = strip(nx).split(" ").filter(Boolean), ty = strip(ny).split(" ").filter(Boolean);
+  if (tx.length < 2 || ty.length < 2) return false;
+  // The Tjek image-crop row often omits pack size and origin. Match only
+  // a sufficiently specific complete product-name prefix, never loose tokens.
+  const left = strip(nx), right = strip(ny);
+  const shorter = left.length <= right.length ? left : right;
+  const longer = left.length <= right.length ? right : left;
+  if (shorter.length < 12 || shorter.split(" ").length < 2) return false;
+  return longer === shorter || longer.startsWith(shorter + " ");
+}
+
 function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
   const seen = new Set<string>();
   const seenRoots = new Set<string>();
@@ -506,6 +544,15 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
       (item as any)?.ean || source?.ean || source?.gtin || source?.barcode || "",
     );
     const key = getOfferCardDedupeKeyV13(item);
+    const duplicateIndex = unique.findIndex(previous => sameKLocalPromotionV1(previous, item));
+    if (duplicateIndex >= 0) {
+      // Keep the fuller leaflet title (usually the row with package size/origin).
+      const previous = unique[duplicateIndex];
+      const previousName = String((previous as any).__sourceOfferSearchResult?.title || previous.title || previous.name || "");
+      const currentName = String(source?.title || item.title || item.name || "");
+      if (currentName.length > previousName.length) unique[duplicateIndex] = item;
+      continue;
+    }
 
     if ((source?.source === "etarjouslehdet" || source?.source === "K-Citymarket kauppakohtainen julkaisu" || source?.provider === "kcitymarket-local") && source?.offerId && source?.debug?.publicationId) {
       if (seen.has(key)) continue;
@@ -1096,23 +1143,16 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const getVisibleCategoryCountV32 = (category: string) => {
     const wanted = normalizeCategoryKey(category);
-
-    // F: Landing-näkymässä määrä lasketaan aina samasta dedupatusta items-listasta,
-    // josta käyttäjälle näytettävät tuotteet muodostuvat. Parentilta tuleva
-    // categoryOfferCounts perustuu raakempaan listaan ja voi sisältää vielä
-    // myöhemmin poistuvia duplikaatteja (erityisesti ensimmäinen Kahvi-kategoria).
-    // Use the parent master counts for the landing category chips as well.
-    // These counts are resolved by the shared offer-category core (including
-    // verified Neon categories); raw card.category can still carry a legacy
-    // provider label and would incorrectly show zero for a populated chip.
-    // The parent also keeps counts for categories not present in a filtered tab.
+    if (!wanted) return 0;
+    // Landing has the complete set: count the same deduplicated cards shown
+    // after category selection, not the pre-dedupe parent totals.
+    if (showLandingView && !shownFilter && !shownQuery) {
+      return items.filter(item => normalizeCategoryKey(String(item.category || "")) === wanted).length;
+    }
+    // Filtered results may contain only one category; retain parent totals.
     const mappedCount = getCategoryCountWithAliases(category);
     if (typeof mappedCount === "number") return mappedCount;
-
-    if (!wanted) return 0;
-    return items.filter((item) =>
-      normalizeCategoryKey(String(item.category || "")) === wanted
-    ).length;
+    return items.filter(item => normalizeCategoryKey(String(item.category || "")) === wanted).length;
   };
 
   const getCategoryDisplayLabelV38 = (category: string) => {
@@ -1233,6 +1273,7 @@ export default function ZiiplyMobileOfferSearchCard({
     automaticCategoryAuditV235: (() => {
       const counts: Record<string, number> = {};
       const missingFields: Array<{ ean: string; missing: string[] }> = [];
+      const missingEans: string[] = [];
       const seenEans = new Set<string>();
       const duplicateEans: string[] = [];
       for (const offer of items) {
@@ -1240,32 +1281,40 @@ export default function ZiiplyMobileOfferSearchCard({
         counts[category] = (counts[category] || 0) + 1;
         const ean = String((offer as any).ean || "").trim();
         const missing = [
-          ...(!ean ? ["ean"] : []),
+
           ...(!(offer as any).title && !(offer as any).name ? ["name"] : []),
           ...(!(offer as any).price && !(offer as any).priceText ? ["price"] : []),
           ...(!(offer as any).imageUrl && !(offer as any).image ? ["image"] : []),
           ...(category === "(puuttuu)" ? ["category"] : []),
         ];
+        if (!ean) missingEans.push(String((offer as any).title || (offer as any).name || ""));
         if (missing.length) missingFields.push({ ean, missing });
         if (ean && seenEans.has(ean)) duplicateEans.push(ean);
         if (ean) seenEans.add(ean);
       }
+      // Compare against the counts actually rendered on category chips.
+      // Parent categoryOfferCounts is pre-dedupe and is not the UI truth.
       const expected = categoryOfferCounts || {};
-      // Counts describe all loaded categories, but items may contain only the
-      // selected category. Never compare other categories against a filtered set.
       const isCategoryFiltered = Boolean(shownFilter);
-      const categoryCountMismatches = Object.entries(expected).flatMap(([category, count]) => {
+      const categoryCountMismatches = Object.entries(counts).flatMap(([category, actual]) => {
+        const displayed = getVisibleCategoryCountV32(category);
+        return displayed !== actual ? [{ category, expected: displayed, actual }] : [];
+      });
+      // Retain upstream discrepancies as diagnostics, not false UI failures.
+      const sourceCategoryCountMismatches = Object.entries(expected).flatMap(([category, sourceCount]) => {
         if (isCategoryFiltered && normalizeCategoryKey(category) !== normalizeCategoryKey(shownFilter)) return [];
         const actual = Object.entries(counts).filter(([key]) => normalizeCategoryKey(key) === normalizeCategoryKey(category)).reduce((sum, [, n]) => sum + n, 0);
-        return typeof count === "number" && actual !== count ? [{ category, expected: count, actual }] : [];
+        return typeof sourceCount === "number" && actual !== sourceCount ? [{ category, sourceCount, actual }] : [];
       });
       return {
         status: loading ? "loading" : showLandingView ? "landing_data_audit" : "filtered_data_audit",
         checkedRows: items.length,
         categoryCounts: counts,
         missingFields,
+        missingEans, // Leaflet/group offers may legitimately have no single EAN.
         duplicateEans,
         categoryCountMismatches,
+        sourceCategoryCountMismatches,
         passed: !loading && missingFields.length === 0 && duplicateEans.length === 0 && categoryCountMismatches.length === 0,
       };
     })(),
@@ -1395,7 +1444,7 @@ export default function ZiiplyMobileOfferSearchCard({
   return (
     <div
       data-ziiply-mobile-offer-search-card-version="V53-MINI-DEBUG-BUTTON"
-      className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
+      className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         {debugOpenV52 ? (
@@ -1421,15 +1470,6 @@ export default function ZiiplyMobileOfferSearchCard({
 
         <LeatherBackButton onClick={handleBack} />
 
-        <button
-          type="button"
-          onClick={() => setDebugOpenV52(true)}
-          className="absolute left-[4.15rem] top-[1.08rem] z-[35] rounded border border-[#6d5d3f] bg-[#fff4d4]/90 px-1.5 py-0.5 font-mono text-[0.55rem] font-black text-[#5f5034] shadow-sm"
-          aria-label="Avaa tarjoushaun debug"
-          title="Avaa debug"
-        >
-          DBG
-        </button>
 
         {onClose ? (
           <button
@@ -1584,20 +1624,6 @@ export default function ZiiplyMobileOfferSearchCard({
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">EUROSPAR</span>
                   </button>
                 ) : null}
-                {showTokmanniChain ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedOfferChainV39("TOKMANNI");
-                      onSelectOfferChain?.("TOKMANNI");
-                    }}
-                    aria-label="Hae Tokmannin tarjoukset"
-                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
-                  >
-                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center rounded-full bg-[#e30613] text-[1.05rem] font-black text-white">TOK</span>
-                    <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Tokmanni</span>
-                  </button>
-                ) : null}
                 {showLidlChain ? (
                   <button
                     type="button"
@@ -1610,6 +1636,20 @@ export default function ZiiplyMobileOfferSearchCard({
                   >
                     <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/lidl.png" alt="Lidl" className="block h-full w-full object-contain object-center" draggable={false} /></span>
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Lidl</span>
+                  </button>
+                ) : null}
+                {showTokmanniChain ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedOfferChainV39("TOKMANNI");
+                      onSelectOfferChain?.("TOKMANNI");
+                    }}
+                    aria-label="Hae Tokmannin tarjoukset"
+                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                  >
+                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center rounded-full bg-[#e30613] text-[1.05rem] font-black text-white">TOK</span>
+                    <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Tokmanni</span>
                   </button>
                 ) : null}
               </div>
@@ -1715,6 +1755,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="break-words text-[0.92rem] font-black leading-tight text-[#233020]">{productName}</div>
+                          <ProductEnergy ean={ean} nutrition={(offer as any).nutrition ?? (offer as any).product?.nutrition ?? (offer as any).__sourceOfferSearchResult?.nutrition} quantity={String((offer as any).packageSize ?? (offer as any).quantity ?? (offer as any).__sourceOfferSearchResult?.packageSize ?? "")} />
                           {embeddedComparisonPrice ? (
                             <div className="clear-both mt-[0.18rem] text-[0.70rem] font-extrabold leading-tight text-[#74694f]">
                               {embeddedComparisonPrice}

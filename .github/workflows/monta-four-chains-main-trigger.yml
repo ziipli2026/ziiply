@@ -1,0 +1,42 @@
+name: Monta four-chain live validation
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/monta-four-chains-main-trigger.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/monta-four-chains-live-20261116
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Check preview accessibility
+        env:
+          ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
+        run: |
+          status=$(curl -sS -L -o /tmp/ziiply-preview-response -w '%{http_code}' "$ZIIPLY_LIVE_URL/desktop-preview")
+          echo "Preview HTTP status: $status"
+          if [ "$status" -ne 200 ]; then
+            echo "::error::Preview inaccessible (HTTP $status); check Vercel deployment protection"
+            exit 1
+          fi
+      - name: Run four-chain live test against verified branch preview
+        env:
+          ZIIPLY_LIVE_URL: https://ziiply-git-test-monta-four-chains-l-25d7a2-ziipli2026s-projects.vercel.app
+        run: npx playwright test tests/monta-four-chains-live.spec.cjs --browser=chromium --reporter=line
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: monta-four-chains-evidence
+          path: test-results/
+          if-no-files-found: ignore

@@ -9,6 +9,9 @@ on:
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketPrintedTransactionProof.js"
       - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
+      - "src/app/components/ziiply/offerSearch/citymarketPreflight.ts"
+      - "src/app/api/cron/kcitymarket-preflight/route.ts"
 
 permissions:
   contents: read
@@ -21,9 +24,10 @@ concurrency:
 jobs:
   parse:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Wait for the matching production deployment
+        id: deployment
         env:
           GH_TOKEN: ${{ github.token }}
           REVISION: ${{ github.sha }}
@@ -45,12 +49,65 @@ jobs:
           done
           echo "Production deployment did not become ready"
           exit 1
-      - name: Run current Citymarket parser
+      - name: Run advance parser during the publication window
         env:
           KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
-          curl --fail-with-body --show-error --max-time 150 \
+          # Missing categories or parser errors may return HTTP 503; missing
+          # images alone must never block preflight. Continue cache refresh.
+          status=$(curl --silent --show-error --output preflight.json --write-out '%{http_code}' --max-time 210 \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
-            https://ziiply.vercel.app/api/cron/kcitymarket-cache
+            https://ziiply.vercel.app/api/cron/kcitymarket-preflight)
+          cat preflight.json
+          if [ "$status" != "200" ] && [ "$status" != "503" ]; then
+            echo "::error::Citymarket preflight transport failure: HTTP $status"
+            exit 1
+          fi
+          if jq -e '.skipped == "Outside the advance publication window"' preflight.json >/dev/null; then
+            echo "Advance parser correctly skipped outside publication window"
+          else
+            jq -e '.quality != null and .parsed != null' preflight.json >/dev/null
+          fi
+          jq -r '(.missingCategoryTitles // [])[] | "Missing category offer titles: " + .' preflight.json
+          echo "Preflight quality inspected; continuing refresh even if incomplete"
+      - name: Run current Citymarket parser
+        if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
+        env:
+          KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
+        run: |
+          set -euo pipefail
+          test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
+          status=$(curl --silent --show-error --output cache.json --write-out '%{http_code}' --max-time 150 \
+            -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
+            https://ziiply.vercel.app/api/cron/kcitymarket-cache)
+          cat cache.json
+          if [ "$status" != "200" ] && [ "$status" != "503" ]; then
+            echo "::error::Citymarket cache refresh transport failure: HTTP $status"
+            exit 1
+          fi
+          jq -e '.activeOk == true' cache.json >/dev/null
+          # activeOk only proves that the parser fetched a leaflet. It does not
+          # prove that a usable, approved offer snapshot reached consumers.
+          if ! jq -e '.ok == true and .activeQuality.total > 0 and .activeQuality.blocking == false' cache.json >/dev/null; then
+            echo "::error::Citymarket parser fetched the leaflet, but no quality-approved active offers are visible to consumers"
+            jq '{active,activeImages,activeQuality,errors}' cache.json
+            exit 1
+          fi
+          echo "Citymarket active publication is populated and passes the quality gate"
+      - name: Enforce upcoming edition quality after both refreshes
+        if: ${{ !cancelled() && steps.deployment.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          if jq -e '.skipped == "Outside the advance publication window"' preflight.json >/dev/null; then
+            echo "No upcoming-edition quality gate outside advance publication window"
+            exit 0
+          fi
+          jq -e '.quality != null and .parsed != null' preflight.json >/dev/null
+          jq -r '"Upcoming Citymarket: " + .period + " — " + (.quality.missing_images|tostring) + " missing images, " + (.quality.missing_categories|tostring) + " missing categories"' preflight.json
+          if ! jq -e '.quality.missing_categories == 0 and .quality.missing_prices == 0 and .quality.unverified_prices == 0 and (.quality.suspicious_names // 0) == 0' preflight.json >/dev/null; then
+            echo "::error::Upcoming Citymarket edition is incomplete; automated repair must continue"
+            exit 1
+          fi
+          echo "Upcoming edition has no blocking category or price fields; image enrichment and PDF review remain independent"

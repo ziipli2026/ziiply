@@ -232,7 +232,7 @@ function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
   if (isPendingWeightPriceV794(item)) return 0;
   const normalizeTotalPrice = (value: number) => {
     if (!Number.isFinite(value)) return 0;
-    return Math.abs(value) > 20 ? value / 100 : value;
+    return item.priceAmountUnit !== "eur" && Math.abs(value) > 20 ? value / 100 : value;
   };
 
   // A confirmed scale row price must override the original €/kg quote.
@@ -355,7 +355,7 @@ function QuantityCell({
     return (
       <>
         <button type="button" onClick={() => onRequestRemove?.(item)}
-          className="absolute left-[min(17.52rem,calc(100%-2.5rem))] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12]"
+          className="absolute left-[calc(min(13.20rem,100%-6.8rem)+0.45rem)] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12]"
           aria-label="Poista punnittava tuote" title="Poista punnittava tuote">−</button>
         <span className="absolute left-[min(13.20rem,calc(100%-6.8rem))] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center text-[0.70rem] font-extrabold text-[#3d301a]" title="Punnitusrivi, ei kappalemäärää">kg</span>
       </>
@@ -367,7 +367,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => {
-          if (quantity > 1) onDecrease?.(item);
+          if (quantity > (item.ziiplyOfferBundleQuantity || 1)) onDecrease?.(item);
           else onRequestRemove?.(item);
         }}
         className="absolute left-[min(17.52rem,calc(100%-2.5rem))] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12] drop-shadow-[0_0_0.4px_rgba(120,0,0,0.45)] active:translate-y-[1px] active:bg-[#fff1c6]/38"
@@ -493,7 +493,7 @@ export default function ZiiplyMobileCartCard({
         if (target.closest('[data-v65-remove-choice="true"]')) return;
         confirmPendingRemoveV65();
       }}
-      className={`fixed inset-0 z-[92] flex min-h-0 items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md max-[600px]:max-h-[100dvh] sm:hidden ${className}`}
+      className={`fixed inset-0 z-[92] flex min-h-0 items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md max-[600px]:max-h-[100dvh] ${className}`}
     >
       <section className="ziiply-cart-paper-pop relative flex h-full max-h-full min-h-0 min-w-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
@@ -786,30 +786,27 @@ export default function ZiiplyMobileCartCard({
                 // Sisäinen 0 säilyy laskentaa varten, mutta sitä ei esitetä käyttäjälle 0,00 € hintana.
                 const pendingWeightV794 = isPendingWeightPriceV794(item);
                 const confirmedWeightFinalV802 = item.ziiplyWeightFinalPrice ?? item.product?.ziiplyWeightFinalPrice;
+                const bundleQuantity = Number(item.ziiplyOfferBundleQuantity) || 1;
                 const rowPriceInputV802 = !pendingWeightV794 &&
                   (item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) &&
                   confirmedWeightFinalV802 != null && confirmedWeightFinalV802 !== "" &&
                   Number.isFinite(Number(confirmedWeightFinalV802)) && Number(confirmedWeightFinalV802) >= 0
                     ? Number(confirmedWeightFinalV802)
-                    : pendingWeightV794 ? 0 : item.price;
+                    : pendingWeightV794 ? 0 : bundleQuantity > 1 ? Number(item.price) * bundleQuantity : item.price;
                 const stickerRegularPrice = Number((item as any).ziiplyRegularPrice);
                 const hasStickerDiscount = Number((item as any).ziiplyDiscountPercent) > 0 && getNumericPrice(stickerRegularPrice) > getNumericPrice(rowPriceInputV802) && !pendingWeightV794;
-                const numericRowPriceV792 = pendingWeightV794 ? 0 : getNumericPrice(rowPriceInputV802);
+                const numericRowPriceV792 = pendingWeightV794 ? 0 : item.priceAmountUnit === "eur" ? Number(rowPriceInputV802) : getNumericPrice(rowPriceInputV802);
                 const price = numericRowPriceV792 > 0
-                  ? ((item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) && !pendingWeightV794
+                  ? (item.priceAmountUnit === "eur" || ((item.ziiplyPricePendingWeight || item.product?.ziiplyPricePendingWeight) && !pendingWeightV794)
                     ? Number(rowPriceInputV802).toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
                     : normalizePrice(rowPriceInputV802))
                   : "";
-                const pendingWeightUnitPriceV796 =
-                  pendingWeightV794 &&
-                  (item as any).comparisonPrice != null &&
-                  Number.isFinite(Number((item as any).comparisonPrice)) &&
-                  Number((item as any).comparisonPrice) > 0
-                    ? Number((item as any).comparisonPrice).toLocaleString("fi-FI", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }) + " €"
-                    : "";
+                const estimate = pendingWeightV794 && Number(item.ziiplyEstimatedWeightKg) > 0
+                  ? Math.round(Number(item.ziiplyEstimatedWeightKg) * Number(item.comparisonPrice) * 100) / 100
+                  : 0;
+                const estimatedPrice = Number.isFinite(estimate) && estimate > 0
+                  ? estimate.toLocaleString("fi-FI", { style: "currency", currency: "EUR" })
+                  : "";
                 const checked = Boolean(item.checked);
                 const quantity = Number(item.quantity ?? item.amount ?? 1);
                 const safeQuantity = Number.isFinite(quantity) ? Math.max(1, quantity) : 1;
@@ -828,6 +825,7 @@ export default function ZiiplyMobileCartCard({
                     <button
                       type="button"
                       onClick={() => onToggleItem?.(item)}
+                      disabled={item.source === "offer"}
                       className="absolute left-[0.36rem] top-[0.64rem] grid h-[1.9rem] w-[1.95rem] place-items-center text-center text-[1.08rem] font-extrabold leading-none text-[#4a3921] active:translate-y-[1px]"
                       style={{ fontFamily: serifFont }}
                       aria-label={checked ? "Poista keräilymerkintä" : "Merkitse kerätyksi"}
@@ -844,6 +842,29 @@ export default function ZiiplyMobileCartCard({
                       title={originalName}
                     >
                       {name}
+                      {String(item.id || "").startsWith("gosta-watch-") && item.storeName && <span className="mt-1 block text-[0.65rem] font-semibold">{item.storeName}</span>}
+                      {(() => {
+                        const offer = item as typeof item & { discountText?: string; validFrom?: string; validTo?: string; validUntil?: string; __sourceOfferSearchResult?: { discountText?: string; validityText?: string; validFrom?: string; validTo?: string; validUntil?: string } };
+                        const source = offer.__sourceOfferSearchResult || {};
+                        const rawDiscount = String(offer.discountText || source.discountText || "").trim();
+                        const isValidity = (value: string) => /^(?:voimassa(?:oloaika)?\b|(?:\d{4}-\d{2}-\d{2}|\d{1,2}\.(?:\d{1,2}\.)?)\s*(?:[–—-]|$))/i.test(value);
+                        const discount = isValidity(rawDiscount) ? "" : rawDiscount;
+                        const rawValidity = String(offer.validityText || source.validityText || (isValidity(rawDiscount) ? rawDiscount : "")).trim();
+                        const dateLabel = (value: unknown) => {
+                          const raw = String(value || "").trim();
+                          const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                          if (iso) return `${Number(iso[3])}.${Number(iso[2])}.`;
+                          const local = raw.match(/^(\d{1,2})\.(\d{1,2})\./);
+                          return local ? `${Number(local[1])}.${Number(local[2])}.` : "";
+                        };
+                        const from = dateLabel(offer.validFrom || source.validFrom);
+                        const until = dateLabel(offer.validUntil || offer.validTo || source.validUntil || source.validTo);
+                        const validity = rawValidity || (from && until ? `Voimassa ${from}–${until}` : until ? `Voimassa ${until} saakka` : from ? `Voimassa alkaen ${from}` : "");
+                        return <>
+                          {discount && <span className="mt-1 block text-[0.65rem] font-semibold italic">{discount}</span>}
+                          {validity && <span className="mt-1 block text-[0.65rem] font-semibold">{validity}</span>}
+                        </>;
+                      })()}
                     </div>
 
                     <div data-v65-remove-choice={pendingRemoveV65 ? "true" : undefined}>
@@ -867,24 +888,20 @@ export default function ZiiplyMobileCartCard({
                           : "text-[0.84rem] text-[#3f321f]",
                       )}
                       style={{ fontFamily: serifFont }}
-                      aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : `Hinta ${price}`}
+                      aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : pendingWeightV794 ? (estimatedPrice ? "Arvio " + estimatedPrice : "Punnitse") : `Hinta ${price}`}
                     >
                       {isAlcoholCartItemV8(item)
                         ? "kassa"
                         : pendingWeightV794
-                          ? (
-                            <div className="flex flex-col items-end leading-none">
-                              <span className="text-[0.72rem] font-black tracking-[-0.02em] text-[#473719]">
-                                {pendingWeightUnitPriceV796 ? `${pendingWeightUnitPriceV796}/kg` : "—"}
+                          ? (estimatedPrice
+                            ? <span className="flex flex-col items-center gap-0.5">
+                                <span className="text-[0.66rem]">Arvio</span>
+                                <span className="whitespace-nowrap">{estimatedPrice}</span>
                               </span>
-                              <span className="mt-1 text-[0.60rem] font-black uppercase tracking-[-0.01em] text-[#b42318]">
-                                Punnitse
-                              </span>
-                            </div>
-                          )
+                            : <span className="text-[0.72rem]">Punnitse</span>)
                           : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
                             ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
-                            : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.72rem] font-bold text-[#3f321f] decoration-[1.5px]" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : price || "—"}
+                            : hasStickerDiscount ? <span className="flex flex-col items-center gap-[3px]"><span>{price}</span><del className="text-[0.72rem] font-bold text-[#3f321f] decoration-[1.5px]" aria-label="Hinta ennen tarra-alennusta">{normalizePrice(stickerRegularPrice)}</del></span> : bundleQuantity > 1 && price ? <span>{price}<small className="block">/ {bundleQuantity} kpl</small></span> : price || "—"}
                     </div>
                     {item.ziiplyIsSubstituteV793 &&
                       typeof item.ziiplyOriginalProductName === "string" &&

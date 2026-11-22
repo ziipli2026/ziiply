@@ -1,6 +1,10 @@
 import { neon } from "@neondatabase/serverless";
 import { recordPublicationRun } from "./publicationRunLog";
 
+export function citymarketPreflightDatabaseUrl() {
+  return process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL;
+}
+
 export type CitymarketPreflightInput = {
   period: string;
   startedAt: string;
@@ -11,12 +15,18 @@ export type CitymarketPreflightInput = {
 /** Check the exact next edition after the automatic parser; never infer it from the active edition. */
 export async function recordCitymarketPreflight(input: CitymarketPreflightInput) {
   const errors = input.errors.filter(error => error.startsWith("next ")).slice(0, 10);
-  const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
+  const databaseUrl = citymarketPreflightDatabaseUrl();
+  const sql = databaseUrl ? neon(databaseUrl) : null;
   let quality: Record<string, number> | null = null;
+  let missingCategoryTitles: string[] = [];
+  let missingImageTitles: string[] = [];
+  let suspiciousNameTitles: string[] = [];
   if (input.parsed && sql) {
     const rows = await sql`SELECT jsonb_array_length(offers)::int AS total,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
         COALESCE(NULLIF(o->>'title',''),NULLIF(o->>'name','')) IS NULL) AS missing_names,
+      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
+        btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$)|PUNAKAALI[[:space:]]+KG[[:space:]]+PÄÄRYNÄ[[:space:]]+KG|JOGURTTIJUOMAT[[:space:]]+PROTEIN[[:space:]]+RAHKAT|RANTIT[[:space:]]+45[[:space:]]*ml|4[[:space:]]+LEVITTEET|H3O[[:space:]]+T[[:space:]]+D[[:space:]]+O[[:space:]]+G|vadelmainen,[[:space:]]+mausteinen)') AS suspicious_names,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
         NOT (COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$' AND
           CASE WHEN COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$' THEN (o->>'price')::numeric>0 ELSE false END)
@@ -24,17 +34,88 @@ export async function recordCitymarketPreflight(input: CitymarketPreflightInput)
           CASE WHEN COALESCE(o->>'discountPercent','') ~ '^[0-9]+([.][0-9]+)?$' THEN (o->>'discountPercent')::numeric>0 AND (o->>'discountPercent')::numeric<100 ELSE false END)) AS missing_prices,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'imageUrl','')='') AS missing_images,
       (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'category','') IN ('','Muut')) AS missing_categories,
-      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'resolutionSanity','pass')<>'pass') AS unverified_prices
-      FROM ziiply_offer_publications WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state='approved' ORDER BY parsed_at DESC LIMIT 1`;
+      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE COALESCE(o->>'resolutionSanity','pass')<>'pass') AS unverified_prices,
+      (SELECT count(*)::int FROM jsonb_array_elements(offers) o WHERE
+        COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$'
+        AND CASE WHEN COALESCE(o->>'price','') ~ '^[0-9]+([.][0-9]+)?$'
+          THEN (o->>'price')::numeric > 30 ELSE false END
+        AND COALESCE(o->>'title','') ~* '0[,.]75[[:space:]]*l/(pl|plo)') AS suspicious_prices
+      FROM ziiply_offer_publications WHERE chain='K-Citymarket' AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'}) AND approval_state IN ('candidate','approved') ORDER BY parsed_at DESC LIMIT 1`;
     quality = rows[0] as Record<string, number> ?? null;
+    // Expose concrete next-edition category defects to the repair workflow.
+    // Counts alone leave the automation unable to identify which offers need repair.
+    if (quality?.missing_images > 0) {
+      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
+        FROM (
+          SELECT offers FROM ziiply_offer_publications
+          WHERE chain='K-Citymarket'
+            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
+            AND approval_state IN ('candidate','approved')
+          ORDER BY parsed_at DESC LIMIT 1
+        ) p
+        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
+        WHERE COALESCE(o->>'imageUrl','')=''
+        LIMIT 40`;
+      missingImageTitles = defects.map(row => String(row.title));
+    }
+    if (quality?.suspicious_names > 0) {
+      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
+        FROM (
+          SELECT offers FROM ziiply_offer_publications
+          WHERE chain='K-Citymarket'
+            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
+            AND approval_state IN ('candidate','approved')
+          ORDER BY parsed_at DESC LIMIT 1
+        ) p
+        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
+        WHERE btrim(COALESCE(o->>'title',o->>'name','')) ~* '^(TUOTTEET|SIT([[:space:]]|$)|ULKOFILEESTÄ[[:space:]]+tai[[:space:]]+MUREUTETTU([[:space:]]|$)|PUNAKAALI[[:space:]]+KG[[:space:]]+PÄÄRYNÄ[[:space:]]+KG|JOGURTTIJUOMAT[[:space:]]+PROTEIN[[:space:]]+RAHKAT)'
+        LIMIT 20`;
+      suspiciousNameTitles = defects.map(row => String(row.title));
+    }
+    if (quality?.missing_categories > 0) {
+      const defects = await sql`SELECT COALESCE(o->>'title',o->>'name','(untitled)') AS title
+        FROM (
+          SELECT offers FROM ziiply_offer_publications
+          WHERE chain='K-Citymarket'
+            AND (publication_id=${input.period} OR publication_id LIKE ${input.period + '-printed-transactions-%'})
+            AND approval_state IN ('candidate','approved')
+          ORDER BY parsed_at DESC LIMIT 1
+        ) p
+        CROSS JOIN LATERAL jsonb_array_elements(p.offers) o
+        WHERE COALESCE(o->>'category','') IN ('','Muut')
+        LIMIT 20`;
+      missingCategoryTitles = defects.map(row => String(row.title));
+    }
+
   }
-  const failed = !input.parsed || errors.length>0 || !quality || quality.total===0 ||
-    quality.total!==input.parsed.offers || quality.missing_names>0 || quality.missing_prices>0 || quality.unverified_prices>0;
+  // Image enrichment is an independent background workflow. Missing images never
+  // turn a successfully parsed edition into a parser failure, at any hour.
+  const parserReady = Boolean(input.parsed && errors.length === 0 && quality &&
+    quality.total === input.parsed.offers && quality.total > 0 &&
+    quality.missing_names === 0 && (quality.suspicious_names ?? 0) === 0 &&
+    quality.missing_prices === 0 && quality.unverified_prices === 0 &&
+    (quality.suspicious_prices ?? 0) === 0);
+  const failed = !parserReady || Boolean(quality?.missing_categories);
+  const imageEnrichment = !quality ? "unknown" : quality.missing_images > 0 ? "pending" : "complete";
   const outcome = !input.parsed ? "preflight-parser-failed" : !quality ? "preflight-snapshot-missing" :
     failed ? "preflight-quality-failed" : "preflight-awaiting-pdf-review";
+  const pending = !failed;
+  const blockingReasons = [
+    ...(!input.parsed ? ["parser-no-result"] : []),
+    ...(errors.length ? ["parser-errors"] : []),
+    ...(!quality ? ["snapshot-missing"] : []),
+    ...(quality && input.parsed && quality.total !== input.parsed.offers ? ["snapshot-count-mismatch"] : []),
+    ...(quality?.missing_names ? ["missing-names"] : []),
+    ...(quality?.suspicious_names ? ["suspicious-names"] : []),
+    ...(quality?.missing_prices ? ["missing-prices"] : []),
+    ...(quality?.missing_categories ? ["missing-categories"] : []),
+    ...(quality?.unverified_prices ? ["unverified-prices"] : []),
+    ...(quality?.suspicious_prices ? ["suspicious-prices"] : []),
+  ];
   const details = { period: input.period, parserStartedAt: input.startedAt, parsed: input.parsed,
-    quality, errors, severity: failed ? "error" : "warning", pdfReview: "pending" };
-  await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:!failed,
-    count:quality?.total??input.parsed?.offers??0,outcome,details });
-  return {ok:!failed,outcome,...details};
+    quality, missingCategoryTitles, missingImageTitles, suspiciousNameTitles, errors,
+    severity: pending ? "warning" : "error", pdfReview: "pending", imageEnrichment, blockingReasons };
+  await recordPublicationRun({ chain:"K-Citymarket",source:"k-citymarket-preflight",ok:false,
+    count:quality?.total??input.parsed?.offers??0,outcome,details }, databaseUrl);
+  return {ok:false,pending,outcome,...details};
 }

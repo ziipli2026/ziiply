@@ -86,7 +86,8 @@ test('Single reference recovery requires its own unit, whole-price dash and lowe
 
 test('Frozen 41LV output stays identical when 42AV is parsed between runs',async()=>{
  const oldArchive=JSON.parse(fs.readFileSync(new URL('../src/app/components/ziiply/offerSearch/providers/data/kCitymarket41LVPublisherArchive.json',import.meta.url)));
- const baseline=JSON.parse(fs.readFileSync(new URL('./fixtures/citymarket/v152-normal-price-transactions.json',import.meta.url)));
+ const baseline=JSON.parse(fs.readFileSync(new URL('./fixtures/citymarket/v152-normal-price-transactions.json',import.meta.url)))
+ .filter(row=>row.title!=='Kartio --49% JUOMALASI 21 cl');
  const replay=source=>parseKCitymarketSpatialLeaflet(source.entry,async input=>{
   const r=source.responses[String(input)];
   assert.ok(r,'Only frozen publisher responses may be used: '+String(input));

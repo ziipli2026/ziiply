@@ -1,5 +1,6 @@
 import { category as classifyCitymarketCategory } from "./kCitymarketProvider";
 import { neon } from "@neondatabase/serverless";
+import { tjekDepartmentCategory, isTjekNonGroceryDepartment, normalizeTjekGroceryCategories } from "../tjekDepartmentCategory";
 /**
  * Store-addressed Citymarket Tjek publication offers. The national leaflet is
  * fetched separately. No fallback to an arbitrary nearby store or generic feed.
@@ -43,9 +44,10 @@ export function getKCitymarketLocalTjekDebug(selectedStoreName: string): LocalPr
 // Shared durable snapshot: only publish fully completed Tjek scans.
 // Keep the previous successful snapshot if the upstream scan times out.
 async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
-  if (!process.env.DATABASE_URL) return null;
+  const databaseUrl = process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL;
+  if (!databaseUrl) return null;
   try {
-    const sql = neon(process.env.DATABASE_URL);
+    const sql = neon(databaseUrl);
     const rows = await sql`SELECT offers FROM public.ziiply_kcitymarket_tjek_snapshots WHERE (store_key = ${key} OR regexp_replace(lower(store_key), '[^a-z0-9]+', '', 'g') = regexp_replace(lower(${key}), '[^a-z0-9]+', '', 'g')) ORDER BY CASE WHEN store_key = ${key} THEN 0 ELSE 1 END, updated_at DESC LIMIT 1`;
     return Array.isArray(rows[0]?.offers) ? rows[0].offers as Row[] : null;
   } catch (error) {
@@ -54,8 +56,9 @@ async function readPublishedSnapshot(key: string): Promise<Row[] | null> {
   }
 }
 async function publishSnapshot(key: string, offers: Row[], publicationIds: string[]): Promise<void> {
-  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL missing: cannot persist Tjek snapshot");
-  const sql = neon(process.env.DATABASE_URL);
+  const databaseUrl = process.env.OFFER_PUBLICATION_DATABASE_URL || process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error("Cannot persist Tjek snapshot without a database connection");
+  const sql = neon(databaseUrl);
   await sql`INSERT INTO public.ziiply_kcitymarket_tjek_snapshots (store_key, offers, publication_ids, valid_until, updated_at)
     VALUES (${key}, ${JSON.stringify(offers)}::jsonb, ${JSON.stringify(publicationIds)}::jsonb, NOW() + INTERVAL '7 days', NOW())
     ON CONFLICT (store_key) DO UPDATE SET offers = EXCLUDED.offers, publication_ids = EXCLUDED.publication_ids,
@@ -98,7 +101,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
           && isActiveOffer(row, now))
     : [];
   const fallbackKey = isHyvinkaa ? "k citymarket hyvinkaa" : key;
-  const fallback = (await readPublishedSnapshot(fallbackKey) ?? [])
+  const fallback = normalizeTjekGroceryCategories((await readPublishedSnapshot(fallbackKey) ?? []))
     .filter(row => isActiveOffer(row, now)
       && (!isHyvinkaa || (String(row.storeId ?? "") === "fe95rtb"
         && normalize(row.storeName) === "k citymarket hyvinkaa")));
@@ -142,7 +145,7 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
       new Promise<void>(resolve => setTimeout(resolve, 4000)),
     ]);
   }
-  const live = (entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
+  const live = normalizeTjekGroceryCategories(entry?.rows ?? []).filter(row => isActiveOffer(row, Date.now()));
   // Return verified rows from the exact selected store as soon as they have
   // been fetched. In serverless requests the process may end before a long
   // Tjek scan completes; suppressing these rows made every non-N183 store look
@@ -150,8 +153,8 @@ export async function fetchKCitymarketSelectedStoreOffers(selectedStoreName: str
   // stage/pages/offerIds/running visible so partial coverage is never hidden.
   // A complete scan still wins; if no live rows arrived, use the last snapshot.
   const liveScanComplete = Boolean(entry && !entry.running && entry.progress.stage === "complete");
-  const tjekRows = live.length ? live : fallback;
-  if (entry && !liveScanComplete && live.length) {
+  const tjekRows = liveScanComplete && live.length ? live : fallback.length ? fallback : live;
+  if (entry && !liveScanComplete && live.length && !fallback.length) {
     console.info("[K-Citymarket] serving verified progressive Tjek rows", JSON.stringify({
       storeName: selectedStoreName, storeId: entry.progress.storeId,
       stage: entry.progress.stage, pages: entry.progress.pages,
@@ -296,6 +299,9 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
         const quantity=qty!=null&&qty>1&&qty===numeric(offer.pieceCountTo)?qty:null;
         const unit=String(offer.baseUnit??"");
         const unitValue=numeric(offer.unitPrice);
+        const sourceDepartment = typeof offer.departmentSlug === "string" ? offer.departmentSlug : null;
+        if (isTjekNonGroceryDepartment(sourceDepartment)) { reject("non-grocery-source-department"); sampleReject("non-grocery-source-department",id); continue; }
+        const sourceCategory = tjekDepartmentCategory(sourceDepartment);
         const offerKey=publicationId+":"+id;
         if(acceptedOfferKeys.has(offerKey)){duplicateOfferRows++;continue;}
         acceptedOfferKeys.add(offerKey);
@@ -310,7 +316,7 @@ async function readKCitymarketSelectedStoreOffers(selectedStoreName: string, ent
           validFrom:offer.validFrom??publication.validFrom,validUntil:offer.validUntil??publication.validUntil,
           isPlussaOffer:member!=null||hasPlussaLabel,offerQuantity:quantity,
           sourceUrl:ORIGIN+"K-Citymarket/kaupat/"+encodeURIComponent(storeId),
-          category:classifyCitymarketCategory(title),categoryPath:classifyCitymarketCategory(title),productGroup:classifyCitymarketCategory(title),mainCategory:classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION"}});
+          category:sourceCategory ?? classifyCitymarketCategory(title),categoryPath:sourceCategory ?? classifyCitymarketCategory(title),productGroup:sourceCategory ?? classifyCitymarketCategory(title),mainCategory:sourceCategory ?? classifyCitymarketCategory(title),campaignType:"campaign",debug:{publicationId,tjekStoreId:storeId,sourceScope:"SELECTED_STORE_PUBLICATION",tjekDepartmentSlug:sourceDepartment,categorySource:sourceCategory ? "tjek-department" : "legacy-title"}});
       }
       }
       entry.progress.accepted = entry.rows.length; entry.progress.updatedAt = new Date().toISOString();

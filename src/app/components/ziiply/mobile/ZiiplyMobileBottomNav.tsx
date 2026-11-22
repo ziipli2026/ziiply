@@ -107,7 +107,7 @@ export default function ZiiplyMobileBottomNav({
 
   return (
     <nav
-      className="sm:hidden fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+22px)] z-40"
+      className="fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+22px)] z-40"
       aria-label="Ziiply päävalikko"
     >
       <div className="relative mx-auto max-w-[390px] overflow-visible rounded-[1.65rem] border border-[#d7c89e]/75 bg-[linear-gradient(180deg,rgba(252,248,236,0.99)_0%,rgba(241,234,217,0.99)_48%,rgba(232,226,208,0.99)_100%)] px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.92),inset_0_-1px_0_rgba(133,108,61,0.12),0_-1px_0_rgba(255,255,255,0.7),0_10px_24px_rgba(42,52,38,0.13)] backdrop-blur-md">

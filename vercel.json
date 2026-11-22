@@ -2,28 +2,28 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/cron/kcitymarket-cache",
-      "schedule": "45 3 * * *"
-    },
-    {
-      "path": "/api/cron/kcitymarket-cache",
-      "schedule": "15 * * * *"
-    },
-    {
-      "path": "/api/cron/kcitymarket-cache",
+      "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 13 * * 3"
     },
     {
-      "path": "/api/cron/kcitymarket-cache",
+      "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 12 * * 3"
     },
     {
-      "path": "/api/cron/kcitymarket-cache",
+      "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 12 * * 0"
     },
     {
-      "path": "/api/cron/kcitymarket-cache",
+      "path": "/api/cron/kcitymarket-preflight",
       "schedule": "10 13 * * 0"
+    },
+    {
+      "path": "/api/cron/kcitymarket-preflight",
+      "schedule": "40 12,13,14 * * 0,3"
+    },
+    {
+      "path": "/api/cron/kcitymarket-preflight",
+      "schedule": "10 20,21 * * 0,3"
     },
     {
       "path": "/api/cron/skaupat-protocol",
@@ -47,11 +47,11 @@
     },
     {
       "path": "/api/cron/future-publications",
-      "schedule": "35 2,8,14,20 * * *"
+      "schedule": "35 12 * * 3"
     },
     {
       "path": "/api/cron/chain-parser-health",
-      "schedule": "50 3,9,15,21 * * *"
+      "schedule": "50 6 * * *"
     },
     {
       "path": "/api/cron/fuel-photo-learning",

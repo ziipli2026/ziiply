@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  // First-party PostHog ingestion avoids third-party analytics blocking in browsers.
+  // Preserve EU data residency for both event ingestion and SDK assets.
+  async rewrites() {
+    return [
+      { source: "/ph-ingest/static/:path*", destination: "https://eu-assets.i.posthog.com/static/:path*" },
+      { source: "/ph-ingest/:path*", destination: "https://eu.i.posthog.com/:path*" },
+    ];
+  },
+
   async headers() {
     return [
       {

@@ -1,4 +1,5 @@
 import { classifyTokmanniOfferCategory } from "./tokmanniOfferCategory";
+import { classifySharedProductCategory } from "./sharedProductCategory";
 import { citymarketFailureNotice, type CitymarketAvailabilityNotice } from "./citymarketAvailability";
 import { fetchZiiplyRecoverableOfferSearch } from "../ziiplyRecoverableOfferFetch";
 // ============================================================================
@@ -130,6 +131,7 @@ import {
   GOSTA_CATEGORY_LABELS_V136,
   getGostaCategoryLabelFromFilterV136,
   getOfferCategoryV106,
+  getVerifiedOfferCategory,
   getOfferProductTitleV113,
   isBadOfferSearchResultV106,
   isGostaCategorySelectionV136,
@@ -384,12 +386,40 @@ function getStructuredSKaupatCategoryV232(sourceItem: any): string {
   return "";
 }
 
-function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
+export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const anyItem = item as any;
   // V181: K-Citymarket must be resolved before the generic trusted-category
   // branch. Otherwise a stale top-level category such as "Muut" wins before
   // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  // Resolve Lidl through the chain-independent product taxonomy BEFORE any
+  // cached/provider category can override product identity.
+  const lidlSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
+  const lidlIdentity = normalizeGostaCoreText(
+    [sourceItem?.source, anyItem?.source, sourceItem?.chain, anyItem?.chain, sourceItem?.storeType, anyItem?.storeType, sourceItem?.storeLabel, anyItem?.storeLabel]
+      .filter(Boolean)
+      .join(" "),
+  );
+  const isLidl =
+    lidlSource === "lidl plus" ||
+    lidlSource === "lidl-plus" ||
+    lidlSource.startsWith("lidl ") ||
+    lidlSource.startsWith("lidl-") ||
+    /(?:^| )lidl(?: |$)/.test(lidlIdentity);
+  if (isLidl) {
+    const title = String(sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
+      anyItem?.title || anyItem?.name || anyItem?.productName || "");
+    const sharedCategory = classifySharedProductCategory(title);
+    if (sharedCategory) return sharedCategory;
+    const providerCategory = String(sourceItem?.category || "").trim();
+    if (providerCategory && providerCategory !== "Muut") return providerCategory;
+    // An unresolved Lidl product must not inherit an unrelated stale
+    // cached category or be silently placed into the "Muut" bucket.
+    return "";
+  }
+
+  const verifiedCategory = getVerifiedOfferCategory(sourceItem) || getVerifiedOfferCategory(item);
+  if (verifiedCategory) return verifiedCategory;
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
   // Run before legacy title rules and stale EAN labels, including cached rows.
   const tokmanniSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
@@ -471,37 +501,6 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // V184: Lidl provider also emits Ziiply's canonical category. Preserve the
   // provider category; generic title classification can otherwise turn e.g.
   // Siskonmakkara / Pulled pork from "Liha & makkarat" into "Muut".
-  const lidlIdentity = normalizeGostaCoreText(
-    [sourceItem?.source, anyItem?.source, sourceItem?.chain, anyItem?.chain, sourceItem?.storeType, anyItem?.storeType, sourceItem?.storeLabel, anyItem?.storeLabel]
-      .filter(Boolean)
-      .join(" "),
-  );
-  const isLidl =
-    source === "lidl plus" ||
-    source === "lidl-plus" ||
-    source.startsWith("lidl ") ||
-    source.startsWith("lidl-") ||
-    /(?:^| )lidl(?: |$)/.test(lidlIdentity);
-  if (isLidl) {
-    // Lidl final UI guard: product form outranks a stale/provider ingredient
-    // category. This runs in the exact resolver used by category counts and
-    // opened category views, so cached/staged source rows cannot put e.g.
-    // rahkapulla back into Maitotuotteet.
-    const productTitle = normalizeGostaCoreText(
-      sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
-      anyItem?.title || anyItem?.name || anyItem?.productName || "",
-    );
-    if (/halloween[- ]?asu|koiran[- ]?asu|kissan[- ]?asu|lemmikin[- ]?asu/.test(productTitle)) return "Muut";
-    if (/lihapulla/.test(productTitle)) return "Liha & makkarat";
-    if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(productTitle)) return "Juomat";
-    if (/maustekur|hapankurk|hapankaali|ajvar|paprikapyree/.test(productTitle)) return "Kuivatuotteet";
-    if (/valkokaalisalaatti/.test(productTitle)) return "Valmisruoka";
-    if (/keitto|lihapata|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(productTitle)) return "Valmisruoka";
-    if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(productTitle)) return "Leipomo";
-
-    const providerCategory = String(sourceItem?.category || "").trim();
-    if (providerCategory) return providerCategory;
-  }
 
   if (isKCitymarket) {
     const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "").split(" ").filter((part) => part !== "ja").join(" ");
@@ -1340,8 +1339,14 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     productName: item.title,
     storeName: item.storeLabel,
     chain: item.chain,
-    price: item.priceText ?? item.price,
-    offerPrice: item.priceText ?? item.price,
+    source: source.source ?? source.provider ?? null,
+    provider: source.provider ?? null,
+    // Preserve the source's numeric selling price for the watch API's
+    // validation/sorting. A display string may contain unit rates, normal
+    // prices or Plussa conditions and must not replace the numeric value.
+    price: item.price ?? item.priceText,
+    offerPrice: source.offerPrice ?? item.price ?? item.priceText,
+    priceText: item.priceText,
     // Explicit metadata: bundle total is not the price of one item.
     bundleTotalPrice: bundleTotal,
     bundleQuantity,
@@ -1349,9 +1354,22 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     originalPrice: item.normalPrice,
     ean: item.ean,
     comparisonPrice: item.comparisonPrice,
-    comparisonPriceText: item.unitPriceText,
-    unitPrice: item.unitPriceText,
+    comparisonPriceText: item.unitPriceText || source.comparisonPriceText || source.__sourceOfferSearchResult?.comparisonPriceText || "",
+    unitPrice: item.unitPriceText || source.comparisonPriceText || source.__sourceOfferSearchResult?.comparisonPriceText || "",
     comparisonUnit: item.comparisonUnit,
+    // Keep the original publisher's pack measurement across the desktop
+    // normalization layer and the mobile offer-watch API.
+    packageSize: (() => {
+      const explicit=String(source.packageSize || source.packSize || source.packageText ||
+        source.__sourceOfferSearchResult?.packageSize ||
+        source.__sourceOfferSearchResult?.packageText || "").trim();
+      if (explicit) return explicit;
+      // Lidl's original base-price line may carry the pack size even when
+      // the normalized product title does not. Only use a real unit measure.
+      const raw=String(source.rawText || source.__sourceOfferSearchResult?.rawText || "");
+      const match=raw.match(/\b(?:\d+\s*[x×]\s*)?\d+(?:[,.]\d+)?\s*(?:kg|g|ml|cl|dl|l)\b/i);
+      return match ? match[0].trim() : "";
+    })(),
     // Never render a category label as a price promotion. For S-group rows,
     // recover explicit multi-buy wording from the publisher evidence when the
     // mapped benefitText was overwritten by a category in a parallel feed.

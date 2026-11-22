@@ -8,7 +8,7 @@ test("beta cookies are HttpOnly, Secure and host-scoped",()=>{
 });
 test("external and protocol-relative redirects are rejected",()=>{
  for(const p of ["https://example.com","//evil.test","/\\evil.test","/x\nLocation:evil"])
- assert.equal(validateBetaRedirect(p),"/arvo-tilastot");
+ assert.equal(validateBetaRedirect(p),"/beta/aloitus");
  assert.equal(validateBetaRedirect("/arvo-tilastot"),"/arvo-tilastot");
 });
 test("signed state rejects tampering and expiration",()=>{

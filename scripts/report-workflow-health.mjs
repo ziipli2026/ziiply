@@ -11,7 +11,14 @@ const completed=event.action==='completed';
 const ok=completed&&run.conclusion==='success';
 if(completed&&run.conclusion==='skipped')process.exit(0);
 const outcome=completed?(ok?'workflow-succeeded':'workflow-'+run.conclusion):'workflow-running';
-const sql=neon(process.env.DATABASE_URL);
+const ziiplyDatabaseUrl=new URL(process.env.DATABASE_URL);
+ziiplyDatabaseUrl.pathname='/neondb';
+const sql=neon(ziiplyDatabaseUrl.toString());
+const databaseCheck=await sql`SELECT current_database() AS name`;
+if(databaseCheck[0]?.name!=='neondb') {
+  console.warn('Automation health reporting skipped: DATABASE_URL must target Ziiply neondb; refusing to write to another database');
+  process.exit(0);
+}
 await sql`CREATE TABLE IF NOT EXISTS ziiply_publication_run_log (id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), chain TEXT NOT NULL, source TEXT NOT NULL, ok BOOLEAN NOT NULL, offer_count INTEGER NOT NULL, outcome TEXT NOT NULL, details JSONB NOT NULL DEFAULT '{}'::jsonb)`;
 await sql`INSERT INTO ziiply_publication_run_log(chain,source,ok,offer_count,outcome,details)
  VALUES (${chain},${'github-workflow:'+run.workflow_id},${ok},0,${outcome},${JSON.stringify({workflow:run.name,runUrl:run.html_url,runId:run.id,attempt:run.run_attempt,error:ok?'':completed?'GitHub-ajo päättyi tilaan '+run.conclusion:'Ajo käynnissä; onnistumista ei vielä vahvistettu',startedAt:run.run_started_at})}::jsonb)`;

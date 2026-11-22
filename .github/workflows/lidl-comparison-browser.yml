@@ -1,0 +1,42 @@
+name: Lidl comparison browser
+# Explicit rerun of full branch-local browser coverage after product-form fixes.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/app/api/offers/search/route.ts'
+      - 'src/app/page.tsx'
+      - 'src/app/desktop-preview/DesktopPreviewClient.tsx'
+      - 'src/app/components/ziiply/**'
+      - 'scripts/test-lidl-comparison-browser.cjs'
+      - 'scripts/test-shared-offer-category-contract.cjs'
+      - '.github/workflows/lidl-comparison-browser.yml'
+  push:
+    branches: ['fix/lidl-comparison-notice', 'fix/lidl-final-category-pipeline', 'fix/lidl-independent-category-20261122']
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.56.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm install --prefix /tmp/lidl-browser --no-save --package-lock=false playwright@1.56.1
+      - run: node scripts/test-shared-offer-category-contract.cjs
+      - run: node --test tests/shared-product-category.test.cjs tests/lidl-national-offer-regression.test.cjs
+      - run: npm run build
+      - name: Browser test against the branch-local Lidl provider API
+        env:
+          # Secrets are never printed. If absent, the test still runs and
+          # reports the publication-source gap rather than silently passing.
+          OFFER_PUBLICATION_DATABASE_URL: ${{ secrets.OFFER_PUBLICATION_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          npm run start -- -H 127.0.0.1 -p 3179 &
+          for attempt in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:3179/ >/dev/null; then break; fi
+            sleep 2
+          done
+          NODE_PATH=/tmp/lidl-browser/node_modules node scripts/test-lidl-comparison-browser.cjs

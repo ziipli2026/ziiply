@@ -1,11 +1,14 @@
+import {isNonGroceryLeafletTitle} from './kCitymarketDailyGroceryGate.js';
+import {recoverAlignedPriceCards} from './kCitymarketAlignedPriceCards.js';
+import {flagMergedPublisherHeadings,mergePackagedHeadingLines,mergeWrappedCampaignHeadings} from './kCitymarketPublisherHeadingCollision.js';
 import {restoreSplitPublisherCard} from './kCitymarketSplitPublisherCard.js';
 import {verifyPrintedTransaction} from './kCitymarketPrintedTransactionProof.js';
-import {verifiedOwnedPublisherOverprint} from './kCitymarketOwnedPublisherOverprints.js';
+import {recoverOverprintedHeadingPrice,verifiedOwnedPublisherOverprint} from './kCitymarketOwnedPublisherOverprints.js';
 import {resolvePrintedPriceBasis} from './kCitymarketPrintedPriceBasis.js';
 import {repairPrintedCard} from './kCitymarketPrintedCardRepair.js';
 import {recover42AVPrintedCampaignRows} from './kCitymarket42AVCampaignRecovery.js';
-import {reattachDetachedPackage,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
-import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy} from './kCitymarketProductRows.js';
+import {reattachDetachedPackage,recoverCountedPackPrice,recoverDatedWeightCards,recoverJoinedDrinkOffers,recoverSharedSizeWholePrice,recoverWrappedCountedAlternatives,resolveRecoveredPrintedPrice,resolvePrintedCountedTransaction,resolveLargePrintedWeightPrice,resolvePrintedSachetPacket,resolvePrintedSingleWithReference} from './kCitymarketDetachedPackage.js';
+import {rejectUnownedMixedSetPercentage,resolveAlignedStandalonePercentage,recoverWrappedPercentageCards,resolveExplicitTitleMultibuy,mergeVerifiedSharedPrintedAlternatives} from './kCitymarketProductRows.js';
 import {verifiedPrintedBundle,verifiedMissingCents,verifiedDepositPack,verifiedMergedEuroCents,verifiedCompoundOfferCount,verifiedOwnedUnitRate,verifiedDecimalBundle,verifiedLargeHeadlineBundle,verifiedSplitAcrossCardsSingle} from './kCitymarketPrintedBundleProof.js';
 // Publisher coordinates, rather than PDF reading order, define price ownership.
 const norm=s=>String(s).toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"");
@@ -380,6 +383,7 @@ function directPrices(lines){const a=[];for(const l of lines){const sp=spacedPri
 function nearbyQty(lines,idx){const a=[];for(let j=Math.max(0,idx-10);j<Math.min(lines.length,idx+16);j++){let m=lines[j].text.match(/^\s*(2|3)\s*$/);if(m){const n=Number(m[1]);for(let k=j;k<Math.min(lines.length,j+6);k++){const u=lines[k].text.match(/\b(RS|PS|PKT|KPL|TLK|PL)\b/i);if(u)a.push({quantity:n,unit:u[1].toUpperCase(),line:lines[j].i,distance:Math.abs(j-idx)})}}}return a.sort((a,b)=>a.distance-b.distance)}
 function priceFragments(lines){const a=[];for(const l of lines){const sp=spacedPrice(l.text);if(sp!=null)a.push({price:sp,raw:l.text,line:l.i,kind:"spaced"});for(const m of l.text.matchAll(/(?<!\d)(\d{1,2})\s*[-.]?\s*(\d{2})(?!\d)/g))a.push({price:num(m[1]+"."+m[2]),raw:m[0],line:l.i,kind:"fragment"});if(/^\d{3}$/.test(l.text))a.push({price:num(l.text)/100,raw:l.text,line:l.i,kind:"compact"});if(/^\d{1,2}[.]$/.test(l.text))a.push({price:num(l.text.slice(0,-1)),raw:l.text,line:l.i,kind:"whole"});if(/^\d{2}$/.test(l.text))a.push({suffix:num(l.text),raw:l.text,line:l.i,kind:"suffix"})}return a}
 export function productish(s){
+ if(isNonGroceryLeafletTitle(s))return false;
  // Meal bowls sold by food weight are distinct from household bowls.
  const exclusionTitle=/\b(?:RUUKUT\s+ja\s+KULHOT|(?:RUOKA|ATERIA)KULHOT?)\b/i.test(s)&&/\b\d+(?:[,.]\d+)?(?:[–-]\d+(?:[,.]\d+)?)?\s*(?:g|kg)\b/i.test(s)?s.replace(/KULHO/gi,"ATERIA"):s;
  if(/\b(?:ja|tai)$/i.test(s.trim())&&!/\d/.test(s))return false;
@@ -387,7 +391,7 @@ export function productish(s){
  if(s.length<5||s.length>=180||!/[A-ZÅÄÖ]{3}/.test(s))return false;
  if(/KENGÄ|KENKÄ|NILKKUR|SAAPPA|MAIHAR|ULKOILUVAAT|VAATTEET|PÄÄHINE|HUIVI|NEULELANG|SÄILYTYSLAAT|TAKKI|HOUSU|PAITA|MEKKO|LAUKKU|PAISTOAST|KEITTOAST|KEITTIÖTYÖVÄLINE|PUSSILAKANA|(?<!PUHDISTUS)PYYHE|LAUTANEN|MUKI|KULHO|VEDENKEITIN|KUULOKE|KAIUTIN|TELEVIS|PUHELIN|TYÖKALU|LELU|SUKAT|ALUSHOUS|SÄHKÖHAMMASHARJA|VAIHTOHARJAT|HALLOWEEN|HÄMÄHÄKINVERKKO|PAPERILYHTY|KURPITSA-ASU|KORISTE|RANNEKE/i.test(exclusionTitle)&&!/MAKEISPUSSI/i.test(exclusionTitle))return false;
  if(/AKTIVOI|VIIKON|RESEPT|CITTARI|HOITAA|Osallistu|Delta|HEVI-haaste|HEHKUVAAN|^LAKTOOSITON$|^UUTUUS$|^SHAKE UP$/.test(s))return false;
- return !!pkg(s)||/\b\d+\s+kpl\b.*\/kpl\)/i.test(s)||/KIIVI|BATAATTI|TOMAATTI|BURGER|MAKEISPUSSI|SILMÄMUNA|NAKKI|PIHVI|VARTAAT|JUOMAT|JUUST|JOGUR|KEFIR|LEIP|PITA|PEKON|PYYKINPESU|WC-PAPERI|NENÄLIINA|KÄSINE|LOHI|ULKOFILEE|LATZ|KURPITSA|VÄLIPALAT|IHONHOITO|PESULAPPU|RUOKALAPPU|VUODESUOJA|SHAMPOO|DEODOR|SÄVYTTEET|HIUSVÄRITUOTTEET|MEIKKIVOIDE|PUUTERIT|KULMATUOTTEET/.test(s);
+ return !!pkg(s)||/\b\d+\s+kpl\b.*\/kpl\)/i.test(s)||/KIIVI|BATAATTI|TOMAATTI|BURGER|MAKEISPUSSI|SILMÄMUNA|NAKKI|PIHVI|VARTAAT|JUOMAT|JUUST|JOGUR|KEFIR|LEIP|PITA|PEKON|PYYKINPESU|WC-PAPERI|NENÄLIINA|KÄSINE|LOHI|ULKOFILEE|LATZ|KURPITSA|VÄLIPALAT|IHONHOITO|VARTALONHOITO|KASVOJENHOITO|KASVOJEN-HOITO|KASVOJENPUHDISTUS|LUMENE\s+KLASSIKKO|PESULAPPU|RUOKALAPPU|VUODESUOJA|SHAMPOO|DEODOR|SÄVYTTEET|HIUSVÄRITUOTTEET|MEIKKIVOIDE|PUUTERIT|KULMATUOTTEET/.test(s);
 }
 
 function parseWordBoxes(js){
@@ -407,7 +411,14 @@ function nearestSuffix(suffix,expected){let best=null;for(let e=0;e<=99;e++){con
 // text layer supplies exactly one longer word close to the original title.
 // Never infer a completion from a dictionary or modify prices/quantities.
 function restoreUniquePublisherClippedTitle(row,boxes){
- const m=String(row.title||'').match(/([A-ZÅÄÖ]{5,})-$/);
+ const title=String(row.title||'').trim();
+ // The publisher occasionally clips the entire product heading, leaving
+ // only a generic suffix or a short prefix followed by a pack size.
+ // Such fragments cannot be reconstructed from nearby cards safely.
+ // Record them for preflight instead of borrowing a neighbour's name.
+ if(/^(?:TUOTTEET|SIT(?:\\s+\\d+[–-]\\d+\\s*g)?)$/i.test(title))
+   return {...row,debugSuspiciousPublisherTitle:{title,reason:'incomplete-publisher-heading'}};
+ const m=title.match(/([A-ZÅÄÖ]{5,})-$/);
  if(!m)return row;
  const prefix=m[1],anchor=row.debugAnchor;
  if(!anchor||!Number.isFinite(anchor.left)||!Number.isFinite(anchor.top))return row;
@@ -1692,10 +1703,54 @@ if(out.rows.some(r=>r.page===7&&/VITAMIINIVEDET 1,5 l\/pl/i.test(r.title||''))){
     sanity:'pass',confidence:'high'},percentageOffer:null};
  });
 }
+// Restore a heading split across two publisher HTML lines only when the
+// original same-card text contains the exact prefix, hyphen and suffix.
+// Never use a product catalogue or another publication as name evidence.
+out.rows=out.rows.map(row=>{
+ const title=String(row.title||'').trim();
+ if(!/^SIT\s+100[–-]185\s*g$/i.test(title))return row;
+ const evidence=(row.nearby||[]).map(x=>String(x).trim());
+ const prefix=evidence.findIndex(x=>/^PERUNALASTUT\s+ja$/i.test(x));
+ if(prefix<0||!/^JUUSTONACK-$/i.test(evidence[prefix+1]||''))return row;
+ if(!evidence.slice(prefix+2,prefix+9).some(x=>/^SIT\s+100[–-]185\s*g$/i.test(x)))return row;
+ return {...row,title:'PERUNALASTUT ja JUUSTONACKSIT 100–185 g',
+   debugRecoveredPublisherTitle:{from:row.title,to:'PERUNALASTUT ja JUUSTONACKSIT 100–185 g',source:'same-card-split-heading'}};
+});
+// A bare generic heading is not an offer. In 46AV the publisher has two
+// unrelated TUOTTEET headings (pet products and homewares) on different
+// cards; assigning either one to the orphan row would invent a product.
+out.rows=out.rows.filter(row=>String(row.title||'').trim().toUpperCase()!=='TUOTTEET');
 out.rows=out.rows.map(row=>restoreUniquePublisherClippedTitle(row,publicationWordBoxes.get(row.page)));
-out.rows=out.rows.map(row=>verifyPrintedTransaction(row,publicationWordBoxes.get(row.page)));
+out.rows=out.rows.map(row=>verifyPrintedTransaction(row,[...(publicationWordBoxes.get(row.page)||[]),...(row.debugNearbyBoxes||[])]));
 // Reconcile clipped publisher names only after the regular transaction proofs.
 out.rows=out.rows.map(row=>restoreSplitPublisherCard(row,publicationWordBoxes.get(row.page)));
+// A publisher card can have a correctly resolved standalone printed price
+// even when an earlier title-anchored transaction proof retained an inferred
+// unit-rate total. Apply the strict glyph check after all transaction proofs,
+// immediately before the rows leave the parser.
+out.rows=out.rows.map(row=>{
+ const printed=verifiedOwnedPublisherOverprint(row);
+ return printed?{...row,debugReplacedConflictingPrice:row.spatialResolved,
+  spatialResolved:printed,percentageOffer:null}:row;
+});
+// Detect merged product headings using independent same-page evidence,
+// without edition numbers, product names, or manual price replacements.
+for (const [page, boxes] of publicationWordBoxes) {
+ out.rows = recoverAlignedPriceCards(out.rows, boxes, page);
+ out.rows = recoverDatedWeightCards(out.rows, boxes, page);
+ out.rows = recoverJoinedDrinkOffers(out.rows, boxes, page);
+ out.rows = recoverWrappedCountedAlternatives(out.rows, boxes, page);
+}
+out.rows=out.rows.map(row=>recoverOverprintedHeadingPrice(row,publicationWordBoxes.get(row.page)||[]));
+out.rows=mergeWrappedCampaignHeadings(out.rows);
+out.rows=mergePackagedHeadingLines(out.rows,publicationWordBoxes);
+out.rows=out.rows.map(row=>recoverCountedPackPrice(row,publicationWordBoxes.get(row.page)||[]));
+out.rows=out.rows.map(row=>recoverSharedSizeWholePrice(row,publicationWordBoxes.get(row.page)||[]));
+out.rows=flagMergedPublisherHeadings(out.rows.filter(row=>!isNonGroceryLeafletTitle(row.title)).map(row=>
+ row.spatialResolved?.source==='publisher-aligned-price-cards' ? {...row,package:pkg(row.title)} : row));
+// Only merge adjacent "tai" alternatives if both share a uniquely verified
+// publisher large-font whole-euro/cents price and printed sale unit.
+out.rows=mergeVerifiedSharedPrintedAlternatives(out.rows);
 return out;
 }
 

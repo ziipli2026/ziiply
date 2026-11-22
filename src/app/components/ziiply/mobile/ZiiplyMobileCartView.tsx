@@ -150,7 +150,7 @@ export default function ZiiplyMobileCartView({
 
   return (
     <div
-      className={`fixed inset-0 z-[92] block bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${
+      className={`fixed inset-0 z-[92] block bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${
         closing ? "ziiply-soft-close" : "ziiply-soft-open"
       }`}
     >

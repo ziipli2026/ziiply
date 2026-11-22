@@ -1,3 +1,4 @@
+import { appendRuoanhintaPages } from "@/lib/ruoanhintaPagination";
 import { recipeProductCompatible } from "@/app/components/ziiply/justiina/recipeSearch";
 import { NextResponse } from "next/server";
 import { rankGrocerySearchResults } from "../_shared/grocerySearchRelevance";
@@ -124,6 +125,15 @@ export async function GET(request: Request) {
     "nakit": "nakki",
   };
   const upstreamSearch = normalizedSearch === "limsa" ? "limonadi" : (singularByPlural[normalizedSearch] || search);
+  // Generic cooking oil is not a literal product title in Ruoanhinta.
+  // Search actual oil types and merge their store-specific prices.
+  const oilSearchAliases = /^(?:ruokaöljy|ruokaoljy)$/.test(normalizedSearch)
+    ? ["rypsiöljy", "auringonkukkaöljy", "oliiviöljy"]
+    : [];
+  // Vinegars are typically listed under their specific variety, not plain "etikka".
+  const vinegarSearchAliases = /^(?:etikkaa?|väkiviinaetikkaa?)$/.test(normalizedSearch)
+    ? ["väkiviinaetikka", "omenaviinietikka", "viinietikka"]
+    : [];
 
   const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
     upstreamSearch
@@ -139,7 +149,7 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) throw new Error("Upstream HTTP " + response.status);
-    const additionalTerms = [...new Set([...(MEAT_SEARCH_ALIASES[normalizedSearch] || []), ...(BASKET_SEARCH_ALIASES[normalizedSearch] || [])])];
+    const additionalTerms = [...new Set([...(MEAT_SEARCH_ALIASES[normalizedSearch] || []), ...(BASKET_SEARCH_ALIASES[normalizedSearch] || []), ...oilSearchAliases, ...vinegarSearchAliases])];
     const extraResponses = await Promise.all(additionalTerms.map(async (term) => {
       try {
         const extraUrl = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&storeIds=${storeId}&skip=0&take=80`;
@@ -150,7 +160,14 @@ export async function GET(request: Request) {
       } catch { return [] as RuoanhintaProduct[]; }
     }));
     const data = await response.json();
-    const primaryItems: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    const firstPage: RuoanhintaProduct[] = Array.isArray(data.items) ? data.items : [];
+    // Recipe candidates must not disappear at the provider's first-page boundary.
+    const primaryItems = recipeIngredient ? await appendRuoanhintaPages(firstPage, 80, async (skip, signal) => {
+      const pageUrl=new URL(endpoint);pageUrl.searchParams.set("skip",String(skip));
+      const page=await fetch(pageUrl,{headers:{accept:"application/json"},cache:"no-store",signal});
+      if(!page.ok)throw new Error("Provider page HTTP "+page.status);
+      const body=await page.json();return Array.isArray(body.items)?body.items:[];
+    }) : firstPage;
     const sourceItems = [...new Map([...primaryItems,...extraResponses.flat()].map(item=>[item.id,item])).values()];
 
     const items = sourceItems

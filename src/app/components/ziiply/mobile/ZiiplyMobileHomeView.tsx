@@ -1,6 +1,10 @@
 "use client";
+import { gostaWatchUrl } from "./gostaWatchLocation";
+import { fetchSharedGostaWatch } from "./gostaWatchSharedRequest";
+import { mapWatchOffers, readWatchResults, saveWatchResults, watchResultsChanged } from "./gostaWatchResults";
 
 import React from "react";
+import { searchZiiplyGostaOffersV146 } from "../offerSearch/ziiplyOfferSearchCore";
 import ZiiplyMobileAssistantButton from "./ZiiplyMobileAssistantButton";
 import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 
@@ -16,9 +20,67 @@ type Props = {
  * distributes the available space between the brand header and assistant cards.
  */
 export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant, onUpperAction }: Props) {
+  const [watchCount,setWatchCount]=React.useState<number|null>(null);
+  const [watchTerms,setWatchTerms]=React.useState<string[]>([]);
+  const [watchScanning,setWatchScanning]=React.useState(false);
+  const [watchRevision,setWatchRevision]=React.useState(0);
+  React.useEffect(()=>{
+    const read=()=>{
+      try{
+        const terms=JSON.parse(window.localStorage.getItem("ziiply-gosta-offer-watches-v1")||"[]");
+        setWatchTerms(Array.isArray(terms)?terms.filter((q:unknown):q is string=>typeof q==="string"&&!!q.trim()).slice(0,30):[]);
+      }catch{setWatchTerms([]);}
+    };
+    read();
+    window.addEventListener("storage",read);
+    window.addEventListener("ziiply-gosta-watch-changed",read);
+    return()=>{window.removeEventListener("storage",read);window.removeEventListener("ziiply-gosta-watch-changed",read);};
+  },[]);
+  const watchKey=watchTerms.map(q=>q.trim().toLocaleLowerCase("fi")).join("|");
+  React.useEffect(()=>{
+    const readShared=()=>{
+      const snapshot = readWatchResults();
+      setWatchCount(snapshot?.offers.length ?? null);
+      return snapshot?.key === watchKey && snapshot.current && !snapshot.partial ? snapshot.at : 0;
+    };
+    if(!watchKey){setWatchCount(null);return;}
+    const cachedAt=readShared();
+    let lastScan=cachedAt;
+    let cancelled=false;
+    let running=false;
+    const sync=()=>{if(!running)readShared();};
+    const scan=async()=>{
+      if(cancelled||running||document.visibilityState!=="visible")return;
+      if(lastScan&&Date.now()-lastScan<20*1000)return;
+      running=true;
+      setWatchScanning(true);
+      const started = Date.now();
+      try{
+        const terms=watchKey.split("|");
+        const {response,data}=await fetchSharedGostaWatch(await gostaWatchUrl(terms));
+        if(!response.ok||!data.ok)throw new Error(String(data.error||"Tarjousvahti epäonnistui"));
+        const offers=Array.isArray(data.results)?data.results:[];
+        if(!cancelled){
+          lastScan = Date.now();
+          saveWatchResults(watchKey, mapWatchOffers(offers, terms), Boolean(data.partial), started);
+          readShared();
+        }
+      }catch{/* Preserve confirmed results when refresh fails. */
+        if(!cancelled)readShared();}
+      finally{running=false;if(!cancelled)setWatchScanning(false);}
+    };
+    const timer=window.setTimeout(()=>{void scan();},300);
+    const onResume=()=>{sync();if(Date.now()-lastScan>5*60*1000)void scan();};
+    const interval=window.setInterval(onResume,60*1000);
+    window.addEventListener(watchResultsChanged,sync);
+    window.addEventListener("storage",sync);
+    window.addEventListener("focus",onResume);
+    document.addEventListener("visibilitychange",onResume);
+    return()=>{cancelled=true;window.clearTimeout(timer);window.clearInterval(interval);window.removeEventListener(watchResultsChanged,sync);window.removeEventListener("storage",sync);window.removeEventListener("focus",onResume);document.removeEventListener("visibilitychange",onResume);};
+  },[watchKey,watchRevision]);
   return (
     <main
-      className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 max-[389px]:overflow-y-auto max-[389px]:pb-[calc(env(safe-area-inset-bottom)+120px)] sm:hidden"
+      className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 max-[389px]:overflow-y-auto max-[389px]:pb-[calc(env(safe-area-inset-bottom)+120px)]"
       style={{
         background: "linear-gradient(180deg, #f8f5e9 0%, #e9efe4 62%, rgba(233,243,240,0) 100%)",
       }}
@@ -55,6 +117,8 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
             active={activeAssistant === "gosta"}
             onClick={() => (onUpperAction || onSelectAssistant)("gosta")}
             onLowerClick={() => onSelectAssistant("gosta")}
+            watchCount={watchCount}
+            watchScanning={watchScanning}
           />
           <ZiiplyMobileAssistantButton
             assistant="justiina"

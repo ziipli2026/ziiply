@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430">
+<defs>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 .06"/></feComponentTransfer></filter>
+  <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9d8d0"/><stop offset="1" stop-color="#aaa99f"/></linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#91a8ad" stop-opacity=".82"/><stop offset=".55" stop-color="#526d75" stop-opacity=".65"/><stop offset="1" stop-color="#d7d2bd" stop-opacity=".42"/></linearGradient>
+</defs>
+<rect width="900" height="430" fill="none"/>
+<g opacity=".88">
+  <!-- Lidl-tyyppinen matala moderni markettirakennus, selvästi eri siluetti kuin S-market -->
+  <path d="M92 352 C238 338 392 338 548 344 C670 348 760 337 830 323" fill="none" stroke="#74634a" stroke-width="12" opacity=".20"/>
+  <path d="M150 211 L664 211 L760 259 L748 333 L160 333 Z" fill="#625f59" opacity=".22"/>
+  <path d="M166 220 L650 220 L735 258 L727 318 L178 318 Z" fill="url(#wall)"/>
+  <!-- tunnistettava korkea viisto etukatto / sisäänkäyntipääty -->
+  <path d="M120 226 L350 135 L515 218 L747 218 L704 187 L365 183 L350 159 L151 239 Z" fill="#66727a" opacity=".86"/>
+  <path d="M135 226 L350 151 L500 222" fill="none" stroke="#f2d45d" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" opacity=".82"/>
+  <path d="M153 239 L350 172 L479 225" fill="none" stroke="#315b91" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity=".72"/>
+  <!-- iso lasinen sisäänkäynti -->
+  <rect x="278" y="224" width="185" height="95" rx="5" fill="url(#glass)"/>
+  <rect x="347" y="224" width="6" height="95" fill="#e9e3cc" opacity=".58"/>
+  <path d="M278 260 H463" stroke="#e9e3cc" stroke-width="4" opacity=".42"/>
+  <!-- pitkät Lidlille tyypilliset julkisivuikkunat -->
+  <rect x="493" y="245" width="92" height="61" rx="4" fill="url(#glass)"/>
+  <rect x="598" y="245" width="91" height="61" rx="4" fill="url(#glass)"/>
+
+  <!-- pysäköinti / kärryt -->
+  <g opacity=".27"><circle cx="265" cy="352" r="20" fill="none" stroke="#504638" stroke-width="5"/><circle cx="311" cy="349" r="20" fill="none" stroke="#504638" stroke-width="5"/><path d="M279 347 h17 l25 -38" stroke="#504638" stroke-width="4" fill="none"/></g>
+  <g opacity=".22"><circle cx="111" cy="305" r="27" fill="#667b54"/><rect x="107" y="321" width="8" height="43" fill="#604623"/><circle cx="791" cy="303" r="29" fill="#667b54"/><rect x="787" y="320" width="8" height="43" fill="#604623"/></g>
+</g>
+<rect width="900" height="430" filter="url(#grain)" opacity=".48"/>
+</svg>

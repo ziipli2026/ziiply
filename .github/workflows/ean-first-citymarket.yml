@@ -1,0 +1,27 @@
+name: EAN-first Citymarket regression
+on:
+  pull_request:
+    paths:
+      - 'src/app/components/ziiply/offerSearch/**'
+      - 'tests/catalog-identity-resolver.test.cjs'
+      - 'tests/catalog-candidate-assessment.test.cjs'
+      - 'tests/tjek-department-category.test.cjs'
+      - 'src/app/components/ziiply/offerSearch/tjekDepartmentCategory.ts'
+      - 'src/app/components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider.ts'
+      - 'tests/ean-first-citymarket-scope.test.cjs'
+      - '.github/workflows/ean-first-citymarket.yml'
+  workflow_dispatch:
+jobs:
+  identity-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Test catalog identity and source scoping
+        run: node --test tests/catalog-identity-resolver.test.cjs tests/catalog-candidate-assessment.test.cjs tests/tjek-department-category.test.cjs tests/ean-first-citymarket-scope.test.cjs
+      - name: Typecheck
+        run: npx tsc --noEmit

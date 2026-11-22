@@ -1,0 +1,255 @@
+name: Mobile main 100 product search audit
+# Re-run against updated shared product-group gates
+on:
+  push:
+    branches: [main, test/search-chain-scope-validation-20261113]
+    paths:
+      - ".github/workflows/mobile-main-100-search-audit.yml"
+      - "src/app/components/ziiply/ziiplyCore.ts"
+      - "src/app/components/ziiply/cards/ProductEnergy.tsx"
+      - "src/app/components/ziiply/search/**"
+      - "scripts/search-live-chain-relevance-audit.mts"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install and compile real shared mobile search ranking
+        run: |
+          npm ci --ignore-scripts
+          npx tsc src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-100-audit
+      - name: Diagnose real oil and vinegar product rejection
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),path=require('path');
+          function find(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory()){const x=find(p);if(x)return x;}else if(e.name==='ziiplyCore.js')return path.resolve(p)}return null}
+          const core=require(find('.tmp-100-audit'));
+          (async()=>{for(const query of ['ruokaöljy','etikka']){
+            const response=await fetch('https://ziiply.vercel.app/api/s-products?store=292&search='+encodeURIComponent(query));
+            const data=await response.json();const products=Array.isArray(data)?data:(data.items||data.products||[]);
+            const samples=products.filter(p=>/rypsiöljy 1l|rypsiöljy 0,5l|neito rypsiöljy 500|väkiviinaetikka|omenaviinietikka/i.test(p.name)).slice(0,12);
+            const result=samples.map(p=>({name:p.name,category:p.category,price:p.price,gate:core.productGroupGate(query,p.name),bad:core.isBadNormalResult(p,query),intent:core.detectSearchIntent(query)?.category,normalSolo:core.rankNormalSearchResults(query,[p],x=>Number(x.price)).length,desktopDecision:require(find('.tmp-100-audit').replace(/ziiplyCore\.js$/,'search/desktopNormalRelevance.js')).desktopSearchDecision(query,{...p,__price:Number(p.price)}),finalSolo:core.rankProductResultsByRelevanceAndPrice(query,[p],x=>Number(x.price)).length}));
+            console.log('LIVE_SEARCH_REJECTION_DIAGNOSTIC',JSON.stringify({query,total:products.length,selected:result}));
+          }})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+      - name: Check real S/K product responses against shared final relevance filter
+        if: startsWith(github.ref, 'refs/heads/test/')
+        shell: bash
+        run: |
+          npx --yes tsx scripts/search-live-chain-relevance-audit.mts
+      - name: Run 100 distinct live product queries and validate ranking
+        env:
+          TERMS_JSON: '["maito","kevytmaito","täysmaito","rasvaton maito","kauramaito","piimä","kerma","ruokakerma","voi","margariini","juusto","emmental","mozzarella","raejuusto","rahka","jogurtti","viili","kananmuna","leipä","ruisleipä","paahtoleipä","sämpylä","näkkileipä","cola","kaurahiutale","puuro","murot","mysli","riisi","pasta","makaroni","spagetti","nuudeli","peruna","porkkana","sipuli","valkosipuli","tomaatti","kurkku","paprika","salaatti","kaali","parsakaali","kukkakaali","banaani","omena","päärynä","appelsiini","mandariini","sitruuna","viinirypäle","mansikka","mustikka","vadelma","avokado","kiivi","vesimeloni","jauheliha","naudanliha","porsaanliha","broileri","kanafilee","nakki","makkara","kinkku","pekoni","lohi","kirjolohi","tonnikala","silakka","katkarapu","kalapuikko","kahvi","tee","kaakao","sokeri","suola","mustapippuri","kaneli","vehnäjauho","ruisjauho","leivinjauhe","hiiva","ruokaöljy","oliiviöljy","etikka","ketsuppi","sinappi","majoneesi","tomaattimurska","herne","maissi","pavut","linssit","mehu","limonadi","kivennäisvesi","jäätelö","suklaa","keksi"]'
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const path=require('node:path');
+          function findCompiledCore(dir){
+            for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
+              const full=path.join(dir,entry.name);
+              if(entry.isDirectory()){const hit=findCompiledCore(full);if(hit)return hit;}
+              else if(entry.name==='ziiplyCore.js')return path.resolve(full);
+            }
+            return null;
+          }
+          const corePath=findCompiledCore('.tmp-100-audit');
+          if(!corePath)throw Error('Compiled mobile ziiplyCore.js not found');
+          const core=require(corePath);
+          const terms=JSON.parse(process.env.TERMS_JSON);
+          const results=[];
+          async function search(term){
+            const url='https://ziiply.vercel.app/api/s-products?store=292&search='+encodeURIComponent(term);
+            const resp=await fetch(url,{signal:AbortSignal.timeout(25000)});
+            if(!resp.ok)throw Error('HTTP '+resp.status);
+            const body=await resp.json();
+            const raw=Array.isArray(body)?body:(body.items||body.products||[]);
+            const priced=raw.map(p=>({...p,price:Number(p.price||p.storeItems?.[0]?.price||0)})).filter(p=>Number.isFinite(p.price)&&p.price>0);
+            const ranked=core.rankProductResultsByRelevanceAndPrice(term,priced,p=>p.price);
+            const rankedReversed=core.rankProductResultsByRelevanceAndPrice(term,[...priced].reverse(),p=>p.price);
+            const reverseOrdered=rankedReversed.every((p,i)=>i===0||rankedReversed[i-1].price<=p.price);
+            const sameTop=JSON.stringify(ranked.slice(0,10).map(p=>[p.name,p.price]))===JSON.stringify(rankedReversed.slice(0,10).map(p=>[p.name,p.price]));
+            const ordered=ranked.every((p,i)=>i===0||ranked[i-1].price<=p.price);
+            // A known real grocery ingredient must not silently disappear.
+            const requiredNonEmpty=new Set(['voi','raejuusto','silakka','sokeri','ruokaöljy','etikka']);
+            const unexpectedEmpty=requiredNonEmpty.has(term)&&ranked.length===0;
+            const normalized=s=>String(s||'').toLocaleLowerCase('fi').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            const wrong=ranked.filter(p=>{
+              const name=normalized(p.name);
+              if(term==='oliiviöljy') return !/oliivioljy/.test(name)||/(?:tonnikala|sardiin|muikku|krutonk|krutonki|peruna|keksi|levite|oivariini|kastike|riisi|edamame|oljyssa|oljylla|oljya sisalt)/.test(name);
+              if(term==='limonadi') return /(?:jaatelo|jaapuikko|limonadijaa|mehujaa|sorbet|karkki|siirappi)/.test(name);
+              if(term==='cola') return /(?:colada|mocktail|jaatelo|limonadijaa|pre.workout|shot)/.test(name);
+              if(term==='maito') return /(?:maitorahka|rasvaseos|kerma|suklaa|jogurtti|jaatelo|maitojuoma)/.test(name);
+              if(term==='etikka') return /(?:perunalast|sips|mausteseos|puhdistusliina|puhdistusaine|pesuaine|kastike)/.test(name);
+              return false;
+            });
+            return {term,raw:raw.length,priced:priced.length,accepted:ranked.length,sorted:ordered&&reverseOrdered,stableTop:sameTop,unexpectedEmpty,wrongGroup:wrong.slice(0,5).map(p=>p.name),top:ranked.slice(0,5).map(p=>({name:p.name,price:p.price})),rawSample:ranked.length===0?priced.slice(0,12).map(p=>p.name):undefined,rejected:priced.length-ranked.length};
+          }
+          (async()=>{
+            for(let i=0;i<terms.length;i+=5){
+              const batch=await Promise.all(terms.slice(i,i+5).map(async term=>{
+                try{return await search(term)}catch(e){return {term,error:String(e)}}
+              }));
+              for(const r of batch){results.push(r);console.log(JSON.stringify(r))}
+            }
+            const summary={queries:terms.length,completed:results.filter(r=>!r.error).length,errors:results.filter(r=>r.error).length,empty:results.filter(r=>!r.error&&r.accepted===0).length,unsorted:results.filter(r=>r.sorted===false).length,unstableTop:results.filter(r=>r.stableTop===false).length,wrongGroup:results.filter(r=>r.wrongGroup?.length).length,unexpectedEmpty:results.filter(r=>r.unexpectedEmpty).map(r=>r.term),source:'live Prisma API + production shared ranking code',commit:process.env.GITHUB_SHA};
+            fs.writeFileSync('mobile-main-100-search-results.json',JSON.stringify({summary,results},null,2));
+            console.log('SUMMARY '+JSON.stringify(summary));
+            if(summary.errors||summary.unsorted||summary.unstableTop||summary.wrongGroup||summary.unexpectedEmpty.length)process.exitCode=1;
+          })();
+          NODE
+      - name: Check out actual production main for unbiased comparison
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: .production-main
+      - name: Compile actual production main search core
+        if: always()
+        run: |
+          npx tsc .production-main/src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-production-main-audit
+      - name: Compare actual main against candidate on positive and adversarial grocery searches
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path');
+          function find(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory()){const v=find(p);if(v)return v;}else if(e.name==='ziiplyCore.js')return path.resolve(p)}return null}
+          const main=require(find('.tmp-production-main-audit'));
+          const candidate=require(find('.tmp-100-audit'));
+          const cases=[
+            ['ruokaöljy','Keiju rypsiöljy 1l',true],
+            ['ruokaöljy','Kotimaista 450ml rypsiöljy',true],
+            ['ruokaöljy','Coop auringonkukkaöljy 1 l',true],
+            ['ruokaöljy','Oliiviöljy extra virgin 500 ml',true],
+            ['ruokaöljy','Rypsiöljyä sisältävä margariini 400 g',false],
+            ['ruokaöljy','Tonnikala rypsiöljyssä 160 g',false],
+            ['ruokaöljy','Oliiviöljykastike 250 ml',false],
+            ['ruokaöljy','Oliiviöljysipsit 150 g',false],
+            ['etikka','Xtra väkiviinaetikka 750 ml',true],
+            ['etikka','Rajamäen omenaviinietikka 0,4l',true],
+            ['etikka','Valkoviinietikka 500 ml',true],
+            ['etikka','Etikkasipsit 150 g',false],
+            ['etikka','Etikkainen salaattikastike 250 ml',false],
+            ['etikka','Etikkapuhdistusaine 500 ml',false],
+            ['maito','Maitosuklaa 200 g',false],
+            ['kahvi','Kahvijogurtti 150 g',false],
+            ['kirjolohi','Kirjolohiöljy koirille 500 ml',false],
+            ['oliiviöljy','Tonnikala oliiviöljyssä 160 g',false]
+          ];
+          const results=cases.map(([query,name,expected])=>{
+            const p={name,price:199,ean:'',category:''};
+            const evaluate=core=>core.rankProductResultsByRelevanceAndPrice(query,[p],x=>x.price).length>0;
+            return {query,name,expected,main:evaluate(main),candidate:evaluate(candidate)};
+          });
+          const summary={cases:results.length,mainWrong:results.filter(x=>x.main!==x.expected).length,candidateWrong:results.filter(x=>x.candidate!==x.expected).length,different:results.filter(x=>x.main!==x.candidate).length};
+          console.log('MAIN_CANDIDATE_ADVERSARIAL_SUMMARY '+JSON.stringify(summary));
+          for(const result of results)if(result.main!==result.candidate||result.main!==result.expected)console.log('MAIN_CANDIDATE_ADVERSARIAL_DETAIL '+JSON.stringify(result));
+          fs.writeFileSync('main-candidate-adversarial.json',JSON.stringify({summary,results},null,2));
+          if(summary.candidateWrong)process.exitCode=1;
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: main-candidate-adversarial
+          path: main-candidate-adversarial.json
+          if-no-files-found: warn
+      - name: Check out desktop preview for side-by-side comparison
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: preview/legacy-desktop-ui
+          path: .desktop-preview
+      - name: Compile desktop preview search core
+        if: always()
+        run: |
+          npx tsc .desktop-preview/src/app/components/ziiply/ziiplyCore.ts --target ES2021 --module commonjs --moduleResolution node --esModuleInterop --skipLibCheck --outDir .tmp-desktop-audit
+      - name: Compare mobile and desktop ranking on identical live products
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs');
+          const path=require('node:path');
+          function findCompiledCore(dir){
+            for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
+              const full=path.join(dir,entry.name);
+              if(entry.isDirectory()){const hit=findCompiledCore(full);if(hit)return hit;}
+              else if(entry.name==='ziiplyCore.js')return path.resolve(full);
+            }
+            return null;
+          }
+          const mobilePath=findCompiledCore('.tmp-production-main-audit');
+          if(!mobilePath)throw Error('Compiled production main ziiplyCore.js not found');
+          const mobile=require(mobilePath);
+          let desktop;
+          try {
+            const desktopPath=findCompiledCore('.tmp-desktop-audit');
+            if(!desktopPath)throw Error('Compiled desktop ziiplyCore.js not found');
+            desktop=require(desktopPath);
+          } catch(error) {
+            fs.writeFileSync('mobile-desktop-search-comparison.json',JSON.stringify({summary:{status:'setup_failed',reason:String(error)},results:[]},null,2));
+            throw error;
+          }
+          const terms=["maito","kevytmaito","täysmaito","rasvaton maito","kauramaito","piimä","kerma","ruokakerma","voi","margariini","juusto","emmental","mozzarella","raejuusto","rahka","jogurtti","viili","kananmuna","leipä","ruisleipä","paahtoleipä","sämpylä","näkkileipä","cola","kaurahiutale","puuro","murot","mysli","riisi","pasta","makaroni","spagetti","nuudeli","peruna","porkkana","sipuli","valkosipuli","tomaatti","kurkku","paprika","salaatti","kaali","parsakaali","kukkakaali","banaani","omena","päärynä","appelsiini","mandariini","sitruuna","viinirypäle","mansikka","mustikka","vadelma","avokado","kiivi","vesimeloni","jauheliha","naudanliha","porsaanliha","broileri","kanafilee","nakki","makkara","kinkku","pekoni","lohi","kirjolohi","tonnikala","silakka","katkarapu","kalapuikko","kahvi","tee","kaakao","sokeri","suola","mustapippuri","kaneli","vehnäjauho","ruisjauho","leivinjauhe","hiiva","ruokaöljy","oliiviöljy","etikka","ketsuppi","sinappi","majoneesi","tomaattimurska","herne","maissi","pavut","linssit","mehu","limonadi","kivennäisvesi","jäätelö","suklaa","keksi"];
+          const report=[];
+          const norm=p=>[String(p.ean||''),String(p.name||'').toLocaleLowerCase('fi'),Number(p.price||0).toFixed(2)].join('|');
+          (async()=>{
+            for(let offset=0;offset<terms.length;offset+=5){
+              await Promise.all(terms.slice(offset,offset+5).map(async term=>{
+              try{
+                const url='https://ziiply.vercel.app/api/s-products?store=292&search='+encodeURIComponent(term);
+                const response=await fetch(url,{signal:AbortSignal.timeout(25000)});
+                if(!response.ok)throw Error('HTTP '+response.status);
+                const body=await response.json();
+                const raw=Array.isArray(body)?body:(body.items||body.products||[]);
+                const priced=raw.map(p=>({...p,price:Number(p.price||p.storeItems?.[0]?.price||0)})).filter(p=>Number.isFinite(p.price)&&p.price>0);
+                const a=mobile.rankProductResultsByRelevanceAndPrice(term,priced,p=>p.price);
+                const b=desktop.rankProductResultsByRelevanceAndPrice(term,priced,p=>p.price);
+                const ak=new Set(a.map(norm)),bk=new Set(b.map(norm));
+                const mobileOnly=a.filter(p=>!bk.has(norm(p))).slice(0,10).map(p=>p.name);
+                const desktopOnly=b.filter(p=>!ak.has(norm(p))).slice(0,10).map(p=>p.name);
+                report.push({term,raw:raw.length,mobile:a.length,desktop:b.length,mobileOnly,desktopOnly,sameOrder:JSON.stringify(a.map(norm))===JSON.stringify(b.map(norm))});
+              }catch(error){report.push({term,error:String(error)})}
+              }));
+            }
+            report.sort((a,b)=>terms.indexOf(a.term)-terms.indexOf(b.term));
+            const summary={
+              queries:terms.length,
+              completed:report.filter(x=>!x.error).length,
+              errors:report.filter(x=>x.error).length,
+              differentProductSets:report.filter(x=>!x.error&&(x.mobileOnly.length||x.desktopOnly.length)).length,
+              differentOrder:report.filter(x=>!x.error&&!x.sameOrder).length,
+              examples:report.filter(x=>!x.error&&(x.mobileOnly.length||x.desktopOnly.length)).slice(0,20).map(x=>({term:x.term,mobileOnly:x.mobileOnly,desktopOnly:x.desktopOnly}))
+            };
+            fs.writeFileSync('mobile-desktop-search-comparison.json',JSON.stringify({summary,results:report},null,2));
+            console.log('MOBILE_DESKTOP_SUMMARY '+JSON.stringify(summary));
+            // Mobile and desktop must accept the same products in the same order.
+            // Fail parity explicitly; both branches should use the same hard
+            // product-group filters and cheapest-first ordering.
+            if(summary.errors || summary.differentProductSets || summary.differentOrder) {
+              console.error('MOBILE_DESKTOP_PARITY_FAILED '+JSON.stringify(summary));
+              process.exitCode=1;
+            }
+          })();
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-desktop-search-comparison
+          path: mobile-desktop-search-comparison.json
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-main-100-search-results
+          path: mobile-main-100-search-results.json
+          if-no-files-found: warn

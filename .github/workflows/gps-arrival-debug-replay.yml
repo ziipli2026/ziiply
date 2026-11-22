@@ -1,0 +1,24 @@
+name: GPS arrival debug replay 25-27
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/test-gps-debug-25-26-27-replay.mjs"
+      - "scripts/test-gps-arrival-notice.mjs"
+      - "src/app/components/ziiply/location/ziiplyArrivalSequence.ts"
+      - ".github/workflows/gps-arrival-debug-replay.yml"
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Replay original three debug scenarios
+        run: node scripts/test-gps-debug-25-26-27-replay.mjs
+      - name: Check mismatch, ambiguity and notification regressions
+        run: node scripts/test-gps-arrival-notice.mjs

@@ -1,0 +1,108 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const ts=require('typescript');
+
+async function main(){
+ const folder=process.argv[2]||'47lv-fresh';
+ const parsed=JSON.parse(fs.readFileSync(path.join(folder,'parser-evidence.json'),'utf8'));
+ const base=path.resolve('src/app/components/ziiply/offerSearch/providers');
+ const blocked=()=>{throw Error('Publication audit must not access a database');};
+ const writes=[];
+ const compile=(file,source,dependencies={})=>{
+  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
+  const modules=require('node:module').createRequire(file);
+  const mod={exports:{}};
+  new Function('require','module','exports',code)(name=>dependencies[name]??modules(name),mod,mod.exports);
+  return mod.exports;
+ };
+ const imageFile=path.join(base,'kCitymarketPublisherImages.ts');
+ const publisherImages=compile(imageFile,fs.readFileSync(imageFile,'utf8'));
+ const dependencies={
+  './kCitymarketSpatialParser.js':{parseKCitymarketSpatialLeaflet:async entry=>{assert.equal(entry,parsed.leaflet);return parsed;}},
+  'next/cache':{unstable_cache:fn=>fn},
+  '@neondatabase/serverless':{neon:blocked},
+  '../publicationStore':{readActivePublicationOffers:blocked,storeParsedPublication:async (candidate,options)=>{writes.push({candidate,options});return 'stored';}},
+  './kCitymarketLocalTjekProvider':{fetchKCitymarketNationalTjekImages:async()=>new Map()},
+  './kCitymarketPublisherImages':publisherImages,
+ };
+ const filename=path.join(base,'kCitymarketProvider.ts');
+ const source=fs.readFileSync(filename,'utf8')
+  .replace('async function fetchKCitymarketOffersFresh(','export async function fetchKCitymarketOffersFresh(');
+ const provider=compile(filename,source,dependencies);
+ const modules=require('node:module').createRequire(filename);
+ const offers=await provider.fetchKCitymarketOffersFresh(parsed.leaflet);
+ const {partitionDailyGroceryOffers}=modules('./kCitymarketDailyGroceryGate.js');
+ const result=partitionDailyGroceryOffers(offers);
+ fs.writeFileSync(path.join(folder,'provider-offers.json'),JSON.stringify(result,null,2));
+ const {validate47LVPublication}=modules('./kCitymarket47LVStagingGuard.js');
+ const staging=validate47LVPublication(result.accepted,'2026-11-19-W47-LV');
+ assert.ok(staging.ok,JSON.stringify(staging.issues));
+ const reconciled=JSON.parse(fs.readFileSync(path.join(folder,'reconciled-offers.json'),'utf8'));
+ const fixture=JSON.parse(fs.readFileSync('tests/fixtures/citymarket/47lv-neon-candidate.json','utf8'));
+ const aliases=[
+  [/^Smuuti Skin/i,/^SMUUTI SKIN/i],
+  [/^TORTILLA ORIGINAL MEDIUM/,/^TORTILLA ORIGINAL MEDIUM 320 g/],
+  [/^GLÖGI 8 %/,/^GLÖGI 8 % 0,75 l\/pl$/],
+  [/^Colgate HAMMASTAHNARASIAT/,/^Colgate HAMMASTAHNARASIAT/],
+  [/^L’Oréal Paris Triple Active/,/^Triple Active Hyaluron/],
+ ];
+ const seen=new Set();
+ assert.equal(result.quarantined.length,0,JSON.stringify(result.quarantined));
+ for(const expected of fixture){
+  const source=reconciled.find(row=>row.referenceTitle===expected.title);
+  assert.ok(source,expected.title);
+  const alias=aliases.find(([pattern])=>pattern.test(expected.title));
+  const rows=result.accepted.filter(row=>alias?alias[1].test(row.title):row.title===expected.title);
+  assert.equal(rows.length,1,expected.title);
+  const [actual]=rows;
+  assert.ok(!seen.has(actual),actual.title);
+  seen.add(actual);
+  assert.equal(actual.price,source.price,actual.title);
+  assert.equal(actual.offerQuantity??1,source.quantity??1,actual.title);
+  assert.equal(actual.offerUnit??null,source.unit,actual.title);
+  assert.equal(actual.discountPercent??null,source.discountPercent,actual.title);
+  assert.equal(actual.validFrom,expected.validFrom,actual.title);
+  assert.equal(actual.validTo,expected.validTo,actual.title);
+  if(actual.offerQuantity>1&&/^owned-printed/.test(actual.resolutionSource)){
+   assert.equal(actual.priceBasis,'set-total',actual.title);
+   assert.ok(actual.priceText?.includes(' / '+actual.offerQuantity),actual.title);
+  }
+ }
+ assert.equal(seen.size,result.accepted.length,'Every accepted offer must be verified');
+ for(const [title,amount] of [[/^Coca-Cola/,1.8],[/^Kåska/,0.30],[/^Crisp RADLER/,0.30]]){
+  const offer=result.accepted.find(row=>title.test(row.title));
+  assert.equal(offer?.depositTotal,amount,String(title));
+  assert.equal(offer?.depositIncluded,true,String(title));
+ }
+ delete process.env.DATABASE_URL;
+ delete process.env.OFFER_PUBLICATION_DATABASE_URL;
+ const clock=new Date('2026-11-20T08:00:00+02:00');
+ assert.equal(await provider.persistKCitymarketOfferPublication(clock),'stored');
+ assert.equal(writes.length,1);
+ const [{candidate,options}]=writes;
+ assert.equal(candidate.id,'2026-11-19-W47-LV-printed-transactions-v166');
+ assert.equal(candidate.validFrom,'2026-11-19');
+ assert.equal(candidate.validUntil,'2026-11-22');
+ assert.equal(options.approvalState,'candidate');
+ const origins=new Set();
+ for(const offer of candidate.offers){
+  assert.match(offer.imageUrl||'',/^\/citymarket-leaflets\/[a-f0-9]{64}\/images\.svg#[a-f0-9]{20}$/,offer.title);
+  assert.ok(!origins.has(offer.imageUrl),offer.title);
+  origins.add(offer.imageUrl);
+ }
+ const qualityFile=path.resolve(base,'../citymarketQuality.ts');
+ const {inspectCitymarketOffers}=compile(qualityFile,fs.readFileSync(qualityFile,'utf8'));
+ const quality=inspectCitymarketOffers(candidate.offers);
+ assert.equal(quality.blocking,false,JSON.stringify(quality));
+ console.log('47LV publisher images',origins.size);
+
+ const snapshotFields=({imageUrl,ean,...offer})=>offer;
+ assert.deepEqual(candidate.offers.map(snapshotFields),result.accepted.map(snapshotFields));
+ assert.equal(provider.kCitymarketPublicationCandidateId('2026-11-16-W47-AV'),'2026-11-16-W47-AV-printed-transactions-v165');
+ parsed.rows.pop();
+ await assert.rejects(provider.persistKCitymarketOfferPublication(clock),/differs from the verified nationwide leaflet/);
+ assert.equal(writes.length,1);
+ console.log('47LV provider rows',offers.length,'accepted',result.accepted.length,'quarantined',result.quarantined.length);
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});

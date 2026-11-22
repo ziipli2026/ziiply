@@ -5,12 +5,13 @@
 // V12: paluu vasempaan yläkulmaan paperilappu-/hintalappu-tyyliin mockupin mukaan.
 // Selection-kortille EI lisätä jaa-koria; vain paluu vertailuun ja sulje.
 
+import { comparisonBrand } from "../comparisonBrand";
 import React from "react";
 
 export type ZiiplyCompareSelectionStore = {
   id: string;
   name: string;
-  chain?: "S" | "K";
+  chain?: "S" | "K" | "LIDL" | "SPAR";
   totalPrice?: number;
   itemCount?: number;
   savingsVsHighest?: number;
@@ -51,6 +52,7 @@ export type ZiiplyCompareSelectionItem = {
 export type ZiiplyMobileCompareSelectionCardProps = {
   open?: boolean;
   embedded?: boolean;
+  compact?: boolean;
   store: ZiiplyCompareSelectionStore;
   items?: unknown[];
   isBest?: boolean;
@@ -162,65 +164,21 @@ function getProductImage(item: unknown) {
   return data?.image || data?.imageUrl || data?.product?.image || data?.product?.imageUrl || "";
 }
 
-function getStoreOwnBrandExample(chain?: "S" | "K") {
+function getStoreOwnBrandExample(chain?: ZiiplyCompareSelectionStore["chain"]) {
   if (chain === "K") return "Pirkka / K-Menu";
   if (chain === "S") return "Coop / Xtra / Kotimaista";
+  if (chain === "LIDL") return "Milbona / Pikok / Combino";
+  if (chain === "SPAR") return "SPAR / First Price";
   return "Kaupan oma";
 }
 
 function getProductBrandExample(item: unknown) {
   const data = item as ZiiplyCompareSelectionItem;
-  const name = String(getItemName(item) || data?.sourceProductName || data?.cartItem?.name || "").trim();
-  const first = name.split(/\s+/).find((part) => /[A-Za-zÅÄÖåäö]/.test(part)) || "sama brändi";
-  return first.replace(/[^\wÅÄÖåäö-]/g, "");
+  const name = String(data?.product?.name || getItemName(item) || "").trim();
+  return comparisonBrand(name, data?.brandName || (data?.product as { brandName?: string })?.brandName) || "Sama brändi";
 }
 
-function normalizeBrand(value: unknown) {
-  return String(value ?? "").toLocaleLowerCase("fi-FI").trim().replace(/\\s+/g, " ");
-}
-
-function getMatchBrand(item: ZiiplyCompareSelectionItem) {
-  return normalizeBrand(item?.brandName || "");
-}
-
-function filterComparisonAlternatives(
-  candidates: ZiiplyCompareSelectionItem[],
-  source: ZiiplyCompareSelectionItem,
-  mode: QualityMode,
-  chain?: "S" | "K",
-) {
-  const ownBrands = chain === "S"
-    ? ["coop", "xtra", "kotimaista", "rainbow"]
-    : chain === "K"
-      ? ["pirkka", "k-menu", "k menu"]
-      : [];
-  const sourceBrand = getMatchBrand(source);
-  const filtered = candidates.filter((candidate) => {
-    const brand = getMatchBrand(candidate);
-    if (mode === "same_brand" && sourceBrand && brand && brand !== sourceBrand) return false;
-    if (mode === "own_brands" && brand && ownBrands.length && !ownBrands.some((own) => brand === own || brand.startsWith(own + " "))) return false;
-    return true;
-  });
-  // A same-brand search must at least offer the currently matched product,
-  // even when the backend fails to return it.
-  if (mode === "same_brand" && sourceBrand && source.product?.name) {
-    const sourceEan = String(source.product.ean || "");
-    const alreadyIncluded = filtered.some((candidate) =>
-      sourceEan ? String(candidate.product?.ean || candidate.ean || "") === sourceEan
-        : String(candidate.product?.name || candidate.name || "") === source.product?.name,
-    );
-    if (!alreadyIncluded) filtered.unshift({
-      ...source.product,
-      product: source.product,
-      price: source.price,
-      name: source.product.name,
-      brandName: sourceBrand,
-    });
-  }
-  return filtered;
-}
-
-function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
+function getQualityHint(mode: QualityMode, item: unknown, chain?: ZiiplyCompareSelectionStore["chain"]) {
   switch (mode) {
     case "cheapest":
       return "Halvin sopiva";
@@ -236,6 +194,7 @@ function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
 export default function ZiiplyMobileCompareSelectionCard({
   open = true,
   embedded = false,
+  compact = false,
   store,
   items = [],
   isBest = false,
@@ -294,7 +253,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                     key={String(item.id ?? item.product?.id ?? index)}
                     data-compare-product-row className="border-b border-[#d4bd86]/72"
                   >
-                    <div className="grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5">
+                    <div className={compact ? "grid min-h-[3.4rem] grid-cols-[minmax(0,1fr)_4.25rem] items-center border-b border-[#d4bd86]/72 px-1.5 py-1" : "grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5"}>
                       <div className="flex min-w-0 items-center gap-2.5 pr-2">
                         {image ? (
                           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.55rem] border border-[#b99d5c] bg-[#fff8e5]">
@@ -350,7 +309,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                                 try {
                                   const result = await onChangeMatchMode(store.id, item, mode);
                                   if (requestId !== alternativeRequestRef.current) return;
-                                  setAlternativeMenu({ key, mode, items: filterComparisonAlternatives(Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [], item, mode, store.chain), loading: false });
+                                  setAlternativeMenu({ key, mode, items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [], loading: false });
                                   onDebugAlternatives?.({ storeId: store.id, mode, source: item, candidates: Array.isArray(result) ? result : [] });
                                 } catch {
                                   if (requestId === alternativeRequestRef.current) setAlternativeMenu({ key, mode, items: [], loading: false });
@@ -417,7 +376,7 @@ export default function ZiiplyMobileCompareSelectionCard({
 
   return (
     <div
-      className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
+      className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
     >
       <section className="relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.0rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div

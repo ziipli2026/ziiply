@@ -11,7 +11,7 @@ export type ZiiplyCompareStore = {
   id: string;
   name: string;
   locality?: string;
-  chain?: "S" | "K";
+  chain?: "S" | "K" | "LIDL" | "SPAR";
   totalPrice?: number;
   itemCount?: number;
   savingsVsHighest?: number;
@@ -174,9 +174,11 @@ function splitStoreName(name: string, locality?: string) {
   return { title: parts.slice(0, -1).join(" "), locality: parts[parts.length - 1] };
 }
 
-function getChainLabel(chain?: "S" | "K") {
+function getChainLabel(chain?: ZiiplyCompareStore["chain"]) {
   if (chain === "S") return "S";
   if (chain === "K") return "K";
+  if (chain === "LIDL") return "L";
+  if (chain === "SPAR") return "SPA";
   return "–";
 }
 
@@ -320,11 +322,14 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   if (!open) return null;
 
-  const visibleStores = stores.map(normalizeComparisonStorePrices);
+  const chainOrder: Record<string, number> = { S: 0, K: 1, LIDL: 2, SPAR: 3 };
+  const visibleStores = stores.map(normalizeComparisonStorePrices).sort(
+    (a, b) => (chainOrder[a.chain || ""] ?? 4) - (chainOrder[b.chain || ""] ?? 4),
+  );
   // V780: kun valitut kaupat tunnetaan, näytä heti oikeat lopullisen muotoiset kortit.
   // Lataus täydentää niihin vain hinnat/määrät ym.; vanhaa erillistä skeleton-korttia käytetään vain jos kauppoja ei vielä tunneta.
   const showSkeleton = visibleStores.length === 0;
-  const cheapest = getCheapestStore(visibleStores);
+  const cheapest = getCheapestStore(visibleStores.filter((store) => store.chain !== "LIDL" && store.id !== "lidl"));
   const handleBack = detailsStoreId ? () => setDetailsStoreId(null) : onBack || onBackToCart;
   const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
   // Missing counterpart is a result state, not the default while restored
@@ -335,7 +340,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   return (
     <div
-      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
+      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
     >
       <section className="ziiply-mobile-compare-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
@@ -356,72 +361,6 @@ export default function ZiiplyMobileCompareCardresponsive({
               {loading ? <RetroMopedOverlay /> : null}
             </div>
           </div>
-          {/* Diagnostic only: does not alter product matching, prices or category rules. */}
-          <details className="absolute bottom-[0.4rem] right-5 z-30 max-h-[70%] w-[5.8rem] overflow-y-auto rounded-lg border border-[#9d824c] bg-[#fff9e8] p-1 text-[10px] open:w-[calc(100%-2.5rem)] text-[#352b1b]">
-            <summary className="cursor-pointer font-bold">Debug (avaa)</summary>
-            <p className="my-1">Näyttää korin tuotteet ja kauppakohtaiset vastintuotteet, hinnat sekä mahdolliset kategoriat. Ei muuta vertailua.</p>
-            <button
-              type="button"
-              className="mb-2 mr-2 rounded border border-[#7c663d] bg-[#e2efcd] px-2 py-1 font-bold"
-              onClick={() => {
-                const report = {
-                  timestamp: new Date().toISOString(),
-                  loading,
-                  cartItems: items,
-                  stores: visibleStores,
-                  alternativeSearches: debugAlternatives,
-                };
-                const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = `ziiply-vertailu-debug-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Tallenna debug
-            </button>
-            <button
-              type="button"
-              className="mb-2 rounded border border-[#7c663d] bg-[#f0e1b9] px-2 py-1 font-bold"
-              onClick={() => {
-                const report = {
-                  timestamp: new Date().toISOString(),
-                  loading,
-                  cartItems: items,
-                  alternativeSearches: debugAlternatives,
-                  stores: visibleStores.map((store) => ({
-                    id: store.id,
-                    name: store.name,
-                    chain: store.chain,
-                    totalPriceCents: store.totalPrice,
-                    itemCount: store.itemCount,
-                    missingItems: store.missingItems,
-                    matches: store.matches || [],
-                  })),
-                };
-                void navigator.clipboard.writeText(JSON.stringify(report, null, 2)).catch(() => undefined);
-              }}
-            >
-              Kopioi debug JSON
-            </button>
-            <div className="max-h-[35vh] overflow-auto whitespace-pre-wrap break-words font-mono">
-              {JSON.stringify({
-                cartItems: items,
-                alternativeSearches: debugAlternatives,
-                stores: visibleStores.map((store) => ({
-                  store: store.name,
-                  totalPriceCents: store.totalPrice,
-                  itemCount: store.itemCount,
-                  missingItems: store.missingItems,
-                  matches: store.matches || [],
-                })),
-              }, null, 2)}
-            </div>
-          </details>
           <div className="absolute left-[6%] right-[6%] top-[22%] bottom-[7%] flex min-h-0 flex-col gap-1.5">
 
             {showSkeleton ? (
@@ -449,6 +388,13 @@ export default function ZiiplyMobileCompareCardresponsive({
             ) : (
               visibleStores.map((store, index) => {
                 if (detailsStoreId && detailsStoreId !== store.id) return null;
+                if (store.chain === "LIDL" || store.id === "lidl") {
+                  return (
+                    <p key={store.id} className="shrink-0 px-2 py-1 text-xs font-bold leading-snug text-[#51452f]">
+                      Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
+                    </p>
+                  );
+                }
                 const hasPricedMatches = (store.matches || []).some((match: any) => Number(match?.price) > 0);
                 const resultPending = !loading && !hasPricedMatches && !hasResolvedComparisonData;
                 const hasNoCounterpart =
@@ -509,7 +455,9 @@ export default function ZiiplyMobileCompareCardresponsive({
                               ? "border-[#7e1418] bg-[#c71d24] text-[#fff6d7]"
                               : store.chain === "S"
                                 ? "border-[#0b6330] bg-[#0b8f3a] text-[#fff6d7]"
-                                : "border-[#5a4427] bg-[#6f6045] text-[#fff6d7]",
+                                : store.chain === "SPAR"
+                                  ? "border-[#8b4321] bg-[#bc7032] text-white"
+                                  : "border-[#5a4427] bg-[#6f6045] text-[#fff6d7]",
                           )}
                           aria-label={`Avaa ${store.name}`}
                         >
@@ -540,8 +488,8 @@ export default function ZiiplyMobileCompareCardresponsive({
                                   ? ""
                                   : resultPending ? ""
                                   : hasNoCounterpart
-                                    ? "Vastinetta ei löytynyt"
-                                    : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
+                                    ? (store.chain === "SPAR" ? "Hinta puuttuu" : "Vastinetta ei löytynyt")
+                                    : `${store.itemCount ?? comparedCount ?? 0} tuotetta${store.chain === "SPAR" ? " · verkkohinta" : ""}`}
                               </span>
                             ) : null}
                             {store.distanceKm != null ? (

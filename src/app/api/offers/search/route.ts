@@ -66,7 +66,9 @@ import { NextResponse, after } from "next/server";
 import { queueMissingOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/queueMissingOfferImages";
 import { enrichOfferImagesBestEffort } from "../../../components/ziiply/offerSearch/enrichOfferImages";
 import { enrichOfferCategoriesFromNeon } from "../../../components/ziiply/offerSearch/neonOfferCategory";
-import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { resolveLidlGroceryCategories } from "../../../components/ziiply/offerSearch/lidlIndependentCategory";
+import { category as classifyCitymarketTitle, fetchKCitymarketOffers, getKCitymarketHtmlDebugV8, getKCitymarketNationalPhotoMatchAudit } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { filterCitymarketAdditionalGroceryOffers } from "../../../components/ziiply/offerSearch/providers/kCitymarketDailyGroceryGate.js";
 import { fetchKCitymarketSelectedStoreOffers, fetchKCitymarketUnpricedDiscounts, getKCitymarketLocalTjekDebug, getKCitymarketNationalTjekImageDebug } from "../../../components/ziiply/offerSearch/providers/kCitymarketLocalTjekProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import { fetchLidlOffers, onlyCurrentlyValidLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
@@ -622,6 +624,7 @@ export async function GET(request: Request) {
       // an availability restriction. Every selected Finnish Lidl must consume
       // the same active national publication; store identity is rebound below.
       let staged: UnknownRecord[] = [];
+      let stagedPublicationError: string | null = null;
       try {
         const nationalStaged = await readActivePublicationOffers<UnknownRecord>(LIDL_NATIONAL_PUBLICATION_CHAIN);
         staged = nationalStaged.map((offer) => ({
@@ -632,22 +635,20 @@ export async function GET(request: Request) {
           shopName: storeName,
         }));
       } catch (error) {
+        stagedPublicationError = error instanceof Error ? error.message : String(error);
         console.warn("[Ziiply offers] Lidl staged national publication unavailable", error);
       }
-      // A missing national publication must not hide currently verified public
-      // Lidl.fi offers. Fetch the dated official source directly as a read-only
-      // fallback; never invent rows or relabel them as manually verified.
+      // A stored publication can be partial. Merge the current official leaflet
+      // even when stored rows exist, and keep the stored rows if the fetch fails.
       let directPublicLeaflet: UnknownRecord[] = [];
-      if (staged.length === 0) {
-        try {
-          const publicFeed = await fetchLidlPublicLeafletOffers({ date: todayFi });
-          directPublicLeaflet = publicFeed.offers.map((offer) => ({
-            ...(offer as unknown as UnknownRecord),
-            storeKey, storeName, storeLabel: storeName, shopName: storeName,
-          }));
-        } catch (error) {
-          console.warn("[Ziiply offers] Lidl direct official leaflet unavailable", error);
-        }
+      try {
+        const publicFeed = await fetchLidlPublicLeafletOffers({ date: todayFi });
+        directPublicLeaflet = publicFeed.offers.map((offer) => ({
+          ...(offer as unknown as UnknownRecord),
+          storeKey, storeName, storeLabel: storeName, shopName: storeName,
+        }));
+      } catch (error) {
+        console.warn("[Ziiply offers] Lidl direct official leaflet unavailable", error);
       }
       // Fill manual verified-leaflet rows from the staged official Lidl.fi image when
       // product identity is strong: same normalized product key + same price + overlapping validity.
@@ -684,7 +685,46 @@ export async function GET(request: Request) {
       // photographed/verified rows plus exact first-party Lidl data. Do not split
       // this by transport source: some real leaflet rows are supplied by Lidl Plus.
       // The previous source-based split incorrectly cut the leaflet from 25 to 13.
-      const combined = dedupe([...imageEnriched, ...staged, ...directPublicLeaflet]);
+      // The staged row can win dedupe even when it was saved before packaging
+      // metadata was parsed. Fill it from the exact current Lidl offer first.
+      const lidlPublicationKey = (offer: UnknownRecord) => [
+        firstString(offer.id),
+        Number(offer.offerPrice ?? offer.price),
+        firstString(offer.validFrom).slice(0, 10),
+        firstString(offer.validUntil).slice(0, 10),
+      ].join("|");
+      const currentPackaging = new Map(directPublicLeaflet
+        .filter(offer => firstString(offer.id) && firstString(offer.packageSize, offer.comparisonPriceText))
+        .map(offer => [lidlPublicationKey(offer), offer]));
+      const stagedWithPackaging = staged.map(offer => {
+        const current = currentPackaging.get(lidlPublicationKey(offer));
+        if (!current) return offer;
+        return {
+          ...offer,
+          packageSize: firstString(offer.packageSize, current.packageSize),
+          packageText: firstString(offer.packageText, current.packageText),
+          comparisonPriceText: firstString(offer.comparisonPriceText, current.comparisonPriceText),
+        };
+      });
+      // A stored row can still carry the old amount-only price for the same offer.
+      const freshBundles = new Map(directPublicLeaflet
+        .filter(offer => Number(offer.multiBuyQuantity) >= 2 && typeof offer.id === "string" && offer.id)
+        .map(offer => [offer.id, offer]));
+      const stagedWithFreshBundles = stagedWithPackaging.map(offer => {
+        const fresh = freshBundles.get(offer.id);
+        if (!fresh || offer.source !== fresh.source ||
+          offer.validFrom !== fresh.validFrom || offer.validUntil !== fresh.validUntil ||
+          Number(offer.offerPrice ?? offer.price) !== Number(fresh.multiBuyTotalPrice)) return offer;
+        return {
+          ...offer,
+          priceBasis: fresh.priceBasis,
+          priceText: fresh.priceText,
+          multiBuyQuantity: fresh.multiBuyQuantity,
+          multiBuyTotalPrice: fresh.multiBuyTotalPrice,
+          isWeightedProduct: false,
+        };
+      });
+      const combined = dedupe([...imageEnriched, ...stagedWithFreshBundles, ...directPublicLeaflet]);
 
       // Lidl has two Gösta tabs just like Prisma/Citymarket:
       // 1) "Tarjoukset" = the dated paper/public leaflet publication
@@ -747,85 +787,13 @@ export async function GET(request: Request) {
         ...lidlCampaigns,
       ]);
 
-      // Final Lidl normalization must happen after every source has been merged.
-      // In particular, publicationStore rows may have been persisted before a
-      // provider/parser fix. Never require the product card to repair source data.
-      const normalizeLidlFinal = (offer: UnknownRecord): UnknownRecord => {
-        const name = normalizeText(firstString(offer.name, offer.title, offer.productName));
-        const quantity = Number(offer.multiBuyQuantity);
-        const total = Number(offer.multiBuyTotalPrice ?? offer.offerPrice ?? offer.price);
-        const next: UnknownRecord = { ...offer };
-
-        if (Number.isFinite(quantity) && quantity >= 2 && Number.isFinite(total) && total > 0) {
-          const totalText = total.toFixed(2).replace(".", ",");
-          next.priceBasis = "multi-buy-total";
-          next.multiBuyQuantity = quantity;
-          next.multiBuyTotalPrice = total;
-          next.multiBuyUnitPrice = total / quantity;
-          next.price = total;
-          next.offerPrice = total;
-          next.priceText = `${totalText} € / ${quantity} kpl`;
-        }
-
-        // RULE LEVEL: classify by the product form, not an ingredient substring.
-        // These rules run after every Lidl source has been merged, so old staged/
-        // Neon rows and future provider rows receive the same correction.
-        let correctedCategory = "";
-        if (/halloween[- ]?asu|koiran[- ]?asu|kissan[- ]?asu|lemmikin[- ]?asu/.test(name)) {
-          correctedCategory = "Muut";
-        } else if (/lihapulla/.test(name)) {
-          // Must precede bakery: "lihapulla" contains "pulla".
-          correctedCategory = "Liha & makkarat";
-        } else if (/mehu|nektari|smoothie|limonadi|limu|cola|vichy|energiajuoma/.test(name)) {
-          // Must precede Hevi: fruit words in juice names do not make them produce.
-          correctedCategory = "Juomat";
-        } else if (/maustekur|hapankurk|hapankaali|ajvar|paprikapyree/.test(name)) {
-          // Preserved vegetables, relishes and pastes are pantry products, not fresh produce.
-          correctedCategory = "Kuivatuotteet";
-        } else if (/valkokaalisalaatti/.test(name)) {
-          // Prepared salad belongs with ready-to-eat foods, not fresh produce.
-          correctedCategory = "Valmisruoka";
-        } else if (/keitto|lihapata|nyytti|pelmeni|pizza|lasagne|wokki|risotto|valmisateria/.test(name)) {
-          // Prepared foods. Deliberately do NOT match generic "pata": e.g. Naudan uunipata is a raw meat cut.
-          correctedCategory = "Valmisruoka";
-        } else if (/paistopiste|leip|croissant|pulla|munkki|piirakka|sampyl|rieska|patonki|karjalanpiirakka/.test(name)) {
-          // Product form wins: rahkapulla/juustocroissant/perunapiirakka are bakery.
-          correctedCategory = "Leipomo";
-        }
-
-        // The morning Neon taxonomy takes precedence over legacy Lidl title regexes.
-        // Only use the old display-category fallback when Neon has no verified match.
-        const hasVerifiedNeonCategory = Boolean(String(next.neonCategoryMatch ?? "").trim()) &&
-          Boolean(String(next.neonCategoryPath ?? "").trim());
-        if (correctedCategory && !hasVerifiedNeonCategory) {
-          next.category = correctedCategory;
-          next.categoryPath = correctedCategory;
-          next.mainCategory = correctedCategory;
-
-          // The mobile offer card keeps the provider row under
-          // __sourceOfferSearchResult and some category paths still read that
-          // nested object. Keep the effective category synchronized there too;
-          // rawText remains untouched as source evidence.
-          const sourceOffer = next.__sourceOfferSearchResult;
-          if (sourceOffer && typeof sourceOffer === "object" && !Array.isArray(sourceOffer)) {
-            next.__sourceOfferSearchResult = {
-              ...(sourceOffer as UnknownRecord),
-              category: correctedCategory,
-              categoryPath: correctedCategory,
-              mainCategory: correctedCategory,
-            };
-          }
-        }
-        return next;
-      };
-      const normalizedMasterCombined = masterCombined.map(normalizeLidlFinal);
-
-      // Gösta's Lidl view is a grocery-offer view. "Muut" is intentionally not a
-      // visible catch-all category: general merchandise/campaign rows stay out,
-      // while real groceries must be classified into a concrete grocery category.
-      const lidlGroceryResults = onlyCurrentlyValidLidlOffers(normalizedMasterCombined, todayFi)
-        .filter((offer) => normalizeText(offer.category) !== "muut");
-      const results = await enrichOfferCategoriesFromNeon(lidlGroceryResults.filter((offer) => offerMatchesQuery(q, offer)));
+      // Lidl provides offer records; a chain-independent product-type resolver
+      // assigns categories even when the Neon catalog has no Lidl EAN match.
+      // Do not infer categories from Lidl landing-page URLs.
+      const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(masterCombined, todayFi);
+      const results = resolveLidlGroceryCategories(await enrichOfferCategoriesFromNeon(
+        currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)),
+      ));
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
@@ -833,6 +801,8 @@ export async function GET(request: Request) {
             structuredAndManual: enriched.length,
             structuredFeedError: structuredFeedError || null,
             staged: staged.length,
+            stagedPublicationError,
+            currentPackaging: currentPackaging.size,
             combined: masterCombined.length,
             publicLeaflet: masterCombined.filter((offer) => String(offer.source || "") === "lidl-fi-public").length,
             campaigns: masterCombined.filter((offer) => offer.campaignType === "campaign").length,
@@ -946,7 +916,7 @@ export async function GET(request: Request) {
           // The store-specific campaigns may be omitted for this request after 6.5s;
           // they are never allowed to block the entire mobile offer search.
           const localOffers = await fetchKCitymarketSelectedStoreOffers(selectedCitymarket);
-          const matchingLocalOffers = localOffers.filter(offer => offerMatchesQuery(q, offer));
+          const matchingLocalOffers = filterCitymarketAdditionalGroceryOffers(localOffers, classifyCitymarketTitle).filter(offer => offerMatchesQuery(q, offer));
           // The two sources are independent: preserve every selected-store campaign
           // even when its name and price match a national leaflet offer.
           const uniqueLocalCampaigns = matchingLocalOffers;
@@ -956,7 +926,7 @@ export async function GET(request: Request) {
           // Display-only percentage/Plussa offers have no verified euro price.
           // They must never be used as priced basket rows.
           const discounts = await fetchKCitymarketUnpricedDiscounts(selectedCitymarket);
-          citymarketResults.push(...discounts.filter(offer => offerMatchesQuery(q, offer)));
+          citymarketResults.push(...filterCitymarketAdditionalGroceryOffers(discounts, classifyCitymarketTitle).filter(offer => offerMatchesQuery(q, offer)));
         }
       } catch (localError) {
         console.warn("[Ziiply offers] Citymarket selected-store publication unavailable", localError);

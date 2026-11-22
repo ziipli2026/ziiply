@@ -1,4 +1,4 @@
-export type FuelComparisonSort = "distance" | "diesel" | "price95";
+export type FuelComparisonSort = "distance" | "diesel" | "price95" | "price98";
 
 export function isValidFuelPrice(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -8,6 +8,7 @@ export function sortFuelStations<T extends {
   distanceKm: number;
   diesel: number | null;
   price95: number | null;
+  price98: number | null;
 }>(stations: readonly T[], sort: FuelComparisonSort): T[] {
   const distance = (station: T) => Number.isFinite(station.distanceKm) ? station.distanceKm : Infinity;
   return [...stations].sort((a, b) => {

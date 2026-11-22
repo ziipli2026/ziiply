@@ -30,7 +30,7 @@ export default function ZiiplyMobileSearchView({
 
   return (
     <div
-      className={`fixed inset-0 z-[84] block bg-[#eef7f2]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+6.1rem)] pt-[calc(env(safe-area-inset-top)+6.8rem)] backdrop-blur-xl sm:hidden ${
+      className={`fixed inset-0 z-[84] block bg-[#eef7f2]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+6.1rem)] pt-[calc(env(safe-area-inset-top)+6.8rem)] backdrop-blur-xl ${
         closing ? "ziiply-soft-close" : "ziiply-soft-open"
       } ${className}`}
     >

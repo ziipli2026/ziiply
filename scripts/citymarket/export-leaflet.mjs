@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
+import {repairCitymarketOCRTitle} from '../../src/app/components/ziiply/offerSearch/providers/kCitymarketOCRRepair.js';
 const [entry,folder,parserPath='src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js']=process.argv.slice(2);
 if(!entry||!folder)throw Error('Usage: export-leaflet.mjs entry output-folder [parser-path]');
 const requested=new URL(entry);
@@ -45,10 +46,26 @@ const clean=s=>String(s??'').replace(/\u00a0/g,' ').replace(/[ \t]+/g,' ').trim(
 const rows=parsed.rows.flatMap(row=>{
  const title=clean(row.title),resolved=row.spatialResolved,percent=Number(row.percentageOffer?.percent);
  if(!title||resolved?.displayOnlyUnitPrice)return [];
+ // The publisher illustrates the shared cracker card with Cream Cracker
+ // packages only. Keep the unillustrated variant in parser evidence.
+ if(pdfSha256==='e859925c3cf5beb58aab1f4597519026e3ef09fdefd6c0b21775c3c01e5121e8'&&
+    row.page===3&&/^ja RUIS CRACKER 225 g$/i.test(title)){
+  console.log('Citymarket image audit: no publisher package image for',title);
+  return [];
+ }
  const priced=resolved&&Number(resolved.value)>0;
  if(!priced&&!(percent>0&&percent<100))return [];
+ // Wrapped percentage cards have a precise, printed glyph anchor even when
+ // the spatial parser has no ordinary imageAnchor. Preserve it separately:
+ // broad geometry passes may not silently treat it as an approved image link.
+ const glyph=row.percentageOffer?.source==='wrapped-column-printed-percentage'
+   ?row.debugCardAnchor:null;
+ const wrappedAnchor=glyph&&[glyph.left,glyph.top,glyph.right,glyph.height].every(Number.isFinite)
+   ?{left:glyph.left,top:glyph.top,width:glyph.right-glyph.left,height:glyph.height}
+   :null;
  return [{id:`kcm:spatial:${row.page}:${title.toLowerCase()}:${priced?Number(resolved.value):'percent:'+percent}`,
-  page:row.page,title,anchor:row.imageAnchor??null,nearby:row.nearby??[]}];
+  page:row.page,title,normalizedTitle:repairCitymarketOCRTitle(title),
+  anchor:row.imageAnchor??null,wrappedAnchor,nearby:row.nearby??[]}];
 });
 await fs.writeFile(path.join(folder,'leaflet.json'),JSON.stringify({leaflet:leaflet.href,pdfUrl:pdfUrl.href,pdfSha256,pageCount:parsed.pageCount,rows},null,2));
 // Retain the complete parser output (including geometry/price candidates) so

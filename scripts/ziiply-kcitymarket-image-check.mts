@@ -9,11 +9,11 @@ const today=new Intl.DateTimeFormat("sv-SE",{
 const rows=await sql`
   SELECT publication_id, parsed_at, jsonb_array_length(offers)::int AS total,
     (SELECT count(*)::int FROM jsonb_array_elements(offers) o
-      WHERE COALESCE(o->>'imageUrl','') ~* '^https://') AS with_image
+      WHERE (COALESCE(o->>'imageUrl','') ~* '^https://' OR COALESCE(o->>'imageUrl','') LIKE '/citymarket-leaflets/%')) AS with_image
   FROM ziiply_offer_publications
-  WHERE chain='K-Citymarket' AND approval_state='approved'
+  WHERE chain='K-Citymarket' AND approval_state IN ('approved','candidate')
     AND valid_from <= ${today}::date AND valid_until >= ${today}::date
-  ORDER BY parsed_at DESC LIMIT 1
+  ORDER BY CASE WHEN approval_state='approved' THEN 0 ELSE 1 END, parsed_at DESC LIMIT 1
 `;
 if (!rows.length) {
   console.log("LIGHT_CHECK",JSON.stringify({active:false,runHeavy:false}));

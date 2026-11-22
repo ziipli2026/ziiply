@@ -1,0 +1,29 @@
+name: Mobile speed limit diagnostics integration
+on:
+  push:
+    branches: [fix/mobile-speed-limit-diagnostics-20261102]
+permissions:
+  contents: write
+jobs:
+  patch-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Patch mobile GPS accuracy gate
+        run: python3 scripts/patch-mobile-speed-limit-diagnostics.py
+      - name: Install dependencies
+        run: npm ci
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Commit tested UI change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/page.tsx
+          git diff --cached --quiet || (git commit -m "Use realistic GPS accuracy threshold for mobile speed limit" && git push)

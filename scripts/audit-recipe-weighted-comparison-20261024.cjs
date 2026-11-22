@@ -10,9 +10,11 @@ assert.match(block, /ingredient\?\.unit\?\.toLowerCase\(\) === "g"/);
 assert.match(block, /basePrice \* grams \/ 1000, quantity: 1/);
 assert.match(block, /Number\.isFinite\(match\.price\) && match\.price > 0/);
 assert.doesNotMatch(block, /match\.price >= 0\.05/);
-const actualUnitRule = block.match(/const isKgPrice = ([\s\S]*?);/);
-assert.ok(actualUnitRule, "actual production kg unit rule found");
-const recognizeKg = new Function("unitText", "match", "return (" + actualUnitRule[1] + ");");
+const unitRuleStart = block.indexOf("const productName =");
+const unitRuleEnd = block.indexOf("// Only apply gram-based pricing", unitRuleStart);
+assert.ok(unitRuleStart >= 0 && unitRuleEnd > unitRuleStart, "actual production kg unit rule found");
+const unitRule = block.slice(unitRuleStart, unitRuleEnd).replace(" as Product & { ean?: string }", "");
+const recognizeKg = new Function("unitText", "match", unitRule + "return isKgPrice;");
 for (const unit of ["kg", "/kg", "eur/kg", "€/kg", "euro/kg", "kilogramma"]) {
   assert.equal(recognizeKg(unit, { product: { name: "Peruna" } }), true, "actual source must recognize " + unit);
 }

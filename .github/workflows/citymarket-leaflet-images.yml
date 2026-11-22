@@ -8,19 +8,35 @@ on:
         required: false
         type: string
   push:
-    branches: [main]
+    # Run an isolated extraction audit when this recovery workflow changes.
+    # Publishing remains guarded by github.ref == 'refs/heads/main'.
+    branches: [main, fix/citymarket-preflight-recovery-20261111, fix/citymarket-46lv-active-quality-20261112]
     paths:
       - ".github/workflows/citymarket-leaflet-images.yml"
       - "scripts/citymarket/**"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarket45LVPriceGuard.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketOCRRepair.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketProductRows.js"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParserCurrent.js"
+      - "src/app/components/ziiply/offerSearch/citymarketQuality.ts"
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketPublisherImages.ts"
+      # Re-extract and refresh images when reviewed publication titles change.
+      - "src/app/components/ziiply/offerSearch/providers/kCitymarketProvider.ts"
   schedule:
-    # Two checks on publication days, at 15:15 and 17:15 Helsinki.
-    # Both UTC offsets are listed; the clock guard skips the extra executions.
-    - cron: '15 12,13,14,15 * * 0,3'
+    # Publisher may publish late. Retry the following morning as well.
+    # Both UTC offsets are listed; Helsinki clock guard skips extras.
+    - cron: '0,30 13-20 * * 0,3'
+    - cron: '15 4,5,6,7 * * 1,4'
+    # Retry incomplete upcoming editions throughout publication evening.
+    - cron: '15,45 13-20 * * 0,3'
 permissions:
   contents: write
+  actions: write
 concurrency:
-  group: citymarket-publisher-images
-  cancel-in-progress: false
+  # Isolate test-branch audits from production publication runs.
+  group: citymarket-publisher-images-${{ github.ref_name }}
+  # Only replace stale test-branch audits; never cancel production publication.
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
 jobs:
   extract:
     runs-on: ubuntu-latest
@@ -28,7 +44,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          # Scheduled runs use the default branch; manual test-branch runs use their own ref.
+          ref: ${{ github.ref_name }}
       - name: Helsinki publication clock
         id: clock
         env:
@@ -38,7 +55,10 @@ jobs:
             echo 'run=true' >> "$GITHUB_OUTPUT"
           else
             hour=$(TZ=Europe/Helsinki date +%H)
-            if [ "$hour" = 15 ] || [ "$hour" = 17 ]; then
+            weekday=$(TZ=Europe/Helsinki date +%u)
+            if { [ "$weekday" = 7 ] || [ "$weekday" = 3 ]; } && { [ "$hour" -ge 15 ] && [ "$hour" -le 23 ]; }; then
+              echo 'run=true' >> "$GITHUB_OUTPUT"
+            elif { [ "$weekday" = 1 ] || [ "$weekday" = 4 ]; } && { [ "$hour" = 7 ] || [ "$hour" = 9 ]; }; then
               echo 'run=true' >> "$GITHUB_OUTPUT"
             fi
           fi
@@ -46,6 +66,23 @@ jobs:
         if: steps.clock.outputs.run == 'true'
         with:
           node-version: '24'
+      - name: Regression test Citymarket 45LV price safety
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-45lv-price-guard.mjs
+      - name: Regression test reusable OCR cleanup
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-ocr-repair.mjs
+      - name: Regression test wrapped percentage publisher headings
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-wrapped-percentage-headings.mjs
+      - name: Regression test verified shared publisher price
+        if: steps.clock.outputs.run == 'true'
+        run: node scripts/citymarket/test-shared-printed-alternatives.mjs
+      - name: Regression test multi-pack quality audit
+        if: steps.clock.outputs.run == 'true'
+        run: |
+          npm install --no-save --package-lock=false typescript
+          node scripts/citymarket/test-quality-multipack.mjs
       - uses: actions/setup-python@v5
         if: steps.clock.outputs.run == 'true'
         with:
@@ -57,6 +94,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y tesseract-ocr
       - name: Discover, parse and extract publisher images
+        id: extraction
         if: steps.clock.outputs.run == 'true'
         env:
           ENTRY: ${{ inputs.entry }}
@@ -64,7 +102,12 @@ jobs:
           if [ -n "$ENTRY" ]; then
             entries=("$ENTRY")
           else
-            entries=("https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/" "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/")
+            expected=$(node scripts/citymarket/check-active-edition.mjs --target)
+            if [[ "$expected" == *AV ]]; then
+              entries=("https://kcm-lehdet.k-ruoka.fi/alkuviikon_tarjouslehdet/")
+            else
+              entries=("https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/")
+            fi
           fi
           index=0
           successful=0
@@ -77,16 +120,70 @@ jobs:
             fi
             index=$((index+1))
           done
-          test "$successful" -gt 0
+          test "$successful" -eq "${#entries[@]}"
+          if [ -z "$ENTRY" ]; then
+            node scripts/citymarket/check-active-edition.mjs artifacts/citymarket-images/0/leaflet.json "$expected"
+          fi
           node scripts/citymarket/verify-images.mjs
+          coverage=()
+          for ((i=0;i<${#entries[@]};i++)); do
+            coverage+=("artifacts/citymarket-images/$i/leaflet.json")
+          done
+          node scripts/citymarket/check-image-coverage.mjs --allow-verified-partial "${coverage[@]}"
+      - name: Summarize unresolved publisher images
+        if: always() && steps.clock.outputs.run == 'true'
+        run: |
+          python - <<'PY'
+          import json, pathlib, os
+          root=pathlib.Path('artifacts/citymarket-images')
+          lines=['## Citymarket image extraction audit','']
+          for report in sorted(root.glob('*/image-report.json')):
+              items=json.loads(report.read_text())
+              unresolved=[item for item in items if item.get('status') in ('no-nearby-eligible-pdf-image','nearby-pdf-image-ownership-unverified')]
+              lines += [f'### {report.parent.name}: {len(unresolved)} unresolved offers','']
+              for item in unresolved:
+                  lines.append(f"- PDF page {item['page']}: {item['title']} — {item['status']}")
+              lines.append('')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('\n'.join(lines)+'\n')
+          PY
+      - name: Export machine-readable image repair queue
+        if: always() && steps.clock.outputs.run == 'true'
+        run: |
+          python - <<'PY'
+          import json,pathlib
+          root=pathlib.Path('artifacts/citymarket-images')
+          for report_path in root.glob('*/image-report.json'):
+              rows=json.loads(report_path.read_text())
+              unresolved=[r for r in rows if r.get('status') in ('no-nearby-eligible-pdf-image','nearby-pdf-image-ownership-unverified')]
+              queue=[]
+              for r in unresolved:
+                  queue.append({'id':r['id'],'page':r['page'],'title':r['title'],
+                                'reason':r['status'],'diagnosticReason':r.get('diagnosticReason'),'anchor':r.get('anchor'),
+                                'nearestEligibleDistance':r.get('nearestEligibleDistance'),
+                                'secondEligibleDistance':r.get('secondEligibleDistance'),
+                                'nearestDistanceGap':r.get('nearestDistanceGap'),'closestCandidateOCRWords':r.get('closestCandidateOCRWords',[]),'candidateOCREvidence':r.get('candidateOCREvidence',[]),'candidateImageRectangles':r.get('candidateImageRectangles',[])[:5]})
+              counts={reason:sum(1 for item in queue if item['reason']==reason) for reason in sorted({item['reason'] for item in queue})}
+              (report_path.parent/'image-repair-queue.json').write_text(json.dumps({
+                  'unresolvedCount':len(queue),'reasonCounts':counts,'items':queue},ensure_ascii=False,indent=2)+'\n')
+              print(f'Citymarket image repair queue: {len(queue)} unresolved offers, {report_path.parent}')
+              for reason,count in sorted({key:sum(1 for item in queue if item.get('diagnosticReason')==key) for key in {item.get('diagnosticReason') for item in queue}}.items()):
+                  print(f'::notice::Citymarket image diagnostic: {reason}: {count}')
+              for item in queue:
+                  print(f'::notice::Citymarket unresolved PDF page {item["page"]}: {item["title"]} — {item.get("diagnosticReason")}')
+                  print('::notice::Closest candidate package OCR: '+', '.join(item.get('closestCandidateOCRWords',[])[:12]))
+                  for candidate in item.get('candidateOCREvidence',[])[:5]:
+                      print(f'::notice::Candidate distance {candidate.get("distance")}: OCR matches {candidate.get("matchingWords",[])}; fuzzy {candidate.get("fuzzyMatches",[])[:3]}; pixels {candidate.get("pixelSize")}; border {candidate.get("blockedByBorder")}; cell {candidate.get("publisherCellOwners",[])}; owned {candidate.get("alreadyOwnedBy",[])}; words {candidate.get("words",[])[:8]}')
+          PY
       - name: Verify browser image fragments
-        if: steps.clock.outputs.run == 'true' && github.event_name != 'schedule'
+        if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success' && github.event_name != 'schedule'
         run: |
           npm install --no-save --package-lock=false playwright
           npx playwright install --with-deps chromium
           node scripts/citymarket/verify-image-rendering.mjs
-      - name: Publish verified image data
-        if: steps.clock.outputs.run == 'true'
+      - name: Publish verified image data and recheck the publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success' && github.ref == 'refs/heads/main'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -96,7 +193,21 @@ jobs:
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
+            gh workflow run kcitymarket-manual-current-leaflet.yml --ref main
+          else
+            # Even unchanged extracted images require a fresh production
+            # snapshot check (and category recovery) after deployment.
+            gh workflow run kcitymarket-manual-current-leaflet.yml --ref main
           fi
+      - name: Flag still-missing publisher images after safe publication
+        if: steps.clock.outputs.run == 'true' && steps.extraction.outcome == 'success'
+        run: |
+          for file in artifacts/citymarket-images/*/leaflet.json; do
+            [ -f "$file" ] || continue
+            # Missing publisher images are an enrichment warning, not a parsing or publishing failure.
+            # Still fail on missing manifests, PDF digest mismatches, or foreign image IDs.
+            node scripts/citymarket/check-image-coverage.mjs --allow-verified-partial "$file"
+          done
       - uses: actions/upload-artifact@v4
         if: always() && steps.clock.outputs.run == 'true'
         with:

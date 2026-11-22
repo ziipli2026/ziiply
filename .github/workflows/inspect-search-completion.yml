@@ -1,0 +1,25 @@
+name: Inspect Ziiply search completion paths
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/inspect-search-completion.yml"]
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print bounded code around cache, completion, and errors
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          lines=Path('src/app/page.tsx').read_text().splitlines()
+          for a,b in [(12870,12950),(13320,13406),(1,120)]:
+            print(f'--- RANGE {a}-{b} ---')
+            for i in range(a-1,min(b,len(lines))):
+              line=lines[i]
+              # Redact long literals, API keys and user-visible text
+              line=re.sub(r'(["\x27\x60])(?:\\.|(?!\1).)*?\1','<literal>',line)
+              print(f'{i+1}: {line[:240]}')
+          PY

@@ -4,6 +4,7 @@ import { searchSelectedSKaupatOffersV11, searchKSupermarketOffers, searchKMarket
 import eurosparFeed from "@/app/components/ziiply/offerSearch/providers/eurospar-feed.json";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 180;
 const MASTER="__ziiply_all_offers__";
 
 async function measure(chain:string,source:string,task:()=>Promise<any[]>){
@@ -23,10 +24,12 @@ async function measure(chain:string,source:string,task:()=>Promise<any[]>){
 }
 export async function GET(request:Request){
   if(process.env.CRON_SECRET && request.headers.get("authorization")!==`Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({ok:false},{status:401});
-  const results=[];
-  results.push(await measure("S","s-prisma-hyvinkaa",()=>searchSelectedSKaupatOffersV11(MASTER,{storeName:"Prisma Hyvinkää",sStoreName:"Prisma Hyvinkää"} as any)));
-  results.push(await measure("K-SUPERMARKET","k-supermarket-jokela",()=>searchKSupermarketOffers(MASTER,{storeName:"K-Supermarket Jokela",kStoreName:"K-Supermarket Jokela",storeId:"ji1luTAL",kStoreId:"ji1luTAL"} as any)));
-  results.push(await measure("K-MARKET","k-market-hakalantori",()=>searchKMarketOffers(MASTER,{storeName:"K-Market Hakalantori",kStoreName:"K-Market Hakalantori",storeId:"aETRYhoN",kStoreId:"aETRYhoN"} as any)));
+  // Run independent source checks concurrently so one slow provider does not delay all log writes.
+  const results: Array<{chain:string;source:string;ok:boolean;count:number;missingPrice?:number;missingImage?:number;missingCategory?:number;error?:string}> = await Promise.all([
+    measure("S","s-prisma-hyvinkaa",()=>searchSelectedSKaupatOffersV11(MASTER,{storeName:"Prisma Hyvinkää",sStoreName:"Prisma Hyvinkää"} as any)),
+    measure("K-SUPERMARKET","k-supermarket-jokela",()=>searchKSupermarketOffers(MASTER,{storeName:"K-Supermarket Jokela",kStoreName:"K-Supermarket Jokela",storeId:"ji1luTAL",kStoreId:"ji1luTAL"} as any)),
+    measure("K-MARKET","k-market-hakalantori",()=>searchKMarketOffers(MASTER,{storeName:"K-Market Hakalantori",kStoreName:"K-Market Hakalantori",storeId:"aETRYhoN",kStoreId:"aETRYhoN"} as any)),
+  ]);
   const sparOffers=Array.isArray((eurosparFeed as any).offers)?(eurosparFeed as any).offers:[];
   const sparHealthy=Boolean((eurosparFeed as any).healthy)&&sparOffers.length>0;
   await recordPublicationRun({chain:"TOKMANNI-SPAR",source:"eurospar-validated-feed",ok:sparHealthy,count:sparOffers.length,outcome:sparHealthy?"validated-feed-ok":"validated-feed-empty-or-unhealthy",details:{issue:(eurosparFeed as any).issue,validity:(eurosparFeed as any).validity,missingPrice:sparOffers.filter((x:any)=>!x.offerPrice).length,missingImage:sparOffers.filter((x:any)=>!x.imageUrl).length,missingCategory:sparOffers.filter((x:any)=>!x.category).length}});

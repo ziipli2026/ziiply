@@ -1,9 +1,19 @@
 "use client";
 
 import { productMoneyEuros, type PriceAmountUnit } from "./productMoney";
+import { comparisonTypeCompatible, comparisonProductType } from "./comparisonBrand";
 import type React from "react";
 import posthog from "posthog-js";
 import { correctSearchQuery } from "./search/searchIntentAI";
+import { desktopSearchDecision } from "./search/desktopNormalRelevance";
+
+export function readSearchProducts(data: unknown): unknown[] {
+  if (Array.isArray(data)) return data;
+  const response = data as { products?: unknown; items?: unknown } | null | undefined;
+  if (Array.isArray(response?.products)) return response.products;
+  if (Array.isArray(response?.items)) return response.items;
+  return [];
+}
 
 export type Offer = {
   id: number;
@@ -71,6 +81,13 @@ export type EanSearchResult = {
 };
 
 export type CartItem = {
+  validityText?: string;
+  discountText?: string;
+  validFrom?: string;
+  validUntil?: string;
+  ziiplyOfferBundleQuantity?: number;
+  priceAmountUnit?: "eur";
+  ziiplyEstimatedWeightKg?: number;
   ziiplyRegularPrice?: number;
   ziiplyDiscountPercent?: number;
   ziiplyPriceFetchedAt?: number;
@@ -213,6 +230,8 @@ export type SearchIntentCategory =
   | "milk"
   | "coffee"
   | "cola"
+  | "soft_drink"
+  | "ketchup"
   | "cheese"
   | "yogurt"
   | "meat"
@@ -226,6 +245,43 @@ export type SearchIntentCategory =
   | "snacks"
   | "buttermilk"
   | "cooking_oil"
+  | "mustard"
+  | "mayonnaise"
+  | "tomato_crush"
+  | "tomato_paste"
+  | "salad_dressing"
+  | "oatmeal"
+  | "porridge"
+  | "muesli"
+  | "breakfast_cereal"
+  | "flour"
+  | "sugar"
+  | "salt"
+  | "cookies"
+  | "candy"
+  | "chocolate"
+  | "jam"
+  | "honey"
+  | "canned_fish"
+  | "canned_vegetables"
+  | "toilet_paper"
+  | "paper_towels"
+  | "laundry_detergent"
+  | "dishwashing"
+  | "soap"
+  | "shampoo"
+  | "cream"
+  | "quark"
+  | "cottage_cheese"
+  | "cream_cheese"
+  | "butter"
+  | "margarine"
+  | "tea"
+  | "juice"
+  | "sausage"
+  | "cold_cuts"
+  | "toothpaste"
+  | "deodorant"
   | "generic";
 
 export type SearchIntent = {
@@ -600,6 +656,44 @@ export function uniqueNormalizedQueries(values: string[]) {
 }
 
 export const SEARCH_INTENTS: SearchIntent[] = [
+  {category: "cream", label: "Kermat", variants: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], requiredAny: ["kerma", "kuohukerma", "ruokakerma", "vispikerma"], bannedAny: ["jäätelö", "kermajuusto", "kermaviili"], ownBrandFriendly: true},
+  {category: "quark", label: "Rahkat", variants: ["rahka", "maitorahka", "proteiinirahka"], requiredAny: ["rahka", "maitorahka", "proteiinirahka"], bannedAny: ["rahkapiirakka", "rahkapulla"], ownBrandFriendly: true},
+  {category: "cottage_cheese", label: "Raejuustot", variants: ["raejuusto"], requiredAny: ["raejuusto"], bannedAny: ["raejuustosalaatti"], ownBrandFriendly: true},
+  {category: "cream_cheese", label: "Tuorejuustot", variants: ["tuorejuusto"], requiredAny: ["tuorejuusto"], bannedAny: ["tuorejuustokakku"], ownBrandFriendly: true},
+  {category: "butter", label: "Voit", variants: ["voi", "meijerivoi"], requiredAny: ["voi", "meijerivoi"], bannedAny: ["voitaikina", "voileipä"], ownBrandFriendly: true},
+  {category: "margarine", label: "Margariinit", variants: ["margariini", "kasvirasvalevite"], requiredAny: ["margariini", "kasvirasvalevite"], bannedAny: ["keksi"], ownBrandFriendly: true},
+  {category: "tea", label: "Teet", variants: ["tee", "mustatee", "vihreä tee", "teepussi"], requiredAny: ["tee", "mustatee", "vihreä tee", "teepussi"], bannedAny: ["jäätee", "teejuoma"], ownBrandFriendly: true},
+  {category: "juice", label: "Mehut", variants: ["mehu", "appelsiinimehu", "omenamehu"], requiredAny: ["mehu", "appelsiinimehu", "omenamehu"], bannedAny: ["mehujää", "mehukatti jäätelö"], ownBrandFriendly: true},
+  {category: "sausage", label: "Makkarat", variants: ["makkara", "grillimakkara", "lenkkimakkara", "nakki"], requiredAny: ["makkara", "grillimakkara", "lenkkimakkara", "nakki"], bannedAny: ["makkarakeitto", "makkarakastike"], ownBrandFriendly: true},
+  {category: "cold_cuts", label: "Leikkeleet", variants: ["leikkele", "kinkkuleikkele", "kalkkunaleikkele"], requiredAny: ["leikkele", "kinkkuleikkele", "kalkkunaleikkele"], bannedAny: ["pizza", "salaatti"], ownBrandFriendly: true},
+  {category: "toothpaste", label: "Hammastahnat", variants: ["hammastahna"], requiredAny: ["hammastahna"], bannedAny: ["hammasharja"], ownBrandFriendly: true},
+  {category: "deodorant", label: "Deodorantit", variants: ["deodorantti", "antiperspirantti"], requiredAny: ["deodorantti", "antiperspirantti"], bannedAny: ["suihkugeeli"], ownBrandFriendly: true},
+
+  { category: "mustard", label: "Sinapit", variants: ["sinappi","dijonsinappi","hunajasinappi"], requiredAny: ["sinappi","dijonsinappi","hunajasinappi"], bannedAny: ["majoneesi","sinappikastike"] },
+  { category: "mayonnaise", label: "Majoneesit", variants: ["majoneesi","mayonnaise","majo"], requiredAny: ["majoneesi","mayonnaise","majo"], bannedAny: ["sinappi","salaattikastike"] },
+  { category: "tomato_crush", label: "Tomaattimurskat", variants: ["tomaattimurska","tomaatti murska","passata"], requiredAny: ["tomaattimurska","tomaatti murska","passata"], bannedAny: ["ketsuppi","tomaattipyree"] },
+  { category: "tomato_paste", label: "Tomaattipyreet", variants: ["tomaattipyree","tomaattitahna"], requiredAny: ["tomaattipyree","tomaattitahna"], bannedAny: ["ketsuppi","tomaattimurska"] },
+  { category: "salad_dressing", label: "Salaattikastikkeet", variants: ["salaattikastike","salaatin kastike"], requiredAny: ["salaattikastike","salaatin kastike"], bannedAny: ["majoneesi"] },
+  { category: "oatmeal", label: "Kaurahiutaleet", variants: ["kaurahiutale","kaurahiutaleet","pikakaurahiutale"], requiredAny: ["kaurahiutale","kaurahiutaleet","pikakaurahiutale"], bannedAny: ["kaurajuoma","kauramaito"] },
+  { category: "porridge", label: "Puurot", variants: ["puuro","puurohiutale","mannapuuro","riisipuuro"], requiredAny: ["puuro","puurohiutale","mannapuuro","riisipuuro"], bannedAny: ["puuropata"] },
+  { category: "muesli", label: "Myslit", variants: ["mysli","müsli","granola"], requiredAny: ["mysli","müsli","granola"], bannedAny: ["myslipatukka"] },
+  { category: "breakfast_cereal", label: "Aamiaismurot", variants: ["aamiaismuro","murot","corn flakes","maissihiutale"], requiredAny: ["aamiaismuro","murot","corn flakes","maissihiutale"], bannedAny: ["suklaapatukka"] },
+  { category: "flour", label: "Jauhot", variants: ["vehnäjauho","ruisjauho","jauhot","sämpyläjauho"], requiredAny: ["vehnäjauho","ruisjauho","jauhot","sämpyläjauho"], bannedAny: ["jauheliha"] },
+  { category: "sugar", label: "Sokerit", variants: ["sokeri","hillosokeri","tomusokeri","ruokosokeri"], requiredAny: ["sokeri","hillosokeri","tomusokeri","ruokosokeri"], bannedAny: ["sokeriton"] },
+  { category: "salt", label: "Suolat", variants: ["suola","merisuola","hienosuola","vuorisuola"], requiredAny: ["suola","merisuola","hienosuola","vuorisuola"], bannedAny: ["suolapähkinä"] },
+  { category: "cookies", label: "Keksit", variants: ["keksi","keksit","digestive","piparkakku"], requiredAny: ["keksi","keksit","digestive","piparkakku"], bannedAny: ["keksijäätelö"] },
+  { category: "candy", label: "Makeiset", variants: ["karkki","makeiset","irtokarkki","lakritsi","salmiakki"], requiredAny: ["karkki","makeiset","irtokarkki","lakritsi","salmiakki"], bannedAny: ["karkkipussi koira"] },
+  { category: "chocolate", label: "Suklaat", variants: ["suklaalevy","suklaa","konvehti"], requiredAny: ["suklaalevy","suklaa","konvehti"], bannedAny: ["suklaamaito","suklaajäätelö"] },
+  { category: "jam", label: "Hillot", variants: ["hillo","mansikkahillo","vadelmahillo","marmeladi"], requiredAny: ["hillo","mansikkahillo","vadelmahillo","marmeladi"], bannedAny: ["hillosokeri"] },
+  { category: "honey", label: "Hunajat", variants: ["hunaja","juokseva hunaja"], requiredAny: ["hunaja","juokseva hunaja"], bannedAny: ["hunajasinappi"] },
+  { category: "canned_fish", label: "Kalasäilykkeet", variants: ["tonnikala","sardiini","makrilli säilyke"], requiredAny: ["tonnikala","sardiini","makrilli säilyke"], bannedAny: ["tonnikalapizza"] },
+  { category: "canned_vegetables", label: "Kasvissäilykkeet", variants: ["säilykemaissi","herne-maissi-paprika","säilykeherne","kidneypapu"], requiredAny: ["säilykemaissi","herne-maissi-paprika","säilykeherne","kidneypapu"], bannedAny: ["pakaste"] },
+  { category: "toilet_paper", label: "WC-paperit", variants: ["wc-paperi","vessapaperi","toalettipaperi"], requiredAny: ["wc-paperi","vessapaperi","toalettipaperi"], bannedAny: ["talouspaperi"] },
+  { category: "paper_towels", label: "Talouspaperit", variants: ["talouspaperi","keittiöpaperi"], requiredAny: ["talouspaperi","keittiöpaperi"], bannedAny: ["wc-paperi"] },
+  { category: "laundry_detergent", label: "Pyykinpesuaineet", variants: ["pyykinpesuaine","pyykkipulveri","pyykinpesuneste"], requiredAny: ["pyykinpesuaine","pyykkipulveri","pyykinpesuneste"], bannedAny: ["astianpesuaine"] },
+  { category: "dishwashing", label: "Astianpesuaineet", variants: ["astianpesuaine","konetiskitabletti","käsitiskiaine"], requiredAny: ["astianpesuaine","konetiskitabletti","käsitiskiaine"], bannedAny: ["pyykinpesuaine"] },
+  { category: "soap", label: "Saippuat", variants: ["saippua","nestesaippua","palasaippua"], requiredAny: ["saippua","nestesaippua","palasaippua"], bannedAny: ["astianpesuaine"] },
+  { category: "shampoo", label: "Shampoot", variants: ["shampoo","hiusshampoo"], requiredAny: ["shampoo","hiusshampoo"], bannedAny: ["suihkusaippua"] },
   {
     category: "milk",
     label: "Maidot",
@@ -643,6 +737,14 @@ export const SEARCH_INTENTS: SearchIntent[] = [
     preferredBrands: ["juhla mokka", "presidentti", "kulta katriina", "paulig", "meira"],
   },
   {
+    category: "soft_drink",
+    label: "Virvoitusjuomat",
+    variants: ["limsa", "limsat", "limu", "limut", "virvoitusjuoma", "virvoitusjuomat"],
+    requiredAny: ["virvoitusjuoma", "limsa", "limu", "cola", "coca-cola", "pepsi", "fanta", "sprite", "jaffa", "7up", "7-up", "pommac", "schweppes", "mountain dew", "dr pepper"],
+    preferredAny: ["virvoitusjuoma", "cola", "coca-cola", "pepsi", "fanta", "sprite", "jaffa"],
+    bannedAny: ["karkki", "makeinen", "pastilli", "purukumi", "jäätelö", "jaatelo", "siirappi", "tiiviste", "energiajuoma", "olut", "alkoholi", "kastike"],
+  },
+  {
     category: "cola",
     label: "Cola-juomat",
     variants: ["cola", "coca cola", "coca-cola", "pepsi", "pepsi max", "cola zero", "coca cola zero", "virvoitusjuoma cola"],
@@ -654,6 +756,15 @@ export const SEARCH_INTENTS: SearchIntent[] = [
       { unitGroup: "volume", min: 300, max: 550, boost: 24 },
     ],
     preferredBrands: ["coca-cola", "coca cola", "pepsi", "pepsi max"],
+  },
+  {
+    category: "ketchup",
+    label: "Ketsupit",
+    variants: ["ketsuppi", "ketchup", "tomaattiketsuppi", "tomaatti ketsuppi"],
+    requiredAny: ["ketsuppi", "ketchup"],
+    preferredAny: ["ketsuppi", "ketchup", "tomaattiketsuppi"],
+    bannedAny: ["sipsi", "maustettu", "dippi", "majoneesi", "sinappi", "kastikejauhe", "mausteseos"],
+    preferredSizes: [{ unitGroup: "weight", min: 400, max: 1100, boost: 25 }],
   },
   {
     category: "cheese",
@@ -1613,6 +1724,8 @@ export function isClearlyColaProduct(name: string) {
     "jaatelo",
     "mehujää",
     "mehujaa",
+    "limonadijää",
+    "limonadijaa",
     "sorbetti",
     "jogurtti",
     "rahka",
@@ -1822,26 +1935,44 @@ export function isPremiumBrandProduct(name: string) {
 //
 // Maito ja kahvi jätetään tarkoituksella
 // hieman löysemmiksi, jotta hakutuloksia ei katoa liikaa.
+export function isSameRetailPackage(source: string, candidate: string): boolean {
+  function measure(name: string) {
+    const normalized = String(name).toLocaleLowerCase("fi").replace(/,/g, ".");
+    const match = Array.from(normalized.matchAll(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|ml|kpl)\b/g)).pop();
+    if (!match) return null;
+
+    const unit = match[2];
+    const count = normalized.slice(0, match.index).match(/\b(\d+)\s*[x×]\s*$/)?.[1];
+    const kind = unit === "kg" || unit === "g" ? "mass" : unit === "kpl" ? "count" : "volume";
+    const scale = unit === "kg" || unit === "l" ? 1000 : unit === "dl" ? 100 : 1;
+    return { kind, count, amount: Number(match[1]) * scale };
+  }
+
+  const a = measure(source);
+  const b = measure(candidate);
+  return a !== null && b !== null && a.kind === b.kind && a.count === b.count && a.amount === b.amount;
+}
+
 export function productGroupGate(sourceName: string, targetName: string) {
   // Classify the requested grocery product before accepting ingredient mentions.
   // Applies to every entry point using the shared product-group gate.
   // Identify the requested grocery ingredient BEFORE scoring by price.
   // Recipe modifiers (such as "etikkaa 10 %") must not turn into unrelated matches.
   const requestedRaw = correctSearchQuery(sourceName).toLocaleLowerCase("fi").trim();
-  const requested = /^(?:etikkaa?|väkiviinaetikkaa?)(?:\\s+10\\s*%)?$/.test(requestedRaw)
+  const requested = /^(?:etikkaa?|väkiviinaetikkaa?)(?:\s+10\s*%)?$/.test(requestedRaw)
     ? "etikka"
     : requestedRaw;
   const candidate = targetName.toLocaleLowerCase("fi").trim();
   const exactGroups: Record<string, RegExp> = {
-    sokeri: /\\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\\b/i,
-    merisuola: /\\bmerisuola(?:a)?\\b/i,
-    etikka: /(?:^|\\s|-)etikka\\b|väkiviinaetikka|omenaviinietikka|viinietikka/i,
-    silakka: /\\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\\b/i,
+    sokeri: /\b(?:sokeri|taloussokeri|hillosokeri|fariinisokeri|ruokosokeri|tomusokeri)\b/i,
+    merisuola: /\bmerisuola(?:a)?\b/i,
+    etikka: /(?:^|\s|-)etikka\b|väkiviinaetikka|omenaviinietikka|viinietikka/i,
+    silakka: /\b(?:silakka|silakat|silakoita|silakkafilee|silakkafileet|silakkafileitä)\b/i,
   };
   const excludedPrepared: Record<string, RegExp> = {
     sokeri: /sokeriton|sokerittom|juoma|limonadi|virvoitus|keksi|makeinen|vartalo|kuorinta|kosmeti|ihonhoito|shampoo|saippua|suihkugeeli/i,
     merisuola: /riisikak|sips|perunalast|näkkilei|keks|pähkin|pretzel|suolatik|napostel|snack|maissinaks/i,
-    etikka: /mausteseos|grillimauste|kastike|sips|etikkapunajuuri|maalaissips|pretzel|puhdistusliina/i,
+    etikka: /mausteseos|grillimauste|kastike|sips|perunalast|etikkapunajuuri|maalaissips|pretzel|puhdistusliina|puhdistusaine|pesuaine/i,
     silakka: /silakkalaatikko|silakkapihvi|silakkasäilyke|silakkapyörykkä/i,
   };
   if (exactGroups[requested]) {
@@ -1850,6 +1981,48 @@ export function productGroupGate(sourceName: string, targetName: string) {
 
   const source = normalize(sourceName);
   const target = normalize(targetName);
+
+  // A mixed grocery product must not be matched by weight, price or one
+  // ingredient alone. Read the product identity from its compound ingredient
+  // name, not from the store's category (which can differ between chains).
+  // This is shared by S, K and Tokmanni/SPAR basket comparison.
+  const sourceCompound = String(sourceName).normalize("NFKC").toLocaleLowerCase("fi-FI")
+    .match(/\b([a-zåäö]{4,})-([a-zåäö]{4,})(?:sekoitus|sekoite|mix|pakaste)\b/u);
+  if (sourceCompound) {
+    const candidateWords = normalize(targetName);
+    const sourceParts = [sourceCompound[1], sourceCompound[2]].map(part => normalize(part));
+    // Prefixes accommodate ordinary Finnish inflections without allowing
+    // unrelated products that happen to share the package size.
+    const matchesPart = (part: string) => candidateWords.split(/[^a-z0-9]+/).some(word =>
+      word.startsWith(part.slice(0, Math.max(4, part.length - 2))));
+    if (!sourceParts.every(matchesPart)) return false;
+  }
+
+  // Product form matters: a chocolate bar containing biscuit is not a packet of biscuits.
+  // Keep this guard common to mobile and desktop so either client accepts the same products.
+  const sourceChocolateBar = /(?:suklaalevy|suklaalev|maitosuklaalevy|chocolate bar)/.test(source);
+  if (sourceChocolateBar) {
+    const targetChocolateBar = /(?:suklaalevy|suklaalev|chocolate bar)/.test(target);
+    const targetOtherType = /(?:keksi|cookie|biscuit|domino|vohveli|wafer|patukka|konvehti)/.test(target);
+    if (!targetChocolateBar || targetOtherType) return false;
+  }
+  const sourceBiscuit = /(?:keksi|cookie|biscuit|domino)/.test(source);
+  if (sourceBiscuit && /(?:suklaalevy|suklaalev|chocolate bar)/.test(target)) return false;
+
+  // Oil is the product, not merely an ingredient or flavour. Normalize the
+  // user query and product name equally (accents and inflections included).
+  if (/^(?:oliivioljya?|ruokaoljya?)$/.test(source)) {
+    const standaloneOil = /(?:^|[\s-])(?:extra virgin |ekstra neitsyt |neitsyt |luomu |kylmapuristettu |kevyt )*(?:oliivioljy|rypsioljy|rapsioljy|auringonkukkaoljy|kasvioljy|ruokaoljy|paistooljy)(?:[\s,.-]|$)/;
+    const wrongOilProduct = /(?:oljyssa|oljylla|oljya sisalt|tonnikala|sardiin|muikku|valmisriisi|krutonk|krutonki|edamame|pahkin|sips|perunalast|kastike|majoneesi|marinadi|salaatti|sailyke|lohkoperuna|voileipakeksi|keksi|oivariini|levite|margariini|voi\b|tuorejuusto|mauste|oliivioljy(?:uute|lla|ssa))/;
+    if (!standaloneOil.test(target) || wrongOilProduct.test(target)) return false;
+    if (source.startsWith("oliivi") && !/(?:^|[\s-])oliivioljy(?:[\s,.-]|$)/.test(target)) return false;
+  }
+
+  // Frozen lemonade-flavoured products are not bottled/canned soft drinks.
+  if (/^(?:limonadi|limonadia|limsa|limua|virvoitusjuoma)$/.test(source)) {
+    if (/(?:jäätelö|jaatelo|limonadijää|limonadijaa|jääpuikko|jaapuikko|mehujää|mehujaa|sorbet|karkki|makeinen|pastilli|siirappi|tiiviste|cocktail|mocktail)/.test(target)) return false;
+    if (!/(?:limonadi(?!jää|jaa)|limsa|limu|virvoitusjuoma|cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes)/.test(target)) return false;
+  }
 
   if (source.includes("jauheliha") && !target.includes("jauheliha")) return false;
 
@@ -1927,13 +2100,15 @@ export function productGroupGate(sourceName: string, targetName: string) {
     if (targetIsWrongYogurtProduct) return false;
   }
 
-  const sourceIsCheese = hasAnyToken(source, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+  // Strip Juustoportti brand before product-type matching.
+  const sourceProductName = source.replace(/\bjuustoportti(?:n)?\b/g, " ").trim();
+  const targetProductName = target.replace(/\bjuustoportti(?:n)?\b/g, " ").trim();
+  const sourceIsCheese = hasAnyToken(sourceProductName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
   if (sourceIsCheese) {
-    const targetIsCheese = hasAnyToken(target, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
-    const targetIsWrongCheeseProduct = hasAnyToken(target, [
-      "tuorejuusto",
-      "sulatejuusto",
-      "raejuusto",
+    const targetIsCheese = hasAnyToken(targetProductName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+    // Fresh, processed and cottage cheeses are still cheese. Exclude dips and
+    // sauces, not legitimate cheese types.
+    const targetIsWrongCheeseProduct = hasAnyToken(targetProductName, [
       "juustodippi",
       "dippi",
       "nacho",
@@ -2706,25 +2881,50 @@ export function rankProductResultsByRelevanceAndPrice<T extends Product>(
   products: T[],
   priceOf: (product: T) => number,
 ): T[] {
-  const ranked = rankNormalSearchResults(query, products);
-  const order = new Map(ranked.map((product, index) => [product, index]));
-  return [...products].sort((a, b) => {
-    const aScore = scoreNormalSResult(query, a);
-    const bScore = scoreNormalSResult(query, b);
-    const aTier = Math.floor(aScore / 40);
-    const bTier = Math.floor(bScore / 40);
-    if (aTier !== bTier) return bTier - aTier;
-    const aPrice = priceOf(a);
-    const bPrice = priceOf(b);
-    const validA = Number.isFinite(aPrice) && aPrice > 0;
-    const validB = Number.isFinite(bPrice) && bPrice > 0;
-    if (validA !== validB) return validA ? -1 : 1;
-    if (validA && aPrice !== bPrice) return aPrice - bPrice;
-    return (order.get(a) ?? 0) - (order.get(b) ?? 0);
+  // The normal product picker is always cheapest-first AFTER hard semantic
+  // filtering. RankNormalSearchResults provides the relevance tie-break order,
+  // but must never group provider queries/brands ahead of a cheaper match.
+  return rankNormalSearchResults(query, products, priceOf)
+    // A single shared product-identity decision prevents mobile from accepting
+    // ingredient-flavoured meals, beverages or nonfood that desktop rejects.
+    .filter((product) => desktopSearchDecision(query, { ...product, __price: priceOf(product) }).accepted)
+    .filter((product) => Number.isFinite(priceOf(product)) && priceOf(product) > 0)
+    .sort((a, b) => comparePricedSearchResults(a, b, priceOf));
+}
+
+export function finalizeNormalSearchResults<T extends Product>(
+  query: string,
+  products: T[],
+  priceOf: (product: T) => number,
+  eanOf: (product: T) => string | undefined = product => product.ean,
+  fallbackKeyOf: (product: T) => string = product => String(product.id),
+): T[] {
+  const seen = new Set<string>();
+  return rankProductResultsByRelevanceAndPrice(query, products, priceOf).filter(product => {
+    const ean = normalizeEan(eanOf(product));
+    const key = isUsableEan(ean) ? `ean:${ean}` : `fallback:${fallbackKeyOf(product)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
 }
 
-export function rankNormalSearchResults(query: string, products: Product[]) {
+export function comparePricedSearchResults<T extends { name: string; ean?: string; id?: number | string }>(
+  a: T,
+  b: T,
+  priceOf: (product: T) => number,
+): number {
+  return priceOf(a) - priceOf(b)
+    || normalize(a.name).localeCompare(normalize(b.name), "fi")
+    || String(a.ean || "").localeCompare(String(b.ean || ""))
+    || String(a.id ?? "").localeCompare(String(b.id ?? ""));
+}
+
+export function rankNormalSearchResults<T extends Product>(
+  query: string,
+  products: T[],
+  priceOf: (product: T) => number = getProductPrice,
+): T[] {
   const intent = detectSearchIntent(query);
   const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
 
@@ -2736,6 +2936,11 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
       // Varsinainen piimätuote (myös esim. AB-piimä) ennen tuotteita,
       // joissa piimä esiintyy vain yhdyssanan/raaka-aineen osana.
       return isClearlyButtermilkProduct(product) ? 1 : 0;
+    }
+
+    if (intent.category === "ketchup") {
+      // Tuoteryhmään kuuluva ketsuppi aina ennen pelkkää maku- tai ainesosamainintaa.
+      return /ketsuppi|ketchup/.test(normalize(product.name)) ? 1 : 0;
     }
 
     if (intent.category === "milk") {
@@ -2761,8 +2966,24 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
   }
 
   return products
-    .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
-    .map((product: Product): ScoredProduct & { coreProductIntentRank: number } => ({
+    .filter((product: T) => !comparisonProductType(query) || comparisonProductType(product.name) === comparisonProductType(query))
+    .filter((product: T) => !isBadNormalResult(product, query) && productGroupGate(query, product.name))
+    // Category evidence must be an actual product word, not a substring of
+    // a manufacturer's name (e.g. Maitokolmio is not a milk product).
+    // Accept whole words and meaningful compounds ending in the product noun.
+    .filter((product: T) => {
+      if (intent.category === "generic" || !intent.requiredAny?.length) return true;
+      const words = getNormalizedWords(product.name);
+      const candidates = [...intent.requiredAny, ...(intent.variants ?? [])]
+        .flatMap((term) => getNormalizedWords(term))
+        // Three-letter product nouns such as "voi" and "tee" are valid.
+        .filter((term) => term.length >= 3);
+      return candidates.some((term) => words.some((word) =>
+        word === term || (word.length > term.length && word.endsWith(term))
+      ));
+    })
+    .filter((product: T) => !queryIsEgg || isClearlyEggProduct(product.name))
+    .map((product: T): ScoredProduct & { coreProductIntentRank: number; product: T } => ({
       product,
       score: scoreNormalSResult(query, product),
       categoryConfidence: getCategoryConfidence(intent, product),
@@ -2791,10 +3012,19 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
       const nonFoodDifference = b.nonFoodPenalty - a.nonFoodPenalty;
       if (Math.abs(nonFoodDifference) > 100) return nonFoodDifference;
 
-      return getProductPrice(a.product) - getProductPrice(b.product);
+      // Cheapest comparable product wins only after semantic relevance,
+      // category, size and non-food checks have been applied. Missing prices
+      // are always placed after priced results.
+      const ap = priceOf(a.product);
+      const bp = priceOf(b.product);
+      const comparableA = Number.isFinite(ap) && ap > 0 ? ap : Number.POSITIVE_INFINITY;
+      const comparableB = Number.isFinite(bp) && bp > 0 ? bp : Number.POSITIVE_INFINITY;
+      if (comparableA === comparableB) return 0;
+      return comparableA - comparableB;
     })
     .map(({ product }) => product);
 }
+
 
 export function isNonFoodOffer(offer: ZiiplyOffer) {
   const text = normalize(`${offer.offer.item.name} ${offer.offer.item.category || ""}`);
@@ -2845,9 +3075,32 @@ export function isBadNormalResult(product: Product, query: string) {
   const category = normalize(product.category || "");
   const productText = `${normalizedName} ${category}`;
 
-  if (normalizedQuery.includes("jauheliha") && !productText.includes("jauheliha")) return true;
+  // Shared product-group validation for all normal searches and offer searches.
+  const intentCategory = detectSearchIntent(query).category;
+  if (intentCategory === "butter") {
+    // A butter search is for butter itself, never butter-flavoured snacks,
+    // spreads, ready meals or personal-care products.
+    if (!/(?:^|[\s-])(?:voi|meijerivoi)(?:$|[\s-])/.test(normalizedName)) return true;
+    if (/(?:voitäyte|voitäytte|voiherkku|kasvovoi|vartalovoi|hiusvoi|voide|pullapitko|leivonnainen|margariini|flora|levite|sips|chips|perunalast|maissikakku|napostel|kastike|mauste|marinad|perunat|snack)/.test(normalizedName)) return true;
+    if (/(?:kosmetiikka|hygienia|leipomo|leivonnaiset|sips|napostel|perunalast)/.test(category)) return true;
+  }
+  if (intentCategory === "meat" && /jauheliha/.test(normalizedQuery)) {
+    if (!/jauheliha/.test(normalizedName) || /(?:lastenateria|lastenruoka|piltti|kastike|perunasose|spagetti|lasagne|ateria|keitto|pizza|pitsa|mauste)/.test(normalizedName)) return true;
+  }
+  if (intentCategory === "soft_drink") {
+    if (!/(?:virvoitusjuoma|limsa|limu|cola|coca-cola|pepsi|fanta|sprite|jaffa|7up|7-up|pommac|schweppes|mountain dew|dr pepper)/.test(normalizedName)) return true;
+    if (/(?:karkki|makeinen|pastilli|purukumi|jaatelo|sorbet|siirappi|energiajuoma|olut|lonkero|alkohol|keksi|suklaa|kastike|jogurtti|rahka)/.test(normalizedName)) return true;
+    if (/(?:makeis|kark|leipom|maito|liha|pakaste|alkohol)/.test(category)) return true;
+  }
 
-  const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
+  if (normalizedQuery.includes("jauheliha") && !productText.includes("jauheliha")) return true;
+  if ((normalizedQuery.includes("jogurtti") || normalizedQuery.includes("jogurt")) && /(?:kastike|kuorrute|myslipatukka|patukka)/.test(normalizedName)) return true;
+
+  const queryIsMilk = intentCategory === "milk" || hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
+  // Exact fat-content variants must reject different real milk types.
+  // Keep the generic 'maito' query broad enough for all accepted milks.
+  const requestedMilkType = comparisonProductType(query);
+  if (requestedMilkType && comparisonProductType(product.name) !== requestedMilkType) return true;
   if (queryIsMilk) {
     const positiveMilkSignals = [
       "maito",
@@ -2867,6 +3120,9 @@ export function isBadNormalResult(product: Product, query: string) {
 
     const forbiddenMilkContext = [
       "maitorahka",
+      "rasvaseos",
+      "rasvasekoite",
+      "rasvasekoitus",
       "rahka",
       "kuohukerma",
       "kerma",
@@ -2898,13 +3154,20 @@ export function isBadNormalResult(product: Product, query: string) {
       "maito-kahvijauhe",
       "maitokahvijauhe",
       "maitojauhe",
+      "pullotutti",
+      "tutti",
       "cappuccino",
     ];
 
     if (!hasAnyToken(normalizedName, positiveMilkSignals)) return true;
-    const plainLactoseFreeMilkDrink = /\blaktoositon\b/.test(normalizedQuery) && /\bmaitojuoma\b/.test(normalizedName) && !/(?:kahvi|kaakao|suklaa|makuinen|maustettu|proteiin|pirtelo|latte|cappuccino)/.test(normalizedName);
-    if (hasAnyToken(productText, forbiddenMilkContext) && !plainLactoseFreeMilkDrink) return true;
+    if (hasAnyToken(productText, forbiddenMilkContext)) return true;
+    // Reject adjacent dairy categories by product name, not category metadata:
+    // store category paths may legitimately contain "maidot-ja-piimat".
+    if (hasAnyToken(normalizedName, ["äidinmaidonkorvike", "aidinmaidonkorvike", "vieroitusvalmiste", "vierotusvalmiste", "piimä", "piima", "maitopirtelö", "maitopirtelo"])) return true;
   }
+
+  if (detectSearchIntent(query).category === "ketchup" &&
+      !/ketsuppi|ketchup/.test(normalizedName)) return true;
 
   const queryIsCoffee = isCoffeeSearchTerm(normalizedQuery) || normalizedQuery.includes("juhla mokka");
   if (queryIsCoffee) {
@@ -2912,6 +3175,9 @@ export function isBadNormalResult(product: Product, query: string) {
   }
 
   const queryIsCola = hasAnyToken(normalizedQuery, ["cola", "coca-cola", "coca cola", "pepsi", "kokis"]);
+  // A cola-flavoured product, cocktail or sports shot is not a cola soda.
+  // Reject by product identity, never by score alone.
+  if (queryIsCola && /(?:colada|mocktail|pre[ -]?workout|workout|shot|mehujaa|mehujää|jaatelo|jäätelö|limonadijää)/.test(normalizedName)) return true;
   if (queryIsCola) {
     if (!isClearlyColaProduct(product.name)) return true;
     if (isDifferentColaBrand(query, product.name)) return true;
@@ -2928,9 +3194,11 @@ export function isBadNormalResult(product: Product, query: string) {
     if (!targetIsYogurt || forbiddenWords) return true;
   }
 
-  if (normalizedQuery.includes("juusto")) {
-    const targetIsCheese = hasAnyToken(normalizedName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
-    const forbiddenWords = hasAnyToken(productText, ["tuorejuusto", "sulatejuusto", "raejuusto", "juustodippi", "dippi", "nacho", "kastike"]);
+  if (normalizedQuery.replace(/\bjuustoportti(?:n)?\b/g, " ").includes("juusto")) {
+    // Brand names such as Juustoportti must not qualify unrelated foods as cheese.
+    const productTypeName = normalizedName.replace(/\bjuustoportti(?:n)?\b/g, " ").trim();
+    const targetIsCheese = hasAnyToken(productTypeName, ["juusto", "edam", "emmental", "gouda", "oltermanni"]);
+    const forbiddenWords = hasAnyToken(`${productTypeName} ${category}`, ["juustodippi", "dippi", "nacho", "kastike"]);
     if (!targetIsCheese || forbiddenWords) return true;
   }
 
@@ -3122,6 +3390,8 @@ export function isAllowedByQualityMode(
   sourceBrandName?: string,
   candidateBrandName?: string,
 ) {
+  // All quality modes must preserve explicitly requested milk type and attributes.
+  if (comparisonProductType(sourceName) && !comparisonTypeCompatible(sourceName, candidateName)) return false;
   if (qualityMode === "cheapest") return true;
 
   const source = normalize(sourceName);
@@ -3424,8 +3694,18 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 
 /** Preserve essential product attributes when comparing different retail brands. */
 export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
+  // Apply the same compound-food identity gate to actual basket counterpart
+  // selection, not only to search relevance scoring.
+  if (/\b[a-zåäö]{4,}-[a-zåäö]{4,}(?:sekoitus|sekoite|mix|pakaste)\b/iu.test(sourceName) &&
+      !productGroupGate(sourceName, candidateName)) return false;
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
+  // Normalized strings have no accents; use a literal word boundary for linssit.
+  if (/(?:^|\s)linssi(?:t)?(?:\s|$)/.test(source) && !/(?:linssi|lentil)/.test(candidate)) return false;
+  if (/tomaattipyree/.test(source) && !/(?:tomaattipyree|tomato paste|tomaattitiiviste)/.test(candidate)) return false;
+  if (/oliivioljy/.test(source) &&
+      (!/(?:oliivioljy|olive oil)/.test(candidate) ||
+       /(?:auringonkukkaoljy|rypsioljy|rapeseed oil|sunflower oil|oljyseos|oljyjen seos)/.test(candidate))) return false;
   // Broad K-search fallback may return hundreds of products sharing only
   // the package size. Keep the requested hygiene/cleaning product family.
   if (/\bastianpesuaine\b/.test(source) && !/\b(?:astianpesuaine|tiskiaine|kasitiskiaine)\b/.test(candidate)) return false;

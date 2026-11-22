@@ -523,7 +523,51 @@ function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
   return "";
 }
 
+// Resolve verified product identities before inherited provider and EAN labels.
+export function getVerifiedOfferCategory(item: ZiiplyGostaOfferLike): string {
+  const title = normalizeGostaText(getOfferProductTitleV113(item)).replace(/-+/g, " ");
+  const rules: ReadonlyArray<readonly [RegExp, string]> = [
+    [/^(?:fazer vihreita kuulia|fazer finlandia marmeladi|brunberg tryffeli)(?: |$)|\bmynthon\b.*\b(?:pastilli|85 g)\b/, "Makeiset & keksit"],
+    [/\b(?:kahvirinkeli|tuplapuusti|tahtitortut|kinkku sipulipiiras)\b|^eesti pagar juustorulla\b|^deluxe leivos\b/, "Leipomo"],
+    [/^(?:fazer aito kauraruoka|kuppinuudeli|spar avokadodippikastike|spar maissilastu|spar vehnatortilla)\b|\bhapanjuuripizzataikina\b/, "Kuivatuotteet"],
+    [/^(?:avocado|cantalope meloni|kerakaali|makea persimoni|sipuli ja punasipuli)\b/, "Hevi"],
+    [/^(?:arla normaalisuolainen voi)\b/, "Maitotuotteet"],
+    [/^(?:brazil appelsiini|brazil appelsiinitaysmehu)\b/, "Juomat"],
+    [/^(?:pakkasmarja mansikka)\b/, "Pakasteet"],
+    [/^(?:hk siniset lenkit|ronka aito poronkaristys)\b/, "Liha & makkarat"],
+    [/^(?:kokkikartano pasta tai lasagne|saarioinen ruukut|burgeri)\b/, "Valmisruoka"],
+    [/^vaasan ruispala\b/, "Leipomo"],
+  ];
+  return rules.find(([pattern]) => pattern.test(title))?.[1] ?? "";
+}
+
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
+  // EAN-first: only a category resolved from the exact GTIN/EAN in the Neon
+  // product registry may override provider metadata and text heuristics.
+  // An exact-name match is intentionally NOT authoritative: names may refer to
+  // different pack sizes or products. Unknown/ambiguous EANs keep the existing
+  // conservative fallback until the registry has verified taxonomy evidence.
+  const eanMatch = (item as ZiiplyGostaOfferLike & { neonCategoryMatch?: string; neonDisplayCategory?: string }).neonCategoryMatch;
+  const eanCategory = (item as ZiiplyGostaOfferLike & { neonDisplayCategory?: string }).neonDisplayCategory;
+  // Initial rollout: selected-store K-Citymarket Tjek campaigns only.
+  // Do not alter national leaflets, K-Ruoka, S, Lidl or Tokmanni/Spar.
+  const source = String((item as ZiiplyGostaOfferLike & { source?: string }).source ?? "");
+  const provider = String((item as ZiiplyGostaOfferLike & { provider?: string }).provider ?? "");
+  const localCitymarketTjek = provider === "kcitymarket-local" &&
+    source === "K-Citymarket kauppakohtainen julkaisu";
+  if (localCitymarketTjek && (eanMatch === "ean" || eanMatch === "catalog-identity") && typeof eanCategory === "string" &&
+      GOSTA_CATEGORY_LABELS_V136.includes(eanCategory)) return eanCategory;
+
+  // A verified Tjek source department is more reliable than generic title
+  // heuristics. Exact EAN identity above still takes precedence.
+  const tjekDebug = item?.debug && typeof item.debug === "object" ? item.debug as Record<string, unknown> : null;
+  if (localCitymarketTjek && tjekDebug?.categorySource === "tjek-department" &&
+      typeof item.category === "string" && GOSTA_CATEGORY_LABELS_V136.includes(item.category)) {
+    return item.category;
+  }
+
+  const verifiedCategory = getVerifiedOfferCategory(item);
+  if (verifiedCategory) return verifiedCategory;
   const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
 
   // Cookie/gingerbread identity is an explicit cross-provider correction: it
@@ -709,6 +753,7 @@ export function isBadOfferSearchResultV106(item: ZiiplyGostaOfferLike) {
   void priceText;
 
   const normalizedTitle = normalizeGostaText(title);
+  if (/\b(?:sukkalanka|pullotunkki|ompelutarvikelaatikko)\b/.test(normalizedTitle)) return true;
   const hardJunkTitlePatterns = [
     /^(0\s*)?kappaletta(\s+ostoskorissa)?$/,
     /^ostoskori$/,

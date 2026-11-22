@@ -1,0 +1,28 @@
+name: GPS arrival regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/app/components/ziiply/location/**'
+      - 'scripts/test-gps-arrival-*.mjs'
+      - 'scripts/test-ziiply-arrival-*.cjs'
+      - 'scripts/test-gps-arrival-integration.cjs'
+      - '.github/workflows/gps-arrival-regression.yml'
+  workflow_dispatch:
+jobs:
+  gps-arrival:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Arrival decision, notice and GPS scenarios
+        run: |
+          node scripts/test-ziiply-arrival-sequence.cjs
+          node scripts/test-ziiply-arrival-scenarios.cjs
+          node scripts/test-gps-arrival-notice.mjs
+          node scripts/test-gps-arrival-integration.cjs
