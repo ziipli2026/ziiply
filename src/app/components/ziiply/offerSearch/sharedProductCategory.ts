@@ -6,9 +6,9 @@ export function classifySharedProductCategory(value: unknown): string | null {
   if (!s) return null;
   // Compound words: the final product form outranks an ingredient prefix.
   // These rules apply identically to every chain.
-  if (/(?:^|\\s)\\p{L}*(?:maitojuoma|kaakaojuoma|suklaajuoma)\\p{L}*(?=\\s|$)/u.test(s)) return "Juomat";
-  if (/(?:^|\\s)\\p{L}*(?:suklaa|konvehti|karkki|makeinen)\\p{L}*(?=\\s|$)/u.test(s)) return "Makeiset & keksit";
-  if (/(?:^|\\s)\\p{L}*(?:pizza|laatikko|lasagne|keitto)\\p{L}*(?=\\s|$)/u.test(s)) return "Valmisruoka";
+  if (/(?:^|\s)\p{L}*(?:maitojuoma|kaakaojuoma|suklaajuoma)\p{L}*(?=\s|$)/u.test(s)) return "Juomat";
+  if (/(?:^|\s)\p{L}*(?:suklaa|konvehti|karkki|makeinen)\p{L}*(?=\s|$)/u.test(s)) return "Makeiset & keksit";
+  if (/(?:^|\s)\p{L}*(?:pizza|laatikko|lasagne|keitto)\p{L}*(?=\s|$)/u.test(s)) return "Valmisruoka";
   const rules: Array<[RegExp, string]> = [
     [/(?:^|\s)(?:kirja|kirjat|paistinpannu|kattila|lelu|vaate|takki|housut|kenkä|valaisin|lamppu|työkalu|kalenteri|grilli|muki|lakana|pyyhe|sisustustyyny)\p{L}*(?=\s|$)/u, "Koti & vapaa-aika"],
     [/(?:^|\s)(?:koiranruoka|kissanruoka|koiranherkku|kissanherkku|lemmikinruoka)\p{L}*(?=\s|$)/u, "Lemmikit"],
