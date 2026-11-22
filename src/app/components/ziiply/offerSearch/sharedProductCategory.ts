@@ -10,7 +10,7 @@ export function classifySharedProductCategory(value: unknown): string | null {
     [/(?:^|\s)(?:wc paperi|talouspaperi|astianpesu|pyykinpesu|pesuaine|siivousliina|puhdistusaine)\p{L}*(?=\s|$)/u, "Kodinhoito"],
     [/(?:^|\s)(?:shampoo|saippua|hammastahna|hammasharja|deodorantti|kasvovoide|kosteusvoide|suihkugeeli|vaippa)\p{L}*(?=\s|$)/u, "Hygienia & kosmetiikka"],
     [/(?:^|\s)\p{L}*(?:juustokakku|täytekakku|kakku|leivos|rahkapulla|pulla|croissant|munkki|piirakka|sämpylä|leipä|patonki|rieska|näkkileipä|karjalanpiirakka)\p{L}*(?=\s|$)/u, "Leipomo"],
-    [/(?:^|\s)(?:lihapull|lihapöyry|lihapyor|jauheliha|makkara|nakki|pekoni|kinkku|broileri|kanasuikale|porsaan|naudan)\p{L}*(?=\s|$)/u, "Liha & makkarat"],
+    [/(?:^|\s)(?:lihapull|lihapyöry|lihapyor|jauheliha|makkara|nakki|pekoni|kinkku|broileri|kanasuikale|porsaan|naudan)\p{L}*(?=\s|$)/u, "Liha & makkarat"],
     [/(?:^|\s)(?:lohi|kirjolohi|tonnikala|silakka|seiti|katkarapu|kalafile|kalapuikko)\p{L}*(?=\s|$)/u, "Kala"],
     [/(?:^|\s)(?:pizza|lasagne|valmisateria|valmisruoka|keitto|salaattiateria|risotto|lihapata|wokki)\p{L}*(?=\s|$)/u, "Valmisruoka"],
     [/(?:^|\s)(?:jäätelö|pakaste|pakastettu|pakastevihannes|pakastemarj)\p{L}*(?=\s|$)/u, "Pakasteet"],
