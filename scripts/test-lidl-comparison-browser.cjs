@@ -65,6 +65,12 @@ if (mode === 'offers') {
     if (!category || category === 'Muut') uncategorized.push(String(row.productName || row.title || row.name));
   }
   console.log('AUDIT_PRODUCTION_BASELINE',tag,JSON.stringify({api:'https://ziiply.vercel.app',total:response.data.results.length,categoryCounts,uncategorized:uncategorized.slice(0,40)}));
+  // The original browser check only required one visible meat offer. Fail if
+  // the live category feed silently loses classifications in any section.
+  const allowedCategories = new Set(['Kahvi & tee','Maitotuotteet','Liha & makkarat','Kala','Leipomo','Hevi','Juomat','Pakasteet','Valmisruoka','Kuivatuotteet','Makeiset & keksit','Lastenruoat','Lastenhoito','Vitamiinit & ravinteet','Lemmikit','Hygienia & kosmetiikka','Kodinhoito','Koti & vapaa-aika']);
+  const unexpectedCategories = Object.keys(categoryCounts).filter(category => !allowedCategories.has(category));
+  assert.deepEqual(unexpectedCategories,[],'Lidl offers contain unknown or unclassified category labels');
+  assert.equal(uncategorized.length,0,'Lidl offers must not have missing/Muut categories');
   const shown = [];
   for (const row of offers) {
     const title = String(row.productName || row.title || row.name);
