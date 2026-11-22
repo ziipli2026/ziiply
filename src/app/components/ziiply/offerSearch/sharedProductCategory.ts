@@ -11,6 +11,16 @@ export function classifySharedProductCategory(value: unknown): string | null {
         /(?:koiran|kissan|lemmikin)(?:ruoka|herkku|lelu|asu|puku|panta|peti)/u.test(s)) return "Lemmikit";
   }
   if (/(?:^|\s)(?:halloween|naamiais|koiran|kissan)(?:\s|\p{L})*(?:asu|puku)(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
+  // Explicit non-grocery product forms must be excluded before food terms.
+  // Brand alone is not evidence: classify the actual item, not Parkside/Esmara.
+  if (/(?:^|\s)\p{L}*(?:pölynimuri|rikkaimuri|poranterä|kuljetusvaunu|taloustikkaat|kiinnityskoukku|hiomapaperi|hiomakone|työvalo|punosvyö|kiintolenkkiavain|ruuvipuristin|asennustyökalu|kulmapuristin|lämpöpuhallin|haarotuspistorasia|haaroituspistorasia|hiustenmuotoilija|neulepaita|pyjama|farkut|tekoturkisliivi|tohveli|bokserit|pitkähihainen)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
+  if (/(?:^|\s)\p{L}*(?:joulukaktus|joulutähti|amaryllis|hyasintti|lasiruukku|istutus)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
+  // Distinct food forms: do not treat the generic Christmas or winter prefix
+  // as evidence, and never classify by a brand name.
+  if (/(?:^|\s)\p{L}*(?:glögi|talvilimonadi|jouluolut)\p{L}*(?=\s|$)/u.test(s)) return "Juomat";
+  if (/(?:^|\s)\p{L}*(?:suodatinkahvi|kauragurtti)\p{L}*(?=\s|$)/u.test(s)) return /gurtti/u.test(s) ? "Maitotuotteet" : "Kahvi & tee";
+  if (/(?:^|\s)\p{L}*(?:manteli|rusinasekoitus|pähkinäsekoitus)\p{L}*(?=\s|$)/u.test(s)) return "Kuivatuotteet";
+  if (/(?:^|\s)\p{L}*(?:lumiukko|lumiukot)\p{L}*(?=\s|$)/u.test(s) && /kreemi|täyte/u.test(s)) return "Makeiset & keksit";
   // Frozen product form takes precedence over pizza, vegetables or meat.
   // This is a product-form rule, not a Lidl-specific exception.
   if (/(?:^|\s)(?:pakaste|pakastettu|pakastetut)\p{L}*(?=\s|$)/u.test(s) ||
