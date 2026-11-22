@@ -19,9 +19,9 @@ export function classifySharedProductCategory(value: unknown): string | null {
   // prefixes in the actual weekly offer feed; never use an ingredient alone.
   if (/(?:^|\s)(?:mineraali|vitamiini|omega[-\s]?\d+|vitanallet|ravintolisä)\p{L}*(?=\s|$)/u.test(s)) return "Vitamiinit & ravinteet";
   if (/(?:^|\s)(?:avokado|granaattiomena)\p{L}*(?=\s|$)/u.test(s)) return "Hevi";
-  if (/(?:^|\s)(?:carpaccio|bresaola|prosciutto|salami|fileesuikale|hunajasiivet|koipipala|liekkisiivet|wienerleike|kylkipala|uunikana|ahvenkukko)\p{L}*(?=\s|$)/u.test(s)) return "Liha & makkarat";
+  if (/(?:^|\s)(?:carpaccio|bresaola|prosciutto|salami|fileesuikale|hunajasiivet|koipipala|liekkisiivet|wienerleike|kylkipala|uunikana)\p{L}*(?=\s|$)/u.test(s)) return "Liha & makkarat";
   if (/(?:^|\s)(?:moussejälkiruoka|florentiini|vaahtotikkari|joulumakeiset)\p{L}*(?=\s|$)/u.test(s)) return "Makeiset & keksit";
-  if (/(?:^|\s)(?:panini|torttutaikina|piparitaikina|tähtitorttu|uuniperuna)\p{L}*(?=\s|$)/u.test(s)) return "Leipomo";
+  if (/(?:^|\s)(?:panini|torttutaikina|piparitaikina|tähtitorttu|uuniperuna|ahvenkukko)\p{L}*(?=\s|$)/u.test(s)) return "Leipomo";
   if (/(?:^|\s)(?:lähdevesi|vesi)(?=\s|$)/u.test(s)) return "Juomat";
   // Compound words: the final product form outranks an ingredient prefix.
   // These rules apply identically to every chain.
