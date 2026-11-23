@@ -1,4 +1,5 @@
 "use client";
+import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry } from "../components/ziiply/search/searchTelemetry";
 import { formatSearchResultComparisonPrice } from "../components/ziiply/search/searchResultComparisonPrice";
 import ProductEnergy from "../components/ziiply/cards/ProductEnergy";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonProductType, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "../components/ziiply/comparisonBrand";
@@ -2398,6 +2399,7 @@ export default function DesktopPreviewPage() {
     }
     const nearbyOfferStores=gostaNearbyOfferStores();
     if(!nearbyOfferStores.length){setGostaHomeError("Lähialueen kauppoja ei löytynyt. Tarkista sijainti.");return;}
+    const telemetry = beginSearchTelemetry("offer");
     const request=++gostaHomeRequestId.current;
     if(!cached)setGostaHomeLoading(true);setGostaHomeHasSearched(true);setGostaHomeError("");
     const batches=await Promise.allSettled(nearbyOfferStores.map(async store=>{
@@ -2407,7 +2409,7 @@ export default function DesktopPreviewPage() {
       const matching=results.filter((offer:any)=>desktopSearchDecision(query,{...offer,name:String(offer.title||offer.name||"")}).accepted);
       return rankNormalSearchResults(query,matching.map((offer:any)=>({...offer,name:String(offer.title||offer.name||"")}))).map((offer:any)=>({...offer,__gostaHomeStore:String(store?.name||chain),__gostaHomeChain:chain==="LIDL"?"Lidl":chain==="EUROSPAR"?"Eurospar":chain==="TOKMANNI"?"Tokmanni":chain==="S"?"S-ryhmä":"K-ryhmä",__gostaHomeCity:String(store?.city||store?.municipality||store?.locality||""),__gostaHomeDistance:distanceKm(store),__gostaHomeGroup:kind==="sHyper"||kind==="kHyper"?"Marketit":kind==="sLocal"||kind==="kLocal"?"Lähikaupat":kind==="lidl"?"Lidl":"Tokmanni / Spar"}));
     }));
-    if(request!==gostaHomeRequestId.current)return;
+    if(request!==gostaHomeRequestId.current){cancelSearchTelemetry(telemetry);return;}
     const allMatches=batches.flatMap(batch=>batch.status==="fulfilled"?batch.value:[]);
     const refreshed=rankProductResultsByRelevanceAndPrice(query,allMatches.filter((offer:any)=>desktopSearchDecision(query,{...offer,name:String(offer.title||offer.name||"")}).accepted),(offer:any)=>{
       const displayed=splitOfferDisplayPrice(getOfferPrice(offer)).amount;
@@ -2416,6 +2418,8 @@ export default function DesktopPreviewPage() {
     }).slice(0,120);
     if(refreshed.length||batches.every(batch=>batch.status==="fulfilled")){const time=Date.now();persistGostaHomeCache(gostaHomeQuery,refreshed,time);setGostaHomeResults(refreshed);gostaHomeLastSearch.current={query:gostaHomeQuery,time};}
     if(batches.some(batch=>batch.status==="rejected"))setGostaHomeError("Osan kaupoista tarjouksia ei saatu ladattua.");
+    const failed = batches.filter(batch => batch.status === "rejected").length;
+    finishSearchTelemetry(telemetry, failed === batches.length ? "error" : failed ? "partial_source_failure" : refreshed.length ? "priced_results" : "no_priced_results", refreshed.length);
     setGostaHomeLoading(false);
   }
   async function openDesktopGostaChain(chain:"S"|"K"|"LIDL"|"TOKMANNI"|"EUROSPAR", store:any) {
@@ -2639,6 +2643,7 @@ export default function DesktopPreviewPage() {
       setJustiinaMessage("");
     }
     // The typing debounce is applied in the effect below; never delay a started search again.
+    const telemetry = diagnostic ? null : beginSearchTelemetry("normal");
     try{
       const stores: NormalSearchStore[] = [];
       for (const store of selected) {
@@ -2668,12 +2673,13 @@ export default function DesktopPreviewPage() {
       if(!diagnostic)traceNormal("merge_complete",{query,storeCount:rankedRows.length,failures,products:sortedRows});
       if(diagnostic)report("complete",{failures,acceptedBeforeRanking:rows.length,displayedCount:sortedRows.length,decisions:productDecisions.map(({product,...decision})=>({...decision,name:product.name,ean:product.ean}))});
       if(diagnostic)return sortedRows.length>0;
-      if(generation!==desktopVoiceRunRef.current)return false;
+      if(generation!==desktopVoiceRunRef.current){if(telemetry)cancelSearchTelemetry(telemetry);return false;}
+      if(telemetry) finishSearchTelemetry(telemetry, failures.length ? "partial_source_failure" : sortedRows.length ? "priced_results" : "no_priced_results", sortedRows.length);
       setJustiinaDebug({query,status:"Valmis",selectedStores:selected.map(x=>({id:x.id,externalId:x.externalId,name:x.name,kind:storeKind(x)})),failures,providers:batches.map(b=>({chain:b.chain,store:b.store?.name,storeId:b.store?.id,source:b.data?.source,apiStatus:b.data?.status,error:b.data?.error,rawCount:Array.isArray(b.data?.items)?b.data.items.length:Array.isArray(b.data?.products)?b.data.products.length:0,examples:(b.data?.items||b.data?.products||[]).slice(0,3).map((x:any)=>x.name)})),rankedCount:sortedRows.length});
       setJustiinaResults(sortedRows);
             justiinaLastSearchedRef.current=query.trim();justiinaUserEditedRef.current=false;justiinaAddedDuringSelectionRef.current=false;setJustiinaResultsOpen(sortedRows.length>0);if(stores.some(store=>store.chain==="LIDL"))setJustiinaMessage("Lidl ei ole mukana normaalihintojen tuotehaussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.");else if(!sortedRows.length)setJustiinaMessage(`Valituista kaupoista ei löytynyt hinnallisia tuotteita haulla "${query}".`);
       return sortedRows.length > 0;
-    }catch(error){report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaResults([]);setJustiinaResultsOpen(false);setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
+    }catch(error){if(telemetry){if(generation!==desktopVoiceRunRef.current || (error instanceof Error && error.name==="AbortError")) cancelSearchTelemetry(telemetry);else finishSearchTelemetry(telemetry,"error");}report("error",{error:String(error)});if(!diagnostic)traceNormal("search_error",{query,error:String(error)});if(!diagnostic&&generation===desktopVoiceRunRef.current){setJustiinaResults([]);setJustiinaResultsOpen(false);setJustiinaDebug({query,status:"Poikkeus",error:String(error)});setJustiinaMessage("Haku ei onnistunut. Yritä uudelleen.");}return false;}finally{if(!diagnostic&&generation===desktopVoiceRunRef.current)setJustiinaLoading(false)}
   }
 
   async function runDesktopJustiinaSearch(raw=justiinaQuery, voiceRunId?:number, diagnostic?: { observe: SearchDebugObserver; signal: AbortSignal }) {
