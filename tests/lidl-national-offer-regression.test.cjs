@@ -43,3 +43,18 @@ test("Lidl rejects zero, negative, NaN, malformed and absent offer prices", () =
   }
   assert.equal(resolveLidlGroceryCategories([{ title: "Banaani", price: 1.29, offerPrice: 1.29 }]).length, 1);
 });
+
+test("Lidl classifies fresh produce and fish and excludes durable goods without an EAN catalog", () => {
+  const groceries = [
+    ["Kotimainen yleisperuna 2 kg", "Hevi"],
+    ["Kotimainen punainen suippopaprika 200 g", "Hevi"],
+    ["Kotimainen punajuuri 1 kg", "Hevi"],
+    ["Kylmäsavulohisiivu", "Kala"],
+  ];
+  const durableGoods = ["Märkä- ja kuivaimuri", "Kevyttoppatakki", "Akkuruuvinväännin", "Nahkaturvakengät"];
+  const items = [...groceries.map(([title]) => title), ...durableGoods].map(title => ({ title, price: 2.49 }));
+  assert.deepEqual(resolveLidlGroceryCategories(items).map(x => [x.title, x.category]), groceries);
+  for (const title of durableGoods) {
+    assert.equal(resolveLidlGroceryCategories([{ title, price: 2.49, neonCategoryMatch: "ean", neonDisplayCategory: "Hevi" }]).length, 0, title);
+  }
+});
