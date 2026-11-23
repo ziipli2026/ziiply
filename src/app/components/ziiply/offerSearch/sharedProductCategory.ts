@@ -13,7 +13,7 @@ export function classifySharedProductCategory(value: unknown): string | null {
   if (/(?:^|\s)(?:halloween|naamiais|koiran|kissan)(?:\s|\p{L})*(?:asu|puku)(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   // Explicit non-grocery product forms must be excluded before food terms.
   // Brand alone is not evidence: classify the actual item, not Parkside/Esmara.
-  if (/(?:^|\s)\p{L}*(?:pölynimuri|rikkaimuri|poranterä|kuljetusvaunu|taloustikkaat|kiinnityskoukku|kiinnityskouku|hiomapaperi|hiomakone|työvalo|punosvyö|kiintolenkkiavain|ruuvipuristin|asennustyökalu|kulmapuristin|lämpöpuhallin|haarotuspistorasia|haaroituspistorasia|hiustenmuotoilija|neulepaita|pyjama|farkut|tekoturkisliivi|tohveli|bokserit|pitkähihainen)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
+  if (/(?:^|\s)\p{L}*(?:pölynimuri|rikkaimuri|kuivaimuri|märkäimuri|ruuvinväännin|toppatakki|turvaken(?:kä|g)|poranterä|kuljetusvaunu|taloustikkaat|kiinnityskoukku|kiinnityskouku|hiomapaperi|hiomakone|työvalo|punosvyö|kiintolenkkiavain|ruuvipuristin|asennustyökalu|kulmapuristin|lämpöpuhallin|haarotuspistorasia|haaroituspistorasia|hiustenmuotoilija|neulepaita|pyjama|farkut|tekoturkisliivi|tohveli|bokserit|pitkähihainen)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   if (/(?:^|\s)\p{L}*(?:joulukaktus|joulutähti|amaryllis|hyasintti|lasiruukku|istutus)\p{L}*(?=\s|$)/u.test(s)) return "Koti & vapaa-aika";
   // Distinct food forms: do not treat the generic Christmas or winter prefix
   // as evidence, and never classify by a brand name.
@@ -53,7 +53,7 @@ export function classifySharedProductCategory(value: unknown): string | null {
     [/(?:^|\s)\p{L}*(?:joulukeksi|pistaasikeksi|florentiini|vaahtotikkari|joulumakeinen)\p{L}*(?=\s|$)/u, "Makeiset & keksit"],
     [/(?:^|\s)\p{L}*(?:torttutaikina|piparitaikina|tähtitorttu|panini|ahvenkukko)\p{L}*(?=\s|$)/u, "Leipomo"],
     [/(?:^|\s)\p{L}*(?:lähdevesi|kivennäisvesi|mehujuoma)\p{L}*(?=\s|$)/u, "Juomat"],
-    [/(?:^|\s)\p{L}*(?:avokado|granaattiomena|uuniperuna)\p{L}*(?=\s|$)/u, "Hevi"],
+    [/(?:^|\s)\p{L}*(?:avokado|granaattiomena|yleisperuna|uuniperuna|suippopaprika|punajuuri)\p{L}*(?=\s|$)/u, "Hevi"],
   ];
   for (const [pattern, category] of compoundForms) if (pattern.test(s)) return category;
   // Recognition by the main product type also handles adjective and brand
@@ -76,7 +76,7 @@ export function classifySharedProductCategory(value: unknown): string | null {
     [/(?:^|\s)(?:shampoo|saippua|hammastahna|hammasharja|deodorantti|kasvovoide|kosteusvoide|suihkugeeli|vaippa)\p{L}*(?=\s|$)/u, "Hygienia & kosmetiikka"],
     [/(?:^|\s)\p{L}*(?:juustokakku|täytekakku|kakku|leivos|rahkapulla|pulla|croissant|munkki|piirakka|sämpylä|leipä|patonki|rieska|näkkileipä|karjalanpiirakka)\p{L}*(?=\s|$)/u, "Leipomo"],
     [/(?:^|\s)(?:lihapull|lihapyöry|lihapyor|jauheliha|makkara|nakki|pekoni|kinkku|broileri|kanasuikale|porsaan|naudan)\p{L}*(?=\s|$)/u, "Liha & makkarat"],
-    [/(?:^|\s)(?:lohi|kirjolohi|tonnikala|silakka|seiti|katkarapu|kalafile|kalapuikko)\p{L}*(?=\s|$)/u, "Kala"],
+    [/(?:^|\s)(?:kylmäsavulohi|lämminsavulohi|graavilohi|lohi|kirjolohi|tonnikala|silakka|seiti|katkarapu|kalafile|kalapuikko)\p{L}*(?=\s|$)/u, "Kala"],
     [/(?:^|\s)(?:pizza|lasagne|valmisateria|valmisruoka|keitto|salaattiateria|risotto|lihapata|wokki)\p{L}*(?=\s|$)/u, "Valmisruoka"],
     [/(?:^|\s)(?:jäätelö|pakaste|pakastettu|pakastevihannes|pakastemarj)\p{L}*(?=\s|$)/u, "Pakasteet"],
     [/(?:^|\s)(?:suklaa|karkki|makeinen|keksi|lakritsi|salmiakki|konvehti|piparkakku)\p{L}*(?=\s|$)/u, "Makeiset & keksit"],
