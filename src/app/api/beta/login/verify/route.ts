@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 import { createBetaToken, hashBetaToken, BETA_SESSION_TTL_MS } from "../../../../../lib/ziiplyBetaAuthTokens.mjs";
 import { BETA_COOKIE_NAME, betaCookieOptions } from "../../../../../lib/ziiplyBetaSessionSecurity.mjs";
+import { betaPostHogIdentity, captureZiiplyEvent } from "../../../../../lib/ziiplyPostHog";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const noStore = { "Cache-Control": "no-store" };
@@ -45,11 +46,23 @@ export async function POST(request: Request) {
     )
     INSERT INTO public.ziiply_beta_sessions (user_id, token_hash, expires_at)
     SELECT id, ${sessionHash}, ${sessionExpiry} FROM beta_user WHERE disabled_at IS NULL
-    RETURNING id
+    RETURNING user_id
   `;
   if (!result.length)
     return NextResponse.json({ ok: false, code: "INVALID_OR_EXPIRED_LINK" }, { status: 400, headers: noStore });
   const response = NextResponse.json({ ok: true }, { headers: noStore });
   response.cookies.set(BETA_COOKIE_NAME, sessionToken,  { ...betaCookieOptions(), sameSite: "lax" as const });
+  const userId = result[0].user_id;
+  if (typeof userId === "string") {
+    after(async () => {
+      try {
+        const { distinctId, properties } = betaPostHogIdentity(userId);
+        const { accepted } = await captureZiiplyEvent("beta_login_succeeded", distinctId, properties);
+        if (!accepted) console.warn("[ziiply-beta-telemetry] login event rejected");
+      } catch {
+        console.warn("[ziiply-beta-telemetry] login event delivery failed");
+      }
+    });
+  }
   return response;
 }
