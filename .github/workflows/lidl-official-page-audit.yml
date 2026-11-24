@@ -1,12 +1,22 @@
+# 24.11.2026 – Automaattiajo pois toistaiseksi. Käsiajo: Actions → Run workflow.
+# Aiemmat käynnistykset: päivittäin klo 03.17 UTC (17 3 * * *) ja main-push,
+# kun data/lidl/official-grocery-candidates-v44-2026-10-01.json muuttui.
+#
+# Tutkimusajo tarkistaa Lidl.fi:n tuotesivuilta kuvien saatavuuden, GTIN/EAN-
+# ehdokkaat ja rakenteiset hintatiedot. Se raportoi löydökset ja voi päivittää
+# tutkimushaun kuvalistan, jos vähintään 90 kuvaosoitetta on vahvistettu.
+#
+# 24.11.2026: 197 tuotesivusta 195 palautti HTTP 404:n ja kahdessa tuli
+# verkkovirhe. Vahvistettuja kuvia löytyi 0, joten julkaisuraja säilytti
+# aiemman kuvalistan. Edellinen ajo päättyi samoin. Tutkimus ei tuottanut
+# luotettavaa aineistoa, jossa EAN ja ajantasainen normaalihinta yhdistyvät.
+# https://github.com/ziipli2026/ziiply/actions/runs/45408119289/job/138494241026
+#
+# Harkitse automaattiajoa uudelleen, kun toimiva tuotesivulähde on todennettu.
+# Göstan Lidl-tarjousjulkaisut päivittyvät erillisellä lidl-publications-ajolla.
 name: Lidl official product page audit
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '17 3 * * *'
-  push:
-    branches: [main]
-    paths:
-      - 'data/lidl/official-grocery-candidates-v44-2026-10-01.json'
 jobs:
   audit:
     runs-on: ubuntu-latest
