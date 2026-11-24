@@ -48,6 +48,9 @@ export default function AdminPage() {
  }
  return <main className="beta-admin" style={{maxWidth:1280,margin:"0 auto",minHeight:"100dvh",boxSizing:"border-box",padding:"clamp(12px,3vw,32px)",fontFamily:"system-ui",color:"#17212f"}}>
  <h1 style={{fontSize:"clamp(22px,3vw,30px)",margin:"0 0 16px"}}>Ziiply – beetatestaajien hallinta</h1>
+ {counts && <nav aria-label="Beetatestauksen hallinta" style={{marginBottom:16}}>
+ <a href="/beta/hallinta/palaute">Beetatestaajien palaute</a>
+ </nav>}
  {counts && <div className="beta-dashboard">
  <section className="beta-panel"><div className="beta-section-head"><div><h2>Beetatestaajien tilanne</h2><p>Ilmoittautumiset ja käyttöoikeudet</p></div><strong className="beta-total">{counts.reduce((n,x)=>n+Number(x.count),0)} / 400</strong></div>
  <div className="beta-stats">{counts.map(x=><div className="beta-stat" key={x.status}><span>{({registered:"Ilmoittautunut",waitlist:"Jonossa",invited:"Kutsuttu",active:"Aktiivinen",withdrawn:"Poistettu"} as Record<string,string>)[x.status]||x.status}</span><strong>{x.count}</strong></div>)}</div></section>

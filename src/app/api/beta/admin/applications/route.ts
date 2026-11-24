@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
-import { hashBetaToken } from "../../../../../lib/ziiplyBetaAuthTokens.mjs";
+import { isBetaAdminSession } from "../../../../../lib/ziiplyBetaAdminSession";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const headers={"Cache-Control":"no-store"};
-async function authorized(request:NextRequest) {
- if(!process.env.DATABASE_URL || !process.env.ZIIPLY_BETA_ADMIN_EMAIL) return false;
- let hash:string;
- try {hash=hashBetaToken(request.cookies.get("__Host-ziiply_beta_admin")?.value||"");}catch{return false;}
- const sql=neon(process.env.DATABASE_URL);
- const valid=await sql`SELECT 1 FROM public.ziiply_beta_admin_tokens WHERE token_hash=${hash} AND purpose='session' AND revoked_at IS NULL AND expires_at>now() LIMIT 1`;
- return valid.length>0;
-}
 export async function GET(request:NextRequest) {
- if(!await authorized(request)) return NextResponse.json({error:"Forbidden"},{status:403,headers});
+ if(!await isBetaAdminSession(request.cookies.get("__Host-ziiply_beta_admin")?.value)) return NextResponse.json({error:"Forbidden"},{status:403,headers});
  const sql=neon(process.env.DATABASE_URL!);
  const rows=await sql`SELECT id::text AS id,email,municipality,profile_key,status,created_at,invited_at,whatsapp_phone
  FROM public.ziiply_beta_applications ORDER BY created_at DESC,id DESC LIMIT 400`;
  return NextResponse.json({applications:rows},{headers});
 }
 export async function PATCH(request:NextRequest) {
- if(request.headers.get("origin")!==new URL(request.url).origin || !await authorized(request))
+ if(request.headers.get("origin")!==new URL(request.url).origin || !await isBetaAdminSession(request.cookies.get("__Host-ziiply_beta_admin")?.value))
    return NextResponse.json({error:"Forbidden"},{status:403,headers});
  let body:{id?:string,status?:string};
  try {body=await request.json();}catch{return NextResponse.json({error:"Invalid body"},{status:400,headers});}
