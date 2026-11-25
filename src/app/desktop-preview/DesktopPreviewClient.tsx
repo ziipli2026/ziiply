@@ -1,5 +1,5 @@
 "use client";
-import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry } from "../components/ziiply/search/searchTelemetry";
+import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry, recordSearchProductAddedToCart } from "../components/ziiply/search/searchTelemetry";
 import { formatSearchResultComparisonPrice } from "../components/ziiply/search/searchResultComparisonPrice";
 import ProductEnergy from "../components/ziiply/cards/ProductEnergy";
 import { comparisonAlternativeQueries, comparisonBrand, comparisonProductType, comparisonTypeCompatible, isComparisonOwnBrand, sameComparisonBrand } from "../components/ziiply/comparisonBrand";
@@ -2160,6 +2160,7 @@ export default function DesktopPreviewPage() {
     }
     const key=desktopCartKey(p);if(!key)return;
     if(p?.source==="justiina" && p?.__chain && justiinaQuery.trim())rememberSearchChoice(justiinaQuery,{...p,name:String(p.name||p.title||""),ean:p.ean==null?null:String(p.ean)},"added_to_cart");
+    if (p.source === "justiina" && !p.__recipeIngredient && !p.isMemo) recordSearchProductAddedToCart();
     setCartItems(current=>{const found=current.find(x=>desktopCartKey(x)===key);if(found){setCartIncrementKey(key);window.setTimeout(()=>setCartIncrementKey(currentKey=>currentKey===key?"":currentKey),900);return isDesktopMemoItem(found)?current:current.map(x=>desktopCartKey(x)===key?{...x,collected:p.collected?true:Boolean(x.collected),quantity:p.collected&&!x.collected?Number(x.quantity||1):desktopCartQuantity(x)+(desktopCartBundle(p)?.quantity ?? Math.max(1,Number(p.__recipeQuantity||1))),...(p.source==="justiina"&&p.__recipeIngredient?{source:"justiina",__recipeTitle:p.__recipeTitle,__recipeIngredient:p.__recipeIngredient,__recipeQuantity:p.__recipeQuantity,__recipeBaseQuantity:Number(x.__recipeBaseQuantity??(x.source==="justiina"?Math.max(0,Number(x.quantity||1)-Number(x.__recipeQuantity||1)):x.quantity||1))+(x.source==="justiina"?Math.max(0,Number(x.__recipeQuantity||1)):0)}:p.source!=="justiina"&&x.source==="justiina"&&x.__recipeIngredient?{__recipeBaseQuantity:Math.max(0,Number(x.__recipeBaseQuantity??Math.max(0,Number(x.quantity||1)-Number(x.__recipeQuantity||1))))+1}:{})}:x)}flashCartNotice(`Lisätty: ${p?.title||p?.name||"tuote"}`);return [...current,{...p,source:p?.source||"normal",quantity:desktopCartBundle(p)?.quantity ?? Math.max(1,Number(p.__recipeQuantity||1))}]});
   }
   function changeDesktopCartQuantity(p:any,delta:number){delta *= desktopCartBundle(p)?.quantity ?? 1;const key=desktopCartKey(p);setCartItems(current=>current.flatMap(x=>desktopCartKey(x)!==key?[x]:desktopCartQuantity(x)+delta<=0?[]:[{...x,quantity:desktopCartQuantity(x)+delta,...(x.source==="justiina"&&x.__recipeIngredient?{__recipeBaseQuantity:Math.max(0,Number(x.__recipeBaseQuantity??Math.max(0,Number(x.quantity||1)-Number(x.__recipeQuantity||1)))+delta)}:{})}]))}
