@@ -787,13 +787,11 @@ export async function GET(request: Request) {
         ...lidlCampaigns,
       ]);
 
-      // Lidl provides offer records; a chain-independent product-type resolver
-      // assigns categories even when the Neon catalog has no Lidl EAN match.
-      // Do not infer categories from Lidl landing-page URLs.
+      // Classify Lidl offers directly from product names, without an EAN lookup.
       const currentlyValidLidlOffers = onlyCurrentlyValidLidlOffers(masterCombined, todayFi);
-      const results = resolveLidlGroceryCategories(await enrichOfferCategoriesFromNeon(
+      const results = resolveLidlGroceryCategories(
         currentlyValidLidlOffers.filter((offer) => offerMatchesQuery(q, offer)),
-      ));
+      );
       return NextResponse.json(
         {
           ok: true, query: q, provider: "lidl", storeKey, storeName, results,
