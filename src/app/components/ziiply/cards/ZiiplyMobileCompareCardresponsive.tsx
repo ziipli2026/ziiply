@@ -402,6 +402,8 @@ export default function ZiiplyMobileCompareCardresponsive({
                   comparedCount > 0 &&
                   Math.max(0, Number(store.itemCount || 0)) === 0 &&
                   Math.max(0, Number(store.missingItems || comparedCount)) > 0;
+                const found = Number(store.itemCount || 0);
+                const missing = Number(store.missingItems || (hasNoCounterpart ? comparedCount : 0));
                 const isBest = !hasNoCounterpart && Boolean(cheapest?.id === store.id) &&
                   (Math.max(0, Number(store.missingItems || 0)) === 0);
                 const diffLabel = hasNoCounterpart || Math.max(0, Number(store.missingItems || 0)) > 0
@@ -559,6 +561,12 @@ export default function ZiiplyMobileCompareCardresponsive({
                         </button>
                       </div>
                     ) : null}
+                    {!loading && !resultPending && missing > 0 && (
+                      <div className="mx-3 mt-2 rounded-lg border-2 border-[#9a3f24] bg-[#fff0d8] px-3 py-2 text-sm font-bold leading-snug text-[#7b2f1d]">
+                      <strong className="block">Kori on vajaa · {found}/{found + missing} tuotteesta hinnoiteltu</strong>
+                      <span>{found > 0 ? "Hinta koskee vain löytyneitä tuotteita." : "Koko korin hintaa ei voitu laskea."}</span>
+                    </div>
+                    )}
                     {detailsStoreId === store.id ? (
                       <ZiiplyMobileCompareSelectionCard
                         embedded
