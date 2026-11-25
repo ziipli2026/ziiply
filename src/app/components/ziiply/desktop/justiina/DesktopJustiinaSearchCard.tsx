@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDesktopVoiceInput } from "./useDesktopVoiceInput";
 
 type Product = { id?:string|number;ean?:string|number;name?:string;title?:string;productName?:string;pictureUrl?:string;imageUrl?:string;image?:string;__store?:string;__price?:number };
-export default function DesktopJustiinaSearchCard({onClose,onOpenCart,onVoiceTranscript,query,onQueryChange,loading,onSearch,message,debug,results,delay,onDelayChange,onAddToCart,onAddInputToCart,onReopenResults,onOpenScanner}:{onVoiceTranscript:(text:string,recipeItems?:RecipeIngredient[])=>void;onClose:()=>void;onOpenCart:()=>void;query:string;onQueryChange:(value:string)=>void;loading:boolean;onSearch:()=>void;message:string;debug:Record<string,unknown>;results:Product[];delay:0|1|2;onDelayChange:()=>void;onAddToCart:(product:Product)=>void;onAddInputToCart:(text:string)=>void;onReopenResults:()=>void;onOpenScanner:()=>void}){
+export default function DesktopJustiinaSearchCard({onClose,onOpenCart,onVoiceTranscript,query,onQueryChange,loading,onSearch,debug,results,delay,onDelayChange,onAddToCart,onAddInputToCart,onReopenResults,onOpenScanner}:{onVoiceTranscript:(text:string,recipeItems?:RecipeIngredient[])=>void;onClose:()=>void;onOpenCart:()=>void;query:string;onQueryChange:(value:string)=>void;loading:boolean;onSearch:()=>void;debug:Record<string,unknown>;results:Product[];delay:0|1|2;onDelayChange:()=>void;onAddToCart:(product:Product)=>void;onAddInputToCart:(text:string)=>void;onReopenResults:()=>void;onOpenScanner:()=>void}){
 const voice = useDesktopVoiceInput(onVoiceTranscript);
 const [listExpanded,setListExpanded]=useState(false);
 const inputRef=useRef<HTMLInputElement|null>(null);
@@ -31,7 +31,6 @@ return <div className="fixed left-1/2 top-[var(--desktop-overlay-top,128px)] z-5
   <div className="mt-2 flex min-h-0 flex-col">
     <div data-justiina-search-grid className="relative mt-2 grid grid-cols-2 items-center gap-x-3">
       <div className="relative col-start-1 row-start-1 flex h-full min-h-[126px] min-w-0 items-center">
-        <div role="status" aria-live="polite" className="absolute bottom-[calc(50%+36px)] left-0 right-0 px-1 text-center text-[12px] font-bold leading-tight text-[#765f3f]">{!loading && results.length===0 ? (message||"Kirjoita tuote, tuoteryhmä tai ostoslista.") : ""}</div>
       <form onSubmit={(e:FormEvent)=>{e.preventDefault();if(query.trim())onSearch()}} className={`relative z-20 h-[54px] min-w-0 shrink-0 ${listExpanded?"w-[calc(200%+12px)]":"w-full"}`}>
         <div className="relative h-[54px]">
           <span ref={measureRef} aria-hidden="true" className="pointer-events-none absolute -left-[9999px] top-0 whitespace-pre font-serif text-[17px] font-black">{query||""}</span>

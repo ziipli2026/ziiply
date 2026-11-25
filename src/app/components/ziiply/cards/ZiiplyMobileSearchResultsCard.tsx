@@ -220,6 +220,17 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             </div>
 
+            {!compact && !loading && !completing && onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="pointer-events-auto grid h-[2.55rem] w-[2.55rem] shrink-0 place-items-center rounded-full border-[3px] border-[#17573c] bg-[#fff9dd] text-xl font-black text-[#174c35]"
+                aria-label="Takaisin hakuun"
+                title="Takaisin hakuun"
+              >
+                ←
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}
