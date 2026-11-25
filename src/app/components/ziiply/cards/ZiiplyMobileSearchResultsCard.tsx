@@ -220,7 +220,7 @@ export default function ZiiplyMobileSearchResultsCard({
               </div>
             </div>
 
-            {!compact && onClose && (
+            {!compact && !loading && !completing && onClose && (
               <button
                 type="button"
                 onClick={onClose}
