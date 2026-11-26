@@ -1,5 +1,6 @@
 "use client";
 
+import { trackBetaAction } from "../../../lib/ziiplyBetaAnalytics";
 import { productMoneyEuros, type PriceAmountUnit } from "./productMoney";
 import { comparisonTypeCompatible, comparisonProductType } from "./comparisonBrand";
 import type React from "react";
@@ -312,6 +313,11 @@ export const SHOW_SEARCH_DEBUG_PANEL = false;
 export function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
   try {
     if (typeof window === "undefined") return;
+
+    if (window.location.hostname === "beta.ziiply.fi") {
+      trackBetaAction(eventName);
+      return;
+    }
 
     posthog.capture(eventName, {
       appVersion: APP_VERSION,
