@@ -48,6 +48,22 @@ export async function POST(request: NextRequest) {
       body.event, beta?.distinctId ?? anonymousId,
       beta ? { ...props, ...beta.properties, ziiply_identity_joined: false } : props,
     );
+    if (beta) {
+      const surface = body.ziiply_surface === "desktop" || body.ziiply_surface === "mobile" ? body.ziiply_surface : "unknown";
+      try {
+        const ui = await captureZiiplyEvent("beta_ui_action", beta.distinctId, {
+          ...beta.properties,
+          action_name: body.event,
+          ziiply_surface: surface,
+          ziiply_environment: "beta",
+          ziiply_internal_test: props.ziiply_internal_test,
+          ziiply_analytics_schema: 4,
+        });
+        console.info("[ziiply-beta-search-action]", JSON.stringify({ action: body.event, accepted: ui.accepted, status: ui.status }));
+      } catch {
+        console.warn("[ziiply-beta-search-action] delivery_failed");
+      }
+    }
     console.info("[ziiply-search-telemetry]", JSON.stringify({ event: body.event, status, accepted, anonymous: !beta }));
     return NextResponse.json({ accepted }, { status: accepted ? 200 : 502 });
   } catch (error) {
