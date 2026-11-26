@@ -582,7 +582,7 @@
     "https://kcm-tarjouslehdet.k-ruoka.fi/96konvn_tarjouslehti_48LV_KCM/index.html": {
       "pdfSha256": "de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e",
       "pageCount": 21,
-      "offerCount": 71,
+      "offerCount": 74,
       "images": {
         "kcm:spatial:1:jäätelöt 427–465 ml:8": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#a94061f5fcf0cd9053b7",
         "kcm:spatial:1:meijerivoi 500 g:2.99": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#33b1df0568f3aa368ee4",
@@ -654,7 +654,10 @@
         "kcm:spatial:1:hedelmiä ja vihanneksia:1": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#186ae5da25f49d735dbc",
         "kcm:spatial:13:ainu-tuotteet:percent:20": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#fd46d2e9d92abfeb276f",
         "kcm:spatial:13:serla talouspaperi 8 rl valkoinen:4.9": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#58f776adc2a3fd04ecc1",
-        "kcm:spatial:13:finish konetiskitabletit 40–76 kpl/ps:7.99": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#33e465f7cb4ddfddf5c7"
+        "kcm:spatial:13:finish konetiskitabletit 40–76 kpl/ps:7.99": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#33e465f7cb4ddfddf5c7",
+        "kcm:spatial:14:mango:2.49": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#f74018362298fc441246",
+        "kcm:spatial:15:piltti iso välipala annospussit yli 1,5 v. 150 g:5": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#95b3ccd50264fd485867",
+        "kcm:spatial:20:muru baby kaurapuurot 6 kk 100 g:3": "/citymarket-leaflets/de7e56a078792a3103d98a3cc01aca38e5df980b514683f2aafc406032af749e/images.svg#3951dee6bd47d15f1240"
       }
     }
   }
