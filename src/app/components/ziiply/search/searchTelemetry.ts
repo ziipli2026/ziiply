@@ -55,6 +55,7 @@ const safeCapture = (event: string, props: Record<string, string | number | bool
       body: JSON.stringify({
         event, ...props, anonymous_user_id: anonymousSearchUserId(),
         posthog_distinct_id: browserPosthogDistinctId(),
+        ziiply_surface: window.location.pathname.startsWith('/desktop-preview') || window.matchMedia('(min-width: 1024px)').matches ? 'desktop' : 'mobile',
         ziiply_internal_test: (() => {
           try { return window.localStorage.getItem("ziiply_internal_test_user") === "1"; }
           catch { return false; }
