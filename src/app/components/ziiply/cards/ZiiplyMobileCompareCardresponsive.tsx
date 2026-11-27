@@ -340,9 +340,9 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   return (
     <div
-      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
+      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
     >
-      <section className="ziiply-mobile-compare-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+      <section className="ziiply-mobile-compare-pop relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -351,7 +351,7 @@ export default function ZiiplyMobileCompareCardresponsive({
             backgroundPosition: "center top",
           }}
         />
-        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
+        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.42),rgba(246,226,172,0.18)_34%,rgba(238,214,156,0.08))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
         <main className="absolute inset-0 z-10 overflow-hidden">
@@ -361,7 +361,7 @@ export default function ZiiplyMobileCompareCardresponsive({
               {loading ? <RetroMopedOverlay /> : null}
             </div>
           </div>
-          <div className="absolute left-[6%] right-[6%] top-[22%] bottom-[7%] flex min-h-0 flex-col gap-1.5">
+          <div className="absolute left-5 right-5 top-[22%] bottom-5 flex min-h-0 min-w-0 flex-col gap-1.5 overflow-x-hidden [overflow-wrap:anywhere]">
 
             {showSkeleton ? (
               <>
@@ -590,7 +590,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           <button
             type="button"
             onClick={handleBack}
-            className="absolute left-[1.18rem] top-[0.73rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tl-[0.8rem] rounded-tr-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(225deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute left-[1.18rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tl-[0.8rem] rounded-tr-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(225deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Takaisin"
             title="Takaisin"
           >
@@ -604,7 +604,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-[1.18rem] top-[0.73rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tr-[0.8rem] rounded-tl-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute right-[1.18rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Sulje vertailu"
             title="Sulje vertailu"
           >
