@@ -1843,7 +1843,7 @@ export default function ZiiplyMobileOfferSearchCard({
             0% { transform: translateX(-120%); }
             100% { transform: translateX(260%); }
           }
-          .ziiply-offer-pop { animation: ziiplyOfferPop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2); }
+          .ziiply-offer-pop { animation: none; }
         `}</style>
       </section>
     </div>
