@@ -161,10 +161,10 @@ function ZiiplyNavIcon({
   if (type === "nutrition") {
     return (
       <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-        <rect x="10" y="12" width="28" height="24" rx="4" fill={muted} />
-        <path d="M17 9h-7v7m21-7h7v7M10 32v7h7m14 0h7v-7" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M16 17v14m6-14v14m5-14v14m5-14v14" stroke={ink} strokeWidth="2.4" />
-        <path d="M7 24h34" stroke={brass} strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx="20" cy="14" r="6" fill={muted} stroke={ink} strokeWidth="2.8" />
+        <path d="M8 37v-4a12 12 0 0 1 21-8" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" />
+        <path d="M23 37c0-9 7-15 17-15 0 10-6 16-15 16" fill={muted} stroke={ink} strokeWidth="2.6" strokeLinejoin="round" />
+        <path d="M21 40l12-11" stroke={brass} strokeWidth="2.8" strokeLinecap="round" />
       </svg>
     );
   }
