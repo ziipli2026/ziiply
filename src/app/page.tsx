@@ -24379,7 +24379,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {eanModalOpen && (
           <div
-            className="fixed inset-0 z-[9999] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:items-center sm:p-4"
+            className="fixed inset-0 z-[9999] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:items-center sm:p-4"
           >
             <div
               className="flex h-full w-full max-w-[430px] flex-col overflow-hidden"
@@ -24619,7 +24619,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {eanResults.length > 1 &&
                 !desktopKeyboardScannerOpen &&
                 (eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
-                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)]">
+                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)]">
                     <ZiiplyMobileProductPickCard
                       title="Valitse lisättävä tuote"
                       subtitle="Sama EAN löytyi useammasta kaupasta"
