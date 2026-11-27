@@ -1,3 +1,4 @@
+import { excludesPetOfferFromSalmonWatch } from "../../../components/ziiply/mobile/gostaWatchMatch";
 import { isBadOfferSearchResultV106 } from "../../../components/ziiply/offerSearch/ziiplyOfferCategoryCore";
 import { mapZiiplyGostaOfferToCardOfferV147 } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { desktopSearchDecision } from "../../../components/ziiply/search/desktopNormalRelevance";
@@ -20,7 +21,7 @@ function norm(value: unknown) {
 function matches(query:string,offer:Record<string,unknown>){
   const name=String(offer.title||offer.name||offer.productName||"");
   const q=norm(query),n=norm(name);
-  if(!q||!n)return false;
+  if(!q||!n||excludesPetOfferFromSalmonWatch(query,offer))return false;
   const words=n.split(" "),terms=q.split(" ");
   // Source-first watcher invariant: every published, priced offer is always
   // retrievable by its own full product name, regardless of catalog taxonomy.
@@ -47,7 +48,7 @@ function matches(query:string,offer:Record<string,unknown>){
   if(decision.accepted)return true;
   // Finnish compounds: only the product-family suffix, never an arbitrary
   // substring. Avoid pet-food salmon being treated as fresh fish.
-  if(q==="lohi")return !/\b(koiran|koira|dog|kissan|kissa|cat|lemmikki|pet)\b/i.test(n) && words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
+  if(q==="lohi")return words.some(w=>w==="lohi"||w.endsWith("lohi")||/^lohen|^lohta$/.test(w));
   if(q==="voi")return words.some(w=>w==="voi"||w.endsWith("meijerivoi")||w.endsWith("ruokavoi")||w==="voita");
   return false;
 }
