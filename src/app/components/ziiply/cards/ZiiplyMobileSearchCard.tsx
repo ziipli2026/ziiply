@@ -54,6 +54,7 @@ export type ZiiplyMobileSearchCardProps = {
   onSearchModeChange?: (mode: "cart" | "single") => void;
   onAddInputToCart?: (options?: ZiiplyAddInputToCartOptions) => void;
   onOpenNotebook?: () => void;
+  onOpenRecipes?: () => void;
   onOpenCart?: () => void;
   onOpenComparison?: () => void;
   onOfferSearch?: () => void;
@@ -452,6 +453,7 @@ export default function ZiiplyMobileSearchCard({
   onSearchModeChange,
   onAddInputToCart,
   onOpenNotebook,
+  onOpenRecipes,
   onOpenCart,
   onOpenComparison,
   onOfferSearch,
@@ -902,9 +904,10 @@ export default function ZiiplyMobileSearchCard({
             Tuotteet ja vertailu
           </h1>
 
-          <div className="mb-2 mt-1.5 grid grid-cols-2 gap-2">
+          <div className={`mb-2 mt-1.5 grid gap-2 ${onOpenRecipes ? "grid-cols-3" : "grid-cols-2"}`}>
             <GreenPillButton label="Vihkonen" onClick={onOpenNotebook} className="min-h-11 px-2 text-sm" />
-            <GreenPillButton label="🛒 Ostoskori" onClick={onOpenCart} disabled={!onOpenCart} className="min-h-11 px-2 text-sm" />
+            {onOpenRecipes && <GreenPillButton label="Reseptit" onClick={onOpenRecipes} className="min-h-11 px-1 text-sm" />}
+            <GreenPillButton label="🛒 Ostoskori" onClick={onOpenCart} disabled={!onOpenCart} className="min-h-11 px-1 text-xs" />
           </div>
           {onOpenComparison && (
             <GreenPillButton label="Vertaa ostoskoria" onClick={onOpenComparison} className="mb-2 min-h-11 self-start px-3 text-xs" />
