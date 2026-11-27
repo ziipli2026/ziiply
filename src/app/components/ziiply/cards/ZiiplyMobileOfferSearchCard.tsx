@@ -206,6 +206,7 @@
 // ============================================================================
 
 "use client";
+import MobileNotebookFrame from "../mobile/MobileNotebookFrame";
 import ProductEnergy from "./ProductEnergy";
 
 // ============================================================================
@@ -1446,11 +1447,7 @@ export default function ZiiplyMobileOfferSearchCard({
   const submitSearch = () => onSearch?.(shownFilter);
 
   return (
-    <div
-      data-ziiply-mobile-offer-search-card-version="V53-MINI-DEBUG-BUTTON"
-      className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
-    >
-      <section className="ziiply-offer-pop relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+    <MobileNotebookFrame version="V53-MINI-DEBUG-BUTTON" className={className}>
         {debugOpenV52 ? (
           <div className="absolute inset-2 z-[9999] flex flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-[#2b1a0e] bg-[#fff8dc] shadow-2xl">
             <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-[#9a7a3d] bg-[#f1d99a] px-3 py-2">
@@ -1465,12 +1462,7 @@ export default function ZiiplyMobileOfferSearchCard({
             <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-3 text-left font-mono text-[0.60rem] leading-[1.28] text-[#1f1a12]">{debugTextV52}</pre>
           </div>
         ) : null}
-        <div
-          className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
-          style={{ backgroundImage: "url('/ui/cart/vihkonen.webp')", backgroundSize: "142% 104%", backgroundPosition: "center top" }}
-        />
-        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.42),rgba(246,226,172,0.18)_34%,rgba(238,214,156,0.08))]" />
-        <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
+
 
         <LeatherBackButton onClick={handleBack} />
 
@@ -1845,8 +1837,7 @@ export default function ZiiplyMobileOfferSearchCard({
           }
           .ziiply-offer-pop { animation: none; }
         `}</style>
-      </section>
-    </div>
+    </MobileNotebookFrame>
   );
 }
 
