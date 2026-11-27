@@ -506,6 +506,9 @@ export default function ZiiplyMobileSearchCard({
     !loading &&
     items.length === 0 &&
     cleanInput.length >= 2;
+  // Queued searches are started by the parent and may bypass the local submit state.
+  const activeSearchAnimation = searchingAssistant ??
+    (loadingOffers ? "gosta" : justiinaLoading || loading ? "justiina" : null);
   const topNotFoundText = notFoundCanShow
     ? `Hakemaasi “${cleanInput}” ei löytynyt.`
     : null;
@@ -974,7 +977,7 @@ export default function ZiiplyMobileSearchCard({
             <div className="my-2 flex justify-center">
               <SearchTempoKnob value={effectiveTempo.key} onChange={handleTempoChange} />
             </div>
-            {searchingAssistant ? <InlineSearchRunner assistant={searchingAssistant} /> : topNotFoundText && (
+            {activeSearchAnimation ? <InlineSearchRunner assistant={activeSearchAnimation} /> : topNotFoundText && (
               <p id="ziiply-mobile-search-status" role="status" className="mt-2 text-center text-sm font-bold text-[#8f2f22]">{topNotFoundText}</p>
             )}
 
