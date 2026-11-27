@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import ZiiplyMobileScannerCard from "../cards/ZiiplyMobileScannerCard";
-import posthog from "posthog-js";
+import { trackZiiplyEvent } from "../ziiplyCore";
 import { useRouter } from "next/navigation";
 import {arvoNutrientValues, saveArvoMeal} from "./arvoStatistics";
 
@@ -24,7 +24,7 @@ export default function ArvoNutritionScannerPreview({ onClose, onAddToCart }: { 
   const [cartSaving, setCartSaving] = useState(false);
   const [cartSaved, setCartSaved] = useState(false);
   const cameraRef = useRef<MediaStream | null>(null);
-  const trackEvent = (event: string) => { try { if (posthog.__loaded) posthog.capture(event); } catch {} };
+  const trackEvent = trackZiiplyEvent;
   useEffect(() => { trackEvent("arvo_scanner_opened"); }, []);
   const lastEanRef = useRef("");
   const regionId = "arvo-nutrition-scanner-camera";

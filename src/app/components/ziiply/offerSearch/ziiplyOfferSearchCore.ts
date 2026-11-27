@@ -1,3 +1,4 @@
+import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry } from "../search/searchTelemetry";
 import { classifyTokmanniOfferCategory } from "./tokmanniOfferCategory";
 import { classifySharedProductCategory } from "./sharedProductCategory";
 import { citymarketFailureNotice, type CitymarketAvailabilityNotice } from "./citymarketAvailability";
@@ -1203,11 +1204,30 @@ export function hidePrismaOfferCopiesAlreadyInCampaignTabV805(
   });
 }
 
-export async function searchZiiplyGostaOffersV146(options: {
+type GostaOfferSearchOptions = {
   query: string;
   terms?: string[];
   context?: ZiiplyGostaOfferSearchContextV152;
-}) {
+};
+
+export async function searchZiiplyGostaOffersV146(options: GostaOfferSearchOptions) {
+  if (!options.query.trim() && !options.terms?.some(term => term.trim())) {
+    return resolveGostaOfferSearch(options);
+  }
+  const telemetry = beginSearchTelemetry("offer");
+  try {
+    const result = await resolveGostaOfferSearch(options);
+    const count = result.results.length;
+    finishSearchTelemetry(telemetry, count ? "priced_results" : "no_priced_results", count);
+    return result;
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") cancelSearchTelemetry(telemetry);
+    else finishSearchTelemetry(telemetry, "error");
+    throw error;
+  }
+}
+
+async function resolveGostaOfferSearch(options: GostaOfferSearchOptions) {
   const cleanedQuery = String(options.query || "").trim();
   const termSnapshot = (options.terms || []).join(", ").trim();
   const offerQuerySnapshot = termSnapshot || cleanedQuery;

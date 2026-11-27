@@ -1,0 +1,23 @@
+name: Beta access security tests
+on:
+  push:
+    branches:
+      - test/beta-ziiply-fi-release-candidate-20261118
+  pull_request:
+    paths:
+      - 'src/lib/ziiplyBetaSessionSecurity.mjs'
+      - 'tests/beta-session-security.test.mjs'
+      - '.github/workflows/beta-access-security-tests.yml'
+  workflow_dispatch:
+jobs:
+  beta-security:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify beta cookie, redirects and state signing
+        run: node --test tests/beta-session-security.test.mjs

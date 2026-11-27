@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import posthog from 'posthog-js'
+import { trackBetaAction } from '../../lib/ziiplyBetaAnalytics'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 
 const PROJECT_TOKEN = 'phc_yUGdeyjeZABknZazoazcsLfBhDwuZ8NBTDxXUxN2EweJ'
@@ -95,6 +96,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     )
 
     if (isInternalTest) posthog.setInternalOrTestUser()
+    trackBetaAction(window.location.pathname.startsWith('/beta/ohje') ? 'guide_opened' : 'app_opened')
 
 
   }, [])

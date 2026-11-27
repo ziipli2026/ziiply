@@ -1,0 +1,47 @@
+"use client";
+import { useEffect, useState } from "react";
+import BetaFeedback from "./BetaFeedback";
+const cards=[
+ {icon:"📱",tag:"KÄYTTÖOHJE",title:"Mobiili",description:"Näin käytät Ziiplyä puhelimella: haku, tarjoukset, ostoskori ja muut ominaisuudet.",href:"/beta/ohje",action:"Tutustu mobiiliohjeisiin"},
+ {icon:"💻",tag:"KÄYTTÖOHJE",title:"Tietokone",description:"Tutustu Ziiplyn työpöytäversion käyttöön kuvitetun käyttöohjeen avulla.",href:"/beta/ohje?versio=desktop",action:"Tutustu desktop-ohjeisiin"},
+ {icon:"🛒",tag:"BETASOVELLUS",title:"Aloita testaus",description:"Kokeile Ziiplyä ja tutustu ominaisuuksiin käytännössä.",href:"/",action:"Avaa Ziiply"}
+];
+export default function BetaStart(){
+ const [authenticated,setAuthenticated]=useState<boolean|null>(null);
+ useEffect(()=>{fetch("/api/beta/login/session",{cache:"no-store"}).then(r=>r.json()).then(d=>setAuthenticated(Boolean(d.authenticated))).catch(()=>setAuthenticated(false));},[]);
+ return <main className="beta-root"><style>{`
+ .beta-root{min-height:100vh;background:radial-gradient(circle at 85% 0%,#d6f7e7 0,transparent 36%),linear-gradient(145deg,#f7faf9,#edf3f1);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#173b31;padding:clamp(24px,5vw,72px) 20px;box-sizing:border-box}
+ .beta-wrap{max-width:1050px;margin:0 auto}.beta-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:64px}.beta-brand{font-weight:850;letter-spacing:-1.5px;font-size:32px;color:#136b4e}.beta-pill{background:#e0f3e9;color:#176847;border:1px solid #c4e7d5;border-radius:100px;padding:9px 16px;font-size:13px;font-weight:700}.beta-eyebrow{font-size:13px;letter-spacing:2px;font-weight:800;color:#22825e;margin-bottom:16px}.beta-title{font-size:clamp(36px,5vw,60px);line-height:1.08;letter-spacing:-2px;margin:0 0 20px;font-weight:850;max-width:780px}.beta-sub{color:#557268;font-size:clamp(16px,2vw,19px);line-height:1.7;max-width:650px;margin:0 0 42px}.beta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.beta-card{background:white;border:1px solid #dbe8e1;border-radius:22px;padding:28px;box-shadow:0 12px 38px #0b4e2910;display:flex;flex-direction:column;min-height:300px}.beta-card-feature{background:#116c4c;color:white;border-color:#116c4c}.beta-symbol{width:62px;height:62px;border-radius:18px;background:#e9f7ef;display:grid;place-items:center;font-size:30px;margin-bottom:28px}.beta-card-feature .beta-symbol{background:#ffffff23}.beta-tag{font-size:11px;letter-spacing:1.5px;font-weight:800;color:#328866}.beta-card-feature .beta-tag{color:#b7efd4}.beta-card h2{font-size:26px;letter-spacing:-.7px;margin:10px 0}.beta-card p{font-size:15px;line-height:1.65;color:#667a70;margin:0 0 24px}.beta-card-feature p{color:#d6f0e4}.beta-action{display:inline-flex;justify-content:center;text-align:center;text-decoration:none;border-radius:12px;background:#e7f4eb;color:#116c4c;padding:14px 12px;font-weight:750;font-size:14px;margin-top:auto}.beta-card-feature .beta-action{background:white;color:#116c4c}.beta-disabled{background:#f0f3f1;color:#65756e}.beta-footer{margin-top:34px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;color:#667a70;font-size:14px}.beta-footer a{color:#176e50;text-decoration:none;font-weight:700}@media(max-width:760px){.beta-head{margin-bottom:44px}.beta-grid{grid-template-columns:1fr}.beta-card{min-height:unset}.beta-title{letter-spacing:-1.3px}}
+ .beta-feedback { min-height: 0; margin-top: 24px; }
+ .beta-feedback textarea { margin: 12px 0; }
+ .beta-feedback [role="status"] { margin-top: 8px; }
+ @media (min-width: 761px) {
+   .beta-root { padding: clamp(14px, 3vh, 32px) 24px; }
+   .beta-head { margin-bottom: clamp(12px, 3vh, 28px); }
+   .beta-eyebrow { margin-bottom: 7px; }
+   .beta-title { max-width: none; font-size: clamp(30px, 5vh, 48px); margin-bottom: 8px; }
+   .beta-sub { max-width: none; font-size: 16px; line-height: 1.45; margin-bottom: 16px; }
+   .beta-grid { gap: 14px; }
+   .beta-card { min-height: 0; padding: 16px; border-radius: 16px; }
+   .beta-symbol { width: 36px; height: 36px; border-radius: 10px; font-size: 20px; margin-bottom: 9px; }
+   .beta-card h2 { font-size: 21px; margin: 5px 0; }
+   .beta-card p { font-size: 14px; line-height: 1.4; margin-bottom: 12px; }
+   .beta-action { padding: 9px 12px; }
+   .beta-feedback { margin-top: 14px; }
+   .beta-feedback form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px 12px; }
+   .beta-feedback label { grid-column: 1 / -1; font-size: 14px; }
+   .beta-feedback textarea { height: 62px; margin: 0; }
+   .beta-feedback button { margin-top: 0; white-space: nowrap; }
+   .beta-feedback [role="status"] { grid-column: 1 / -1; margin-top: 0; font-size: 14px; }
+   .beta-feedback [role="status"]:empty { grid-column: 2; grid-row: 2; align-self: end; pointer-events: none; }
+   .beta-footer { margin-top: 12px; }
+ }
+ @media (min-width: 761px) and (max-height: 600px) {
+   .beta-symbol { display: none; }
+   .beta-card { padding: 12px; }
+ }
+
+ `}</style><div className="beta-wrap"><header className="beta-head"><div className="beta-brand">ziiply<span style={{color:"#51b986"}}>.</span></div><span className="beta-pill">● BETA TESTAUS</span></header>
+ {authenticated===null?<p>Tarkistetaan kirjautumista…</p>:!authenticated?<><h1 className="beta-title">Tervetuloa Ziiplyn betatestaukseen.</h1><p className="beta-sub">Kirjaudu sisään päästäksesi testaajan aloitussivulle.</p><a className="beta-action" href="/beta/kirjaudu">Siirry kirjautumiseen</a></>:<><div className="beta-eyebrow">TERVETULOA MUKAAN</div><h1 className="beta-title">Mukavaa, että olet mukana testaamassa!</h1><p className="beta-sub">Aloita tutustumalla käyttöohjeisiin tai siirry suoraan kokeilemaan Ziiplyä. Sinä päätät, mistä aloitat.</p><section className="beta-grid">{cards.map((c,i)=><article key={c.title} className={"beta-card"+(i===2?" beta-card-feature":"")}><div className="beta-symbol" aria-hidden="true">{c.icon}</div><span className="beta-tag">{c.tag}</span><h2>{c.title}</h2><p>{c.description}</p>{c.href?<a className="beta-action" href={c.href}>{c.action} <span aria-hidden="true" style={{marginLeft:6}}>↗</span></a>:<span className="beta-action beta-disabled">{c.action}</span>}</article>)}</section><BetaFeedback /><footer className="beta-footer"><span>Kiitos, että autat kehittämään Ziiplyä.</span><a href="/beta/kirjaudu">Kirjautuminen ja uloskirjautuminen</a></footer></>}
+ </div></main>;
+}

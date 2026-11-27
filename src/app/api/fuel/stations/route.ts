@@ -20,8 +20,13 @@ export async function GET(req: NextRequest) {
       !Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
     return NextResponse.json({ ok: false, error: "GPS coordinates required" }, { status: 400 });
   }
-  // Station lookup and photo report submission must use the same fuel registry.
-  const database = fuelDatabaseConfig();
+  // Beta reads live prices while photo reports retain their configured database.
+  const betaHost = process.env.ZIIPLY_BETA_GATE_HOST;
+  const betaRead = process.env.ZIIPLY_BETA_APP_GATE === "true" &&
+    Boolean(betaHost) && req.nextUrl.hostname === betaHost;
+  const database = betaRead
+    ? fuelDatabaseConfig({ ...process.env, FUEL_PRODUCTION_ENABLED: "true" })
+    : fuelDatabaseConfig();
   const testConnection = database.production ? undefined : database.connection;
   const connection = database.connection;
   if (!connection) return NextResponse.json({ ok: false, error: "Fuel database not configured" }, { status: 503 });

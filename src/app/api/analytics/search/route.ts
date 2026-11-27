@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { BETA_COOKIE_NAME } from "../../../../lib/ziiplyBetaSessionSecurity.mjs";
+import { betaPostHogIdentity, captureZiiplyEvent, getVerifiedBetaUserId } from "../../../../lib/ziiplyPostHog";
 
 export const runtime = "nodejs";
 const EVENTS = new Set(["search_started", "search_completed", "search_cancelled", "product_added_to_cart", "search_results_dismissed", "search_no_selection"]);
 const KINDS = new Set(["normal", "ean", "offer"]);
 const OUTCOMES = new Set(["priced_results", "no_priced_results", "partial_source_failure", "error"]);
-const KEY = "phc_yUGdeyjeZABknZazoazcsLfBhDwuZ8NBTDxXUxN2EweJ";
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,16 +40,31 @@ export async function POST(request: NextRequest) {
       const n = body[key];
       if (typeof n === "number" && Number.isFinite(n) && n >= 0) props[key] = Math.min(Math.round(n), 3600000);
     }
-    const response = await fetch("https://eu.i.posthog.com/capture/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ api_key: KEY, event: body.event, distinct_id: sdkDistinctId || (anonymousUserId ? "ziiply-beta-" + anonymousUserId : "ziiply-search-" + body.search_id), properties: props }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(6000),
-    });
-    const responseBody = await response.text();
-    const accepted = response.ok && !/["']status["']\s*:\s*0/.test(responseBody);
-    console.info("[ziiply-search-telemetry]", JSON.stringify({ event: body.event, status: response.status, accepted, anonymous: Boolean(anonymousUserId) }));
+    const betaToken = request.cookies.get(BETA_COOKIE_NAME)?.value;
+    const betaUserId = await getVerifiedBetaUserId(betaToken).catch(() => null);
+    const beta = betaUserId ? betaPostHogIdentity(betaUserId) : null;
+    const anonymousId = sdkDistinctId || (anonymousUserId ? "ziiply-beta-" + anonymousUserId : "ziiply-search-" + body.search_id);
+    const { accepted, status } = await captureZiiplyEvent(
+      body.event, beta?.distinctId ?? anonymousId,
+      beta ? { ...props, ...beta.properties, ziiply_identity_joined: false } : props,
+    );
+    if (beta) {
+      const surface = body.ziiply_surface === "desktop" || body.ziiply_surface === "mobile" ? body.ziiply_surface : "unknown";
+      try {
+        const ui = await captureZiiplyEvent("beta_ui_action", beta.distinctId, {
+          ...beta.properties,
+          action_name: body.event,
+          ziiply_surface: surface,
+          ziiply_environment: "beta",
+          ziiply_internal_test: props.ziiply_internal_test,
+          ziiply_analytics_schema: 4,
+        });
+        console.info("[ziiply-beta-search-action]", JSON.stringify({ action: body.event, accepted: ui.accepted, status: ui.status }));
+      } catch {
+        console.warn("[ziiply-beta-search-action] delivery_failed");
+      }
+    }
+    console.info("[ziiply-search-telemetry]", JSON.stringify({ event: body.event, status, accepted, anonymous: !beta }));
     return NextResponse.json({ accepted }, { status: accepted ? 200 : 502 });
   } catch (error) {
     console.error("[ziiply-search-telemetry] delivery_failed", error instanceof Error ? error.message : "unknown");

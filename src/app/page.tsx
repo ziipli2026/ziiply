@@ -14563,6 +14563,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const nextCart = [...cart, newItem];
     setCart(nextCart);
     persistCartImmediately(nextCart);
+    trackZiiplyEvent("offer_added_to_cart");
     showCartToast(`Lisätty ostoskoriin: ${name}`);
     if (comparisonUserStartedRefV768.current) {
       void updateChainComparison(nextCart, { openCompare: false });
@@ -19125,6 +19126,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    trackZiiplyEvent("cart_opened");
     // V547: Kori avataan suoralla overlay-state-vaihdolla ilman vanhaa scroll/ref-hyppelyä.
     // V732: suora Kori avaa alkuperäisen käyttäjän korin, ei aiemmin valittua vertailukauppaa.
     setMobileCompareShoppingStoreKeyV732(null);
@@ -19992,6 +19994,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const nextCart = cart.filter((item) => item.id !== id);
 
     if (!removedItem) return;
+    trackZiiplyEvent("cart_item_removed");
 
     setCart(nextCart);
 
@@ -20035,6 +20038,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function clearCart() {
     if (cart.length === 0) return false;
+    trackZiiplyEvent("cart_cleared");
 
     // ZiiplyMobileCartCard confirms the destructive action in its own themed dialog.
 
