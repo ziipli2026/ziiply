@@ -1490,7 +1490,7 @@ export default function ZiiplyMobileOfferSearchCard({
         ) : null}
 
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[0.9rem] before:pointer-events-none before:absolute before:left-[4.05rem] before:right-[4.05rem] before:top-[0.75rem] before:h-[3.55rem] before:rounded-[0.6rem] before:bg-[#f4e4bb]/95 before:content-['']">
-          <div className={onOpenWatch && !selectedOfferChainV39 ? "sr-only" : "relative z-10 min-h-[3.3rem] px-[3.15rem] flex flex-col justify-center"}>
+          <div className="relative z-10 flex min-h-[3.3rem] flex-col justify-center px-[3.15rem]">
             <div
               className="text-center text-[1.18rem] font-black italic leading-none text-[#28402a]"
               style={{ fontFamily: cooperFont }}
@@ -1506,7 +1506,7 @@ export default function ZiiplyMobileOfferSearchCard({
           </div>
 
           {onOpenWatch && (
-            <div className={cx("relative z-10 mb-1 flex justify-center", !selectedOfferChainV39 && "px-7")}>
+            <div className="relative z-10 mb-1 mt-1 flex justify-center">
               <button
                 type="button"
                 onClick={onOpenWatch}
@@ -1593,7 +1593,7 @@ export default function ZiiplyMobileOfferSearchCard({
               <span className="text-xl font-black text-[#28402a]" style={{ fontFamily: cooperFont }}>Haetaan tarjouksia…</span>
             </div>
           ) : !selectedOfferChainV39 ? (
-            <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+            <div className="mt-1 min-h-0 overflow-y-auto overscroll-y-contain rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="grid grid-cols-2 gap-3">
                 {showSChain ? (
                   <button
@@ -1602,7 +1602,7 @@ export default function ZiiplyMobileOfferSearchCard({
                       setSelectedOfferChainV39("S");
                       onSelectOfferChain?.("S");
                     }}
-                    className="flex min-h-[5.8rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                    className="flex aspect-square min-w-0 flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                     aria-label="Hae S-ryhmän tarjoukset"
                   >
                     <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/s-group.png" alt="S-ryhmä" className="block h-full w-full object-contain object-center" draggable={false} /></span>
@@ -1615,7 +1615,7 @@ export default function ZiiplyMobileOfferSearchCard({
                       setSelectedOfferChainV39("K");
                       onSelectOfferChain?.("K");
                     }}
-                    className="flex min-h-[5.8rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                    className="flex aspect-square min-w-0 flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                     aria-label="Hae K-ryhmän tarjoukset"
                   >
                     <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/k-group.png" alt="K-ryhmä" className="block h-full w-full object-contain object-center" draggable={false} /></span>
@@ -1628,7 +1628,7 @@ export default function ZiiplyMobileOfferSearchCard({
                       setSelectedOfferChainV39("EUROSPAR");
                       onSelectOfferChain?.("EUROSPAR");
                     }}
-                    className="flex min-h-[5.8rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                    className="flex aspect-square min-w-0 flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                     aria-label="Hae EUROSPARin tarjoukset"
                   >
                     <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/spar.png" alt="EUROSPAR" className="block h-full w-full object-contain object-center" draggable={false} /></span>
@@ -1642,7 +1642,7 @@ export default function ZiiplyMobileOfferSearchCard({
                       onSelectOfferChain?.("LIDL");
                     }}
                     aria-label="Hae Lidlin tarjoukset"
-                    className="flex min-h-[5.8rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                    className="flex aspect-square min-w-0 flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                   >
                     <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/lidl.png" alt="Lidl" className="block h-full w-full object-contain object-center" draggable={false} /></span>
                   </button>
@@ -1655,7 +1655,7 @@ export default function ZiiplyMobileOfferSearchCard({
                       onSelectOfferChain?.("TOKMANNI");
                     }}
                     aria-label="Hae Tokmannin tarjoukset"
-                    className="flex min-h-[5.8rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                    className="flex aspect-square min-w-0 flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                   >
                     <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center rounded-full bg-[#e30613] text-[1.05rem] font-black text-white">TOK</span>
                   </button>
