@@ -911,10 +911,10 @@ export default function ZiiplyMobileSearchCard({
   return (
     <div
       data-ziiply-mobile-search-card-version="UUSI_V685_VOICE_SCALE_100"
-      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+7.75rem)] z-[72] flex min-h-0 items-stretch justify-center overflow-hidden bg-transparent px-2 [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
+      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.45rem)] bottom-[calc(env(safe-area-inset-bottom)+7.75rem)] z-[72] flex min-h-0 items-stretch justify-center overflow-hidden bg-transparent px-2 [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
-      <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
-        <div className="pointer-events-none absolute inset-[0.42rem] z-0 overflow-hidden rounded-[1.45rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.30)]">
+      <section className="relative isolate flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] p-2 text-[#20301f] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+        <div className="pointer-events-none absolute inset-[0.18rem] z-0 overflow-hidden rounded-[1.82rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.30)]">
           <div className="absolute inset-0 opacity-45 [background-image:radial-gradient(#d8bd75_1.15px,transparent_1.15px)] [background-size:16px_16px]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.48),transparent_54%)]" />
         </div>
