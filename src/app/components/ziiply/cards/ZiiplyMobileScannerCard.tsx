@@ -300,9 +300,9 @@ export default function ZiiplyMobileScannerCard({
     <section
       className={[
 "relative isolate mx-auto flex h-full w-full flex-col overflow-hidden transform-none",
-        fullscreen ? "max-w-none rounded-none border-0" : "max-w-[430px] rounded-[1.65rem] border-[4px] border-[#073d32]",
+        fullscreen ? "max-w-none rounded-[1.28rem] border-2 border-[#9d8350]" : "max-w-[430px] rounded-[1.65rem] border-[4px] border-[#073d32]",
         "bg-[#fff5d9]",
-        fullscreen ? "shadow-none" : "shadow-[0_16px_38px_rgba(8,42,35,0.24),inset_0_0_0_2px_rgba(255,255,255,0.74)]",
+        fullscreen ? "shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]" : "shadow-[0_16px_38px_rgba(8,42,35,0.24),inset_0_0_0_2px_rgba(255,255,255,0.74)]",
         "text-[#163d32]",
         className,
       ].join(" ")}
