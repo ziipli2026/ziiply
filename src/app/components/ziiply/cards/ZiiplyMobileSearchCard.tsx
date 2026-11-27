@@ -959,9 +959,8 @@ export default function ZiiplyMobileSearchCard({
             Tuotteet ja vertailu
           </h1>
 
-          <div className={`mb-2 mt-1.5 grid gap-2 ${onOpenRecipes ? "grid-cols-3" : "grid-cols-2"}`}>
+          <div className={`mb-2 mt-1.5 grid gap-2 ${onOpenRecipes ? "grid-cols-[minmax(0,1fr)_2.75rem_minmax(0,1fr)]" : "grid-cols-2"}`}>
             <GreenPillButton label="Vihkonen" onClick={onOpenNotebook} className="min-h-11 px-2 text-sm" />
-            {onOpenRecipes && <GreenPillButton label="Reseptit" onClick={onOpenRecipes} className="min-h-11 px-1 text-sm" />}
             <button
               type="button"
               onClick={onOpenCart}
@@ -981,6 +980,7 @@ export default function ZiiplyMobileSearchCard({
                 </span>
               )}
             </button>
+            {onOpenRecipes && <GreenPillButton label="Reseptit" onClick={onOpenRecipes} className="min-h-11 px-1 text-sm" />}
           </div>
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
