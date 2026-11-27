@@ -1,5 +1,5 @@
 import { beginSearchTelemetry, cancelSearchTelemetry, finishSearchTelemetry } from "../search/searchTelemetry";
-import { classifyTokmanniOfferCategory } from "./tokmanniOfferCategory";
+import { classifyTokmanniOfferCategory, isTokmanniSeasoningCategory } from "./tokmanniOfferCategory";
 import { classifySharedProductCategory } from "./sharedProductCategory";
 import { citymarketFailureNotice, type CitymarketAvailabilityNotice } from "./citymarketAvailability";
 import { fetchZiiplyRecoverableOfferSearch } from "../ziiplyRecoverableOfferFetch";
@@ -419,12 +419,12 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     return "";
   }
 
-  const verifiedCategory = getVerifiedOfferCategory(sourceItem) || getVerifiedOfferCategory(item);
-  if (verifiedCategory) return verifiedCategory;
   // Tokmanni: use the same product identity rules as the weekly-offer parser.
   // Run before legacy title rules and stale EAN labels, including cached rows.
   const tokmanniSource = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
   if (tokmanniSource === "tokmanni-viikkotarjoukset" || tokmanniSource === "tokmanni viikkotarjoukset") {
+    const catalogCategory = anyItem?.neonCategoryMatch === "ean" ? anyItem?.neonCategoryPath : "";
+    if (isTokmanniSeasoningCategory(String(catalogCategory || ""))) return "Kuivatuotteet";
     const productCategory = classifyTokmanniOfferCategory(String(
       sourceItem?.title || sourceItem?.name || sourceItem?.productName ||
       anyItem?.title || anyItem?.name || anyItem?.productName || "",
@@ -433,6 +433,9 @@ export function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     const fallbackCategory = String(sourceItem?.neonDisplayCategory || sourceItem?.category || "").trim();
     return GOSTA_CATEGORY_LABELS_V136.includes(fallbackCategory) ? fallbackCategory : "Muut";
   }
+
+  const verifiedCategory = getVerifiedOfferCategory(sourceItem) || getVerifiedOfferCategory(item);
+  if (verifiedCategory) return verifiedCategory;
 
   // Apply source taxonomy for Prisma offers AND campaigns. A source-provided
   // hierarchy is more specific than the legacy title-based classifier.
