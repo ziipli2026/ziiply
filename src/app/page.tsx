@@ -1692,6 +1692,7 @@ import { recipeCoverageQueries } from "./components/ziiply/justiina/recipeSearch
 import { recipeProductRejectionReason, prioritizeRecipeFishProducts } from "./components/ziiply/justiina/recipeSearch";
 import { mobileRecipeSelectionAllowed, mobileRecipePackageQuantity, mobileRecipePriceInCents, type MobileRecipeContext, type MobileRecipeProduct } from "./components/ziiply/justiina/mobileRecipeSearch";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
+import ZiiplyMobileShopsFit from "./components/ziiply/mobile/ZiiplyMobileShopsFit";
 import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
 import MobileStorePickerModal from "./components/ziiply/mobile/MobileStorePickerModal";
@@ -23989,7 +23990,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             />
           </div>
 
-          <div className={mobileFuelMode ? "flex min-h-0 flex-1 flex-col" : "flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain [scrollbar-width:none]"}>
+          <ZiiplyMobileShopsFit enabled={!mobileFuelMode}>
           <section
             className={`relative ${mobileFuelMode ? "min-h-0 flex-1 -translate-y-1 overflow-hidden overscroll-none" : "grow shrink-0"} rounded-[2rem] border-[5px] border-[#6d5128] px-5 pb-1 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
               storeMode === "local"
@@ -24172,7 +24173,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </div>
             )}
           </section>
-          </div>
+          </ZiiplyMobileShopsFit>
 
             </div>
           )}
