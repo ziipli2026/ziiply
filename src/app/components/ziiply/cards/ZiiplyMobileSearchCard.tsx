@@ -972,9 +972,9 @@ export default function ZiiplyMobileSearchCard({
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
-          <div className="relative z-10 mt-1 rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff7dc]/62 px-2 pb-2 pt-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.36),0_3px_0_rgba(91,72,44,0.12)]">
-            <div>
-              <div className="relative isolate h-[7rem] overflow-hidden rounded-[1.28rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+          <div className="relative z-10 mt-1 flex flex-1 flex-col rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff7dc]/62 px-2 pb-2 pt-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.36),0_3px_0_rgba(91,72,44,0.12)]">
+            <div className="flex min-h-[clamp(8.75rem,23dvh,11rem)] flex-1 flex-col">
+              <div className="relative isolate flex flex-1 flex-col overflow-hidden rounded-[1.28rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
                   ref={(node) => {
                     localInputRef.current = node;
@@ -1002,7 +1002,7 @@ export default function ZiiplyMobileSearchCard({
                       void handleManualSearch("justiina", onNormalSearch);
                     }
                   }}
-                  rows={4}
+                  rows={5}
                   aria-label="Hae tuotteita"
                   autoCorrect="on"
                   spellCheck={true}
@@ -1013,7 +1013,7 @@ export default function ZiiplyMobileSearchCard({
                       ? "Kirjoita yksi tuote"
                       : "maito, kahvi, ruisleipä, juusto, tomaatit, pasta, banaanit"
                   }
-                  className={cx("block h-full w-full resize-none overflow-y-auto rounded-[1.02rem] border-0 bg-[#fffaf0] px-3 py-2 text-left text-[1.12rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]", hasText && "pr-[6.55rem]")}
+                  className={cx("block min-h-0 w-full flex-1 resize-none overflow-y-auto rounded-[1.02rem] border-0 bg-[#fffaf0] px-3 py-2 text-left text-[1.12rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]", hasText && "pr-[6.55rem]")}
                   aria-describedby={topNotFoundText ? "ziiply-mobile-search-status" : undefined}
                   style={{ fontFamily: hasText ? serifFont : cooperFont }}
                 />
@@ -1085,9 +1085,9 @@ export default function ZiiplyMobileSearchCard({
               </button>
             )}
 
-            <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
+            <div className="relative z-10 mx-auto mt-3 h-[2px] w-[92%] shrink-0 rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
 
-            <div className="relative z-10 mx-auto mt-2 w-full max-w-[23.6rem] overflow-visible px-2 py-1">
+            <div className="relative z-10 mx-auto mt-2 w-full max-w-[23.6rem] shrink-0 overflow-visible px-2 py-1">
               {/* V679: puinen yhteinen taustapaneeli poistettu. Nappien kontit ovat samankokoiset.
                   Äänitä-asset skaalataan erikseen, koska sen näkyvä grafiikka on Filmaa-assetia pienempi. */}
               <div className="grid min-h-[5.5rem] grid-cols-[minmax(0,1fr)_minmax(3.6rem,0.65fr)_minmax(0,1fr)] items-stretch gap-[clamp(4px,1.8vw,10px)]">
