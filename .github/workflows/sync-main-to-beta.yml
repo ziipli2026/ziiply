@@ -1,0 +1,41 @@
+name: Sync main to Ziiply beta
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-main-to-ziiply-beta
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BETA_BRANCH: feature/arvo-health-sync-contract-20261030
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Merge the current main into beta
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git fetch origin "refs/heads/main:refs/remotes/origin/main"             "refs/heads/$BETA_BRANCH:refs/remotes/origin/$BETA_BRANCH"
+          git switch --detach "origin/$BETA_BRANCH"
+          if git merge-base --is-ancestor origin/main HEAD; then
+            exit 0
+          fi
+
+          git merge --no-edit origin/main
+          git push origin "HEAD:refs/heads/$BETA_BRANCH"
