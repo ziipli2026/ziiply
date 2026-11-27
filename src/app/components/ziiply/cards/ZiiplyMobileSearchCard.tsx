@@ -12,6 +12,7 @@
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
 import { ZiiplyNavIcon } from "../ziiplyComponents";
+import { readShoppingListImage } from "../justiina/readShoppingListImage";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export type ZiiplyMobileSearchCardProduct = {
@@ -498,6 +499,59 @@ export default function ZiiplyMobileSearchCard({
       : "normal";
   });
   const [tempoToast, setTempoToast] = useState<string | null>(null);
+  const listImageInputRef = useRef<HTMLInputElement>(null);
+  const listImportRequest = useRef(0);
+  const [listImportBusy, setListImportBusy] = useState(false);
+  const [listImportNotice, setListImportNotice] = useState("");
+
+  useEffect(() => () => { listImportRequest.current += 1; }, []);
+
+  const applyShoppingList = (text: string) => {
+    const products = text.split(/\r?\n/)
+      .map((line) => line.trim().replace(/^(?:[-–•✓☐]\s*|\d+[.)]\s+)/, ""))
+      .filter(Boolean)
+      .join(", ");
+    if (!products) throw new Error("Ostoslistalta ei löytynyt tuotteita.");
+    if (autoSearchTimerRef.current !== null) {
+      window.clearTimeout(autoSearchTimerRef.current);
+      autoSearchTimerRef.current = null;
+    }
+    autoSearchInputRef.current = "";
+    suppressedAutoSearchTermsRef.current.delete(products.toLowerCase());
+    userEditedSearchRef.current = true;
+    setTriggeredSearchInput("");
+    onInputChange?.(products);
+    setListImportNotice("");
+  };
+
+  const pasteShoppingList = async () => {
+    const request = ++listImportRequest.current;
+    try {
+      const text = await navigator.clipboard.readText();
+      if (request === listImportRequest.current) applyShoppingList(text);
+    } catch {
+      if (request === listImportRequest.current) {
+        setListImportNotice("Liitä ostoslista suoraan hakukenttään, jos leikepöytä ei avaudu.");
+        localInputRef.current?.focus();
+      }
+    }
+  };
+
+  const importShoppingListImage = async (file: File) => {
+    const request = ++listImportRequest.current;
+    setListImportBusy(true);
+    setListImportNotice("Luetaan ostoslistaa…");
+    try {
+      const text = await readShoppingListImage(file);
+      if (request === listImportRequest.current) applyShoppingList(text);
+    } catch (error) {
+      if (request === listImportRequest.current) {
+        setListImportNotice(error instanceof Error ? error.message : "Ostoslistan lukeminen epäonnistui.");
+      }
+    } finally {
+      if (request === listImportRequest.current) setListImportBusy(false);
+    }
+  };
 
   const cleanInput = input.trim();
   const notFoundCanShow =
@@ -920,7 +974,7 @@ export default function ZiiplyMobileSearchCard({
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
           <div className="relative z-10 mt-1 rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff7dc]/62 px-2 pb-2 pt-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.36),0_3px_0_rgba(91,72,44,0.12)]">
             <div>
-              <div className="relative isolate h-[4.65rem] overflow-hidden rounded-[1.28rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+              <div className="relative isolate h-[7rem] overflow-hidden rounded-[1.28rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
                   ref={(node) => {
                     localInputRef.current = node;
@@ -948,7 +1002,7 @@ export default function ZiiplyMobileSearchCard({
                       void handleManualSearch("justiina", onNormalSearch);
                     }
                   }}
-                  rows={2}
+                  rows={4}
                   aria-label="Hae tuotteita"
                   autoCorrect="on"
                   spellCheck={true}
@@ -957,7 +1011,7 @@ export default function ZiiplyMobileSearchCard({
                   placeholder={
                     searchMode === "single"
                       ? "Kirjoita yksi tuote"
-                      : "maito, kahvi"
+                      : "maito, kahvi, ruisleipä, juusto, tomaatit, pasta, banaanit"
                   }
                   className={cx("block h-full w-full resize-none overflow-y-auto rounded-[1.02rem] border-0 bg-[#fffaf0] px-3 py-2 text-left text-[1.12rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]", hasText && "pr-[6.55rem]")}
                   aria-describedby={topNotFoundText ? "ziiply-mobile-search-status" : undefined}
@@ -974,9 +1028,28 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
 
-            <div className="my-2 flex justify-center">
-              <SearchTempoKnob value={effectiveTempo.key} onChange={handleTempoChange} />
+            <input
+              ref={listImageInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0];
+                event.currentTarget.value = "";
+                if (file) void importShoppingListImage(file);
+              }}
+            />
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button type="button" disabled={listImportBusy} onClick={() => void pasteShoppingList()} className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border-2 border-[#b58b3d] bg-gradient-to-b from-[#fff5d3] to-[#e7cd8e] px-1 text-xs font-black text-[#174c2c] shadow-sm active:translate-y-px disabled:opacity-60">
+                <span aria-hidden="true" className="text-lg">📋</span>
+                Liitä ostoslista
+              </button>
+              <button type="button" disabled={listImportBusy} onClick={() => listImageInputRef.current?.click()} className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border-2 border-[#b58b3d] bg-gradient-to-b from-[#fff5d3] to-[#e7cd8e] px-1 text-xs font-black text-[#174c2c] shadow-sm active:translate-y-px disabled:opacity-60">
+                <span aria-hidden="true" className="text-lg">📷</span>
+                Lue ostoslista
+              </button>
             </div>
+            {listImportNotice && <p role="status" className="mt-2 text-sm font-bold text-[#51452f]">{listImportNotice}</p>}
             {activeSearchAnimation ? <InlineSearchRunner assistant={activeSearchAnimation} /> : topNotFoundText && (
               <p id="ziiply-mobile-search-status" role="status" className="mt-2 text-center text-sm font-bold text-[#8f2f22]">{topNotFoundText}</p>
             )}
@@ -1017,13 +1090,15 @@ export default function ZiiplyMobileSearchCard({
             <div className="relative z-10 mx-auto mt-2 w-full max-w-[23.6rem] overflow-visible px-2 py-1">
               {/* V679: puinen yhteinen taustapaneeli poistettu. Nappien kontit ovat samankokoiset.
                   Äänitä-asset skaalataan erikseen, koska sen näkyvä grafiikka on Filmaa-assetia pienempi. */}
-              <div className="grid min-h-[5.5rem] grid-cols-2 items-center gap-[clamp(8px,3vw,16px)]">
+              <div className="grid min-h-[5.5rem] grid-cols-[minmax(0,1fr)_minmax(3.6rem,0.65fr)_minmax(0,1fr)] items-stretch gap-[clamp(4px,1.8vw,10px)]">
                 <RetroAssetButton
                   kind="voice"
                   label="Äänitä"
                   state={voiceState}
                   onClick={onVoiceClick}
                 />
+
+                <SearchTempoKnob value={effectiveTempo.key} onChange={handleTempoChange} />
 
                 <RetroAssetButton
                   kind="scanner"
