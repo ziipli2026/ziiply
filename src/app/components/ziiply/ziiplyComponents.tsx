@@ -259,6 +259,7 @@ export function ZiiplyBottomNav({
   const cartDisabled = fuelMode || cartLength === 0 || !cartSelectionEnabled;
   const compareDisabled = fuelMode || cartLength === 0 || !compareSelectionEnabled;
   const iconClass = "h-[30px] w-[30px] drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]";
+  const portraitClass = "h-[60px] w-[60px] shrink-0 rounded-full object-cover";
   const labelClass = "mt-0.5 block text-[clamp(10px,3.1vw,12px)] leading-none";
 
   return (
@@ -271,7 +272,7 @@ export function ZiiplyBottomNav({
           className={buttonShellClass}
         >
           <span className={`${innerBaseClass} ${shopsActive ? activeInnerClass : initialStoreNavPrompt ? promptedInnerClass : idleInnerClass}`}>
-            <ZiiplyNavIcon type="shops" active={shopsActive} className={iconClass} />
+            <ZiiplyNavIcon type="shops" active={shopsActive} className={fuelMode ? iconClass : "h-[60px] w-[30px]"} />
             <span className={labelClass}>Kaupat</span>
           </span>
         </button>
@@ -288,7 +289,7 @@ export function ZiiplyBottomNav({
         >
           <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
             <span>
-              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <img src="/assistants/justiina.png" alt="" className={`${iconClass} rounded-full object-cover`} />}
+              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <img src="/assistants/justiina.png" alt="" className={portraitClass} />}
             </span>
             <span className={labelClass}>{fuelMode ? "Vertaa" : "Hintavertailu"}</span>
           </span>
@@ -337,7 +338,7 @@ export function ZiiplyBottomNav({
               className={buttonShellClass}
             >
               <span className={`${innerBaseClass} ${offersActive ? activeInnerClass : offersDisabled ? disabledInnerClass : idleInnerClass}`}>
-                <img src="/assistants/gosta.png" alt="" className={`${iconClass} rounded-full object-cover`} />
+                <img src="/assistants/gosta.png" alt="" className={portraitClass} />
                 <span className={labelClass}>Tarjoukset</span>
               </span>
             </button>
@@ -348,7 +349,7 @@ export function ZiiplyBottomNav({
               className={buttonShellClass}
             >
               <span className={`${innerBaseClass} ${settingsActive ? activeInnerClass : idleInnerClass}`}>
-                <img src="/assistants/arvo.png" alt="" className={`${iconClass} rounded-full object-cover`} />
+                <img src="/assistants/arvo.png" alt="" className={portraitClass} />
                 <span className={labelClass}>Ravinto</span>
               </span>
             </button>
