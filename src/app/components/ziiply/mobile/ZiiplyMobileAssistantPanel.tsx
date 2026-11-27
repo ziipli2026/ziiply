@@ -198,8 +198,6 @@ export default function ZiiplyMobileAssistantPanel({
     setWatchNotice("Tarjousvahti poistettu: " + query);
   }
   const [recipeMode,setRecipeMode]=React.useState<"online"|"own">("online");
-  const [recipeCameraOpen,setRecipeCameraOpen]=React.useState(false);
-  React.useEffect(()=>{setRecipeCameraOpen(false)},[activeAssistant]);
   const headerRef=React.useRef<HTMLDivElement|null>(null);
   const [headerHeight,setHeaderHeight]=React.useState(82);
   React.useLayoutEffect(()=>{
@@ -266,7 +264,7 @@ export default function ZiiplyMobileAssistantPanel({
               Ravintoskanneri
             </button>
           )}
-          {activeAssistant === "justiina" ? <div className="min-h-0 flex-1 overflow-y-auto"><div className="sticky top-0 z-10 flex gap-2 bg-[#fff7df] p-3"><button type="button" onClick={()=>setRecipeMode("online")} aria-pressed={recipeMode==="online"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="online"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Hae reseptejä</button><button type="button" onClick={()=>setRecipeMode("own")} aria-pressed={recipeMode==="own"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="own"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Omat / kuvaa</button></div>{recipeMode==="online"?<JustiinaOnlineRecipes onSearchIngredients={onSearchIngredients}/>:<JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} onCameraOpenChange={setRecipeCameraOpen}/>}</div> : activeAssistant === "arvo" ? <ArvoSettingsPanel embedded /> : (
+          {activeAssistant === "justiina" ? <div className="min-h-0 flex-1 overflow-y-auto"><div className="sticky top-0 z-10 flex gap-2 bg-[#fff7df] p-3"><button type="button" onClick={()=>setRecipeMode("online")} aria-pressed={recipeMode==="online"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="online"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Hae reseptejä</button><button type="button" onClick={()=>setRecipeMode("own")} aria-pressed={recipeMode==="own"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="own"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Omat / kuvaa</button></div>{recipeMode==="online"?<JustiinaOnlineRecipes onSearchIngredients={onSearchIngredients}/>:<JustiinaRecipeEditor onSearchIngredients={onSearchIngredients}/>}</div> : activeAssistant === "arvo" ? <ArvoSettingsPanel embedded /> : (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2 rounded-2xl border-2 border-[#caa15d] bg-[#f7e7bd] px-3 py-2">
                 <h2 className="font-serif text-lg font-black text-[#174c35]">Göstan tarjoushaku</h2>
