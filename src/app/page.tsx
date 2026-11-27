@@ -24280,6 +24280,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
               onVoiceClick={() => toggleVoiceInput()}
               onScannerClick={openEanModal}
+              voiceNotice={voiceNoticeTextV516 || voicePromptText || undefined}
               voiceState={voiceProcessing ? "processing" : isListening ? "recording" : "idle"}
               scannerState={eanScannerOpen || eanModalOpen ? "active" : "idle"}
               onAddProduct={(product: any) => {
@@ -24303,19 +24304,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 </div>
               </div>
             )}
-            {!mobileRecipeSearchActive && (voiceNoticeTextV516 || voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
+            {!mobileRecipeSearchActive && !voiceNoticeTextV516 && !voicePromptText && !loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471 && (
               <div
-                className={`pointer-events-none fixed z-[9998] -translate-x-1/2 rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 text-center font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] ${!voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? "top-[calc(env(safe-area-inset-top)+25rem)] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] whitespace-normal break-words px-3 py-2 text-[0.78rem] leading-[1.35]" : "top-[calc(env(safe-area-inset-top)+20.02rem)] inline-block min-h-[1.28rem] w-auto max-w-[72vw] whitespace-nowrap px-2.5 py-[0.10rem] text-[0.72rem] leading-[1.0]"}`}
-                style={{
-                  fontFamily: '"Cooper Black", Georgia, serif',
-                  // V517: keskitetään Äänitä-napin vaakakeskilinjaan.
-                  // 50% on ruudun keskikohta; nauhurin keskilinja on noin 4.75rem siitä vasemmalle.
-                  left: !voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? '50%' : 'calc(50% - 4.75rem)',
-                }}
+                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+25rem)] z-[9998] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 whitespace-normal break-words rounded-[0.72rem] border-2 border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-2 text-center text-[0.78rem] font-black italic leading-[1.35] text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)]"
+                style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
               >
-                {voiceNoticeTextV516 || voicePromptText || searchNotFoundNoticeV471}
+                {searchNotFoundNoticeV471}
               </div>
             )}
 
