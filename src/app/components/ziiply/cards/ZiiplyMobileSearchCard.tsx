@@ -54,7 +54,6 @@ export type ZiiplyMobileSearchCardProps = {
   onSearchModeChange?: (mode: "cart" | "single") => void;
   onAddInputToCart?: (options?: ZiiplyAddInputToCartOptions) => void;
   onOpenNotebook?: () => void;
-  onOpenRecipes?: () => void;
   onOpenCart?: () => void;
   onOpenComparison?: () => void;
   onOfferSearch?: () => void;
@@ -235,54 +234,6 @@ function CartIconButton({
   );
 }
 
-function AssistantButton({
-  kind,
-  loading,
-  disabled,
-  onClick,
-}: {
-  kind: "gosta" | "justiina";
-  loading?: boolean;
-  disabled?: boolean;
-  onClick?: () => void;
-}) {
-  const isGosta = kind === "gosta";
-  const name = isGosta ? "Gösta" : "Justiina";
-  const image = isGosta ? "/assistants/gosta.png" : "/assistants/justiina.png";
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-disabled={disabled}
-      aria-label={name}
-      title={name}
-      className={cx(
-        "relative aspect-square w-full min-w-0 overflow-hidden rounded-[1.05rem] border-[2.5px] p-0 shadow-[0_5px_0_rgba(91,72,44,0.24),0_7px_14px_rgba(91,72,44,0.12),inset_0_0_0_2px_rgba(255,255,255,0.52)] active:translate-y-[1px]",
-        isGosta
-          ? "border-[#6f8f56] bg-gradient-to-b from-[#f5f7dc] to-[#c8d98d]"
-          : "border-[#c99f3c] bg-gradient-to-b from-[#fff4c9] to-[#eac85b]",
-        disabled && isGosta
-          ? "cursor-not-allowed grayscale opacity-55 brightness-[0.62] contrast-75 saturate-0 shadow-none ring-0"
-          : disabled
-            ? "cursor-not-allowed"
-            : "hover:brightness-105 hover:saturate-[1.08]",
-        loading && "animate-pulse ring-2 ring-[#fff1bf]/70",
-      )}
-    >
-      <img
-        src={image}
-        alt=""
-        className="absolute left-1/2 top-1/2 h-[126%] w-[126%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
-        draggable={false}
-        onError={(event) => {
-          event.currentTarget.style.display = "none";
-        }}
-      />
-    </button>
-  );
-}
 
 function ModeToggle({
   mode,
@@ -484,61 +435,9 @@ function InlineSearchRunner({
 }
 
 
-function TopGuideStatusBox({
-  assistant,
-  notFoundText,
-  showGuide,
-}: {
-  assistant: "gosta" | "justiina" | null;
-  notFoundText?: string | null;
-  showGuide?: boolean;
-}) {
-  if (assistant) {
-    return <InlineSearchRunner assistant={assistant} />;
-  }
-
-  const visible = Boolean(notFoundText) || Boolean(showGuide);
-
-  return (
-    <div
-      aria-hidden={!visible}
-      className={cx(
-        "relative z-10 mt-1.5 h-[2.85rem] overflow-hidden rounded-[1.15rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/72 px-3 py-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.42)] transition-opacity duration-200",
-        visible ? "opacity-100" : "opacity-0",
-        notFoundText ? "border-[#b85f45] bg-[#fff1d3]/86" : "",
-      )}
-      role={visible ? "status" : undefined}
-      aria-live={visible ? "polite" : undefined}
-    >
-      {notFoundText ? (
-        <div className="flex h-full items-center justify-center text-center">
-          <div
-            className="text-[0.82rem] font-black leading-tight text-[#8f2f22]"
-            style={{ fontFamily: cooperFont }}
-          >
-            {notFoundText}
-          </div>
-        </div>
-      ) : showGuide ? (
-        <div className="flex h-full flex-col justify-center text-center">
-          <div
-            className="text-[0.82rem] font-black leading-tight text-[#174c2c]"
-            style={{ fontFamily: cooperFont }}
-          >
-            Justiina auttaa löytämään tuotteet ja Gösta tarjoukset.
-          </div>
-          <div className="mt-0.5 text-[0.66rem] font-bold leading-tight text-[#6f5630]">
-            Kirjoita tuote, tuoteryhmä tai ostoslista.
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 export default function ZiiplyMobileSearchCard({
   open = true,
-  title = "HAKU",
+  title: _title = "HAKU",
   subtitle,
   products,
   results,
@@ -553,7 +452,6 @@ export default function ZiiplyMobileSearchCard({
   onSearchModeChange,
   onAddInputToCart,
   onOpenNotebook,
-  onOpenRecipes,
   onOpenCart,
   onOpenComparison,
   onOfferSearch,
@@ -608,13 +506,6 @@ export default function ZiiplyMobileSearchCard({
     !loading &&
     items.length === 0 &&
     cleanInput.length >= 2;
-  const topGuideCanShow =
-    !hasText &&
-    !loading &&
-    !loadingOffers &&
-    !loadingNormal &&
-    !singleProductCompareLoading &&
-    searchingAssistant === null;
   const topNotFoundText = notFoundCanShow
     ? `Hakemaasi “${cleanInput}” ei löytynyt.`
     : null;
@@ -1007,79 +898,23 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
           )}
-          <div className="grid grid-cols-[minmax(0,1fr)_6.8rem] items-start gap-2">
-            <div className="min-w-0">
-              <div
-                className="text-[0.66rem] font-black uppercase leading-none tracking-[0.38em] text-[#6f674f]"
-                style={{ fontFamily: copperplateFont }}
-              >
-                {title}
-              </div>
+          <h1 className="text-[1.45rem] font-black italic leading-tight text-[#123d32]" style={{ fontFamily: cooperFont }}>
+            Tuotteet ja vertailu
+          </h1>
 
-              <h1
-                className="mt-0.5 text-[1.72rem] font-black italic leading-[0.86] text-[#123d32]"
-                style={{ fontFamily: cooperFont }}
-              >
-                Tuotteet ja
-                <br />
-                vertailu
-              </h1>
-            </div>
-
-            <GreenPillButton
-              label="Vihkonen"
-              onClick={onOpenNotebook}
-              className="mt-0.5 h-[2.28rem] w-full rounded-[0.95rem] text-[0.84rem] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26]"
-            />
+          <div className="mb-2 mt-1.5 grid grid-cols-2 gap-2">
+            <GreenPillButton label="Vihkonen" onClick={onOpenNotebook} className="min-h-11 px-2 text-sm" />
+            <GreenPillButton label="🛒 Ostoskori" onClick={onOpenCart} disabled={!onOpenCart} className="min-h-11 px-2 text-sm" />
           </div>
-
-          {onOpenRecipes && (
-            <div className="mt-1 flex flex-wrap gap-1">
-              <GreenPillButton label="Reseptit" onClick={onOpenRecipes} className="min-h-11 px-3 text-xs" />
-              {onOpenCart && <GreenPillButton label="Ostoskori" onClick={onOpenCart} className="min-h-11 px-3 text-xs" />}
-              {onOpenComparison && <GreenPillButton label="Vertaa ostoskoria" onClick={onOpenComparison} className="min-h-11 px-3 text-xs" />}
-            </div>
+          {onOpenComparison && (
+            <GreenPillButton label="Vertaa ostoskoria" onClick={onOpenComparison} className="mb-2 min-h-11 self-start px-3 text-xs" />
           )}
-
-          <TopGuideStatusBox
-            assistant={
-              searchingAssistant ||
-              (loadingOffers
-                ? "gosta"
-                : loadingNormal || singleProductCompareLoading || loading
-                  ? "justiina"
-                  : null)
-            }
-            notFoundText={topNotFoundText}
-            showGuide={topGuideCanShow}
-          />
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
           <div className="relative z-10 mt-1 rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff7dc]/62 px-2 pb-2 pt-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.36),0_3px_0_rgba(91,72,44,0.12)]">
-            <div className="grid grid-cols-[minmax(0,1.12fr)_minmax(0,0.74fr)_minmax(0,1.12fr)] items-center gap-[clamp(4px,2vw,10px)]">
-              <AssistantButton
-                kind="gosta"
-                onClick={() => handleManualSearch("gosta", onOfferSearch)}
-                disabled={offerSearchDisabled}
-                loading={loadingOffers}
-              />
-
-              <SearchTempoKnob
-                value={effectiveTempo.key}
-                onChange={handleTempoChange}
-              />
-
-              <AssistantButton
-                kind="justiina"
-                onClick={() => handleManualSearch("justiina", onNormalSearch)}
-                disabled={!hasText}
-                loading={justiinaLoading}
-              />
-            </div>
-
-            <div className="mt-1.5">
-              <div className="relative isolate h-[3.35rem] overflow-hidden rounded-[1.28rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+            <div>
+              <div className="relative isolate h-[4.65rem] overflow-hidden rounded-[1.28rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
                   ref={(node) => {
                     localInputRef.current = node;
@@ -1107,7 +942,8 @@ export default function ZiiplyMobileSearchCard({
                       handleAddInputToCart();
                     }
                   }}
-                  rows={1}
+                  rows={2}
+                  aria-label="Hae tuotteita"
                   autoCorrect="on"
                   spellCheck={true}
                   autoCapitalize="sentences"
@@ -1117,7 +953,8 @@ export default function ZiiplyMobileSearchCard({
                       ? "Kirjoita yksi tuote"
                       : "maito, kahvi"
                   }
-                  className="block h-full w-full resize-none overflow-hidden rounded-[1.02rem] border-0 bg-[#fffaf0] px-4 py-[0.45rem] pr-[6.55rem] text-center text-[1.26rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                  className={cx("block h-full w-full resize-none overflow-y-auto rounded-[1.02rem] border-0 bg-[#fffaf0] px-3 py-2 text-left text-[1.12rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]", hasText && "pr-[6.55rem]")}
+                  aria-describedby={topNotFoundText ? "ziiply-mobile-search-status" : undefined}
                   style={{ fontFamily: hasText ? serifFont : cooperFont }}
                 />
 
@@ -1130,6 +967,17 @@ export default function ZiiplyMobileSearchCard({
                 />
               </div>
             </div>
+
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <GreenPillButton label={justiinaLoading ? "Haetaan…" : "Hae tuotteita"} onClick={() => handleManualSearch("justiina", onNormalSearch)} disabled={!hasText || justiinaLoading} className="min-h-11 px-2 text-sm" />
+              <GreenPillButton label={loadingOffers ? "Haetaan…" : "Hae tarjouksia"} onClick={() => handleManualSearch("gosta", onOfferSearch)} disabled={offerSearchDisabled || loadingOffers} className="min-h-11 px-2 text-sm" />
+            </div>
+            <div className="my-2 flex justify-center">
+              <SearchTempoKnob value={effectiveTempo.key} onChange={handleTempoChange} />
+            </div>
+            {searchingAssistant ? <InlineSearchRunner assistant={searchingAssistant} /> : topNotFoundText && (
+              <p id="ziiply-mobile-search-status" role="status" className="mt-2 text-center text-sm font-bold text-[#8f2f22]">{topNotFoundText}</p>
+            )}
 
             {hasFoundProducts && !loadingOffers && !justiinaLoading && !loading && (
               <button
