@@ -11,6 +11,13 @@ export function searchWords(value: unknown): string[] {
     .replace(/(\d)[,.](\d)/g, '$1.$2')
     .match(/[a-z]+|\d+(?:\.\d+)?/g) || [];
 }
+const petProductType = /caabo[a-z]*|kattovit|jahti vahti|mac s|best in|bestin|kssanherkku|almo nature|purina|whiskas|pedigree|schesir|shelma|cesar|koir|kiss|lemmik/;
+
+export function isDesktopPetProduct(value: unknown): boolean {
+  const text = searchWords(value).join(' ');
+  return petProductType.test(text) || /\b(?:dog|cat|pet|primadog|latz|sheba|friskies)\b/.test(text);
+}
+
 const forms: Record<string, string> = {
   tomattia:'tomaattia', mozarellaa:'mozzarellaa',
   kanan:'kana', kananmunan:'kananmuna', kananmunaa:'kananmuna', broilerin:'broileri', kermat:'kerma',
@@ -168,7 +175,7 @@ function desktopSearchNameDecision(query: string, product: Row) {
   // contain no usable taxonomy (opaque supplier codes).
   const typeRules: [string, RegExp][] = [
     ['nonfood', /caabu[a-z]*|hankausaine|konetiski|tiskitablet|ilmanraikastin|puhdistusaine|pesuaine|shampoo|hoitoaine|tuoksusuihke|kosmetiikka|kauneus|hygienia|epsom|kylpysuola|eteerinen|hius|palapeli|pyydys|torjunta|ilmapallo|sirotin|pippurimylly|ruoanvalmistusastia|lelu|hiusoljy|elvital/],
-    ['pet', /caabo[a-z]*|kattovit|jahti vahti|mac s|best in|bestin|kssanherkku|almo nature|purina|whiskas|pedigree|schesir|shelma|cesar|koir|kiss|lemmik/],
+    ['pet', petProductType],
     ['spice', /caabgbaak[a-z]*|(?:^| )mausteet(?: |$)|mausteseos|maustesekoitus|spice mix|perunakuorrute|(?:^| )mauste(?: |$)|(?:^| )maus(?: |$)|sipulijauhe|paprikajauhe|sitruunapippuri/],
     ['powder', /[a-z]*jauhe(?: |$)|(?:^| )jauhettu(?: |$)/],
     ['preserve', /hillo|marmeladi|kiisseli/],
