@@ -24905,7 +24905,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             currentCartItems={cart}
             onBack={() => {
               setNotebookOpen(false);
-              setCartModalOpen(true);
+              closeCartModal();
+              setSearchPanelOpen(true);
             }}
             onClose={() => setNotebookOpen(false)}
             onSaveCurrentCart={(name?: string) => {
