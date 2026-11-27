@@ -258,7 +258,7 @@ export default function ZiiplyMobileAssistantPanel({
           </button>
         </div>
 
-        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151]">
+        <div className="z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151]">
           {activeAssistant === "arvo" && onOpenNutritionScanner && (
             <button type="button" onClick={onOpenNutritionScanner} className="mb-2 min-h-11 w-full rounded-xl border border-[#b99d62] bg-white px-3 font-bold text-[#174c35]">
               Ravintoskanneri
