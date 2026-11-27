@@ -457,7 +457,6 @@ export default function ZiiplyMobileSearchCard({
   onOpenRecipes,
   onOpenCart,
   onOpenComparison,
-  onOfferSearch,
   offerSearchDisabled = false,
   onNormalSearch,
   onOpenResults,
@@ -951,7 +950,7 @@ export default function ZiiplyMobileSearchCard({
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !event.shiftKey) {
                       event.preventDefault();
-                      handleAddInputToCart();
+                      void handleManualSearch("justiina", onNormalSearch);
                     }
                   }}
                   rows={2}
@@ -980,10 +979,6 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
 
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <GreenPillButton label={justiinaLoading ? "Haetaan…" : "Hae tuotteita"} onClick={() => handleManualSearch("justiina", onNormalSearch)} disabled={!hasText || justiinaLoading} className="min-h-11 px-2 text-sm" />
-              <GreenPillButton label={loadingOffers ? "Haetaan…" : "Hae tarjouksia"} onClick={() => handleManualSearch("gosta", onOfferSearch)} disabled={offerSearchDisabled || loadingOffers} className="min-h-11 px-2 text-sm" />
-            </div>
             <div className="my-2 flex justify-center">
               <SearchTempoKnob value={effectiveTempo.key} onChange={handleTempoChange} />
             </div>
