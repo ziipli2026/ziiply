@@ -119,7 +119,7 @@ export function ZiiplyLaunchScreen({ appVersion: _appVersion }: ZiiplyLaunchScre
 }
 
 
-function ZiiplyNavIcon({
+export function ZiiplyNavIcon({
   type,
   active = false,
   disabled = false,
