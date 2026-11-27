@@ -24832,8 +24832,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }, 60);
             }}
             onBack={() => {
-              setCartModalOpen(false);
-              setActiveResult("none");
+              closeCartModal();
+              setSearchPanelOpen(true);
             }}
             onRestoreOriginalItem={(item: any) => {
               const original = item.ziiplyOriginalCartItemV793 as CartItem | undefined;
