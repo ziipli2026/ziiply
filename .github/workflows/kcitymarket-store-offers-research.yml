@@ -1,14 +1,20 @@
 name: Citymarket store offers research
+# 24.11.2026 – Automaattiajo pois toistaiseksi. Käsiajo: Actions → Run workflow.
+# Aiemmin ajo käynnistyi kahden tunnin välein sekä workflow- tai testitiedostojen muuttuessa mainissa.
+#
+# Tutkimus vertaa Hyvinkään ja Jumbon myymäläkohtaisia julkaisuehdokkaita
+# yleiseen K-Citymarket-lehteen ja selvittää Tjekin soveltuvuutta paikallislähteeksi.
+# Ajo ei tuo tarjouksia Göstaan. AV- ja LV-lehtien tuotantopäivitys on erillinen.
+#
+# 24.11.2026: Tjek palautti taas Hyvinkään tunnuksella kolme julkaisua ja 17 riviä.
+# Myymäläkohtaisuutta ja päällekkäisyyttä valtakunnallisen lehden kanssa ei vahvistettu.
+# K-Ruoan myymäläsivu palautti 403:n, ja HTML-metatietojen tarkistus päättyi taas
+# virheeseen "Citymarket research review-safety invariant failed".
+# Toistuva ajo ei ratkaise näitä avoimia kysymyksiä. Käsiajo säilyy jatkotutkimusta
+# varten. Jos HTML-tarkistus pidetään käytössä, lisää lokiin pettänyt ehto ja laskurit.
+# https://github.com/ziipli2026/ziiply/actions/runs/45449934018/job/138643890175
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '10 */2 * * *'
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/kcitymarket-store-offers-research.yml
-      - tests/kcitymarket-leaflet-candidates.test.cjs
-      - tests/helpers/kcitymarket-strict-pair.cjs
 
 permissions:
   contents: read

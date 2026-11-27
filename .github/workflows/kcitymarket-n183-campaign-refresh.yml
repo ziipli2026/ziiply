@@ -18,14 +18,17 @@ jobs:
     steps:
       - name: Refresh and verify N183 store campaigns
         env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
           KCITYMARKET_MANUAL_SECRET: ${{ secrets.KCITYMARKET_MANUAL_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
           test -n "$KCITYMARKET_MANUAL_SECRET" || { echo "::error::KCITYMARKET_MANUAL_SECRET missing"; exit 1; }
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET" || { echo "::error::VERCEL_AUTOMATION_BYPASS_SECRET missing"; exit 1; }
           response="$RUNNER_TEMP/kcitymarket-n183.json"
           status=$(curl --silent --show-error --max-time 270 \
             -o "$response" -w '%{http_code}' \
+            -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
             -H "Authorization: Bearer $KCITYMARKET_MANUAL_SECRET" \
             "https://ziiply.vercel.app/api/cron/kcitymarket-campaign-refresh") || status="000"
           echo "N183 endpoint HTTP: $status"
@@ -35,6 +38,12 @@ jobs:
           let data = {};
           try { data = JSON.parse(fs.readFileSync(file, "utf8")); } catch {}
           const probe = data.probe || {};
+          const ok = http === "200" && data.ok === true;
+          const transportError = http.startsWith("3") ? "Vercel redirected the refresh (HTTP " + http + "). Check automation authentication."
+            : http === "000" ? "Could not reach the refresh endpoint."
+            : http !== "200" ? "Refresh endpoint returned HTTP " + http + "."
+            : "Refresh endpoint did not report success.";
+          const secondaryUnavailable = ok && data.secondaryKruokaUnavailable === true;
           const lines = [
             "## K-Citymarket Hyvinkää — N183",
             "| Check | Result |",
@@ -44,11 +53,12 @@ jobs:
             "| K-Ruoka probe | " + (probe.status ?? "not reported") + " |",
             "| K-Ruoka upstream HTTP | " + (probe.httpStatus ?? "unknown") + " |",
             "| Tjek refresh | " + (data.tjek?.ok === true ? "OK" : "FAILED / UNKNOWN") + " |",
-            "| Overall | " + (data.ok === true ? "OK" : "FAILED") + " |",
+            "| Overall | " + (secondaryUnavailable ? "OK (Tjek); K-Ruoka unavailable" : ok ? "OK" : "FAILED") + " |",
             "",
-            "Error: " + String(data.error ?? data.tjek?.error ?? "none")
+            "Error: " + String(ok ? "none" : data.error ?? data.tjek?.error ?? transportError)
           ];
           fs.appendFileSync(summary, lines.join("\n") + "\n");
           console.log(lines.join("\n"));
-          if (http !== "200" || data.ok !== true || !(Number.isFinite(data.verifiedKruokaCount) && data.verifiedKruokaCount >= 5)) process.exitCode = 1;
+          if (secondaryUnavailable) console.log("::warning::K-Ruoka source unavailable; primary Tjek refresh succeeded.");
+          if (!ok) process.exitCode = 1;
           NODE

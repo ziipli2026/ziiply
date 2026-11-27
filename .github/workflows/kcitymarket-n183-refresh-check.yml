@@ -1,8 +1,11 @@
 name: K-Citymarket N183 Tjek refresh verification
+# 2026-11-25: Scheduled verification disabled (previously every six hours).
+# This check calls the Hyvinkaa campaign refresh endpoint. The old target
+# repeatedly returned a Vercel sign-in redirect (HTTP 302) instead of JSON.
+# Vercel's daily refresh and the separate N183 campaign refresh succeeded.
+# Manual verification is retained for troubleshooting once access is fixed.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '10 */6 * * *'
   push:
     paths:
       - '.github/workflows/kcitymarket-n183-refresh-check.yml'

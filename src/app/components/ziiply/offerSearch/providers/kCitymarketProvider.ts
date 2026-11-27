@@ -102,6 +102,15 @@ export function category(t:string){
   if(/the dog naughty hot dog/.test(joined)) return "Leipomo";
   if(/naughty hot dog makkarat/.test(joined)) return "Liha & makkarat";
   if(/(?:^|[^a-zåäö])pääryn(?:ä|ät|öitä)(?![a-zåäö])/.test(joined)) return "Hevi";
+  if(/\b(?:ruispalat|kaurapalaleip\w*)\b/.test(s)) return "Leipomo";
+  if(/\b(?:ruoka|makaroni|peruna|kaali|liha|broileri|kala)laatik\w*\b|\b(?:kunnon arki|valmiit) laatikot\b/.test(s)) return "Valmisruoka";
+  if(/\b(?:kananmun\w*|kanan mun\w*|kauravalmiste\w*)\b/.test(s)) return "Maitotuotteet";
+  if(/\b(?:ruoka\s*&\s*dippi|majoneesi\w*|liemikuutio\w*|pitkäjyväinen kaura)\b/.test(s)) return "Kuivatuotteet";
+  if(/\b(?:suklaanapp\w*|nappirull\w*)\b/.test(s)) return "Makeiset & keksit";
+  if(/\b\w*(?:puuro\w*|smoothie\w*)\b.*\b\d+(?:[–-]\d+)?\s*(?:kk|v\.)/.test(s)) return "Lastenruoat";
+  if(/\b(?:donitsi\w*|sokeridonitsi\w*)\b/.test(s)) return "Leipomo";
+  if(/\b(?:anua|intiimisuojat|nestesaippuat|käsien puhdistustuotteet)\b/.test(s)) return "Hygienia & kosmetiikka";
+  if(/roll-on.*suihkusaippu/.test(s)) return "Hygienia & kosmetiikka";
   // Product-form precedence: recognizable hygiene, cleaning and food items.
   if(/\bvartalonhoitotuotteet\b/.test(joined)) return "Hygienia & kosmetiikka";
   if(/(?:nestesaippuoiden täyttöpuss|meikinkiinnityssuihke|meikinpoistoaine|\bvoiteet\s+50\s*ml)/.test(joined)) return "Hygienia & kosmetiikka";
@@ -550,6 +559,124 @@ function extractKCitymarketValidityV16(text:unknown){
   return {from:`${startDay}.${startMonth}.`,to:`${endDay}.${endMonth}.`};
 }
 
+// Verified against the 48AV publisher PDF (SHA-256 66763d5c43b8bd81939d17049bfd1bb38e8aa883123866ef0caa7fa0b81af23e).
+// Preserve the original image identity when the printed title or transaction differs.
+function repairReviewed48AVRows(rows:any[], leafletUrl:string) {
+  if(leafletUrl!=="https://kcm-tarjouslehdet.k-ruoka.fi/95gmf89_tarjouslehti_48AV_KCM/index.html") return rows;
+  const source="publisher-pdf-reviewed-48av";
+  const prices: [number, RegExp, number, number|null, string, string?][] = [
+    [1,/^PAN PIZZAT/,1,null,"KPL"],
+    [1,/^RUISPALAT/,1,null,"PS"],
+    [1,/^ARKI JUUSTOPALAT/,5,null,"KPL"],
+    [1,/^KANANPOJAN FILEESUIKALEET/,4,null,"RS"],
+    [2,/^WC-PAPERI/,5.50,null,"PKT"],
+    [6,/^KAHVINKEITTIMEN PUHDISTUSAINE/,11.99,null,"KPL","Moccamaster Cleaning Aid KAHVINKEITTIMEN PUHDISTUSAINE 250 ml"],
+    [13,/^ELVITAL SHAMPOOT/,8,null,"KPL"],
+    [13,/^SILMÄMEIKINPOISTOAINEET/,4.50,null,"KPL"],
+    [15,/^ISOJA VAPAAN KANAN MUNIA/,3.50,null,"RS"],
+    [15,/^ARKI RUOKAKERMA/,1,2,"TLK"],
+    [15,/^KAURAVALMISTEET/,1,null,"TLK"],
+    [15,/^CREME FRAICHE/,1,null,"PRK"],
+    [15,/^PROTEIN VANUKKAAT/,1,null,"PRK"],
+    [15,/^KREIKKALAISET ja LOHKEAVAT JOGURTIT/,1,null,"PRK"],
+    [16,/^PITKÄJYVÄINEN KAURA/,5,2,"PKT"],
+    [16,/^KOTIMAINEN PINAATTIKEITTO/,3,2,"PKT"],
+    [16,/^MUROT/,10,2,"PKT"],
+    [17,/^JÄÄTELÖT/,5,3,"PKT"],
+    [17,/^NAPPIRULLAT/,2,null,"KPL"],
+    [17,/^KAURAPUUROT/,3,3,"PS"],
+    [17,/^KOIRAN PIHVITIKUT/,3,6,"KPL"],
+    [17,/^KISSAN MAKUPALAT/,3,null,"PS"],
+    [18,/^KANANPOJAN NUGGETIT/,3,null,"PKT"],
+    [18,/^PIENET MAUSTEPURKIT/,1,null,"PRK"],
+    [18,/^VALMISKASTIKKEET/,2,null,"TLK"],
+    [18,/^LIEMIKUUTIOT/,1,null,"RS"],
+    [19,/^HERKKUMAKSAMAKKARA/,1,null,"KPL"],
+    [19,/^TRIP MEHUT/,3,7,"TLK"],
+    [20,/^VEHNÄTORTILLA/,1,null,"PS"],
+    [1,/^KUNNON ARKI LAATIKOT/,3,2,"RS","Atria KUNNON ARKI LAATIKOT 350–400 g"],
+    [1,/^KANAN JAUHELIHA/,5,2,"RS","Atria KANAN JAUHELIHA 400 g tai NAUTA-VILJAPOSSU JAUHELIHA 250 g"],
+    [1,/^MAUSTETUT JOGURTIT/,1,3,"PRK","Valiojogurtti MAUSTETUT JOGURTIT 200 g"],
+    [13,/^NESTESAIPPUAT/,1,null,"KPL","NESTESAIPPUAT 250 ml"],
+    [13,/^ROLL-ON/,5.50,2,"KPL","ROLL-ON 50 ml ja SUIHKUSAIPPUAT 300 ml"],
+    [14,/^2?PYYKINPESUNESTEET/,10,3,"KPL","PYYKINPESUNESTEET 880 ml, TÄYTTÖPAKKAUKSET 920 ml ja PESUJAUHEET 700–725 g"],
+    [14,/^WC-SPRAYT/,2,null,"KPL"],
+    [15,/^KUORRUTETUT DONITSIT/,2,null,"RS","NAM KUORRUTETUT DONITSIT 4–6 kpl/120–170 g tai SOKERIDONITSIT 6–10 kpl/150–220 g"],
+    [16,/^MARGARIINIT/,5,2,"RS","Becel MARGARIINIT 380 g"],
+    [16,/^RUOKA & DIPPI/,2,null,"KPL","Paimenpoika RUOKA & DIPPI 200 g"],
+    [17,/^YUMMIES SMOOTHIET/,3,3,"PS","YUMMIES SMOOTHIET 1–3 v. 120 g"],
+    [18,/^AL BRO-?NZO PASTAT/,2,null,"PS","AL BRONZO PASTAT 500 g"],
+    [19,/^KOULULAISSÄMPYLÄ/,2,null,"PS","Putaan Pulla KOULULAISSÄMPYLÄ 12 kpl/540 g"],
+    [19,/^PROTEIN\+ RAHKAT/,1,null,"PRK","Lindahls PROTEIN+ RAHKAT 158 g"],
+    [20,/^(?:KUKKO ALKOHOLITTOMAT OLUET|BOOSTER ENERGIAJUOMAT|VIRVOITUSJUOMAT)/,1,null,"TLK"],
+  ];
+  const imageIds=Object.keys(citymarketPublisherImageRegistry.publications[leafletUrl]?.images??{});
+  const seen=new Set<string>();
+  const reviewed=rows.flatMap(row=>{
+    const page=Number(row.page);
+    const title=clean(row.title||"");
+    const resolved=row.spatialResolved;
+    const percent=Number(row.percentageOffer?.percent);
+    const identity=resolved?.value??(percent>0?"percent:"+percent:null);
+    const imagePrefix=`kcm:spatial:${page}:${title.toLowerCase()}:`;
+    const publisherOfferId=imageIds.find(id=>id.startsWith(imagePrefix))??row.publisherOfferId??(identity!=null?`kcm:spatial:${page}:${title.toLowerCase()}:${identity}`:undefined);
+    const printedValidity=page===1 || page===3 ? {from:"23.11.",to:"25.11."} : {from:"23.11.",to:"29.11."};
+    if((page===1 && /^(?:JAUHELIHA 250 g|HAMMASTAHNA 50 ml)/i.test(title)) ||
+       (page===14 && /^(?:TÄYTTÖPAKKAUKSET|PESUJAUHEET|WC-PAPERI)/i.test(title))) return [];
+    const correctedTitle=page===2 && /^RADIANCE/i.test(title) ? "Nivea Cellular Luminous Post-Acne ja Cellular Expert Vitamin C Radiance SEERUMIT 30 ml"
+      : page===13 && title==="-TUOTTEET" ? "Rom&nd ja Moira MEIKKITUOTTEET"
+      : page===14 && /^COSRX-TUOTTEET/i.test(title) ? "Smuuti Skin IHONHOITOTUOTTEET ja COSRX-TUOTTEET"
+      : title;
+    const common={...row,title:correctedTitle,publisherOfferId,
+      printedValidity:page===2 && /^RADIANCE/i.test(title)?{from:"24.11.",to:"24.11."}:printedValidity};
+    const correction=prices.find(([p,pattern])=>p===page && pattern.test(title));
+    if(!correction) {
+      const discount=page===2 && /^RADIANCE/i.test(title)?50:
+        page===13 && /^ANUA-TUOTTEET/i.test(title)?20:
+        page===13 && title==="-TUOTTEET"?25:
+        page===14 && /^COSRX-TUOTTEET/i.test(title)?25:null;
+      if(discount) return [{...common,spatialResolved:null,percentageOffer:{percent:discount,source}}];
+      if(page===3 && /^HAMMASTAHNA 50 ml/i.test(title)) return [{...common,
+        spatialResolved:{value:1,quantity:null,unit:"KPL",source,sanity:"pass"},publisherOfferId:"kcm:spatial:3:hammastahna 50 ml:1",nearby:["Plussa-etu"]}];
+      return [common];
+    }
+    const [,pattern,value,quantity,unit,newTitle]=correction;
+    const hasDeposit=page===20 && /^(?:KUKKO ALKOHOLITTOMAT OLUET|BOOSTER ENERGIAJUOMAT|VIRVOITUSJUOMAT)/.test(title);
+    const key=page+":"+pattern.source+(hasDeposit?":"+title:"");
+    if(seen.has(key)) return [];
+    seen.add(key);
+    return [{...common,title:newTitle??title,
+      spatialResolved:{value,quantity,unit,source,sanity:"pass"},
+      percentageOffer:null,normal:null,unitPrice:hasDeposit?{min:2.58,max:2.58,raw:"2,58/l"}:null,
+      reviewedDeposit:hasDeposit?0.15:undefined,nearby:[page===2?"Mobiilietu":"Plussa-etu"]}];
+  });
+  const missing: [number, string, number, number|null, string][] = [
+    [13,"NESTESAIPPUAT 250 ml",1,null,"KPL"],
+    [13,"Maybelline MEIKINKIINNITYSSUIHKEET ja PRIMERIT",10.90,null,"KPL"],
+    [13,"Maybelline Sky Tubes ja Body MASCARAT",10.90,null,"KPL"],
+    [13,"Discreet INTIIMISUOJAT 6–24 kpl/pkt",2,null,"PKT"],
+    [13,"SITEET ja PIKKUHOUSUNSUOJAT 9–42 kpl/pkt",2.80,2,"PKT"],
+    [14,"PUHDISTUSSUIHKEEN STARTTIPAKKAUKSET",5.50,2,"KPL"],
+    [14,"VALKOINEN TALOUSPAPERI 8 rl",4.90,null,"PKT"],
+    [14,"LAUTASLIINAT 33 cm 20 kpl",6.40,2,"KPL"],
+  ];
+  for(const [page,title,value,quantity,unit] of missing) {
+    if(reviewed.some(row=>row.page===page&&row.title===title)) continue;
+    reviewed.push({page,title,
+      spatialResolved:{value,quantity,unit,source,sanity:"pass"},
+    printedValidity:{from:"23.11.",to:"29.11."},nearby:["Plussa-etu"]});
+  }
+  reviewed.push({page:13,title:"Muumi KÄSIEN PUHDISTUSTUOTTEET",
+    percentageOffer:{percent:40,source},printedValidity:{from:"23.11.",to:"29.11."}});
+  for(const [page,title,percent] of [[13,"ANUA-TUOTTEET",20],[13,"Rom&nd ja Moira MEIKKITUOTTEET",25],
+    [14,"Smuuti Skin IHONHOITOTUOTTEET ja COSRX-TUOTTEET",25]] as const){
+    if(reviewed.some(row=>row.page===page&&row.title===title)) continue;
+    reviewed.push({page,title,percentageOffer:{percent,source},printedValidity:{from:"23.11.",to:"29.11."},
+      publisherOfferId:page===14?"kcm:spatial:14:cosrx-tuotteet:percent:25":undefined});
+  }
+  return reviewed;
+}
+
 async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[]>{
   const parsed=await parseKCitymarketSpatialLeaflet(entry);
   const leafletUrl=String(parsed?.leaflet||ENTRY);
@@ -557,7 +684,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
   // Reviewed PDF pictures are attached to this source row, never a fuzzy name.
   const sourceRows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
   const deduplicatedSourceRows=/_45AV_KCM/i.test(String(parsed?.leaflet||ENTRY))?removeDuplicateContinuationRows(sourceRows):sourceRows;
-  const rows:any[]=canonicalCitymarketProductRows(deduplicatedSourceRows.map(row=>{
+  const rows:any[]=repairReviewed48AVRows(canonicalCitymarketProductRows(deduplicatedSourceRows.map(row=>{
     if(row?.publisherOfferId)return row;
     const page=Number(row?.page)||0;
     const rawTitle=clean(row?.title||"").toLowerCase();
@@ -571,7 +698,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       return {...row,publisherOfferId:"kcm:spatial:"+page+":"+rawTitle+":"+Number(row.spatialResolved.value)};
     }
     return row;
-  }));
+  })),leafletUrl);
   const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
   const leafletValidity=extractKCitymarketValidityV16(parsed.validityText||allLeafletText);
 
@@ -604,7 +731,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       offers.push({id:`kcm:spatial:${row?.page??0}:${reviewedCampaignTitle.toLowerCase()}:percent:${percent}`,
         publisherOfferId:row.publisherOfferId,title:reviewedCampaignTitle,price:null,discountPercent:percent,benefitText:`–${percent} %`,campaignType:"campaign",
         resolutionSource:row.percentageOffer.source,plussa:/plussa/i.test((row.nearby||[]).join(" ")),
-        validFrom:validity?.from??null,validTo:validity?.to??null,category:/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(campaignTitle,category(campaignTitle)):category(campaignTitle),
+        validFrom:row.printedValidity?.from??validity?.from??null,validTo:row.printedValidity?.to??validity?.to??null,category:/_45AV_KCM/i.test(leafletUrl)?repairCitymarketCategory(campaignTitle,category(campaignTitle)):category(campaignTitle),
         chain:"K",storeType:"K-Citymarket",source:"K-Citymarket tarjouslehti",sourceUrl:leafletUrl});
       continue;
     }
@@ -738,15 +865,17 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       normalPrice,
       unitPrice,
       ...(innocent45AV?{depositAmount:0.20}:{}),
+      ...(row.reviewedDeposit!=null?{depositAmount:row.reviewedDeposit}:{}),
       ...(reviewed46LV?.depositAmount!=null?{depositAmount:reviewed46LV.depositAmount}:{}),
       ...(verified45LV?.depositAmount!=null?{depositAmount:verified45LV.depositAmount}:{}),
-      unit:verified45LV?.reviewedCard?verified45LV.unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
+      unit:resolved?.source==="publisher-pdf-reviewed-48av"?resolved.unit:verified45LV?.reviewedCard?verified45LV.unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       ...(!verified45LV?.reviewedCard?citymarketTransactionMetadata(row):{}),
+      ...(resolved?.source==="publisher-pdf-reviewed-48av" && !(offerQuantity && offerQuantity>1) ? {priceBasis:"package-total" as const} : {}),
       ...(resolved?.source?.startsWith("owned-printed") && (resolved?.unit === "setti" || resolved?.packageCount > 1) ? {
         priceBasis: resolved.packageCount > 1 ? "package-total" : "set-total",
         priceText: price.toFixed(2).replace(".", ",") + " € / " + (resolved.packageCount > 1 ? "pkt (" + resolved.packageCount + " kpl)" : "setti"),
       } : {}),
-      ...(resolved?.source?.startsWith("owned-printed") && offerQuantity && offerQuantity > 1 &&
+      ...((resolved?.source?.startsWith("owned-printed") || resolved?.source==="publisher-pdf-reviewed-48av") && offerQuantity && offerQuantity > 1 &&
           resolved.unit && resolved.unit !== "KG" && !(resolved.packageCount > 1) ? {
         priceBasis: "set-total",
         priceText: price.toFixed(2).replace(".", ",") + " € / " + offerQuantity +
@@ -835,6 +964,7 @@ function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
 const verified47LVPeriod = "2026-11-19-W47-LV";
 const verified47LVLeaflet = "https://kcm-tarjouslehdet.k-ruoka.fi/94s5ius_tarjouslehti_47LV_KCM/index.html";
 export function kCitymarketPublicationCandidateId(periodKey:string){
+  if(periodKey==="2026-11-23-W48-AV") return periodKey+"-printed-transactions-v167";
   return periodKey+(periodKey===verified47LVPeriod?"-printed-transactions-v166":"-printed-transactions-v165");
 }
 
@@ -862,7 +992,7 @@ const getCachedKCitymarketPeriod=unstable_cache(
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
-  ["ziiply-kcitymarket-printed-transactions-v171"],
+  ["ziiply-kcitymarket-printed-transactions-v173"],
   // Retry discovery of upcoming editions after a late publisher release. A permanent
   // cache otherwise freezes the first incomplete parse until another deployment.
   {revalidate:300},
@@ -874,11 +1004,13 @@ async function readCachedPeriod(period:KCitymarketPeriod){
 }
 export async function warmKCitymarketOfferCache(now: Date, scope: "active" | "next"){
   const period=scope==="active"?getActiveKCitymarketPeriod(now):getNextKCitymarketPeriod(now);
-  const result:{active:{period:string;offers:number;cachedAt:string}|null;next:{period:string;offers:number;cachedAt:string}|null;errors:string[]}={active:null,next:null,errors:[]};
+  const result:{active:{period:string;offers:number;rawOffers:number;cachedAt:string}|null;next:{period:string;offers:number;rawOffers:number;cachedAt:string}|null;errors:string[]}={active:null,next:null,errors:[]};
   if(!period) return result;
   try{
     const payload=await readCachedPeriod(period);
-    result[scope]={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
+    const rawOffers=payload.offers.length;
+    const offers=partitionDailyGroceryOffers(payload.offers).accepted.length;
+    result[scope]={period:payload.period.key,offers,rawOffers,cachedAt:payload.cachedAt};
   }catch(error){
     result.errors.push(scope+" "+period.key+": "+(error instanceof Error?error.message:String(error)));
   }
@@ -975,8 +1107,7 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   const until=shiftIsoDate(start,active.kind==="AV"?2:3);
   // Background cron enriches image URLs before writing the snapshot.
   // This is the same image-only pipeline used for a missing-image fallback.
-  const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(offers,active));
-  const grocery=partitionDailyGroceryOffers(enriched);
+  const grocery=partitionDailyGroceryOffers(offers);
   if(grocery.quarantined.length)console.warn("[K-Citymarket] non-grocery or uncertain rows quarantined",grocery.quarantined.map(x=>({title:x.offer?.title,category:x.offer?.category,reason:x.reason})));
   if(!grocery.accepted.length)throw new Error("Citymarket publication has no verified grocery offers");
   if(active.key===verified47LVPeriod && (grocery.accepted.length!==53||grocery.quarantined.length||
@@ -985,7 +1116,8 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   }
   const stagingGate=validate47LVPublication(grocery.accepted,active.key);
   if(!stagingGate.ok)throw new Error("47LV publication quality gate rejected candidate: "+stagingGate.issues.join(" | "));
-  const beforeImages=offers.filter(offer=>Boolean(offer.imageUrl)).length;
+  const enriched=normalizeKCitymarketOfferImages(await enrichKCitymarketPublicationImages(grocery.accepted,active));
+  const beforeImages=grocery.accepted.filter(offer=>Boolean(offer.imageUrl)).length;
   const afterImages=enriched.filter(offer=>Boolean(offer.imageUrl)).length;
   console.info("[K-Citymarket] publication image enrichment result",{
     period:active.key,total:grocery.accepted.length,beforeImages,afterImages,
@@ -995,7 +1127,7 @@ export async function persistKCitymarketOfferPublication(now=new Date(), period?
   // A corrected parser writes a new immutable snapshot; the active reader picks
   // the latest snapshot for the validity period. Existing approved prices stay archived.
   return storeParsedPublication({chain:"K-Citymarket",id:kCitymarketPublicationCandidateId(active.key),validFrom:start,
-    validUntil:until,parsedAt:new Date().toISOString(),offers:grocery.accepted}, {approvalState:"candidate"});
+    validUntil:until,parsedAt:new Date().toISOString(),offers:enriched}, {approvalState:"candidate"});
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
