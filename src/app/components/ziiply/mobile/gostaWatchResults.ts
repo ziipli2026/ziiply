@@ -1,7 +1,7 @@
-import { matchesGostaWatch } from "./gostaWatchMatch";
+import { excludesPetOfferFromSalmonWatch, matchesGostaWatch } from "./gostaWatchMatch";
 
 const snapshotKey = "ziiply-gosta-watch-results-v1";
-const snapshotVersion = 5;
+const snapshotVersion = 6;
 export const watchResultsChanged = "ziiply-gosta-watch-results-changed";
 
 export type WatchOffer = {
@@ -30,7 +30,7 @@ export function mapWatchOffers(offers: unknown[], terms: string[]): WatchOffer[]
   return offers.filter((offer): offer is Record<string, unknown> =>
     Boolean(offer && typeof offer === "object")).map(offer => {
     const queries = Array.isArray(offer.watchQueries) && offer.watchQueries.length
-      ? offer.watchQueries.map(String)
+      ? offer.watchQueries.map(String).filter(query => !excludesPetOfferFromSalmonWatch(query, offer))
       : terms.filter(query => matchesGostaWatch(query, offer));
     const source = (offer.__sourceOfferSearchResult || {}) as Record<string, unknown>;
     const ean = [offer.ean, source.ean].map(value => String(value ?? "").trim()).find(value => /^\d{8,14}$/.test(value));
@@ -55,13 +55,13 @@ export function mapWatchOffers(offers: unknown[], terms: string[]): WatchOffer[]
       comparisonPrice: String(offer.comparisonPriceText || (typeof offer.unitPrice === "string" ? offer.unitPrice : "") || ""),
       priceBasis: String(offer.priceBasis || ""),
     };
-  });
+  }).filter(offer => offer.queries.length > 0);
 }
 
 export function readWatchResults() {
   try {
     const snapshot = JSON.parse(window.localStorage.getItem(snapshotKey) || "null");
-    if (!snapshot || !Array.isArray(snapshot.offers)) return null;
+    if (!snapshot || snapshot.version !== snapshotVersion || !Array.isArray(snapshot.offers)) return null;
     const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Helsinki" }).format(new Date());
     const offers = (snapshot.offers as WatchOffer[]).filter(offer => {
       const date = offer.validUntil?.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
