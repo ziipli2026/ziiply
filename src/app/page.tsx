@@ -6007,6 +6007,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function getVoiceSearchInputV447(value: string) {
     const raw = fixText(String(value || ""))
       .toLowerCase()
+      .replace(/(^|[^\p{L}\p{N}])kola(?=$|[^\p{L}\p{N}])/gu, "$1cola")
       .replace(/[.;:!?]+/g, " ")
       .replace(/\s+(ja|sekä|plus|sekä myös)\s+/gi, ", ")
       .replace(/\s+/g, " ")
