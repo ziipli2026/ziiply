@@ -58,6 +58,7 @@ export type ZiiplyMobileSearchCardProps = {
   onOpenNotebook?: () => void;
   onOpenRecipes?: () => void;
   onOpenCart?: () => void;
+  cartItemCount?: number;
   onOfferSearch?: () => void;
   offerSearchDisabled?: boolean;
   onNormalSearch?: () => void;
@@ -457,6 +458,7 @@ export default function ZiiplyMobileSearchCard({
   onOpenNotebook,
   onOpenRecipes,
   onOpenCart,
+  cartItemCount = 0,
   offerSearchDisabled = false,
   onNormalSearch,
   onOpenResults,
@@ -965,10 +967,21 @@ export default function ZiiplyMobileSearchCard({
               type="button"
               onClick={onOpenCart}
               disabled={!onOpenCart}
-              className="flex min-h-11 items-center justify-center gap-1 rounded-[1.05rem] border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] px-1 text-xs font-black text-[#4e4638] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] active:bg-[#e7deca] disabled:bg-[#e7e2d7] disabled:text-[#9d978b] disabled:opacity-70"
+              aria-label={cartItemCount > 0 ? `Ostoskori, ${cartItemCount} tuotetta` : "Ostoskori"}
+              className={cx(
+                "relative flex min-h-11 items-center justify-center gap-1 rounded-[1.25rem] px-1 text-xs font-black transition active:translate-y-[1px]",
+                cartItemCount > 0
+                  ? "border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26]"
+                  : "border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] text-[#4e4638] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] disabled:text-[#9d978b] disabled:opacity-70",
+              )}
             >
-              <ZiiplyNavIcon type="cart" disabled={!onOpenCart} className="h-6 w-6 shrink-0" />
+              <ZiiplyNavIcon type="cart" active={cartItemCount > 0} disabled={!onOpenCart} className="h-6 w-6 shrink-0" />
               Ostoskori
+              {cartItemCount > 0 && (
+                <span aria-hidden="true" className="absolute -right-1 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border border-[#064a26] bg-[#fff4d3] px-1 text-[0.65rem] leading-none text-[#174c2c] tabular-nums">
+                  {cartItemCount}
+                </span>
+              )}
             </button>
           </div>
 
