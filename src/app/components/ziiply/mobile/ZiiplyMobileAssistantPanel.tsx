@@ -228,7 +228,7 @@ export default function ZiiplyMobileAssistantPanel({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.42),rgba(246,226,172,0.18)_34%,rgba(238,214,156,0.08))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
         </>}
-        <div ref={headerRef} className="relative z-10 flex shrink-0 items-center gap-4 bg-gradient-to-b from-[#fff1c6] to-[#e3c17b] px-4 py-3">
+        <div ref={headerRef} className={`relative z-10 flex min-w-0 shrink-0 items-center gap-2 bg-gradient-to-b from-[#fff1c6] to-[#e3c17b] px-2 py-3 ${useNotebookFrame ? "mx-[7%] mt-2 rounded-xl" : ""}`}>
           <div className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-full border-[3px] border-[#f8e8bf] bg-[#314633]">
             <img
               src={content.imageSrc}
@@ -242,7 +242,7 @@ export default function ZiiplyMobileAssistantPanel({
             <div className="text-[22px] font-black leading-none text-[#27412a]">
               {content.name}
             </div>
-            <div className="mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#705f37]">
+            <div className="mt-1 break-words text-[12px] font-black uppercase tracking-[0.08em] text-[#705f37]">
               {content.title}
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function ZiiplyMobileAssistantPanel({
           </button>
         </div>
 
-        <div className="z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151]">
+        <div className={`relative z-10 min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151] [overflow-wrap:anywhere] [&_*]:min-w-0 [&_img]:max-w-full [&_input]:max-w-full [&_select]:max-w-full ${useNotebookFrame ? "mx-[7%] mb-3 px-1" : "px-3"}`}>
           {activeAssistant === "arvo" && onOpenNutritionScanner && (
             <button type="button" onClick={onOpenNutritionScanner} className="mb-2 min-h-11 w-full rounded-xl border border-[#b99d62] bg-white px-3 font-bold text-[#174c35]">
               Ravintoskanneri
