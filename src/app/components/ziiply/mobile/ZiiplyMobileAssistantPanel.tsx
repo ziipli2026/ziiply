@@ -215,10 +215,10 @@ export default function ZiiplyMobileAssistantPanel({
 
   return (
     <div className={useNotebookFrame
-      ? "fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2] px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)]"
+      ? "fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 backdrop-blur-md px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)]"
       : "fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+106px)] top-[calc(env(safe-area-inset-top)+96px)] z-[70] flex items-start justify-center px-3"}>
       <section style={{"--recipe-panel-header-height":`${headerHeight}px`} as React.CSSProperties} className={useNotebookFrame
-        ? "relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]"
+        ? "relative flex h-full min-h-0 shrink-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]"
         : "relative flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[1.8rem] border-[3px] border-[#b99d62] bg-[#fff7df] shadow-[0_22px_60px_rgba(7,47,37,0.28)]"}>
         {useNotebookFrame && <>
         <div
