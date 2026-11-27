@@ -388,13 +388,7 @@ export default function ZiiplyMobileCompareCardresponsive({
             ) : (
               visibleStores.map((store, index) => {
                 if (detailsStoreId && detailsStoreId !== store.id) return null;
-                if (store.chain === "LIDL" || store.id === "lidl") {
-                  return (
-                    <p key={store.id} className="shrink-0 px-2 py-1 text-xs font-bold leading-snug text-[#51452f]">
-                      Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
-                    </p>
-                  );
-                }
+                if (store.chain === "LIDL" || store.id === "lidl") return null;
                 const hasPricedMatches = (store.matches || []).some((match: any) => Number(match?.price) > 0);
                 const resultPending = !loading && !hasPricedMatches && !hasResolvedComparisonData;
                 const hasNoCounterpart =
@@ -581,6 +575,11 @@ export default function ZiiplyMobileCompareCardresponsive({
                   </article>
                 );
               })
+            )}
+            {!showSkeleton && !detailsStoreId && visibleStores.some((store) => store.chain === "LIDL" || store.id === "lidl") && (
+              <p className="shrink-0 px-2 py-1 text-xs font-bold leading-snug text-[#51452f]">
+                Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
+              </p>
             )}
           </div>
         </main>
