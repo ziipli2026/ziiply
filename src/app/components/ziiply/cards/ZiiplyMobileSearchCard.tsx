@@ -70,6 +70,7 @@ export type ZiiplyMobileSearchCardProps = {
 
   onVoiceClick?: () => void;
   onScannerClick?: () => void;
+  voiceNotice?: string;
   voiceState?: "idle" | "recording" | "processing";
   scannerState?: "idle" | "active" | "processing";
 
@@ -465,6 +466,7 @@ export default function ZiiplyMobileSearchCard({
   inputRef,
   onVoiceClick,
   onScannerClick,
+  voiceNotice,
   voiceState = "idle",
   scannerState = "idle",
   autoSearchDelayMs,
@@ -1085,7 +1087,18 @@ export default function ZiiplyMobileSearchCard({
               </button>
             )}
 
-            <div className="relative z-10 mx-auto mt-3 h-[2px] w-[92%] shrink-0 rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
+            <div className="relative z-20 mx-auto mt-3 h-[2px] w-[92%] shrink-0 rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]">
+              {voiceNotice && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="pointer-events-none absolute left-1/2 top-1/2 z-20 w-max max-w-full -translate-x-1/2 -translate-y-1/2 rounded-[0.72rem] border-2 border-[#d8bd75] bg-[#fff4d3] px-2.5 py-0.5 text-center text-xs font-black italic leading-tight text-[#174c2c] shadow-sm [overflow-wrap:anywhere]"
+                  style={{ fontFamily: cooperFont }}
+                >
+                  {voiceNotice}
+                </div>
+              )}
+            </div>
 
             <div className="relative z-10 mx-auto mt-2 w-full max-w-[23.6rem] shrink-0 overflow-visible px-2 py-1">
               {/* V679: puinen yhteinen taustapaneeli poistettu. Nappien kontit ovat samankokoiset.
