@@ -11,6 +11,7 @@
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
+import { ZiiplyNavIcon } from "../ziiplyComponents";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export type ZiiplyMobileSearchCardProduct = {
@@ -907,7 +908,15 @@ export default function ZiiplyMobileSearchCard({
           <div className={`mb-2 mt-1.5 grid gap-2 ${onOpenRecipes ? "grid-cols-3" : "grid-cols-2"}`}>
             <GreenPillButton label="Vihkonen" onClick={onOpenNotebook} className="min-h-11 px-2 text-sm" />
             {onOpenRecipes && <GreenPillButton label="Reseptit" onClick={onOpenRecipes} className="min-h-11 px-1 text-sm" />}
-            <GreenPillButton label="🛒 Ostoskori" onClick={onOpenCart} disabled={!onOpenCart} className="min-h-11 px-1 text-xs" />
+            <button
+              type="button"
+              onClick={onOpenCart}
+              disabled={!onOpenCart}
+              className="flex min-h-11 items-center justify-center gap-1 rounded-[1.05rem] border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] px-1 text-xs font-black text-[#4e4638] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] active:bg-[#e7deca] disabled:bg-[#e7e2d7] disabled:text-[#9d978b] disabled:opacity-70"
+            >
+              <ZiiplyNavIcon type="cart" disabled={!onOpenCart} className="h-6 w-6 shrink-0" />
+              Ostoskori
+            </button>
           </div>
           {onOpenComparison && (
             <GreenPillButton label="Vertaa ostoskoria" onClick={onOpenComparison} className="mb-2 min-h-11 self-start px-3 text-xs" />
