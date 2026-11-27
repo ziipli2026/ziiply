@@ -24236,7 +24236,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               title="HAKU"
               onOpenRecipes={() => openMobileAssistantPanel("justiina")}
               onOpenCart={cart.length > 0 && cartSelectionEnabledV767 ? toggleCartModal : undefined}
-              onOpenComparison={cart.length > 0 && compareSelectionEnabledV767 ? openComparisonView : undefined}
               input={input}
               onInputChange={setSearchInputForMode}
               inputRef={searchInputRef}
