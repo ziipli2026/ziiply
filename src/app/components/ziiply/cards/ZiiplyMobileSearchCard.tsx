@@ -54,6 +54,9 @@ export type ZiiplyMobileSearchCardProps = {
   onSearchModeChange?: (mode: "cart" | "single") => void;
   onAddInputToCart?: (options?: ZiiplyAddInputToCartOptions) => void;
   onOpenNotebook?: () => void;
+  onOpenRecipes?: () => void;
+  onOpenCart?: () => void;
+  onOpenComparison?: () => void;
   onOfferSearch?: () => void;
   offerSearchDisabled?: boolean;
   onNormalSearch?: () => void;
@@ -550,6 +553,9 @@ export default function ZiiplyMobileSearchCard({
   onSearchModeChange,
   onAddInputToCart,
   onOpenNotebook,
+  onOpenRecipes,
+  onOpenCart,
+  onOpenComparison,
   onOfferSearch,
   offerSearchDisabled = false,
   onNormalSearch,
@@ -1026,6 +1032,14 @@ export default function ZiiplyMobileSearchCard({
               className="mt-0.5 h-[2.28rem] w-full rounded-[0.95rem] text-[0.84rem] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26]"
             />
           </div>
+
+          {onOpenRecipes && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              <GreenPillButton label="Reseptit" onClick={onOpenRecipes} className="min-h-11 px-3 text-xs" />
+              {onOpenCart && <GreenPillButton label="Ostoskori" onClick={onOpenCart} className="min-h-11 px-3 text-xs" />}
+              {onOpenComparison && <GreenPillButton label="Vertaa ostoskoria" onClick={onOpenComparison} className="min-h-11 px-3 text-xs" />}
+            </div>
+          )}
 
           <TopGuideStatusBox
             assistant={

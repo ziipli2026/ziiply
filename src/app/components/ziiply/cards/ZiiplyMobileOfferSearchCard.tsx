@@ -327,6 +327,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   showTokmanniChain?: boolean;
   onBack?: () => void;
   onClose?: () => void;
+  onOpenWatch?: () => void;
   onAddOffer?: (offer: ZiiplyMobileOfferSearchItem) => void;
   onAddAllOffers?: (offers: ZiiplyMobileOfferSearchItem[]) => void;
   className?: string;
@@ -907,6 +908,7 @@ export default function ZiiplyMobileOfferSearchCard({
   showTokmanniChain = false,
   onBack,
   onClose,
+  onOpenWatch,
   onAddOffer,
   onAddAllOffers,
   className = "",
@@ -1500,6 +1502,14 @@ export default function ZiiplyMobileOfferSearchCard({
             ) : null}
 
           </div>
+
+          {onOpenWatch && (
+            <div className="relative z-10 mb-1 flex justify-center">
+              <button type="button" onClick={onOpenWatch} className="min-h-11 rounded-xl border border-[#a7854e] bg-[#fff7df] px-2 text-xs font-black text-[#174c35]">
+                Tarjousvahti
+              </button>
+            </div>
+          )}
 
           {selectedOfferChainV39 && selectedStoreNameV41 ? (
             <div className="relative z-10 -mt-[0.02rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">

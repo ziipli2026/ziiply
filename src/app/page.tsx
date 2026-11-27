@@ -1684,7 +1684,6 @@ import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileP
 import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
-import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ArvoNutritionScannerPreview, { type ArvoCartProduct } from "./components/ziiply/arvo/ArvoNutritionScannerPreview";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
 import ZiiplyRecipeSearchDebug, { appendRecipeDebug } from "./components/ziiply/mobile/ZiiplyRecipeSearchDebug";
@@ -8928,27 +8927,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         searchInputRef.current?.focus();
       }, 50);
     })();
-  }
-
-  function toggleSearchPanel() {
-    // V507: jos Hae-kortti on jo auki, Hae-painike sulkee sen heti.
-    // Ei fade-viivettä tässä, koska mobiili-Hae voi peittää alapalkin klikkikerroksen.
-    if (searchPanelOpen) {
-      setSearchPanelOpen(false);
-      closeProductSelectionOverlay();
-      return;
-    }
-
-    if (searchNavigationLocked) return;
-
-    // v342_RESTORE_CART_SEARCH_NAV_FIX:
-    // Älä hyppää Kaupat-paneeliin, jos korissa on palautettuja tuotteita.
-    // Tällöin käyttäjä saa avata Hae-paneelin ja bottom navin aktiivinen tila pysyy oikein vihreänä.
-    // V475: Hae-toggle ei saa avata Kaupat-paneelia eikä sivuvaikutuksena käynnistää GPS-polkuja.
-    // Kaupat avataan vain Kaupat-napista, GPS vain bootista tai GPS-napista.
-
-    // Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
-    openSearchPanel();
   }
 
   function closeSearchPanel() {
@@ -19411,17 +19389,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     applyShopsPanelV512();
   }
 
-  function toggleShopsPanel() {
-    // v316: Kaupat on alussa ainoa käytettävissä oleva nappi, mutta sekin toimii toggle-na.
-    // Eli Kaupat-kortin voi avata ja sulkea myös ennen kauppavalintojen valmistumista.
-    if (shopsPanelOpen) {
-      closePanelWithFade("shops", () => setShopsPanelOpen(false));
-      return;
-    }
-
-    openShopsPanel();
-  }
-
   function closeShopsPanel() {
     closePanelWithFade("shops", () => setShopsPanelOpen(false));
   }
@@ -22954,6 +22921,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  const mobileShopsVisible = shopsPanelOpen || (
+    !searchPanelOpen && !cartModalOpen && !eanModalOpen && !notebookOpen &&
+    !activeAssistant && !arvoNutritionScannerOpen && activeResult === "none"
+  );
+
+  function openMobileAssistantPanel(assistant: "justiina" | "gosta" | "arvo") {
+    gostaPanelStickyOpenRefV158.current = false;
+    setNotebookOpen(false);
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    closeProductSelectionOverlay();
+    setActiveResult("none");
+    setActiveAssistant(assistant);
+  }
+
   if (!reloadViewHydratedV820) return null;
 
   return (
@@ -23787,7 +23771,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
 <KauppiasMobileTopBar
             hidden={searchFullscreenOpenV621}
-            showSpeedIndicator={!showLaunchScreen && !searchFullscreenOpenV621 && !shopsPanelOpen && !searchPanelOpen && !notebookOpen && !cartModalOpen && !eanModalOpen && !cartSavePanelOpen && !mobileComparePickingOpenV733 && !mobileFuelMode && !mobileFuelCompareOpen && !mapStoresOverlayOpenV433 && !mapRouteOverlayOpenV428 && !initialStoreNavPrompt && !arvoNutritionScannerOpen && activeAssistant === null && activeResult === "none"}
+            showSpeedIndicator={!showLaunchScreen && !searchFullscreenOpenV621 && !mobileShopsVisible && !searchPanelOpen && !notebookOpen && !cartModalOpen && !eanModalOpen && !cartSavePanelOpen && !mobileComparePickingOpenV733 && !mobileFuelMode && !mobileFuelCompareOpen && !mapStoresOverlayOpenV433 && !mapRouteOverlayOpenV428 && !initialStoreNavPrompt && !arvoNutritionScannerOpen && activeAssistant === null && activeResult === "none"}
             areaLabel={gpsCoordsV320 || locationInput.trim() ? activeArea.label : "Paikannetaan..."}
             gpsCoords={gpsCoordsV320}
             fuelModeActive={mobileFuelMode}
@@ -23819,23 +23803,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             !eanModalOpen &&
             activeResult === "none" && (
               <>
-                <div className="ziiply-mobile-home-layer-lock">
-                  <ZiiplyMobileHomeView
-                    activeAssistant={activeAssistant}
-                    onSelectAssistant={setActiveAssistant}
-                    onUpperAction={(assistant) => {
-                      setActiveAssistant(null);
-                      if (assistant === "gosta") {
-                        handleGostaOfferSearch();
-                      } else if (assistant === "justiina") {
-                        openSearchPanel();
-                      } else {
-                        setArvoNutritionScannerOpen(true);
-                      }
-                    }}
-                  />
-                </div>
-
                 {arvoNutritionScannerOpen && (
                   <div className="fixed inset-0 z-[2147483600]">
                     <ArvoNutritionScannerPreview
@@ -23847,7 +23814,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
-                  onClose={() => setActiveAssistant(null)}
+                  onClose={() => {
+                    setActiveAssistant(null);
+                    if (activeAssistant === "gosta") {
+                      gostaPanelStickyOpenRefV158.current = true;
+                      setActiveResult("offers");
+                    } else if (activeAssistant === "justiina") {
+                      setSearchPanelOpen(true);
+                    }
+                  }}
+                  onOpenNutritionScanner={() => setArvoNutritionScannerOpen(true)}
                   onSearchIngredients={(terms, items) => {
                     if (!items) setActiveAssistant(null);
                     void runVoiceSearchFromSpeechV453(terms.join(", "), true, terms, items);
@@ -23927,7 +23903,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           {!showLaunchScreen && (
             <div
-              className={`${shopsPanelOpen ? "fixed inset-0 z-50 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+5.20rem)]" : "hidden"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+              className={`${mobileShopsVisible ? "fixed inset-0 z-50 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+5.20rem)]" : "hidden"} ${closingPanels.shops ? "ziiply-soft-close" : mobileShopsVisible ? "ziiply-soft-open" : ""}`}
             >
           <div className="mb-1 shrink-0 -translate-y-1">
             <ZiiplyMobileLocationBar
@@ -24255,6 +24231,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {!mobileRecipeSearchActive && <ZiiplyMobileSearchCard
               open={true}
               title="HAKU"
+              onOpenRecipes={() => openMobileAssistantPanel("justiina")}
+              onOpenCart={cart.length > 0 && cartSelectionEnabledV767 ? toggleCartModal : undefined}
+              onOpenComparison={cart.length > 0 && compareSelectionEnabledV767 ? openComparisonView : undefined}
               input={input}
               onInputChange={setSearchInputForMode}
               inputRef={searchInputRef}
@@ -24941,6 +24920,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
           <ZiiplyMobileOfferSearchCardLoose
+            onOpenWatch={() => openMobileAssistantPanel("gosta")}
             initialOfferChain={arrivalOfferChain}
             open={true}
             title="Tarjous- ja kampanjahaku"
@@ -25427,7 +25407,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           fuelMode={mobileFuelMode}
           fuelCompareReady={mobileFuelCompareReady}
           fuelCompareOpen={mobileFuelCompareOpen}
-          shopsPanelOpen={shopsPanelOpen}
+          shopsPanelOpen={mobileShopsVisible}
+          settingsActive={activeAssistant === "arvo"}
+          offersActive={activeResult === "offers" || activeAssistant === "gosta"}
+          offersDisabled={!storesReadyForSearch || (storeCompareScope === "between_chains" && bottomNavSelectedChainCountV767 === 0) || loadingOffers}
+          onOffersClick={() => {
+            if (activeResult === "offers") return;
+            setActiveAssistant(null);
+            closeProductSelectionOverlay();
+            handleGostaOfferSearch();
+          }}
+          onSettingsClick={() => openMobileAssistantPanel("arvo")}
           initialStoreNavPrompt={initialStoreNavPrompt}
           searchBottomNavDisabled={searchBottomNavDisabled}
           initialStoreSelectionLocked={initialStoreSelectionLocked}
@@ -25459,14 +25449,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
-            // Let openShopsPanel close Compare atomically with opening Shops.
-            toggleShopsPanel();
+            setActiveAssistant(null);
+            openShopsPanel();
           }}
           onSearchClick={() => {
             if (mobileFuelMode) {
               if (mobileFuelCompareReady) setMobileFuelCompareOpen(true);
               return;
             }
+            if (searchPanelOpen && !notebookOpen) return;
             preloadSearchUiAssetsV774();
             gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
@@ -25488,8 +25479,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
-            // openSearchPanel clears compare in the same React update as opening Hae.
-            toggleSearchPanel();
+            setActiveAssistant(null);
+            openSearchPanel();
           }}
           onCartClick={() => {
             gostaPanelStickyOpenRefV158.current = false;

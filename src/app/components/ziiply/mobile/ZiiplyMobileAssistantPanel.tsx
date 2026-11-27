@@ -15,6 +15,7 @@ import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 export type ZiiplyMobileAssistantPanelProps = {
   activeAssistant: ZiiplyAssistantKey | null;
   onClose: () => void;
+  onOpenNutritionScanner?: () => void;
   onSearchIngredients?: (terms: string[], items?: RecipeIngredient[]) => void;
   selectedChains?: Record<"s"|"k"|"lidl"|"tokmanni",boolean>;
   onChangeChain?: (chain: "s"|"k"|"lidl"|"tokmanni", enabled:boolean) => void;
@@ -65,6 +66,7 @@ const assistantContent: Record<
 export default function ZiiplyMobileAssistantPanel({
   activeAssistant,
   onClose,
+  onOpenNutritionScanner,
   onSearchIngredients,
   selectedChains,
   onChangeChain,
@@ -246,6 +248,11 @@ export default function ZiiplyMobileAssistantPanel({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151]">
+          {activeAssistant === "arvo" && onOpenNutritionScanner && (
+            <button type="button" onClick={onOpenNutritionScanner} className="mb-2 min-h-11 w-full rounded-xl border border-[#b99d62] bg-white px-3 font-bold text-[#174c35]">
+              Ravintoskanneri
+            </button>
+          )}
           {activeAssistant === "justiina" ? <div className="min-h-0 flex-1 overflow-y-auto"><div className="sticky top-0 z-10 flex gap-2 bg-[#fff7df] p-3"><button type="button" onClick={()=>setRecipeMode("online")} aria-pressed={recipeMode==="online"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="online"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Hae reseptejä</button><button type="button" onClick={()=>setRecipeMode("own")} aria-pressed={recipeMode==="own"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="own"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Omat / kuvaa</button></div>{recipeMode==="online"?<JustiinaOnlineRecipes onSearchIngredients={onSearchIngredients}/>:<JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} onCameraOpenChange={setRecipeCameraOpen}/>}</div> : activeAssistant === "arvo" ? <ArvoSettingsPanel onClose={onClose} /> : (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2 rounded-2xl border-2 border-[#caa15d] bg-[#f7e7bd] px-3 py-2">
