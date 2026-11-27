@@ -57,7 +57,6 @@ export type ZiiplyMobileSearchCardProps = {
   onOpenNotebook?: () => void;
   onOpenRecipes?: () => void;
   onOpenCart?: () => void;
-  onOpenComparison?: () => void;
   onOfferSearch?: () => void;
   offerSearchDisabled?: boolean;
   onNormalSearch?: () => void;
@@ -456,7 +455,6 @@ export default function ZiiplyMobileSearchCard({
   onOpenNotebook,
   onOpenRecipes,
   onOpenCart,
-  onOpenComparison,
   offerSearchDisabled = false,
   onNormalSearch,
   onOpenResults,
@@ -835,9 +833,6 @@ export default function ZiiplyMobileSearchCard({
   };
 
   // V639: pidetään v637:n keyboard-stabiili ankkurointi mukana.
-  // Kortti lukitaan 100lvh-korkeuteen ilman bottom-insettiä, jotta iOS-näppäimistö
-  // ei kutista fixed-korttia eikä työnnä näkymää ylös. Pieni scroll-palautus tehdään
-  // vain jos Safari ehtii vierittää sivua inputin fokuksessa.
   const keepPageAnchoredOnInputFocus = () => {
     if (typeof window === "undefined") return;
     const restoreX = window.scrollX;
@@ -856,7 +851,7 @@ export default function ZiiplyMobileSearchCard({
   return (
     <div
       data-ziiply-mobile-search-card-version="UUSI_V685_VOICE_SCALE_100"
-      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-7.325rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-7.325rem)] min-h-0 items-stretch justify-center overflow-hidden bg-transparent px-2 [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
+      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+7.75rem)] z-[72] flex min-h-0 items-stretch justify-center overflow-hidden bg-transparent px-2 [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
         <div className="pointer-events-none absolute inset-[0.42rem] z-0 overflow-hidden rounded-[1.45rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.30)]">
@@ -917,9 +912,6 @@ export default function ZiiplyMobileSearchCard({
               Ostoskori
             </button>
           </div>
-          {onOpenComparison && (
-            <GreenPillButton label="Vertaa ostoskoria" onClick={onOpenComparison} className="mb-2 min-h-11 self-start px-3 text-xs" />
-          )}
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
