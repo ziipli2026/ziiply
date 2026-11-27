@@ -125,7 +125,7 @@ function ZiiplyNavIcon({
   disabled = false,
   className = "",
 }: {
-  type: "shops" | "search" | "cart" | "compare";
+  type: "shops" | "search" | "cart" | "compare" | "nutrition";
   active?: boolean;
   disabled?: boolean;
   className?: string;
@@ -154,6 +154,17 @@ function ZiiplyNavIcon({
         <path d="M29.5 28.5 40 39" stroke={ink} strokeWidth="4" strokeLinecap="round" />
         <path d="M15 20a6 6 0 0 1 6-6" stroke={active ? "#fff8ea" : "#b8c3bd"} strokeWidth="2" strokeLinecap="round" />
         <path d="M35.5 34.5 32 38" stroke={brass} strokeWidth="2.2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type === "nutrition") {
+    return (
+      <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
+        <rect x="10" y="12" width="28" height="24" rx="4" fill={muted} />
+        <path d="M17 9h-7v7m21-7h7v7M10 32v7h7m14 0h7v-7" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M16 17v14m6-14v14m5-14v14m5-14v14" stroke={ink} strokeWidth="2.4" />
+        <path d="M7 24h34" stroke={brass} strokeWidth="2.5" strokeLinecap="round" />
       </svg>
     );
   }
@@ -299,7 +310,7 @@ export function ZiiplyBottomNav({
         >
           <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
             <span>
-              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <ZiiplyNavIcon type="search" active={searchActive} disabled={searchDisabled} className={iconClass} />}
+              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <ZiiplyNavIcon type="compare" active={searchActive} disabled={searchDisabled} className={iconClass} />}
             </span>
             <span className={labelClass}>{fuelMode ? "Vertaa" : "Hintavertailu"}</span>
           </span>
@@ -348,7 +359,7 @@ export function ZiiplyBottomNav({
               className={buttonShellClass}
             >
               <span className={`${innerBaseClass} ${offersActive ? activeInnerClass : offersDisabled ? disabledInnerClass : idleInnerClass}`}>
-                <ZiiplyNavIcon type="compare" active={offersActive} disabled={offersDisabled && !offersActive} className={iconClass} />
+                <ZiiplyNavIcon type="search" active={offersActive} disabled={offersDisabled && !offersActive} className={iconClass} />
                 <span className={labelClass}>Tarjoukset</span>
               </span>
             </button>
@@ -359,7 +370,7 @@ export function ZiiplyBottomNav({
               className={buttonShellClass}
             >
               <span className={`${innerBaseClass} ${settingsActive ? activeInnerClass : idleInnerClass}`}>
-                <span aria-hidden="true" className={`${iconClass} text-[27px] leading-[30px]`}>⚙</span>
+                <ZiiplyNavIcon type="nutrition" active={settingsActive} className={iconClass} />
                 <span className={labelClass}>Ravinto</span>
               </span>
             </button>
