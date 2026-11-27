@@ -23903,7 +23903,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           {!showLaunchScreen && (
             <div
-              className={`${mobileShopsVisible ? "fixed inset-0 z-50 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+5.20rem)]" : "hidden"} ${closingPanels.shops ? "ziiply-soft-close" : mobileShopsVisible ? "ziiply-soft-open" : ""}`}
+              className={`${mobileShopsVisible ? "fixed inset-0 z-50 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-2 pb-[calc(env(safe-area-inset-bottom)+6.825rem)] pt-[calc(env(safe-area-inset-top)+5.20rem)]" : "hidden"} ${closingPanels.shops ? "ziiply-soft-close" : mobileShopsVisible ? "ziiply-soft-open" : ""}`}
             >
           <div className="mb-1 shrink-0 -translate-y-1">
             <ZiiplyMobileLocationBar
