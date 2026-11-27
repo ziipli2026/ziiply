@@ -340,9 +340,9 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   return (
     <div
-      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
+      className={`fixed inset-0 z-[92] flex items-stretch justify-center overflow-hidden bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
     >
-      <section className="ziiply-mobile-compare-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+      <section className="ziiply-mobile-compare-pop relative flex h-full max-h-[46rem] min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -361,7 +361,7 @@ export default function ZiiplyMobileCompareCardresponsive({
               {loading ? <RetroMopedOverlay /> : null}
             </div>
           </div>
-          <div className="absolute left-[6%] right-[6%] top-[22%] bottom-[7%] flex min-h-0 flex-col gap-1.5">
+          <div className="absolute left-[6%] right-[6%] top-[22%] bottom-[7%] flex min-h-0 flex-col gap-1.5 overflow-y-auto overscroll-y-contain">
 
             {showSkeleton ? (
               <>
@@ -431,7 +431,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     key={store.id}
                     className={cx(
                       "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 pt-2 pb-0.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
-                      "flex-1 basis-0",
+                      detailsStoreId === store.id ? "flex-1 basis-0" : "grow shrink-0 basis-auto",
                       store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
