@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { isTokmanniSeasoningCategory } from "./tokmanniOfferCategory";
 import { resolveUniqueCatalogIdentity, type CatalogIdentity } from "./catalogIdentityResolver";
 
 // Exact EAN matches only. Neon is authoritative over legacy title heuristics.
@@ -8,6 +9,7 @@ export function neonOfferDisplayCategory(category: string): string | null {
   // Generic "Muut" is not reliable enough to override a specific provider classification.
   if (raw === "Muut") return null;
   if (labels.has(raw)) return raw;
+  if (isTokmanniSeasoningCategory(raw)) return "Kuivatuotteet";
   // Neon also stores newer provider-specific display labels and opaque category IDs.
   // Map known labels explicitly; opaque IDs need a taxonomy lookup, not a guess.
   const aliases: Record<string, string> = {
