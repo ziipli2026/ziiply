@@ -14,7 +14,8 @@ export function searchWords(value: unknown): string[] {
 const petProductType = /caabo[a-z]*|kattovit|jahti vahti|mac s|best in|bestin|kssanherkku|almo nature|purina|whiskas|pedigree|schesir|shelma|cesar|koir|kiss|lemmik/;
 
 export function isDesktopPetProduct(value: unknown): boolean {
-  return petProductType.test(searchWords(value).join(' '));
+  const text = searchWords(value).join(' ');
+  return petProductType.test(text) || /\b(?:dog|cat|pet|primadog|latz|sheba|friskies)\b/.test(text);
 }
 
 const forms: Record<string, string> = {
