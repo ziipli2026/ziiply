@@ -493,7 +493,7 @@ export default function ZiiplyMobileScannerCard({
       {/* Kamera-alue */}
       <main className="relative z-10 min-h-0 flex-1 px-3 pb-2">
         <div
-          className="relative h-full min-h-[250px] overflow-hidden rounded-[1.35rem] border-[4px] border-[#6c532c] bg-[#07100b] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.12),0_8px_18px_rgba(0,0,0,0.20)]"
+          className="relative h-full min-h-0 overflow-hidden rounded-[1.35rem] border-[4px] border-[#6c532c] bg-[#07100b] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.12),0_8px_18px_rgba(0,0,0,0.20)]"
           onPointerUp={onCameraTap}
         >
           {/* AINOA kameran mount-piste. Html5Qrcode saa täyttää tämän. */}
