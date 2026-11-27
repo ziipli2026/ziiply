@@ -125,7 +125,7 @@ function ZiiplyNavIcon({
   disabled = false,
   className = "",
 }: {
-  type: "shops" | "search" | "cart" | "compare" | "nutrition";
+  type: "shops" | "cart" | "compare";
   active?: boolean;
   disabled?: boolean;
   className?: string;
@@ -143,28 +143,6 @@ function ZiiplyNavIcon({
         <path d="M14 39V27h8v12M27 27h7v7h-7z" fill={active ? "rgba(255,248,234,0.18)" : "#fff8ea"} stroke={ink} strokeWidth="2.2" strokeLinejoin="round" />
         <circle cx="36" cy="13" r="6" fill={active ? "#fff8ea" : accent} stroke={ink} strokeWidth="2" />
         <path d="M36 10v6M33 13h6" stroke={active ? accent : "#fff8ea"} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (type === "search") {
-    return (
-      <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-        <circle cx="21" cy="20" r="11" fill={active ? "rgba(255,248,234,0.22)" : "#fff8ea"} stroke={ink} strokeWidth="3" />
-        <path d="M29.5 28.5 40 39" stroke={ink} strokeWidth="4" strokeLinecap="round" />
-        <path d="M15 20a6 6 0 0 1 6-6" stroke={active ? "#fff8ea" : "#b8c3bd"} strokeWidth="2" strokeLinecap="round" />
-        <path d="M35.5 34.5 32 38" stroke={brass} strokeWidth="2.2" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (type === "nutrition") {
-    return (
-      <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-        <circle cx="20" cy="14" r="6" fill={muted} stroke={ink} strokeWidth="2.8" />
-        <path d="M8 37v-4a12 12 0 0 1 21-8" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" />
-        <path d="M23 37c0-9 7-15 17-15 0 10-6 16-15 16" fill={muted} stroke={ink} strokeWidth="2.6" strokeLinejoin="round" />
-        <path d="M21 40l12-11" stroke={brass} strokeWidth="2.8" strokeLinecap="round" />
       </svg>
     );
   }
@@ -310,7 +288,7 @@ export function ZiiplyBottomNav({
         >
           <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
             <span>
-              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <ZiiplyNavIcon type="compare" active={searchActive} disabled={searchDisabled} className={iconClass} />}
+              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <img src="/assistants/justiina.png" alt="" className={`${iconClass} rounded-full object-cover`} />}
             </span>
             <span className={labelClass}>{fuelMode ? "Vertaa" : "Hintavertailu"}</span>
           </span>
@@ -359,7 +337,7 @@ export function ZiiplyBottomNav({
               className={buttonShellClass}
             >
               <span className={`${innerBaseClass} ${offersActive ? activeInnerClass : offersDisabled ? disabledInnerClass : idleInnerClass}`}>
-                <ZiiplyNavIcon type="search" active={offersActive} disabled={offersDisabled && !offersActive} className={iconClass} />
+                <img src="/assistants/gosta.png" alt="" className={`${iconClass} rounded-full object-cover`} />
                 <span className={labelClass}>Tarjoukset</span>
               </span>
             </button>
@@ -370,7 +348,7 @@ export function ZiiplyBottomNav({
               className={buttonShellClass}
             >
               <span className={`${innerBaseClass} ${settingsActive ? activeInnerClass : idleInnerClass}`}>
-                <ZiiplyNavIcon type="nutrition" active={settingsActive} className={iconClass} />
+                <img src="/assistants/arvo.png" alt="" className={`${iconClass} rounded-full object-cover`} />
                 <span className={labelClass}>Ravinto</span>
               </span>
             </button>
