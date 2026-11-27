@@ -360,7 +360,7 @@ export function ZiiplyBottomNav({
             >
               <span className={`${innerBaseClass} ${settingsActive ? activeInnerClass : idleInnerClass}`}>
                 <span aria-hidden="true" className={`${iconClass} text-[27px] leading-[30px]`}>⚙</span>
-                <span className={labelClass}>Asetukset</span>
+                <span className={labelClass}>Ravinto</span>
               </span>
             </button>
           </>
