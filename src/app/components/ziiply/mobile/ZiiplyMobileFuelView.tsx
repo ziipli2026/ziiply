@@ -62,7 +62,7 @@ export default function ZiiplyMobileFuelView({
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
   const [stationSide, setStationSide] = useState<"traffic" | "both" | "cold">("both");
-  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+  const [selectedGroups, setSelectedGroups] = useState<string[]>(groups.map(group => group.key));
   const [comparisonSort, setComparisonSort] = useState<FuelComparisonSort>("distance");
   const latestCoords = useRef(coords);
   latestCoords.current = coords;

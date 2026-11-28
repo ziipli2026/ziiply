@@ -1684,7 +1684,6 @@ import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileP
 import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
-import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ArvoNutritionScannerPreview, { type ArvoCartProduct } from "./components/ziiply/arvo/ArvoNutritionScannerPreview";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
 import ZiiplyRecipeSearchDebug, { appendRecipeDebug } from "./components/ziiply/mobile/ZiiplyRecipeSearchDebug";
@@ -1693,6 +1692,7 @@ import { recipeCoverageQueries } from "./components/ziiply/justiina/recipeSearch
 import { recipeProductRejectionReason, prioritizeRecipeFishProducts } from "./components/ziiply/justiina/recipeSearch";
 import { mobileRecipeSelectionAllowed, mobileRecipePackageQuantity, mobileRecipePriceInCents, type MobileRecipeContext, type MobileRecipeProduct } from "./components/ziiply/justiina/mobileRecipeSearch";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
+import ZiiplyMobileShopsFit from "./components/ziiply/mobile/ZiiplyMobileShopsFit";
 import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
 import MobileStorePickerModal from "./components/ziiply/mobile/MobileStorePickerModal";
@@ -8453,27 +8453,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         searchInputRef.current?.focus();
       }, 50);
     })();
-  }
-
-  function toggleSearchPanel() {
-    // V507: jos Hae-kortti on jo auki, Hae-painike sulkee sen heti.
-    // Ei fade-viivettä tässä, koska mobiili-Hae voi peittää alapalkin klikkikerroksen.
-    if (searchPanelOpen) {
-      setSearchPanelOpen(false);
-      closeProductSelectionOverlay();
-      return;
-    }
-
-    if (searchNavigationLocked) return;
-
-    // v342_RESTORE_CART_SEARCH_NAV_FIX:
-    // Älä hyppää Kaupat-paneeliin, jos korissa on palautettuja tuotteita.
-    // Tällöin käyttäjä saa avata Hae-paneelin ja bottom navin aktiivinen tila pysyy oikein vihreänä.
-    // V475: Hae-toggle ei saa avata Kaupat-paneelia eikä sivuvaikutuksena käynnistää GPS-polkuja.
-    // Kaupat avataan vain Kaupat-napista, GPS vain bootista tai GPS-napista.
-
-    // Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
-    openSearchPanel();
   }
 
   function closeSearchPanel() {
@@ -18932,17 +18911,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     applyShopsPanelV512();
   }
 
-  function toggleShopsPanel() {
-    // v316: Kaupat on alussa ainoa käytettävissä oleva nappi, mutta sekin toimii toggle-na.
-    // Eli Kaupat-kortin voi avata ja sulkea myös ennen kauppavalintojen valmistumista.
-    if (shopsPanelOpen) {
-      closePanelWithFade("shops", () => setShopsPanelOpen(false));
-      return;
-    }
-
-    openShopsPanel();
-  }
-
   function closeShopsPanel() {
     closePanelWithFade("shops", () => setShopsPanelOpen(false));
   }
@@ -22477,6 +22445,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  const mobileShopsVisible = shopsPanelOpen || (
+    !searchPanelOpen && !cartModalOpen && !eanModalOpen && !notebookOpen &&
+    !activeAssistant && !arvoNutritionScannerOpen && activeResult === "none"
+  );
+
   function openMobileAssistantPanel(assistant: "justiina" | "gosta" | "arvo") {
     gostaPanelStickyOpenRefV158.current = false;
     setNotebookOpen(false);
@@ -23322,7 +23295,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
 <KauppiasMobileTopBar
             hidden={searchFullscreenOpenV621}
-            showSpeedIndicator={!showLaunchScreen && !searchFullscreenOpenV621 && !shopsPanelOpen && !searchPanelOpen && !notebookOpen && !cartModalOpen && !eanModalOpen && !cartSavePanelOpen && !mobileComparePickingOpenV733 && !mobileFuelMode && !mobileFuelCompareOpen && !mapStoresOverlayOpenV433 && !mapRouteOverlayOpenV428 && !initialStoreNavPrompt && !arvoNutritionScannerOpen && activeAssistant === null && activeResult === "none"}
+            showSpeedIndicator={!showLaunchScreen && !searchFullscreenOpenV621 && !mobileShopsVisible && !searchPanelOpen && !notebookOpen && !cartModalOpen && !eanModalOpen && !cartSavePanelOpen && !mobileComparePickingOpenV733 && !mobileFuelMode && !mobileFuelCompareOpen && !mapStoresOverlayOpenV433 && !mapRouteOverlayOpenV428 && !initialStoreNavPrompt && !arvoNutritionScannerOpen && activeAssistant === null && activeResult === "none"}
             areaLabel={gpsCoordsV320 || locationInput.trim() ? activeArea.label : "Paikannetaan..."}
             gpsCoords={gpsCoordsV320}
             fuelModeActive={mobileFuelMode}
@@ -23354,23 +23327,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             !eanModalOpen &&
             activeResult === "none" && (
               <>
-                <div className="ziiply-mobile-home-layer-lock">
-                  <ZiiplyMobileHomeView
-                    activeAssistant={activeAssistant}
-                    onSelectAssistant={setActiveAssistant}
-                    onUpperAction={(assistant) => {
-                      setActiveAssistant(null);
-                      if (assistant === "gosta") {
-                        handleGostaOfferSearch();
-                      } else if (assistant === "justiina") {
-                        openSearchPanel();
-                      } else {
-                        setArvoNutritionScannerOpen(true);
-                      }
-                    }}
-                  />
-                </div>
-
                 {arvoNutritionScannerOpen && (
                   <div className="fixed inset-0 z-[2147483600]">
                     <ArvoNutritionScannerPreview
@@ -23382,7 +23338,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
-                  onClose={() => setActiveAssistant(null)}
+                  onClose={() => {
+                    setActiveAssistant(null);
+                    if (activeAssistant === "gosta") {
+                      gostaPanelStickyOpenRefV158.current = true;
+                      setActiveResult("offers");
+                    } else if (activeAssistant === "justiina") {
+                      setSearchPanelOpen(true);
+                    }
+                  }}
+                  onOpenNutritionScanner={() => setArvoNutritionScannerOpen(true)}
                   onSearchIngredients={(terms, items) => {
                     if (!items) setActiveAssistant(null);
                     void runVoiceSearchFromSpeechV453(terms.join(", "), true, terms, items);
@@ -23462,9 +23427,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           {!showLaunchScreen && (
             <div
-              className={`${shopsPanelOpen ? "fixed inset-0 z-50 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+5.20rem)]" : "hidden"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+              className={`${mobileShopsVisible ? "fixed inset-0 z-50 flex flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-2 pb-[calc(env(safe-area-inset-bottom)+6.825rem)] pt-[calc(env(safe-area-inset-top)+5.20rem)]" : "hidden"} ${mobileFuelMode ? "" : "!pb-[calc(env(safe-area-inset-bottom)+7.45rem)]"} ${closingPanels.shops ? "ziiply-soft-close" : mobileShopsVisible ? "ziiply-soft-open" : ""}`}
             >
-          <div className="mb-1 shrink-0 -translate-y-1">
+          <div className={mobileFuelMode ? "mb-1 shrink-0 -translate-y-1" : "mb-[-2px] shrink-0 -translate-y-1"}>
             <ZiiplyMobileLocationBar
               locationInput={locationInput}
               usingOwnLocation={usingOwnLocation}
@@ -23548,8 +23513,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             />
           </div>
 
+          <ZiiplyMobileShopsFit enabled={!mobileFuelMode}>
           <section
-            className={`relative min-h-0 flex-1 -translate-y-1 ${mobileFuelMode ? "overflow-hidden overscroll-none" : "overflow-y-auto"} rounded-[2rem] border-[5px] border-[#6d5128] px-5 pb-1 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
+            className={`relative ${mobileFuelMode ? "min-h-0 flex-1 -translate-y-1 overflow-hidden overscroll-none" : "grow shrink-0"} rounded-[2rem] border-[5px] border-[#6d5128] px-5 pb-1 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
               storeMode === "local"
                 ? "bg-[#fbf1d2]"
                 : "bg-[#fcf4da]"
@@ -23730,6 +23696,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </div>
             )}
           </section>
+          </ZiiplyMobileShopsFit>
 
             </div>
           )}
@@ -23837,6 +23804,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
               onVoiceClick={() => toggleVoiceInput()}
               onScannerClick={openEanModal}
+              voiceNotice={voiceNoticeTextV516 || voicePromptText || undefined}
               voiceState={voiceProcessing ? "processing" : isListening ? "recording" : "idle"}
               scannerState={eanScannerOpen || eanModalOpen ? "active" : "idle"}
               onAddProduct={(product: any) => {
@@ -23860,19 +23828,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 </div>
               </div>
             )}
-            {!mobileRecipeSearchActive && (voiceNoticeTextV516 || voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
+            {!mobileRecipeSearchActive && !voiceNoticeTextV516 && !voicePromptText && !loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471 && (
               <div
-                className={`pointer-events-none fixed z-[9998] -translate-x-1/2 rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 text-center font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] ${!voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? "top-[calc(env(safe-area-inset-top)+25rem)] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] whitespace-normal break-words px-3 py-2 text-[0.78rem] leading-[1.35]" : "top-[calc(env(safe-area-inset-top)+20.02rem)] inline-block min-h-[1.28rem] w-auto max-w-[72vw] whitespace-nowrap px-2.5 py-[0.10rem] text-[0.72rem] leading-[1.0]"}`}
-                style={{
-                  fontFamily: '"Cooper Black", Georgia, serif',
-                  // V517: keskitetään Äänitä-napin vaakakeskilinjaan.
-                  // 50% on ruudun keskikohta; nauhurin keskilinja on noin 4.75rem siitä vasemmalle.
-                  left: !voiceNoticeTextV516 && !voicePromptText && searchNotFoundNoticeV471 ? '50%' : 'calc(50% - 4.75rem)',
-                }}
+                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+25rem)] z-[9998] w-[min(88vw,24rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 whitespace-normal break-words rounded-[0.72rem] border-2 border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-2 text-center text-[0.78rem] font-black italic leading-[1.35] text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)]"
+                style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
               >
-                {voiceNoticeTextV516 || voicePromptText || searchNotFoundNoticeV471}
+                {searchNotFoundNoticeV471}
               </div>
             )}
 
@@ -24389,8 +24352,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }, 60);
             }}
             onBack={() => {
-              setCartModalOpen(false);
-              setActiveResult("none");
+              closeCartModal();
+              setSearchPanelOpen(true);
             }}
             onRestoreOriginalItem={(item: any) => {
               const original = item.ziiplyOriginalCartItemV793 as CartItem | undefined;
@@ -24462,7 +24425,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             currentCartItems={cart}
             onBack={() => {
               setNotebookOpen(false);
-              setCartModalOpen(true);
+              closeCartModal();
+              setSearchPanelOpen(true);
             }}
             onClose={() => setNotebookOpen(false)}
             onSaveCurrentCart={(name?: string) => {
@@ -24933,7 +24897,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           fuelMode={mobileFuelMode}
           fuelCompareReady={mobileFuelCompareReady}
           fuelCompareOpen={mobileFuelCompareOpen}
-          shopsPanelOpen={shopsPanelOpen}
+          shopsPanelOpen={mobileShopsVisible}
           settingsActive={activeAssistant === "arvo"}
           offersActive={activeResult === "offers" || activeAssistant === "gosta"}
           offersDisabled={!storesReadyForSearch || (storeCompareScope === "between_chains" && bottomNavSelectedChainCountV767 === 0) || loadingOffers}
@@ -24948,8 +24912,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           searchBottomNavDisabled={searchBottomNavDisabled}
           initialStoreSelectionLocked={initialStoreSelectionLocked}
           searchPanelOpen={searchPanelOpen}
+          searchReadyBounceKeyV320={0}
+          storesReadyForSearch={storesReadyForSearch}
+          cartLength={cart.length}
+          cartModalOpen={cartModalOpen}
+          cartSelectionEnabled={cartSelectionEnabledV767}
+          compareSelectionEnabled={compareSelectionEnabledV767}
+          activeResult={activeResult}
           onShopsClick={() => {
-            setActiveAssistant(null);
             if (mobileFuelMode) {setMobileFuelMode(false); setShopsPanelOpen(true); return;}
             gostaPanelStickyOpenRefV158.current = false;
             setNormalResults([]);
@@ -24968,14 +24938,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
-            // Let openShopsPanel close Compare atomically with opening Shops.
-            toggleShopsPanel();
+            setActiveAssistant(null);
+            openShopsPanel();
           }}
           onSearchClick={() => {
             if (mobileFuelMode) {
               if (mobileFuelCompareReady) setMobileFuelCompareOpen(true);
               return;
             }
+            if (searchPanelOpen && !notebookOpen) return;
             preloadSearchUiAssetsV774();
             gostaPanelStickyOpenRefV158.current = false;
             setNormalResults([]);
@@ -24997,8 +24968,58 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }
 
             setActiveAssistant(null);
-            // openSearchPanel clears compare in the same React update as opening Hae.
-            toggleSearchPanel();
+            openSearchPanel();
+          }}
+          onCartClick={() => {
+            gostaPanelStickyOpenRefV158.current = false;
+            setNormalResults([]);
+            setMobileResultsReadyQueryV537("");
+
+            if (notebookOpen) {
+              setNotebookOpen(false);
+              setSearchPanelOpen(false);
+              setShopsPanelOpen(false);
+              setEanModalOpen(false);
+              setCartSavePanelOpen(false);
+              closeProductSelectionOverlay();
+              setActiveResult("none");
+              setCartModalOpen(true);
+              return;
+            }
+
+            setActiveResult("none");
+            toggleCartModal();
+          }}
+          onCompareClick={() => {
+            gostaPanelStickyOpenRefV158.current = false;
+            setNormalResults([]);
+            setMobileResultsReadyQueryV537("");
+
+            if (notebookOpen) {
+              setNotebookOpen(false);
+              setSearchPanelOpen(false);
+              setCartModalOpen(false);
+              setCartSavePanelOpen(false);
+              setShopsPanelOpen(false);
+              setEanModalOpen(false);
+              closeProductSelectionOverlay();
+              setRestoredCartPromptV320({ open: false, count: 0 });
+              if (cart.length === 0) {
+                showCartToast("Lisää ensin tuote koriin.");
+                setActiveResult("none");
+                return;
+              }
+              if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
+                setActiveResult("none");
+                void refreshSingleChainCartPricesV770(cart);
+                setCartModalOpen(true);
+              } else {
+                openComparisonView();
+              }
+              return;
+            }
+
+            toggleComparisonView();
           }}
         />
           </div>
