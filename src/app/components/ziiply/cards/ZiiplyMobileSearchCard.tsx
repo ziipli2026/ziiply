@@ -11,7 +11,7 @@
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
-import { readShoppingListImage } from "../justiina/readShoppingListImage";
+import ShoppingListCamera from "../justiina/ShoppingListCamera";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export type ZiiplyMobileSearchCardProduct = {
@@ -502,9 +502,9 @@ export default function ZiiplyMobileSearchCard({
       : "normal";
   });
   const [tempoToast, setTempoToast] = useState<string | null>(null);
-  const listImageInputRef = useRef<HTMLInputElement>(null);
+  const [listCameraOpen,setListCameraOpen]=useState(false);
   const listImportRequest = useRef(0);
-  const [listImportBusy, setListImportBusy] = useState(false);
+  const listImportBusy = false;
   const [listImportNotice, setListImportNotice] = useState("");
 
   useEffect(() => () => { listImportRequest.current += 1; }, []);
@@ -537,22 +537,6 @@ export default function ZiiplyMobileSearchCard({
         setListImportNotice("Liitä ostoslista suoraan hakukenttään, jos leikepöytä ei avaudu.");
         localInputRef.current?.focus();
       }
-    }
-  };
-
-  const importShoppingListImage = async (file: File) => {
-    const request = ++listImportRequest.current;
-    setListImportBusy(true);
-    setListImportNotice("Luetaan ostoslistaa…");
-    try {
-      const text = await readShoppingListImage(file);
-      if (request === listImportRequest.current) applyShoppingList(text);
-    } catch (error) {
-      if (request === listImportRequest.current) {
-        setListImportNotice(error instanceof Error ? error.message : "Ostoslistan lukeminen epäonnistui.");
-      }
-    } finally {
-      if (request === listImportRequest.current) setListImportBusy(false);
     }
   };
 
@@ -1041,23 +1025,12 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
 
-            <input
-              ref={listImageInputRef}
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={(event) => {
-                const file = event.currentTarget.files?.[0];
-                event.currentTarget.value = "";
-                if (file) void importShoppingListImage(file);
-              }}
-            />
             <div className="mt-2 grid grid-cols-2 gap-2">
               <button type="button" disabled={listImportBusy} onClick={() => void pasteShoppingList()} className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border-2 border-[#b58b3d] bg-gradient-to-b from-[#fff5d3] to-[#e7cd8e] px-1 text-xs font-black text-[#174c2c] shadow-sm active:translate-y-px disabled:opacity-60">
                 <span aria-hidden="true" className="text-lg">📋</span>
                 Liitä ostoslista
               </button>
-              <button type="button" disabled={listImportBusy} onClick={() => listImageInputRef.current?.click()} className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border-2 border-[#b58b3d] bg-gradient-to-b from-[#fff5d3] to-[#e7cd8e] px-1 text-xs font-black text-[#174c2c] shadow-sm active:translate-y-px disabled:opacity-60">
+              <button type="button" disabled={listImportBusy} onClick={() => setListCameraOpen(true)} className="flex min-h-11 items-center justify-center gap-1.5 rounded-xl border-2 border-[#b58b3d] bg-gradient-to-b from-[#fff5d3] to-[#e7cd8e] px-1 text-xs font-black text-[#174c2c] shadow-sm active:translate-y-px disabled:opacity-60">
                 <span aria-hidden="true" className="text-lg">📷</span>
                 Lue ostoslista
               </button>
@@ -1137,6 +1110,7 @@ export default function ZiiplyMobileSearchCard({
           {/* Hakutulokset renderöidään erillisessä ZiiplyMobileSearchResultsCard-komponentissa. */}
         </div>
 
+        {listCameraOpen && <ShoppingListCamera onClose={()=>setListCameraOpen(false)} onApply={applyShoppingList}/>}
         <style>{`
           @keyframes ziiplyBasketRunner {
             0% { left: -4.6rem; }
