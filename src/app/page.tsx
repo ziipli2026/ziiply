@@ -3218,6 +3218,9 @@ function KauppiasMobileTopBar({
                   const range = Math.max(1, max - min);
                   const selected = electricitySelectedIndex === null ? null : electricityChartRows[electricitySelectedIndex] ?? null;
                   return <>
+                    <p className="mb-2 text-right text-xs font-bold text-[#164b38]">
+                      Selaa myöhempiä hintoja oikealle <span aria-hidden="true">→</span>
+                    </p>
                     <div className="overflow-x-auto pb-2" tabIndex={0} aria-label="Vieritettävä varttihintakuvaaja">
                       <div style={{ minWidth: electricityChartRows.length * 12 }}>
                         <div className="relative h-[210px] border-b-2 border-[#b99961]">
@@ -3240,7 +3243,7 @@ function KauppiasMobileTopBar({
                       </div>
                     </div>
                     <div className="mt-2 min-h-[28px] text-center text-[13px] font-bold text-[#164b38]" aria-live="polite">
-                      {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Helsinki" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Selaa varttihintoja sivusuunnassa. Kosketa pylvästä nähdäksesi hinnan."}
+                      {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Helsinki" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Kosketa pylvästä nähdäksesi hinnan."}
                     </div>
                   </>;
                 })()}
