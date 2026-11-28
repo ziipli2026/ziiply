@@ -212,7 +212,7 @@ export default function ZiiplyMobileAssistantPanel({
   if (!activeAssistant) return null;
 
   const content = assistantContent[activeAssistant];
-  const useNotebookFrame = activeAssistant === "justiina" || activeAssistant === "arvo";
+  const useNotebookFrame = true;
 
   return (
     <MobileNotebookFrame sectionStyle={{"--recipe-panel-header-height":`${headerHeight}px`} as React.CSSProperties}>
@@ -256,8 +256,8 @@ export default function ZiiplyMobileAssistantPanel({
           {activeAssistant === "justiina" ? <div className={recipeMode==="own"?"flex min-h-0 flex-1 flex-col overflow-hidden":"min-h-0 flex-1 overflow-y-auto"}><div className="sticky top-0 z-10 flex shrink-0 gap-2 bg-[#fff7df] p-3"><button type="button" onClick={()=>setRecipeMode("online")} aria-pressed={recipeMode==="online"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="online"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Hae reseptejä</button><button type="button" onClick={()=>setRecipeMode("own")} aria-pressed={recipeMode==="own"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="own"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Omat / kuvaa</button></div>{recipeMode==="online"?<JustiinaOnlineRecipes onSearchIngredients={onSearchIngredients}/>:<JustiinaRecipeEditor onSearchIngredients={onSearchIngredients}/>}</div> : activeAssistant === "arvo" ? <div className="min-h-0 flex-1 overflow-hidden"><ArvoSettingsPanel embedded hideStorageNotice /></div> : (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2 rounded-2xl border-2 border-[#caa15d] bg-[#f7e7bd] px-3 py-2">
-                <h2 className="font-serif text-lg font-black text-[#174c35]">Göstan tarjoushaku</h2>
-                <div className="flex gap-2">
+                <h2 className="min-w-0 flex-1 break-words font-serif text-lg font-black text-[#174c35]">Göstan tarjoushaku</h2>
+                <div className="flex shrink-0 gap-2">
                   <button type="button" onClick={()=>setShowWatchNotebook(v=>!v)} aria-label="Tallennetut tarjousvahdit" title="Tallennetut tarjousvahdit" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-xl">📒</button>
                   
                   <button type="button" onClick={()=>setWatchRefresh(n=>n+1)} disabled={watchLoading} aria-label="Päivitä tarjoukset" className="rounded-lg border border-[#9c6d36] bg-[#fff4cf] px-3 py-2 text-xl disabled:opacity-50">↻</button>
@@ -285,7 +285,7 @@ export default function ZiiplyMobileAssistantPanel({
                   <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store,offer.chain)}</div>
                   <div className="mt-2 flex items-start gap-3">{offer.imageUrl&&<img src={offer.imageUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain" onError={event=>{event.currentTarget.style.display="none";}}/>}<div className="min-w-0 flex-1"><h4 className="text-base font-black text-[#174c35] [overflow-wrap:anywhere]">{offer.title}</h4>{watchPackageSize(offer)&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{watchPackageSize(offer)}</div>}<ProductEnergy ean={offer.ean} nutrition={offer.nutrition} quantity={watchPackageSize(offer)} />{offer.comparisonPrice&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{offer.comparisonPrice}</div>}</div></div>
                   {watchValidity(offer) && <div className="mt-2 text-sm font-semibold">{watchValidity(offer)}</div>}
-                  <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{offer.price.includes("€") ? offer.price : offer.price.replace(".", ",") + " €"}{offer.priceBasis === "per-kg" && !offer.price.includes("/kg") ? "/kg" : ""}{(watchCartPrice(offer)?.bundleQuantity || 1) > 1 && !/kpl/i.test(offer.price) ? " / " + watchCartPrice(offer)?.bundleQuantity + " kpl" : ""}</strong>}</div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2"><span className="min-w-0 text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{offer.price.includes("€") ? offer.price : offer.price.replace(".", ",") + " €"}{offer.priceBasis === "per-kg" && !offer.price.includes("/kg") ? "/kg" : ""}{(watchCartPrice(offer)?.bundleQuantity || 1) > 1 && !/kpl/i.test(offer.price) ? " / " + watchCartPrice(offer)?.bundleQuantity + " kpl" : ""}</strong>}</div>
                   {onAddWatchOfferToCart&&<button type="button" onClick={() => {
                     const pricing = watchCartPrice(offer);
                     if (!pricing) {
