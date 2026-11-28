@@ -12,7 +12,7 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
  const [loading,setLoading]=React.useState(false);
  const [error,setError]=React.useState("");
  const [savedNotice,setSavedNotice]=React.useState<{title:string;sequence:number}|null>(null);
- React.useEffect(()=>{if(!savedNotice)return;const timer=window.setTimeout(()=>setSavedNotice(null),6000);return()=>window.clearTimeout(timer)},[savedNotice]);
+ React.useEffect(()=>{if(!savedNotice)return;const timer=window.setTimeout(()=>setSavedNotice(null),2500);return()=>window.clearTimeout(timer)},[savedNotice]);
  const [opened,setOpened]=React.useState<string|null>(null);
  React.useEffect(()=>{
   const q=query.trim().replace(/\*/g,"");
