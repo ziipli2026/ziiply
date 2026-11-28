@@ -2041,8 +2041,6 @@ function formatLocationNoticeV465(message: string) {
 }
 
 const WEATHER_APP_DISABLED_TEST_V487 = false;
-const ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559 =
-  "ziiply-electricity-price-cache-v1";
 
 
 
@@ -2369,9 +2367,6 @@ function KauppiasMobileTopBar({
   const [electricitySelectedIndex, setElectricitySelectedIndex] = useState<number | null>(null);
   const [electricityOffersOpen, setElectricityOffersOpen] = useState(false);
   const [mobileElectricityOfferTypes, setMobileElectricityOfferTypes] = useState<string[]>([]);
-  const [electricityValue, setElectricityValue] = useState("…");
-  const [electricityText, setElectricityText] = useState("haetaan");
-  const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
   const [mobileFuelMenuOpen, setMobileFuelMenuOpen] = useState(false);
   const [mobileFuelReportOpen, setMobileFuelReportOpen] = useState(false);
   const [fuelValueV744, setFuelValueV744] = useState("—");
@@ -2522,438 +2517,6 @@ function KauppiasMobileTopBar({
     };
   }, [hidden, gpsCoords?.latitude, gpsCoords?.longitude, weatherGpsFallbackCoordsV104?.latitude, weatherGpsFallbackCoordsV104?.longitude, areaLabel]);
 
-  useEffect(() => {
-    if (hidden || typeof window === "undefined") return;
-
-    let cancelled = false;
-
-    function readCachedElectricity() {
-      try {
-        const raw = window.localStorage.getItem(ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559);
-        if (!raw) return null;
-
-        const cached = JSON.parse(raw) as {
-          value?: string;
-          text?: string;
-          trend?: "up" | "down" | "flat";
-          savedAt?: number;
-        };
-
-        if (!cached?.value || !cached?.savedAt) return null;
-
-        const ageMs = Date.now() - Number(cached.savedAt);
-
-        // yli 12h vanha tieto poistetaan kokonaan muistista
-        if (ageMs > 12 * 60 * 60 * 1000) {
-          window.localStorage.removeItem(ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559);
-          return null;
-        }
-
-        return cached;
-      } catch {
-        return null;
-      }
-    }
-
-    function writeCachedElectricity(next: {
-      value: string;
-      text: string;
-      trend: "up" | "down" | "flat";
-    }) {
-      try {
-        window.localStorage.setItem(
-          ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559,
-          JSON.stringify({
-            ...next,
-            savedAt: Date.now(),
-          }),
-        );
-      } catch {
-        // localStorage voi olla estetty; silloin jatketaan ilman muistia.
-      }
-    }
-
-    function showCachedElectricityIfAvailable() {
-      const cached = readCachedElectricity();
-      if (!cached) return false;
-
-      const cachedValue = String(cached.value);
-      const cachedText = String(cached.text || "c/kWh");
-      const cachedTrend: "up" | "down" | "flat" =
-        cached.trend === "up" || cached.trend === "down" || cached.trend === "flat"
-          ? cached.trend
-          : "flat";
-
-      const ageMs = Date.now() - Number(cached.savedAt);
-      const ageMinutes = Math.max(0, Math.round(ageMs / 60000));
-
-      setElectricityValue(cachedValue);
-      setElectricityTrend(cachedTrend);
-
-      if (ageMinutes <= 20) {
-        setElectricityText(cachedText);
-      } else if (ageMinutes < 120) {
-        setElectricityText("muistista");
-      } else {
-        setElectricityText("vanha tieto");
-      }
-
-      return true;
-    }
-
-
-    function readNumber(value: unknown) {
-      if (typeof value === "number") return Number.isFinite(value) ? value : null;
-
-      const text = String(value ?? "")
-        .trim()
-        .replace(/\s/g, "")
-        .replace(",", ".");
-
-      const match = text.match(/-?\d+(?:\.\d+)?/);
-      if (!match) return null;
-
-      const number = Number(match[0]);
-      return Number.isFinite(number) ? number : null;
-    }
-
-    function readTime(...values: unknown[]) {
-      for (const value of values) {
-        if (value == null) continue;
-
-        const time = new Date(String(value)).getTime();
-        if (Number.isFinite(time)) return time;
-      }
-
-      return null;
-    }
-
-    function readPriceCents(item: any) {
-      if (!item || typeof item !== "object") return null;
-
-      const centFields = [
-        item.value,
-        item.price,
-        item.priceWithTax,
-        item.PriceWithTax,
-        item.priceNoTax,
-        item.PriceNoTax,
-        item.spotPrice,
-        item.SpotPrice,
-        item.centsPerKwh,
-        item.cents_per_kwh,
-      ];
-
-      for (const field of centFields) {
-        const number = readNumber(field);
-        if (number != null && Math.abs(number) <= 500) return number;
-      }
-
-      const eurFields = [
-        item.EUR_per_kWh,
-        item.eur_per_kwh,
-        item.eurPerKwh,
-      ];
-
-      for (const field of eurFields) {
-        const number = readNumber(field);
-        if (number != null && Math.abs(number * 100) <= 500) return number * 100;
-      }
-
-      return null;
-    }
-
-    async function fetchJson(url: string) {
-      const separator = url.includes("?") ? "&" : "?";
-      const response = await fetch(`${url}${separator}ziiply_no_cache=${Date.now()}`, {
-        cache: "no-store",
-        headers: { accept: "application/json" },
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      return response.json();
-    }
-
-    let latestResolvedTrend: "up" | "down" | "flat" = "flat";
-
-    function setTrendFromNext(currentPrice: number, nextPrice: number | null) {
-      if (nextPrice == null) {
-        latestResolvedTrend = "flat";
-        setElectricityTrend("flat");
-        return;
-      }
-
-      const diff = nextPrice - currentPrice;
-      if (diff > 0.05) latestResolvedTrend = "up";
-      else if (diff < -0.05) latestResolvedTrend = "down";
-      else latestResolvedTrend = "flat";
-
-      setElectricityTrend(latestResolvedTrend);
-    }
-
-    function formatLocalDateParts() {
-      const formatter = new Intl.DateTimeFormat("fi-FI", {
-        timeZone: "Europe/Helsinki",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-
-      const parts = formatter.formatToParts(new Date());
-      const year = parts.find((part) => part.type === "year")?.value || "";
-      const month = parts.find((part) => part.type === "month")?.value || "";
-      const day = parts.find((part) => part.type === "day")?.value || "";
-
-      return { year, month, day };
-    }
-
-    async function readSahkotinQuarter() {
-      const now = new Date();
-      const start = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
-      const end = new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString();
-
-      const data = await fetchJson(
-        `https://sahkotin.fi/prices?quarter&fix&vat&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
-      );
-
-      const rawPrices = Array.isArray(data?.prices)
-        ? data.prices
-        : Array.isArray(data)
-          ? data
-          : [];
-
-      const windows = rawPrices
-        .map((item: any, index: number, all: any[]) => {
-          const price = readPriceCents(item);
-          const startMs = readTime(item.date, item.time_start, item.startDate, item.start);
-          const explicitEndMs = readTime(item.time_end, item.endDate, item.end);
-          const nextStartMs = readTime(all[index + 1]?.date, all[index + 1]?.time_start, all[index + 1]?.startDate, all[index + 1]?.start);
-          const endMs = explicitEndMs ?? nextStartMs ?? (startMs == null ? null : startMs + 15 * 60 * 1000);
-
-          if (price == null || startMs == null || endMs == null) return null;
-
-          return { price, startMs, endMs };
-        })
-        .filter(Boolean)
-        .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
-          price: number;
-          startMs: number;
-          endMs: number;
-        }>;
-
-      const currentIndex = windows.findIndex(
-        (item) => item.startMs <= now.getTime() && now.getTime() < item.endMs,
-      );
-
-      if (currentIndex < 0) throw new Error("ei nykyvarttia");
-
-      const current = windows[currentIndex];
-      const next = windows[currentIndex + 1];
-
-      setTrendFromNext(current.price, next?.price ?? null);
-
-      return current.price;
-    }
-
-    async function readPorssisahkoLatest() {
-      const urls = [
-        "https://api.porssisahko.net/v1/latest-prices.json",
-        "https://api.porssisahko.net/v2/latest-prices.json",
-      ];
-
-      let lastError = "ei listaa";
-
-      for (const url of urls) {
-        try {
-          const data = await fetchJson(url);
-          const rawPrices = Array.isArray(data?.prices)
-            ? data.prices
-            : Array.isArray(data)
-              ? data
-              : [];
-
-          const windows = rawPrices
-            .map((item: any) => {
-              const price = readPriceCents(item);
-              const startMs = readTime(
-                item.startDate,
-                item.start,
-                item.StartDate,
-                item.time_start,
-                item.date,
-                item.Date,
-              );
-              const endMs = readTime(item.endDate, item.end, item.EndDate, item.time_end);
-
-              if (price == null || startMs == null || endMs == null) return null;
-
-              return { price, startMs, endMs };
-            })
-            .filter(Boolean)
-            .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
-              price: number;
-              startMs: number;
-              endMs: number;
-            }>;
-
-          const now = Date.now();
-          const currentIndex = windows.findIndex(
-            (item) => item.startMs <= now && now < item.endMs,
-          );
-
-          if (currentIndex < 0) {
-            lastError = "ei nykyhetkeä";
-            continue;
-          }
-
-          const current = windows[currentIndex];
-          const next = windows[currentIndex + 1];
-
-          setTrendFromNext(current.price, next?.price ?? null);
-
-          return current.price;
-        } catch (error) {
-          lastError = error instanceof Error ? error.message : "api virhe";
-        }
-      }
-
-      throw new Error(lastError);
-    }
-
-    async function readPorssisahkoDirect() {
-      const iso = new Date().toISOString();
-      const data = await fetchJson(
-        `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(iso)}`,
-      );
-
-      const price = readPriceCents(data);
-      if (price == null) throw new Error("ei hintaa");
-
-      setElectricityTrend("flat");
-      return price;
-    }
-
-    async function readSahkonHintaTanaan() {
-      const { year, month, day } = formatLocalDateParts();
-      if (!year || !month || !day) throw new Error("ei päivää");
-
-      const data = await fetchJson(
-        `https://www.sahkonhintatanaan.fi/api/v1/prices/${year}/${month}-${day}.json`,
-      );
-
-      const rawPrices = Array.isArray(data) ? data : Array.isArray(data?.prices) ? data.prices : [];
-
-      const windows = rawPrices
-        .map((item: any, index: number, all: any[]) => {
-          const price = readPriceCents(item);
-          const startMs = readTime(item.time_start, item.startDate, item.start, item.date);
-          const explicitEndMs = readTime(item.time_end, item.endDate, item.end);
-          const nextStartMs = readTime(all[index + 1]?.time_start, all[index + 1]?.startDate, all[index + 1]?.start, all[index + 1]?.date);
-          const endMs = explicitEndMs ?? nextStartMs;
-
-          if (price == null || startMs == null || endMs == null) return null;
-
-          return { price, startMs, endMs };
-        })
-        .filter(Boolean)
-        .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
-          price: number;
-          startMs: number;
-          endMs: number;
-        }>;
-
-      const now = Date.now();
-      const currentIndex = windows.findIndex((item) => item.startMs <= now && now < item.endMs);
-
-      if (currentIndex < 0) throw new Error("ei nykyhetkeä");
-
-      const current = windows[currentIndex];
-      const next = windows[currentIndex + 1];
-
-      setTrendFromNext(current.price, next?.price ?? null);
-
-      return current.price;
-    }
-
-    async function loadElectricity() {
-      if (cancelled) return;
-
-      const hadCachedElectricity = showCachedElectricityIfAvailable();
-
-      if (!hadCachedElectricity) {
-        setElectricityValue("…");
-        setElectricityText("haetaan");
-      }
-
-      const readers = [
-        readSahkotinQuarter,
-        readPorssisahkoLatest,
-        readPorssisahkoDirect,
-        readSahkonHintaTanaan,
-      ];
-
-      const errors: string[] = [];
-
-      for (const reader of readers) {
-        try {
-          const price = await reader();
-          if (cancelled) return;
-
-          const formattedPrice = price.toLocaleString("fi-FI", {
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1,
-          });
-
-          setElectricityValue(formattedPrice);
-          setElectricityText("c/kWh");
-
-          writeCachedElectricity({
-            value: formattedPrice,
-            text: "c/kWh",
-            trend: latestResolvedTrend,
-          });
-
-          return;
-        } catch (error) {
-          errors.push(error instanceof Error ? error.message : "api virhe");
-        }
-      }
-
-      if (cancelled) return;
-
-      const hadCachedElectricityAfterFailure = showCachedElectricityIfAvailable();
-      if (hadCachedElectricityAfterFailure) return;
-
-      setElectricityValue("—");
-      setElectricityTrend("flat");
-
-      const message = errors.join(" / ");
-      if (message.includes("Failed to fetch")) setElectricityText("fetch virhe");
-      else if (message.includes("HTTP")) setElectricityText(message.match(/HTTP \d+/)?.[0] || "HTTP");
-      else if (message.includes("ei nykyvarttia")) setElectricityText("ei varttia");
-      else if (message.includes("ei nykyhetkeä")) setElectricityText("ei nykyhetkeä");
-      else if (message.includes("ei hintaa")) setElectricityText("ei hintaa");
-      else setElectricityText("api virhe");
-    }
-
-    // V741_ELECTRICITY_CACHE_FIRST_DEFER_NETWORK:
-    // Näytä mahdollinen viimeisin sähköhintacache heti, mutta älä käynnistä
-    // usean ulkoisen API:n fallback-ketjua snapshot/GPS-startin rinnalla.
-    showCachedElectricityIfAvailable();
-    const startupTimerV741 = window.setTimeout(() => {
-      void loadElectricity();
-    }, 3500);
-    const interval = window.setInterval(loadElectricity, 60 * 1000);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(startupTimerV741);
-      window.clearInterval(interval);
-    };
-  }, [hidden]);
-
-
   const calendarDisplay = useMemo(() => {
     const now = new Date();
     return {
@@ -2963,42 +2526,65 @@ function KauppiasMobileTopBar({
   }, []);
 
   useEffect(() => {
-    if (!electricityChartOpen) return;
     const controller = new AbortController();
     const quarterMs = 15 * 60 * 1000;
+    let requestedQuarter = -1;
     let refreshTimer: number;
-    async function refreshChart() {
+
+    async function refreshPrices() {
+      const quarter = Math.floor(Date.now() / quarterMs);
+      if (requestedQuarter === quarter) return;
+      requestedQuarter = quarter;
       try {
         const response = await fetch("/api/electricity-chart", {
           cache: "no-store",
           signal: controller.signal,
         });
-        if (!response.ok) throw new Error("Electricity chart unavailable");
-        const data = await response.json();
-        if (controller.signal.aborted) return;
-        setElectricityChartRows(data.rows);
+        if (!response.ok) throw new Error("Electricity prices unavailable");
+        const { rows } = await response.json() as { rows: typeof electricityChartRows };
+        if (controller.signal.aborted || requestedQuarter !== quarter) return;
+        setElectricityChartRows(rows);
         setElectricitySelectedIndex(null);
         setElectricityChartStatus("");
       } catch {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || requestedQuarter !== quarter) return;
+        requestedQuarter = -1;
         setElectricityChartRows([]);
         setElectricityChartStatus("Varttihintojen haku epäonnistui.");
       }
     }
+
     function scheduleRefresh() {
+      window.clearTimeout(refreshTimer);
       refreshTimer = window.setTimeout(() => {
-        void refreshChart();
+        void refreshPrices();
         scheduleRefresh();
       }, quarterMs - Date.now() % quarterMs);
     }
-    setElectricityChartStatus("Haetaan hintoja…");
-    void refreshChart();
+
+    function refreshWhenVisible() {
+      if (document.visibilityState !== "visible") return;
+      void refreshPrices();
+      scheduleRefresh();
+    }
+
+    void refreshPrices();
     scheduleRefresh();
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("pageshow", refreshWhenVisible);
     return () => {
       controller.abort();
       window.clearTimeout(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("pageshow", refreshWhenVisible);
     };
-  }, [electricityChartOpen]);
+  }, []);
+
+  const currentElectricityPrice = electricityChartRows[0]?.price;
+  const nextElectricityPrice = electricityChartRows[1]?.price;
+  const electricityTrend = currentElectricityPrice === undefined || nextElectricityPrice === undefined
+    ? "flat"
+    : nextElectricityPrice > currentElectricityPrice ? "up" : nextElectricityPrice < currentElectricityPrice ? "down" : "flat";
 
   const panels = [
     {
@@ -3012,9 +2598,12 @@ function KauppiasMobileTopBar({
     {
       id: "electricity" as const,
       title: "SÄHKÖ",
-      value: electricityValue,
+      value: currentElectricityPrice?.toLocaleString("fi-FI", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }) ?? (electricityChartStatus === "Haetaan hintoja…" ? "…" : "—"),
       unit: "c/kWh",
-      detail: electricityText,
+      detail: currentElectricityPrice === undefined ? electricityChartStatus : "c/kWh",
       graphic: <KauppiasElectricityTrendGraphicV717 trend={electricityTrend} />,
       onClick: () => { setMobileFuelMenuOpen(false); setMobileFuelReportOpen(false); setElectricityChartOpen(open => !open); },
     },
