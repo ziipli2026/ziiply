@@ -1,0 +1,53 @@
+name: Beta Chili con carne audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [test/beta-chili-con-carne-20261128]
+    paths: ['.github/workflows/beta-chili-audit.yml']
+permissions:
+  contents: read
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: |
+          node scripts/test-mobile-recipe-flow.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/audit-mobile-recipe-100.cjs')
+          s=p.read_text()
+          a=s.index('const recipes=')
+          b=s.index('const page=',a)
+          s=s[:a]+'const recipes='+"[{\"title\":\"CHILI CON CARNE\",\"ingredients\":[\"300 g naudanpaistia\",\"1 rkl öljyä\",\"1 rkl margariinia\",\"2 dl vettä\",\"1/2 tl suolaa\",\"1/2 tl chilipippuria\",\"3 rkl tomaattisosetta\",\"2 valkosipulinkynttä\",\"2 sipulia\",\"1 paprika\",\"1 tlk tomaattimurskaa\",\"1 tlk (420 g) valkoisia papuja\"]}]"+';\n'+s[b:]
+          p.write_text(s)
+          PY
+          RECIPE_AUDIT_BASE=https://beta.ziiply.fi RECIPE_AUDIT_OUTPUT=/tmp/chili-mobile node scripts/audit-mobile-recipe-100.cjs
+          cat /tmp/chili-mobile/results.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chili-mobile
+          path: /tmp/chili-mobile/
+  desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node scripts/test-mobile-recipe-desktop-parity.cjs
+      - run: |
+          node - <<'JS'
+          require('./scripts/recipe-audit-runtime.cjs');
+          const core=require('./src/app/components/ziiply/justiina/recipeCore.ts');
+          const search=require('./src/app/components/ziiply/justiina/recipeSearch.ts');
+          const draft=core.parseRecipeText("CHILI CON CARNE\nAinekset:\n300 g naudanpaistia\n1 rkl öljyä\n1 rkl margariinia\n2 dl vettä\n1/2 tl suolaa\n1/2 tl chilipippuria\n3 rkl tomaattisosetta\n2 valkosipulinkynttä\n2 sipulia\n1 paprika\n1 tlk tomaattimurskaa\n1 tlk (420 g) valkoisia papuja");
+          const plan=core.prepareRecipeSearch(draft.ingredients,draft.instructions,'CHILI CON CARNE');
+          (async()=>{let errors=0;for(const item of plan.items){for(const [chain,store] of [['s',292],['k',3221]]){try{const url='https://beta.ziiply.fi/api/'+chain+'-products?'+new URLSearchParams({search:item.searchTerm,store:String(store),recipeIngredient:item.name});const response=await fetch(url,{signal:AbortSignal.timeout(45000)});if(!response.ok)throw Error('HTTP '+response.status);const data=await response.json();const products=data.products||data.items;if(!Array.isArray(products))throw Error('Missing product array');console.log(JSON.stringify({chain,ingredient:item,accepted:products.filter(p=>search.recipeProductCompatible(item.name,p)).slice(0,10),rejected:products.filter(p=>!search.recipeProductCompatible(item.name,p)).slice(0,5)}));}catch(e){errors++;console.error(item.name,chain,String(e));}}}if(errors)process.exitCode=1;})().catch(e=>{console.error(e);process.exitCode=1});
+          JS
