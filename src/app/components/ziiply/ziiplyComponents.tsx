@@ -272,7 +272,7 @@ export function ZiiplyBottomNav({
           className={buttonShellClass}
         >
           <span className={`${innerBaseClass} ${shopsActive ? activeInnerClass : initialStoreNavPrompt ? promptedInnerClass : idleInnerClass}`}>
-            <ZiiplyNavIcon type="shops" active={shopsActive} className={fuelMode ? iconClass : "h-[60px] w-[30px]"} />
+            <ZiiplyNavIcon type="shops" active={shopsActive} className="h-[60px] w-[30px]" />
             <span className={labelClass}>Kaupat</span>
           </span>
         </button>
@@ -295,40 +295,6 @@ export function ZiiplyBottomNav({
           </span>
         </button>
 
-        {fuelMode ? (
-          <>
-            <button
-              type="button"
-              onClick={onCartClick}
-              disabled={cartDisabled}
-              aria-disabled={cartDisabled}
-              className={buttonShellClass}
-            >
-              <span className={`${innerBaseClass} ${cartDisabled ? disabledInnerClass : cartActive ? activeInnerClass : idleInnerClass}`}>
-                <ZiiplyNavIcon type="cart" active={cartActive} disabled={cartDisabled} className={iconClass} />
-                <span className={labelClass}>Kori</span>
-                {cartLength > 0 && (
-                  <span className={`absolute right-[7px] top-[5px] flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black leading-none ${badgeClass}`}>
-                    {cartLength}
-                  </span>
-                )}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={onCompareClick}
-              disabled={compareDisabled}
-              aria-disabled={compareDisabled}
-              className={buttonShellClass}
-            >
-              <span className={`${innerBaseClass} ${compareDisabled ? disabledInnerClass : compareActive ? activeInnerClass : idleInnerClass}`}>
-                <ZiiplyNavIcon type="compare" active={compareActive} disabled={compareDisabled} className={iconClass} />
-                <span className={labelClass}>Vertailu</span>
-              </span>
-            </button>
-          </>
-        ) : (
           <>
             <button
               type="button"
@@ -354,7 +320,7 @@ export function ZiiplyBottomNav({
               </span>
             </button>
           </>
-        )}
+
       </div>
     </nav>
   );
