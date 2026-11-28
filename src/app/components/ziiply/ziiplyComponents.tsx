@@ -119,13 +119,13 @@ export function ZiiplyLaunchScreen({ appVersion: _appVersion }: ZiiplyLaunchScre
 }
 
 
-function ZiiplyNavIcon({
+export function ZiiplyNavIcon({
   type,
   active = false,
   disabled = false,
   className = "",
 }: {
-  type: "shops" | "search" | "cart" | "compare";
+  type: "shops" | "cart" | "compare";
   active?: boolean;
   disabled?: boolean;
   className?: string;
@@ -143,17 +143,6 @@ function ZiiplyNavIcon({
         <path d="M14 39V27h8v12M27 27h7v7h-7z" fill={active ? "rgba(255,248,234,0.18)" : "#fff8ea"} stroke={ink} strokeWidth="2.2" strokeLinejoin="round" />
         <circle cx="36" cy="13" r="6" fill={active ? "#fff8ea" : accent} stroke={ink} strokeWidth="2" />
         <path d="M36 10v6M33 13h6" stroke={active ? accent : "#fff8ea"} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (type === "search") {
-    return (
-      <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-        <circle cx="21" cy="20" r="11" fill={active ? "rgba(255,248,234,0.22)" : "#fff8ea"} stroke={ink} strokeWidth="3" />
-        <path d="M29.5 28.5 40 39" stroke={ink} strokeWidth="4" strokeLinecap="round" />
-        <path d="M15 20a6 6 0 0 1 6-6" stroke={active ? "#fff8ea" : "#b8c3bd"} strokeWidth="2" strokeLinecap="round" />
-        <path d="M35.5 34.5 32 38" stroke={brass} strokeWidth="2.2" strokeLinecap="round" />
       </svg>
     );
   }
@@ -187,11 +176,20 @@ type ZiiplyBottomNavProps = {
   searchBottomNavDisabled: boolean;
   initialStoreSelectionLocked: boolean;
   searchPanelOpen: boolean;
+  searchReadyBounceKeyV320: number;
+  storesReadyForSearch: boolean;
+  cartLength: number;
+  cartModalOpen: boolean;
+  cartSelectionEnabled?: boolean;
+  compareSelectionEnabled?: boolean;
   fuelMode?: boolean;
   fuelCompareReady?: boolean;
   fuelCompareOpen?: boolean;
+  activeResult: "none" | "compare" | string;
   onShopsClick: () => void;
   onSearchClick: () => void;
+  onCartClick: () => void;
+  onCompareClick: () => void;
   settingsActive: boolean;
   offersActive: boolean;
   offersDisabled: boolean;
@@ -205,11 +203,20 @@ export function ZiiplyBottomNav({
   searchBottomNavDisabled,
   initialStoreSelectionLocked,
   searchPanelOpen,
+  searchReadyBounceKeyV320,
+  storesReadyForSearch,
+  cartLength,
+  cartModalOpen,
+  cartSelectionEnabled = true,
+  compareSelectionEnabled = true,
   fuelMode = false,
   fuelCompareReady = false,
   fuelCompareOpen = false,
+  activeResult,
   onShopsClick,
   onSearchClick,
+  onCartClick,
+  onCompareClick,
   settingsActive,
   offersActive,
   offersDisabled,
@@ -237,12 +244,20 @@ export function ZiiplyBottomNav({
     ? "cursor-not-allowed bg-[#fff0e7] text-[#c98a73] ring-1 ring-[#e5b49f]/70 opacity-85"
     : "cursor-not-allowed bg-[#e7e2d7]/62 text-[#9d978b] opacity-70";
 
+  const badgeClass = cartModalOpen
+    ? "bg-[#fff8ea] text-[#2f7041] ring-1 ring-[#2f7041]/25 shadow-[0_2px_5px_rgba(39,58,36,0.14)]"
+    : "bg-[#2f7041] text-[#fff6e8] ring-1 ring-[#214f30]/30 shadow-[0_2px_5px_rgba(29,62,36,0.28)]";
+
   const shopsActive = fuelMode ? !fuelCompareOpen : shopsPanelOpen;
   const searchActive = fuelMode ? fuelCompareOpen : searchPanelOpen;
+  const cartActive = cartModalOpen && cartLength > 0;
+  const compareActive = activeResult === "compare" && !searchPanelOpen && !cartModalOpen && cartLength > 0;
   const searchDisabled = fuelMode ? !fuelCompareReady : searchBottomNavDisabled && !searchPanelOpen;
   // V767: Kori ja Vertailu vapautuvat vasta kelvollisen ketjuvalinnan jälkeen.
   // Yksi + 1 ketju sallii Korin, mutta ei Halpuusvertailua.
   // Monta + vähintään 2 ketjua sallii molemmat.
+  const cartDisabled = fuelMode || cartLength === 0 || !cartSelectionEnabled;
+  const compareDisabled = fuelMode || cartLength === 0 || !compareSelectionEnabled;
   const iconClass = "h-[30px] w-[30px] drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]";
   const portraitClass = "h-[60px] w-[60px] shrink-0 rounded-full object-cover";
   const labelClass = "mt-0.5 block text-[clamp(10px,3.1vw,12px)] leading-none";

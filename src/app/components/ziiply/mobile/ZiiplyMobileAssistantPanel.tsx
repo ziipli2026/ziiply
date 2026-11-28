@@ -1,4 +1,5 @@
 "use client";
+import MobileNotebookFrame from "./MobileNotebookFrame";
 import ProductEnergy from "../cards/ProductEnergy";
 import { gostaWatchUrl } from "./gostaWatchLocation";
 import { fetchSharedGostaWatch } from "./gostaWatchSharedRequest";
@@ -15,6 +16,7 @@ import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 export type ZiiplyMobileAssistantPanelProps = {
   activeAssistant: ZiiplyAssistantKey | null;
   onClose: () => void;
+  onOpenNutritionScanner?: () => void;
   onSearchIngredients?: (terms: string[], items?: RecipeIngredient[]) => void;
   selectedChains?: Record<"s"|"k"|"lidl"|"tokmanni",boolean>;
   onChangeChain?: (chain: "s"|"k"|"lidl"|"tokmanni", enabled:boolean) => void;
@@ -65,6 +67,7 @@ const assistantContent: Record<
 export default function ZiiplyMobileAssistantPanel({
   activeAssistant,
   onClose,
+  onOpenNutritionScanner,
   onSearchIngredients,
   selectedChains,
   onChangeChain,
@@ -196,8 +199,6 @@ export default function ZiiplyMobileAssistantPanel({
     setWatchNotice("Tarjousvahti poistettu: " + query);
   }
   const [recipeMode,setRecipeMode]=React.useState<"online"|"own">("online");
-  const [recipeCameraOpen,setRecipeCameraOpen]=React.useState(false);
-  React.useEffect(()=>{setRecipeCameraOpen(false)},[activeAssistant]);
   const headerRef=React.useRef<HTMLDivElement|null>(null);
   const [headerHeight,setHeaderHeight]=React.useState(82);
   React.useLayoutEffect(()=>{
@@ -211,38 +212,48 @@ export default function ZiiplyMobileAssistantPanel({
   if (!activeAssistant) return null;
 
   const content = assistantContent[activeAssistant];
+  const useNotebookFrame = true;
 
   return (
-    <div className="fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md">
-      <section style={{"--recipe-panel-header-height":`${headerHeight}px`} as React.CSSProperties} className="relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
-        <div
-          className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
-          style={{ backgroundImage: "url('/ui/cart/vihkonen.webp')", backgroundSize: "142% 104%", backgroundPosition: "center top" }}
-        />
-        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.42),rgba(246,226,172,0.18)_34%,rgba(238,214,156,0.08))]" />
-        <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
+    <MobileNotebookFrame sectionStyle={{"--recipe-panel-header-height":`${headerHeight}px`} as React.CSSProperties}>
+        <div ref={headerRef} className={`relative z-10 flex min-w-0 shrink-0 items-center gap-2 bg-gradient-to-b from-[#fff1c6] to-[#e3c17b] px-2 py-3 ${useNotebookFrame ? "mx-[7%] mt-2 rounded-xl" : ""}`}>
+          <div className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-full border-[3px] border-[#f8e8bf] bg-[#314633]">
+            <img
+              src={content.imageSrc}
+              alt={content.name}
+              draggable={false}
+              className="h-full w-full object-cover"
+            />
+          </div>
 
+          <div className="min-w-0 flex-1">
+            <div className="text-[22px] font-black leading-none text-[#27412a]">
+              {content.name}
+            </div>
+            <div className="mt-1 break-words text-[12px] font-black uppercase tracking-[0.08em] text-[#705f37]">
+              {content.title}
+            </div>
+            {activeAssistant === "arvo" && <p className="mt-1 text-[10px] font-medium leading-tight text-[#705f37]">Asetukset tallentuvat tähän selaimeen.</p>}
+          </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-[1.18rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-white/80 text-[22px] font-black text-[#3e3420] shadow-inner active:scale-[0.98]"
             aria-label="Sulje"
             title="Sulje"
           >
-            <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[0.92rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
-              ×
-            </span>
+            ×
           </button>
-
-        <div ref={headerRef} className="relative z-10 mx-5 shrink-0 pb-2 pt-[0.9rem]">
-          <div className="mx-[3.15rem] flex min-h-[3.3rem] min-w-0 flex-col items-center justify-center rounded-[0.6rem] bg-[#f4e4bb]/95 px-1 text-center">
-            <div className="font-serif text-[1.18rem] font-black italic leading-none text-[#28402a]">{content.name}</div>
-            <div className="mt-1 break-words text-[0.74rem] font-extrabold text-[#5f5034]">{content.title}</div>
-          </div>
         </div>
-        <div className="relative z-10 mx-5 mb-5 min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain rounded-[1.05rem] border-2 border-[#9a7a3d] bg-[#fff4d4] p-2 text-[14px] font-bold leading-snug text-[#374151] [overflow-wrap:anywhere] [&_*]:min-w-0 [&_img]:max-w-full [&_input]:max-w-full [&_select]:max-w-full">
-          {activeAssistant === "justiina" ? <div className="min-h-0 flex-1 overflow-y-auto"><div className="sticky top-0 z-10 flex gap-2 bg-[#fff7df] p-3"><button type="button" onClick={()=>setRecipeMode("online")} aria-pressed={recipeMode==="online"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="online"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Hae reseptejä</button><button type="button" onClick={()=>setRecipeMode("own")} aria-pressed={recipeMode==="own"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="own"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Omat / kuvaa</button></div>{recipeMode==="online"?<JustiinaOnlineRecipes onSearchIngredients={onSearchIngredients}/>:<JustiinaRecipeEditor onSearchIngredients={onSearchIngredients} onCameraOpenChange={setRecipeCameraOpen}/>}</div> : activeAssistant === "arvo" ? <ArvoSettingsPanel onClose={onClose} /> : (
+
+        <div className={`relative z-10 min-h-0 min-w-0 flex-1 overflow-x-hidden overscroll-contain pb-4 pt-2 text-[14px] font-bold leading-snug text-[#374151] [overflow-wrap:anywhere] [&_*]:min-w-0 [&_img]:max-w-full [&_input]:max-w-full [&_select]:max-w-full ${useNotebookFrame ? "mx-[7%] mb-3 px-1" : "px-3"} ${(activeAssistant === "arvo" || (activeAssistant === "justiina" && recipeMode === "own")) ? "flex flex-col overflow-hidden" : "overflow-y-auto"}`}>
+          {activeAssistant === "arvo" && onOpenNutritionScanner && (
+            <button type="button" onClick={onOpenNutritionScanner} className="mb-2 min-h-11 shrink-0 w-full rounded-xl border border-[#b99d62] bg-white px-3 font-bold text-[#174c35]">
+              Ravintoskanneri
+            </button>
+          )}
+          {activeAssistant === "justiina" ? <div className={recipeMode==="own"?"flex min-h-0 flex-1 flex-col overflow-hidden":"min-h-0 flex-1 overflow-y-auto"}><div className="sticky top-0 z-10 flex shrink-0 gap-2 bg-[#fff7df] p-3"><button type="button" onClick={()=>setRecipeMode("online")} aria-pressed={recipeMode==="online"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="online"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Hae reseptejä</button><button type="button" onClick={()=>setRecipeMode("own")} aria-pressed={recipeMode==="own"} className={`flex-1 rounded-xl p-2 font-bold ${recipeMode==="own"?"bg-[#174c3a] text-white":"border border-[#b99d62]"}`}>Omat / kuvaa</button></div>{recipeMode==="online"?<JustiinaOnlineRecipes onSearchIngredients={onSearchIngredients}/>:<JustiinaRecipeEditor onSearchIngredients={onSearchIngredients}/>}</div> : activeAssistant === "arvo" ? <div className="min-h-0 flex-1 overflow-hidden"><ArvoSettingsPanel embedded hideStorageNotice /></div> : (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2 rounded-2xl border-2 border-[#caa15d] bg-[#f7e7bd] px-3 py-2">
                 <h2 className="min-w-0 flex-1 break-words font-serif text-lg font-black text-[#174c35]">Göstan tarjoushaku</h2>
@@ -274,7 +285,7 @@ export default function ZiiplyMobileAssistantPanel({
                   <div className="text-xs font-bold text-[#76502b]">{watchStoreLabel(offer.store,offer.chain)}</div>
                   <div className="mt-2 flex items-start gap-3">{offer.imageUrl&&<img src={offer.imageUrl} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg bg-white object-contain" onError={event=>{event.currentTarget.style.display="none";}}/>}<div className="min-w-0 flex-1"><h4 className="text-base font-black text-[#174c35] [overflow-wrap:anywhere]">{offer.title}</h4>{watchPackageSize(offer)&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{watchPackageSize(offer)}</div>}<ProductEnergy ean={offer.ean} nutrition={offer.nutrition} quantity={watchPackageSize(offer)} />{offer.comparisonPrice&&<div className="mt-1 text-sm font-semibold text-[#76502b]">{offer.comparisonPrice}</div>}</div></div>
                   {watchValidity(offer) && <div className="mt-2 text-sm font-semibold">{watchValidity(offer)}</div>}
-                  <div className="mt-2 flex items-center justify-between"><span className="text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{offer.price.includes("€") ? offer.price : offer.price.replace(".", ",") + " €"}{offer.priceBasis === "per-kg" && !offer.price.includes("/kg") ? "/kg" : ""}{(watchCartPrice(offer)?.bundleQuantity || 1) > 1 && !/kpl/i.test(offer.price) ? " / " + watchCartPrice(offer)?.bundleQuantity + " kpl" : ""}</strong>}</div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2"><span className="min-w-0 text-xs font-normal">Vahti: {offer.query}</span>{offer.price&&<strong className="rounded-lg bg-[#f3d58e] px-3 py-1 text-lg text-[#4b3217]">{offer.price.includes("€") ? offer.price : offer.price.replace(".", ",") + " €"}{offer.priceBasis === "per-kg" && !offer.price.includes("/kg") ? "/kg" : ""}{(watchCartPrice(offer)?.bundleQuantity || 1) > 1 && !/kpl/i.test(offer.price) ? " / " + watchCartPrice(offer)?.bundleQuantity + " kpl" : ""}</strong>}</div>
                   {onAddWatchOfferToCart&&<button type="button" onClick={() => {
                     const pricing = watchCartPrice(offer);
                     if (!pricing) {
@@ -297,8 +308,7 @@ export default function ZiiplyMobileAssistantPanel({
             </div>
           )}
         </div>
-      </section>
-    </div>
+    </MobileNotebookFrame>
   );
 }
 

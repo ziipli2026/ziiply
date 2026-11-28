@@ -11,6 +11,8 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
  const [results,setResults]=React.useState<Recipe[]>([]);
  const [loading,setLoading]=React.useState(false);
  const [error,setError]=React.useState("");
+ const [savedNotice,setSavedNotice]=React.useState<{title:string;sequence:number}|null>(null);
+ React.useEffect(()=>{if(!savedNotice)return;const timer=window.setTimeout(()=>setSavedNotice(null),2500);return()=>window.clearTimeout(timer)},[savedNotice]);
  const [opened,setOpened]=React.useState<string|null>(null);
  React.useEffect(()=>{
   const q=query.trim().replace(/\*/g,"");
@@ -74,8 +76,8 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
    const entry={id,title:recipe.title,ingredients:ingredients.map(item=>item.amount+" "+item.name).join("\n"),instructions:parts.length>1?parts.slice(1).join("\n"):recipe.content,source:"muualta",category:"muualta",sourceUrl:recipe.url,sourceName:"Wikikirjasto / Keittokirja",createdAt:new Date().toISOString()};
    localStorage.setItem(key,JSON.stringify([entry,...(Array.isArray(old)?old:[]).filter((x:{id:string})=>x.id!==id)]));
    window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));
-   setError("Resepti tallennettu.");
-  }catch{setError("Tallennus epäonnistui.");}
+   setError("");setSavedNotice(previous=>({title:recipe.title,sequence:(previous?.sequence??0)+1}));
+  }catch{setSavedNotice(null);setError("Tallennus epäonnistui.");}
  };
  return <div className="space-y-3 p-3 text-[#174c3a]">
   <label htmlFor="justiina-online-query" className="block font-bold">Hae reseptejä Wikikirjastosta</label>
@@ -89,7 +91,8 @@ export default function JustiinaOnlineRecipes({onSearchIngredients}:{onSearchIng
    {opened===recipe.url&&<div className="mt-2 space-y-2">
     <p className="max-h-64 overflow-auto whitespace-pre-wrap text-sm">{recipe.content}</p>
     <div className="flex flex-wrap gap-2">
-     <button type="button" className="rounded-lg bg-[#174c3a] px-3 py-2 text-white" onClick={()=>save(recipe)}>Tallenna resepti</button>
+     <button type="button" className="rounded-lg bg-[#174c3a] px-3 py-2 text-white" onClick={()=>save(recipe)}>{savedNotice?.title===recipe.title?"✓ Tallennettu":"Tallenna resepti"}</button>
+     {savedNotice?.title===recipe.title&&<div role="status" aria-live="polite" className="w-full rounded-lg border border-[#174c3a] bg-[#e5f4e8] p-2 font-bold text-[#174c3a]">✓ Resepti tallennettu omiin resepteihin.</div>}
      <a href={recipe.url} target="_blank" rel="noopener noreferrer" className="rounded-lg border px-3 py-2">Alkuperäinen resepti</a>
     </div>
    </div>}

@@ -19,11 +19,10 @@ type Props = {
  * The parent owns the utility strip and bottom navigation; this panel only
  * distributes the available space between the brand header and assistant cards.
  */
-export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant, onUpperAction }: Props) {
+export function useGostaWatchSummary(enabled = true) {
   const [watchCount,setWatchCount]=React.useState<number|null>(null);
   const [watchTerms,setWatchTerms]=React.useState<string[]>([]);
   const [watchScanning,setWatchScanning]=React.useState(false);
-  const [watchRevision,setWatchRevision]=React.useState(0);
   React.useEffect(()=>{
     const read=()=>{
       try{
@@ -36,11 +35,11 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     window.addEventListener("ziiply-gosta-watch-changed",read);
     return()=>{window.removeEventListener("storage",read);window.removeEventListener("ziiply-gosta-watch-changed",read);};
   },[]);
-  const watchKey=watchTerms.map(q=>q.trim().toLocaleLowerCase("fi")).join("|");
+  const watchKey=enabled ? watchTerms.map(q=>q.trim().toLocaleLowerCase("fi")).join("|") : "";
   React.useEffect(()=>{
     const readShared=()=>{
       const snapshot = readWatchResults();
-      setWatchCount(snapshot?.offers.length ?? null);
+      setWatchCount(snapshot?.key === watchKey ? snapshot.offers.length : null);
       return snapshot?.key === watchKey && snapshot.current && !snapshot.partial ? snapshot.at : 0;
     };
     if(!watchKey){setWatchCount(null);return;}
@@ -77,7 +76,12 @@ export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistan
     window.addEventListener("focus",onResume);
     document.addEventListener("visibilitychange",onResume);
     return()=>{cancelled=true;window.clearTimeout(timer);window.clearInterval(interval);window.removeEventListener(watchResultsChanged,sync);window.removeEventListener("storage",sync);window.removeEventListener("focus",onResume);document.removeEventListener("visibilitychange",onResume);};
-  },[watchKey,watchRevision]);
+  },[watchKey]);
+  return { watchCount, watchScanning };
+}
+
+export default function ZiiplyMobileHomeView({ activeAssistant, onSelectAssistant, onUpperAction }: Props) {
+  const { watchCount, watchScanning } = useGostaWatchSummary();
   return (
     <main
       className="relative isolate -mx-4 flex min-h-0 flex-1 flex-col overflow-hidden px-3 max-[389px]:overflow-y-auto max-[389px]:pb-[calc(env(safe-area-inset-bottom)+120px)]"

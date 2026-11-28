@@ -107,7 +107,7 @@ export function arvoPurchaseSuggestions(purchases: ArvoPurchase[], today = new D
     return [{ key, name: records[records.length - 1].name, intervalDays: median, elapsedDays: Math.max(0, Math.floor(elapsed)) }];
   });
 }
-export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
+export default function ArvoSettingsPanel({onClose, embedded = false, hideStorageNotice = false}:{onClose?:()=>void; embedded?:boolean; hideStorageNotice?:boolean}={}) {
   const [activeSection,setActiveSection]=useState<string|null>(null);
   const [reminderPage,setReminderPage]=useState<"times"|"suggestions"|null>(null);
   const [energyPage,setEnergyPage]=useState<"measurements"|"goals"|null>(null);
@@ -125,9 +125,9 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
   const energy = estimateArvoEnergy(p);
   const mealLabels: { key: keyof ArvoPreferences["mealTimes"]; label: string }[] = [{key:"breakfast",label:"Aamiainen"},{key:"lunch",label:"Lounas"},{key:"dinner",label:"Päivällinen"},{key:"evening",label:"Iltapala"}];
   return <div className="flex h-full min-h-0 flex-col overflow-hidden px-1 py-1 text-[#173b2b]">
-    <div className="relative mb-2 flex min-h-12 shrink-0 items-center"><h2 className="text-[26px] font-black text-[#14291f]">Arvo</h2><button type="button" aria-label={activeSection?"Takaisin Arvon asetuksiin":"Sulje Arvon asetukset"} title={activeSection?"Takaisin":"Sulje"} className="ml-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-[3px] border-[#603319] bg-[#9b632d] text-[30px] font-black leading-none text-[#fff3d6] shadow-sm transition hover:bg-[#825026]" onClick={()=>{if(activeSection==="reminders"&&reminderPage)setReminderPage(null);else if(activeSection==="energy"&&energyPage)setEnergyPage(null);else if(activeSection==="purchases"&&purchasePage)setPurchasePage(null);else if(activeSection)setActiveSection(null);else onClose?.()}}>×</button></div>
-    <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
-    {!activeSection&&<p className="mb-2 text-xs text-[#6d6a5c]">Asetukset tallentuvat tähän selaimeen.</p>}
+    {(!embedded || activeSection) && <div className={embedded ? "relative mb-1 flex shrink-0 items-center" : "relative mb-2 flex min-h-12 shrink-0 items-center"}>{!embedded && <h2 className="text-[26px] font-black text-[#14291f]">Arvo</h2>}<button type="button" aria-label={activeSection?"Takaisin Arvon asetuksiin":"Sulje Arvon asetukset"} title={activeSection?"Takaisin":"Sulje"} className={embedded ? "mr-auto flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs font-bold text-[#603319]" : "ml-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-[3px] border-[#603319] bg-[#9b632d] text-[30px] font-black leading-none text-[#fff3d6] shadow-sm transition hover:bg-[#825026]"} onClick={()=>{if(activeSection==="reminders"&&reminderPage)setReminderPage(null);else if(activeSection==="energy"&&energyPage)setEnergyPage(null);else if(activeSection==="purchases"&&purchasePage)setPurchasePage(null);else if(activeSection)setActiveSection(null);else onClose?.()}}>{embedded ? "← Takaisin" : "×"}</button></div>}
+    <div className="relative min-h-0 min-w-0 w-full flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
+    {!activeSection&&!hideStorageNotice&&<p className="mb-2 text-xs text-[#6d6a5c]">Asetukset tallentuvat tähän selaimeen.</p>}
     {!activeSection&&<div className="space-y-4 pb-3">
       <section aria-labelledby="arvo-settings-personal">
         <h3 id="arvo-settings-personal" className="mb-2 px-1 text-xs font-black uppercase tracking-wider text-[#746648]">Omat asetukset</h3>
@@ -160,9 +160,9 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
         </div>
       </section>
     </div>}
-    {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
+    {activeSection&&<div role="dialog" aria-modal="true" aria-label="Arvon asetukset" className="absolute inset-0 z-20 flex min-h-0 min-w-0 max-w-full overflow-hidden flex-col rounded-xl bg-[#f8f5ed] shadow-xl">
       
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1 pb-6 [-webkit-overflow-scrolling:touch]">
+      <div className="min-h-0 min-w-0 w-full max-w-full flex-1 overflow-x-hidden overflow-y-auto overscroll-contain p-1 pb-6 [touch-action:pan-y] [&_input:not([type=checkbox])]:min-w-0 [&_input:not([type=checkbox])]:max-w-full [&_select]:min-w-0 [&_select]:max-w-full [&_label]:min-w-0 [-webkit-overflow-scrolling:touch]">
 
       {activeSection==="household"&&<section className="min-h-full rounded-xl bg-white/75 px-2 py-1">
         <div className="mb-2 flex items-center justify-between gap-2"><h3 className="font-bold">Ruokavaliot ja allergiat</h3><span className="text-xs text-[#6d6a5c]">Valitse tarvittaessa useita</span></div>
@@ -176,20 +176,20 @@ export default function ArvoSettingsPanel({onClose}:{onClose?:()=>void}={}) {
       </section>}
       {activeSection==="energy"&&<section className="min-h-full rounded-xl bg-white/75 p-3 text-sm">
         <label className="flex items-center gap-2 font-bold"><input type="checkbox" checked={p.dietEnabled} onChange={e=>update("dietEnabled",e.target.checked)}/> Henkilökohtainen energiasuunnittelu käytössä</label>
-        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
+        <div className={embedded ? "mt-2 grid grid-cols-[minmax(0,1fr)] min-w-0 w-full gap-2 [&_input:not([type=checkbox])]:!w-48 [&_select]:!w-48 [&_input:not([type=checkbox])]:min-h-10 [&_select]:min-h-10 [&_label]:min-w-0 [&_input]:min-w-0 [&_input]:max-w-full [&_select]:min-w-0 [&_select]:max-w-full [&_input]:box-border [&_select]:box-border [&_.col-span-2]:col-span-1" : "mt-2 grid grid-cols-2 gap-x-3 gap-y-2"}>
           <div className="col-span-2 text-xs font-bold text-[#49634f]">Omat tiedot ja aktiivisuus</div>
-          <div className="contents">        <label>Syntymäaika <input type="date" className="block w-full rounded border px-2 py-1" value={p.birthDate} onChange={e=>update("birthDate",e.target.value)} /></label>
-        <label>Laskentakaavan sukupuolikerroin <select className="block w-full rounded border px-2 py-1" value={p.sexForEquation} onChange={e=>update("sexForEquation",e.target.value as ArvoPreferences["sexForEquation"])}><option value="">Valitse</option><option value="female">Naisille johdettu kaava</option><option value="male">Miehille johdettu kaava</option></select><small>Käytetään vain energiankulutusarvion kaavakertoimeen.</small></label>
-        <label>Paino (kg) <input type="number" min="1" step=".1" className="block w-full rounded border px-2 py-1" value={p.weightKg} onChange={e=>update("weightKg",e.target.value)} /></label>
-        <label>Painon mittauspäivä <input type="date" className="block w-full rounded border px-2 py-1" value={p.weightMeasuredAt} onChange={e=>update("weightMeasuredAt",e.target.value)} /></label>
-        <label>Pituus (cm) <input type="number" min="1" className="block w-full rounded border px-2 py-1" value={p.heightCm} onChange={e=>update("heightCm",e.target.value)} /></label>
-        <label>Aktiivisuustaso <select className="block w-full rounded border px-2 py-1" value={p.activity} onChange={e=>update("activity",e.target.value as ArvoPreferences["activity"])}><option value="sedentary">Vähäinen</option><option value="light">Kevyt</option><option value="moderate">Kohtalainen</option><option value="active">Runsas</option></select></label>
+          <div className="contents">        <label>Syntymäaika <input type="date" className={embedded ? "block w-[10rem] min-w-0 max-w-full box-border rounded border px-2 py-1 [appearance:none] [&::-webkit-date-and-time-value]:text-left" : "block w-full min-w-0 max-w-full box-border rounded border px-2 py-1"} value={p.birthDate} onChange={e=>update("birthDate",e.target.value)} /></label>
+        <label>Laskentakaavan sukupuolikerroin <select className="block w-full min-w-0 max-w-full box-border rounded border px-2 py-1" value={p.sexForEquation} onChange={e=>update("sexForEquation",e.target.value as ArvoPreferences["sexForEquation"])}><option value="">Valitse</option><option value="female">Naisille johdettu kaava</option><option value="male">Miehille johdettu kaava</option></select><small>Käytetään vain energiankulutusarvion kaavakertoimeen.</small></label>
+        <label>Paino (kg) <input type="number" min="1" step=".1" className="block w-full min-w-0 max-w-full box-border rounded border px-2 py-1" value={p.weightKg} onChange={e=>update("weightKg",e.target.value)} /></label>
+        <label>Painon mittauspäivä <input type="date" className={embedded ? "block w-[10rem] min-w-0 max-w-full box-border rounded border px-2 py-1 [appearance:none] [&::-webkit-date-and-time-value]:text-left" : "block w-full min-w-0 max-w-full box-border rounded border px-2 py-1"} value={p.weightMeasuredAt} onChange={e=>update("weightMeasuredAt",e.target.value)} /></label>
+        <label>Pituus (cm) <input type="number" min="1" className="block w-full min-w-0 max-w-full box-border rounded border px-2 py-1" value={p.heightCm} onChange={e=>update("heightCm",e.target.value)} /></label>
+        <label>Aktiivisuustaso <select className="block w-full min-w-0 max-w-full box-border rounded border px-2 py-1" value={p.activity} onChange={e=>update("activity",e.target.value as ArvoPreferences["activity"])}><option value="sedentary">Vähäinen</option><option value="light">Kevyt</option><option value="moderate">Kohtalainen</option><option value="active">Runsas</option></select></label>
 </div>
           <div className="col-span-2 mt-1 border-t pt-2 text-xs font-bold text-[#49634f]">Tavoitteet ja erityistilanteet</div>
-          <div className="contents">        <label>Tavoite <select className="block w-full rounded border px-2 py-1" value={p.goal} onChange={e=>update("goal",e.target.value as ArvoPreferences["goal"])}><option value="maintain">Ylläpito</option><option value="lose">Pudotus</option><option value="gain">Nousu</option></select></label>
-        <label>Tavoitepaino (kg, vapaaehtoinen) <input type="number" min="1" className="block w-full rounded border px-2 py-1" value={p.targetWeightKg} onChange={e=>update("targetWeightKg",e.target.value)} /></label>
-        <label>Oma kcal-tavoite (vapaaehtoinen) <input type="number" min="1" className="block w-full rounded border px-2 py-1" value={p.manualKcal} onChange={e=>update("manualKcal",e.target.value)} /></label>
-        <label>Erityistilanne <select className="block w-full rounded border px-2 py-1" value={p.specialSituation} onChange={e=>update("specialSituation",e.target.value as ArvoPreferences["specialSituation"])}><option value="none">Ei</option><option value="pregnancy">Raskaus</option><option value="breastfeeding">Imetys</option><option value="other">Muu</option></select></label>
+          <div className="contents">        <label>Tavoite <select className="block w-full min-w-0 max-w-full box-border rounded border px-2 py-1" value={p.goal} onChange={e=>update("goal",e.target.value as ArvoPreferences["goal"])}><option value="maintain">Ylläpito</option><option value="lose">Pudotus</option><option value="gain">Nousu</option></select></label>
+        <label>Tavoitepaino (kg, vapaaehtoinen) <input type="number" min="1" className="block w-full min-w-0 max-w-full box-border rounded border px-2 py-1" value={p.targetWeightKg} onChange={e=>update("targetWeightKg",e.target.value)} /></label>
+        <label>Oma kcal-tavoite (vapaaehtoinen) <input type="number" min="1" className="block w-full min-w-0 max-w-full box-border rounded border px-2 py-1" value={p.manualKcal} onChange={e=>update("manualKcal",e.target.value)} /></label>
+        <label>Erityistilanne <select className="block w-full min-w-0 max-w-full box-border rounded border px-2 py-1" value={p.specialSituation} onChange={e=>update("specialSituation",e.target.value as ArvoPreferences["specialSituation"])}><option value="none">Ei</option><option value="pregnancy">Raskaus</option><option value="breastfeeding">Imetys</option><option value="other">Muu</option></select></label>
 </div>
         </div>
         {p.dietEnabled&&(energy?<p className="mt-2 rounded-lg bg-[#e5eedf] p-2 text-xs">Arvio: perusaineenvaihdunta <b>{energy.bmr}</b>, kulutus <b>{energy.tdee}</b>, tavoite <b>{energy.target} kcal/vrk</b>. Ei mittaustulos.</p>:<p className="mt-2 text-xs">Energia-arvio edellyttää tarvittavia tietoja. Erityistilanteissa tavallista laskentaa ei käytetä.</p>)}

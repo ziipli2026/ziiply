@@ -340,7 +340,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   return (
     <div
-      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+4.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
+      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md ${className}`}
     >
       <section className="ziiply-mobile-compare-pop relative flex h-full min-h-0 w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
@@ -351,7 +351,7 @@ export default function ZiiplyMobileCompareCardresponsive({
             backgroundPosition: "center top",
           }}
         />
-        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.42),rgba(246,226,172,0.18)_34%,rgba(238,214,156,0.08))]" />
+        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
         <main className="absolute inset-0 z-10 overflow-hidden">
@@ -361,7 +361,7 @@ export default function ZiiplyMobileCompareCardresponsive({
               {loading ? <RetroMopedOverlay /> : null}
             </div>
           </div>
-          <div className="absolute left-5 right-5 top-[22%] bottom-5 flex min-h-0 min-w-0 flex-col gap-1.5 overflow-x-hidden [overflow-wrap:anywhere]">
+          <div className="absolute left-[7%] right-[7%] top-[22%] bottom-[7%] flex min-h-0 min-w-0 flex-col gap-1.5 overflow-x-hidden overflow-y-auto overscroll-y-contain">
 
             {showSkeleton ? (
               <>
@@ -388,13 +388,7 @@ export default function ZiiplyMobileCompareCardresponsive({
             ) : (
               visibleStores.map((store, index) => {
                 if (detailsStoreId && detailsStoreId !== store.id) return null;
-                if (store.chain === "LIDL" || store.id === "lidl") {
-                  return (
-                    <p key={store.id} className="shrink-0 px-2 py-1 text-xs font-bold leading-snug text-[#51452f]">
-                      Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
-                    </p>
-                  );
-                }
+                if (store.chain === "LIDL" || store.id === "lidl") return null;
                 const hasPricedMatches = (store.matches || []).some((match: any) => Number(match?.price) > 0);
                 const resultPending = !loading && !hasPricedMatches && !hasResolvedComparisonData;
                 const hasNoCounterpart =
@@ -431,7 +425,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     key={store.id}
                     className={cx(
                       "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 pt-2 pb-0.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
-                      "flex-1 basis-0",
+                      detailsStoreId === store.id ? "flex-1 basis-0" : "grow shrink-0 basis-auto",
                       store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
@@ -582,6 +576,11 @@ export default function ZiiplyMobileCompareCardresponsive({
                 );
               })
             )}
+            {!showSkeleton && !detailsStoreId && visibleStores.some((store) => store.chain === "LIDL" || store.id === "lidl") && (
+              <p className="shrink-0 px-2 py-1 text-xs font-bold leading-snug text-[#51452f]">
+                Lidl ei ole mukana ostoskorin hintavertailussa, koska ajantasaisia normaalihintoja ei ole saatavilla julkisista lähteistä.
+              </p>
+            )}
           </div>
         </main>
 
@@ -590,7 +589,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           <button
             type="button"
             onClick={handleBack}
-            className="absolute left-[1.18rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tl-[0.8rem] rounded-tr-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(225deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute left-[1.18rem] top-[0.73rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tl-[0.8rem] rounded-tr-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(225deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Takaisin"
             title="Takaisin"
           >
@@ -604,7 +603,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-[1.18rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute right-[1.18rem] top-[0.73rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-tr-[0.8rem] rounded-tl-none rounded-bl-none rounded-br-none border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Sulje vertailu"
             title="Sulje vertailu"
           >
