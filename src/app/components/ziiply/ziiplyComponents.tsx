@@ -187,20 +187,16 @@ type ZiiplyBottomNavProps = {
   searchBottomNavDisabled: boolean;
   initialStoreSelectionLocked: boolean;
   searchPanelOpen: boolean;
-  searchReadyBounceKeyV320: number;
-  storesReadyForSearch: boolean;
-  cartLength: number;
-  cartModalOpen: boolean;
-  cartSelectionEnabled?: boolean;
-  compareSelectionEnabled?: boolean;
   fuelMode?: boolean;
   fuelCompareReady?: boolean;
   fuelCompareOpen?: boolean;
-  activeResult: "none" | "compare" | string;
   onShopsClick: () => void;
   onSearchClick: () => void;
-  onCartClick: () => void;
-  onCompareClick: () => void;
+  settingsActive: boolean;
+  offersActive: boolean;
+  offersDisabled: boolean;
+  onOffersClick: () => void;
+  onSettingsClick: () => void;
 };
 
 export function ZiiplyBottomNav({
@@ -209,20 +205,16 @@ export function ZiiplyBottomNav({
   searchBottomNavDisabled,
   initialStoreSelectionLocked,
   searchPanelOpen,
-  searchReadyBounceKeyV320,
-  storesReadyForSearch,
-  cartLength,
-  cartModalOpen,
-  cartSelectionEnabled = true,
-  compareSelectionEnabled = true,
   fuelMode = false,
   fuelCompareReady = false,
   fuelCompareOpen = false,
-  activeResult,
   onShopsClick,
   onSearchClick,
-  onCartClick,
-  onCompareClick,
+  settingsActive,
+  offersActive,
+  offersDisabled,
+  onOffersClick,
+  onSettingsClick,
 }: ZiiplyBottomNavProps) {
   const buttonShellClass =
     "relative flex min-w-0 items-center justify-center rounded-[1.25rem] px-[clamp(1px,0.6vw,4px)] py-1 text-xs font-black tracking-[-0.01em] transition active:scale-[0.985]";
@@ -245,22 +237,28 @@ export function ZiiplyBottomNav({
     ? "cursor-not-allowed bg-[#fff0e7] text-[#c98a73] ring-1 ring-[#e5b49f]/70 opacity-85"
     : "cursor-not-allowed bg-[#e7e2d7]/62 text-[#9d978b] opacity-70";
 
-  const badgeClass = cartModalOpen
-    ? "bg-[#fff8ea] text-[#2f7041] ring-1 ring-[#2f7041]/25 shadow-[0_2px_5px_rgba(39,58,36,0.14)]"
-    : "bg-[#2f7041] text-[#fff6e8] ring-1 ring-[#214f30]/30 shadow-[0_2px_5px_rgba(29,62,36,0.28)]";
-
   const shopsActive = fuelMode ? !fuelCompareOpen : shopsPanelOpen;
   const searchActive = fuelMode ? fuelCompareOpen : searchPanelOpen;
-  const cartActive = cartModalOpen && cartLength > 0;
-  const compareActive = activeResult === "compare" && !searchPanelOpen && !cartModalOpen && cartLength > 0;
   const searchDisabled = fuelMode ? !fuelCompareReady : searchBottomNavDisabled && !searchPanelOpen;
   // V767: Kori ja Vertailu vapautuvat vasta kelvollisen ketjuvalinnan jälkeen.
   // Yksi + 1 ketju sallii Korin, mutta ei Halpuusvertailua.
   // Monta + vähintään 2 ketjua sallii molemmat.
-  const cartDisabled = fuelMode || cartLength === 0 || !cartSelectionEnabled;
-  const compareDisabled = fuelMode || cartLength === 0 || !compareSelectionEnabled;
   const iconClass = "h-[30px] w-[30px] drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]";
-  const labelClass = "mt-0.5 block leading-none";
+  const portraitClass = "h-[60px] w-[60px] shrink-0 rounded-full object-cover";
+  const labelClass = "mt-0.5 block text-[clamp(10px,3.1vw,12px)] leading-none";
+
+  if (fuelMode) return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-[clamp(0.35rem,2vw,0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-2 sm:hidden">
+      <div className="mx-auto flex max-w-md justify-center rounded-[1.55rem] border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_9px_24px_rgba(64,50,26,0.13)] ring-1 ring-[#d7ccb5]/55">
+        <button type="button" onClick={onSearchClick} disabled={searchDisabled} aria-disabled={searchDisabled} aria-current={searchActive ? "page" : undefined} aria-label="Gösta vertailee polttoainehinnat" className={buttonShellClass}>
+          <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
+            <img src="/assistants/gosta.png" alt="" className={portraitClass} />
+            <span className={labelClass}>Vertaa</span>
+          </span>
+        </button>
+      </div>
+    </nav>
+  );
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-[clamp(0.35rem,2vw,0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-2 sm:hidden">
@@ -268,11 +266,11 @@ export function ZiiplyBottomNav({
         <button
           type="button"
           onClick={onShopsClick}
-          aria-disabled={false}
+          aria-current={shopsActive ? "page" : undefined}
           className={buttonShellClass}
         >
           <span className={`${innerBaseClass} ${shopsActive ? activeInnerClass : initialStoreNavPrompt ? promptedInnerClass : idleInnerClass}`}>
-            <ZiiplyNavIcon type="shops" active={shopsActive} className={iconClass} />
+            <ZiiplyNavIcon type="shops" active={shopsActive} className="h-[60px] w-[30px]" />
             <span className={labelClass}>Kaupat</span>
           </span>
         </button>
@@ -282,48 +280,45 @@ export function ZiiplyBottomNav({
           onClick={onSearchClick}
           disabled={searchDisabled}
           aria-disabled={searchDisabled}
-          aria-label={fuelMode ? "Gösta vertailee polttoainehinnat" : "Hae"}
+          aria-current={searchActive ? "page" : undefined}
+          aria-label={fuelMode ? "Gösta vertailee polttoainehinnat" : "Hintavertailu"}
           title={fuelMode && !fuelCompareReady ? "Valitse ensin vähintään yksi ketju" : undefined}
           className={buttonShellClass}
         >
           <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
             <span>
-              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <ZiiplyNavIcon type="search" active={searchActive} disabled={searchDisabled} className={iconClass} />}
+              {fuelMode ? <img src="/assistants/gosta.png" alt="" className={iconClass} /> : <img src="/assistants/justiina.png" alt="" className={portraitClass} />}
             </span>
-            <span className={labelClass}>{fuelMode ? "Vertaa" : "Hae"}</span>
+            <span className={labelClass}>{fuelMode ? "Vertaa" : "Hintavertailu"}</span>
           </span>
         </button>
 
-        <button
-          type="button"
-          onClick={onCartClick}
-          disabled={cartDisabled}
-          aria-disabled={cartDisabled}
-          className={buttonShellClass}
-        >
-          <span className={`${innerBaseClass} ${cartDisabled ? disabledInnerClass : cartActive ? activeInnerClass : idleInnerClass}`}>
-            <ZiiplyNavIcon type="cart" active={cartActive} disabled={cartDisabled} className={iconClass} />
-            <span className={labelClass}>Kori</span>
-            {cartLength > 0 && (
-              <span className={`absolute right-[7px] top-[5px] flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black leading-none ${badgeClass}`}>
-                {cartLength}
+          <>
+            <button
+              type="button"
+              onClick={onOffersClick}
+              disabled={offersDisabled && !offersActive}
+              aria-current={offersActive ? "page" : undefined}
+              className={buttonShellClass}
+            >
+              <span className={`${innerBaseClass} ${offersActive ? activeInnerClass : offersDisabled ? disabledInnerClass : idleInnerClass}`}>
+                <img src="/assistants/gosta.png" alt="" className={portraitClass} />
+                <span className={labelClass}>Tarjoukset</span>
               </span>
-            )}
-          </span>
-        </button>
+            </button>
+            <button
+              type="button"
+              onClick={onSettingsClick}
+              aria-current={settingsActive ? "page" : undefined}
+              className={buttonShellClass}
+            >
+              <span className={`${innerBaseClass} ${settingsActive ? activeInnerClass : idleInnerClass}`}>
+                <img src="/assistants/arvo.png" alt="" className={portraitClass} />
+                <span className={labelClass}>Ravinto</span>
+              </span>
+            </button>
+          </>
 
-        <button
-          type="button"
-          onClick={onCompareClick}
-          disabled={compareDisabled}
-          aria-disabled={compareDisabled}
-          className={buttonShellClass}
-        >
-          <span className={`${innerBaseClass} ${compareDisabled ? disabledInnerClass : compareActive ? activeInnerClass : idleInnerClass}`}>
-            <ZiiplyNavIcon type="compare" active={compareActive} disabled={compareDisabled} className={iconClass} />
-            <span className={labelClass}>Vertailu</span>
-          </span>
-        </button>
       </div>
     </nav>
   );
