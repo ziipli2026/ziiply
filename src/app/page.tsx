@@ -2964,18 +2964,40 @@ function KauppiasMobileTopBar({
 
   useEffect(() => {
     if (!electricityChartOpen) return;
-    let cancelled = false;
+    const controller = new AbortController();
+    const quarterMs = 15 * 60 * 1000;
+    let refreshTimer: number;
+    async function refreshChart() {
+      try {
+        const response = await fetch("/api/electricity-chart", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("Electricity chart unavailable");
+        const data = await response.json();
+        if (controller.signal.aborted) return;
+        setElectricityChartRows(data.rows);
+        setElectricitySelectedIndex(null);
+        setElectricityChartStatus("");
+      } catch {
+        if (controller.signal.aborted) return;
+        setElectricityChartRows([]);
+        setElectricityChartStatus("Varttihintojen haku epäonnistui.");
+      }
+    }
+    function scheduleRefresh() {
+      refreshTimer = window.setTimeout(() => {
+        void refreshChart();
+        scheduleRefresh();
+      }, quarterMs - Date.now() % quarterMs);
+    }
     setElectricityChartStatus("Haetaan hintoja…");
-    fetch("/api/electricity-chart", { cache: "no-store" })
-      .then(async response => { if (!response.ok) throw new Error("HTTP " + response.status); return response.json(); })
-      .then(data => {
-        if (cancelled) return;
-        const rows = Array.isArray(data?.rows) ? data.rows.filter((row: any) => Number.isFinite(row.time) && Number.isFinite(row.price)) : [];
-        setElectricityChartRows(rows);
-        setElectricityChartStatus(rows.length ? "" : "Tuntihintoja ei ole saatavilla.");
-      })
-      .catch(() => { if (!cancelled) setElectricityChartStatus("Hintojen haku epäonnistui."); });
-    return () => { cancelled = true; };
+    void refreshChart();
+    scheduleRefresh();
+    return () => {
+      controller.abort();
+      window.clearTimeout(refreshTimer);
+    };
   }, [electricityChartOpen]);
 
   const panels = [
@@ -3184,11 +3206,11 @@ function KauppiasMobileTopBar({
         <div className="fixed inset-0 z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-[calc(env(safe-area-inset-top)+108px)] pb-[calc(env(safe-area-inset-bottom)+96px)]" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
           <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-3">
-              <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
+              <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön varttihinnat</h2>
               <button type="button" onClick={() => setElectricityChartOpen(false)} className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
             </div>
             <button type="button" onClick={() => setElectricityOffersOpen(true)} className="mb-3 w-full rounded-xl border-2 border-[#174c35] bg-[#174c35] px-4 py-3 text-sm font-black text-[#fff9e7]">Näytä sähkötarjoukset</button>
-            {electricityChartStatus ? <div className="h-[260px]" aria-live="off" /> : (
+            {electricityChartStatus ? <div className="h-[260px] text-sm text-[#164b38]" role="status">{electricityChartStatus}</div> : (
               <>
                 {(() => {
                   const min = Math.min(0, ...electricityChartRows.map(row => row.price));
@@ -3196,28 +3218,32 @@ function KauppiasMobileTopBar({
                   const range = Math.max(1, max - min);
                   const selected = electricitySelectedIndex === null ? null : electricityChartRows[electricitySelectedIndex] ?? null;
                   return <>
-                    <div className="relative h-[210px] animate-[fadeIn_350ms_ease-out] border-b-2 border-[#b99961]">
-                      <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#805a36]" style={{ bottom: ((10 - min) / range * 100) + "%" }}>
-                        <span className="absolute -top-5 left-0 bg-[#fff8e6] px-1 text-[11px] font-bold text-[#805a36]">10 snt/kWh</span>
-                      </div>
-                      <div className="flex h-full items-end gap-[2px]">
-                        {electricityChartRows.map((item, index) => {
-                          const height = Math.max(2, (item.price - min) / range * 100);
-                          const label = new Date(item.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) + ": " + item.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh";
-                          return <button type="button" key={item.time + index} aria-label={label} aria-pressed={electricitySelectedIndex === index} onClick={() => setElectricitySelectedIndex(index)} className="min-w-0 flex-1 rounded-t-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#164b38]" style={{ height: height + "%", minHeight: 3, backgroundColor: item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544", outline: electricitySelectedIndex === index ? "2px solid #164b38" : undefined }} />;
-                        })}
+                    <div className="overflow-x-auto pb-2" tabIndex={0} aria-label="Vieritettävä varttihintakuvaaja">
+                      <div style={{ minWidth: electricityChartRows.length * 12 }}>
+                        <div className="relative h-[210px] border-b-2 border-[#b99961]">
+                          <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#805a36]" style={{ bottom: ((10 - min) / range * 100) + "%" }}>
+                            <span className="absolute -top-5 left-0 bg-[#fff8e6] px-1 text-[11px] font-bold text-[#805a36]">10 snt/kWh</span>
+                          </div>
+                          <div className="flex h-full items-end gap-[2px]">
+                            {electricityChartRows.map((item, index) => {
+                              const height = Math.max(2, (item.price - min) / range * 100);
+                              const label = new Date(item.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Helsinki" }) + ": " + item.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh";
+                              return <button type="button" key={item.time + index} aria-label={label} aria-pressed={electricitySelectedIndex === index} onClick={() => setElectricitySelectedIndex(index)} className="min-w-0 flex-1 rounded-t-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#164b38]" style={{ height: height + "%", minHeight: 3, backgroundColor: item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544", outline: electricitySelectedIndex === index ? "2px solid #164b38" : undefined }} />;
+                            })}
+                          </div>
+                        </div>
+                        <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
+                          <span>{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Helsinki"})}</span>
+                          <span>snt/kWh</span>
+                          <span>{new Date(electricityChartRows[electricityChartRows.length-1].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Helsinki"})}</span>
+                        </div>
                       </div>
                     </div>
                     <div className="mt-2 min-h-[28px] text-center text-[13px] font-bold text-[#164b38]" aria-live="polite">
-                      {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Kosketa pylvästä nähdäksesi ajan ja hinnan"}
+                      {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Helsinki" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Selaa varttihintoja sivusuunnassa. Kosketa pylvästä nähdäksesi hinnan."}
                     </div>
                   </>;
                 })()}
-                <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
-                  <span>{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit"})}</span>
-                  <span>snt/kWh</span>
-                  <span>{new Date(electricityChartRows[electricityChartRows.length-1].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit"})}</span>
-                </div>
                 <div className="mt-3 flex justify-between text-[12px] font-bold text-[#164b38]">
                   <span>Halvin {Math.min(...electricityChartRows.map(row=>row.price)).toLocaleString("fi-FI",{maximumFractionDigits:2})} snt/kWh</span>
                   <span>Kallein {Math.max(...electricityChartRows.map(row=>row.price)).toLocaleString("fi-FI",{maximumFractionDigits:2})} snt/kWh</span>
