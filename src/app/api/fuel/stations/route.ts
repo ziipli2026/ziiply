@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "GPS coordinates required" }, { status: 400 });
   }
   // Station lookup and photo report submission must use the same fuel registry.
-  const database = fuelDatabaseConfig();
+  const database = fuelDatabaseConfig(process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF === "test/mobile-shops-home" ? { ...process.env, FUEL_PRODUCTION_ENABLED: "true" } : process.env);
   const testConnection = database.production ? undefined : database.connection;
   const connection = database.connection;
   if (!connection) return NextResponse.json({ ok: false, error: "Fuel database not configured" }, { status: 503 });
