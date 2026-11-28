@@ -262,6 +262,19 @@ export function ZiiplyBottomNav({
   const portraitClass = "h-[60px] w-[60px] shrink-0 rounded-full object-cover";
   const labelClass = "mt-0.5 block text-[clamp(10px,3.1vw,12px)] leading-none";
 
+  if (fuelMode) return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-[clamp(0.35rem,2vw,0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-2 sm:hidden">
+      <div className="mx-auto flex max-w-md justify-center rounded-[1.55rem] border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_9px_24px_rgba(64,50,26,0.13)] ring-1 ring-[#d7ccb5]/55">
+        <button type="button" onClick={onSearchClick} disabled={searchDisabled} aria-disabled={searchDisabled} aria-current={searchActive ? "page" : undefined} aria-label="Gösta vertailee polttoainehinnat" className={buttonShellClass}>
+          <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
+            <img src="/assistants/gosta.png" alt="" className={portraitClass} />
+            <span className={labelClass}>Vertaa</span>
+          </span>
+        </button>
+      </div>
+    </nav>
+  );
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-[clamp(0.35rem,2vw,0.75rem)] pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-2 sm:hidden">
       <div className="mx-auto grid max-w-md grid-cols-4 gap-[clamp(2px,0.8vw,4px)] rounded-[1.55rem] border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_9px_24px_rgba(64,50,26,0.13)] ring-1 ring-[#d7ccb5]/55">
