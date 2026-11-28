@@ -2041,8 +2041,6 @@ function formatLocationNoticeV465(message: string) {
 }
 
 const WEATHER_APP_DISABLED_TEST_V487 = false;
-const ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559 =
-  "ziiply-electricity-price-cache-v1";
 
 
 
@@ -2369,9 +2367,6 @@ function KauppiasMobileTopBar({
   const [electricitySelectedIndex, setElectricitySelectedIndex] = useState<number | null>(null);
   const [electricityOffersOpen, setElectricityOffersOpen] = useState(false);
   const [mobileElectricityOfferTypes, setMobileElectricityOfferTypes] = useState<string[]>([]);
-  const [electricityValue, setElectricityValue] = useState("…");
-  const [electricityText, setElectricityText] = useState("haetaan");
-  const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
   const [mobileFuelMenuOpen, setMobileFuelMenuOpen] = useState(false);
   const [mobileFuelReportOpen, setMobileFuelReportOpen] = useState(false);
   const [fuelValueV744, setFuelValueV744] = useState("—");
@@ -2522,438 +2517,6 @@ function KauppiasMobileTopBar({
     };
   }, [hidden, gpsCoords?.latitude, gpsCoords?.longitude, weatherGpsFallbackCoordsV104?.latitude, weatherGpsFallbackCoordsV104?.longitude, areaLabel]);
 
-  useEffect(() => {
-    if (hidden || typeof window === "undefined") return;
-
-    let cancelled = false;
-
-    function readCachedElectricity() {
-      try {
-        const raw = window.localStorage.getItem(ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559);
-        if (!raw) return null;
-
-        const cached = JSON.parse(raw) as {
-          value?: string;
-          text?: string;
-          trend?: "up" | "down" | "flat";
-          savedAt?: number;
-        };
-
-        if (!cached?.value || !cached?.savedAt) return null;
-
-        const ageMs = Date.now() - Number(cached.savedAt);
-
-        // yli 12h vanha tieto poistetaan kokonaan muistista
-        if (ageMs > 12 * 60 * 60 * 1000) {
-          window.localStorage.removeItem(ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559);
-          return null;
-        }
-
-        return cached;
-      } catch {
-        return null;
-      }
-    }
-
-    function writeCachedElectricity(next: {
-      value: string;
-      text: string;
-      trend: "up" | "down" | "flat";
-    }) {
-      try {
-        window.localStorage.setItem(
-          ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559,
-          JSON.stringify({
-            ...next,
-            savedAt: Date.now(),
-          }),
-        );
-      } catch {
-        // localStorage voi olla estetty; silloin jatketaan ilman muistia.
-      }
-    }
-
-    function showCachedElectricityIfAvailable() {
-      const cached = readCachedElectricity();
-      if (!cached) return false;
-
-      const cachedValue = String(cached.value);
-      const cachedText = String(cached.text || "c/kWh");
-      const cachedTrend: "up" | "down" | "flat" =
-        cached.trend === "up" || cached.trend === "down" || cached.trend === "flat"
-          ? cached.trend
-          : "flat";
-
-      const ageMs = Date.now() - Number(cached.savedAt);
-      const ageMinutes = Math.max(0, Math.round(ageMs / 60000));
-
-      setElectricityValue(cachedValue);
-      setElectricityTrend(cachedTrend);
-
-      if (ageMinutes <= 20) {
-        setElectricityText(cachedText);
-      } else if (ageMinutes < 120) {
-        setElectricityText("muistista");
-      } else {
-        setElectricityText("vanha tieto");
-      }
-
-      return true;
-    }
-
-
-    function readNumber(value: unknown) {
-      if (typeof value === "number") return Number.isFinite(value) ? value : null;
-
-      const text = String(value ?? "")
-        .trim()
-        .replace(/\s/g, "")
-        .replace(",", ".");
-
-      const match = text.match(/-?\d+(?:\.\d+)?/);
-      if (!match) return null;
-
-      const number = Number(match[0]);
-      return Number.isFinite(number) ? number : null;
-    }
-
-    function readTime(...values: unknown[]) {
-      for (const value of values) {
-        if (value == null) continue;
-
-        const time = new Date(String(value)).getTime();
-        if (Number.isFinite(time)) return time;
-      }
-
-      return null;
-    }
-
-    function readPriceCents(item: any) {
-      if (!item || typeof item !== "object") return null;
-
-      const centFields = [
-        item.value,
-        item.price,
-        item.priceWithTax,
-        item.PriceWithTax,
-        item.priceNoTax,
-        item.PriceNoTax,
-        item.spotPrice,
-        item.SpotPrice,
-        item.centsPerKwh,
-        item.cents_per_kwh,
-      ];
-
-      for (const field of centFields) {
-        const number = readNumber(field);
-        if (number != null && Math.abs(number) <= 500) return number;
-      }
-
-      const eurFields = [
-        item.EUR_per_kWh,
-        item.eur_per_kwh,
-        item.eurPerKwh,
-      ];
-
-      for (const field of eurFields) {
-        const number = readNumber(field);
-        if (number != null && Math.abs(number * 100) <= 500) return number * 100;
-      }
-
-      return null;
-    }
-
-    async function fetchJson(url: string) {
-      const separator = url.includes("?") ? "&" : "?";
-      const response = await fetch(`${url}${separator}ziiply_no_cache=${Date.now()}`, {
-        cache: "no-store",
-        headers: { accept: "application/json" },
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      return response.json();
-    }
-
-    let latestResolvedTrend: "up" | "down" | "flat" = "flat";
-
-    function setTrendFromNext(currentPrice: number, nextPrice: number | null) {
-      if (nextPrice == null) {
-        latestResolvedTrend = "flat";
-        setElectricityTrend("flat");
-        return;
-      }
-
-      const diff = nextPrice - currentPrice;
-      if (diff > 0.05) latestResolvedTrend = "up";
-      else if (diff < -0.05) latestResolvedTrend = "down";
-      else latestResolvedTrend = "flat";
-
-      setElectricityTrend(latestResolvedTrend);
-    }
-
-    function formatLocalDateParts() {
-      const formatter = new Intl.DateTimeFormat("fi-FI", {
-        timeZone: "Europe/Helsinki",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-
-      const parts = formatter.formatToParts(new Date());
-      const year = parts.find((part) => part.type === "year")?.value || "";
-      const month = parts.find((part) => part.type === "month")?.value || "";
-      const day = parts.find((part) => part.type === "day")?.value || "";
-
-      return { year, month, day };
-    }
-
-    async function readSahkotinQuarter() {
-      const now = new Date();
-      const start = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
-      const end = new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString();
-
-      const data = await fetchJson(
-        `https://sahkotin.fi/prices?quarter&fix&vat&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
-      );
-
-      const rawPrices = Array.isArray(data?.prices)
-        ? data.prices
-        : Array.isArray(data)
-          ? data
-          : [];
-
-      const windows = rawPrices
-        .map((item: any, index: number, all: any[]) => {
-          const price = readPriceCents(item);
-          const startMs = readTime(item.date, item.time_start, item.startDate, item.start);
-          const explicitEndMs = readTime(item.time_end, item.endDate, item.end);
-          const nextStartMs = readTime(all[index + 1]?.date, all[index + 1]?.time_start, all[index + 1]?.startDate, all[index + 1]?.start);
-          const endMs = explicitEndMs ?? nextStartMs ?? (startMs == null ? null : startMs + 15 * 60 * 1000);
-
-          if (price == null || startMs == null || endMs == null) return null;
-
-          return { price, startMs, endMs };
-        })
-        .filter(Boolean)
-        .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
-          price: number;
-          startMs: number;
-          endMs: number;
-        }>;
-
-      const currentIndex = windows.findIndex(
-        (item) => item.startMs <= now.getTime() && now.getTime() < item.endMs,
-      );
-
-      if (currentIndex < 0) throw new Error("ei nykyvarttia");
-
-      const current = windows[currentIndex];
-      const next = windows[currentIndex + 1];
-
-      setTrendFromNext(current.price, next?.price ?? null);
-
-      return current.price;
-    }
-
-    async function readPorssisahkoLatest() {
-      const urls = [
-        "https://api.porssisahko.net/v1/latest-prices.json",
-        "https://api.porssisahko.net/v2/latest-prices.json",
-      ];
-
-      let lastError = "ei listaa";
-
-      for (const url of urls) {
-        try {
-          const data = await fetchJson(url);
-          const rawPrices = Array.isArray(data?.prices)
-            ? data.prices
-            : Array.isArray(data)
-              ? data
-              : [];
-
-          const windows = rawPrices
-            .map((item: any) => {
-              const price = readPriceCents(item);
-              const startMs = readTime(
-                item.startDate,
-                item.start,
-                item.StartDate,
-                item.time_start,
-                item.date,
-                item.Date,
-              );
-              const endMs = readTime(item.endDate, item.end, item.EndDate, item.time_end);
-
-              if (price == null || startMs == null || endMs == null) return null;
-
-              return { price, startMs, endMs };
-            })
-            .filter(Boolean)
-            .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
-              price: number;
-              startMs: number;
-              endMs: number;
-            }>;
-
-          const now = Date.now();
-          const currentIndex = windows.findIndex(
-            (item) => item.startMs <= now && now < item.endMs,
-          );
-
-          if (currentIndex < 0) {
-            lastError = "ei nykyhetkeä";
-            continue;
-          }
-
-          const current = windows[currentIndex];
-          const next = windows[currentIndex + 1];
-
-          setTrendFromNext(current.price, next?.price ?? null);
-
-          return current.price;
-        } catch (error) {
-          lastError = error instanceof Error ? error.message : "api virhe";
-        }
-      }
-
-      throw new Error(lastError);
-    }
-
-    async function readPorssisahkoDirect() {
-      const iso = new Date().toISOString();
-      const data = await fetchJson(
-        `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(iso)}`,
-      );
-
-      const price = readPriceCents(data);
-      if (price == null) throw new Error("ei hintaa");
-
-      setElectricityTrend("flat");
-      return price;
-    }
-
-    async function readSahkonHintaTanaan() {
-      const { year, month, day } = formatLocalDateParts();
-      if (!year || !month || !day) throw new Error("ei päivää");
-
-      const data = await fetchJson(
-        `https://www.sahkonhintatanaan.fi/api/v1/prices/${year}/${month}-${day}.json`,
-      );
-
-      const rawPrices = Array.isArray(data) ? data : Array.isArray(data?.prices) ? data.prices : [];
-
-      const windows = rawPrices
-        .map((item: any, index: number, all: any[]) => {
-          const price = readPriceCents(item);
-          const startMs = readTime(item.time_start, item.startDate, item.start, item.date);
-          const explicitEndMs = readTime(item.time_end, item.endDate, item.end);
-          const nextStartMs = readTime(all[index + 1]?.time_start, all[index + 1]?.startDate, all[index + 1]?.start, all[index + 1]?.date);
-          const endMs = explicitEndMs ?? nextStartMs;
-
-          if (price == null || startMs == null || endMs == null) return null;
-
-          return { price, startMs, endMs };
-        })
-        .filter(Boolean)
-        .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
-          price: number;
-          startMs: number;
-          endMs: number;
-        }>;
-
-      const now = Date.now();
-      const currentIndex = windows.findIndex((item) => item.startMs <= now && now < item.endMs);
-
-      if (currentIndex < 0) throw new Error("ei nykyhetkeä");
-
-      const current = windows[currentIndex];
-      const next = windows[currentIndex + 1];
-
-      setTrendFromNext(current.price, next?.price ?? null);
-
-      return current.price;
-    }
-
-    async function loadElectricity() {
-      if (cancelled) return;
-
-      const hadCachedElectricity = showCachedElectricityIfAvailable();
-
-      if (!hadCachedElectricity) {
-        setElectricityValue("…");
-        setElectricityText("haetaan");
-      }
-
-      const readers = [
-        readSahkotinQuarter,
-        readPorssisahkoLatest,
-        readPorssisahkoDirect,
-        readSahkonHintaTanaan,
-      ];
-
-      const errors: string[] = [];
-
-      for (const reader of readers) {
-        try {
-          const price = await reader();
-          if (cancelled) return;
-
-          const formattedPrice = price.toLocaleString("fi-FI", {
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1,
-          });
-
-          setElectricityValue(formattedPrice);
-          setElectricityText("c/kWh");
-
-          writeCachedElectricity({
-            value: formattedPrice,
-            text: "c/kWh",
-            trend: latestResolvedTrend,
-          });
-
-          return;
-        } catch (error) {
-          errors.push(error instanceof Error ? error.message : "api virhe");
-        }
-      }
-
-      if (cancelled) return;
-
-      const hadCachedElectricityAfterFailure = showCachedElectricityIfAvailable();
-      if (hadCachedElectricityAfterFailure) return;
-
-      setElectricityValue("—");
-      setElectricityTrend("flat");
-
-      const message = errors.join(" / ");
-      if (message.includes("Failed to fetch")) setElectricityText("fetch virhe");
-      else if (message.includes("HTTP")) setElectricityText(message.match(/HTTP \d+/)?.[0] || "HTTP");
-      else if (message.includes("ei nykyvarttia")) setElectricityText("ei varttia");
-      else if (message.includes("ei nykyhetkeä")) setElectricityText("ei nykyhetkeä");
-      else if (message.includes("ei hintaa")) setElectricityText("ei hintaa");
-      else setElectricityText("api virhe");
-    }
-
-    // V741_ELECTRICITY_CACHE_FIRST_DEFER_NETWORK:
-    // Näytä mahdollinen viimeisin sähköhintacache heti, mutta älä käynnistä
-    // usean ulkoisen API:n fallback-ketjua snapshot/GPS-startin rinnalla.
-    showCachedElectricityIfAvailable();
-    const startupTimerV741 = window.setTimeout(() => {
-      void loadElectricity();
-    }, 3500);
-    const interval = window.setInterval(loadElectricity, 60 * 1000);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(startupTimerV741);
-      window.clearInterval(interval);
-    };
-  }, [hidden]);
-
-
   const calendarDisplay = useMemo(() => {
     const now = new Date();
     return {
@@ -2963,20 +2526,65 @@ function KauppiasMobileTopBar({
   }, []);
 
   useEffect(() => {
-    if (!electricityChartOpen) return;
-    let cancelled = false;
-    setElectricityChartStatus("Haetaan hintoja…");
-    fetch("/api/electricity-chart", { cache: "no-store" })
-      .then(async response => { if (!response.ok) throw new Error("HTTP " + response.status); return response.json(); })
-      .then(data => {
-        if (cancelled) return;
-        const rows = Array.isArray(data?.rows) ? data.rows.filter((row: any) => Number.isFinite(row.time) && Number.isFinite(row.price)) : [];
+    const controller = new AbortController();
+    const quarterMs = 15 * 60 * 1000;
+    let requestedQuarter = -1;
+    let refreshTimer: number;
+
+    async function refreshPrices() {
+      const quarter = Math.floor(Date.now() / quarterMs);
+      if (requestedQuarter === quarter) return;
+      requestedQuarter = quarter;
+      try {
+        const response = await fetch("/api/electricity-chart", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("Electricity prices unavailable");
+        const { rows } = await response.json() as { rows: typeof electricityChartRows };
+        if (controller.signal.aborted || requestedQuarter !== quarter) return;
         setElectricityChartRows(rows);
-        setElectricityChartStatus(rows.length ? "" : "Tuntihintoja ei ole saatavilla.");
-      })
-      .catch(() => { if (!cancelled) setElectricityChartStatus("Hintojen haku epäonnistui."); });
-    return () => { cancelled = true; };
-  }, [electricityChartOpen]);
+        setElectricitySelectedIndex(null);
+        setElectricityChartStatus("");
+      } catch {
+        if (controller.signal.aborted || requestedQuarter !== quarter) return;
+        requestedQuarter = -1;
+        setElectricityChartRows([]);
+        setElectricityChartStatus("Varttihintojen haku epäonnistui.");
+      }
+    }
+
+    function scheduleRefresh() {
+      window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => {
+        void refreshPrices();
+        scheduleRefresh();
+      }, quarterMs - Date.now() % quarterMs);
+    }
+
+    function refreshWhenVisible() {
+      if (document.visibilityState !== "visible") return;
+      void refreshPrices();
+      scheduleRefresh();
+    }
+
+    void refreshPrices();
+    scheduleRefresh();
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("pageshow", refreshWhenVisible);
+    return () => {
+      controller.abort();
+      window.clearTimeout(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("pageshow", refreshWhenVisible);
+    };
+  }, []);
+
+  const currentElectricityPrice = electricityChartRows[0]?.price;
+  const nextElectricityPrice = electricityChartRows[1]?.price;
+  const electricityTrend = currentElectricityPrice === undefined || nextElectricityPrice === undefined
+    ? "flat"
+    : nextElectricityPrice > currentElectricityPrice ? "up" : nextElectricityPrice < currentElectricityPrice ? "down" : "flat";
 
   const panels = [
     {
@@ -2990,9 +2598,12 @@ function KauppiasMobileTopBar({
     {
       id: "electricity" as const,
       title: "SÄHKÖ",
-      value: electricityValue,
+      value: currentElectricityPrice?.toLocaleString("fi-FI", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }) ?? (electricityChartStatus === "Haetaan hintoja…" ? "…" : "—"),
       unit: "c/kWh",
-      detail: electricityText,
+      detail: currentElectricityPrice === undefined ? electricityChartStatus : "c/kWh",
       graphic: <KauppiasElectricityTrendGraphicV717 trend={electricityTrend} />,
       onClick: () => { setMobileFuelMenuOpen(false); setMobileFuelReportOpen(false); setElectricityChartOpen(open => !open); },
     },
@@ -3184,11 +2795,11 @@ function KauppiasMobileTopBar({
         <div className="fixed inset-0 z-[250] flex items-start justify-center overflow-y-auto bg-black/40 px-3 pt-[calc(env(safe-area-inset-top)+108px)] pb-[calc(env(safe-area-inset-bottom)+96px)]" role="dialog" aria-modal="true" aria-label="Pörssisähkön hintakäyrä">
           <section className="w-full max-w-[520px] shrink-0 rounded-[24px] border-[3px] border-[#c9a45f] bg-[#fff8e6] p-4 shadow-2xl">
             <div className="mb-3 flex items-start justify-between gap-3">
-              <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön hinta seuraavan 24 h aikana</h2>
+              <h2 className="text-[20px] font-black leading-tight text-[#164b38]">⚡ Pörssisähkön varttihinnat</h2>
               <button type="button" onClick={() => setElectricityChartOpen(false)} className="rounded-full border border-[#c9a45f] bg-white px-3 py-1 text-xl font-bold" aria-label="Sulje">×</button>
             </div>
             <button type="button" onClick={() => setElectricityOffersOpen(true)} className="mb-3 w-full rounded-xl border-2 border-[#174c35] bg-[#174c35] px-4 py-3 text-sm font-black text-[#fff9e7]">Näytä sähkötarjoukset</button>
-            {electricityChartStatus ? <div className="h-[260px]" aria-live="off" /> : (
+            {electricityChartStatus ? <div className="h-[260px] text-sm text-[#164b38]" role="status">{electricityChartStatus}</div> : (
               <>
                 {(() => {
                   const min = Math.min(0, ...electricityChartRows.map(row => row.price));
@@ -3196,28 +2807,31 @@ function KauppiasMobileTopBar({
                   const range = Math.max(1, max - min);
                   const selected = electricitySelectedIndex === null ? null : electricityChartRows[electricitySelectedIndex] ?? null;
                   return <>
-                    <div className="relative h-[210px] animate-[fadeIn_350ms_ease-out] border-b-2 border-[#b99961]">
-                      <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#805a36]" style={{ bottom: ((10 - min) / range * 100) + "%" }}>
-                        <span className="absolute -top-5 left-0 bg-[#fff8e6] px-1 text-[11px] font-bold text-[#805a36]">10 snt/kWh</span>
-                      </div>
-                      <div className="flex h-full items-end gap-[2px]">
-                        {electricityChartRows.map((item, index) => {
-                          const height = Math.max(2, (item.price - min) / range * 100);
-                          const label = new Date(item.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) + ": " + item.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh";
-                          return <button type="button" key={item.time + index} aria-label={label} aria-pressed={electricitySelectedIndex === index} onClick={() => setElectricitySelectedIndex(index)} className="min-w-0 flex-1 rounded-t-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#164b38]" style={{ height: height + "%", minHeight: 3, backgroundColor: item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544", outline: electricitySelectedIndex === index ? "2px solid #164b38" : undefined }} />;
-                        })}
+                    <div className="overflow-x-auto pb-2" tabIndex={0} aria-label="Vieritettävä varttihintakuvaaja">
+                      <div style={{ minWidth: electricityChartRows.length * 12 }}>
+                        <div className="relative h-[210px] border-b-2 border-[#b99961]">
+                          <div className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-[#805a36]" style={{ bottom: ((10 - min) / range * 100) + "%" }}>
+                            <span className="absolute -top-5 left-0 bg-[#fff8e6] px-1 text-[11px] font-bold text-[#805a36]">10 snt/kWh</span>
+                          </div>
+                          <div className="flex h-full items-end gap-[2px]">
+                            {electricityChartRows.map((item, index) => {
+                              const height = Math.max(2, (item.price - min) / range * 100);
+                              const label = new Date(item.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Helsinki" }) + ": " + item.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh";
+                              return <button type="button" key={item.time + index} aria-label={label} aria-pressed={electricitySelectedIndex === index} onClick={() => setElectricitySelectedIndex(index)} className="min-w-0 flex-1 rounded-t-[3px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#164b38]" style={{ height: height + "%", minHeight: 3, backgroundColor: item.price >= 10 ? "#b84c32" : item.price >= 6 ? "#dba32b" : "#77a544", outline: electricitySelectedIndex === index ? "2px solid #164b38" : undefined }} />;
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <div className="mt-1 flex items-baseline justify-between gap-2 text-[11px] font-bold text-[#69563d]">
+                      <span className="shrink-0">{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Helsinki"})}</span>
+                      <span className="text-right text-[#164b38]">Selaa myöhempiä hintoja oikealle <span aria-hidden="true">→</span></span>
+                    </div>
                     <div className="mt-2 min-h-[28px] text-center text-[13px] font-bold text-[#164b38]" aria-live="polite">
-                      {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Kosketa pylvästä nähdäksesi ajan ja hinnan"}
+                      {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Helsinki" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Kosketa pylvästä nähdäksesi hinnan."}
                     </div>
                   </>;
                 })()}
-                <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
-                  <span>{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit"})}</span>
-                  <span>snt/kWh</span>
-                  <span>{new Date(electricityChartRows[electricityChartRows.length-1].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit"})}</span>
-                </div>
                 <div className="mt-3 flex justify-between text-[12px] font-bold text-[#164b38]">
                   <span>Halvin {Math.min(...electricityChartRows.map(row=>row.price)).toLocaleString("fi-FI",{maximumFractionDigits:2})} snt/kWh</span>
                   <span>Kallein {Math.max(...electricityChartRows.map(row=>row.price)).toLocaleString("fi-FI",{maximumFractionDigits:2})} snt/kWh</span>
@@ -3448,7 +3062,6 @@ function MobilePage() {
   const stableBootSnapshotHydratedRefV505 = useRef(false);
   const [bootGpsRefreshSettledV785, setBootGpsRefreshSettledV785] = useState(false);
   const stableBootWarmupDoneRefV505 = useRef(false);
-  const searchReadyBadgeBootArmedRefV505 = useRef(false);
   const STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505 = "ziiply-stable-boot-snapshot-v536";
 
   useEffect(() => {
@@ -4172,7 +3785,6 @@ function MobilePage() {
   // V552: Hae-huomioanimaatio sallitaan vasta, kun sijainti on vahvistettu
   // tämän sivulatauksen aikana oikealla GPS-tuloksella tai käsin tehdyllä sijaintihaulla.
   // Pelkkä localStorage/stable snapshot -palautus ei saa pomputtaa suurennuslasia.
-  const searchReadyLocationConfirmedThisSessionRefV552 = useRef(false);
 
 
   function getDistanceMetersV391(
@@ -4793,38 +4405,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } catch {}
   }
 
-  const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
-  const [haeReadyBadgeTimerVisibleV520, setHaeReadyBadgeTimerVisibleV520] =
-    useState(false);
-  const previousSearchReadySignatureV320 = useRef("");
-  const suppressHaeReadyBadgeUntilRefV541 = useRef(0);
-
-  const searchReadySignatureV320 = storesReadyForSearch
-    ? [
-        storeCompareScope,
-        storeMode,
-        withinChain || "",
-        activeArea.sStoreId || "",
-        activeArea.sStoreName || "",
-        activeArea.kStoreId || "",
-        activeArea.kStoreName || "",
-        activeArea.sLocalStoreId || "",
-        activeArea.sLocalStoreName || "",
-        activeArea.kLocalStoreId || "",
-        activeArea.kLocalStoreName || "",
-      ].join("|")
-    : "";
-
-  useEffect(() => {
-    if (!storesReadyForSearch) {
-      previousSearchReadySignatureV320.current = "";
-      setHaeReadyBadgeTimerVisibleV520(false);
-      return;
-    }
-
-    // V541: älä päivitä previousSearchReadySignaturea täällä.
-    // Badge-efekti tekee päivityksen vain silloin, kun ilmoitus oikeasti kuuluu näyttää.
-  }, [storesReadyForSearch, searchReadySignatureV320]);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [previewNormalResults, setPreviewNormalResults] = useState<Product[]>([]);
@@ -4943,61 +4523,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [searchPanelOpen, activeResult]);
 
 
-  function suppressHaeReadyBadgeV541(durationMs = 1800) {
-    suppressHaeReadyBadgeUntilRefV541.current = Date.now() + durationMs;
-    setHaeReadyBadgeTimerVisibleV520(false);
-  }
-
-  const haeReadyBadgeAllowedViewV520 =
-    !searchPanelOpen &&
-    !cartModalOpen &&
-    !eanModalOpen &&
-    activeResult === "none" &&
-    activeAssistant === null &&
-    !loadingNormal &&
-    !loadingOffers &&
-    !singleProductCompareLoading &&
-    Date.now() >= suppressHaeReadyBadgeUntilRefV541.current;
-
-  const haeReadyBadgeVisibleV502 =
-    storesReadyForSearch &&
-    haeReadyBadgeAllowedViewV520 &&
-    haeReadyBadgeTimerVisibleV520;
-
-  const haeReadyBadgeTextV502 = haeReadyBadgeVisibleV502 ? "Voit hakea" : "";
-
-  useEffect(() => {
-    if (
-      !storesReadyForSearch ||
-      !haeReadyBadgeAllowedViewV520 ||
-      !searchReadyLocationConfirmedThisSessionRefV552.current
-    ) {
-      setHaeReadyBadgeTimerVisibleV520(false);
-      return;
-    }
-
-    // V541: Badge näytetään vain, kun kauppavalmiuden allekirjoitus oikeasti muuttuu.
-    // Pelkkä kortilta toiselle siirtyminen ei saa laukaista "Voit hakea" -ilmoitusta.
-    if (previousSearchReadySignatureV320.current === searchReadySignatureV320) {
-      return;
-    }
-
-    if (!searchReadyBadgeBootArmedRefV505.current) {
-      previousSearchReadySignatureV320.current = searchReadySignatureV320;
-      searchReadyBadgeBootArmedRefV505.current = true;
-      setHaeReadyBadgeTimerVisibleV520(false);
-      return;
-    }
-
-    previousSearchReadySignatureV320.current = searchReadySignatureV320;
-    setHaeReadyBadgeTimerVisibleV520(true);
-
-    const timer = window.setTimeout(() => {
-      setHaeReadyBadgeTimerVisibleV520(false);
-    }, 2200);
-
-    return () => window.clearTimeout(timer);
-  }, [storesReadyForSearch, haeReadyBadgeAllowedViewV520, searchReadySignatureV320]);
   const [eanInput, setEanInput] = useState("");
   const [eanLoading, setEanLoading] = useState(false);
   const [eanResults, setEanResults] = useState<EanSearchResult[]>([]);
@@ -11373,7 +10898,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V552: vasta onnistunut, vähintään yhden kaupan löytänyt sijaintihaku
       // vahvistaa Hae-huomioanimaation sijaintiehdon. Snapshot-hydraus ei käy täällä.
       if (storesWithDistanceV97.length > 0) {
-        searchReadyLocationConfirmedThisSessionRefV552.current = true;
       }
 
       if (storesWithDistanceV97.length === 0) {
@@ -19130,7 +18654,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V547: Kori avataan suoralla overlay-state-vaihdolla ilman vanhaa scroll/ref-hyppelyä.
     // V732: suora Kori avaa alkuperäisen käyttäjän korin, ei aiemmin valittua vertailukauppaa.
     setMobileCompareShoppingStoreKeyV732(null);
-    suppressHaeReadyBadgeV541();
     closeProductSelectionOverlay();
     setSearchPanelOpen(false);
     setShopsPanelOpen(false);
@@ -19142,7 +18665,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleCartModal() {
-    suppressHaeReadyBadgeV541();
 
     if (cart.length === 0) {
       setSearchPanelOpen(false);
@@ -19162,7 +18684,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function closeCartModal() {
-    suppressHaeReadyBadgeV541();
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
     setActiveResult("none");
@@ -19237,7 +18758,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     // V547: Vertailu avataan samalla suoralla overlay-logiikalla kuin uudet mobiilikortit.
-    suppressHaeReadyBadgeV541();
     closeProductSelectionOverlay();
     setRestoredCartPromptV320({ open: false, count: 0 });
     setSearchPanelOpen(false);
@@ -19303,7 +18823,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleComparisonView() {
-    suppressHaeReadyBadgeV541();
 
     if (cart.length === 0) {
       setSearchPanelOpen(false);
@@ -22958,6 +22477,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  function openMobileAssistantPanel(assistant: "justiina" | "gosta" | "arvo") {
+    gostaPanelStickyOpenRefV158.current = false;
+    setNotebookOpen(false);
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    closeProductSelectionOverlay();
+    setActiveResult("none");
+    setActiveAssistant(assistant);
+  }
+
   if (!reloadViewHydratedV820) return null;
 
   return (
@@ -24259,6 +23790,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {!mobileRecipeSearchActive && <ZiiplyMobileSearchCard
               open={true}
               title="HAKU"
+              onOpenRecipes={() => openMobileAssistantPanel("justiina")}
+              onOpenCart={cart.length > 0 && cartSelectionEnabledV767 ? toggleCartModal : undefined}
+              cartItemCount={cart.reduce((count, item) => count + Math.max(1, Number(item.quantity) || 1), 0)}
               input={input}
               onInputChange={setSearchInputForMode}
               inputRef={searchInputRef}
@@ -24402,7 +23936,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {eanModalOpen && (
           <div
-            className="fixed inset-0 z-[9999] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:items-center sm:p-4"
+            className="fixed inset-0 z-[9999] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:items-center sm:p-4"
           >
             <div
               className="flex h-full w-full max-w-[430px] flex-col overflow-hidden"
@@ -24642,7 +24176,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {eanResults.length > 1 &&
                 !desktopKeyboardScannerOpen &&
                 (eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
-                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)]">
+                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)]">
                     <ZiiplyMobileProductPickCard
                       title="Valitse lisättävä tuote"
                       subtitle="Sama EAN löytyi useammasta kaupasta"
@@ -24945,6 +24479,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
           <ZiiplyMobileOfferSearchCardLoose
+            onOpenWatch={() => openMobileAssistantPanel("gosta")}
             initialOfferChain={arrivalOfferChain}
             open={true}
             title="Tarjous- ja kampanjahaku"
@@ -25385,39 +24920,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        {/* V531_HAE_READY_MICRO_BADGE_RENDER */}
-          {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-[39%] z-[10001] animate-[ziiplyMicroReady_2.15s_ease-out_forwards]">
-              <div className="relative rounded-[0.58rem] border-[2px] border-[#0b5b31] bg-[linear-gradient(180deg,#0c9143_0%,#087237_100%)] px-2.5 py-[3px] text-[9px] font-black italic leading-none text-[#fff1c8] shadow-[0_3px_0_#064a26,0_8px_18px_rgba(8,75,42,0.24),inset_0_0_0_1px_rgba(255,255,255,0.20)]">
-                <span className="absolute -left-[5px] -top-[6px] text-[10px] leading-none text-[#f8c94b] drop-shadow-[0_1px_0_#6c4a10]">✦</span>
-                {haeReadyBadgeTextV502}
-              </div>
-            </div>
-          ) : null}
-          <style jsx>{`
-            @keyframes ziiplyMicroReady {
-              0% {
-                opacity: 0;
-                transform: translate(-50%, 7px) scale(0.72) rotate(-2deg);
-              }
-              16% {
-                opacity: 1;
-                transform: translate(-50%, -2px) scale(1.04) rotate(-1deg);
-              }
-              28% {
-                opacity: 1;
-                transform: translate(-50%, 0) scale(1) rotate(0deg);
-              }
-              78% {
-                opacity: 1;
-                transform: translate(-50%, 0) scale(1) rotate(0deg);
-              }
-              100% {
-                opacity: 0;
-                transform: translate(-50%, 4px) scale(0.86) rotate(1deg);
-              }
-            }
-          `}</style>
           <div className="V507_BOTTOM_NAV_CLICK_LAYER relative z-[10000]">
 
         {/*
@@ -25432,21 +24934,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           fuelCompareReady={mobileFuelCompareReady}
           fuelCompareOpen={mobileFuelCompareOpen}
           shopsPanelOpen={shopsPanelOpen}
+          settingsActive={activeAssistant === "arvo"}
+          offersActive={activeResult === "offers" || activeAssistant === "gosta"}
+          offersDisabled={!storesReadyForSearch || (storeCompareScope === "between_chains" && bottomNavSelectedChainCountV767 === 0) || loadingOffers}
+          onOffersClick={() => {
+            if (activeResult === "offers") return;
+            setActiveAssistant(null);
+            closeProductSelectionOverlay();
+            handleGostaOfferSearch();
+          }}
+          onSettingsClick={() => openMobileAssistantPanel("arvo")}
           initialStoreNavPrompt={initialStoreNavPrompt}
           searchBottomNavDisabled={searchBottomNavDisabled}
           initialStoreSelectionLocked={initialStoreSelectionLocked}
           searchPanelOpen={searchPanelOpen}
-          searchReadyBounceKeyV320={0}
-          storesReadyForSearch={storesReadyForSearch}
-          cartLength={cart.length}
-          cartModalOpen={cartModalOpen}
-          cartSelectionEnabled={cartSelectionEnabledV767}
-          compareSelectionEnabled={compareSelectionEnabledV767}
-          activeResult={activeResult}
           onShopsClick={() => {
+            setActiveAssistant(null);
             if (mobileFuelMode) {setMobileFuelMode(false); setShopsPanelOpen(true); return;}
             gostaPanelStickyOpenRefV158.current = false;
-            suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
 
@@ -25473,7 +24978,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }
             preloadSearchUiAssetsV774();
             gostaPanelStickyOpenRefV158.current = false;
-            suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
 
@@ -25492,61 +24996,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
+            setActiveAssistant(null);
             // openSearchPanel clears compare in the same React update as opening Hae.
             toggleSearchPanel();
-          }}
-          onCartClick={() => {
-            gostaPanelStickyOpenRefV158.current = false;
-            suppressHaeReadyBadgeV541();
-            setNormalResults([]);
-            setMobileResultsReadyQueryV537("");
-
-            if (notebookOpen) {
-              setNotebookOpen(false);
-              setSearchPanelOpen(false);
-              setShopsPanelOpen(false);
-              setEanModalOpen(false);
-              setCartSavePanelOpen(false);
-              closeProductSelectionOverlay();
-              setActiveResult("none");
-              setCartModalOpen(true);
-              return;
-            }
-
-            setActiveResult("none");
-            toggleCartModal();
-          }}
-          onCompareClick={() => {
-            gostaPanelStickyOpenRefV158.current = false;
-            suppressHaeReadyBadgeV541();
-            setNormalResults([]);
-            setMobileResultsReadyQueryV537("");
-
-            if (notebookOpen) {
-              setNotebookOpen(false);
-              setSearchPanelOpen(false);
-              setCartModalOpen(false);
-              setCartSavePanelOpen(false);
-              setShopsPanelOpen(false);
-              setEanModalOpen(false);
-              closeProductSelectionOverlay();
-              setRestoredCartPromptV320({ open: false, count: 0 });
-              if (cart.length === 0) {
-                showCartToast("Lisää ensin tuote koriin.");
-                setActiveResult("none");
-                return;
-              }
-              if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
-                setActiveResult("none");
-                void refreshSingleChainCartPricesV770(cart);
-                setCartModalOpen(true);
-              } else {
-                openComparisonView();
-              }
-              return;
-            }
-
-            toggleComparisonView();
           }}
         />
           </div>

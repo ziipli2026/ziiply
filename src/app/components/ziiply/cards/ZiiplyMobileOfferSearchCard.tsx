@@ -327,6 +327,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   showTokmanniChain?: boolean;
   onBack?: () => void;
   onClose?: () => void;
+  onOpenWatch?: () => void;
   onAddOffer?: (offer: ZiiplyMobileOfferSearchItem) => void;
   onAddAllOffers?: (offers: ZiiplyMobileOfferSearchItem[]) => void;
   className?: string;
@@ -907,6 +908,7 @@ export default function ZiiplyMobileOfferSearchCard({
   showTokmanniChain = false,
   onBack,
   onClose,
+  onOpenWatch,
   onAddOffer,
   onAddAllOffers,
   className = "",
@@ -1486,14 +1488,29 @@ export default function ZiiplyMobileOfferSearchCard({
         ) : null}
 
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[0.9rem] before:pointer-events-none before:absolute before:left-[4.05rem] before:right-[4.05rem] before:top-[0.75rem] before:h-[3.55rem] before:rounded-[0.6rem] before:bg-[#f4e4bb]/95 before:content-['']">
-          <div className="relative z-10 min-h-[3.3rem] px-[3.15rem] flex flex-col justify-center">
+          <div className="relative z-10 flex min-h-[3.3rem] flex-col justify-center px-[3.15rem]">
             <div
               className="text-center text-[1.18rem] font-black italic leading-none text-[#28402a]"
               style={{ fontFamily: cooperFont }}
             >
               {title}
             </div>
-            {subtitle ? (
+            {onOpenWatch && (
+            <div className="relative z-10 mb-1 mt-1 flex justify-center">
+              <button
+                type="button"
+                onClick={onOpenWatch}
+                aria-label="Tarjousvahti"
+                className="flex min-h-[3.25rem] items-center justify-center gap-1.5 rounded-full border-[3px] border-white bg-[#17573c] px-2.5 text-sm font-black text-white shadow-[0_5px_14px_rgba(23,87,60,.3)] active:bg-[#10442f]"
+              >
+                <svg viewBox="0 0 36 36" fill="none" className="h-8 w-8 shrink-0" aria-hidden="true"><path d="M8 12h20l2 19H6l2-19Z" fill="#d8edb3" stroke="#fff" strokeWidth="2" strokeLinejoin="round"/><path d="M13 14V9a5 5 0 0 1 10 0v5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/><path d="m16 18 13-3 4 7-13 3-4-7Z" fill="#b72b42" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round"/><text x="24.5" y="22" fill="#fff" fontSize="8" fontWeight="900" textAnchor="middle">%</text></svg>
+                <span>Tarjousvahti</span>
+              </button>
+            </div>
+          )}
+
+
+          {subtitle ? (
               <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
                 {subtitle}
               </div>
