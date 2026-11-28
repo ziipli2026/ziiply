@@ -59,11 +59,15 @@ function rankStoreRows(query: string, rows: any[]) {
 
 export async function searchNormalStores(query: string, stores: NormalSearchStore[], options: {
   signal?: AbortSignal;
+  requestDeadline?: AbortSignal;
   observe?: Observer;
   trace?: Observer;
   onInitialRows?: (rows: any[]) => void;
 } = {}) {
-  const {signal, observe} = options;
+  const {signal, requestDeadline, observe} = options;
+  const fetchSignal = signal && requestDeadline
+    ? AbortSignal.any([signal, requestDeadline])
+    : signal ?? requestDeadline;
   const report: Observer = (stage, data) => observe?.(stage, data);
   const trace: Observer = (stage, data) => options.trace?.(stage, data);
   let initialRowsPublished = false;
@@ -74,13 +78,14 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
     const requestErrors:string[]=[];
     for (const searchQuery of queries.length ? queries : [query]) {
       if(signal?.aborted)throw new Error("Debug-haun aikaraja tai uusi haku keskeytti pyynnön.");
+      if (requestDeadline?.aborted) break;
       const params = new URLSearchParams(url.split("?")[1]);
       params.set("search", searchQuery);
       const requestUrl=url.split("?")[0]+"?"+params.toString();
       report("request",{requestUrl,searchQuery});
       const requestStarted=performance.now();
       try {
-      const response = await fetch(requestUrl, { cache: "no-store", signal });
+      const response = await fetch(requestUrl, { cache: "no-store", signal: fetchSignal });
       trace("provider_http",{requestUrl,status:response.status,durationMs:Math.round(performance.now()-requestStarted)});
       report("http",{requestUrl,status:response.status,durationMs:Math.round(performance.now()-requestStarted),contentType:response.headers.get("content-type"),vercelId:response.headers.get("x-vercel-id"),vercelCache:response.headers.get("x-vercel-cache")});
       if (!response.ok) throw new Error(`Kauppahaku epäonnistui (HTTP ${response.status}).`);
@@ -113,7 +118,7 @@ export async function searchNormalStores(query: string, stores: NormalSearchStor
   // Start catalog lookup concurrently with the existing selected-store providers.
   // The catalog never supplies a store price or modifies recipe/offer engines.
   const neonPromise = stores.some(store => store.chain !== "LIDL")
-    ? fetchNormalSearchCatalog(query, signal) : Promise.resolve([]);
+    ? fetchNormalSearchCatalog(query, fetchSignal) : Promise.resolve([]);
   const catalogPromise = neonPromise.then(rows => selectNormalSearchCatalog(query, rows).slice(0, 50));
   const calls = stores.map(async store => {
     const url = storeUrl(store, query);

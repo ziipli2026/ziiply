@@ -13130,6 +13130,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             } : null;
           };
           const {sortedRows} = await searchNormalStores(term, stores, {
+            requestDeadline: AbortSignal.timeout(20_000),
             trace: traceSearch,
             onInitialRows: (isMainSearch || effectiveSearchCompareMode === "single") &&
               focusedSearchTerms.length === 1 && useTerms.length === 1
