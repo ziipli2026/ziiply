@@ -3218,9 +3218,6 @@ function KauppiasMobileTopBar({
                   const range = Math.max(1, max - min);
                   const selected = electricitySelectedIndex === null ? null : electricityChartRows[electricitySelectedIndex] ?? null;
                   return <>
-                    <p className="mb-2 text-right text-xs font-bold text-[#164b38]">
-                      Selaa myöhempiä hintoja oikealle <span aria-hidden="true">→</span>
-                    </p>
                     <div className="overflow-x-auto pb-2" tabIndex={0} aria-label="Vieritettävä varttihintakuvaaja">
                       <div style={{ minWidth: electricityChartRows.length * 12 }}>
                         <div className="relative h-[210px] border-b-2 border-[#b99961]">
@@ -3235,12 +3232,11 @@ function KauppiasMobileTopBar({
                             })}
                           </div>
                         </div>
-                        <div className="mt-2 flex justify-between text-[11px] font-bold text-[#69563d]">
-                          <span>{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Helsinki"})}</span>
-                          <span>snt/kWh</span>
-                          <span>{new Date(electricityChartRows[electricityChartRows.length-1].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Helsinki"})}</span>
-                        </div>
                       </div>
+                    </div>
+                    <div className="mt-1 flex items-baseline justify-between gap-2 text-[11px] font-bold text-[#69563d]">
+                      <span className="shrink-0">{new Date(electricityChartRows[0].time).toLocaleString("fi-FI",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit",timeZone:"Europe/Helsinki"})}</span>
+                      <span className="text-right text-[#164b38]">Selaa myöhempiä hintoja oikealle <span aria-hidden="true">→</span></span>
                     </div>
                     <div className="mt-2 min-h-[28px] text-center text-[13px] font-bold text-[#164b38]" aria-live="polite">
                       {selected ? new Date(selected.time).toLocaleString("fi-FI", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Helsinki" }) + " — " + selected.price.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " snt/kWh" : "Kosketa pylvästä nähdäksesi hinnan."}
