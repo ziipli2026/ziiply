@@ -29,7 +29,6 @@ export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenCh
   const [voiceRecording,setVoiceRecording]=useState(false);
   const [notebookOpen,setNotebookOpen]=useState(true);
   const [notebook,setNotebook]=useState<Array<{id:string;title:string;ingredients:string;instructions:string;sourceText?:string;servings?:number|null}>>([]);
-  const [notebookFilter,setNotebookFilter]=useState("");
   const [clipboardText,setClipboardText]=useState("");
   const [saving,setSaving]=useState(false);
   const [expandedRecipe,setExpandedRecipe]=useState<string|null>(null);
@@ -126,7 +125,7 @@ export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenCh
     if(!source.trim()){setNotice("Kirjoita tai liitä reseptin teksti.");return}
     const parsed=parseRecipeText(source);if(!parsed.title.trim()){setNotice("Anna reseptille nimi.");return}
     const key="ziiply-desktop-vihkonen-recipes-v1";
-    try{const entries=JSON.parse(localStorage.getItem(key)||"[]");const list=Array.isArray(entries)?entries:[];const id=savedId||String(Date.now());const entry={id,title:parsed.title,ingredients:parsed.ingredients.map(item=>[item.amount,item.unit,item.name].filter(x=>x!==null&&x!=="").join(" ")).join("\n"),instructions:parsed.instructions,sourceText:source,servings:parsed.servings,createdAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify([entry,...list.filter((item:{id:string})=>item.id!==id)]));setSavedId(id);refreshNotebook();load(source);setImporting(false);setEditing(false);setText("");setDraft(null);setNotebookFilter("");setExpandedRecipe(null);setRecipePopup(null);clipboardRequestRef.current++;setClipboardText("");setNotice("Resepti tallennettu.");window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));closeCamera()}catch{setNotice("Tallennus epäonnistui.")}
+    try{const entries=JSON.parse(localStorage.getItem(key)||"[]");const list=Array.isArray(entries)?entries:[];const id=savedId||String(Date.now());const entry={id,title:parsed.title,ingredients:parsed.ingredients.map(item=>[item.amount,item.unit,item.name].filter(x=>x!==null&&x!=="").join(" ")).join("\n"),instructions:parsed.instructions,sourceText:source,servings:parsed.servings,createdAt:new Date().toISOString()};localStorage.setItem(key,JSON.stringify([entry,...list.filter((item:{id:string})=>item.id!==id)]));setSavedId(id);refreshNotebook();load(source);setImporting(false);setEditing(false);setText("");setDraft(null);setExpandedRecipe(null);setRecipePopup(null);clipboardRequestRef.current++;setClipboardText("");setNotice("Resepti tallennettu.");window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"));closeCamera()}catch{setNotice("Tallennus epäonnistui.")}
   };
   useEffect(()=>{refreshNotebook();return()=>{cameraStreamRef.current?.getTracks().forEach(track=>track.stop())}},[]);
 
@@ -224,16 +223,14 @@ export default function JustiinaRecipeEditor({onSearchIngredients,onCameraOpenCh
         </div>
         <button type="button" onClick={()=>{setCameraOpen(true);setCameraShot(false);setCameraReview(false);setCameraError("");setImagePreview("");setText("");setSavedId(null);stopCamera()}} aria-label="Filmaa resepti" className="rounded-xl border-2 border-[#b99d62] bg-[#1b291f] p-1"><img src="/ui/scanner/scanner-idle.webp" alt="Filmaa" className="mx-auto h-[clamp(84px,25vw,120px)] w-full object-contain"/></button>
       </div>
-      <div className="mt-3 flex justify-center"><input aria-label="Hae reseptiä omista" value={notebookFilter} onChange={event=>setNotebookFilter(event.target.value)} placeholder="Hae reseptiä omista..." className="min-w-0 w-[90%] rounded-lg border border-[#b99d62] bg-[#fffdf5] px-3 py-3 text-base"/></div>
       {importing&&!cameraOpen?<div className="mt-2">
         <textarea ref={textareaRef} aria-label="Reseptiteksti" rows={6} value={text} onChange={event=>{clipboardRequestRef.current++;setText(event.target.value)}} onPaste={()=>{clipboardRequestRef.current++}} placeholder="Liitä reseptin teksti tai kirjoita itse" className="min-h-[140px] w-full resize-y rounded-xl border-2 border-[#27412a] bg-[#fffdf5] p-3 text-base font-normal leading-relaxed text-[#27412a]"/>
         <button type="button" onClick={()=>{clipboardRequestRef.current++;setText("");setImporting(false);setEditing(false);setDraft(null);setSavedId(null);setNotice("")}} className="mt-1 text-xs text-[#76684f] underline">Peruuta</button>
       </div>:<div className="mt-3 min-h-[120px] max-h-[min(36dvh,340px)] space-y-2 overflow-y-auto overscroll-contain rounded-lg bg-[#fff9e9] p-1">
-        {notebook.filter(item=>[item.title,item.ingredients].join(" ").toLocaleLowerCase("fi").includes(notebookFilter.toLocaleLowerCase("fi"))).map(item=><div key={item.id} className="rounded-xl border border-[#b99d62] bg-[#fff5d8] p-2">
+        {notebook.map(item=><div key={item.id} className="rounded-xl border border-[#b99d62] bg-[#fff5d8] p-2">
           <div className="flex items-center gap-2"><button type="button" aria-expanded={expandedRecipe===item.id} aria-controls={expandedRecipe===item.id?"mobile-recipe-popup":undefined} className="min-w-0 flex-1 break-words text-left font-bold" onClick={event=>showRecipe(item.id,event.currentTarget)}>{item.title} {expandedRecipe===item.id?"▴":"▾"}</button><button type="button" onClick={()=>{clipboardRequestRef.current++;setText(recipeSource(item));setSavedId(item.id);setImporting(true);setEditing(false);setExpandedRecipe(null);setRecipePopup(null);setNotice("")}} className="shrink-0 rounded-full bg-[#174c3a] px-2 py-1 text-xs font-bold text-white">Muokkaa</button><button type="button" onClick={()=>{if(!window.confirm("Poistetaanko resepti?"))return;try{const next=notebook.filter(recipe=>recipe.id!==item.id);localStorage.setItem("ziiply-desktop-vihkonen-recipes-v1",JSON.stringify(next));setNotebook(next);setExpandedRecipe(null);setRecipePopup(null);window.dispatchEvent(new Event("ziiply-vihkonen-recipes-changed"))}catch{setNotice("Reseptin poisto epäonnistui.")}}} className="shrink-0 rounded-full border border-[#923c2f] px-2 py-1 text-xs text-[#923c2f]">Poista</button></div>
         </div>)}
         {!notebook.length&&<p className="p-3 text-center text-xs font-normal text-[#76684f]">Ei vielä tallennettuja reseptejä.</p>}
-        {notebook.length>0&&!notebook.some(item=>[item.title,item.ingredients].join(" ").toLocaleLowerCase("fi").includes(notebookFilter.toLocaleLowerCase("fi")))&&<p className="p-3 text-center text-xs text-[#76684f]">Ei hakua vastaavia reseptejä.</p>}
       </div>}
     </div>
     {hydrated&&expandedRecipe&&recipePopup&&typeof document!=="undefined"&&createPortal(<>
