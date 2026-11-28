@@ -3448,7 +3448,6 @@ function MobilePage() {
   const stableBootSnapshotHydratedRefV505 = useRef(false);
   const [bootGpsRefreshSettledV785, setBootGpsRefreshSettledV785] = useState(false);
   const stableBootWarmupDoneRefV505 = useRef(false);
-  const searchReadyBadgeBootArmedRefV505 = useRef(false);
   const STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505 = "ziiply-stable-boot-snapshot-v536";
 
   useEffect(() => {
@@ -4172,7 +4171,6 @@ function MobilePage() {
   // V552: Hae-huomioanimaatio sallitaan vasta, kun sijainti on vahvistettu
   // tämän sivulatauksen aikana oikealla GPS-tuloksella tai käsin tehdyllä sijaintihaulla.
   // Pelkkä localStorage/stable snapshot -palautus ei saa pomputtaa suurennuslasia.
-  const searchReadyLocationConfirmedThisSessionRefV552 = useRef(false);
 
 
   function getDistanceMetersV391(
@@ -4793,38 +4791,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } catch {}
   }
 
-  const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
-  const [haeReadyBadgeTimerVisibleV520, setHaeReadyBadgeTimerVisibleV520] =
-    useState(false);
-  const previousSearchReadySignatureV320 = useRef("");
-  const suppressHaeReadyBadgeUntilRefV541 = useRef(0);
-
-  const searchReadySignatureV320 = storesReadyForSearch
-    ? [
-        storeCompareScope,
-        storeMode,
-        withinChain || "",
-        activeArea.sStoreId || "",
-        activeArea.sStoreName || "",
-        activeArea.kStoreId || "",
-        activeArea.kStoreName || "",
-        activeArea.sLocalStoreId || "",
-        activeArea.sLocalStoreName || "",
-        activeArea.kLocalStoreId || "",
-        activeArea.kLocalStoreName || "",
-      ].join("|")
-    : "";
-
-  useEffect(() => {
-    if (!storesReadyForSearch) {
-      previousSearchReadySignatureV320.current = "";
-      setHaeReadyBadgeTimerVisibleV520(false);
-      return;
-    }
-
-    // V541: älä päivitä previousSearchReadySignaturea täällä.
-    // Badge-efekti tekee päivityksen vain silloin, kun ilmoitus oikeasti kuuluu näyttää.
-  }, [storesReadyForSearch, searchReadySignatureV320]);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [previewNormalResults, setPreviewNormalResults] = useState<Product[]>([]);
@@ -4943,61 +4909,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [searchPanelOpen, activeResult]);
 
 
-  function suppressHaeReadyBadgeV541(durationMs = 1800) {
-    suppressHaeReadyBadgeUntilRefV541.current = Date.now() + durationMs;
-    setHaeReadyBadgeTimerVisibleV520(false);
-  }
-
-  const haeReadyBadgeAllowedViewV520 =
-    !searchPanelOpen &&
-    !cartModalOpen &&
-    !eanModalOpen &&
-    activeResult === "none" &&
-    activeAssistant === null &&
-    !loadingNormal &&
-    !loadingOffers &&
-    !singleProductCompareLoading &&
-    Date.now() >= suppressHaeReadyBadgeUntilRefV541.current;
-
-  const haeReadyBadgeVisibleV502 =
-    storesReadyForSearch &&
-    haeReadyBadgeAllowedViewV520 &&
-    haeReadyBadgeTimerVisibleV520;
-
-  const haeReadyBadgeTextV502 = haeReadyBadgeVisibleV502 ? "Voit hakea" : "";
-
-  useEffect(() => {
-    if (
-      !storesReadyForSearch ||
-      !haeReadyBadgeAllowedViewV520 ||
-      !searchReadyLocationConfirmedThisSessionRefV552.current
-    ) {
-      setHaeReadyBadgeTimerVisibleV520(false);
-      return;
-    }
-
-    // V541: Badge näytetään vain, kun kauppavalmiuden allekirjoitus oikeasti muuttuu.
-    // Pelkkä kortilta toiselle siirtyminen ei saa laukaista "Voit hakea" -ilmoitusta.
-    if (previousSearchReadySignatureV320.current === searchReadySignatureV320) {
-      return;
-    }
-
-    if (!searchReadyBadgeBootArmedRefV505.current) {
-      previousSearchReadySignatureV320.current = searchReadySignatureV320;
-      searchReadyBadgeBootArmedRefV505.current = true;
-      setHaeReadyBadgeTimerVisibleV520(false);
-      return;
-    }
-
-    previousSearchReadySignatureV320.current = searchReadySignatureV320;
-    setHaeReadyBadgeTimerVisibleV520(true);
-
-    const timer = window.setTimeout(() => {
-      setHaeReadyBadgeTimerVisibleV520(false);
-    }, 2200);
-
-    return () => window.clearTimeout(timer);
-  }, [storesReadyForSearch, haeReadyBadgeAllowedViewV520, searchReadySignatureV320]);
   const [eanInput, setEanInput] = useState("");
   const [eanLoading, setEanLoading] = useState(false);
   const [eanResults, setEanResults] = useState<EanSearchResult[]>([]);
@@ -11353,7 +11264,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V552: vasta onnistunut, vähintään yhden kaupan löytänyt sijaintihaku
       // vahvistaa Hae-huomioanimaation sijaintiehdon. Snapshot-hydraus ei käy täällä.
       if (storesWithDistanceV97.length > 0) {
-        searchReadyLocationConfirmedThisSessionRefV552.current = true;
       }
 
       if (storesWithDistanceV97.length === 0) {
@@ -19109,7 +19019,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V547: Kori avataan suoralla overlay-state-vaihdolla ilman vanhaa scroll/ref-hyppelyä.
     // V732: suora Kori avaa alkuperäisen käyttäjän korin, ei aiemmin valittua vertailukauppaa.
     setMobileCompareShoppingStoreKeyV732(null);
-    suppressHaeReadyBadgeV541();
     closeProductSelectionOverlay();
     setSearchPanelOpen(false);
     setShopsPanelOpen(false);
@@ -19121,7 +19030,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleCartModal() {
-    suppressHaeReadyBadgeV541();
 
     if (cart.length === 0) {
       setSearchPanelOpen(false);
@@ -19141,7 +19049,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function closeCartModal() {
-    suppressHaeReadyBadgeV541();
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
     setActiveResult("none");
@@ -19216,7 +19123,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     // V547: Vertailu avataan samalla suoralla overlay-logiikalla kuin uudet mobiilikortit.
-    suppressHaeReadyBadgeV541();
     closeProductSelectionOverlay();
     setRestoredCartPromptV320({ open: false, count: 0 });
     setSearchPanelOpen(false);
@@ -19282,7 +19188,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleComparisonView() {
-    suppressHaeReadyBadgeV541();
 
     if (cart.length === 0) {
       setSearchPanelOpen(false);
@@ -25363,39 +25268,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        {/* V531_HAE_READY_MICRO_BADGE_RENDER */}
-          {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-[39%] z-[10001] animate-[ziiplyMicroReady_2.15s_ease-out_forwards]">
-              <div className="relative rounded-[0.58rem] border-[2px] border-[#0b5b31] bg-[linear-gradient(180deg,#0c9143_0%,#087237_100%)] px-2.5 py-[3px] text-[9px] font-black italic leading-none text-[#fff1c8] shadow-[0_3px_0_#064a26,0_8px_18px_rgba(8,75,42,0.24),inset_0_0_0_1px_rgba(255,255,255,0.20)]">
-                <span className="absolute -left-[5px] -top-[6px] text-[10px] leading-none text-[#f8c94b] drop-shadow-[0_1px_0_#6c4a10]">✦</span>
-                {haeReadyBadgeTextV502}
-              </div>
-            </div>
-          ) : null}
-          <style jsx>{`
-            @keyframes ziiplyMicroReady {
-              0% {
-                opacity: 0;
-                transform: translate(-50%, 7px) scale(0.72) rotate(-2deg);
-              }
-              16% {
-                opacity: 1;
-                transform: translate(-50%, -2px) scale(1.04) rotate(-1deg);
-              }
-              28% {
-                opacity: 1;
-                transform: translate(-50%, 0) scale(1) rotate(0deg);
-              }
-              78% {
-                opacity: 1;
-                transform: translate(-50%, 0) scale(1) rotate(0deg);
-              }
-              100% {
-                opacity: 0;
-                transform: translate(-50%, 4px) scale(0.86) rotate(1deg);
-              }
-            }
-          `}</style>
           <div className="V507_BOTTOM_NAV_CLICK_LAYER relative z-[10000]">
 
         {/*
@@ -25434,7 +25306,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           onShopsClick={() => {
             if (mobileFuelMode) {setMobileFuelMode(false); setShopsPanelOpen(true); return;}
             gostaPanelStickyOpenRefV158.current = false;
-            suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
 
@@ -25462,7 +25333,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             if (searchPanelOpen && !notebookOpen) return;
             preloadSearchUiAssetsV774();
             gostaPanelStickyOpenRefV158.current = false;
-            suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
 
@@ -25486,7 +25356,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           }}
           onCartClick={() => {
             gostaPanelStickyOpenRefV158.current = false;
-            suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
 
@@ -25507,7 +25376,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           }}
           onCompareClick={() => {
             gostaPanelStickyOpenRefV158.current = false;
-            suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
 
