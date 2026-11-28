@@ -951,7 +951,7 @@ export default function ZiiplyMobileSearchCard({
               disabled={!onOpenCart}
               aria-label={cartItemCount > 0 ? `Ostoskori, ${cartItemCount} tuotetta` : "Ostoskori"}
               className={cx(
-                "relative flex h-11 w-11 place-self-center items-center justify-center rounded-full font-black transition active:translate-y-[1px]",
+                "relative flex h-11 w-11 place-self-center items-center justify-center rounded-xl font-black transition active:translate-y-[1px]",
                 cartItemCount > 0
                   ? "border-[3px] border-[#0b6330] bg-gradient-to-b from-[#fff7d8] to-[#dff1c9] shadow-[0_3px_0_rgba(91,72,44,0.20),inset_0_0_0_1px_rgba(255,255,255,0.72)]"
                   : "border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] text-[#4e4638] shadow-[inset_0_1px_0_rgba(255,255,255,0.86)] disabled:text-[#9d978b] disabled:opacity-70",
